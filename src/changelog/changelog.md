@@ -1,0 +1,9 @@
+# Changelog
+
+## 2025-02-10
+
+- added auth0 login/logout to the homepage using `@auth0/nextjs-auth0`
+- created `src/lib/auth0.ts` for the auth0 client and `src/proxy.ts` to handle the auth routes
+- main layout.tsx to use Auth0Provider and page.tsx and show login/logout depending on if you're signed in
+- added route protection in proxy.ts so you get redirected to login if you try to hit any page besides the homepage without being logged in
+- created some reusable components for main page and protected page
