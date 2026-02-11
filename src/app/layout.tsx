@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Auth0Provider } from "@auth0/nextjs-auth0";
 import { auth0 } from "@/lib/auth0";
@@ -24,8 +25,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // get the session from the auth0 client
   const session = await auth0.getSession();
+  // read the nonce set by proxy.ts so Next.js we can apply it to scripts
+  // const nonce = (await headers()).get("x-nonce") ?? "";
 
   return (
     <html lang="en">
