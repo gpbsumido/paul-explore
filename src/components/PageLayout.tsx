@@ -1,14 +1,14 @@
-import styles from "@/app/page.module.css";
-
-// wraps page content in the shared page/main structure
+// wraps page content in a centered page/main structure
 export default function PageLayout({
   children,
+  className,
 }: {
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>{children}</main>
+    <div className={className}>
+      <main>{children}</main>
     </div>
   );
 }

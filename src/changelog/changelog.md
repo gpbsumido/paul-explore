@@ -4,6 +4,9 @@
 
 - added CSP headers in proxy.ts with per-request nonces for inline scripts, locked everything else down to same-origin
 - layout.tsx reads the nonce from request headers so we can tag scripts with it
+- set up postcss with autoprefixer
+- styled protected page, use page.module.css as well as a specific module css for it
+- created reusable components
 
 ## 2025-02-10
 

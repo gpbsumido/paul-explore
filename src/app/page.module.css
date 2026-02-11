@@ -1,23 +1,13 @@
 .page {
-  --background: #fafafa;
-  --foreground: #fff;
-
-  --text-primary: #000;
-  --text-secondary: #666;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
   display: flex;
   min-height: 100vh;
   align-items: center;
   justify-content: center;
   font-family: var(--font-geist-sans);
-  background-color: var(--background);
+  background-color: #fafafa;
 }
 
-.main {
+.page main {
   display: flex;
   min-height: 100vh;
   width: 100%;
@@ -25,15 +15,13 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
-  background-color: var(--foreground);
+  background-color: #fff;
   padding: 120px 60px;
 }
 
 .intro {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
   gap: 24px;
 }
 
@@ -44,7 +32,7 @@
   line-height: 48px;
   letter-spacing: -2.4px;
   text-wrap: balance;
-  color: var(--text-primary);
+  color: #000;
 }
 
 .intro p {
@@ -52,62 +40,32 @@
   font-size: 18px;
   line-height: 32px;
   text-wrap: balance;
-  color: var(--text-secondary);
+  color: #666;
 }
 
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.ctas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.ctas a {
-  display: flex;
+.button {
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   height: 40px;
-  padding: 0 16px;
+  padding: 0 24px;
   border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  cursor: pointer;
-  width: fit-content;
+  background: #000;
+  color: #fafafa;
+  font-size: 14px;
   font-weight: 500;
+  transition: background 0.2s;
+  cursor: pointer;
 }
 
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
-}
-
-a.secondary {
-  border-color: var(--button-secondary-border);
-}
-
-/* Enable hover only on non-touch devices */
 @media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
+  .button:hover {
+    background: #383838;
   }
 }
 
 @media (max-width: 600px) {
-  .main {
+  .page main {
     padding: 48px 24px;
   }
 
@@ -123,19 +81,28 @@ a.secondary {
 }
 
 @media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
+  .page {
+    background-color: #000;
   }
 
-  .page {
-    --background: #000;
-    --foreground: #000;
+  .page main {
+    background-color: #000;
+  }
 
-    --text-primary: #ededed;
-    --text-secondary: #999;
+  .intro h1 {
+    color: #ededed;
+  }
 
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
+  .intro p {
+    color: #999;
+  }
+
+  .button {
+    background: #ededed;
+    color: #000;
+  }
+
+  .button:hover {
+    background: #ccc;
   }
 }
