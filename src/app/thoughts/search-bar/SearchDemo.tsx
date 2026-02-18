@@ -1,3 +1,5 @@
+"use client";
+
 import { Demo_Threads } from "@/lib/threads";
 import { useState } from "react";
 import styles from "../styling/styling.module.css";
