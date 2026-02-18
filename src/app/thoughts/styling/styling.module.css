@@ -1,0 +1,298 @@
+.phone {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  font-family: var(--font-geist-sans);
+  background: var(--color-background);
+}
+
+/* ---- Top bar (iMessage-style) ---- */
+
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  background: var(--color-background);
+  border-bottom: 0.5px solid var(--color-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.backLink {
+  position: absolute;
+  left: 16px;
+  color: #007aff;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.contactName {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.contactSub {
+  font-size: 11px;
+  color: var(--color-muted);
+}
+
+.themeBtn {
+  position: absolute;
+  right: 16px;
+}
+
+/* ---- Chat area ---- */
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 12px 40px;
+  flex: 1;
+}
+
+/* ---- Timestamp ---- */
+
+.timestamp {
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-muted);
+  padding: 12px 0 4px;
+  font-weight: 500;
+}
+
+/* ---- Bubbles ---- */
+
+.bubble {
+  max-width: 78%;
+  padding: 8px 12px;
+  font-size: 15px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  position: relative;
+  clear: both;
+}
+
+.bubble code {
+  font-family: var(--font-geist-mono);
+  font-size: 13px;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+/* Sent (right, blue) */
+.sent {
+  align-self: flex-end;
+  background: #007aff;
+  color: #fff;
+  border-radius: 18px 18px 4px 18px;
+  margin-left: auto;
+}
+
+.sent code {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Received (left, gray) */
+.received {
+  align-self: flex-start;
+  background: var(--color-surface-raised);
+  color: var(--color-foreground);
+  border-radius: 18px 18px 18px 4px;
+  margin-right: auto;
+}
+
+.received code {
+  background: var(--color-border);
+}
+
+/* Spacing between different senders */
+.sentFirst {
+  margin-top: 8px;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.sentLast {
+  border-radius: 18px 4px 18px 18px;
+}
+
+.sentMiddle {
+  border-radius: 18px 4px 4px 18px;
+}
+
+.sentOnly {
+  border-radius: 18px 18px 18px 18px;
+}
+
+.receivedFirst {
+  margin-top: 8px;
+  border-radius: 18px 18px 18px 4px;
+}
+
+.receivedLast {
+  border-radius: 4px 18px 18px 18px;
+}
+
+.receivedMiddle {
+  border-radius: 4px 18px 18px 4px;
+}
+
+.receivedOnly {
+  border-radius: 18px 18px 18px 18px;
+}
+
+/* ---- Demo bubbles (full-width, neutral) ---- */
+
+.demoBubble {
+  align-self: center;
+  width: 100%;
+  max-width: 100%;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.demoLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted);
+}
+
+.demoRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.demoInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- Code block bubble ---- */
+
+.codeBubble {
+  align-self: center;
+  width: 100%;
+  max-width: 100%;
+  background: var(--color-neutral-900);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin: 8px 0;
+  font-family: var(--font-geist-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: #e5e5e5;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ---- Swatch grid ---- */
+
+.swatchGrid {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 4px;
+}
+
+.swatchColor {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 0.5px solid var(--color-border);
+}
+
+/* ---- Emoji reaction (decorative) ---- */
+
+.reaction {
+  font-size: 11px;
+  margin-top: -2px;
+  margin-bottom: 2px;
+  padding: 2px 6px;
+  background: var(--color-surface-raised);
+  border: 0.5px solid var(--color-border);
+  border-radius: 10px;
+  width: fit-content;
+}
+
+.reactionSent {
+  align-self: flex-end;
+}
+
+.reactionReceived {
+  align-self: flex-start;
+}
+
+/* ---- Typing indicator ---- */
+
+.typingDots {
+  align-self: flex-start;
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--color-surface-raised);
+  border-radius: 18px;
+  margin-top: 8px;
+}
+
+.typingDots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-muted);
+  animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typingDots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typingDots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 480px) {
+  .phone {
+    max-width: 100%;
+  }
+}
