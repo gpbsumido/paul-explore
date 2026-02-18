@@ -5,24 +5,6 @@ import styles from "./protected.module.css";
 
 const threads = [
   {
-    name: "Home",
-    href: "/",
-    preview: "Take me back to the homepage, users redirected back here",
-    time: "Yesterday",
-    color: "#ff9500",
-    initials: "HM",
-    unread: false,
-  },
-  {
-    name: "Authentication",
-    href: "/protected",
-    preview: "THIS. Protected page. Auth0 + proxy middleware + CSP headers",
-    time: "Yesterday",
-    color: "#34c759",
-    initials: "AU",
-    unread: false,
-  },
-  {
     name: "Styling Decisions",
     href: "/thoughts/styling",
     preview: "CSS Modules vs Tailwind v4 + design tokens",
