@@ -31,6 +31,15 @@ const threads = [
     initials: "SD",
     unread: false,
   },
+  {
+    name: "NBA Stats",
+    href: "/fantasy/nba/player/stats",
+    preview: "View player stats for your favorite NBA team",
+    time: "Today",
+    color: "#007aff",
+    initials: "NS",
+    unread: false,
+  },
 ];
 
 export default async function Protected() {
