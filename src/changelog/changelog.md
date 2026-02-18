@@ -2,6 +2,11 @@
 
 ## 2025-02-17
 
+- redirect to the protected page from the main page if logged in
+- update style of protected page to match thoughts of design page (IOS messaging list)
+
+## 2025-02-17
+
 - added design system with design tokens (colors, spacing, typography, shadows, radii, z-index, transitions) in `src/styles/tokens.css`
 - installed tailwind v4 on top of CSS — `@theme` block bridges tokens into tailwind utilities so both systems share the same values
 - fixed global resets (`* { padding: 0 }`) overriding tailwind utilities by wrapping them in `@layer base`
