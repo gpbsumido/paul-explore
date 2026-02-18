@@ -139,27 +139,30 @@ export default function StatsContent() {
     "px-2.5 py-2 text-foreground border-b border-border whitespace-nowrap";
 
   return (
-    <div className="flex flex-col min-h-dvh max-w-[580px] mx-auto font-sans bg-background">
+    <div className="flex flex-col min-h-dvh max-w-[480px] mx-auto font-sans bg-background">
       {/* ---- Top bar ---- */}
-      <div className="sticky top-0 z-20 flex items-center justify-center px-4 py-3 bg-background/80 border-b border-border backdrop-blur-xl">
+      <div className="sticky top-0 z-20 flex items-center justify-center px-4 py-3 bg-background border-b border-border backdrop-blur-xl">
         <Link
           href="/protected"
           className="absolute left-4 text-[#007aff] text-sm flex items-center gap-0.5"
         >
-          <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
             <path
-              d="M7 1L1 7l6 6"
+              d="M9 1L2 8l7 7"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-          Back
+          &nbsp;Back
         </Link>
-        <span className="text-[17px] font-bold text-foreground -tracking-[0.2px]">
-          Player Stats
-        </span>
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-base font-semibold text-foreground">
+            Player Stats
+          </span>
+          <span className="text-[11px] text-muted">Fantasy</span>
+        </div>
         <div className="absolute right-4">
           <ThemeToggle />
         </div>
