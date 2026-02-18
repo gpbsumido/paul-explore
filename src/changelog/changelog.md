@@ -4,6 +4,7 @@
 
 - Main page updated to use the design tokens so it respons to theme toggle
 - removed some uneccessary threads since they basically do nothing
+- update logout Auth0 strategy to remove confirmation before logout
 
 ## 2026-02-18
 
