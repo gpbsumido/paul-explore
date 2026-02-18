@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { auth0 } from "@/lib/auth0";
 import ThemeToggle from "@/components/ThemeToggle";
+import ThreadList from "./ThreadList";
 import styles from "./protected.module.css";
 
 const threads = [
@@ -31,6 +31,24 @@ const threads = [
     initials: "SD",
     unread: false,
   },
+  {
+    name: "Search Bar",
+    href: "/thoughts/search-bar",
+    preview: "Server/client split, filtering, and trade-offs",
+    time: "4:26 PM",
+    color: "#5856d6",
+    initials: "SB",
+    unread: false,
+  },
+  {
+    name: "NBA Stats",
+    href: "/fantasy/nba/player/stats",
+    preview: "View player stats for your favorite NBA team",
+    time: "Today",
+    color: "#007aff",
+    initials: "NS",
+    unread: false,
+  },
 ];
 
 export default async function Protected() {
@@ -47,56 +65,8 @@ export default async function Protected() {
           <ThemeToggle />
         </div>
 
-        {/* ---- Search ---- */}
-        <div className={styles.searchBar}>
-          <input
-            type="text"
-            className={styles.searchInput}
-            placeholder="Search"
-            readOnly
-          />
-        </div>
-
-        {/* ---- Thread list ---- */}
-        <div className={styles.threadList}>
-          {threads.map((thread) => (
-            <Link
-              key={thread.href}
-              href={thread.href}
-              className={styles.thread}
-            >
-              {thread.unread && <div className={styles.unreadDot} />}
-              <div
-                className={styles.threadAvatar}
-                style={{ background: thread.color }}
-              >
-                {thread.initials}
-              </div>
-              <div className={styles.threadBody}>
-                <div className={styles.threadTop}>
-                  <span className={styles.threadName}>{thread.name}</span>
-                  <span className={styles.threadTime}>{thread.time}</span>
-                </div>
-                <span className={styles.threadPreview}>{thread.preview}</span>
-              </div>
-              <svg
-                className={styles.threadChevron}
-                width="8"
-                height="14"
-                viewBox="0 0 8 14"
-                fill="none"
-              >
-                <path
-                  d="M1 1l6 6-6 6"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
-          ))}
-        </div>
+        {/* ---- Search + Thread list ---- */}
+        <ThreadList threads={threads} />
 
         {/* ---- Bottom bar ---- */}
         <div className={styles.bottomBar}>

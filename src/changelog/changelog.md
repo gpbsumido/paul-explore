@@ -1,11 +1,26 @@
 # Changelog
 
-## 2025-02-17
+## 2026-02-18
+
+- made the search bar on the protected page functional — extracted `ThreadList` client component from the server page to keep auth server-side while enabling client-side filtering by name, href, and preview
+- added `/thoughts/search-bar` page explaining the server/client split, filtering approach, trade-offs, with a live search demo
+- aligned NBA stats page header to match the thoughts pages (two-line title, same chevron, 480px container)
+
+## 2026-02-18
+
+- added NBA Player Stats page at `/fantasy/nba/player/stats` — select a team, view player stats (PTS, REB, AST, STL, BLK), sortable columns, progressive batch loading with skeleton rows
+- created Next.js API route proxies (`/api/nba/teams`, `/api/nba/players/[teamId]`, `/api/nba/stats/[playerId]`) to forward requests to the backend while keeping `connect-src 'self'` CSP intact
+- updated `proxy.ts` to treat `/api/` paths as public so API routes skip the auth redirect
+- added error handling per player row — failed stat fetches show an error row; clicking it opens a modal explaining NBA API rate limits and caching
+- added "NBA Stats" thread to the protected page thread list
+- stats page uses Tailwind utility classes (no CSS module), design tokens via `@theme` bridge, dark mode support, existing UI components (Button, Modal, ThemeToggle)
+
+## 2026-02-17
 
 - redirect to the protected page from the main page if logged in
 - update style of protected page to match thoughts of design page (IOS messaging list)
 
-## 2025-02-17
+## 2026-02-17
 
 - added design system with design tokens (colors, spacing, typography, shadows, radii, z-index, transitions) in `src/styles/tokens.css`
 - installed tailwind v4 on top of CSS — `@theme` block bridges tokens into tailwind utilities so both systems share the same values
@@ -15,7 +30,7 @@
 - created accessible UI primitives: Button (4 variants, 3 sizes, loading state), Input (label association, error/helper text, aria-describedby), Modal (portal, focus trap, escape/backdrop dismiss, scroll lock, focus restoration)
 - added `/thoughts/styling` page explaining the styling decisions, trade-offs, and live component demos
 
-## 2025-02-10
+## 2026-02-10
 
 - added CSP headers in proxy.ts with per-request nonces for inline scripts, locked everything else down to same-origin
 - layout.tsx reads the nonce from request headers so we can tag scripts with it
@@ -23,7 +38,7 @@
 - styled protected page, use page.module.css as well as a specific module css for it
 - created reusable components
 
-## 2025-02-10
+## 2026-02-10
 
 - added auth0 login/logout to the homepage using `@auth0/nextjs-auth0`
 - created `src/lib/auth0.ts` for the auth0 client and `src/proxy.ts` to handle the auth routes
