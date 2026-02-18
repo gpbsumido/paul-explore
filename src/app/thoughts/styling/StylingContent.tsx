@@ -5,58 +5,7 @@ import Link from "next/link";
 import { Button, Input, Modal } from "@/components/ui";
 import ThemeToggle from "@/components/ThemeToggle";
 import styles from "./styling.module.css";
-
-/* ---- Helpers ---- */
-
-function Sent({
-  children,
-  pos = "only",
-}: {
-  children: React.ReactNode;
-  pos?: "first" | "middle" | "last" | "only";
-}) {
-  const posClass =
-    pos === "first"
-      ? styles.sentFirst
-      : pos === "middle"
-        ? styles.sentMiddle
-        : pos === "last"
-          ? styles.sentLast
-          : styles.sentOnly;
-  return (
-    <div className={`${styles.bubble} ${styles.sent} ${posClass}`}>
-      {children}
-    </div>
-  );
-}
-
-function Received({
-  children,
-  pos = "only",
-}: {
-  children: React.ReactNode;
-  pos?: "first" | "middle" | "last" | "only";
-}) {
-  const posClass =
-    pos === "first"
-      ? styles.receivedFirst
-      : pos === "middle"
-        ? styles.receivedMiddle
-        : pos === "last"
-          ? styles.receivedLast
-          : styles.receivedOnly;
-  return (
-    <div className={`${styles.bubble} ${styles.received} ${posClass}`}>
-      {children}
-    </div>
-  );
-}
-
-function Timestamp({ children }: { children: React.ReactNode }) {
-  return <div className={styles.timestamp}>{children}</div>;
-}
-
-/* ---- Main component ---- */
+import { Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function StylingContent() {
   const [modalOpen, setModalOpen] = useState(false);
