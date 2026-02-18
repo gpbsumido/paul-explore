@@ -2,6 +2,11 @@
 
 ## 2026-02-18
 
+- Main page updated to use the design tokens so it respons to theme toggle
+- removed some uneccessary threads since they basically do nothing
+
+## 2026-02-18
+
 - made the search bar on the protected page functional — extracted `ThreadList` client component from the server page to keep auth server-side while enabling client-side filtering by name, href, and preview
 - added `/thoughts/search-bar` page explaining the server/client split, filtering approach, trade-offs, with a live search demo
 - aligned NBA stats page header to match the thoughts pages (two-line title, same chevron, 480px container)
