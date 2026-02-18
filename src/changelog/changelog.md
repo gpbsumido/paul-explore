@@ -1,5 +1,14 @@
 # Changelog
 
+## 2025-02-18
+
+- added NBA Player Stats page at `/fantasy/nba/player/stats` — select a team, view player stats (PTS, REB, AST, STL, BLK), sortable columns, progressive batch loading with skeleton rows
+- created Next.js API route proxies (`/api/nba/teams`, `/api/nba/players/[teamId]`, `/api/nba/stats/[playerId]`) to forward requests to the backend while keeping `connect-src 'self'` CSP intact
+- updated `proxy.ts` to treat `/api/` paths as public so API routes skip the auth redirect
+- added error handling per player row — failed stat fetches show an error row; clicking it opens a modal explaining NBA API rate limits and caching
+- added "NBA Stats" thread to the protected page thread list
+- stats page uses Tailwind utility classes (no CSS module), design tokens via `@theme` bridge, dark mode support, existing UI components (Button, Modal, ThemeToggle)
+
 ## 2025-02-17
 
 - redirect to the protected page from the main page if logged in
