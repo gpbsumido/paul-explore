@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth0 } from "@/lib/auth0";
+import ThemeToggle from "@/components/ThemeToggle";
 import styles from "./protected.module.css";
 
 const threads = [
@@ -43,6 +44,7 @@ export default async function Protected() {
         {/* ---- Top bar ---- */}
         <div className={styles.topBar}>
           <span className={styles.topBarTitle}>Messages</span>
+          <ThemeToggle />
         </div>
 
         {/* ---- Search ---- */}
