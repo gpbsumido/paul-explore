@@ -3,12 +3,18 @@
 export default function AuthButton({
   loggedIn,
   className,
+  style,
 }: {
   loggedIn: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
-    <a className={className} href={loggedIn ? "/auth/logout" : "/auth/login"}>
+    <a
+      className={className}
+      style={style}
+      href={loggedIn ? "/auth/logout" : "/auth/login"}
+    >
       {loggedIn ? "Log out" : "Log in"}
     </a>
   );

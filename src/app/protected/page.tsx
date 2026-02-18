@@ -11,7 +11,16 @@ const threads = [
     time: "3:04 PM",
     color: "#007aff",
     initials: "SD",
-    unread: false,
+    unread: true,
+  },
+  {
+    name: "Landing Page",
+    href: "/thoughts/landing-page",
+    preview: "Sections and Functionality Preview",
+    time: "5:12 PM",
+    color: "#FF7373",
+    initials: "LP",
+    unread: true,
   },
   {
     name: "Search Bar",
