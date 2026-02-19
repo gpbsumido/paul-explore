@@ -134,9 +134,9 @@ export default function StatsContent() {
 
   // base styles for table cells and headers
   const thBase =
-    "px-2.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted bg-background border-b border-border whitespace-nowrap cursor-pointer select-none transition-colors hover:text-foreground";
+    "px-2.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-white/70 dark:text-white/60 border-b border-black/10 dark:border-white/10 whitespace-nowrap cursor-pointer select-none transition-colors hover:text-white";
   const tdBase =
-    "px-2.5 py-2 text-foreground border-b border-border whitespace-nowrap";
+    "px-2.5 py-2 text-white dark:text-white border-b border-black/5 dark:border-white/5 whitespace-nowrap";
 
   return (
     <div className="flex flex-col min-h-dvh max-w-[480px] mx-auto font-sans bg-background">
@@ -211,111 +211,114 @@ export default function StatsContent() {
         )}
 
         {!error && (rows.length > 0 || remaining > 0) && (
-          <div className="flex-1 overflow-x-auto">
-            <table className="w-full min-w-[480px] border-collapse text-[13px]">
-              <thead className="sticky top-0 z-[1]">
-                <tr>
-                  {COLUMNS.map((col, i) => (
-                    <th
-                      key={col.key}
-                      onClick={() => handleSort(col.key)}
-                      className={`${thBase} ${i === 0 ? "sticky left-0 z-[2] min-w-[130px] text-left" : "text-right"}`}
-                    >
-                      {col.label}
-                      {sortKey === col.key && (
-                        <span className="inline-block ml-0.5 text-[10px] opacity-60">
-                          {sortAsc ? "▲" : "▼"}
-                        </span>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sortedRows.map((row, rowIdx) => (
-                  <tr
-                    key={row.id}
-                    className={row.error ? "cursor-pointer" : undefined}
-                    onClick={
-                      row.error ? () => setErrorModalOpen(true) : undefined
-                    }
-                  >
-                    {row.error ? (
-                      <>
-                        <td
-                          className={`${tdBase} sticky left-0 z-[1] min-w-[130px] ${rowIdx % 2 === 0 ? "bg-error-50 dark:bg-error-950" : "bg-error-50 dark:bg-error-950"}`}
-                        >
-                          <span className="font-medium">{row.name}</span>
-                        </td>
-                        <td
-                          colSpan={COLUMNS.length - 1}
-                          className={`${tdBase} bg-error-50 dark:bg-error-950`}
-                        >
-                          <span className="text-error-500 text-xs italic">
-                            Failed to load stats
+          <div className="flex-1 bg-gradient-to-br from-secondary-600 to-primary-700 dark:from-secondary-900 dark:to-primary-950">
+            <div className="overflow-x-auto rounded-xl m-3 border border-black/10 bg-white/25 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/10 dark:shadow-xl">
+              <table className="w-full min-w-[480px] border-collapse text-[13px]">
+                <thead className="sticky top-0 z-[1]">
+                  <tr>
+                    {COLUMNS.map((col, i) => (
+                      <th
+                        key={col.key}
+                        onClick={() => handleSort(col.key)}
+                        className={`${thBase} ${i === 0 ? "sticky left-0 z-[2] min-w-[130px] text-left" : "text-right"}`}
+                      >
+                        {col.label}
+                        {sortKey === col.key && (
+                          <span className="inline-block ml-0.5 text-[10px] opacity-60">
+                            {sortAsc ? "▲" : "▼"}
                           </span>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td
-                          className={`${tdBase} sticky left-0 z-[1] min-w-[130px] ${rowIdx % 2 === 0 ? "bg-surface" : "bg-surface-raised"}`}
-                        >
-                          <span className="font-medium">{row.name}</span>
-                        </td>
-                        <td
-                          className={`${tdBase} text-right ${rowIdx % 2 === 0 ? "bg-surface" : "bg-surface-raised"}`}
-                        >
-                          <span className="text-muted text-[11px] ml-1">
-                            {row.pos}
-                          </span>
-                        </td>
-                        {[
-                          row.stats!.games_played,
-                          row.stats!.pts?.toFixed(1),
-                          row.stats!.reb?.toFixed(1),
-                          row.stats!.ast?.toFixed(1),
-                          row.stats!.stl?.toFixed(1),
-                          row.stats!.blk?.toFixed(1),
-                        ].map((val, j) => (
-                          <td
-                            key={j}
-                            className={`${tdBase} text-right ${rowIdx % 2 === 0 ? "bg-surface" : "bg-surface-raised"}`}
-                          >
-                            {val}
-                          </td>
-                        ))}
-                      </>
-                    )}
+                        )}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-                {remaining > 0 &&
-                  Array.from({ length: remaining }).map((_, i) => {
-                    const rowIdx = rows.length + i;
-                    const bg =
-                      rowIdx % 2 === 0 ? "bg-surface" : "bg-surface-raised";
-                    return (
-                      <tr key={`skel-${i}`}>
-                        <td
-                          className={`${tdBase} sticky left-0 z-[1] min-w-[130px] ${bg}`}
-                        >
-                          <div className="h-3.5 w-[120px] rounded bg-surface-raised animate-pulse" />
-                        </td>
-                        {Array.from({ length: COLUMNS.length - 1 }).map(
-                          (_, j) => (
+                </thead>
+                <tbody>
+                  {sortedRows.map((row, rowIdx) => (
+                    <tr
+                      key={row.id}
+                      className={`${row.error ? "cursor-pointer" : ""} ${rowIdx % 2 === 1 ? "bg-white/10 dark:bg-white/5" : ""}`}
+                      onClick={
+                        row.error ? () => setErrorModalOpen(true) : undefined
+                      }
+                    >
+                      {row.error ? (
+                        <>
+                          <td
+                            className={`${tdBase} sticky left-0 z-[1] min-w-[130px] bg-red-500/20 dark:bg-red-400/10`}
+                          >
+                            <span className="font-medium">{row.name}</span>
+                          </td>
+                          <td
+                            colSpan={COLUMNS.length - 1}
+                            className={`${tdBase} bg-red-500/20 dark:bg-red-400/10`}
+                          >
+                            <span className="text-red-200 dark:text-red-300 text-xs italic">
+                              Failed to load stats
+                            </span>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td
+                            className={`${tdBase} sticky left-0 z-[1] min-w-[130px] ${rowIdx % 2 === 1 ? "bg-white/10 dark:bg-white/5" : ""}`}
+                          >
+                            <span className="font-medium">{row.name}</span>
+                          </td>
+                          <td
+                            className={`${tdBase} text-right`}
+                          >
+                            <span className="text-white/60 dark:text-white/50 text-[11px] ml-1">
+                              {row.pos}
+                            </span>
+                          </td>
+                          {[
+                            row.stats!.games_played,
+                            row.stats!.pts?.toFixed(1),
+                            row.stats!.reb?.toFixed(1),
+                            row.stats!.ast?.toFixed(1),
+                            row.stats!.stl?.toFixed(1),
+                            row.stats!.blk?.toFixed(1),
+                          ].map((val, j) => (
                             <td
                               key={j}
-                              className={`${tdBase} text-right ${bg}`}
+                              className={`${tdBase} text-right`}
                             >
-                              <div className="h-3.5 w-9 rounded bg-surface-raised animate-pulse ml-auto" />
+                              {val}
                             </td>
-                          ),
-                        )}
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
+                          ))}
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                  {remaining > 0 &&
+                    Array.from({ length: remaining }).map((_, i) => {
+                      const rowIdx = rows.length + i;
+                      return (
+                        <tr
+                          key={`skel-${i}`}
+                          className={rowIdx % 2 === 1 ? "bg-white/10 dark:bg-white/5" : ""}
+                        >
+                          <td
+                            className={`${tdBase} sticky left-0 z-[1] min-w-[130px] ${rowIdx % 2 === 1 ? "bg-white/10 dark:bg-white/5" : ""}`}
+                          >
+                            <div className="h-3.5 w-[120px] rounded bg-white/20 dark:bg-white/10 animate-pulse" />
+                          </td>
+                          {Array.from({ length: COLUMNS.length - 1 }).map(
+                            (_, j) => (
+                              <td
+                                key={j}
+                                className={`${tdBase} text-right`}
+                              >
+                                <div className="h-3.5 w-9 rounded bg-white/20 dark:bg-white/10 animate-pulse ml-auto" />
+                              </td>
+                            ),
+                          )}
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
