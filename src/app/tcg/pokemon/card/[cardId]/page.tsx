@@ -1,5 +1,6 @@
 import TCGdex from "@tcgdex/sdk";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import { typeStyle } from "@/lib/tcg";
@@ -97,7 +98,16 @@ export default async function CardDetailPage({
               )}
               {card.regulationMark && <Stat label="Regulation" value={card.regulationMark} />}
               {card.retreat !== undefined && (
-                <Stat label="Retreat" value={`${card.retreat} ◆`} />
+                <Stat
+                  label="Retreat"
+                  value={
+                    card.retreat === 0
+                      ? "Free"
+                      : Array.from({ length: card.retreat }).map((_, i) => (
+                          <EnergyIcon key={i} type="Colorless" />
+                        ))
+                  }
+                />
               )}
             </div>
 
@@ -112,7 +122,7 @@ export default async function CardDetailPage({
                       </span>
                       <span className="text-sm font-bold text-foreground">{ability.name}</span>
                     </div>
-                    <p className="text-sm text-muted leading-relaxed">{ability.effect}</p>
+                    <p className="text-sm text-muted leading-relaxed">{parseEnergyText(ability.effect)}</p>
                   </div>
                 ))}
               </Section>
@@ -126,7 +136,11 @@ export default async function CardDetailPage({
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
                         {attack.cost && attack.cost.length > 0 && (
-                          <span className="text-xs text-muted shrink-0">{attack.cost.join(" ")}</span>
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            {attack.cost.map((type, j) => (
+                              <EnergyIcon key={j} type={type} />
+                            ))}
+                          </div>
                         )}
                         <span className="text-sm font-bold text-foreground truncate">{attack.name}</span>
                       </div>
@@ -135,7 +149,7 @@ export default async function CardDetailPage({
                       )}
                     </div>
                     {attack.effect && (
-                      <p className="text-sm text-muted leading-relaxed">{attack.effect}</p>
+                      <p className="text-sm text-muted leading-relaxed">{parseEnergyText(attack.effect)}</p>
                     )}
                   </div>
                 ))}
@@ -152,8 +166,9 @@ export default async function CardDetailPage({
                       Weakness
                     </span>
                     {card.weaknesses.map((w) => (
-                      <span key={w.type} className={`text-sm font-bold ${typeStyle(w.type).split(" ")[1]}`}>
-                        {w.type} {w.value}
+                      <span key={w.type} className="flex items-center gap-1 text-sm font-bold text-foreground">
+                        <EnergyIcon type={w.type} />
+                        {w.value}
                       </span>
                     ))}
                   </div>
@@ -164,8 +179,9 @@ export default async function CardDetailPage({
                       Resistance
                     </span>
                     {card.resistances.map((r) => (
-                      <span key={r.type} className={`text-sm font-bold ${typeStyle(r.type).split(" ")[1]}`}>
-                        {r.type} {r.value}
+                      <span key={r.type} className="flex items-center gap-1 text-sm font-bold text-foreground">
+                        <EnergyIcon type={r.type} />
+                        {r.value}
                       </span>
                     ))}
                   </div>
@@ -176,7 +192,7 @@ export default async function CardDetailPage({
             {/* Trainer/Energy effect */}
             {card.effect && (
               <Section title={card.trainerType ?? card.energyType ?? "Effect"}>
-                <p className="text-sm text-muted leading-relaxed">{card.effect}</p>
+                <p className="text-sm text-muted leading-relaxed">{parseEnergyText(card.effect)}</p>
               </Section>
             )}
 
@@ -199,11 +215,49 @@ export default async function CardDetailPage({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function EnergyIcon({ type }: { type: string }) {
+  return (
+    <Image
+      src={`/energy/${type}.png`}
+      alt={type}
+      title={type}
+      width={20}
+      height={20}
+      unoptimized
+      className="object-contain inline align-middle"
+    />
+  );
+}
+
+const ENERGY_CODE: Record<string, string> = {
+  C: "Colorless",
+  D: "Darkness",
+  N: "Dragon",
+  Y: "Fairy",
+  F: "Fighting",
+  R: "Fire",
+  G: "Grass",
+  L: "Lightning",
+  M: "Metal",
+  P: "Psychic",
+  W: "Water",
+};
+
+function parseEnergyText(text: string): React.ReactNode[] {
+  return text.split(/(\{[A-Z]\})/).map((part, i) => {
+    const match = part.match(/^\{([A-Z])\}$/);
+    if (match && ENERGY_CODE[match[1]]) {
+      return <EnergyIcon key={i} type={ENERGY_CODE[match[1]]} />;
+    }
+    return part;
+  });
+}
+
+function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[10px] uppercase tracking-widest text-muted font-bold">{label}</span>
-      <span className="text-sm text-foreground font-semibold">{value}</span>
+      <span className="text-sm text-foreground font-semibold flex items-center gap-0.5">{value}</span>
     </div>
   );
 }
