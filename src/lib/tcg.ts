@@ -1,3 +1,15 @@
+/**
+ * Minimal card shape returned by the /api/tcg/cards list endpoint.
+ * Full card detail lives at /api/tcg/cards/:id.
+ */
+export type CardResume = {
+  id: string;
+  name: string;
+  /** Base CDN URL — append /low.webp or /high.webp to get the actual image */
+  image?: string;
+  localId: string;
+};
+
 export const POKEMON_TYPES = [
   "Colorless",
   "Darkness",

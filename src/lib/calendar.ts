@@ -9,7 +9,7 @@ import {
   getHours,
   parseISO,
 } from "date-fns";
-import type { CalendarView, CalendarEvent } from "@/types/calendar";
+import type { CalendarView, CalendarEvent, EventCard } from "@/types/calendar";
 
 export const DAY_LABELS = [
   "Sun",
@@ -100,7 +100,7 @@ export function formatHeading(date: Date, view: CalendarView): string {
   }
 }
 
-/** Fetch all events within a date range (ISO strings). */
+// fetch events within date range (ISO strings)
 export async function fetchEvents(
   start: string,
   end: string,
@@ -112,7 +112,7 @@ export async function fetchEvents(
   return data.events as CalendarEvent[];
 }
 
-/** Create a new event. The backend assigns the id. */
+// create new event, id from backend
 export async function createEvent(
   event: Omit<CalendarEvent, "id">,
 ): Promise<CalendarEvent> {
@@ -126,7 +126,7 @@ export async function createEvent(
   return data.event as CalendarEvent;
 }
 
-/** Partially update an existing event by id. */
+// update exisitng event
 export async function updateEvent(
   id: string,
   fields: Partial<Omit<CalendarEvent, "id">>,
@@ -141,8 +141,66 @@ export async function updateEvent(
   return data.event as CalendarEvent;
 }
 
-/** Delete an event by id. */
+// delete event
 export async function deleteEvent(id: string): Promise<void> {
   const res = await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete event");
+}
+
+// fetch event cards
+export async function fetchEventCards(eventId: string): Promise<EventCard[]> {
+  const res = await fetch(`/api/calendar/events/${eventId}/cards`);
+  if (!res.ok) throw new Error("Failed to fetch event cards");
+  const data = await res.json();
+  return data.cards as EventCard[];
+}
+
+// attach card to event
+export async function addCardToEvent(
+  eventId: string,
+  card: {
+    cardId: string;
+    cardName: string;
+    cardSetId?: string;
+    cardSetName?: string;
+    cardImageUrl?: string;
+    quantity?: number;
+    notes?: string;
+  },
+): Promise<EventCard> {
+  const res = await fetch(`/api/calendar/events/${eventId}/cards`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(card),
+  });
+  if (!res.ok) throw new Error("Failed to add card to event");
+  const data = await res.json();
+  return data.card as EventCard;
+}
+
+// update card info
+export async function updateEventCard(
+  eventId: string,
+  entryId: string,
+  fields: { quantity?: number; notes?: string },
+): Promise<EventCard> {
+  const res = await fetch(`/api/calendar/events/${eventId}/cards/${entryId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Failed to update card");
+  const data = await res.json();
+  return data.card as EventCard;
+}
+
+// remove card from event
+export async function removeCardFromEvent(
+  eventId: string,
+  entryId: string,
+): Promise<void> {
+  const res = await fetch(`/api/calendar/events/${eventId}/cards/${entryId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to remove card from event");
 }
