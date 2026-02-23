@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-02-23 - version 0.1.8
+
+- functionality to attach Pokémon cards to calendar events (can track what you're bringing or targeting to event?)
+- new `event_cards` table in the DB, card search in the event modal with debounced input reusing the our browse endpoint
+- cards are staged locally while editing and only written to the backend on save — keeps it from making a bunch of requests while you're still picking cards
+- extracted `useDebounce` to its own hook and `CardResume` type to `lib/tcg.ts` since both the TCG browser and the card search needed them
+
 ## 2026-02-23
 
 - connect calendar to backend

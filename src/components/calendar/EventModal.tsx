@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useState, useEffect, useId } from "react";
 import { format, formatISO, addHours, parseISO } from "date-fns";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
-import type { CalendarEvent } from "@/types/calendar";
-import { EVENT_COLORS, toInputValue } from "@/lib/calendar";
+import type { CalendarEvent, DraftCard } from "@/types/calendar";
+import type { CardResume } from "@/lib/tcg";
+import {
+  EVENT_COLORS,
+  toInputValue,
+  fetchEventCards,
+  addCardToEvent,
+  updateEventCard,
+  removeCardFromEvent,
+} from "@/lib/calendar";
 import { LABEL_CLASS } from "@/components/ui/styles";
+import CardSearch from "./CardSearch";
+import AttachedCardsList from "./AttachedCardsList";
 
 interface EventModalProps {
   initialDate: Date;
@@ -43,6 +53,72 @@ export default function EventModal({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // ---------------------------------------------------------------------------
+  // Cards state
+  // ---------------------------------------------------------------------------
+  const [cards, setCards] = useState<DraftCard[]>([]);
+  // ids of already-persisted cards that the user removed this session
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  // load attached cards when opening an existing event
+  useEffect(() => {
+    if (!event?.id) return;
+    fetchEventCards(event.id)
+      .then((fetched) => setCards(fetched.map((c) => ({ ...c }))))
+      .catch(() => {
+        // non-fatal — cards section just starts empty if the fetch fails
+      });
+  }, [event?.id]);
+
+  /** Stage a card locally. Actual write happens on save so we can batch it with the event. */
+  function handleCardSelected(card: CardResume) {
+    // silently skip if the same card is already in the list
+    if (cards.some((c) => c.cardId === card.id)) return;
+
+    const draft: DraftCard = {
+      id: crypto.randomUUID(), // temp key — replaced by server id after save
+      eventId: event?.id ?? "",
+      cardId: card.id,
+      cardName: card.name,
+      cardImageUrl: card.image,
+      quantity: 1,
+      createdAt: new Date().toISOString(),
+      pending: true,
+    };
+    setCards((prev) => [...prev, draft]);
+  }
+
+  function handleQuantityChange(entryId: string, quantity: number) {
+    setCards((prev) =>
+      prev.map((c) => (c.id === entryId ? { ...c, quantity } : c)),
+    );
+  }
+
+  function handleNotesChange(entryId: string, notes: string) {
+    setCards((prev) =>
+      prev.map((c) => (c.id === entryId ? { ...c, notes } : c)),
+    );
+  }
+
+  /** Remove a card from the list. Persisted cards are queued for deletion on save. */
+  function handleRemove(entryId: string) {
+    const card = cards.find((c) => c.id === entryId);
+    if (!card) return;
+    if (!card.pending) {
+      setRemovedIds((prev) => new Set([...prev, entryId]));
+    }
+    setCards((prev) => prev.filter((c) => c.id !== entryId));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Save / delete
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Persists the event then syncs card changes against it.
+   * Order matters: event must exist before we can write cards to it,
+   * which is why card ops happen after `onSave` resolves.
+   */
   async function handleSave() {
     if (!title.trim()) {
       setTitleError(true);
@@ -50,12 +126,13 @@ export default function EventModal({
     }
     setSaving(true);
     setSaveError(null);
-    // convert the naive datetime-local strings (no tz) to ISO with local offset
-    // e.g. "2026-02-24T00:00" → "2026-02-24T00:00:00-05:00" so it's in UTC in db
+
+    // datetime-local inputs produce naive strings (no tz); add local offset
+    // so Postgres stores the right UTC moment instead of treating it as UTC midnight
     const toISO = (s: string) => formatISO(parseISO(s));
 
     try {
-      await onSave({
+      const savedEvent: CalendarEvent = {
         id: event?.id ?? crypto.randomUUID(),
         title: title.trim(),
         description: description.trim() || undefined,
@@ -65,7 +142,39 @@ export default function EventModal({
         endDate: toISO(allDay ? `${endDate.split("T")[0]}T23:59` : endDate),
         allDay,
         color,
-      });
+      };
+      await onSave(savedEvent);
+
+      const eventId = savedEvent.id;
+
+      // delete removed cards first so we don't hit any uniqueness issues
+      await Promise.all(
+        [...removedIds].map((id) =>
+          removeCardFromEvent(eventId, id).catch(() => null),
+        ),
+      );
+
+      // add pending cards and update in-place edits in parallel
+      await Promise.all(
+        cards.map(async (c) => {
+          if (c.pending) {
+            return addCardToEvent(eventId, {
+              cardId: c.cardId,
+              cardName: c.cardName,
+              cardSetId: c.cardSetId,
+              cardSetName: c.cardSetName,
+              cardImageUrl: c.cardImageUrl,
+              quantity: c.quantity,
+              notes: c.notes,
+            }).catch(() => null);
+          }
+          return updateEventCard(eventId, c.id, {
+            quantity: c.quantity,
+            notes: c.notes,
+          }).catch(() => null);
+        }),
+      );
+
       onClose();
     } catch {
       setSaveError("Couldn't save the event. Please try again.");
@@ -89,6 +198,7 @@ export default function EventModal({
       open
       onClose={onClose}
       aria-label={isEdit ? "Edit event" : "New event"}
+      className="overflow-y-auto max-h-[90vh]"
     >
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-semibold text-foreground">
@@ -111,6 +221,7 @@ export default function EventModal({
         <Input
           label="Title"
           required
+          autoComplete="off"
           value={title}
           onChange={(e) => {
             setTitle(e.target.value);
@@ -188,14 +299,26 @@ export default function EventModal({
             ))}
           </div>
         </div>
+
+        {/* Cards */}
+        <div className="space-y-2 pt-1">
+          <p className={LABEL_CLASS}>Cards</p>
+          <AttachedCardsList
+            cards={cards}
+            onQuantityChange={handleQuantityChange}
+            onNotesChange={handleNotesChange}
+            onRemove={handleRemove}
+          />
+          <CardSearch onSelectCard={handleCardSelected} />
+        </div>
       </div>
 
-      {/* Actions */}
       {saveError && (
         <p className="mt-3 text-xs text-red-600 dark:text-red-400">
           {saveError}
         </p>
       )}
+
       <div className="flex items-center justify-between mt-5">
         {isEdit && onDelete ? (
           <Button
