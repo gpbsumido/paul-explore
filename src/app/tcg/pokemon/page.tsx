@@ -1,7 +1,13 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import BrowseContent from "./BrowseContent";
+
+export const metadata: Metadata = {
+  title: "Pokémon TCG | Browse",
+  description: "Browse and search Pokémon TCG cards by name or type with infinite scroll.",
+};
 
 export default function PokemonTcgPage() {
   return (
