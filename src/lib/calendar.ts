@@ -9,7 +9,12 @@ import {
   getHours,
   parseISO,
 } from "date-fns";
-import type { CalendarView, CalendarEvent, EventCard } from "@/types/calendar";
+import type {
+  CalendarView,
+  CalendarEvent,
+  EventCard,
+  EventSearchFilters,
+} from "@/types/calendar";
 
 export const DAY_LABELS = [
   "Sun",
@@ -108,6 +113,30 @@ export async function fetchEvents(
   const params = new URLSearchParams({ start, end });
   const res = await fetch(`/api/calendar/events?${params}`);
   if (!res.ok) throw new Error("Failed to fetch events");
+  const data = await res.json();
+  return data.events as CalendarEvent[];
+}
+
+// fetch a single event — returns null on 404, throws on other errors
+export async function fetchEvent(id: string): Promise<CalendarEvent | null> {
+  const res = await fetch(`/api/calendar/events/${id}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Failed to fetch event");
+  const data = await res.json();
+  return data.event as CalendarEvent;
+}
+
+// search/list events with optional filters; omit all to get everything
+export async function searchEvents(
+  filters: EventSearchFilters = {},
+): Promise<CalendarEvent[]> {
+  const params = new URLSearchParams();
+  if (filters.start) params.set("start", filters.start);
+  if (filters.end) params.set("end", filters.end);
+  if (filters.cardName) params.set("cardName", filters.cardName);
+  const qs = params.toString();
+  const res = await fetch(`/api/calendar/events${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw new Error("Failed to search events");
   const data = await res.json();
   return data.events as CalendarEvent[];
 }

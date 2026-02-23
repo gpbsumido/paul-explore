@@ -32,6 +32,8 @@ A full-stack personal calendar. Four views — day, week, month, year — all na
 
 You can also attach Pokémon cards to any event — useful for tournament prep or tracking what you're planning to bring to a trade meetup. The card search reuses the existing TCGdex browse endpoint with a debounced input. Card changes are staged locally while the modal is open and flushed to the backend in a single batch when you save, so it doesn't make API calls as you're still picking.
 
+There's also a dedicated events section outside the grid. `/calendar/events` is a searchable, filterable list of all your events — title search runs client-side against whatever the backend returned, card name and date range filters hit the backend and re-fetch. `/calendar/events/[id]` is the detail view: full event info plus the attached card grid. Both pages share a layout with a sticky nav so neither one has to re-implement it.
+
 The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/calendar/events`) which attach an Auth0 access token server-side before forwarding to the Express backend — the token never reaches the browser. A `useCalendarEvents` hook fetches the correct date window for each view and re-fetches automatically on navigation.
 
 Built without a calendar library — `date-fns` handles all date math (grid construction, view navigation, slot matching). This was a deliberate choice: FullCalendar's full React support requires a paid license, and the custom build keeps the bundle small and gives full control over the interaction model.
@@ -93,13 +95,14 @@ src/
 │   ├── api/nba/          # NBA API proxy routes
 │   ├── api/tcg/          # TCGdex SDK proxy routes
 │   ├── calendar/         # Calendar page + CalendarContent
+│   │   └── events/       # Events list (/calendar/events) + detail (/calendar/events/[id])
 │   ├── fantasy/nba/      # Fantasy league history + player stats pages
 │   ├── landing/          # Landing page with preview
 │   ├── protected/        # Auth-gated hub page
 │   ├── tcg/              # Pokémon TCG browser (browse, sets, card detail, pocket)
 │   └── thoughts/         # Write-ups on design decisions (styling, search, TCG)
 ├── components/
-│   ├── calendar/         # Calendar views, event modal, CardSearch, AttachedCardsList
+│   ├── calendar/         # Calendar views, event modal, CardSearch, AttachedCardsList, EventCardTile
 │   └── ui/               # Shared primitives (Button, IconButton, Input, Textarea, Modal)
 ├── hooks/                # useCalendarEvents, useDebounce
 ├── lib/                  # Shared utilities (calendar helpers, TCG helpers, auth0 client)
