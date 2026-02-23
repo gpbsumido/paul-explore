@@ -36,7 +36,7 @@ export async function proxy(request: Request) {
     `default-src 'self'`,
     `script-src 'nonce-${nonce}' 'strict-dynamic'`,
     `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data:`,
+    `img-src 'self' data: https://assets.tcgdex.net`,
     `font-src 'self'`,
     `connect-src 'self'`,
     `object-src 'none'`,

@@ -1,0 +1,16 @@
+import { NextResponse } from "next/server";
+import TCGdex from "@tcgdex/sdk";
+import { toPlain } from "@/lib/tcg";
+
+const tcgdex = new TCGdex("en");
+
+export async function GET() {
+  const resumes = await tcgdex.serie.list();
+  if (!resumes) return NextResponse.json([]);
+
+  // Fetch full series data (includes sets) in parallel
+  const series = await Promise.all(resumes.map((s) => tcgdex.serie.get(s.id)));
+  const valid = series.filter(Boolean);
+
+  return NextResponse.json(toPlain(valid));
+}
