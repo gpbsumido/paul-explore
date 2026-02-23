@@ -18,7 +18,8 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const initialPageRef = useRef(parseInt(searchParams.get("page") ?? "1", 10));
+  const rawPage = parseInt(searchParams.get("page") ?? "1", 10);
+  const initialPageRef = useRef(Number.isNaN(rawPage) ? 1 : rawPage);
   const isFirstMountRef = useRef(true);
   const [loadedPages, setLoadedPages] = useState(initialPageRef.current);
 
@@ -26,14 +27,8 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const pageRef = useRef(1);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const hasMoreRef = useRef(hasMore);
-  const loadingRef = useRef(loading);
-  const cardsLengthRef = useRef(0);
-  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
-  useEffect(() => { loadingRef.current = loading; }, [loading]);
-  useEffect(() => { cardsLengthRef.current = cards.length; }, [cards]);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -44,11 +39,15 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
 
   const fetchCards = useCallback(
     async (pg: number, append: boolean) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       setLoading(true);
       setError(null);
       try {
         const params = new URLSearchParams({ setId, page: pg.toString() });
-        const res = await fetch(`/api/tcg/cards?${params}`);
+        const res = await fetch(`/api/tcg/cards?${params}`, { signal: controller.signal });
         if (!res.ok) throw new Error("Failed to fetch cards");
         const data: CardResume[] = await res.json();
 
@@ -61,11 +60,12 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
           const seen = new Set<string>();
           setCards(data.filter((c) => seen.has(c.id) ? false : seen.add(c.id) && true));
         }
-        setHasMore(data.length === PER_PAGE);
-      } catch {
+        setHasMore(data.length >= PER_PAGE);
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
         setError("Failed to load cards.");
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     },
     [setId]
@@ -76,7 +76,6 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
       isFirstMountRef.current = false;
       const targetPage = initialPageRef.current;
       if (targetPage > 1) {
-        pageRef.current = targetPage;
         const restore = async () => {
           for (let p = 1; p <= targetPage; p++) {
             await fetchCards(p, p > 1);
@@ -86,31 +85,29 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
         return;
       }
     }
-    pageRef.current = 1;
     fetchCards(1, false);
   }, [fetchCards]);
 
+  // Assign directly in render — always fresh, no useEffect wrapper needed
+  const onScrollRef = useRef<() => void>(() => {});
+  onScrollRef.current = () => {
+    if (!hasMore || loading || cards.length === 0) return;
+    const nextPage = loadedPages + 1;
+    setLoadedPages(nextPage);
+    fetchCards(nextPage, true);
+  };
+
+  // Stable observer — created once, calls fresh ref on each intersection
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (
-          entry.isIntersecting &&
-          hasMoreRef.current &&
-          !loadingRef.current &&
-          cardsLengthRef.current > 0
-        ) {
-          pageRef.current += 1;
-          setLoadedPages(pageRef.current);
-          fetchCards(pageRef.current, true);
-        }
-      },
+      ([entry]) => { if (entry.isIntersecting) onScrollRef.current(); },
       { rootMargin: "200px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [fetchCards, cards.length]);
+  }, []);
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-4">
@@ -130,7 +127,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => { pageRef.current = 1; fetchCards(1, false); }}
+            onClick={() => fetchCards(1, false)}
           >
             Retry
           </Button>

@@ -39,7 +39,8 @@ export default function BrowseContent() {
   useEffect(() => { setType(urlType); }, [urlType]);
 
   // Capture initial page from URL (only meaningful on first mount)
-  const initialPageRef = useRef(parseInt(searchParams.get("page") ?? "1", 10));
+  const rawPage = parseInt(searchParams.get("page") ?? "1", 10);
+  const initialPageRef = useRef(Number.isNaN(rawPage) ? 1 : rawPage);
   const isFirstMountRef = useRef(true);
   const [loadedPages, setLoadedPages] = useState(initialPageRef.current);
 
@@ -53,27 +54,25 @@ export default function BrowseContent() {
   }, [debouncedSearch, type, loadedPages, router]);
 
   const [cards, setCards] = useState<CardResume[]>([]);
-  const pageRef = useRef(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const hasMoreRef = useRef(hasMore);
-  const loadingRef = useRef(loading);
-  const cardsLengthRef = useRef(0);
-  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
-  useEffect(() => { loadingRef.current = loading; }, [loading]);
-  useEffect(() => { cardsLengthRef.current = cards.length; }, [cards]);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchCards = useCallback(
     async (q: string, t: string, pg: number, append: boolean) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       setLoading(true);
       setError(null);
       try {
         const params = new URLSearchParams({ page: pg.toString() });
         if (q) params.set("q", q);
         if (t) params.set("type", t);
-        const res = await fetch(`/api/tcg/cards?${params}`);
+        const res = await fetch(`/api/tcg/cards?${params}`, { signal: controller.signal });
         if (!res.ok) throw new Error("Failed to fetch cards");
         const data: CardResume[] = await res.json();
         if (append) {
@@ -85,11 +84,12 @@ export default function BrowseContent() {
           const seen = new Set<string>();
           setCards(data.filter((c) => (seen.has(c.id) ? false : seen.add(c.id) && true)));
         }
-        setHasMore(data.length === PER_PAGE);
-      } catch {
+        setHasMore(data.length >= PER_PAGE);
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
         setError("Failed to load cards. Try again.");
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     },
     []
@@ -101,7 +101,6 @@ export default function BrowseContent() {
       const targetPage = initialPageRef.current;
       if (targetPage > 1) {
         // Restore scroll state: load pages 1–N sequentially
-        pageRef.current = targetPage;
         const restore = async () => {
           for (let p = 1; p <= targetPage; p++) {
             await fetchCards(debouncedSearch, type, p, p > 1);
@@ -112,32 +111,30 @@ export default function BrowseContent() {
       }
     }
     // Normal reset (filter changed or first mount at page 1)
-    pageRef.current = 1;
     setLoadedPages(1);
     fetchCards(debouncedSearch, type, 1, false);
   }, [debouncedSearch, type, fetchCards]);
 
+  // Assign directly in render — always fresh, no useEffect wrapper needed
+  const onScrollRef = useRef<() => void>(() => {});
+  onScrollRef.current = () => {
+    if (!hasMore || loading || cards.length === 0) return;
+    const nextPage = loadedPages + 1;
+    setLoadedPages(nextPage);
+    fetchCards(debouncedSearch, type, nextPage, true);
+  };
+
+  // Stable observer — created once, calls fresh ref on each intersection
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (
-          entry.isIntersecting &&
-          hasMoreRef.current &&
-          !loadingRef.current &&
-          cardsLengthRef.current > 0
-        ) {
-          pageRef.current += 1;
-          setLoadedPages(pageRef.current);
-          fetchCards(debouncedSearch, type, pageRef.current, true);
-        }
-      },
+      ([entry]) => { if (entry.isIntersecting) onScrollRef.current(); },
       { rootMargin: "200px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [debouncedSearch, type, fetchCards, cards.length]);
+  }, []);
 
   function handleTypeClick(t: string) {
     setType((prev) => (prev === t ? "" : t));

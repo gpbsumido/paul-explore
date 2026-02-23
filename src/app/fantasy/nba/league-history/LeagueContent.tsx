@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui";
@@ -144,14 +144,20 @@ export default function LeagueContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchLeague = useCallback(async (yr: number) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setError(null);
     setTeams([]);
     setMembers([]);
 
     try {
-      const res = await fetch(`/api/nba/league/${yr}`);
+      const res = await fetch(`/api/nba/league/${yr}`, { signal: controller.signal });
       if (!res.ok) throw new Error("Failed to load league data");
       const data: ESPNLeagueResponse = await res.json();
 
@@ -163,9 +169,10 @@ export default function LeagueContent() {
       );
       setTeams(sorted);
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, []);
 

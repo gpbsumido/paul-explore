@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import styles from "../styling/styling.module.css";
@@ -38,13 +40,13 @@ export default function TcgContent() {
 
         <Sent pos="first">more than that</Sent>
         <Sent pos="middle">
-          there&apos;s a browse + search page with debounced filtering, a sets
-          index, per-set card grids, full card detail pages, and a separate TCG
-          Pocket page that groups sets by expansion family
+          browse + search with debounced filtering, sets index grouped by
+          series, per-set card grids, full card detail pages, and a TCG Pocket
+          page that groups sets by expansion family
         </Sent>
         <Sent pos="last">
-          all powered by the{" "}
-          <code>@tcgdex/sdk</code> TypeScript SDK wrapping the TCGdex REST API
+          all powered by the <code>@tcgdex/sdk</code> TypeScript SDK wrapping
+          the TCGdex REST API
         </Sent>
 
         <Received>why not just call the API from the browser</Received>
@@ -54,14 +56,13 @@ export default function TcgContent() {
           <code>connect-src &apos;self&apos;</code>
         </Sent>
         <Sent pos="middle">
-          that means the browser can only make fetch calls to the same origin.
-          hitting <code>api.tcgdex.net</code> directly from client-side code
-          gets blocked
+          so the browser can only fetch from the same origin. hitting{" "}
+          <code>api.tcgdex.net</code> directly gets blocked
         </Sent>
         <Sent pos="last">
-          so every SDK call lives in a Next.js API route. the browser talks to{" "}
-          <code>/api/tcg/cards</code>, the route handler calls the SDK, returns
-          plain JSON
+          every SDK call lives in a Next.js API route. the browser talks to{" "}
+          <code>/api/tcg/cards</code>, the route calls the SDK, returns plain
+          JSON
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -72,61 +73,50 @@ fetch("https://api.tcgdex.net/v2/en/cards")
 fetch("/api/tcg/cards?q=charizard")`}
         </div>
 
-        <Received>is that a pain to set up</Received>
-
-        <Sent pos="first">
-          honestly pretty clean once you have the pattern. each route is
-          15-20 lines
-        </Sent>
-        <Sent pos="last">
-          the upside: you control what gets exposed, you can add caching or
-          auth checks at that layer, and CSP stays strict for free
-        </Sent>
-
         <Timestamp>9:19 AM</Timestamp>
 
         <Received pos="first">
-          what about server components — you have Next.js
-        </Received>
-        <Received pos="last">
-          couldn&apos;t the server just call the SDK directly
+          what about server components — couldn&apos;t the server just call the
+          SDK directly
         </Received>
 
         <Sent pos="first">yes, and some pages do exactly that</Sent>
         <Sent pos="middle">
           the set detail page is a server component — it calls the SDK at
-          render time to get set metadata, logo, release year, and legality.
-          that part is fast and doesn&apos;t need interactivity
+          render time for metadata, logo, release year, legality. fast, no
+          interactivity needed
         </Sent>
         <Sent pos="last">
-          but the card grid below it needs pagination, so that&apos;s a client
-          component that calls the API route. the split looks like this:
+          but the card grid needs pagination, so that&apos;s a client component
+          calling the API route. clear split: server owns the header, client
+          owns the scroll
         </Sent>
 
         <div className={styles.codeBubble}>
-          {`// server component — rendered on the server
+          {`// server component
 export default async function SetDetailPage({ params }) {
-  const set = await tcgdex.set.get(setId); // direct SDK call
+  const set = await tcgdex.set.get(setId); // SDK call
   return (
     <>
       <SetHeader set={set} />
-      <SetCardsGrid setId={setId} /> {/* client */}
+      <Suspense>
+        <SetCardsGrid setId={setId} /> {/* client */}
+      </Suspense>
     </>
   );
 }`}
         </div>
 
-        <Received>why not make the whole page a client component</Received>
+        <Received>why the Suspense wrapper</Received>
 
         <Sent pos="first">
-          the set header — name, logo, card count, legality badges — never
-          changes. fetching that on the server means it&apos;s in the initial
-          HTML, no loading state, no layout shift
+          <code>SetCardsGrid</code> uses <code>useSearchParams</code> to read
+          the page number from the URL
         </Sent>
         <Sent pos="last">
-          if the whole page were client-side, you&apos;d see the header
-          skeleton flash on every navigation. server component gives you that
-          content instantly
+          Next.js App Router requires a <code>Suspense</code> boundary around
+          any client component that calls <code>useSearchParams</code> during
+          server rendering — otherwise you get a build error
         </Sent>
 
         <Timestamp>9:24 AM</Timestamp>
@@ -134,146 +124,221 @@ export default async function SetDetailPage({ params }) {
         <Received>tell me about the pagination</Received>
 
         <Sent pos="first">
-          took a couple iterations. first version used <code>useState</code>{" "}
-          for the page number
-        </Sent>
-        <Sent pos="middle">
-          problem: when you reset on a new search, the state update and the
-          fetch compete. stale closures mean the fetch might still reference
-          the old page number
+          the page number is <code>loadedPages</code> state — not a ref
         </Sent>
         <Sent pos="last">
-          switched to <code>useRef</code>. it&apos;s mutable and synchronous —
-          no re-render, no closure staleness
+          it syncs to the URL as you scroll —{" "}
+          <code>?page=3</code> — so sharing or back-navigating restores exactly
+          where you were
+        </Sent>
+
+        <Received pos="first">infinite scroll — how does that work</Received>
+        <Received pos="last">
+          i always see IntersectionObserver break in weird ways
+        </Received>
+
+        <Sent pos="first">
+          there&apos;s a sentinel div at the bottom of the list. an
+          IntersectionObserver watches it — when it enters the viewport, load
+          the next page
+        </Sent>
+        <Sent pos="middle">
+          the tricky part: observers only fire on intersection state{" "}
+          <em>changes</em>. on a wide screen, the sentinel might already be
+          visible after the first load — the state never changes, so it never
+          fires again
+        </Sent>
+        <Sent pos="last">
+          fix: add <code>cards.length</code> to the observer effect&apos;s
+          dependency array. that reconnects the observer after every fetch,
+          which calls <code>observe()</code> fresh and immediately reports
+          current intersection state
+        </Sent>
+
+        <Received>
+          but the observer callback goes stale — how does it read current state
+        </Received>
+
+        <Sent pos="first">
+          event handler ref pattern. assign directly in the render body — no{" "}
+          <code>useEffect</code> wrapper. refs are mutable and don&apos;t need
+          to go through React&apos;s effect queue to stay current
+        </Sent>
+        <Sent pos="last">
+          the observer is created once (<code>[]</code> deps) and just calls{" "}
+          <code>onScrollRef.current()</code> — always fresh, always sees the
+          latest <code>loadedPages</code>, <code>hasMore</code>, and{" "}
+          <code>loading</code>. no individual state mirrors needed
         </Sent>
 
         <div className={styles.codeBubble}>
-          {`const pageRef = useRef(1);
+          {`// assigned directly in render — always fresh
+const onScrollRef = useRef(() => {});
+onScrollRef.current = () => {
+  if (!hasMore || loading || cards.length === 0) return;
+  const nextPage = loadedPages + 1;
+  setLoadedPages(nextPage);
+  fetchCards(search, type, nextPage, true);
+};
 
-// reset on filter change
+// stable observer — created once, never reconnects
 useEffect(() => {
-  pageRef.current = 1;
-  fetchCards(debouncedSearch, type, 1, false);
-}, [debouncedSearch, type, fetchCards]);
+  const observer = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) onScrollRef.current();
+  }, { rootMargin: "200px" });
+  observer.observe(sentinelRef.current);
+  return () => observer.disconnect();
+}, []);`}
+        </div>
 
-// load more
-function handleLoadMore() {
-  pageRef.current += 1;
-  fetchCards(debouncedSearch, type, pageRef.current, true);
+        <Timestamp>9:31 AM</Timestamp>
+
+        <Received>you mentioned URL-driven state</Received>
+        <Received pos="last">how does that work with filters</Received>
+
+        <Sent pos="first">
+          search, type filter, and page number all live in the URL as query
+          params
+        </Sent>
+        <Sent pos="middle">
+          on mount, the component reads the URL to initialize state. as the
+          user types or scrolls, the URL updates with{" "}
+          <code>router.replace(..., {"{"} scroll: false {"}"}</code>) — no
+          scroll jump
+        </Sent>
+        <Sent pos="last">
+          back/forward navigation changes the URL, which syncs back into state.
+          and if you share <code>?q=pikachu&type=Psychic&page=4</code>, the
+          recipient sees exactly that
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// write to URL whenever filters or page change
+useEffect(() => {
+  const params = new URLSearchParams();
+  if (debouncedSearch) params.set("q", debouncedSearch);
+  if (type) params.set("type", type);
+  if (loadedPages > 1) params.set("page", loadedPages.toString());
+  router.replace(\`/tcg/pokemon?\${params}\`, { scroll: false });
+}, [debouncedSearch, type, loadedPages, router]);`}
+        </div>
+
+        <Timestamp>9:37 AM</Timestamp>
+
+        <Received>what about loading states</Received>
+
+        <Sent pos="first">two layers</Sent>
+        <Sent pos="middle">
+          for server components that <code>await</code> data —{" "}
+          <code>loading.tsx</code> files next to the page. Next.js wraps them
+          in a Suspense boundary automatically and streams the skeleton HTML to
+          the browser while the server fetch runs
+        </Sent>
+        <Sent pos="last">
+          for the client-side infinite scroll append, skeleton card tiles are
+          injected into the grid while loading — same grid layout, same aspect
+          ratio, animate-pulse
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// append skeletons at the end of the real cards
+<div className="grid grid-cols-3 ...">
+  {cards.map(card => <CardTile key={card.id} card={card} />)}
+  {loading && Array.from({ length: 20 }).map((_, i) => (
+    <SkeletonCard key={\`sk-\${i}\`} />
+  ))}
+</div>`}
+        </div>
+
+        <Received pos="first">why bother with loading.tsx</Received>
+        <Received pos="last">
+          doesn&apos;t it only matter for client components
+        </Received>
+
+        <Sent pos="first">
+          actually the opposite — it&apos;s most useful for server components
+        </Sent>
+        <Sent pos="middle">
+          when a server component <code>await</code>s data, the page is blocked
+          until the fetch completes. without <code>loading.tsx</code>, the
+          browser stares at a blank page
+        </Sent>
+        <Sent pos="last">
+          with it, Next.js streams the skeleton HTML immediately via React
+          streaming SSR, then streams the real content once the fetch is done.
+          the browser never waits on a blank screen
+        </Sent>
+
+        <Timestamp>9:44 AM</Timestamp>
+
+        <Received>are you using a design system</Received>
+
+        <Sent pos="first">
+          yes — the app has shared <code>Button</code>, <code>Input</code>, and{" "}
+          <code>Modal</code> primitives
+        </Sent>
+        <Sent pos="middle">
+          the TCG pages use them throughout. retry buttons use{" "}
+          <code>{"<Button variant=\"outline\" size=\"sm\">"}</code>. the search
+          bar uses <code>Input</code> with <code>hideLabel</code> and{" "}
+          <code>size=&quot;sm&quot;</code> — visible label is hidden via{" "}
+          <code>sr-only</code> for accessibility but still there for screen
+          readers
+        </Sent>
+        <Sent pos="last">
+          the type filter pills use a new <code>size=&quot;xs&quot;</code>{" "}
+          variant added to the Button primitive — no fixed height, padding-only
+          sizing for compact pill shapes
+        </Sent>
+
+        <Timestamp>9:49 AM</Timestamp>
+
+        <Received pos="first">the card detail page looks good</Received>
+        <Received pos="last">what&apos;s going on with the energy icons</Received>
+
+        <Sent pos="first">
+          attack costs, retreat cost, weakness, and resistance all show the
+          actual Pokémon TCG energy symbols instead of text
+        </Sent>
+        <Sent pos="middle">
+          the icons are PNGs sourced from Bulbapedia, stored in{" "}
+          <code>public/energy/</code> and served locally — no external CDN
+          dependency
+        </Sent>
+        <Sent pos="last">
+          effect text also gets parsed — <code>{"{P}"}</code> in &quot;Discard 2{" "}
+          {"{P}"} Energy&quot; is replaced with the Psychic icon inline, using
+          a regex split on the <code>{"{X}"}</code> token pattern
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`function parseEnergyText(text: string): React.ReactNode[] {
+  return text.split(/(\\{[A-Z]\\})/).map((part, i) => {
+    const match = part.match(/^\\{([A-Z])\\}$/);
+    if (match && ENERGY_CODE[match[1]]) {
+      return <EnergyIcon key={i} type={ENERGY_CODE[match[1]]} />;
+    }
+    return part;
+  });
 }`}
         </div>
 
         <Received>was there anything surprising about the API itself</Received>
 
         <Sent pos="first">
-          yeah — the TCGdex API is 1-indexed for pagination but{" "}
+          a few things. TCGdex is 1-indexed for pagination but{" "}
           <code>paginate(0, 20)</code> and <code>paginate(1, 20)</code> both
           return the same first page silently
         </Sent>
         <Sent pos="middle">
-          so the original code started at page 0. first load-more click jumped
-          to page 1 — identical results, which deduplication correctly dropped
-          — so it looked like the button was broken
+          so the original code started at 0. first load-more jumped to 1 —
+          duplicate results, deduplication dropped them all, looked like nothing
+          happened
         </Sent>
         <Sent pos="last">
-          fix was simple once i found it: start at 1. but it took noticing that
-          &quot;no new cards&quot; was actually correct deduplication of a
-          duplicate API response
-        </Sent>
-
-        <Received pos="first">you mentioned deduplication</Received>
-        <Received pos="last">why does that exist</Received>
-
-        <Sent pos="first">
-          the TCGdex API occasionally returns duplicate entries in set
-          responses
-        </Sent>
-        <Sent pos="middle">
-          React needs unique keys — duplicate card IDs would cause a console
-          warning and potentially broken rendering
-        </Sent>
-        <Sent pos="last">
-          the fix is just a <code>Set</code> before rendering, and another
-          check on append to prevent re-adding already-loaded cards
-        </Sent>
-
-        <div className={styles.codeBubble}>
-          {`// dedup on append
-setCards((prev) => {
-  const seen = new Set(prev.map((c) => c.id));
-  return [...prev, ...data.filter((c) => !seen.has(c.id))];
-});`}
-        </div>
-
-        <Timestamp>9:31 AM</Timestamp>
-
-        <Received>what about sorting</Received>
-
-        <Sent pos="first">
-          all card queries sort by <code>localId ASC</code> — that&apos;s the
-          card number within a set
-        </Sent>
-        <Sent pos="middle">
-          important: the sort is applied in the API query, not in JavaScript
-          after the response
-        </Sent>
-        <Sent pos="last">
-          sorting 20 cards at a time client-side would look right locally but
-          break the moment you load more — each page is sorted independently
-          so the combined list wouldn&apos;t be in order
-        </Sent>
-
-        <div className={styles.codeBubble}>
-          {`// sort at the source, not after
-const query = Query.create()
-  .sort("localId", "ASC")
-  .paginate(page, 20);`}
-        </div>
-
-        <Received>tell me about the Pocket page</Received>
-
-        <Sent pos="first">
-          TCG Pocket has an interesting set structure — sets have IDs like{" "}
-          <code>A1</code>, <code>A1a</code>, <code>A2</code>,{" "}
-          <code>A2a</code>, <code>A2b</code>
-        </Sent>
-        <Sent pos="middle">
-          <code>A1a</code> is a mini-set expansion of <code>A1</code>. they
-          belong together visually but the API just gives you a flat list
-        </Sent>
-        <Sent pos="last">
-          so i group them client-side with a regex: <code>^([A-Z]\d+)</code>{" "}
-          extracts the base key. <code>A1</code> and <code>A1a</code> both
-          become <code>&quot;A1&quot;</code>, rendered as one section with the
-          mini-sets below the primary
-        </Sent>
-
-        <div className={styles.codeBubble}>
-          {`function expansionKey(id: string): string {
-  if (id.startsWith("P-")) return id; // promos stay solo
-  const m = id.match(/^([A-Z]\\d+)/);
-  return m ? m[1] : id;
-}`}
-        </div>
-
-        <Timestamp>9:38 AM</Timestamp>
-
-        <Received pos="first">SDK vs raw REST vs GraphQL</Received>
-        <Received pos="last">how do you feel about using the SDK</Received>
-
-        <Sent pos="first">
-          the SDK is great for DX — typed responses, query builder, no manual
-          URL construction
-        </Sent>
-        <Sent pos="middle">
-          the downside: SDK model instances carry a circular{" "}
-          <code>sdk</code> property reference back to the{" "}
-          <code>TCGdex</code> instance. <code>JSON.stringify</code> blows up on
-          that
-        </Sent>
-        <Sent pos="last">
-          had to write a <code>toPlain()</code> helper that strips those keys
-          before returning the response
+          also: SDK model instances carry a circular <code>sdk</code> property.{" "}
+          <code>JSON.stringify</code> blows up on it. had to write a{" "}
+          <code>toPlain()</code> helper that strips those keys in a replacer
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -286,75 +351,88 @@ const query = Query.create()
 }`}
         </div>
 
-        <Received>would you use direct REST instead next time</Received>
+        <Timestamp>9:56 AM</Timestamp>
+
+        <Received pos="first">SDK vs raw REST vs GraphQL</Received>
+        <Received pos="last">how do you feel about the SDK choice</Received>
 
         <Sent pos="first">
-          probably not — the type safety from the SDK is worth it
+          SDK is worth it for the type safety and query builder. direct REST
+          means maintaining your own types and parsing
         </Sent>
         <Sent pos="middle">
-          direct REST means maintaining your own type definitions and parsing
-          logic. the SDK handles all that
+          the <code>toPlain()</code> workaround is a one-time cost. card list
+          responses already return a <code>CardResume</code> shape — not the
+          full object — so the SDK handles the field scoping that GraphQL would
+          give you otherwise
         </Sent>
         <Sent pos="last">
-          the <code>toPlain()</code> workaround is a one-time cost and it&apos;s
-          4 lines. i&apos;d take that trade
+          GraphQL makes more sense when you have multiple clients with very
+          different data needs, or when aggregating across multiple APIs. for a
+          single card browser, the SDK wins on DX
         </Sent>
 
-        <Received>what about GraphQL — TCGdex supports it</Received>
+        <Timestamp>9:52 AM</Timestamp>
+
+        <Received pos="first">any robustness issues</Received>
+        <Received pos="last">typing fast or switching filters quickly</Received>
 
         <Sent pos="first">
-          i stuck with the SDK which wraps the REST API. GraphQL would have
-          given me field-level selection — useful if you want to avoid
-          over-fetching on large card objects
-        </Sent>
-        <Sent pos="middle">
-          but for a card browser the payloads aren&apos;t huge, and the SDK
-          types are already scoped — card list responses return a{" "}
-          <code>CardResume</code> shape, not the full card. that&apos;s
-          essentially the same benefit
+          yes — rapid filter changes can cause a race. old fetch resolves after
+          the new one starts and overwrites the results
         </Sent>
         <Sent pos="last">
-          GraphQL makes more sense if you have multiple clients with very
-          different data needs, or if you&apos;re building something that
-          aggregates across multiple APIs
+          fixed with <code>AbortController</code>. each fetch aborts the
+          previous one before starting. <code>AbortError</code> is caught and
+          silently ignored — no error state, no loading flicker
         </Sent>
 
-        <Timestamp>9:45 AM</Timestamp>
+        <div className={styles.codeBubble}>
+          {`const abortRef = useRef<AbortController | null>(null);
 
-        <Received pos="first">anything you&apos;d do differently</Received>
-        <Received pos="last">looking back at it</Received>
+const fetchCards = async (...) => {
+  abortRef.current?.abort();
+  const controller = new AbortController();
+  abortRef.current = controller;
+
+  const res = await fetch(url, { signal: controller.signal });
+  ...
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") return;
+    setError("Failed to load cards.");
+  } finally {
+    if (!controller.signal.aborted) setLoading(false);
+  }
+};`}
+        </div>
+
+        <Received pos="first">what would you still improve</Received>
 
         <Sent pos="first">
-          i&apos;d add server-side caching on the API routes. right now every
-          request hits the TCGdex API cold. card and set data barely ever
-          changes — a 5-minute cache header would cut latency a lot
-        </Sent>
-        <Sent pos="middle">
-          i&apos;d also look at infinite scroll instead of &quot;Load more&quot;.
-          the button works but an intersection observer on the last card would
-          feel smoother
+          server-side caching on the API routes. right now every request hits
+          TCGdex cold. card and set data barely ever changes — a 5-minute cache
+          header would cut latency significantly
         </Sent>
         <Sent pos="last">
-          and the type filter pills on the browse page reset the scroll
-          position. a URL-driven approach — putting filters in query params —
-          would make back/forward navigation work correctly and let you share
-          filtered views
+          and the TCG Pocket page could get the same infinite scroll treatment.
+          it currently loads everything in one shot since the set count is
+          small, but it&apos;s inconsistent with the rest of the pages
         </Sent>
 
-        <Received>what does this show as a frontend dev</Received>
+        <Received>what does all this show as a frontend dev</Received>
 
         <Sent pos="first">
-          knowing when to split server vs client components, not just
-          defaulting to all-client
+          knowing when to split server vs client, not defaulting to all-client
         </Sent>
         <Sent pos="middle">
-          understanding what constraints exist (CSP, circular refs, API
-          quirks) and building the smallest fix that addresses them
+          understanding platform constraints — CSP, streaming SSR, Suspense
+          boundaries, IntersectionObserver edge cases — and building the minimal
+          fix for each
         </Sent>
         <Sent pos="last">
-          and reasoning about pagination and data flow — making sure sort
-          happens at the right layer, deduplication is defensive, and the
-          cursor doesn&apos;t cause stale closure bugs
+          and keeping state in the right place: URL for shareable view state,
+          event handler refs for external callbacks, primitives for consistency
+          across the system
         </Sent>
 
         <Received>nice. thanks for walking me through it</Received>

@@ -2,6 +2,20 @@
 
 ## 2026-02-22
 
+- `AbortController` on fantasy NBA fetches — `LeagueContent` aborts on season switch, `StatsContent` aborts on team switch including mid-batch with loop exit guard on `signal.aborted`
+
+## 2026-02-22
+
+- `AbortController` on all card fetches — each new fetch aborts the previous in-flight request, preventing stale responses from overwriting newer data on rapid filter changes
+- `hasMore` now uses `>= PER_PAGE` instead of `===` for defensive API compatibility
+- `Number.isNaN` guard on `initialPageRef` to handle malformed `?page=` params
+
+## 2026-02-22
+
+- refactored infinite scroll ref pattern — replaced multiple state mirrors with a single event handler ref (`onScrollRef`) updated every render; observer always calls a fresh closure, page number is plain state
+
+## 2026-02-22
+
 - page number synced to URL as user scrolls (`?page=N`) on browse and set detail pages — back navigation and shared URLs restore scroll state by sequentially fetching pages 1–N on mount
 - `Suspense` boundary added around `SetCardsGrid` to support `useSearchParams`
 - skeleton cards while inside the grid during infinite scroll
