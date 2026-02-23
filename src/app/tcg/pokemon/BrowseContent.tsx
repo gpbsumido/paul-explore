@@ -118,43 +118,39 @@ export default function BrowseContent() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-6">
-      {/* Page header */}
-      <div>
-        <h1 className="text-3xl font-black uppercase tracking-tight text-foreground">
-          Card Browser
-        </h1>
-        <p className="text-sm text-muted mt-1">
-          Search and filter across all Pokémon TCG cards
-        </p>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col gap-3">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search cards…"
-          className="w-full max-w-sm h-10 rounded-lg bg-surface border border-border px-4 text-sm text-foreground outline-none focus:border-red-400/60 placeholder:text-muted transition-colors"
-        />
+    <>
+      {/* Sticky filter bar — sits directly below the nav (top-14 = 56px) */}
+      <div className="sticky top-14 z-10 border-b border-border bg-background/95 backdrop-blur-xl">
         <div
-          className="flex gap-2 overflow-x-auto pb-1"
-          style={{ scrollbarWidth: "none" }}
+          className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 flex items-center gap-3"
         >
-          <TypePill label="All" active={type === ""} onClick={() => setType("")} />
-          {POKEMON_TYPES.map((t) => (
-            <TypePill
-              key={t}
-              label={t}
-              active={type === t}
-              onClick={() => handleTypeClick(t)}
-              typeColor={typeStyle(t)}
-            />
-          ))}
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search cards…"
+            className="w-40 sm:w-56 shrink-0 h-8 rounded-lg bg-surface border border-border px-3 text-sm text-foreground outline-none focus:border-red-400/60 placeholder:text-muted transition-colors"
+          />
+          <div className="h-4 w-px bg-border shrink-0" />
+          <div
+            className="flex gap-2 overflow-x-auto"
+            style={{ scrollbarWidth: "none" }}
+          >
+            <TypePill label="All" active={type === ""} onClick={() => setType("")} />
+            {POKEMON_TYPES.map((t) => (
+              <TypePill
+                key={t}
+                label={t}
+                active={type === t}
+                onClick={() => handleTypeClick(t)}
+                typeColor={typeStyle(t)}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
       {/* Results */}
       {loading && cards.length === 0 ? (
         <SkeletonGrid />
@@ -187,6 +183,7 @@ export default function BrowseContent() {
         )}
       </div>
     </div>
+    </>
   );
 }
 
