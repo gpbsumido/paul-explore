@@ -28,7 +28,9 @@ Key implementation details: server components own the static header/metadata for
 
 ### 📅 Calendar
 
-A full-stack personal calendar with Pokémon TCG event tracking. Four views — day, week, month, year — all navigable with prev/next and a "Today" jump. Click any cell or time slot to open a create-event modal; click an existing event chip to edit or delete it. Events persist in local state for now; backend integration (PostgreSQL via Railway) and TCG card attachment are planned in later phases.
+A full-stack personal calendar. Four views — day, week, month, year — all navigable with prev/next and a "Today" jump. Click any cell or time slot to open a create-event modal; click an existing event chip to edit or delete it. Events persist in PostgreSQL (Railway) and are scoped per user via Auth0.
+
+The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/calendar/events`) which attach an Auth0 access token server-side before forwarding to the Express backend — the token never reaches the browser. A `useCalendarEvents` hook fetches the correct date window for each view and re-fetches automatically on navigation.
 
 Built without a calendar library — `date-fns` handles all date math (grid construction, view navigation, slot matching). This was a deliberate choice: FullCalendar's full React support requires a paid license, and the custom build keeps the bundle small and gives full control over the interaction model.
 
@@ -85,9 +87,10 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 src/
 ├── app/
+│   ├── api/calendar/     # BFF proxy routes for calendar (GET/POST/PUT/DELETE)
 │   ├── api/nba/          # NBA API proxy routes
 │   ├── api/tcg/          # TCGdex SDK proxy routes
-│   ├── calendar/         # Calendar feature (all views, event modal)
+│   ├── calendar/         # Calendar page + CalendarContent
 │   ├── fantasy/nba/      # Fantasy league history + player stats pages
 │   ├── landing/          # Landing page with preview
 │   ├── protected/        # Auth-gated hub page
@@ -96,6 +99,7 @@ src/
 ├── components/
 │   ├── calendar/         # Calendar-specific components (views, modal, chips)
 │   └── ui/               # Shared primitives (Button, IconButton, Input, Textarea, Modal)
+├── hooks/                # Custom hooks (useCalendarEvents)
 ├── lib/                  # Shared utilities (calendar helpers, TCG helpers, etc.)
 ├── styles/               # Design tokens
 └── types/                # TypeScript types (CalendarEvent, CalendarView, etc.)
@@ -112,6 +116,9 @@ src/
 - `IntersectionObserver` only fires on intersection _state changes_ — if the sentinel is already visible after the first load it never re-triggers; fixing it with `cards.length` in deps (reconnect after each fetch) works but a stable observer + event handler ref is cleaner
 - The event handler ref pattern (`ref.current = () => { ... }` assigned in the render body, no `useEffect`) is the right tool for external APIs that hold callback references — one ref instead of mirroring every piece of state individually
 - `AbortController` is worth the boilerplate any time a fetch is triggered by user selection — rapid changes otherwise produce race conditions that are hard to reproduce and debug
+- The BFF (Backend for Frontend) pattern keeps auth tokens entirely server-side: the browser sends session cookies to Next.js, the Next.js API route calls `auth0.getAccessToken()` and forwards the JWT to the Express backend — the access token never appears in the browser's network tab
+- `datetime-local` inputs produce naive strings with no timezone offset (e.g. `"2026-02-24T00:00"`); without explicit conversion, Postgres interprets them as UTC, which shifts events to the wrong day in non-UTC timezones — wrapping with `formatISO(parseISO(s))` adds the local offset before the value leaves the browser
+- `react-hooks/set-state-in-effect` flags any function in the effect body that calls setState — even async ones — if the call is synchronous before the first `await`; the compliant pattern is to call setState only inside `.then()` / `.catch()` callbacks so the effect body itself never triggers a render
 
 ---
 
