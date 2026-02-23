@@ -5,40 +5,39 @@ import BrowseContent from "./BrowseContent";
 
 export default function PokemonTcgPage() {
   return (
-    <div className="flex flex-col min-h-dvh max-w-[480px] mx-auto font-sans bg-background">
-      {/* Top bar */}
-      <div className="sticky top-0 z-20 flex items-center justify-center px-4 py-3 bg-background border-b border-border backdrop-blur-xl">
-        <Link
-          href="/protected"
-          className="absolute left-4 text-[#007aff] text-sm flex items-center gap-0.5"
-        >
-          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
-            <path
-              d="M9 1L2 8l7 7"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          &nbsp;Back
-        </Link>
-        <div className="flex flex-col items-center gap-0.5">
-          <span className="text-base font-semibold text-foreground">
-            Pokemon TCG
-          </span>
-          <span className="text-[11px] text-muted">Card Browser</span>
-        </div>
-        <div className="absolute right-4 flex items-center gap-3">
+    <div className="min-h-dvh bg-background font-sans">
+      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
           <Link
-            href="/tcg/pokemon/sets"
-            className="text-[#007aff] text-sm font-medium"
+            href="/protected"
+            className="flex items-center gap-1.5 text-sm text-red-400 hover:text-red-300 transition-colors shrink-0"
           >
-            Sets
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
+              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Back
           </Link>
-          <ThemeToggle />
+          <div className="h-4 w-px bg-border" />
+          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
+            Pokémon TCG
+          </span>
+          <div className="ml-auto flex items-center gap-5">
+            <Link
+              href="/tcg/pokemon/sets"
+              className="text-sm text-muted hover:text-foreground transition-colors"
+            >
+              Sets
+            </Link>
+            <Link
+              href="/tcg/pocket"
+              className="text-sm text-muted hover:text-foreground transition-colors"
+            >
+              Pocket
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
-      </div>
+      </nav>
 
       <Suspense>
         <BrowseContent />

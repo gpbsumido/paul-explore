@@ -31,10 +31,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
       setLoading(true);
       setError(null);
       try {
-        const params = new URLSearchParams({
-          setId,
-          page: pg.toString(),
-        });
+        const params = new URLSearchParams({ setId, page: pg.toString() });
         const res = await fetch(`/api/tcg/cards?${params}`);
         if (!res.ok) throw new Error("Failed to fetch cards");
         const data: CardResume[] = await res.json();
@@ -46,11 +43,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
           });
         } else {
           const seen = new Set<string>();
-          setCards(
-            data.filter((c) =>
-              seen.has(c.id) ? false : seen.add(c.id) && true
-            )
-          );
+          setCards(data.filter((c) => seen.has(c.id) ? false : seen.add(c.id) && true));
         }
         setHasMore(data.length === PER_PAGE);
       } catch {
@@ -67,7 +60,6 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
     fetchCards(1, false);
   }, [fetchCards]);
 
-  // Intersection observer — fires when sentinel scrolls into view
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -87,13 +79,13 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [fetchCards]);
+  }, [fetchCards, cards.length]);
 
   return (
-    <div className="px-4 py-4 flex flex-col gap-4">
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-4">
       {loading && cards.length === 0 ? (
-        <div className="grid grid-cols-3 gap-2">
-          {Array.from({ length: 12 }).map((_, i) => (
+        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+          {Array.from({ length: 20 }).map((_, i) => (
             <div
               key={i}
               className="rounded-lg bg-surface animate-pulse"
@@ -102,29 +94,26 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
           ))}
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center gap-3 py-12 text-center text-muted text-[15px]">
+        <div className="flex flex-col items-center gap-3 py-20 text-center text-muted text-sm">
           <span>{error}</span>
           <button
-            onClick={() => {
-              pageRef.current = 1;
-              fetchCards(1, false);
-            }}
-            className="px-5 py-2 rounded-full text-sm border border-border text-foreground hover:bg-surface transition-colors"
+            onClick={() => { pageRef.current = 1; fetchCards(1, false); }}
+            className="px-5 py-2 rounded-lg text-sm border border-border text-foreground hover:bg-surface transition-colors"
           >
             Retry
           </button>
         </div>
       ) : cards.length === 0 ? (
-        <div className="flex items-center justify-center py-12 text-muted text-[15px]">
+        <div className="flex items-center justify-center py-20 text-muted text-sm">
           No cards available
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {cards.map((card) => (
             <Link
               key={card.id}
               href={`/tcg/pokemon/card/${card.id}`}
-              className="group rounded-lg overflow-hidden border border-border hover:border-primary-400 hover:shadow-md transition-all"
+              className="group rounded-lg overflow-hidden border border-border hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-all"
             >
               {card.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -135,10 +124,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
                   loading="lazy"
                 />
               ) : (
-                <div
-                  className="w-full bg-surface-raised"
-                  style={{ aspectRatio: "2.5/3.5" }}
-                />
+                <div className="w-full bg-surface-raised" style={{ aspectRatio: "2.5/3.5" }} />
               )}
             </Link>
           ))}

@@ -18,64 +18,74 @@ export default async function SetDetailPage({
   const releaseYear = set.releaseDate?.split("-")[0];
 
   return (
-    <div className="flex flex-col min-h-dvh max-w-[480px] mx-auto font-sans bg-background">
-      {/* Top bar */}
-      <div className="sticky top-0 z-20 flex items-center justify-center px-4 py-3 bg-background border-b border-border backdrop-blur-xl">
-        <Link
-          href="/tcg/pokemon/sets"
-          className="absolute left-4 text-[#007aff] text-sm flex items-center gap-0.5"
-        >
-          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
-            <path
-              d="M9 1L2 8l7 7"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          &nbsp;Back
-        </Link>
-        <div className="flex flex-col items-center gap-0.5">
-          <span className="text-base font-semibold text-foreground truncate max-w-[180px]">
+    <div className="min-h-dvh bg-background font-sans">
+      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
+          <Link
+            href="/tcg/pokemon/sets"
+            className="flex items-center gap-1.5 text-sm text-red-400 hover:text-red-300 transition-colors shrink-0"
+          >
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
+              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Sets
+          </Link>
+          <div className="h-4 w-px bg-border" />
+          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground truncate">
             {set.name}
           </span>
-          <span className="text-[11px] text-muted">{set.serie.name}</span>
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </div>
-        <div className="absolute right-4">
-          <ThemeToggle />
-        </div>
-      </div>
+      </nav>
 
       {/* Set header */}
-      <div className="px-4 py-5 border-b border-border flex flex-col items-center gap-3">
-        {set.logo && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`${set.logo}.webp`}
-            alt={set.name}
-            className="h-14 object-contain"
-          />
-        )}
-        <div className="flex items-center gap-4 text-[12px] text-muted">
-          {releaseYear && <span>{releaseYear}</span>}
-          <span>{set.cardCount.official} cards</span>
-          {set.symbol && (
+      <div className="border-b border-border bg-surface">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-wrap items-center gap-6">
+          {set.logo && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`${set.symbol}.webp`}
-              alt="set symbol"
-              className="h-4 object-contain"
+              src={`${set.logo}.webp`}
+              alt={set.name}
+              className="h-14 object-contain"
+              loading="lazy"
             />
           )}
-        </div>
-        <div className="flex gap-3 text-[11px]">
-          <LegalBadge label="Standard" legal={set.legal.standard} />
-          <LegalBadge label="Expanded" legal={set.legal.expanded} />
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-2xl font-black uppercase tracking-tight text-foreground">
+              {set.name}
+            </h1>
+            <div className="flex items-center gap-4 text-xs text-muted">
+              <span className="uppercase tracking-wider">{set.serie.name}</span>
+              {releaseYear && (
+                <>
+                  <span className="text-border">·</span>
+                  <span>{releaseYear}</span>
+                </>
+              )}
+              <span className="text-border">·</span>
+              <span className="font-semibold text-foreground">
+                {set.cardCount.official} cards
+              </span>
+              {set.symbol && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`${set.symbol}.webp`}
+                  alt="set symbol"
+                  className="h-4 object-contain"
+                  loading="lazy"
+                />
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 ml-auto">
+            <LegalBadge label="Standard" legal={set.legal.standard} />
+            <LegalBadge label="Expanded" legal={set.legal.expanded} />
+          </div>
         </div>
       </div>
 
-      {/* Card grid — paginated client component */}
       <SetCardsGrid setId={setId} />
     </div>
   );
@@ -84,13 +94,13 @@ export default async function SetDetailPage({
 function LegalBadge({ label, legal }: { label: string; legal: boolean }) {
   return (
     <span
-      className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
+      className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide border ${
         legal
           ? "bg-green-500/15 text-green-400 border-green-500/20"
           : "bg-surface text-muted border-border"
       }`}
     >
-      {label}: {legal ? "✓" : "✗"}
+      {label} {legal ? "✓" : "✗"}
     </span>
   );
 }

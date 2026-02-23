@@ -29,17 +29,13 @@ export default function BrowseContent() {
   const urlQ = searchParams.get("q") ?? "";
   const urlType = searchParams.get("type") ?? "";
 
-  // Local state initialised from URL so a shared/bookmarked link works
   const [search, setSearch] = useState(urlQ);
   const [type, setType] = useState(urlType);
   const debouncedSearch = useDebounce(search, 350);
 
-  // Sync state ← URL when back/forward navigation changes search params
   useEffect(() => { setSearch(urlQ); }, [urlQ]);
   useEffect(() => { setType(urlType); }, [urlType]);
 
-  // Sync URL ← state (replace so keystrokes don't pollute history;
-  // scroll:false so changing the type pill doesn't jump to top)
   useEffect(() => {
     const params = new URLSearchParams();
     if (debouncedSearch) params.set("q", debouncedSearch);
@@ -91,13 +87,11 @@ export default function BrowseContent() {
     []
   );
 
-  // Reset + fetch whenever search or type changes
   useEffect(() => {
     pageRef.current = 1;
     fetchCards(debouncedSearch, type, 1, false);
   }, [debouncedSearch, type, fetchCards]);
 
-  // Intersection observer — fires when sentinel scrolls into view
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -117,80 +111,82 @@ export default function BrowseContent() {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [debouncedSearch, type, fetchCards]);
+  }, [debouncedSearch, type, fetchCards, cards.length]);
 
   function handleTypeClick(t: string) {
     setType((prev) => (prev === t ? "" : t));
   }
 
   return (
-    <>
-      {/* Search */}
-      <div className="px-4 py-2.5 border-b border-border">
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-6">
+      {/* Page header */}
+      <div>
+        <h1 className="text-3xl font-black uppercase tracking-tight text-foreground">
+          Card Browser
+        </h1>
+        <p className="text-sm text-muted mt-1">
+          Search and filter across all Pokémon TCG cards
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col gap-3">
         <input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search cards…"
-          className="w-full h-9 rounded-[10px] bg-surface border border-border px-3 text-[15px] text-foreground outline-none focus:border-[#007aff] placeholder:text-muted transition-colors"
+          className="w-full max-w-sm h-10 rounded-lg bg-surface border border-border px-4 text-sm text-foreground outline-none focus:border-red-400/60 placeholder:text-muted transition-colors"
         />
-      </div>
-
-      {/* Type filters */}
-      <div
-        className="flex gap-2 px-4 py-2.5 border-b border-border overflow-x-auto"
-        style={{ scrollbarWidth: "none" }}
-      >
-        <TypePill
-          label="All"
-          active={type === ""}
-          onClick={() => setType("")}
-        />
-        {POKEMON_TYPES.map((t) => (
-          <TypePill
-            key={t}
-            label={t}
-            active={type === t}
-            onClick={() => handleTypeClick(t)}
-            typeColor={typeStyle(t)}
-          />
-        ))}
+        <div
+          className="flex gap-2 overflow-x-auto pb-1"
+          style={{ scrollbarWidth: "none" }}
+        >
+          <TypePill label="All" active={type === ""} onClick={() => setType("")} />
+          {POKEMON_TYPES.map((t) => (
+            <TypePill
+              key={t}
+              label={t}
+              active={type === t}
+              onClick={() => handleTypeClick(t)}
+              typeColor={typeStyle(t)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Results */}
-      <div className="flex-1 px-4 py-4">
-        {loading && cards.length === 0 ? (
-          <SkeletonGrid />
-        ) : error ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center text-muted text-[15px]">
-            <span>{error}</span>
-            <button
-              onClick={() => fetchCards(debouncedSearch, type, 1, false)}
-              className="px-5 py-2 rounded-full text-sm border border-border text-foreground hover:bg-surface transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        ) : cards.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-muted text-[15px]">
-            No cards found
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {cards.map((card) => (
-              <CardTile key={card.id} card={card} />
-            ))}
-          </div>
-        )}
-
-        {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
-        <div ref={sentinelRef} className="mt-5 flex justify-center h-8">
-          {loading && cards.length > 0 && (
-            <span className="text-muted text-sm">Loading…</span>
-          )}
+      {loading && cards.length === 0 ? (
+        <SkeletonGrid />
+      ) : error ? (
+        <div className="flex flex-col items-center gap-3 py-20 text-center text-muted text-sm">
+          <span>{error}</span>
+          <button
+            onClick={() => fetchCards(debouncedSearch, type, 1, false)}
+            className="px-5 py-2 rounded-lg text-sm border border-border text-foreground hover:bg-surface transition-colors"
+          >
+            Retry
+          </button>
         </div>
+      ) : cards.length === 0 ? (
+        <div className="flex items-center justify-center py-20 text-muted text-sm">
+          No cards found
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+          {cards.map((card) => (
+            <CardTile key={card.id} card={card} />
+          ))}
+        </div>
+      )}
+
+      {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
+      <div ref={sentinelRef} className="flex justify-center h-8">
+        {loading && cards.length > 0 && (
+          <span className="text-muted text-sm">Loading…</span>
+        )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -198,26 +194,21 @@ function CardTile({ card }: { card: CardResume }) {
   return (
     <Link
       href={`/tcg/pokemon/card/${card.id}`}
-      className="group rounded-xl overflow-hidden border border-border bg-surface hover:border-primary-400 hover:shadow-lg transition-all"
+      className="group rounded-lg overflow-hidden border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-all"
     >
       {card.image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={`${card.image}/low.webp`}
           alt={card.name}
-          className="w-full group-hover:scale-[1.02] transition-transform duration-200"
+          className="w-full group-hover:scale-[1.03] transition-transform duration-200"
           loading="lazy"
         />
       ) : (
-        <div
-          className="w-full bg-surface-raised"
-          style={{ aspectRatio: "2.5/3.5" }}
-        />
+        <div className="w-full bg-surface-raised" style={{ aspectRatio: "2.5/3.5" }} />
       )}
       <div className="px-2 py-1.5">
-        <p className="text-[12px] font-medium text-foreground truncate">
-          {card.name}
-        </p>
+        <p className="text-[11px] font-semibold text-muted truncate">{card.name}</p>
       </div>
     </Link>
   );
@@ -237,10 +228,10 @@ function TypePill({
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
+      className={`shrink-0 px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide border transition-colors ${
         active
-          ? `${typeColor ?? "bg-foreground text-background"} border-transparent`
-          : "bg-transparent text-muted border-border hover:border-foreground/50"
+          ? `${typeColor ?? "bg-red-500/20 text-red-300"} border-transparent`
+          : "bg-transparent text-muted border-border hover:border-foreground/40"
       }`}
     >
       {label}
@@ -250,11 +241,11 @@ function TypePill({
 
 function SkeletonGrid() {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {Array.from({ length: 12 }).map((_, i) => (
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+      {Array.from({ length: 21 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-xl bg-surface animate-pulse"
+          className="rounded-lg bg-surface animate-pulse"
           style={{ aspectRatio: "2.5/3.5" }}
         />
       ))}
