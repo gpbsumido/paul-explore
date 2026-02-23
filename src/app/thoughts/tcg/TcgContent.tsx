@@ -165,10 +165,12 @@ export default async function SetDetailPage({ params }) {
           to go through React&apos;s effect queue to stay current
         </Sent>
         <Sent pos="last">
-          the observer is created once (<code>[]</code> deps) and just calls{" "}
-          <code>onScrollRef.current()</code> — always fresh, always sees the
-          latest <code>loadedPages</code>, <code>hasMore</code>, and{" "}
-          <code>loading</code>. no individual state mirrors needed
+          the observer reconnects on <code>cards.length</code> change — that&apos;s
+          intentional, not <code>[]</code>. reconnecting forces{" "}
+          <code>observe()</code> to immediately report current intersection
+          state, which fixes the case where the sentinel is already in the
+          viewport after load. the ref handles stale closures; the dep handles
+          the wide-screen edge case. both are needed
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -181,14 +183,15 @@ onScrollRef.current = () => {
   fetchCards(search, type, nextPage, true);
 };
 
-// stable observer — created once, never reconnects
+// reconnects after each fetch — forces observe() to immediately report
+// current intersection state if the sentinel is already in the viewport
 useEffect(() => {
   const observer = new IntersectionObserver(([entry]) => {
     if (entry.isIntersecting) onScrollRef.current();
   }, { rootMargin: "200px" });
   observer.observe(sentinelRef.current);
   return () => observer.disconnect();
-}, []);`}
+}, [cards.length]); // ← not [] — the reconnect is the fix`}
         </div>
 
         <Timestamp>9:31 AM</Timestamp>

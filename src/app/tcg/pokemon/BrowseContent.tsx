@@ -115,7 +115,7 @@ export default function BrowseContent() {
     fetchCards(debouncedSearch, type, 1, false);
   }, [debouncedSearch, type, fetchCards]);
 
-  // Assign directly in render — always fresh, no useEffect wrapper needed
+  // always fresh — assigned in render, not in an effect
   const onScrollRef = useRef<() => void>(() => {});
   onScrollRef.current = () => {
     if (!hasMore || loading || cards.length === 0) return;
@@ -124,7 +124,8 @@ export default function BrowseContent() {
     fetchCards(debouncedSearch, type, nextPage, true);
   };
 
-  // Stable observer — created once, calls fresh ref on each intersection
+  // cards.length dep forces reconnect after each fetch — needed so the
+  // observer re-fires if the sentinel is already in the viewport
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -134,7 +135,7 @@ export default function BrowseContent() {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [cards.length]);
 
   function handleTypeClick(t: string) {
     setType((prev) => (prev === t ? "" : t));
