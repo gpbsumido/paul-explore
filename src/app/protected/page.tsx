@@ -67,6 +67,15 @@ const threads = [
     initials: "PK",
     unread: true,
   },
+  {
+    name: "TCG Pages",
+    href: "/thoughts/tcg",
+    preview: "API proxy, server/client split, pagination patterns",
+    time: "Today",
+    color: "#10b981",
+    initials: "TC",
+    unread: true,
+  },
 ];
 
 export default async function Protected() {
