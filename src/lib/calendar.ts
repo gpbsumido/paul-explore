@@ -5,8 +5,11 @@ import {
   setMinutes,
   setSeconds,
   setMilliseconds,
+  isSameDay,
+  getHours,
+  parseISO,
 } from "date-fns";
-import type { CalendarView } from "@/types/calendar";
+import type { CalendarView, CalendarEvent } from "@/types/calendar";
 
 export const DAY_LABELS = [
   "Sun",
@@ -36,6 +39,52 @@ export function slotDate(base: Date, hour: number): Date {
 
 export function formatHour(hour: number): string {
   return format(new Date(2000, 0, 1, hour), "h aaa");
+}
+
+export const EVENT_COLORS = [
+  "#3b82f6", // blue
+  "#10b981", // emerald
+  "#f59e0b", // amber
+  "#ef4444", // red
+  "#8b5cf6", // violet
+  "#ec4899", // pink
+] as const;
+
+// get all events that start from day
+export function eventsForDay(
+  events: CalendarEvent[],
+  day: Date,
+): CalendarEvent[] {
+  return events.filter((e) => isSameDay(parseISO(e.startDate), day));
+}
+
+/// get dates in given hour (not all day ones)
+export function eventsForHour(
+  events: CalendarEvent[],
+  day: Date,
+  hour: number,
+): CalendarEvent[] {
+  return events.filter(
+    (e) =>
+      !e.allDay &&
+      isSameDay(parseISO(e.startDate), day) &&
+      getHours(parseISO(e.startDate)) === hour,
+  );
+}
+
+// get all day events on a day
+export function allDayEventsForDay(
+  events: CalendarEvent[],
+  day: Date,
+): CalendarEvent[] {
+  return events.filter(
+    (e) => e.allDay && isSameDay(parseISO(e.startDate), day),
+  );
+}
+
+// format value as local datetime
+export function toInputValue(iso: string): string {
+  return format(parseISO(iso), "yyyy-MM-dd'T'HH:mm");
 }
 
 export function formatHeading(date: Date, view: CalendarView): string {

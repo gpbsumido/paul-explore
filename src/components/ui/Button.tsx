@@ -1,7 +1,7 @@
 import { type ComponentPropsWithRef, type ReactNode } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
-type ButtonSize = "xs" | "sm" | "md" | "lg";
+export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
+export type ButtonSize = "xs" | "sm" | "md" | "lg";
 
 interface ButtonProps extends ComponentPropsWithRef<"button"> {
   variant?: ButtonVariant;
@@ -44,6 +44,8 @@ export default function Button({
           "border border-border bg-transparent text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
         variant === "ghost" &&
           "bg-transparent text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
+        variant === "danger" &&
+          "bg-transparent text-red-500 hover:text-red-400 active:text-red-600",
         loading && "cursor-wait",
         className,
       ]

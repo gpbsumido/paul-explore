@@ -10,16 +10,22 @@ import {
   isToday,
   format,
 } from "date-fns"; // I used to use moment.js but apparently they recommend you use other projects because of the large overhead. Trying this out for it's performance
-import { DAY_LABELS } from "@/lib/calendar";
+import { DAY_LABELS, eventsForDay } from "@/lib/calendar";
+import type { CalendarEvent } from "@/types/calendar";
+import EventChip from "@/components/calendar/EventChip";
 
 interface CalendarGridProps {
   currentDate: Date;
+  events: CalendarEvent[];
   onDayClick: (date: Date) => void;
+  onChipClick: (event: CalendarEvent) => void;
 }
 
 export default function CalendarGrid({
   currentDate,
+  events,
   onDayClick,
+  onChipClick,
 }: CalendarGridProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -44,12 +50,13 @@ export default function CalendarGrid({
         {days.map((day) => {
           const inMonth = isSameMonth(day, currentDate);
           const today = isToday(day);
+          const dayEvents = eventsForDay(events, day);
 
           return (
-            <button
+            <div
               key={day.toISOString()}
               onClick={() => onDayClick(day)}
-              className="min-h-[80px] p-2 text-left border-b border-r border-border"
+              className="min-h-[80px] p-2 text-left border-b border-r border-border cursor-pointer"
             >
               <span
                 className={[
@@ -60,7 +67,15 @@ export default function CalendarGrid({
               >
                 {format(day, "d")}
               </span>
-            </button>
+              <div className="mt-1">
+                {dayEvents.slice(0, 3).map((ev) => (
+                  <EventChip key={ev.id} event={ev} onClick={() => onChipClick(ev)} />
+                ))}
+                {dayEvents.length > 3 && (
+                  <div className="text-xs text-muted px-1">+{dayEvents.length - 3} more</div>
+                )}
+              </div>
+            </div>
           );
         })}
       </div>

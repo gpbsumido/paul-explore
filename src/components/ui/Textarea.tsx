@@ -3,29 +3,22 @@
 import { type ComponentPropsWithRef, useId } from "react";
 import { LABEL_CLASS, fieldClass, buildDescribedBy } from "./styles";
 
-interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id" | "size"> {
-  /** Visible label text */
+interface TextareaProps extends Omit<ComponentPropsWithRef<"textarea">, "id"> {
   label: string;
-  /** Visually hide the label while keeping it accessible */
   hideLabel?: boolean;
-  /** sm = h-8 (compact/inline), md = h-10 (default form field) */
-  size?: "sm" | "md";
-  /** Error message (renders in error state when provided) */
   error?: string;
-  /** Helper text shown below the input */
   helperText?: string;
 }
 
-export default function Input({
+export default function Textarea({
   label,
   hideLabel = false,
-  size = "md",
   error,
   helperText,
   required,
   className,
   ...rest
-}: InputProps) {
+}: TextareaProps) {
   const id = useId();
   const errorId = `${id}-error`;
   const helperId = `${id}-helper`;
@@ -46,13 +39,13 @@ export default function Input({
         )}
       </label>
 
-      <input
+      <textarea
         {...rest}
         id={id}
         required={required}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={fieldClass(error, size === "sm" ? "py-1" : "py-2")}
+        className={fieldClass(error, "py-2 resize-none")}
       />
 
       {error && (

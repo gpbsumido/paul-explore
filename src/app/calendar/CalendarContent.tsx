@@ -1,17 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { addDays, addWeeks, addMonths, addYears } from "date-fns";
+import { addDays, addWeeks, addMonths, addYears, parseISO } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import DayView from "@/components/calendar/DayView";
 import WeekView from "@/components/calendar/WeekView";
 import YearView from "@/components/calendar/YearView";
-import type { CalendarView } from "@/types/calendar";
+import EventModal from "@/components/calendar/EventModal";
+import type { CalendarView, CalendarEvent, ModalState } from "@/types/calendar";
 
 export default function CalendarContent() {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [view, setView] = useState<CalendarView>("month");
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [modal, setModal] = useState<ModalState>({ open: false });
 
   function handleNavigate(direction: -1 | 1) {
     setCurrentDate((prev) => {
@@ -38,6 +41,30 @@ export default function CalendarContent() {
     setView("month");
   }
 
+  function openCreateModal(date: Date) {
+    setModal({ open: true, initialDate: date });
+  }
+
+  function openEditModal(event: CalendarEvent) {
+    setModal({ open: true, initialDate: parseISO(event.startDate), editingEvent: event });
+  }
+
+  function handleSave(event: CalendarEvent) {
+    setEvents((prev) => {
+      const idx = prev.findIndex((e) => e.id === event.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = event;
+        return next;
+      }
+      return [...prev, event];
+    });
+  }
+
+  function handleDelete(id: string) {
+    setEvents((prev) => prev.filter((e) => e.id !== id));
+  }
+
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
       <CalendarHeader
@@ -49,16 +76,41 @@ export default function CalendarContent() {
       />
 
       {view === "day" && (
-        <DayView currentDate={currentDate} onSlotClick={() => {}} />
+        <DayView
+          currentDate={currentDate}
+          events={events}
+          onSlotClick={openCreateModal}
+          onChipClick={openEditModal}
+        />
       )}
       {view === "week" && (
-        <WeekView currentDate={currentDate} onSlotClick={() => {}} />
+        <WeekView
+          currentDate={currentDate}
+          events={events}
+          onSlotClick={openCreateModal}
+          onChipClick={openEditModal}
+        />
       )}
       {view === "month" && (
-        <CalendarGrid currentDate={currentDate} onDayClick={() => {}} />
+        <CalendarGrid
+          currentDate={currentDate}
+          events={events}
+          onDayClick={openCreateModal}
+          onChipClick={openEditModal}
+        />
       )}
       {view === "year" && (
         <YearView currentDate={currentDate} onMonthClick={handleMonthClick} />
+      )}
+
+      {modal.open && (
+        <EventModal
+          initialDate={modal.initialDate}
+          event={modal.editingEvent}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          onClose={() => setModal({ open: false })}
+        />
       )}
     </div>
   );
