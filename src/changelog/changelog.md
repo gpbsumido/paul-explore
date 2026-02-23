@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-02-23
+## 2026-02-23 - version 0.1.8
 
 - functionality to attach Pokémon cards to calendar events (can track what you're bringing or targeting to event?)
 - new `event_cards` table in the DB, card search in the event modal with debounced input reusing the our browse endpoint
