@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-02-22
+
+- added Pokemon TCG browser — browse/search cards with debounced search, deduplication, and filter, grouped by series, per-set card grids, and a card info page
+- added specific page for PTCG Pocket
+- created Next.js API route TCG proxies
+- added `toPlain()` helper in `src/lib/tcg.ts` to strip circular `sdk`/`tcgdex` back-references from SDK model instances before JSON serialisation
+- all card queries sort by `localId ASC` when calling API
+- infinite scroll using `IntersectionObserver` — sentinel div at bottom of list triggers next page fetch when scrolled into view; `cardsLengthRef` prevents unintentonal fires during initial load
+- URL filters on browse page so it's synced and doesn't reset scroll and are shareable by url
+- `Suspense` boundary around `BrowseContent` in `page.tsx` as required by Next.js App Router for `useSearchParams()`
+- updated CSP `img-src` in `proxy.ts` to allow `https://assets.tcgdex.net`; added `loading="lazy"` to all card and set images
+- added `/thoughts/tcg` page covering the new pages
+
 ## 2026-02-18
 
 - Created League History page for fantasy league that shows the teams, their record, players, and rank

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { POKEMON_TYPES, typeStyle } from "@/lib/tcg";
 
@@ -23,14 +24,42 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function BrowseContent() {
-  const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const urlQ = searchParams.get("q") ?? "";
+  const urlType = searchParams.get("type") ?? "";
+
+  // Local state initialised from URL so a shared/bookmarked link works
+  const [search, setSearch] = useState(urlQ);
+  const [type, setType] = useState(urlType);
   const debouncedSearch = useDebounce(search, 350);
-  const [type, setType] = useState("");
+
+  // Sync state ← URL when back/forward navigation changes search params
+  useEffect(() => { setSearch(urlQ); }, [urlQ]);
+  useEffect(() => { setType(urlType); }, [urlType]);
+
+  // Sync URL ← state (replace so keystrokes don't pollute history;
+  // scroll:false so changing the type pill doesn't jump to top)
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (debouncedSearch) params.set("q", debouncedSearch);
+    if (type) params.set("type", type);
+    const qs = params.toString();
+    router.replace(`/tcg/pokemon${qs ? `?${qs}` : ""}`, { scroll: false });
+  }, [debouncedSearch, type, router]);
+
   const [cards, setCards] = useState<CardResume[]>([]);
   const pageRef = useRef(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasMoreRef = useRef(hasMore);
+  const loadingRef = useRef(loading);
+  const cardsLengthRef = useRef(0);
+  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+  useEffect(() => { cardsLengthRef.current = cards.length; }, [cards]);
 
   const fetchCards = useCallback(
     async (q: string, t: string, pg: number, append: boolean) => {
@@ -49,7 +78,6 @@ export default function BrowseContent() {
             return [...prev, ...data.filter((c) => !seen.has(c.id))];
           });
         } else {
-          // dedupe within a single page response too
           const seen = new Set<string>();
           setCards(data.filter((c) => (seen.has(c.id) ? false : seen.add(c.id) && true)));
         }
@@ -69,10 +97,27 @@ export default function BrowseContent() {
     fetchCards(debouncedSearch, type, 1, false);
   }, [debouncedSearch, type, fetchCards]);
 
-  function handleLoadMore() {
-    pageRef.current += 1;
-    fetchCards(debouncedSearch, type, pageRef.current, true);
-  }
+  // Intersection observer — fires when sentinel scrolls into view
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (
+          entry.isIntersecting &&
+          hasMoreRef.current &&
+          !loadingRef.current &&
+          cardsLengthRef.current > 0
+        ) {
+          pageRef.current += 1;
+          fetchCards(debouncedSearch, type, pageRef.current, true);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [debouncedSearch, type, fetchCards]);
 
   function handleTypeClick(t: string) {
     setType((prev) => (prev === t ? "" : t));
@@ -120,7 +165,7 @@ export default function BrowseContent() {
           <div className="flex flex-col items-center gap-3 py-16 text-center text-muted text-[15px]">
             <span>{error}</span>
             <button
-              onClick={() => fetchCards(debouncedSearch, type, 0, false)}
+              onClick={() => fetchCards(debouncedSearch, type, 1, false)}
               className="px-5 py-2 rounded-full text-sm border border-border text-foreground hover:bg-surface transition-colors"
             >
               Retry
@@ -131,26 +176,19 @@ export default function BrowseContent() {
             No cards found
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {cards.map((card) => (
-                <CardTile key={card.id} card={card} />
-              ))}
-            </div>
-
-            {hasMore && (
-              <div className="mt-5 flex justify-center">
-                <button
-                  onClick={handleLoadMore}
-                  disabled={loading}
-                  className="px-6 py-2 rounded-full text-sm font-medium border border-border text-foreground hover:bg-surface disabled:opacity-50 transition-colors"
-                >
-                  {loading ? "Loading…" : "Load more"}
-                </button>
-              </div>
-            )}
-          </>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {cards.map((card) => (
+              <CardTile key={card.id} card={card} />
+            ))}
+          </div>
         )}
+
+        {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
+        <div ref={sentinelRef} className="mt-5 flex justify-center h-8">
+          {loading && cards.length > 0 && (
+            <span className="text-muted text-sm">Loading…</span>
+          )}
+        </div>
       </div>
     </>
   );

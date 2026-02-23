@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import BrowseContent from "./BrowseContent";
@@ -39,7 +40,9 @@ export default function PokemonTcgPage() {
         </div>
       </div>
 
-      <BrowseContent />
+      <Suspense>
+        <BrowseContent />
+      </Suspense>
     </div>
   );
 }

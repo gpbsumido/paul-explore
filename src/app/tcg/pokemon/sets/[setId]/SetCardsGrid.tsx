@@ -18,6 +18,13 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pageRef = useRef(1);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasMoreRef = useRef(hasMore);
+  const loadingRef = useRef(loading);
+  const cardsLengthRef = useRef(0);
+  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+  useEffect(() => { loadingRef.current = loading; }, [loading]);
+  useEffect(() => { cardsLengthRef.current = cards.length; }, [cards]);
 
   const fetchCards = useCallback(
     async (pg: number, append: boolean) => {
@@ -60,88 +67,90 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
     fetchCards(1, false);
   }, [fetchCards]);
 
-  function handleLoadMore() {
-    pageRef.current += 1;
-    fetchCards(pageRef.current, true);
-  }
-
-  if (loading && cards.length === 0) {
-    return (
-      <div className="px-4 py-4 grid grid-cols-3 gap-2">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div
-            key={i}
-            className="rounded-lg bg-surface animate-pulse"
-            style={{ aspectRatio: "2.5/3.5" }}
-          />
-        ))}
-      </div>
+  // Intersection observer — fires when sentinel scrolls into view
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (
+          entry.isIntersecting &&
+          hasMoreRef.current &&
+          !loadingRef.current &&
+          cardsLengthRef.current > 0
+        ) {
+          pageRef.current += 1;
+          fetchCards(pageRef.current, true);
+        }
+      },
+      { rootMargin: "200px" }
     );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-12 text-center text-muted text-[15px] px-4">
-        <span>{error}</span>
-        <button
-          onClick={() => {
-            pageRef.current = 1;
-            fetchCards(1, false);
-          }}
-          className="px-5 py-2 rounded-full text-sm border border-border text-foreground hover:bg-surface transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  if (cards.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-12 text-muted text-[15px]">
-        No cards available
-      </div>
-    );
-  }
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchCards]);
 
   return (
     <div className="px-4 py-4 flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-2">
-        {cards.map((card) => (
-          <Link
-            key={card.id}
-            href={`/tcg/pokemon/card/${card.id}`}
-            className="group rounded-lg overflow-hidden border border-border hover:border-primary-400 hover:shadow-md transition-all"
-          >
-            {card.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={`${card.image}/low.webp`}
-                alt={card.name}
-                className="w-full group-hover:scale-[1.03] transition-transform duration-200"
-                loading="lazy"
-              />
-            ) : (
-              <div
-                className="w-full bg-surface-raised"
-                style={{ aspectRatio: "2.5/3.5" }}
-              />
-            )}
-          </Link>
-        ))}
-      </div>
-
-      {hasMore && (
-        <div className="flex justify-center">
+      {loading && cards.length === 0 ? (
+        <div className="grid grid-cols-3 gap-2">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-lg bg-surface animate-pulse"
+              style={{ aspectRatio: "2.5/3.5" }}
+            />
+          ))}
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center gap-3 py-12 text-center text-muted text-[15px]">
+          <span>{error}</span>
           <button
-            onClick={handleLoadMore}
-            disabled={loading}
-            className="px-6 py-2 rounded-full text-sm font-medium border border-border text-foreground hover:bg-surface disabled:opacity-50 transition-colors"
+            onClick={() => {
+              pageRef.current = 1;
+              fetchCards(1, false);
+            }}
+            className="px-5 py-2 rounded-full text-sm border border-border text-foreground hover:bg-surface transition-colors"
           >
-            {loading ? "Loading…" : "Load more"}
+            Retry
           </button>
         </div>
+      ) : cards.length === 0 ? (
+        <div className="flex items-center justify-center py-12 text-muted text-[15px]">
+          No cards available
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-2">
+          {cards.map((card) => (
+            <Link
+              key={card.id}
+              href={`/tcg/pokemon/card/${card.id}`}
+              className="group rounded-lg overflow-hidden border border-border hover:border-primary-400 hover:shadow-md transition-all"
+            >
+              {card.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`${card.image}/low.webp`}
+                  alt={card.name}
+                  className="w-full group-hover:scale-[1.03] transition-transform duration-200"
+                  loading="lazy"
+                />
+              ) : (
+                <div
+                  className="w-full bg-surface-raised"
+                  style={{ aspectRatio: "2.5/3.5" }}
+                />
+              )}
+            </Link>
+          ))}
+        </div>
       )}
+
+      {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
+      <div ref={sentinelRef} className="flex justify-center h-8">
+        {loading && cards.length > 0 && (
+          <span className="text-muted text-sm">Loading…</span>
+        )}
+      </div>
     </div>
   );
 }
