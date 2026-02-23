@@ -20,6 +20,12 @@ Started from scratch with a token-driven palette in `src/styles/tokens.css`. Tai
 
 Live player stats pulled through a Next.js API proxy (`/api/nba/...`) that keeps the CSP `connect-src 'self'` intact. Stats load in batches with skeleton rows so the table feels alive while data comes in. Each player row handles its own error state independently — if a fetch fails (NBA API rate limits are real), the row shows an error state.
 
+### 🃏 Pokémon TCG Browser
+
+Card browser powered by the `@tcgdex/sdk` TypeScript SDK, proxied through Next.js API routes to satisfy a strict `connect-src 'self'` CSP. Browse and search all cards with debounced filtering, a type filter pill bar, and infinite scroll backed by an `IntersectionObserver`. Page state (search query, type filter, scroll position) lives in the URL — shareable and back-navigable. The set index groups cards by series; each set has its own detail page with a full card grid. Individual card pages show attack costs, retreat cost, weakness, and resistance using actual Pokémon TCG energy icons parsed from effect text. A separate page covers the TCG Pocket expansion families.
+
+Key implementation details: server components own the static header/metadata for set and card pages (SDK called at render time); client components own the scroll and pagination. The `IntersectionObserver` uses a stable `[]` dep with a single event handler ref updated every render — no stale closures, no individual state mirrors. `AbortController` on every fetch prevents stale responses from overwriting data on rapid filter changes.
+
 ### 🏆 Fantasy League History
 
 ESPN fantasy league data by season. Teams sort by final standings, expand to show their full roster with positions. Season selector spans back to the league's first year. Glassmorphism card design because I wanted to try it and the gradient background made it work.
@@ -73,11 +79,13 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 src/
 ├── app/
-│   ├── api/nba/          # API proxy routes (currently only utlizes NBA calls from portfolio_api)
+│   ├── api/nba/          # NBA API proxy routes
+│   ├── api/tcg/          # TCGdex SDK proxy routes
 │   ├── fantasy/nba/      # Fantasy league history + player stats pages
 │   ├── landing/          # Landing page with preview
 │   ├── protected/        # Auth-gated hub page
-│   └── thoughts/         # Write-ups on design decisions (styling, search, landing)
+│   ├── tcg/              # Pokémon TCG browser (browse, sets, card detail, pocket)
+│   └── thoughts/         # Write-ups on design decisions (styling, search, TCG)
 ├── components/           # Shared layout + UI primitives (Button, Input, Modal)
 ├── lib/                  # utils
 ├── styles/               # Design tokens
@@ -92,6 +100,9 @@ src/
 - `useSyncExternalStore` is underused for things like theme preference — avoids the hydration mismatch that `useState` + `useEffect` creates
 - Next.js middleware for auth is straightforward until CSP nonces get involved — the nonce has to flow from the middleware through to the layout server component via request headers
 - Per-row error states in a data table feel much better UX-wise than a single top-level error banner that wipes the whole table
+- `IntersectionObserver` only fires on intersection *state changes* — if the sentinel is already visible after the first load it never re-triggers; fixing it with `cards.length` in deps (reconnect after each fetch) works but a stable observer + event handler ref is cleaner
+- The event handler ref pattern (`ref.current = () => { ... }` assigned in the render body, no `useEffect`) is the right tool for external APIs that hold callback references — one ref instead of mirroring every piece of state individually
+- `AbortController` is worth the boilerplate any time a fetch is triggered by user selection — rapid changes otherwise produce race conditions that are hard to reproduce and debug
 
 ---
 

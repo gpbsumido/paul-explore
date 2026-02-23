@@ -5,6 +5,7 @@ import FeaturesSection from "./landing/FeaturesSection";
 import AuthSection from "./landing/AuthSection";
 import DesignSection from "./landing/DesignSection";
 import NbaSection from "./landing/NbaSection";
+import TcgSection from "./landing/TcgSection";
 import FooterSection from "./landing/FooterSection";
 
 export default function LandingContent() {
@@ -15,6 +16,7 @@ export default function LandingContent() {
       <AuthSection />
       <DesignSection />
       <NbaSection />
+      <TcgSection />
       <FooterSection />
     </>
   );

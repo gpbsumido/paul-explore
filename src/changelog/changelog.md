@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-02-22
+
+- `AbortController` on fantasy NBA fetches — `LeagueContent` aborts on season switch, `StatsContent` aborts on team switch including mid-batch with loop exit guard on `signal.aborted`
+
+## 2026-02-22
+
+- `AbortController` on all card fetches — each new fetch aborts the previous in-flight request, preventing stale responses from overwriting newer data on rapid filter changes
+- `hasMore` now uses `>= PER_PAGE` instead of `===` for defensive API compatibility
+- `Number.isNaN` guard on `initialPageRef` to handle malformed `?page=` params
+
+## 2026-02-22
+
+- refactored infinite scroll ref pattern — replaced multiple state mirrors with a single event handler ref (`onScrollRef`) updated every render; observer always calls a fresh closure, page number is plain state
+
+## 2026-02-22
+
+- page number synced to URL as user scrolls (`?page=N`) on browse and set detail pages — back navigation and shared URLs restore scroll state by sequentially fetching pages 1–N on mount
+- `Suspense` boundary added around `SetCardsGrid` to support `useSearchParams`
+- skeleton cards while inside the grid during infinite scroll
+- update the landing page with the tcg feature
+
+## 2026-02-22
+
+- added Pokemon TCG browser — browse/search cards with debounced search, deduplication, and filter, grouped by series, per-set card grids, and a card info page
+- added specific page for PTCG Pocket
+- created Next.js API route TCG proxies
+- added `toPlain()` helper in `src/lib/tcg.ts` to strip circular `sdk`/`tcgdex` back-references from SDK model instances before JSON serialisation
+- all card queries sort by `localId ASC` when calling API
+- infinite scroll using `IntersectionObserver` — sentinel div at bottom of list triggers next page fetch when scrolled into view; `cardsLengthRef` prevents unintentonal fires during initial load
+- URL filters on browse page so it's synced and doesn't reset scroll and are shareable by url
+- `Suspense` boundary around `BrowseContent` in `page.tsx` as required by Next.js App Router for `useSearchParams()`
+- updated CSP `img-src` in `proxy.ts` to allow `https://assets.tcgdex.net`; added `loading="lazy"` to all card and set images
+- added `/thoughts/tcg` page covering the new pages
+
 ## 2026-02-18
 
 - Created League History page for fantasy league that shows the teams, their record, players, and rank

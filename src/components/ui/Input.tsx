@@ -2,9 +2,13 @@
 
 import { type ComponentPropsWithRef, useId } from "react";
 
-interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id"> {
+interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id" | "size"> {
   /** Visible label text */
   label: string;
+  /** Visually hide the label while keeping it accessible */
+  hideLabel?: boolean;
+  /** sm = h-8 (compact/inline), md = h-10 (default form field) */
+  size?: "sm" | "md";
   /** Error message (renders in error state when provided) */
   error?: string;
   /** Helper text shown below the input */
@@ -13,6 +17,8 @@ interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id"> {
 
 export default function Input({
   label,
+  hideLabel = false,
+  size = "md",
   error,
   helperText,
   required,
@@ -32,7 +38,11 @@ export default function Input({
     <div className={className}>
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-foreground mb-1.5"
+        className={
+          hideLabel
+            ? "sr-only"
+            : "block text-sm font-medium text-foreground mb-1.5"
+        }
       >
         {label}
         {required && (
@@ -49,7 +59,8 @@ export default function Input({
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={[
-          "block w-full rounded-lg border px-3 py-2 text-sm",
+          "block w-full rounded-lg border px-3 text-sm",
+          size === "sm" ? "py-1" : "py-2",
           "bg-surface text-foreground placeholder:text-muted",
           "transition-colors",
           "focus:outline-2 focus:outline-offset-0 focus:outline-primary-500 focus:border-primary-500",
