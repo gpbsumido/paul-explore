@@ -1,6 +1,12 @@
 import TCGdex from "@tcgdex/sdk";
+import type { Metadata } from "next";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+
+export const metadata: Metadata = {
+  title: "Pokémon TCG | Sets",
+  description: "All Pokémon TCG sets grouped by series.",
+};
 
 const tcgdex = new TCGdex("en");
 

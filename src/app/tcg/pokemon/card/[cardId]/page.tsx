@@ -1,4 +1,5 @@
 import TCGdex from "@tcgdex/sdk";
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -6,6 +7,22 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { typeStyle } from "@/lib/tcg";
 
 const tcgdex = new TCGdex("en");
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ cardId: string }>;
+}): Promise<Metadata> {
+  const { cardId } = await params;
+  const card = await tcgdex.card.get(cardId);
+  if (!card) return { title: "Card | Pokémon TCG" };
+  return {
+    title: `${card.name} | Pokémon TCG`,
+    description: card.set?.name
+      ? `${card.name} from the ${card.set.name} set.`
+      : `${card.name} — Pokémon TCG card details.`,
+  };
+}
 
 export default async function CardDetailPage({
   params,
