@@ -2,6 +2,10 @@
 
 ## 2026-02-22
 
+- added metadata across all pages — root layout title/description, static exports for TCG browse/sets/pocket pages, `generateMetadata` for set detail and card detail pages using SDK-fetched name
+
+## 2026-02-22
+
 - `AbortController` on fantasy NBA fetches — `LeagueContent` aborts on season switch, `StatsContent` aborts on team switch including mid-batch with loop exit guard on `signal.aborted`
 
 ## 2026-02-22

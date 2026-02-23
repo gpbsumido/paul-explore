@@ -1,4 +1,5 @@
 import TCGdex from "@tcgdex/sdk";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -6,6 +7,20 @@ import ThemeToggle from "@/components/ThemeToggle";
 import SetCardsGrid from "./SetCardsGrid";
 
 const tcgdex = new TCGdex("en");
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ setId: string }>;
+}): Promise<Metadata> {
+  const { setId } = await params;
+  const set = await tcgdex.set.get(setId);
+  if (!set) return { title: "Set | Pokémon TCG" };
+  return {
+    title: `${set.name} | Pokémon TCG`,
+    description: `Browse all cards in the ${set.name} set.`,
+  };
+}
 
 export default async function SetDetailPage({
   params,
