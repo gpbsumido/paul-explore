@@ -88,7 +88,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
     fetchCards(1, false);
   }, [fetchCards]);
 
-  // Assign directly in render — always fresh, no useEffect wrapper needed
+  // always fresh — assigned in render, not in an effect
   const onScrollRef = useRef<() => void>(() => {});
   onScrollRef.current = () => {
     if (!hasMore || loading || cards.length === 0) return;
@@ -97,7 +97,8 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
     fetchCards(nextPage, true);
   };
 
-  // Stable observer — created once, calls fresh ref on each intersection
+  // cards.length dep forces reconnect after each fetch — needed so the
+  // observer re-fires if the sentinel is already in the viewport
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -107,7 +108,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [cards.length]);
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-4">
