@@ -30,6 +30,13 @@ export type EventCard = {
  */
 export type DraftCard = EventCard & { pending?: true };
 
+/** Filters for the event search/list page. All fields optional — omit to skip that filter. */
+export type EventSearchFilters = {
+  start?: string;
+  end?: string;
+  cardName?: string;
+};
+
 export type ModalState =
   | { open: false }
   | { open: true; initialDate: Date; editingEvent?: CalendarEvent };

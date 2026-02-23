@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-02-23 - version 0.1.9
+
+- added an events list page at `/calendar/events` — searchable and filterable
+- event detail page at `/calendar/events/[id]` — shows event info and a card grid
+- "Events" link added to the calendar header next to the view switcher
+- added `fetchEvent` and `searchEvents` to `lib/calendar.ts`; `EventSearchFilters` type lives in `types/calendar.ts`
+
 ## 2026-02-23 - version 0.1.8
 
 - functionality to attach Pokémon cards to calendar events (can track what you're bringing or targeting to event?)

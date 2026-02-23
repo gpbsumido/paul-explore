@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { CalendarView } from "@/types/calendar";
 import { VIEWS, VIEW_LABELS, formatHeading } from "@/lib/calendar";
 import { Button, IconButton } from "@/components/ui";
@@ -56,22 +57,31 @@ export default function CalendarHeader({
         </h2>
       </div>
 
-      {/* Right: view switcher */}
-      <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
-        {VIEWS.map((v) => (
-          <button
-            key={v}
-            onClick={() => onViewChange(v)}
-            className={[
-              "h-7 px-3 text-xs font-medium rounded-md transition-colors",
-              v === view
-                ? "bg-foreground text-background"
-                : "text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
-            ].join(" ")}
-          >
-            {VIEW_LABELS[v]}
-          </button>
-        ))}
+      {/* Right: events link + view switcher */}
+      <div className="flex items-center gap-3">
+        <Link
+          href="/calendar/events"
+          className="text-xs text-muted hover:text-foreground transition-colors"
+        >
+          Events
+        </Link>
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
+          {VIEWS.map((v) => (
+            <button
+              key={v}
+              onClick={() => onViewChange(v)}
+              className={[
+                "h-7 px-3 text-xs font-medium rounded-md transition-colors",
+                v === view
+                  ? "bg-foreground text-background"
+                  : "text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
+              ].join(" ")}
+            >
+              {VIEW_LABELS[v]}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

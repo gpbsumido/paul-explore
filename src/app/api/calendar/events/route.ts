@@ -17,8 +17,10 @@ export async function GET(request: NextRequest) {
   const params = new URLSearchParams();
   const start = searchParams.get("start");
   const end = searchParams.get("end");
+  const cardName = searchParams.get("cardName");
   if (start) params.set("start", start);
   if (end) params.set("end", end);
+  if (cardName) params.set("cardName", cardName);
 
   const backendUrl = `${API_URL}/api/calendar/events?${params}`;
 
