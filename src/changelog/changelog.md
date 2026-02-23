@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-23
+
+- added `/calendar` page with different views, and with navigation
+- installed `date-fns` for all date math replacing Moment.js which i used to use for rojects since it's lighter
+- clicking cells or events (chip) opens modal to create or edit
+- new `Calendar Event`
+- new chip, iconButton, textArea primatives
+
 ## 2026-02-22
 
 - added metadata across all pages — root layout title/description, static exports for TCG browse/sets/pocket pages, `generateMetadata` for set detail and card detail pages using SDK-fetched name

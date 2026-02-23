@@ -76,6 +76,15 @@ const threads = [
     initials: "TC",
     unread: true,
   },
+  {
+    name: "Calendar",
+    href: "/calendar",
+    preview: "Track events and Pokémon TCG sessions",
+    time: "Today",
+    color: "#f59e0b",
+    initials: "CA",
+    unread: true,
+  },
 ];
 
 export default async function Protected() {
