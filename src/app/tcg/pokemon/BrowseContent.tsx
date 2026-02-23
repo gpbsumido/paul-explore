@@ -36,13 +36,19 @@ export default function BrowseContent() {
   useEffect(() => { setSearch(urlQ); }, [urlQ]);
   useEffect(() => { setType(urlType); }, [urlType]);
 
+  // Capture initial page from URL (only meaningful on first mount)
+  const initialPageRef = useRef(parseInt(searchParams.get("page") ?? "1", 10));
+  const isFirstMountRef = useRef(true);
+  const [loadedPages, setLoadedPages] = useState(initialPageRef.current);
+
   useEffect(() => {
     const params = new URLSearchParams();
     if (debouncedSearch) params.set("q", debouncedSearch);
     if (type) params.set("type", type);
+    if (loadedPages > 1) params.set("page", loadedPages.toString());
     const qs = params.toString();
     router.replace(`/tcg/pokemon${qs ? `?${qs}` : ""}`, { scroll: false });
-  }, [debouncedSearch, type, router]);
+  }, [debouncedSearch, type, loadedPages, router]);
 
   const [cards, setCards] = useState<CardResume[]>([]);
   const pageRef = useRef(1);
@@ -88,7 +94,24 @@ export default function BrowseContent() {
   );
 
   useEffect(() => {
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      const targetPage = initialPageRef.current;
+      if (targetPage > 1) {
+        // Restore scroll state: load pages 1–N sequentially
+        pageRef.current = targetPage;
+        const restore = async () => {
+          for (let p = 1; p <= targetPage; p++) {
+            await fetchCards(debouncedSearch, type, p, p > 1);
+          }
+        };
+        restore();
+        return;
+      }
+    }
+    // Normal reset (filter changed or first mount at page 1)
     pageRef.current = 1;
+    setLoadedPages(1);
     fetchCards(debouncedSearch, type, 1, false);
   }, [debouncedSearch, type, fetchCards]);
 
@@ -104,6 +127,7 @@ export default function BrowseContent() {
           cardsLengthRef.current > 0
         ) {
           pageRef.current += 1;
+          setLoadedPages(pageRef.current);
           fetchCards(debouncedSearch, type, pageRef.current, true);
         }
       },
@@ -173,15 +197,14 @@ export default function BrowseContent() {
           {cards.map((card) => (
             <CardTile key={card.id} card={card} />
           ))}
+          {loading && Array.from({ length: PER_PAGE }).map((_, i) => (
+            <SkeletonCard key={`sk-${i}`} />
+          ))}
         </div>
       )}
 
       {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
-      <div ref={sentinelRef} className="flex justify-center h-8">
-        {loading && cards.length > 0 && (
-          <span className="text-muted text-sm">Loading…</span>
-        )}
-      </div>
+      <div ref={sentinelRef} className="h-8" />
     </div>
     </>
   );
@@ -236,15 +259,22 @@ function TypePill({
   );
 }
 
+function SkeletonCard() {
+  return (
+    <div className="rounded-lg overflow-hidden border border-border bg-surface animate-pulse">
+      <div className="w-full bg-surface-raised" style={{ aspectRatio: "2.5/3.5" }} />
+      <div className="px-2 py-1.5">
+        <div className="h-2 w-2/3 rounded bg-surface-raised" />
+      </div>
+    </div>
+  );
+}
+
 function SkeletonGrid() {
   return (
     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
       {Array.from({ length: 21 }).map((_, i) => (
-        <div
-          key={i}
-          className="rounded-lg bg-surface animate-pulse"
-          style={{ aspectRatio: "2.5/3.5" }}
-        />
+        <SkeletonCard key={i} />
       ))}
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 const PER_PAGE = 20;
@@ -13,6 +14,13 @@ type CardResume = {
 };
 
 export default function SetCardsGrid({ setId }: { setId: string }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const initialPageRef = useRef(parseInt(searchParams.get("page") ?? "1", 10));
+  const isFirstMountRef = useRef(true);
+  const [loadedPages, setLoadedPages] = useState(initialPageRef.current);
+
   const [cards, setCards] = useState<CardResume[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -25,6 +33,13 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
   useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
   useEffect(() => { loadingRef.current = loading; }, [loading]);
   useEffect(() => { cardsLengthRef.current = cards.length; }, [cards]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (loadedPages > 1) params.set("page", loadedPages.toString());
+    const qs = params.toString();
+    router.replace(`/tcg/pokemon/sets/${setId}${qs ? `?${qs}` : ""}`, { scroll: false });
+  }, [loadedPages, setId, router]);
 
   const fetchCards = useCallback(
     async (pg: number, append: boolean) => {
@@ -56,6 +71,20 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
   );
 
   useEffect(() => {
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      const targetPage = initialPageRef.current;
+      if (targetPage > 1) {
+        pageRef.current = targetPage;
+        const restore = async () => {
+          for (let p = 1; p <= targetPage; p++) {
+            await fetchCards(p, p > 1);
+          }
+        };
+        restore();
+        return;
+      }
+    }
     pageRef.current = 1;
     fetchCards(1, false);
   }, [fetchCards]);
@@ -72,6 +101,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
           cardsLengthRef.current > 0
         ) {
           pageRef.current += 1;
+          setLoadedPages(pageRef.current);
           fetchCards(pageRef.current, true);
         }
       },
@@ -128,15 +158,18 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
               )}
             </Link>
           ))}
+          {loading && Array.from({ length: PER_PAGE }).map((_, i) => (
+            <div
+              key={`sk-${i}`}
+              className="rounded-lg bg-surface animate-pulse"
+              style={{ aspectRatio: "2.5/3.5" }}
+            />
+          ))}
         </div>
       )}
 
       {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
-      <div ref={sentinelRef} className="flex justify-center h-8">
-        {loading && cards.length > 0 && (
-          <span className="text-muted text-sm">Loading…</span>
-        )}
-      </div>
+      <div ref={sentinelRef} className="h-8" />
     </div>
   );
 }

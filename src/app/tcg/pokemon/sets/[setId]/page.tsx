@@ -1,6 +1,7 @@
 import TCGdex from "@tcgdex/sdk";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
 import SetCardsGrid from "./SetCardsGrid";
 
@@ -86,7 +87,9 @@ export default async function SetDetailPage({
         </div>
       </div>
 
-      <SetCardsGrid setId={setId} />
+      <Suspense>
+        <SetCardsGrid setId={setId} />
+      </Suspense>
     </div>
   );
 }

@@ -2,6 +2,12 @@
 
 ## 2026-02-22
 
+- page number synced to URL as user scrolls (`?page=N`) on browse and set detail pages — back navigation and shared URLs restore scroll state by sequentially fetching pages 1–N on mount
+- `Suspense` boundary added around `SetCardsGrid` to support `useSearchParams`
+- skeleton cards while inside the grid during infinite scroll
+
+## 2026-02-22
+
 - added Pokemon TCG browser — browse/search cards with debounced search, deduplication, and filter, grouped by series, per-set card grids, and a card info page
 - added specific page for PTCG Pocket
 - created Next.js API route TCG proxies
