@@ -99,3 +99,50 @@ export function formatHeading(date: Date, view: CalendarView): string {
       return format(date, "yyyy");
   }
 }
+
+/** Fetch all events within a date range (ISO strings). */
+export async function fetchEvents(
+  start: string,
+  end: string,
+): Promise<CalendarEvent[]> {
+  const params = new URLSearchParams({ start, end });
+  const res = await fetch(`/api/calendar/events?${params}`);
+  if (!res.ok) throw new Error("Failed to fetch events");
+  const data = await res.json();
+  return data.events as CalendarEvent[];
+}
+
+/** Create a new event. The backend assigns the id. */
+export async function createEvent(
+  event: Omit<CalendarEvent, "id">,
+): Promise<CalendarEvent> {
+  const res = await fetch("/api/calendar/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(event),
+  });
+  if (!res.ok) throw new Error("Failed to create event");
+  const data = await res.json();
+  return data.event as CalendarEvent;
+}
+
+/** Partially update an existing event by id. */
+export async function updateEvent(
+  id: string,
+  fields: Partial<Omit<CalendarEvent, "id">>,
+): Promise<CalendarEvent> {
+  const res = await fetch(`/api/calendar/events/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Failed to update event");
+  const data = await res.json();
+  return data.event as CalendarEvent;
+}
+
+/** Delete an event by id. */
+export async function deleteEvent(id: string): Promise<void> {
+  const res = await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete event");
+}

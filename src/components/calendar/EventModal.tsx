@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useId } from "react";
-import { format, addHours } from "date-fns";
+import { format, formatISO, addHours, parseISO } from "date-fns";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
 import type { CalendarEvent } from "@/types/calendar";
 import { EVENT_COLORS, toInputValue } from "@/lib/calendar";
@@ -10,8 +10,8 @@ import { LABEL_CLASS } from "@/components/ui/styles";
 interface EventModalProps {
   initialDate: Date;
   event?: CalendarEvent;
-  onSave: (event: CalendarEvent) => void;
-  onDelete?: (id: string) => void;
+  onSave: (event: CalendarEvent) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
   onClose: () => void;
 }
 
@@ -30,45 +30,78 @@ export default function EventModal({
 
   const [title, setTitle] = useState(event?.title ?? "");
   const [description, setDescription] = useState(event?.description ?? "");
-  const [startDate, setStartDate] = useState(event ? toInputValue(event.startDate) : defaultStart);
-  const [endDate, setEndDate] = useState(event ? toInputValue(event.endDate) : defaultEnd);
+  const [startDate, setStartDate] = useState(
+    event ? toInputValue(event.startDate) : defaultStart,
+  );
+  const [endDate, setEndDate] = useState(
+    event ? toInputValue(event.endDate) : defaultEnd,
+  );
   const [allDay, setAllDay] = useState(event?.allDay ?? false);
   const [color, setColor] = useState(event?.color ?? EVENT_COLORS[0]);
   const [titleError, setTitleError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     if (!title.trim()) {
       setTitleError(true);
       return;
     }
-    onSave({
-      id: event?.id ?? crypto.randomUUID(),
-      title: title.trim(),
-      description: description.trim() || undefined,
-      startDate: allDay ? `${startDate.split("T")[0]}T00:00` : startDate,
-      endDate: allDay ? `${endDate.split("T")[0]}T23:59` : endDate,
-      allDay,
-      color,
-    });
-    onClose();
+    setSaving(true);
+    setSaveError(null);
+    // convert the naive datetime-local strings (no tz) to ISO with local offset
+    // e.g. "2026-02-24T00:00" → "2026-02-24T00:00:00-05:00" so it's in UTC in db
+    const toISO = (s: string) => formatISO(parseISO(s));
+
+    try {
+      await onSave({
+        id: event?.id ?? crypto.randomUUID(),
+        title: title.trim(),
+        description: description.trim() || undefined,
+        startDate: toISO(
+          allDay ? `${startDate.split("T")[0]}T00:00` : startDate,
+        ),
+        endDate: toISO(allDay ? `${endDate.split("T")[0]}T23:59` : endDate),
+        allDay,
+        color,
+      });
+      onClose();
+    } catch {
+      setSaveError("Couldn't save the event. Please try again.");
+      setSaving(false);
+    }
   }
 
-  function handleDelete() {
-    if (event && onDelete) {
-      onDelete(event.id);
+  async function handleDelete() {
+    if (!event || !onDelete) return;
+    setDeleting(true);
+    try {
+      await onDelete(event.id);
       onClose();
+    } catch {
+      setDeleting(false);
     }
   }
 
   return (
-    <Modal open onClose={onClose} aria-label={isEdit ? "Edit event" : "New event"}>
+    <Modal
+      open
+      onClose={onClose}
+      aria-label={isEdit ? "Edit event" : "New event"}
+    >
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-semibold text-foreground">
           {isEdit ? "Edit event" : "New event"}
         </h2>
         <IconButton aria-label="Close" size="sm" onClick={onClose}>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path
+              d="M1 1l10 10M11 1L1 11"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           </svg>
         </IconButton>
       </div>
@@ -106,7 +139,10 @@ export default function EventModal({
             onChange={(e) => setAllDay(e.target.checked)}
             className="cursor-pointer"
           />
-          <label htmlFor={`${uid}-allday`} className="text-sm text-foreground cursor-pointer">
+          <label
+            htmlFor={`${uid}-allday`}
+            className="text-sm text-foreground cursor-pointer"
+          >
             All day
           </label>
         </div>
@@ -155,20 +191,40 @@ export default function EventModal({
       </div>
 
       {/* Actions */}
+      {saveError && (
+        <p className="mt-3 text-xs text-red-600 dark:text-red-400">
+          {saveError}
+        </p>
+      )}
       <div className="flex items-center justify-between mt-5">
         {isEdit && onDelete ? (
-          <Button variant="danger" size="sm" onClick={handleDelete}>
-            Delete
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={handleDelete}
+            disabled={deleting || saving}
+          >
+            {deleting ? "Deleting…" : "Delete"}
           </Button>
         ) : (
           <span />
         )}
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            disabled={saving || deleting}
+          >
             Cancel
           </Button>
-          <Button variant="primary" size="sm" onClick={handleSave}>
-            {isEdit ? "Save" : "Create"}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || deleting}
+          >
+            {saving ? "Saving…" : isEdit ? "Save" : "Create"}
           </Button>
         </div>
       </div>
