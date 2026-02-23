@@ -4,6 +4,9 @@ import { useState } from "react";
 import { addDays, addWeeks, addMonths, addYears } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
+import DayView from "@/components/calendar/DayView";
+import WeekView from "@/components/calendar/WeekView";
+import YearView from "@/components/calendar/YearView";
 import type { CalendarView } from "@/types/calendar";
 
 export default function CalendarContent() {
@@ -29,6 +32,12 @@ export default function CalendarContent() {
     setCurrentDate(new Date());
   }
 
+  // navigate to month view from year view if clicking month
+  function handleMonthClick(date: Date) {
+    setCurrentDate(date);
+    setView("month");
+  }
+
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
       <CalendarHeader
@@ -39,15 +48,17 @@ export default function CalendarContent() {
         onToday={handleToday}
       />
 
+      {view === "day" && (
+        <DayView currentDate={currentDate} onSlotClick={() => {}} />
+      )}
+      {view === "week" && (
+        <WeekView currentDate={currentDate} onSlotClick={() => {}} />
+      )}
       {view === "month" && (
         <CalendarGrid currentDate={currentDate} onDayClick={() => {}} />
       )}
-
-      {view !== "month" && (
-        <div className="border border-border rounded-xl p-12 text-center text-muted">
-          {view.charAt(0).toUpperCase() + view.slice(1)} view coming in the next
-          step.
-        </div>
+      {view === "year" && (
+        <YearView currentDate={currentDate} onMonthClick={handleMonthClick} />
       )}
     </div>
   );
