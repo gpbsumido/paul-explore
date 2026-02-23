@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import { POKEMON_TYPES, typeStyle } from "@/lib/tcg";
 
 const PER_PAGE = 20;
@@ -148,12 +150,15 @@ export default function BrowseContent() {
         <div
           className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 flex items-center gap-3"
         >
-          <input
+          <Input
             type="search"
+            label="Search cards"
+            hideLabel
+            size="sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search cards…"
-            className="w-40 sm:w-56 shrink-0 h-8 rounded-lg bg-surface border border-border px-3 text-sm text-foreground outline-none focus:border-red-400/60 placeholder:text-muted transition-colors"
+            className="w-40 sm:w-56 shrink-0"
           />
           <div className="h-4 w-px bg-border shrink-0" />
           <div
@@ -181,12 +186,13 @@ export default function BrowseContent() {
       ) : error ? (
         <div className="flex flex-col items-center gap-3 py-20 text-center text-muted text-sm">
           <span>{error}</span>
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => fetchCards(debouncedSearch, type, 1, false)}
-            className="px-5 py-2 rounded-lg text-sm border border-border text-foreground hover:bg-surface transition-colors"
           >
             Retry
-          </button>
+          </Button>
         </div>
       ) : cards.length === 0 ? (
         <div className="flex items-center justify-center py-20 text-muted text-sm">
@@ -246,16 +252,18 @@ function TypePill({
   typeColor?: string;
 }) {
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="xs"
       onClick={onClick}
-      className={`shrink-0 px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wide border transition-colors ${
+      className={`shrink-0 font-bold uppercase tracking-wide border ${
         active
           ? `${typeColor ?? "bg-red-500/20 text-red-300"} border-transparent`
-          : "bg-transparent text-muted border-border hover:border-foreground/40"
+          : "text-muted border-border hover:border-foreground/40"
       }`}
     >
       {label}
-    </button>
+    </Button>
   );
 }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Button from "@/components/ui/Button";
 
 const PER_PAGE = 20;
 
@@ -126,12 +127,13 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
       ) : error ? (
         <div className="flex flex-col items-center gap-3 py-20 text-center text-muted text-sm">
           <span>{error}</span>
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => { pageRef.current = 1; fetchCards(1, false); }}
-            className="px-5 py-2 rounded-lg text-sm border border-border text-foreground hover:bg-surface transition-colors"
           >
             Retry
-          </button>
+          </Button>
         </div>
       ) : cards.length === 0 ? (
         <div className="flex items-center justify-center py-20 text-muted text-sm">
