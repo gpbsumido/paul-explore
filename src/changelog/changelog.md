@@ -5,6 +5,7 @@
 - page number synced to URL as user scrolls (`?page=N`) on browse and set detail pages — back navigation and shared URLs restore scroll state by sequentially fetching pages 1–N on mount
 - `Suspense` boundary added around `SetCardsGrid` to support `useSearchParams`
 - skeleton cards while inside the grid during infinite scroll
+- update the landing page with the tcg feature
 
 ## 2026-02-22
 
