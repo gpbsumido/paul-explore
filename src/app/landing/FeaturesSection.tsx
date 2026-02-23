@@ -43,11 +43,11 @@ export default function FeaturesSection() {
         <p
           className={`mx-auto mt-3 max-w-lg text-center text-neutral-400 dark:text-neutral-600 ${reveal(visible, "delay-100")}`}
         >
-          Three pillars powering this project — authentication, design, and
-          live data.
+          Authentication, design systems, live data, and full-stack API
+          integration — all in one project.
         </p>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
           <FeatureCard
             icon="🔐"
             title="Auth & Security"
@@ -68,6 +68,13 @@ export default function FeaturesSection() {
             description="Live player stats via API proxy with batch loading and error handling."
             visible={visible}
             delay="delay-300"
+          />
+          <FeatureCard
+            icon="🃏"
+            title="Pokémon TCG"
+            description="Card browser with infinite scroll, URL-synced filters, and per-set grids built on the TCGdex SDK."
+            visible={visible}
+            delay="delay-[400ms]"
           />
         </div>
       </div>

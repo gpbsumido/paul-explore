@@ -1,7 +1,7 @@
 import { type ComponentPropsWithRef, type ReactNode } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
-type ButtonSize = "sm" | "md" | "lg";
+type ButtonSize = "xs" | "sm" | "md" | "lg";
 
 interface ButtonProps extends ComponentPropsWithRef<"button"> {
   variant?: ButtonVariant;
@@ -32,6 +32,7 @@ export default function Button({
         "transition-colors cursor-pointer",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
         "disabled:pointer-events-none disabled:opacity-50",
+        size === "xs" && "px-3 py-1 text-[11px] rounded-md gap-1",
         size === "sm" && "h-8 px-4 text-sm rounded-md gap-1.5",
         size === "md" && "h-10 px-5 text-sm rounded-lg gap-2",
         size === "lg" && "h-12 px-8 text-base rounded-lg gap-2.5",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui";
@@ -44,15 +44,21 @@ export default function StatsContent() {
       .catch((err) => setError(err.message));
   }, []);
 
+  const abortRef = useRef<AbortController | null>(null);
+
   // fetch team stats
   const fetchTeamStats = useCallback(async (teamId: number) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setError(null);
     setRows([]);
     setRemaining(0);
 
     try {
-      const playersRes = await fetch(`/api/nba/players/${teamId}`);
+      const playersRes = await fetch(`/api/nba/players/${teamId}`, { signal: controller.signal });
       if (!playersRes.ok) throw new Error("Failed to load players");
       const playersJson = await playersRes.json();
       const players: Player[] =
@@ -63,10 +69,11 @@ export default function StatsContent() {
       const BATCH_SIZE = 3;
 
       for (let i = 0; i < players.length; i += BATCH_SIZE) {
+        if (controller.signal.aborted) break;
         const batch = players.slice(i, i + BATCH_SIZE);
         const statsResults = await Promise.allSettled(
           batch.map(async (player) => {
-            const res = await fetch(`/api/nba/stats/${player.id}`);
+            const res = await fetch(`/api/nba/stats/${player.id}`, { signal: controller.signal });
             if (!res.ok) throw new Error("Failed");
             const statsJson = await res.json();
             const raw = statsJson.data?.data ?? statsJson.data;
@@ -80,6 +87,8 @@ export default function StatsContent() {
             } as PlayerRow;
           }),
         );
+
+        if (controller.signal.aborted) break;
 
         const batchRows: PlayerRow[] = statsResults.map((result, idx) => {
           if (result.status === "fulfilled") return result.value;
@@ -97,9 +106,10 @@ export default function StatsContent() {
         setRemaining((prev) => Math.max(0, prev - batch.length));
       }
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, []);
 

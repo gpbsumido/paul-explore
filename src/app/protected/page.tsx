@@ -49,6 +49,33 @@ const threads = [
     initials: "LH",
     unread: false,
   },
+  {
+    name: "Pokemon TCG",
+    href: "/tcg/pokemon",
+    preview: "Browse, search, and explore Pokemon cards",
+    time: "Today",
+    color: "#ef4444",
+    initials: "PT",
+    unread: true,
+  },
+  {
+    name: "TCG Pocket",
+    href: "/tcg/pocket",
+    preview: "Pokémon TCG Pocket — all sets and expansions",
+    time: "Today",
+    color: "#6366f1",
+    initials: "PK",
+    unread: true,
+  },
+  {
+    name: "TCG Pages",
+    href: "/thoughts/tcg",
+    preview: "API proxy, server/client split, pagination patterns",
+    time: "Today",
+    color: "#10b981",
+    initials: "TC",
+    unread: true,
+  },
 ];
 
 export default async function Protected() {
