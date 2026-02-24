@@ -7,6 +7,7 @@
 - card search results now show an explicit "Add" button per row instead of click-anywhere, and display a spinner while the fetch is in-flight instead of plain "Searching…" text
 - quantity field replaced with a +/− stepper
 - added placeholder for card search so user's know what to do
+- added Calendar feature to landing page
 
 ## 2026-02-24 - version 0.1.10
 
