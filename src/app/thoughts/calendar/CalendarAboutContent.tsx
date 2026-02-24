@@ -48,13 +48,30 @@ export default function CalendarAboutContent() {
           per user via Auth0
         </Sent>
         <Sent pos="last">
-          you can also attach Pokémon cards to events — useful for tracking what
-          you&apos;re bringing to a tournament or a trade meetup. there&apos;s
-          also a searchable events list at <code>/calendar/events</code> and a
-          detail page for each event
+          you can also attach Pokémon cards to events — there&apos;s a
+          searchable events list at <code>/calendar/events</code> and a detail
+          page per event showing everything attached to it
         </Sent>
 
-        <Timestamp>10:03 AM</Timestamp>
+        <Received>wait, why did you actually build this</Received>
+
+        <Sent pos="first">
+          my partner and I play Pokémon Pocket together a lot. we have this
+          thing where if I pull something special I want to show her — but then
+          I forget what I got or when
+        </Sent>
+        <Sent pos="middle">
+          so the calendar started as a way to log those moments. mark the day
+          we played, note what happened, attach the cards I pulled, and have
+          something to look back at
+        </Sent>
+        <Sent pos="last">
+          the rest of the features — all four views, the event list, the card
+          search — grew out of wanting it to actually be usable rather than
+          just a proof-of-concept
+        </Sent>
+
+        <Timestamp>10:04 AM</Timestamp>
 
         <Received>why date-fns instead of moment</Received>
 
@@ -89,7 +106,7 @@ export default function CalendarAboutContent() {
           from scratch with date-fns&quot; is
         </Sent>
 
-        <Timestamp>10:09 AM</Timestamp>
+        <Timestamp>10:11 AM</Timestamp>
 
         <Received>walk me through the frontend architecture</Received>
 
@@ -132,7 +149,7 @@ const end = endOfWeek(endOfMonth(currentDate));
           and the latency is fine
         </Sent>
 
-        <Timestamp>10:16 AM</Timestamp>
+        <Timestamp>10:19 AM</Timestamp>
 
         <Received>tell me about the BFF pattern you used</Received>
 
@@ -165,7 +182,7 @@ export async function GET(request: Request) {
 }`}
         </div>
 
-        <Timestamp>10:23 AM</Timestamp>
+        <Timestamp>10:26 AM</Timestamp>
 
         <Received>what about the backend — how is it structured</Received>
 
@@ -213,14 +230,69 @@ export async function GET(request: Request) {
 "2026-02-24T22:00:00Z" ✓`}
         </div>
 
-        <Timestamp>10:31 AM</Timestamp>
+        <Timestamp>10:34 AM</Timestamp>
+
+        <Received>were there any tricky rendering problems</Received>
+
+        <Sent pos="first">
+          multi-day events were wrong for a while — an event spanning
+          Monday through Thursday would only show a chip on Monday
+        </Sent>
+        <Sent pos="middle">
+          the backend was already doing the right thing with overlap queries.
+          the bug was on the frontend: I was using{" "}
+          <code>isSameDay(startDate, day)</code> to filter, which only matched
+          the start day. switched to{" "}
+          <code>differenceInCalendarDays</code> offset checks — if the event
+          started on or before this day and ends on or after it, show a chip
+        </Sent>
+        <Sent pos="last">
+          multi-day timed events also now go in the all-day row instead of
+          having a partial bar floating in the time grid. a Tuesday 10am event
+          that ends Wednesday 2pm shouldn&apos;t try to fit inside a single hour
+          slot — Google Calendar routes those to all-day too
+        </Sent>
+
+        <Received>what about events at the same time</Received>
+
+        <Sent pos="first">
+          the time grid used to stack them on top of each other, titles
+          completely illegible
+        </Sent>
+        <Sent pos="middle">
+          fixed with a greedy interval scheduling algorithm. sort events by
+          start time, assign each to the first column whose last occupant has
+          already ended. then for each event, walk all overlapping events to
+          find the widest concurrent group — that&apos;s how many columns to
+          divide the width by
+        </Sent>
+        <Sent pos="last">
+          the positioning is percentage-based left/right so five events at 9am
+          each get exactly 20% of the column width. same approach Google
+          Calendar uses — it scales gracefully, just gets narrower as more
+          events pile in
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// greedy column assignment, O(n²) — fine at calendar scale
+const col = colEnds.findIndex(end => end <= startMs);
+
+// walk overlapping events to find total concurrent columns
+let maxCol = eventCols[i];
+for (let j = 0; j < sorted.length; j++) {
+  if (jStart < endMs && jEnd > startMs)
+    maxCol = Math.max(maxCol, eventCols[j]);
+}
+// → totalColumns = maxCol + 1`}
+        </div>
+
+        <Timestamp>10:43 AM</Timestamp>
 
         <Received>how does the card attachment work</Received>
 
         <Sent pos="first">
           the event modal has a debounced card search that reuses the existing
           TCGdex browse endpoint. pick a card and it appears in an attached list
-          below
         </Sent>
         <Sent pos="middle">
           changes are staged locally — additions, quantity edits, removals —
@@ -231,6 +303,43 @@ export async function GET(request: Request) {
           first, then adds/updates in parallel. the order matters to avoid FK
           violations on the junction table
         </Sent>
+
+        <Received>did you do a ui pass on the modal at some point</Received>
+
+        <Sent pos="first">
+          yeah the first version was one long column — title, description,
+          dates, colors, then all the card stuff stacked below. it worked but
+          felt like a form from 2012
+        </Sent>
+        <Sent pos="middle">
+          split it into two columns on desktop: event details on the left,
+          card search and attached cards on the right. stacks back to single
+          column on mobile. section headers with trailing rules keep it from
+          feeling like one undifferentiated blob
+        </Sent>
+        <Sent pos="last">
+          other small things: color swatches show a white checkmark instead of
+          a ring, quantity stepper replaced the raw number input, explicit Add
+          button per search result instead of click-anywhere, and there&apos;s
+          an inline warning if end is before start
+        </Sent>
+
+        <Received>what about the event chips on the grid</Received>
+
+        <Sent pos="first">
+          chips in the time grid are translucent at rest — you can see any
+          events behind them through the color wash. solid on hover so you can
+          clearly identify the one you&apos;re pointing at without everything
+          becoming opaque
+        </Sent>
+        <Sent pos="last">
+          title tooltips use a custom Tooltip primitive instead of the native
+          browser <code>title</code> attribute. position:fixed so it escapes the
+          overflow:hidden calendar container without a portal, 500ms delay so it
+          doesn&apos;t fire on every pass-through
+        </Sent>
+
+        <Timestamp>10:52 AM</Timestamp>
 
         <Received>what would you still improve</Received>
 
@@ -246,13 +355,12 @@ export async function GET(request: Request) {
         </Sent>
         <Sent pos="last">
           mobile layout for the week/day grids needs work too. the time column
-          plus event chips get tight below 400px. and card metadata sync (name,
-          set, image URL) should probably be a background job instead of
-          inserting on attach — right now the modal has to wait for TCGdex
-          before it can save
+          plus event chips get tight below 400px. and card metadata sync should
+          probably be a background job instead of blocking the save — right now
+          the modal has to wait for TCGdex before it can persist
         </Sent>
 
-        <Timestamp>10:38 AM</Timestamp>
+        <Timestamp>10:58 AM</Timestamp>
 
         <Received>what does building this show as a frontend dev</Received>
 
@@ -264,14 +372,14 @@ export async function GET(request: Request) {
         </Sent>
         <Sent pos="middle">
           date math is always harder than it looks. grid construction, timezone
-          offsets, overlap detection for week view — each one has edge cases
-          that bite you. date-fns saved a lot of that
+          offsets, overlap detection — each one has edge cases that bite you.
+          date-fns saved a lot of that pain
         </Sent>
         <Sent pos="last">
           and composition: keeping <code>CalendarGrid</code>,{" "}
           <code>DayView</code>, <code>WeekView</code> as focused components
           instead of one big calendar god-component means each one is easy to
-          reason about and test independently
+          reason about and update independently
         </Sent>
 
         <Received>nice. anything else worth mentioning</Received>
