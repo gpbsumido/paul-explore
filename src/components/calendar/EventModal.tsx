@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, type ReactNode } from "react";
 import { format, formatISO, addHours, parseISO } from "date-fns";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
 import type { CalendarEvent, DraftCard } from "@/types/calendar";
@@ -23,6 +23,18 @@ interface EventModalProps {
   onSave: (event: CalendarEvent) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   onClose: () => void;
+}
+
+/** Section header with a trailing rule — keeps the two columns visually organized. */
+function SectionHeader({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-muted/50 whitespace-nowrap">
+        {children}
+      </span>
+      <div className="flex-1 h-px bg-border" />
+    </div>
+  );
 }
 
 export default function EventModal({
@@ -52,6 +64,9 @@ export default function EventModal({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // end < start is derived — no extra state needed
+  const endBeforeStart = endDate < startDate;
 
   // ---------------------------------------------------------------------------
   // Cards state
@@ -198,9 +213,10 @@ export default function EventModal({
       open
       onClose={onClose}
       aria-label={isEdit ? "Edit event" : "New event"}
-      className="overflow-y-auto max-h-[90vh]"
+      className="overflow-y-auto max-h-[90vh] sm:max-w-2xl"
     >
-      <div className="flex items-center justify-between mb-4">
+      {/* header */}
+      <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-semibold text-foreground">
           {isEdit ? "Edit event" : "New event"}
         </h2>
@@ -216,100 +232,130 @@ export default function EventModal({
         </IconButton>
       </div>
 
-      <div className="space-y-3">
-        {/* Title */}
-        <Input
-          label="Title"
-          required
-          autoComplete="off"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            setTitleError(false);
-          }}
-          placeholder="Event title"
-          error={titleError ? "Title is required" : undefined}
-          size="sm"
-        />
+      {/* two-column body — stacks on mobile, side by side on sm+ */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+        {/* ── left column: event details ── */}
+        <div className="space-y-3">
+          <SectionHeader>Details</SectionHeader>
 
-        {/* Description */}
-        <Textarea
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional description"
-          rows={2}
-        />
-
-        {/* All-day */}
-        <div className="flex items-center gap-2">
-          <input
-            id={`${uid}-allday`}
-            type="checkbox"
-            checked={allDay}
-            onChange={(e) => setAllDay(e.target.checked)}
-            className="cursor-pointer"
-          />
-          <label
-            htmlFor={`${uid}-allday`}
-            className="text-sm text-foreground cursor-pointer"
-          >
-            All day
-          </label>
-        </div>
-
-        {/* Start / End */}
-        <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Start"
-            type={allDay ? "date" : "datetime-local"}
-            value={allDay ? startDate.split("T")[0] : startDate}
-            onChange={(e) =>
-              setStartDate(allDay ? `${e.target.value}T00:00` : e.target.value)
-            }
+            label="Title"
+            required
+            autoComplete="off"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setTitleError(false);
+            }}
+            placeholder="Event title"
+            error={titleError ? "Title is required" : undefined}
             size="sm"
           />
-          <Input
-            label="End"
-            type={allDay ? "date" : "datetime-local"}
-            value={allDay ? endDate.split("T")[0] : endDate}
-            onChange={(e) =>
-              setEndDate(allDay ? `${e.target.value}T23:59` : e.target.value)
-            }
-            size="sm"
-          />
-        </div>
 
-        {/* Color */}
-        <div>
-          <p className={LABEL_CLASS}>Color</p>
+          <Textarea
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Optional description"
+            rows={2}
+          />
+
+          {/* All-day toggle */}
           <div className="flex items-center gap-2">
-            {EVENT_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                className={[
-                  "h-6 w-6 rounded-full transition-all",
-                  color === c ? "ring-2 ring-foreground ring-offset-1" : "",
-                ].join(" ")}
-                style={{ backgroundColor: c }}
-                aria-label={`Color ${c}`}
-              />
-            ))}
+            <input
+              id={`${uid}-allday`}
+              type="checkbox"
+              checked={allDay}
+              onChange={(e) => setAllDay(e.target.checked)}
+              className="cursor-pointer"
+            />
+            <label
+              htmlFor={`${uid}-allday`}
+              className="text-sm text-foreground cursor-pointer"
+            >
+              All day
+            </label>
+          </div>
+
+          {/* Start / End — paired in one row */}
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Start"
+              type={allDay ? "date" : "datetime-local"}
+              value={allDay ? startDate.split("T")[0] : startDate}
+              onChange={(e) =>
+                setStartDate(
+                  allDay ? `${e.target.value}T00:00` : e.target.value,
+                )
+              }
+              size="sm"
+            />
+            <Input
+              label="End"
+              type={allDay ? "date" : "datetime-local"}
+              value={allDay ? endDate.split("T")[0] : endDate}
+              onChange={(e) =>
+                setEndDate(allDay ? `${e.target.value}T23:59` : e.target.value)
+              }
+              size="sm"
+            />
+          </div>
+
+          {/* end-before-start warning — derived, no extra state */}
+          {endBeforeStart && (
+            <p className="-mt-1 text-xs text-amber-600 dark:text-amber-400">
+              End is before start — check your dates
+            </p>
+          )}
+
+          {/* Color swatches — circles with a checkmark on the selected one */}
+          <div>
+            <p className={LABEL_CLASS}>Color</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {EVENT_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className="h-6 w-6 rounded-full transition-all inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+                  style={{ backgroundColor: c }}
+                  aria-label={`Color ${c}`}
+                  aria-pressed={color === c}
+                >
+                  {color === c && (
+                    <svg
+                      width="10"
+                      height="8"
+                      viewBox="0 0 10 8"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M1 4l2.5 2.5L9 1"
+                        stroke="white"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Cards */}
-        <div className="space-y-2 pt-1">
-          <p className={LABEL_CLASS}>Cards</p>
+        {/* ── right column: attached cards ── */}
+        <div className="space-y-3">
+          <SectionHeader>Cards</SectionHeader>
+          {/* search first so the empty-state hint "above" makes sense */}
+          <CardSearch onSelectCard={handleCardSelected} />
           <AttachedCardsList
             cards={cards}
             onQuantityChange={handleQuantityChange}
             onNotesChange={handleNotesChange}
             onRemove={handleRemove}
           />
-          <CardSearch onSelectCard={handleCardSelected} />
         </div>
       </div>
 
@@ -319,7 +365,8 @@ export default function EventModal({
         </p>
       )}
 
-      <div className="flex items-center justify-between mt-5">
+      {/* action row — separated from the form by a rule */}
+      <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
         {isEdit && onDelete ? (
           <Button
             variant="danger"

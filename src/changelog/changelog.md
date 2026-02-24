@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-24 - version 0.1.11
+
+- updated event modal styling
+- end-before-start inline warning shows under the date row when end < start
+- card search results now show an explicit "Add" button per row instead of click-anywhere, and display a spinner while the fetch is in-flight instead of plain "Searching…" text
+- quantity field replaced with a +/− stepper
+- added placeholder for card search so user's know what to do
+
 ## 2026-02-24 - version 0.1.10
 
 - added `Tooltip` UI primitive — renders at a fixed screen position so it escapes `overflow:hidden` containers

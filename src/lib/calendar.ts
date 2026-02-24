@@ -56,6 +56,8 @@ export const EVENT_COLORS = [
   "#ef4444", // red
   "#8b5cf6", // violet
   "#ec4899", // pink
+  "#14b8a6", // teal
+  "#f97316", // orange
 ] as const;
 
 /**
