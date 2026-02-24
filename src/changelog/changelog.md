@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-02-23 - version 0.2.0
+
+- added a calendar about page at `/calendar/about` — same iMessage write-up format as the other thoughts pages, covers why date-fns over moment, the BFF auth pattern, junction table vs JSON column, timezone handling, what I'd still improve
+- "About" link added to the calendar header next to Events
+- persist read threads and display according to if read or not
+
 ## 2026-02-23 - version 0.1.9
 
 - added an events list page at `/calendar/events` — searchable and filterable

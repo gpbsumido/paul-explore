@@ -57,13 +57,20 @@ export default function CalendarHeader({
         </h2>
       </div>
 
-      {/* Right: events link + view switcher */}
+      {/* Right: events link + about link + view switcher */}
       <div className="flex items-center gap-3">
         <Link
           href="/calendar/events"
           className="text-xs text-muted hover:text-foreground transition-colors"
         >
           Events
+        </Link>
+        <div className="h-4 w-px bg-border" />
+        <Link
+          href="/thoughts/calendar"
+          className="text-xs text-muted hover:text-foreground transition-colors"
+        >
+          About
         </Link>
         <div className="h-4 w-px bg-border" />
         <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
