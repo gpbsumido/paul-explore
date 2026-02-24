@@ -40,6 +40,8 @@ The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/cal
 
 Built without a calendar library — `date-fns` handles all date math (grid construction, view navigation, slot matching). This was a deliberate choice: FullCalendar's full React support requires a paid license, and the custom build keeps the bundle small and gives full control over the interaction model.
 
+Event rendering matches Google Calendar's conventions: multi-day timed events (ones that cross midnight) float up to the all-day row as spanning bars; single-day timed events are absolute-positioned blocks in the time grid that span their actual duration; multi-day events in the month view appear on every day they cover, with a flat continuation-bar style on days after the start.
+
 ### 🏆 Fantasy League History
 
 ESPN fantasy league data by season. Teams sort by final standings, expand to show their full roster with positions. Season selector spans back to the league's first year. Glassmorphism card design because I wanted to try it and the gradient background made it work.
