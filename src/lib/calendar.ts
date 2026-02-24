@@ -7,13 +7,16 @@ import {
   setMilliseconds,
   isSameDay,
   getHours,
+  getMinutes,
   parseISO,
+  differenceInCalendarDays,
 } from "date-fns";
 import type {
   CalendarView,
   CalendarEvent,
   EventCard,
   EventSearchFilters,
+  EventLayout,
 } from "@/types/calendar";
 
 export const DAY_LABELS = [
@@ -53,17 +56,29 @@ export const EVENT_COLORS = [
   "#ef4444", // red
   "#8b5cf6", // violet
   "#ec4899", // pink
+  "#14b8a6", // teal
+  "#f97316", // orange
 ] as const;
 
-// get all events that start from day
+/**
+ * Events that cover a given day — includes multi-day events that started
+ * before this day and haven't ended yet, not just ones starting on it.
+ */
 export function eventsForDay(
   events: CalendarEvent[],
   day: Date,
 ): CalendarEvent[] {
-  return events.filter((e) => isSameDay(parseISO(e.startDate), day));
+  return events.filter((e) => {
+    const s = differenceInCalendarDays(parseISO(e.startDate), day);
+    const en = differenceInCalendarDays(parseISO(e.endDate), day);
+    return s <= 0 && en >= 0;
+  });
 }
 
-/// get dates in given hour (not all day ones)
+/**
+ * Timed events that start at a specific hour on a given day.
+ * Used by legacy code paths — new views prefer singleDayTimedEventsForDay.
+ */
 export function eventsForHour(
   events: CalendarEvent[],
   day: Date,
@@ -77,14 +92,129 @@ export function eventsForHour(
   );
 }
 
-// get all day events on a day
+/**
+ * All-day events that cover a given day — includes multi-day all-day events
+ * that started before this day and are still running.
+ */
 export function allDayEventsForDay(
   events: CalendarEvent[],
   day: Date,
 ): CalendarEvent[] {
-  return events.filter(
-    (e) => e.allDay && isSameDay(parseISO(e.startDate), day),
-  );
+  return events.filter((e) => {
+    if (!e.allDay) return false;
+    const s = differenceInCalendarDays(parseISO(e.startDate), day);
+    const en = differenceInCalendarDays(parseISO(e.endDate), day);
+    return s <= 0 && en >= 0;
+  });
+}
+
+/**
+ * Events that should appear in the "all day" row for a given day:
+ * allDay events + timed events that span multiple calendar days.
+ * allDay events come first, same ordering Google Calendar uses.
+ */
+export function spanningEventsForDay(
+  events: CalendarEvent[],
+  day: Date,
+): CalendarEvent[] {
+  const covering = events.filter((e) => {
+    const s = differenceInCalendarDays(parseISO(e.startDate), day);
+    const en = differenceInCalendarDays(parseISO(e.endDate), day);
+    if (s > 0 || en < 0) return false;
+    if (e.allDay) return true;
+    // multi-day timed events go up here, not in the scrollable time grid
+    return differenceInCalendarDays(parseISO(e.endDate), parseISO(e.startDate)) >= 1;
+  });
+  return [...covering.filter((e) => e.allDay), ...covering.filter((e) => !e.allDay)];
+}
+
+/**
+ * Timed events that both start and end on the same calendar day.
+ * These are the ones that get absolute-positioned blocks in the time grid.
+ */
+export function singleDayTimedEventsForDay(
+  events: CalendarEvent[],
+  day: Date,
+): CalendarEvent[] {
+  return events.filter((ev) => {
+    if (ev.allDay) return false;
+    const start = parseISO(ev.startDate);
+    const end = parseISO(ev.endDate);
+    if (!isSameDay(start, day)) return false;
+    return differenceInCalendarDays(end, start) === 0;
+  });
+}
+
+/**
+ * Assigns non-overlapping column positions to timed events so they appear
+ * side by side instead of stacked on top of each other — same layout
+ * strategy Google Calendar uses.
+ *
+ * Algorithm: sort by start time, greedily place each event into the first
+ * column whose last occupant has already ended. Then for each event, compute
+ * how many concurrent columns exist in its overlap group (that's the width
+ * denominator the caller uses for percentage-based positioning).
+ *
+ * Expects single-day events — call singleDayTimedEventsForDay first.
+ */
+export function layoutDayEvents(
+  events: CalendarEvent[],
+  rowHeight: number,
+): EventLayout[] {
+  if (!events.length) return [];
+
+  // Sort by start time; longer events win ties so they claim column space first
+  const sorted = [...events].sort((a, b) => {
+    const startDiff =
+      parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime();
+    if (startDiff !== 0) return startDiff;
+    return parseISO(b.endDate).getTime() - parseISO(a.endDate).getTime();
+  });
+
+  // colEnds[c] = end timestamp of the last event assigned to column c
+  const colEnds: number[] = [];
+  const eventCols = sorted.map((ev) => {
+    const startMs = parseISO(ev.startDate).getTime();
+    const endMs = parseISO(ev.endDate).getTime();
+    const col = colEnds.findIndex((colEnd) => colEnd <= startMs);
+    if (col === -1) {
+      colEnds.push(endMs);
+      return colEnds.length - 1;
+    }
+    colEnds[col] = endMs;
+    return col;
+  });
+
+  return sorted.map((ev, i) => {
+    const startMs = parseISO(ev.startDate).getTime();
+    const endMs = parseISO(ev.endDate).getTime();
+
+    // Walk every other event that overlaps this one to find the widest column
+    // group — that's how many columns we need to divide the space into.
+    let maxCol = eventCols[i];
+    for (let j = 0; j < sorted.length; j++) {
+      const jStart = parseISO(sorted[j].startDate).getTime();
+      const jEnd = parseISO(sorted[j].endDate).getTime();
+      if (jStart < endMs && jEnd > startMs) {
+        maxCol = Math.max(maxCol, eventCols[j]);
+      }
+    }
+
+    const start = parseISO(ev.startDate);
+    const end = parseISO(ev.endDate);
+    const startFrac = getHours(start) + getMinutes(start) / 60;
+    const endFrac = getHours(end) + getMinutes(end) / 60;
+    const topPx = startFrac * rowHeight;
+    const heightPx = Math.max((endFrac - startFrac) * rowHeight, 20);
+
+    return {
+      ev,
+      topPx,
+      heightPx,
+      column: eventCols[i],
+      totalColumns: maxCol + 1,
+    };
+  });
 }
 
 // format value as local datetime

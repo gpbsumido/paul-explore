@@ -40,3 +40,14 @@ export type EventSearchFilters = {
 export type ModalState =
   | { open: false }
   | { open: true; initialDate: Date; editingEvent?: CalendarEvent };
+
+/** Computed geometry for one event in the day/week time grid after overlap resolution. */
+export type EventLayout = {
+  ev: CalendarEvent;
+  topPx: number;
+  heightPx: number;
+  /** 0-based column index within the concurrent event group. */
+  column: number;
+  /** Total columns in this event's overlap group — used to compute width. */
+  totalColumns: number;
+};

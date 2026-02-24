@@ -156,7 +156,11 @@ export default function CalendarContent() {
           />
         )}
         {view === "year" && (
-          <YearView currentDate={currentDate} onMonthClick={handleMonthClick} />
+          <YearView
+            currentDate={currentDate}
+            events={calendarEvents.events}
+            onMonthClick={handleMonthClick}
+          />
         )}
       </div>
 

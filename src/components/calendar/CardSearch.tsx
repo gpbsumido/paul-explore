@@ -111,34 +111,63 @@ export default function CardSearch({ onSelectCard }: Props) {
           role="listbox"
           className="absolute z-50 left-0 right-0 mt-1 rounded-md border border-border bg-background shadow-lg overflow-hidden max-h-64 overflow-y-auto"
         >
+          {/* spinner while the fetch is in-flight */}
           {loading && (
-            <li className="px-3 py-2 text-xs text-muted">Searching…</li>
+            <li className="flex items-center justify-center py-3">
+              <svg
+                className="animate-spin h-4 w-4 text-muted"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+            </li>
           )}
           {showDropdown &&
             results.map((card) => (
-              <li key={card.id} role="option" aria-selected={false}>
+              <li
+                key={card.id}
+                role="option"
+                aria-selected={false}
+                className="flex items-center gap-2.5 px-3 py-1.5 hover:bg-surface-raised transition-colors"
+              >
+                {card.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`${card.image}/low.webp`}
+                    alt={card.name}
+                    className="h-8 w-auto rounded shrink-0"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="h-8 w-6 rounded bg-surface-raised shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground truncate">
+                    {card.name}
+                  </p>
+                  <p className="text-xs text-muted">#{card.localId}</p>
+                </div>
                 <button
                   type="button"
-                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-left hover:bg-surface-raised transition-colors"
+                  className="shrink-0 px-2.5 py-0.5 rounded text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                   onClick={() => handleSelect(card)}
                 >
-                  {card.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={`${card.image}/low.webp`}
-                      alt={card.name}
-                      className="h-8 w-auto rounded"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="h-8 w-6 rounded bg-surface-raised shrink-0" />
-                  )}
-                  <span className="text-sm text-foreground truncate">
-                    {card.name}
-                  </span>
-                  <span className="ml-auto text-xs text-muted shrink-0">
-                    #{card.localId}
-                  </span>
+                  Add
                 </button>
               </li>
             ))}

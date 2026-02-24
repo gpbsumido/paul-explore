@@ -15,7 +15,8 @@ type Props = {
  * Edits (quantity/notes) are handled locally — the parent flushes them to the
  * API on save so everything goes out in a single batch.
  *
- * Returns null when the list is empty so the parent doesn't need a conditional.
+ * Shows an empty-state hint when the list is empty so the user knows the
+ * search box above is what populates this section.
  */
 export default function AttachedCardsList({
   cards,
@@ -23,14 +24,20 @@ export default function AttachedCardsList({
   onNotesChange,
   onRemove,
 }: Props) {
-  if (cards.length === 0) return null;
+  if (cards.length === 0) {
+    return (
+      <p className="text-xs text-muted/50 text-center py-4 border border-dashed border-border rounded-lg">
+        Search for a Pokémon card above to attach it to this event
+      </p>
+    );
+  }
 
   return (
     <ul className="space-y-2">
       {cards.map((card) => (
         <li
           key={card.id}
-          className="flex items-start gap-2.5 rounded-md border border-border bg-surface p-2"
+          className="flex items-start gap-2.5 rounded-lg border border-border bg-surface p-2"
         >
           {/* thumbnail */}
           {card.cardImageUrl ? (
@@ -49,7 +56,7 @@ export default function AttachedCardsList({
           )}
 
           {/* details */}
-          <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex-1 min-w-0 space-y-1.5">
             <p className="text-sm font-medium text-foreground leading-tight truncate">
               {card.cardName}
             </p>
@@ -57,20 +64,32 @@ export default function AttachedCardsList({
               <p className="text-xs text-muted truncate">{card.cardSetName}</p>
             )}
 
-            {/* quantity + notes row */}
+            {/* +/- stepper + notes */}
             <div className="flex items-center gap-2 flex-wrap">
-              <label className="flex items-center gap-1 text-xs text-muted">
-                Qty
-                <input
-                  type="number"
-                  min={1}
-                  value={card.quantity}
-                  onChange={(e) =>
-                    onQuantityChange(card.id, Math.max(1, parseInt(e.target.value, 10) || 1))
+              <div className="inline-flex items-center rounded border border-border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onQuantityChange(card.id, Math.max(1, card.quantity - 1))
                   }
-                  className="w-12 rounded border border-border bg-background px-1.5 py-0.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
-                />
-              </label>
+                  className="h-5 w-5 flex items-center justify-center text-muted hover:bg-surface-raised hover:text-foreground transition-colors"
+                  aria-label="Decrease quantity"
+                >
+                  <span className="text-sm leading-none select-none">−</span>
+                </button>
+                <span className="w-6 text-center text-xs text-foreground tabular-nums">
+                  {card.quantity}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onQuantityChange(card.id, card.quantity + 1)}
+                  className="h-5 w-5 flex items-center justify-center text-muted hover:bg-surface-raised hover:text-foreground transition-colors"
+                  aria-label="Increase quantity"
+                >
+                  <span className="text-sm leading-none select-none">+</span>
+                </button>
+              </div>
+
               <input
                 type="text"
                 placeholder="Notes…"

@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-02-24 - version 0.1.11
+
+- updated event modal styling
+- end-before-start inline warning shows under the date row when end < start
+- card search results now show an explicit "Add" button per row instead of click-anywhere, and display a spinner while the fetch is in-flight instead of plain "Searching…" text
+- quantity field replaced with a +/− stepper
+- added placeholder for card search so user's know what to do
+
+## 2026-02-24 - version 0.1.10
+
+- added `Tooltip` UI primitive — renders at a fixed screen position so it escapes `overflow:hidden` containers
+- time-grid event blocks in DayView and WeekView get a `min-w-[40px]` floor so still visible if too many
+- time-grid event blocks (`block` variant) go solid on hover — translucent stripe at rest so the grid stays readable, full event color + white text on mouse-over; 150ms ease transition on background and text color
+- fixed overlapping timed events in day and week views, side-by-side instead
+- added `layoutDayEvents` to `lib/calendar.ts`: assign each event a column index, then computes the total concurrent columns for its overlap group so each event gets exactly `1/N` of the available width
+- removed now-unnecessary `parseISO` import from DayView (event geometry is fully computed in the lib)
+- fixed multi-day event display across all calendar views — events now show on every day they cover, not just their start day
+- added `spanningEventsForDay` and `singleDayTimedEventsForDay` helpers to `lib/calendar.ts`
+- updated `eventsForDay` and `allDayEventsForDay` in the lib to use overlap checks (`startOffset <= 0 && endOffset >= 0`) fixing the year view event dots and month grid too
+- multi-day timed events now go in the all-day row in both day and week view
+- timed events in day and week view are now absolutely positioned blocks that span their actual duration
+- month view: multi-day events appear on each day they cover; continuation days get a flat bar style (no left border stripe) so you can visually tell the event started on an earlier day
+- added `EventChip` `continuation` and `block` props — `continuation` for multi-day overflow days in the month grid, `block` for height-filling time-grid use
+- extracted `VISIBLE_CHIPS`, `GUTTER_WIDTH`, and `isSpanning` as named constants/helpers in CalendarGrid and DayView/WeekView
+- moved `singleDayTimedEventsForDay` out of WeekView into the lib so DayView could reuse it without copy-pasting
+
+## 2026-02-23 - version 0.1.9
+
+- added a calendar about page at `/calendar/about` — same iMessage write-up format as the other thoughts pages, covers why date-fns over moment, the BFF auth pattern, junction table vs JSON column, timezone handling, what I'd still improve
+- "About" link added to the calendar header next to Events
+- persist read threads and display according to if read or not
+
 ## 2026-02-23 - version 0.1.9
 
 - added an events list page at `/calendar/events` — searchable and filterable
