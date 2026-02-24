@@ -1,5 +1,73 @@
 # Changelog
 
+## 2026-02-24 - version 0.1.11
+
+- updated event modal styling
+- end-before-start inline warning shows under the date row when end < start
+- card search results now show an explicit "Add" button per row instead of click-anywhere, and display a spinner while the fetch is in-flight instead of plain "Searching…" text
+- quantity field replaced with a +/− stepper
+- added placeholder for card search so user's know what to do
+- added Calendar feature to landing page
+
+## 2026-02-24 - version 0.1.10
+
+- added `Tooltip` UI primitive — renders at a fixed screen position so it escapes `overflow:hidden` containers
+- time-grid event blocks in DayView and WeekView get a `min-w-[40px]` floor so still visible if too many
+- time-grid event blocks (`block` variant) go solid on hover — translucent stripe at rest so the grid stays readable, full event color + white text on mouse-over; 150ms ease transition on background and text color
+- fixed overlapping timed events in day and week views, side-by-side instead
+- added `layoutDayEvents` to `lib/calendar.ts`: assign each event a column index, then computes the total concurrent columns for its overlap group so each event gets exactly `1/N` of the available width
+- removed now-unnecessary `parseISO` import from DayView (event geometry is fully computed in the lib)
+- fixed multi-day event display across all calendar views — events now show on every day they cover, not just their start day
+- added `spanningEventsForDay` and `singleDayTimedEventsForDay` helpers to `lib/calendar.ts`
+- updated `eventsForDay` and `allDayEventsForDay` in the lib to use overlap checks (`startOffset <= 0 && endOffset >= 0`) fixing the year view event dots and month grid too
+- multi-day timed events now go in the all-day row in both day and week view
+- timed events in day and week view are now absolutely positioned blocks that span their actual duration
+- month view: multi-day events appear on each day they cover; continuation days get a flat bar style (no left border stripe) so you can visually tell the event started on an earlier day
+- added `EventChip` `continuation` and `block` props — `continuation` for multi-day overflow days in the month grid, `block` for height-filling time-grid use
+- extracted `VISIBLE_CHIPS`, `GUTTER_WIDTH`, and `isSpanning` as named constants/helpers in CalendarGrid and DayView/WeekView
+- moved `singleDayTimedEventsForDay` out of WeekView into the lib so DayView could reuse it without copy-pasting
+
+## 2026-02-23 - version 0.1.9
+
+- added a calendar about page at `/calendar/about` — same iMessage write-up format as the other thoughts pages, covers why date-fns over moment, the BFF auth pattern, junction table vs JSON column, timezone handling, what I'd still improve
+- "About" link added to the calendar header next to Events
+- persist read threads and display according to if read or not
+
+## 2026-02-23 - version 0.1.9
+
+- added an events list page at `/calendar/events` — searchable and filterable
+- event detail page at `/calendar/events/[id]` — shows event info and a card grid
+- "Events" link added to the calendar header next to the view switcher
+- added `fetchEvent` and `searchEvents` to `lib/calendar.ts`; `EventSearchFilters` type lives in `types/calendar.ts`
+
+## 2026-02-23 - version 0.1.8
+
+- functionality to attach Pokémon cards to calendar events (can track what you're bringing or targeting to event?)
+- new `event_cards` table in the DB, card search in the event modal with debounced input reusing the our browse endpoint
+- cards are staged locally while editing and only written to the backend on save — keeps it from making a bunch of requests while you're still picking cards
+- extracted `useDebounce` to its own hook and `CardResume` type to `lib/tcg.ts` since both the TCG browser and the card search needed them
+
+## 2026-02-23
+
+- connect calendar to backend
+- created API routes (`/api/calendar/events`, `/api/calendar/events/[id]`) that proxy to the Express backend with Auth0 access tokens attached server-side — token doesn't touch browser
+- added `fetchEvents`, `createEvent`, `updateEvent`, `deleteEvent` client functions in `src/lib/calendar.ts`
+- new `useCalendarEvents` hook (`src/hooks/useCalendarEvents.ts`) — fetches events for the current date window, re-fetches on navigation, keeps local state in sync after mutations; `loading` is derived from whether the current range has been resolved so no setState fires synchronously in the effect body
+- `CalendarContent` replaces local `useState` array with the hook; date window is computed from `currentDate + view` (month view covers the full grid including overflow days)
+- `EventModal` `onSave`/`onDelete` are now async — buttons disable and show "Saving…"/"Deleting…" while in flight, inline error shown on failure
+- fixed timezone offset bug — `datetime-local` inputs produce naive strings (no TZ); now wrapped with `formatISO(parseISO(...))` before sending so Postgres stores the correct UTC moment and events land in the right day box on read back
+- Auth0 custom API registered so the SDK issues RS256 JWTs instead of opaque/JWE tokens that `express-oauth2-jwt-bearer` can't verify
+- `AUTH0_AUDIENCE` added to frontend `.env.local` and `authorizationParameters.audience` set in `Auth0Client` so the token carries the right audience claim
+- added `toCalendarEvent` row mapper in `db.js` so all calendar queries return camelCase (`startDate`, `endDate`, `allDay`) instead of raw Postgres snake_case
+
+## 2026-02-23
+
+- added `/calendar` page with different views, and with navigation
+- installed `date-fns` for all date math replacing Moment.js which i used to use for rojects since it's lighter
+- clicking cells or events (chip) opens modal to create or edit
+- new `Calendar Event`
+- new chip, iconButton, textArea primatives
+
 ## 2026-02-22
 
 - added metadata across all pages — root layout title/description, static exports for TCG browse/sets/pocket pages, `generateMetadata` for set detail and card detail pages using SDK-fetched name

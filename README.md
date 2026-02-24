@@ -14,7 +14,7 @@ Auth0 integration wired into a custom Next.js middleware proxy. Protected routes
 
 ### 🎨 Design System
 
-Started from scratch with a token-driven palette in `src/styles/tokens.css`. Tailwind v4's `@theme` block bridges those tokens into utility classes so both systems share a single source of truth. Dark mode using custom `ThemeProvider` and `useSyncExternalStore` — defaults to OS preference, persists manual overrides to localStorage, no flash on load. A few reusable primatives are used.
+Started from scratch with a token-driven palette in `src/styles/tokens.css`. Tailwind v4's `@theme` block bridges those tokens into utility classes so both systems share a single source of truth. Dark mode using custom `ThemeProvider` and `useSyncExternalStore` — defaults to OS preference, persists manual overrides to localStorage, no flash on load. Reusable UI primitives: `Button` (5 variants including danger, 4 sizes, loading state), `Input`, `Textarea`, `IconButton`, `Modal`, `Chip`.
 
 ### 🏀 NBA Stats
 
@@ -25,6 +25,22 @@ Live player stats pulled through a Next.js API proxy (`/api/nba/...`) that keeps
 Card browser powered by the `@tcgdex/sdk` TypeScript SDK, proxied through Next.js API routes to satisfy a strict `connect-src 'self'` CSP. Browse and search all cards with debounced filtering, a type filter pill bar, and infinite scroll backed by an `IntersectionObserver`. Page state (search query, type filter, scroll position) lives in the URL — shareable and back-navigable. The set index groups cards by series; each set has its own detail page with a full card grid. Individual card pages show attack costs, retreat cost, weakness, and resistance using actual Pokémon TCG energy icons parsed from effect text. A separate page covers the TCG Pocket expansion families.
 
 Key implementation details: server components own the static header/metadata for set and card pages (SDK called at render time); client components own the scroll and pagination. The `IntersectionObserver` uses a stable `[]` dep with a single event handler ref updated every render — no stale closures, no individual state mirrors. `AbortController` on every fetch prevents stale responses from overwriting data on rapid filter changes.
+
+### 📅 Calendar
+
+A full-stack personal calendar. Four views — day, week, month, year — all navigable with prev/next and a "Today" jump. Click any cell or time slot to open a create-event modal; click an existing event chip to edit or delete it. Events persist in PostgreSQL (Railway) and are scoped per user via Auth0.
+
+You can also attach Pokémon cards to any event — useful for tournament prep or tracking what you're planning to bring to a trade meetup. The card search reuses the existing TCGdex browse endpoint with a debounced input. Card changes are staged locally while the modal is open and flushed to the backend in a single batch when you save, so it doesn't make API calls as you're still picking.
+
+There's a write-up page at `/calendar/about` (same iMessage format as the other thoughts pages) covering the architecture decisions — why date-fns, why a custom grid over FullCalendar, the BFF auth pattern, timezone handling, what a junction table buys you over a JSON column, and what's still on the list.
+
+There's also a dedicated events section outside the grid. `/calendar/events` is a searchable, filterable list of all your events — title search runs client-side against whatever the backend returned, card name and date range filters hit the backend and re-fetch. `/calendar/events/[id]` is the detail view: full event info plus the attached card grid. Both pages share a layout with a sticky nav so neither one has to re-implement it.
+
+The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/calendar/events`) which attach an Auth0 access token server-side before forwarding to the Express backend — the token never reaches the browser. A `useCalendarEvents` hook fetches the correct date window for each view and re-fetches automatically on navigation.
+
+Built without a calendar library — `date-fns` handles all date math (grid construction, view navigation, slot matching). This was a deliberate choice: FullCalendar's full React support requires a paid license, and the custom build keeps the bundle small and gives full control over the interaction model.
+
+Event rendering matches Google Calendar's conventions: multi-day timed events (ones that cross midnight) float up to the all-day row as spanning bars; single-day timed events are absolute-positioned blocks in the time grid that span their actual duration; multi-day events in the month view appear on every day they cover, with a flat continuation-bar style on days after the start.
 
 ### 🏆 Fantasy League History
 
@@ -79,17 +95,23 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 src/
 ├── app/
+│   ├── api/calendar/     # BFF proxy routes for calendar (GET/POST/PUT/DELETE)
 │   ├── api/nba/          # NBA API proxy routes
 │   ├── api/tcg/          # TCGdex SDK proxy routes
+│   ├── calendar/         # Calendar page + CalendarContent
+│   │   └── events/       # Events list (/calendar/events) + detail (/calendar/events/[id])
 │   ├── fantasy/nba/      # Fantasy league history + player stats pages
 │   ├── landing/          # Landing page with preview
 │   ├── protected/        # Auth-gated hub page
 │   ├── tcg/              # Pokémon TCG browser (browse, sets, card detail, pocket)
 │   └── thoughts/         # Write-ups on design decisions (styling, search, TCG)
-├── components/           # Shared layout + UI primitives (Button, Input, Modal)
-├── lib/                  # utils
+├── components/
+│   ├── calendar/         # Calendar views, event modal, CardSearch, AttachedCardsList, EventCardTile
+│   └── ui/               # Shared primitives (Button, IconButton, Input, Textarea, Modal)
+├── hooks/                # useCalendarEvents, useDebounce
+├── lib/                  # Shared utilities (calendar helpers, TCG helpers, auth0 client)
 ├── styles/               # Design tokens
-└── types/                # TypeScript types
+└── types/                # TypeScript types (CalendarEvent, EventCard, DraftCard, etc.)
 ```
 
 ---
@@ -100,9 +122,13 @@ src/
 - `useSyncExternalStore` is underused for things like theme preference — avoids the hydration mismatch that `useState` + `useEffect` creates
 - Next.js middleware for auth is straightforward until CSP nonces get involved — the nonce has to flow from the middleware through to the layout server component via request headers
 - Per-row error states in a data table feel much better UX-wise than a single top-level error banner that wipes the whole table
-- `IntersectionObserver` only fires on intersection *state changes* — if the sentinel is already visible after the first load it never re-triggers; fixing it with `cards.length` in deps (reconnect after each fetch) works but a stable observer + event handler ref is cleaner
+- `IntersectionObserver` only fires on intersection _state changes_ — if the sentinel is already visible after the first load it never re-triggers; fixing it with `cards.length` in deps (reconnect after each fetch) works but a stable observer + event handler ref is cleaner
 - The event handler ref pattern (`ref.current = () => { ... }` assigned in the render body, no `useEffect`) is the right tool for external APIs that hold callback references — one ref instead of mirroring every piece of state individually
 - `AbortController` is worth the boilerplate any time a fetch is triggered by user selection — rapid changes otherwise produce race conditions that are hard to reproduce and debug
+- The BFF (Backend for Frontend) pattern keeps auth tokens entirely server-side: the browser sends session cookies to Next.js, the Next.js API route calls `auth0.getAccessToken()` and forwards the JWT to the Express backend — the access token never appears in the browser's network tab
+- `datetime-local` inputs produce naive strings with no timezone offset (e.g. `"2026-02-24T00:00"`); without explicit conversion, Postgres interprets them as UTC, which shifts events to the wrong day in non-UTC timezones — wrapping with `formatISO(parseISO(s))` adds the local offset before the value leaves the browser
+- `react-hooks/set-state-in-effect` flags any function in the effect body that calls setState — even async ones — if the call is synchronous before the first `await`; the compliant pattern is to call setState only inside `.then()` / `.catch()` callbacks so the effect body itself never triggers a render
+- for "optimistic-ish" form state (like card attachments that need to batch with the parent save), staging changes locally and flushing them all at once on submit is simpler than trying to sync individual operations as they happen — and it means the user never sees a half-saved state if they cancel
 
 ---
 

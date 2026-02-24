@@ -5,6 +5,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import { typeStyle } from "@/lib/tcg";
+import { Chip } from "@/components/ui";
 
 const tcgdex = new TCGdex("en");
 
@@ -92,12 +93,12 @@ export default async function CardDetailPage({
               {card.types && card.types.length > 0 && (
                 <div className="flex gap-2 flex-wrap">
                   {card.types.map((type) => (
-                    <span
+                    <Chip
                       key={type}
-                      className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide ${typeStyle(type)}`}
-                    >
-                      {type}
-                    </span>
+                      label={type}
+                      size="md"
+                      className={`font-bold uppercase tracking-wide ${typeStyle(type)}`}
+                    />
                   ))}
                 </div>
               )}

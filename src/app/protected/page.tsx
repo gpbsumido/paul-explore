@@ -11,7 +11,6 @@ const threads = [
     time: "8:04 PM",
     color: "#007aff",
     initials: "SD",
-    unread: true,
   },
   {
     name: "Landing Page",
@@ -20,7 +19,6 @@ const threads = [
     time: "5:12 PM",
     color: "#FF7373",
     initials: "LP",
-    unread: true,
   },
   {
     name: "Search Bar",
@@ -29,7 +27,6 @@ const threads = [
     time: "4:26 PM",
     color: "#5856d6",
     initials: "SB",
-    unread: false,
   },
   {
     name: "NBA Stats",
@@ -38,7 +35,6 @@ const threads = [
     time: "Today",
     color: "#007aff",
     initials: "NS",
-    unread: false,
   },
   {
     name: "League History",
@@ -47,7 +43,6 @@ const threads = [
     time: "Today",
     color: "#ff9500",
     initials: "LH",
-    unread: false,
   },
   {
     name: "Pokemon TCG",
@@ -56,7 +51,6 @@ const threads = [
     time: "Today",
     color: "#ef4444",
     initials: "PT",
-    unread: true,
   },
   {
     name: "TCG Pocket",
@@ -65,7 +59,6 @@ const threads = [
     time: "Today",
     color: "#6366f1",
     initials: "PK",
-    unread: true,
   },
   {
     name: "TCG Pages",
@@ -74,7 +67,22 @@ const threads = [
     time: "Today",
     color: "#10b981",
     initials: "TC",
-    unread: true,
+  },
+  {
+    name: "Calendar",
+    href: "/calendar",
+    preview: "Track events and Pokémon TCG sessions",
+    time: "Today",
+    color: "#f59e0b",
+    initials: "CA",
+  },
+  {
+    name: "Events",
+    href: "/thoughts/calendar",
+    preview: "Calendar events, TCG integration, etc",
+    time: "Today",
+    color: "#10b981",
+    initials: "EV",
   },
 ];
 

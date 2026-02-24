@@ -5,25 +5,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { POKEMON_TYPES, typeStyle } from "@/lib/tcg";
+import { POKEMON_TYPES, typeStyle, type CardResume } from "@/lib/tcg";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const PER_PAGE = 20;
-
-type CardResume = {
-  id: string;
-  name: string;
-  image?: string;
-  localId: string;
-};
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return debounced;
-}
 
 export default function BrowseContent() {
   const searchParams = useSearchParams();

@@ -5,5 +5,4 @@ export interface ProtectedThread {
   time: string;
   color: string;
   initials: string;
-  unread: boolean;
 }
