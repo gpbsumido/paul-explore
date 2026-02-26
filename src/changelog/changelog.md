@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-02-26 - version 0.2.5
+
+- added `VitalsSection` to the landing page after GraphQLSection
+- mock dashboard preview shows five metric cards (LCP, FCP, INP, CLS, TTFB) and a mini by-page table with color-coded ratings
+- added Web Vitals card to `FeaturesSection` grid
+- updated FeaturesSection subtitle to mention real-user performance monitoring
+
 ## 2026-02-26 - version 0.2.4
 
 - added "What I'm doing to improve these" section to `/protected/vitals` dashboard
