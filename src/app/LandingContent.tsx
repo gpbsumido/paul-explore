@@ -8,6 +8,7 @@ import NbaSection from "./landing/NbaSection";
 import TcgSection from "./landing/TcgSection";
 import CalendarSection from "./landing/CalendarSection";
 import GraphQLSection from "./landing/GraphQLSection";
+import VitalsSection from "./landing/VitalsSection";
 import FooterSection from "./landing/FooterSection";
 
 export default function LandingContent() {
@@ -21,6 +22,7 @@ export default function LandingContent() {
       <TcgSection />
       <CalendarSection />
       <GraphQLSection />
+      <VitalsSection />
       <FooterSection />
     </>
   );

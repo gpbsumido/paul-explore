@@ -58,6 +58,14 @@ All four view components are wrapped in `React.memo` and `CalendarContent` uses 
 
 Event rendering matches Google Calendar's conventions: multi-day timed events (ones that cross midnight) float up to the all-day row as spanning bars; single-day timed events are absolute-positioned blocks in the time grid that span their actual duration; multi-day events in the month view appear on every day they cover, with a flat continuation-bar style on days after the start.
 
+### 📊 Web Vitals Dashboard
+
+Real-user Core Web Vitals collected from every page load and displayed on a protected dashboard at `/protected/vitals`. Five metric cards show the global P75 for LCP, FCP, INP, CLS, and TTFB with color-coded Good/Needs work/Poor ratings. A by-page table below breaks the same numbers down per route — cells are individually color-coded so you can spot which pages are dragging down a specific metric.
+
+The collection pipeline: `WebVitalsReporter` (root layout client component) registers all five `web-vitals` observers once on mount and beacons each metric to `/api/vitals` when it fires. The Next.js API route validates the shape and forwards to the Express backend, which writes one row per metric event into the `web_vitals` Postgres table. The dashboard page fetches `/api/vitals/summary` and `/api/vitals/by-page` in parallel from the server component with `cache: "no-store"`, so numbers are always current. Pages under 5 samples are excluded from the by-page table to keep single-visit noise out.
+
+Formatting: timing metrics below 1000ms display as rounded milliseconds (`340ms`), at or above 1000ms as one-decimal seconds (`2.4s`). CLS stays as a 3-decimal dimensionless score (`0.042`).
+
 ### 🏆 Fantasy League History
 
 ESPN fantasy league data by season. Teams sort by final standings, expand to show their full roster with positions. Season selector spans back to the league's first year. Glassmorphism card design because I wanted to try it and the gradient background made it work.
@@ -115,6 +123,7 @@ src/
 │   ├── api/calendar/     # BFF proxy routes for calendar (GET/POST/PUT/DELETE)
 │   ├── api/nba/          # NBA API proxy routes
 │   ├── api/tcg/          # TCGdex SDK proxy routes
+│   ├── api/vitals/       # BFF proxy for web vitals ingestion (POST) and dashboard reads (GET)
 │   ├── calendar/         # Calendar page + CalendarContent
 │   │   └── events/       # Events list (/calendar/events) + detail (/calendar/events/[id])
 │   ├── fantasy/nba/      # Fantasy league history + player stats pages
@@ -155,6 +164,8 @@ src/
 - `useMemo` on derived arrays (like the event overlap layout) creates stable references that downstream memos can depend on; nesting the memos with clean dep arrays avoids the situation where everything recomputes together anyway
 - `next/dynamic` with a `loading` skeleton is the right code-splitting tool for large client components that are only needed on a specific page — the skeleton shows only during SPA navigation (the initial SSR load renders the full component); `ThoughtsSkeleton` reuses the same CSS module classes as the real content so bubble shapes are pixel-identical and there's no layout shift on reveal
 - Vercel Speed Insights is one import away from real-user Core Web Vitals data — `<SpeedInsights />` placed after the app tree means the beacon script loads asynchronously and never competes with first paint; field data (actual user sessions) takes a day or two to aggregate but lab scores show up immediately
+- `navigator.sendBeacon` is the right delivery mechanism for analytics — a regular fetch can get cancelled when the browser tears down the page on navigation, sendBeacon queues the request at the OS level and guarantees delivery; the `Blob` wrapper is required to send JSON since sendBeacon defaults to text/plain otherwise
+- the pathname ref pattern (`useRef` updated on pathname change, observers read from it at fire time) solves the SPA navigation accuracy problem cleanly — registering observers once per mount avoids duplicate registrations while the ref ensures each metric is tagged with the page the user was on when it fired, not the initial page
 
 ---
 

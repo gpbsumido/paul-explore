@@ -1,10 +1,48 @@
 # Changelog
 
+## 2026-02-26 - version 0.2.5
+
+- added `VitalsSection` to the landing page after GraphQLSection
+- mock dashboard preview shows five metric cards (LCP, FCP, INP, CLS, TTFB) and a mini by-page table with color-coded ratings
+- added Web Vitals card to `FeaturesSection` grid
+- updated FeaturesSection subtitle to mention real-user performance monitoring
+
+## 2026-02-26 - version 0.2.4
+
+- added "What I'm doing to improve these" section to `/protected/vitals` dashboard
+- five cards (one per metric) each showing a short title and plain-English explanation of what is in the codebase to improve that score
+
+## 2026-02-26 - version 0.2.3
+
+- added `/protected/vitals` dashboard showing Core Web Vitals collected from users
+- five metric cards at the top (LCP, FCP, INP, CLS, TTFB), each with the global P75 value, a rating badge, and the total sample count
+- a by-page breakdown table below the cards, pages with fewer than 5 samples are excluded from the table to keep noise out
+- `VitalsContent` formats timing metrics as seconds when >= 1000ms (`2.4s`) and as rounded milliseconds otherwise (`340ms`); CLS stays as a 3-decimal score (`0.042`)
+- `src/types/vitals.ts` — shared TypeScript types for the vitals data shape (`MetricName`, `MetricSummary`, `PageVitals`, `VitalsResponse`)
+- `page.tsx` fetches both backend endpoints in parallel with `Promise.all` and `cache: "no-store"` so the numbers are always fresh; falls back gracefully to empty state if the backend is down
+- vitals card added to the feature hub with a `VitalsPreview` mini-preview showing all five metrics as compact rows with colored dots and a progress bar
+- feature hub heading count now derives from `FEATURES.length` so it won't go stale when features are added
+
+## 2026-02-26 - version 0.2.2
+
+- `WebVitalsReporter` client component in `src/components/` — registers all five Core Web Vital collectors (LCP, CLS, FCP, INP, TTFB) once on mount and beacons each one to `/api/vitals` when they fire
+- uses `navigator.sendBeacon` with a JSON `Blob` so reports make it through even when the user closes the tab mid-navigation; falls back to `fetch` with `keepalive: true` for browsers that don't support sendBeacon
+- a pathname ref keeps the reported page accurate across SPA navigations without re-registering observers on every route change, the ref updates on each navigation, the observers read from it when they fire
+- `<WebVitalsReporter />` added to root layout alongside `<SpeedInsights />`, both after the app tree so neither competes with first paint
+
+## 2026-02-26 - version 0.2.1
+
+- added `src/app/api/vitals/route.ts` for web vitals ingestion and dashboard reads
+- `POST /api/vitals` is open (no session check) — validates metric name against a whitelist and required fields before forwarding to the Express backend; same shape as the backend's own validation so bad payloads fail fast at the edge
+- `GET /api/vitals` fetches `/api/vitals/summary` and `/api/vitals/by-page` from the Express backend in parallel with `Promise.all`; attaches the Auth0 access token server-side so the token never reaches the browser (same BFF pattern as the calendar routes)
+- returns `{ summary, byPage }` merged into a single response so the dashboard page only needs one fetch
+
 ## 2026-02-26 - version 0.2.0
 
 - added Vercel Speed Insights to the root layout with Core Web Vitals (LCP, CLS, FCP, INP, TTFB) now flow into the Vercel dashboard
 - `<SpeedInsights />` renders after the app tree so it never blocks first paint; Vercel injects the beacon script asynchronously
-- 
+-
+
 ## 2026-02-26 - version 0.1.19
 
 - added `error.tsx` route-segment error boundaries to `graphql`, `tcg/pokemon`, `calendar`, and `fantasy` so errors don't crash pages

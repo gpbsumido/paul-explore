@@ -4,6 +4,7 @@ import { Auth0Provider } from "@auth0/nextjs-auth0";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { auth0 } from "@/lib/auth0";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import WebVitalsReporter from "@/components/WebVitalsReporter";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,6 +38,7 @@ export default async function RootLayout({
           <Auth0Provider user={session?.user}>{children}</Auth0Provider>
         </ThemeProvider>
         <SpeedInsights />
+        <WebVitalsReporter />
       </body>
     </html>
   );
