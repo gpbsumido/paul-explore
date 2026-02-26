@@ -9,6 +9,9 @@ import { Chip } from "@/components/ui";
 
 const tcgdex = new TCGdex("en");
 
+// Card data is stable once published — rebuild at most once a day
+export const revalidate = 86400;
+
 export async function generateMetadata({
   params,
 }: {

@@ -163,7 +163,7 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [pokemon.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pokemon.length]);
 
   // what the current query/variables look like — shown in the collapsible panel
   const { query: liveQuery, variables: liveVars } = buildPokemonQuery(

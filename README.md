@@ -24,7 +24,17 @@ Live player stats pulled through a Next.js API proxy (`/api/nba/...`) that keeps
 
 Card browser powered by the `@tcgdex/sdk` TypeScript SDK, proxied through Next.js API routes to satisfy a strict `connect-src 'self'` CSP. Browse and search all cards with debounced filtering, a type filter pill bar, and infinite scroll backed by an `IntersectionObserver`. Page state (search query, type filter, scroll position) lives in the URL — shareable and back-navigable. The set index groups cards by series; each set has its own detail page with a full card grid. Individual card pages show attack costs, retreat cost, weakness, and resistance using actual Pokémon TCG energy icons parsed from effect text. A separate page covers the TCG Pocket expansion families.
 
-Key implementation details: server components own the static header/metadata for set and card pages (SDK called at render time); client components own the scroll and pagination. The `IntersectionObserver` uses a stable `[]` dep with a single event handler ref updated every render — no stale closures, no individual state mirrors. `AbortController` on every fetch prevents stale responses from overwriting data on rapid filter changes.
+Key implementation details: the browse page fetches page 1 server-side via an async server component + `Suspense` — real cards on first paint, no client-side skeleton flash. Server components own the static header/metadata for set and card pages (SDK called at render time); client components own the scroll and pagination. The `IntersectionObserver` uses a stable `[]` dep with a single event handler ref updated every render — no stale closures, no individual state mirrors. `AbortController` on every fetch prevents stale responses from overwriting data on rapid filter changes.
+
+Card detail, set detail, sets list, and pocket pages all export `revalidate = 86400` (ISR) — each rebuilds in the background at most once a day so visitors always hit a cached static response. The set detail page also has `generateStaticParams` that pre-renders the 10 most recent sets at build time so the most-visited pages are warm on deploy.
+
+### 🔍 GraphQL Pokédex
+
+A Pokémon browser built on the PokeAPI Hasura endpoint — search by name or filter by type, shows sprite, type badges, and base stat bars for every Pokémon. Uses plain `fetch` instead of Apollo or urql: GraphQL is just HTTP, and a 10-line wrapper covers everything needed here without the 60kb bundle cost of a full client library.
+
+The browser calls PokeAPI through a `/api/graphql` proxy route (CSP `connect-src 'self'` + keeps the upstream URL out of the client bundle). Server-side renders page 1 via `fetchPokemonDirect` with `next: { revalidate: 3600 }` so repeated renders within an hour hit Next.js's data cache instead of re-hitting PokeAPI. Infinite scroll uses the same `IntersectionObserver` ref pattern as the TCG browser.
+
+A collapsible "Show query" panel in the UI displays the live GraphQL query and variables — updates in real time as you type or switch type filters. Useful as a debugging aid and as a demo of how query variables work.
 
 ### 📅 Calendar
 
@@ -129,6 +139,9 @@ src/
 - `datetime-local` inputs produce naive strings with no timezone offset (e.g. `"2026-02-24T00:00"`); without explicit conversion, Postgres interprets them as UTC, which shifts events to the wrong day in non-UTC timezones — wrapping with `formatISO(parseISO(s))` adds the local offset before the value leaves the browser
 - `react-hooks/set-state-in-effect` flags any function in the effect body that calls setState — even async ones — if the call is synchronous before the first `await`; the compliant pattern is to call setState only inside `.then()` / `.catch()` callbacks so the effect body itself never triggers a render
 - for "optimistic-ish" form state (like card attachments that need to batch with the parent save), staging changes locally and flushing them all at once on submit is simpler than trying to sync individual operations as they happen — and it means the user never sees a half-saved state if they cancel
+- streaming SSR with `Suspense` + async server components removes the "skeleton flash on arrival" problem without shipping any extra JavaScript — the skeleton streams immediately, the real data replaces it once the server fetch resolves
+- `revalidate = 86400` (ISR) is the right default for content that rarely changes but does eventually change — static performance with eventual consistency, no manual cache invalidation; `generateStaticParams` + ISR together means the most-visited pages are pre-built and the long tail renders on demand
+- the `hasServerData` ref one-time-skip pattern is a clean way to hand server-fetched data to a client component without it re-fetching on mount — initialize state from the prop, skip the first effect run via a ref that flips to `false`, and after that everything works exactly like a fully client-side component
 
 ---
 
