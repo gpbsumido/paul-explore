@@ -1,10 +1,18 @@
 # Changelog
 
+## 2026-02-26 - version 0.2.1
+
+- added `src/app/api/vitals/route.ts` for web vitals ingestion and dashboard reads
+- `POST /api/vitals` is open (no session check) — validates metric name against a whitelist and required fields before forwarding to the Express backend; same shape as the backend's own validation so bad payloads fail fast at the edge
+- `GET /api/vitals` fetches `/api/vitals/summary` and `/api/vitals/by-page` from the Express backend in parallel with `Promise.all`; attaches the Auth0 access token server-side so the token never reaches the browser (same BFF pattern as the calendar routes)
+- returns `{ summary, byPage }` merged into a single response so the dashboard page only needs one fetch
+
 ## 2026-02-26 - version 0.2.0
 
 - added Vercel Speed Insights to the root layout with Core Web Vitals (LCP, CLS, FCP, INP, TTFB) now flow into the Vercel dashboard
 - `<SpeedInsights />` renders after the app tree so it never blocks first paint; Vercel injects the beacon script asynchronously
-- 
+-
+
 ## 2026-02-26 - version 0.1.19
 
 - added `error.tsx` route-segment error boundaries to `graphql`, `tcg/pokemon`, `calendar`, and `fantasy` so errors don't crash pages

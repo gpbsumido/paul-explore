@@ -115,6 +115,7 @@ src/
 │   ├── api/calendar/     # BFF proxy routes for calendar (GET/POST/PUT/DELETE)
 │   ├── api/nba/          # NBA API proxy routes
 │   ├── api/tcg/          # TCGdex SDK proxy routes
+│   ├── api/vitals/       # BFF proxy for web vitals ingestion (POST) and dashboard reads (GET)
 │   ├── calendar/         # Calendar page + CalendarContent
 │   │   └── events/       # Events list (/calendar/events) + detail (/calendar/events/[id])
 │   ├── fantasy/nba/      # Fantasy league history + player stats pages
