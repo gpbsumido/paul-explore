@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-02-26 - version 0.1.19
+
+- added `error.tsx` route-segment error boundaries to `graphql`, `tcg/pokemon`, `calendar`, and `fantasy` so errors don't crash pages
+- shared `RouteError` component with errot message, and a "Try again" button wired to Next.js's `reset()` function
+- `reset()` re-renders just the failing route segment without a full page reload
+
 ## 2026-02-26 - version 0.1.18
 
 - `ThoughtsSkeleton` widths for messages were collapsing, so changed up the width from percentage to actual widths
