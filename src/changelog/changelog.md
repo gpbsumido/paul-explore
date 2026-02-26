@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-02-25 - version 0.1.13
+## 2026-02-25 - version 0.1.12
 
 - streaming SSR for GraphQL Pokédex and TCG browse — page 1 is now fetched server-side so the grid renders on first paint instead of after a client-side effect
 - `fetchPokemonDirect` added to `lib/graphql.ts` — calls PokeAPI directly from the server (no proxy needed) with `next: { revalidate: 3600 }` so repeated renders hit Next.js's fetch cache instead of PokeAPI every time
