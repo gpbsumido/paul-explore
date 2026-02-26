@@ -84,6 +84,22 @@ const threads = [
     color: "#10b981",
     initials: "EV",
   },
+  {
+    name: "GraphQL Pokédex",
+    href: "/graphql",
+    preview: "Browse Pokémon with a live GraphQL query",
+    time: "Today",
+    color: "#14b8a6",
+    initials: "GQ",
+  },
+  {
+    name: "GraphQL",
+    href: "/thoughts/graphql",
+    preview: "Why GraphQL, why plain fetch over Apollo",
+    time: "Today",
+    color: "#6366f1",
+    initials: "GL",
+  },
 ];
 
 export default async function Protected() {

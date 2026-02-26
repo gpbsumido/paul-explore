@@ -18,8 +18,9 @@ export async function proxy(request: Request) {
     return authRes;
   }
 
-  // check if the path is public
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p);
+  // check if the path is public or is api (which handles it's own auth)
+  const isPublic =
+    PUBLIC_PATHS.some((p) => pathname === p) || pathname.startsWith("/api/");
 
   // if not public, check if the user is logged in
   if (!isPublic) {
@@ -36,7 +37,7 @@ export async function proxy(request: Request) {
     `default-src 'self'`,
     `script-src 'nonce-${nonce}' 'strict-dynamic'`,
     `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: https://assets.tcgdex.net`,
+    `img-src 'self' data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
     `font-src 'self'`,
     `connect-src 'self'`,
     `object-src 'none'`,

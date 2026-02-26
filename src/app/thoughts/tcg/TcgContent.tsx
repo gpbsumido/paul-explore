@@ -409,12 +409,55 @@ const fetchCards = async (...) => {
 };`}
         </div>
 
+        <Timestamp>10:10 AM</Timestamp>
+
+        <Received pos="first">does the browse page still fetch page 1 client-side?</Received>
+        <Received pos="last">does every fresh load show the skeleton grid?</Received>
+
+        <Sent pos="first">
+          no, that&apos;s fixed. the browse page fetches page 1 server-side now —
+          same streaming pattern as the GraphQL Pokédex
+        </Sent>
+        <Sent pos="middle">
+          <code>page.tsx</code> has a <code>BrowseWithData</code> async server
+          component that calls the TCGdex SDK directly — one module-level{" "}
+          <code>new TCGdex(&quot;en&quot;)</code> instance per server process, same
+          as the API route. a <code>BrowseSkeleton</code> mirrors the filter bar
+          and card grid and wraps it in a <code>Suspense</code> boundary, so
+          that streams immediately while the fetch resolves
+        </Sent>
+        <Sent pos="last">
+          <code>BrowseContent</code> gets <code>initialCards</code> as a prop.
+          it initialises state from that and skips the page-1 fetch — but only
+          when the URL has no active filters. land on{" "}
+          <code>?q=charizard</code> and the server data is the wrong page, so
+          it throws it away and fetches with the right params client-side
+        </Sent>
+
+        <Received>what about scroll restore — does ?page=N still work</Received>
+
+        <Sent pos="first">
+          yes. if there&apos;s server data and <code>?page=4</code> in the
+          URL, it loads pages 2–4, not 1–4 — saves one round trip since page 1
+          already came from the server
+        </Sent>
+        <Sent pos="last">
+          if the server fetch failed or the URL has filters, it falls back to
+          the original path: load pages 1–N sequentially. same behaviour as
+          before, just a different entry condition
+        </Sent>
+
+        <Timestamp>10:17 AM</Timestamp>
+
         <Received pos="first">what would you still improve</Received>
 
         <Sent pos="first">
-          server-side caching on the API routes. right now every request hits
-          TCGdex cold. card and set data barely ever changes — a 5-minute cache
-          header would cut latency significantly
+          cache headers on the API routes. the <code>/api/tcg/cards</code>{" "}
+          endpoint hits TCGdex cold on every request — card and set data barely
+          ever changes. adding{" "}
+          <code>Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400</code>{" "}
+          means Vercel&apos;s CDN (or any edge cache) serves repeat fetches
+          without touching the origin
         </Sent>
         <Sent pos="last">
           and the TCG Pocket page could get the same infinite scroll treatment.
