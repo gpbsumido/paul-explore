@@ -152,6 +152,7 @@ src/
 - `private` in `Cache-Control` is important for query-specific or user-derived responses — without it a shared CDN could serve one user's result to another; only error responses should have no `Cache-Control` at all, so a transient failure can't get stuck in the CDN
 - `React.memo` without `useCallback` on the parent's callbacks is a trap — memo compares props by reference, and an inline arrow function creates a new reference every render, so the memo never actually skips; the pattern only works when both sides do their part
 - `useMemo` on derived arrays (like the event overlap layout) creates stable references that downstream memos can depend on; nesting the memos with clean dep arrays avoids the situation where everything recomputes together anyway
+- `next/dynamic` with a `loading` skeleton is the right code-splitting tool for large client components that are only needed on a specific page — the skeleton shows only during SPA navigation (the initial SSR load renders the full component); `ThoughtsSkeleton` reuses the same CSS module classes as the real content so bubble shapes are pixel-identical and there's no layout shift on reveal
 
 ---
 
