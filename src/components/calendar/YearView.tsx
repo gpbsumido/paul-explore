@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   format,
   startOfYear,
@@ -24,7 +25,10 @@ interface MiniMonthProps {
   onClick: () => void;
 }
 
-function MiniMonth({ month, events, isCurrent, onClick }: MiniMonthProps) {
+// MiniMonth renders a full mini-grid per month. There are 12 of them on screen
+// and they're cheap individually, but 12x the work still adds up on each keystroke
+// or modal toggle in the parent.
+const MiniMonth = memo(function MiniMonth({ month, events, isCurrent, onClick }: MiniMonthProps) {
   const days = eachDayOfInterval({
     start: startOfWeek(startOfMonth(month)),
     end: endOfWeek(endOfMonth(month)),
@@ -101,7 +105,7 @@ function MiniMonth({ month, events, isCurrent, onClick }: MiniMonthProps) {
       </div>
     </button>
   );
-}
+});
 
 interface YearViewProps {
   currentDate: Date;
@@ -109,7 +113,7 @@ interface YearViewProps {
   onMonthClick: (date: Date) => void;
 }
 
-export default function YearView({
+function YearView({
   currentDate,
   events,
   onMonthClick,
@@ -133,3 +137,7 @@ export default function YearView({
     </div>
   );
 }
+
+// YearView itself is worth memoizing so the 12 MiniMonth renders don't fire
+// on CalendarContent state changes that don't touch events or currentDate.
+export default memo(YearView);
