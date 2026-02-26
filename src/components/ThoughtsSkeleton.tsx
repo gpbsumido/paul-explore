@@ -7,6 +7,9 @@ import styles from "@/app/thoughts/styling/styling.module.css";
  * sent/received chat bubbles so there's no jarring layout shift when the
  * real content arrives. Used as the `loading` fallback for next/dynamic on
  * all five thoughts pages.
+ *
+ * Shimmer bars use fixed Tailwind widths (not percentages) because the bubble
+ * has no intrinsic width — percentage children would collapse to nothing.
  */
 export default function ThoughtsSkeleton() {
   return (
@@ -31,42 +34,42 @@ export default function ThoughtsSkeleton() {
         {/* Timestamp */}
         <div className="mx-auto h-3 w-32 animate-pulse rounded-full bg-border" />
 
-        {/* Received — short question */}
+        {/* Received — short question, two lines */}
         <div className={`${styles.bubble} ${styles.received} ${styles.receivedFirst}`}>
-          <div className="h-[14px] w-[58%] animate-pulse rounded-full bg-muted/25" />
+          <div className="h-[14px] w-44 animate-pulse rounded-full bg-muted/25" />
         </div>
         <div className={`${styles.bubble} ${styles.received} ${styles.receivedLast}`}>
-          <div className="h-[14px] w-[38%] animate-pulse rounded-full bg-muted/25" />
+          <div className="h-[14px] w-28 animate-pulse rounded-full bg-muted/25" />
         </div>
 
         {/* Sent — multi-line answer */}
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentFirst}`}>
-          <div className="h-[14px] w-[82%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-52 animate-pulse rounded-full bg-white/30" />
         </div>
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentMiddle}`}>
-          <div className="h-[14px] w-[90%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-56 animate-pulse rounded-full bg-white/30" />
         </div>
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentLast}`}>
-          <div className="h-[14px] w-[65%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-40 animate-pulse rounded-full bg-white/30" />
         </div>
 
         {/* Received — follow-up question */}
         <div className={`${styles.bubble} ${styles.received} ${styles.receivedOnly}`}>
-          <div className="h-[14px] w-[70%] animate-pulse rounded-full bg-muted/25" />
+          <div className="h-[14px] w-48 animate-pulse rounded-full bg-muted/25" />
         </div>
 
         {/* Sent — longer multi-line */}
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentFirst}`}>
-          <div className="h-[14px] w-[76%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-48 animate-pulse rounded-full bg-white/30" />
         </div>
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentMiddle}`}>
-          <div className="h-[14px] w-[88%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-56 animate-pulse rounded-full bg-white/30" />
         </div>
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentMiddle}`}>
-          <div className="h-[14px] w-[60%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-36 animate-pulse rounded-full bg-white/30" />
         </div>
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentLast}`}>
-          <div className="h-[14px] w-[80%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-52 animate-pulse rounded-full bg-white/30" />
         </div>
 
         {/* Timestamp */}
@@ -74,15 +77,15 @@ export default function ThoughtsSkeleton() {
 
         {/* Received */}
         <div className={`${styles.bubble} ${styles.received} ${styles.receivedOnly}`}>
-          <div className="h-[14px] w-[62%] animate-pulse rounded-full bg-muted/25" />
+          <div className="h-[14px] w-44 animate-pulse rounded-full bg-muted/25" />
         </div>
 
         {/* Sent — last group */}
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentFirst}`}>
-          <div className="h-[14px] w-[71%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-44 animate-pulse rounded-full bg-white/30" />
         </div>
         <div className={`${styles.bubble} ${styles.sent} ${styles.sentLast}`}>
-          <div className="h-[14px] w-[55%] animate-pulse rounded-full bg-white/30" />
+          <div className="h-[14px] w-36 animate-pulse rounded-full bg-white/30" />
         </div>
 
         {/* Typing indicator — same animated dots as the real content */}
