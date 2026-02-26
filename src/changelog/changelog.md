@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-02-25 - version 0.1.13
+
+- streaming SSR for GraphQL Pokédex and TCG browse — page 1 is now fetched server-side so the grid renders on first paint instead of after a client-side effect
+- `fetchPokemonDirect` added to `lib/graphql.ts` — calls PokeAPI directly from the server (no proxy needed) with `next: { revalidate: 3600 }` so repeated renders hit Next.js's fetch cache instead of PokeAPI every time
+- `graphql/page.tsx` introduces `PokemonWithData` async server component + `GraphQLSkeleton` — Suspense boundary streams the skeleton immediately while the server fetch resolves
+- `GraphQLContent` accepts an `initialData` prop; pre-seeds `pokemon`, `total`, and `loadedKey` state from it and skips the initial `useEffect` fetch via a `hasServerData` ref
+- `tcg/pokemon/page.tsx` follows the same pattern: `BrowseWithData` fetches page 1 via the TCGdex SDK directly, `BrowseSkeleton` shows the filter bar + card grid placeholders during the stream
+- `BrowseContent` accepts `initialCards`; skips page-1 fetch when server data exists and URL has no active filters; if `?page=N` is in the URL it still loads pages 2–N to restore scroll position
+- protected page header and footer are now sticky — changed `min-height: 100dvh` to `height: 100dvh` on `main` and added `overflow-y: auto; min-height: 0` to `.threadList` so only the thread list scrolls
+- both pages fall back gracefully when the upstream is unavailable at server time — the client components handle it the same way they always did
+
+## 2026-02-25 - version 0.1.12
+
+- added GraphQL Pokédex at `/graphql` — search and filter
+- `/api/graphql` proxy route forwards POST bodies to the upstream endpoint, keeping the URL server-side and `connect-src` locked to same-origin
+- `src/types/graphql.ts` — PokeAPI response shapes (`Pokemon`, `PokemonListResult`, `GraphQLResponse`), `POKEMON_TYPES` const, `PAGE_SIZE`
+- `src/lib/graphql.ts` — query strings (`LIST_QUERY`, `LIST_BY_TYPE_QUERY`), `buildPokemonQuery`, `fetchPokemon`, sprite/name/stat helpers, `POKEMON_TYPE_COLORS`
+- live "Show query" panel in the browser: collapses/expands to show the current GraphQL query + variables, updates as you search or switch type
+- loading state is derived (`loadedKey !== filterKey`) same pattern as the calendar and TCG browser — no extra setState in the effect body
+- `raw.githubusercontent.com` added to `img-src` CSP for PokeAPI sprites
+- `/api/` paths skip the auth redirect in `proxy.ts` — API route handlers manage their own auth where needed
+- added `/thoughts/graphql` write-up: why GraphQL over REST, why plain fetch over Apollo, how Hasura auto-generates the schema, the proxy pattern, query variables vs interpolation
+- two new threads added to the protected page: GraphQL Pokédex and GraphQL thoughts
+- GraphQL Pokédex section added to the landing page (indigo gradient, mock browser UI)
+- Calendar and GraphQL cards added to FeaturesSection; grid changed to `sm:grid-cols-2 md:grid-cols-3` to accommodate 6 features
+
 ## 2026-02-24 - version 0.1.11
 
 - updated event modal styling

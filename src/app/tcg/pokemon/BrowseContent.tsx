@@ -10,7 +10,16 @@ import { useDebounce } from "@/hooks/useDebounce";
 
 const PER_PAGE = 20;
 
-export default function BrowseContent() {
+interface BrowseContentProps {
+  /**
+   * First page of unfiltered cards fetched server-side — skips the initial
+   * client fetch when the user lands on the page with no active filters.
+   * If the URL has ?q= or ?type= on load, this data is stale and gets replaced.
+   */
+  initialCards?: CardResume[];
+}
+
+export default function BrowseContent({ initialCards }: BrowseContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlQ = searchParams.get("q") ?? "";
@@ -38,12 +47,21 @@ export default function BrowseContent() {
     router.replace(`/tcg/pokemon${qs ? `?${qs}` : ""}`, { scroll: false });
   }, [debouncedSearch, type, loadedPages, router]);
 
-  const [cards, setCards] = useState<CardResume[]>([]);
-  const [hasMore, setHasMore] = useState(true);
+  // Initialise from server data when available.
+  // hasMore is true when the server returned a full page — there are likely more.
+  const [cards, setCards] = useState<CardResume[]>(initialCards ?? []);
+  const [hasMore, setHasMore] = useState((initialCards?.length ?? 0) >= PER_PAGE);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Skip the initial client fetch when the server gave us unfiltered page 1
+  // AND the URL confirms no filters are active. If filters are in the URL
+  // (shared link, back-nav) the server data is stale and we fetch fresh.
+  const hasServerData = useRef(
+    !!initialCards?.length && !urlQ && !urlType,
+  );
 
   const fetchCards = useCallback(
     async (q: string, t: string, pg: number, append: boolean) => {
@@ -84,8 +102,24 @@ export default function BrowseContent() {
     if (isFirstMountRef.current) {
       isFirstMountRef.current = false;
       const targetPage = initialPageRef.current;
+
+      if (hasServerData.current) {
+        hasServerData.current = false;
+        // Server gave us page 1 — skip re-fetching it.
+        // If the URL has page > 1, load pages 2–N to restore scroll position.
+        if (targetPage > 1) {
+          const restore = async () => {
+            for (let p = 2; p <= targetPage; p++) {
+              await fetchCards(debouncedSearch, type, p, true);
+            }
+          };
+          restore();
+        }
+        return;
+      }
+
       if (targetPage > 1) {
-        // Restore scroll state: load pages 1–N sequentially
+        // No server data — restore full scroll state: pages 1–N
         const restore = async () => {
           for (let p = 1; p <= targetPage; p++) {
             await fetchCards(debouncedSearch, type, p, p > 1);
@@ -95,7 +129,7 @@ export default function BrowseContent() {
         return;
       }
     }
-    // Normal reset (filter changed or first mount at page 1)
+    // Normal reset: filter changed or first mount at page 1 without server data
     setLoadedPages(1);
     fetchCards(debouncedSearch, type, 1, false);
   }, [debouncedSearch, type, fetchCards]);
