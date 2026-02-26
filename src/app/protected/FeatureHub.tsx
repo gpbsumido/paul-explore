@@ -8,7 +8,7 @@ import { reveal } from "@/app/landing/Section";
 import type { FeatureItem, ThoughtItem } from "@/types/protected";
 
 // How long each card waits before its entrance animation kicks off.
-// 75ms increments keep the cascade snappy — about half a second total.
+// 75ms increments keep the cascade snappy — just over half a second total.
 const STAGGER_DELAYS = [
   "",
   "delay-75",
@@ -16,6 +16,7 @@ const STAGGER_DELAYS = [
   "delay-[225ms]",
   "delay-300",
   "delay-[375ms]",
+  "delay-[450ms]",
 ] as const;
 
 // These are strictly UI data so they live here, not in a separate config file.
@@ -70,6 +71,14 @@ const FEATURES: FeatureItem[] = [
     href: "/graphql",
     color: "#14b8a6",
     thoughtsHref: "/thoughts/graphql",
+  },
+  {
+    id: "vitals",
+    title: "Web Vitals",
+    description:
+      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
+    href: "/protected/vitals",
+    color: "#22c55e",
   },
 ];
 
@@ -313,6 +322,55 @@ function GraphQLPreview() {
   );
 }
 
+// Mock data for the vitals preview — values chosen to look like a healthy site.
+const VITALS_MOCK = [
+  { name: "LCP",  value: "1.8s",  rating: "good",             pct: 55 },
+  { name: "FCP",  value: "1.2s",  rating: "good",             pct: 35 },
+  { name: "INP",  value: "84ms",  rating: "good",             pct: 25 },
+  { name: "CLS",  value: "0.04",  rating: "good",             pct: 16 },
+  { name: "TTFB", value: "620ms", rating: "needs-improvement", pct: 65 },
+] as const;
+
+const VITALS_DOT_COLORS = {
+  good:              "#22c55e",
+  "needs-improvement": "#f59e0b",
+  poor:              "#ef4444",
+} as const;
+
+function VitalsPreview() {
+  return (
+    <div className="space-y-1.5">
+      {VITALS_MOCK.map((m) => (
+        <div
+          key={m.name}
+          className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-1.5"
+        >
+          <div
+            className="h-1.5 w-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: VITALS_DOT_COLORS[m.rating] }}
+          />
+          <span className="w-9 shrink-0 text-[9px] font-bold text-black/60 dark:text-white/60">
+            {m.name}
+          </span>
+          {/* mini progress bar — width is eyeballed to look plausible, not mathematically derived */}
+          <div
+            className="flex-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/10"
+            style={{ height: 3 }}
+          >
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${m.pct}%`, backgroundColor: VITALS_DOT_COLORS[m.rating] }}
+            />
+          </div>
+          <span className="shrink-0 tabular-nums text-[9px] text-black/50 dark:text-white/50">
+            {m.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 const PREVIEW_MAP: Record<string, React.ComponentType> = {
   nba: NBAPreview,
@@ -321,6 +379,7 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
   pocket: PocketPreview,
   calendar: CalendarPreview,
   graphql: GraphQLPreview,
+  vitals: VitalsPreview,
 };
 
 // ---- FeatureCard ----
@@ -483,7 +542,7 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
             Hey {firstName}, here&apos;s what&apos;s live.
           </h1>
           <p className="mt-1.5 text-[14px] text-muted">
-            Six features — click any card to jump in, or hit About to read how it was built.
+            {FEATURES.length} features — click any card to jump in, or hit About to read how it was built.
           </p>
         </div>
 

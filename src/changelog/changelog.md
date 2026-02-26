@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-02-26 - version 0.2.3
+
+- added `/protected/vitals` dashboard showing Core Web Vitals collected from users
+- five metric cards at the top (LCP, FCP, INP, CLS, TTFB), each with the global P75 value, a rating badge, and the total sample count
+- a by-page breakdown table below the cards, pages with fewer than 5 samples are excluded from the table to keep noise out
+- `VitalsContent` formats timing metrics as seconds when >= 1000ms (`2.4s`) and as rounded milliseconds otherwise (`340ms`); CLS stays as a 3-decimal score (`0.042`)
+- `src/types/vitals.ts` — shared TypeScript types for the vitals data shape (`MetricName`, `MetricSummary`, `PageVitals`, `VitalsResponse`)
+- `page.tsx` fetches both backend endpoints in parallel with `Promise.all` and `cache: "no-store"` so the numbers are always fresh; falls back gracefully to empty state if the backend is down
+- vitals card added to the feature hub with a `VitalsPreview` mini-preview showing all five metrics as compact rows with colored dots and a progress bar
+- feature hub heading count now derives from `FEATURES.length` so it won't go stale when features are added
+
 ## 2026-02-26 - version 0.2.2
 
 - `WebVitalsReporter` client component in `src/components/` — registers all five Core Web Vital collectors (LCP, CLS, FCP, INP, TTFB) once on mount and beacons each one to `/api/vitals` when they fire
