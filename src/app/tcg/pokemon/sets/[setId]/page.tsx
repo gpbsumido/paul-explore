@@ -8,6 +8,32 @@ import SetCardsGrid from "./SetCardsGrid";
 
 const tcgdex = new TCGdex("en");
 
+// Set data is stable once published — rebuild at most once a day
+export const revalidate = 86400;
+
+// How many sets to pre-render at build time. We take the most recent ones
+// since those are by far the most-visited pages right after a new release.
+const STATIC_PRERENDER_COUNT = 10;
+
+/**
+ * Pre-renders the N most recent sets at build time so the first visitor
+ * after a deploy hits a static page instead of a cold server render.
+ * TCGdex returns sets oldest-first, so we slice from the tail.
+ */
+export async function generateStaticParams() {
+  try {
+    const sets = await tcgdex.set.list();
+    if (!sets?.length) return [];
+    return sets
+      .slice(-STATIC_PRERENDER_COUNT)
+      .map((s) => ({ setId: s.id }));
+  } catch {
+    // If the SDK is down at build time, skip static generation entirely —
+    // the pages still work, they just render on first request instead.
+    return [];
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {

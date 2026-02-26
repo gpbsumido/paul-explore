@@ -10,6 +10,9 @@ export const metadata: Metadata = {
 
 const tcgdex = new TCGdex("en");
 
+// Set list doesn't change often — rebuild at most once a day
+export const revalidate = 86400;
+
 export default async function SetsPage() {
   const resumes = await tcgdex.serie.list();
   const series = resumes
