@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-02-26 - version 0.1.18
+
+- `ThoughtsSkeleton` widths for messages were collapsing, so changed up the width from percentage to actual widths
+
 ## 2026-02-26 - version 0.1.17
 
 - added `next/dynamic` lazy loading to all five thoughts pages (styling, tcg, graphql, calendar, search-bar) — each content component now ships in its own JS chunk instead of being bundled with the page
