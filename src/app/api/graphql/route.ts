@@ -10,6 +10,11 @@
 
 const POKEAPI_GRAPHQL = "https://beta.pokeapi.co/graphql/v1beta";
 
+// Results vary by query body so they're user-specific at the browser level.
+// private keeps CDNs out of it; max-age=60 lets the browser reuse the same
+// query result for a minute before re-fetching (type switching re-uses cached data).
+const CACHE_CONTROL = "private, max-age=60";
+
 export async function POST(request: Request) {
   const body = await request.json();
 
@@ -20,5 +25,8 @@ export async function POST(request: Request) {
   });
 
   const data = await upstream.json();
-  return Response.json(data, { status: upstream.status });
+  return Response.json(data, {
+    status: upstream.status,
+    headers: { "Cache-Control": CACHE_CONTROL },
+  });
 }

@@ -5,6 +5,9 @@ import { toPlain } from "@/lib/tcg";
 const tcgdex = new TCGdex("en");
 const PER_PAGE = 20;
 
+// TCG card data is stable for hours — CDN serves the cached list and refreshes in the background
+const CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400";
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const q = searchParams.get("q") ?? "";
@@ -19,5 +22,7 @@ export async function GET(request: NextRequest) {
   if (setId) query.equal("set.id", setId);
 
   const cards = await tcgdex.card.list(query);
-  return NextResponse.json(toPlain(cards ?? []));
+  return NextResponse.json(toPlain(cards ?? []), {
+    headers: { "Cache-Control": CACHE_CONTROL },
+  });
 }

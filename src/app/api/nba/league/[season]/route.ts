@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+// Historical season data never changes once the season ends — a full day of CDN cache is fine
+const CACHE_CONTROL = "public, s-maxage=86400";
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ season: string }> },
@@ -19,7 +22,9 @@ export async function GET(
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: { "Cache-Control": CACHE_CONTROL },
+    });
   } catch {
     return NextResponse.json(
       { error: "ESPN API unavailable" },
