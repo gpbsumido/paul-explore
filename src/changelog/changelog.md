@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-02-26 - version 0.1.16
+
+- replaced the iMessage thread-list protected page with a full feature showcase hub
+- sticky header with site name, user info, logout, and theme toggle — replaces the old top bar
+- six feature cards in a responsive 1/2/3-column grid, each with a dark mini-preview mockup and staggered entrance animations on page load (75ms cascade)
+- mini-previews are static mockups of the real feature UI: NBA stats table, league standings rows, TCG card grid, Pocket expansion list, calendar month grid, and GraphQL Pokédex rows
+- "Open" link per card goes to the feature; "About" link (where it exists) goes to the write-up thoughts page
+- dev-notes section below the feature grid shows compact link cards for all six thoughts pages, scroll-triggered with the same reveal animation
+- entrance animations reuse the `reveal()` helper and `useInView` hook from the landing page so the pattern is consistent
+- `FeatureHub.tsx` is the new client component — `page.tsx` is now three lines that fetch the Auth0 session and hand off user info
+- `ThreadList.tsx` and `protected.module.css` superseded; `types/protected.ts` updated with `FeatureItem` and `ThoughtItem` types
+
 ## 2026-02-26 - version 0.1.15
 
 - `React.memo` on `CalendarGrid`, `DayView`, `WeekView`, `YearView`, and `EventChip` — these were re-rendering on every CalendarContent state change (modal open/close, etc.) even when their props hadn't changed
