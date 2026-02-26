@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   addDays,
   addWeeks,
@@ -58,6 +58,10 @@ export default function CalendarContent() {
 
   const calendarEvents = useCalendarEvents({ start, end });
 
+  // Stable reference for the events array so the memoized view components don't
+  // re-render just because calendarEvents returned a new object wrapper.
+  const visibleEvents = useMemo(() => calendarEvents.events, [calendarEvents.events]);
+
   function handleNavigate(direction: -1 | 1) {
     setCurrentDate((prev) => {
       switch (view) {
@@ -77,23 +81,24 @@ export default function CalendarContent() {
     setCurrentDate(new Date());
   }
 
-  // navigate to month view from year view if clicking month
-  function handleMonthClick(date: Date) {
+  // useCallback keeps these stable across re-renders so the memoized view
+  // components don't see new prop references every time modal state changes
+  const handleMonthClick = useCallback((date: Date) => {
     setCurrentDate(date);
     setView("month");
-  }
+  }, []);
 
-  function openCreateModal(date: Date) {
+  const openCreateModal = useCallback((date: Date) => {
     setModal({ open: true, initialDate: date });
-  }
+  }, []);
 
-  function openEditModal(event: CalendarEvent) {
+  const openEditModal = useCallback((event: CalendarEvent) => {
     setModal({
       open: true,
       initialDate: parseISO(event.startDate),
       editingEvent: event,
     });
-  }
+  }, []);
 
   async function handleSave(eventData: CalendarEvent) {
     if (modal.open && modal.editingEvent) {
@@ -134,7 +139,7 @@ export default function CalendarContent() {
         {view === "day" && (
           <DayView
             currentDate={currentDate}
-            events={calendarEvents.events}
+            events={visibleEvents}
             onSlotClick={openCreateModal}
             onChipClick={openEditModal}
           />
@@ -142,7 +147,7 @@ export default function CalendarContent() {
         {view === "week" && (
           <WeekView
             currentDate={currentDate}
-            events={calendarEvents.events}
+            events={visibleEvents}
             onSlotClick={openCreateModal}
             onChipClick={openEditModal}
           />
@@ -150,7 +155,7 @@ export default function CalendarContent() {
         {view === "month" && (
           <CalendarGrid
             currentDate={currentDate}
-            events={calendarEvents.events}
+            events={visibleEvents}
             onDayClick={openCreateModal}
             onChipClick={openEditModal}
           />
@@ -158,7 +163,7 @@ export default function CalendarContent() {
         {view === "year" && (
           <YearView
             currentDate={currentDate}
-            events={calendarEvents.events}
+            events={visibleEvents}
             onMonthClick={handleMonthClick}
           />
         )}

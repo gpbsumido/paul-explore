@@ -341,6 +341,40 @@ for (let j = 0; j < sorted.length; j++) {
 
         <Timestamp>10:52 AM</Timestamp>
 
+        <Timestamp>10:47 AM</Timestamp>
+
+        <Received>did you do any render optimization on the calendar components</Received>
+
+        <Sent pos="first">
+          yeah, all four view components are wrapped in <code>React.memo</code>{" "}
+          now. without it, opening or closing the event modal re-rendered
+          everything including the full month grid
+        </Sent>
+        <Sent pos="middle">
+          the trick is that memo only works if the props are actually stable.
+          callbacks passed inline (<code>() =&gt; setModal(...)</code>) create a
+          new function reference on every render, so memo sees a prop change and
+          re-renders anyway. had to add <code>useCallback</code> to the three
+          handlers passed down to the views
+        </Sent>
+        <Sent pos="last">
+          also wrapped <code>layoutDayEvents</code> in <code>useMemo</code>{" "}
+          in <code>DayView</code> and <code>WeekView</code>. that&apos;s the
+          greedy overlap algorithm that figures out side-by-side positioning
+          for concurrent events. it only needs to rerun when the events list
+          actually changes, not every time the component renders
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// in WeekView — compute all 7 columns at once, not inline in the loop
+const timedLayouts = useMemo(
+  () => weekDays.map((day) =>
+    layoutDayEvents(singleDayTimedEventsForDay(events, day), ROW_HEIGHT)
+  ),
+  [events, weekDays],
+);`}
+        </div>
+
         <Received>what would you still improve</Received>
 
         <Sent pos="first">

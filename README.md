@@ -52,6 +52,8 @@ The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/cal
 
 Built without a calendar library — `date-fns` handles all date math (grid construction, view navigation, slot matching). This was a deliberate choice: FullCalendar's full React support requires a paid license, and the custom build keeps the bundle small and gives full control over the interaction model.
 
+All four view components are wrapped in `React.memo` and `CalendarContent` uses `useCallback` on the callbacks passed to them — without stable prop references, memo is effectively useless. `layoutDayEvents` (the overlap layout algorithm) is wrapped in `useMemo` in both `DayView` and `WeekView` so the O(n²) computation only reruns when events actually change, not on every render triggered by unrelated state like the modal.
+
 Event rendering matches Google Calendar's conventions: multi-day timed events (ones that cross midnight) float up to the all-day row as spanning bars; single-day timed events are absolute-positioned blocks in the time grid that span their actual duration; multi-day events in the month view appear on every day they cover, with a flat continuation-bar style on days after the start.
 
 ### 🏆 Fantasy League History
@@ -146,6 +148,8 @@ src/
 - the `hasServerData` ref one-time-skip pattern is a clean way to hand server-fetched data to a client component without it re-fetching on mount — initialize state from the prop, skip the first effect run via a ref that flips to `false`, and after that everything works exactly like a fully client-side component
 - `stale-while-revalidate` is what turns `s-maxage` from a hard wall into a background refresh — the CDN serves the stale cached response immediately (no wait) and kicks off a revalidation request in parallel; the next visitor gets the fresh version
 - `private` in `Cache-Control` is important for query-specific or user-derived responses — without it a shared CDN could serve one user's result to another; only error responses should have no `Cache-Control` at all, so a transient failure can't get stuck in the CDN
+- `React.memo` without `useCallback` on the parent's callbacks is a trap — memo compares props by reference, and an inline arrow function creates a new reference every render, so the memo never actually skips; the pattern only works when both sides do their part
+- `useMemo` on derived arrays (like the event overlap layout) creates stable references that downstream memos can depend on; nesting the memos with clean dep arrays avoids the situation where everything recomputes together anyway
 
 ---
 

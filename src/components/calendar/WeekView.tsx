@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import {
   format,
   startOfWeek,
@@ -67,17 +68,18 @@ function getEventColSpan(
 }
 
 
-export default function WeekView({
+function WeekView({
   currentDate,
   events,
   onSlotClick,
   onChipClick,
 }: WeekViewProps) {
-  const weekStart = startOfWeek(currentDate);
-  const weekDays = eachDayOfInterval({
-    start: weekStart,
-    end: addDays(weekStart, 6),
-  });
+  // memoize weekStart and weekDays so they only change on navigation, not on every render
+  const weekStart = useMemo(() => startOfWeek(currentDate), [currentDate]);
+  const weekDays = useMemo(
+    () => eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) }),
+    [weekStart],
+  );
 
   // current-time indicator — only rendered when today is in this week
   const now = new Date();
@@ -86,7 +88,20 @@ export default function WeekView({
     ? (getHours(now) + getMinutes(now) / 60) * ROW_HEIGHT
     : null;
 
-  const allDaySpanned = allDayEventsForWeek(events, weekStart);
+  const allDaySpanned = useMemo(
+    () => allDayEventsForWeek(events, weekStart),
+    [events, weekStart],
+  );
+
+  // compute all 7 overlap layouts up front so we're not calling layoutDayEvents
+  // inside the render loop on every paint
+  const timedLayouts = useMemo(
+    () =>
+      weekDays.map((day) =>
+        layoutDayEvents(singleDayTimedEventsForDay(events, day), ROW_HEIGHT),
+      ),
+    [events, weekDays],
+  );
 
   return (
     <div className="rounded-xl border border-border overflow-x-auto">
@@ -200,9 +215,8 @@ export default function WeekView({
 
         {/* Day columns */}
         <div className="flex flex-1">
-          {weekDays.map((day) => {
+          {weekDays.map((day, dayIdx) => {
             const today = isToday(day);
-            const dayEvents = singleDayTimedEventsForDay(events, day);
 
             return (
               <div
@@ -225,7 +239,7 @@ export default function WeekView({
                 ))}
 
                 {/* Event blocks — side by side when they overlap, same as Google Calendar */}
-                {layoutDayEvents(dayEvents, ROW_HEIGHT).map(
+                {timedLayouts[dayIdx].map(
                   ({ ev, topPx, heightPx, column, totalColumns }) => (
                     <div
                       key={ev.id}
@@ -260,3 +274,8 @@ export default function WeekView({
     </div>
   );
 }
+
+// WeekView re-renders on every CalendarContent state change without memo.
+// The time grid layout computation in particular is worth protecting since it
+// runs layoutDayEvents for all 7 columns and is already behind useMemo above.
+export default memo(WeekView);

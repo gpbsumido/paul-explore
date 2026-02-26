@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-02-26 - version 0.1.15
+
+- `React.memo` on `CalendarGrid`, `DayView`, `WeekView`, `YearView`, and `EventChip` — these were re-rendering on every CalendarContent state change (modal open/close, etc.) even when their props hadn't changed
+- `MiniMonth` inside `YearView` also wrapped in `memo` since there are 12 on screen at once
+- `useCallback` on `openCreateModal`, `openEditModal`, and `handleMonthClick` in `CalendarContent` — without stable callback references, memo on the view components was effectively useless since the props changed identity on every render
+- `visibleEvents` memoized in `CalendarContent` from `calendarEvents.events` so the views see a stable array reference rather than depending on the hook's object wrapper being stable
+- `useMemo` on `layoutDayEvents` in `DayView` (now `timedLayout`) — the overlap computation only reruns when `dayTimedEvents` actually changes, not on every render
+- `useMemo` on `layoutDayEvents` for all 7 columns in `WeekView` (now `timedLayouts`) — computed once per events/navigation change instead of inline in the render loop on every paint
+- `weekStart` and `weekDays` memoized in `WeekView` so downstream useMemos have stable deps; `allDaySpanned` also memoized
+
 ## 2026-02-26 - version 0.1.14
 
 - added `Cache-Control` headers to all API proxy routes so the CDN (and browser) know what they're allowed to hold onto
