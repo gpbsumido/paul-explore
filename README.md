@@ -12,19 +12,33 @@ A personal playground and portfolio — somewhere between a sandbox and a showca
 
 Auth0 integration wired into a custom Next.js middleware proxy. Protected routes redirect unauthenticated users to login. CSP headers are generated per-request with nonces so inline scripts stay locked down without breaking `next/script`. The `/api/` paths are explicitly set to be public so API routes don't trigger auth redirect.
 
+After login, you land on the feature hub at `/protected` — a showcase grid of all six features with dark mini-preview mockups inside each card and staggered entrance animations. Cards animate in on page load with a 75ms cascade; the dev-notes section below the grid is scroll-triggered. The hub is a client component (`FeatureHub.tsx`) handed user info from a thin server component that just calls `auth0.getSession()`.
+
 ### 🎨 Design System
 
 Started from scratch with a token-driven palette in `src/styles/tokens.css`. Tailwind v4's `@theme` block bridges those tokens into utility classes so both systems share a single source of truth. Dark mode using custom `ThemeProvider` and `useSyncExternalStore` — defaults to OS preference, persists manual overrides to localStorage, no flash on load. Reusable UI primitives: `Button` (5 variants including danger, 4 sizes, loading state), `Input`, `Textarea`, `IconButton`, `Modal`, `Chip`.
 
 ### 🏀 NBA Stats
 
-Live player stats pulled through a Next.js API proxy (`/api/nba/...`) that keeps the CSP `connect-src 'self'` intact. Stats load in batches with skeleton rows so the table feels alive while data comes in. Each player row handles its own error state independently — if a fetch fails (NBA API rate limits are real), the row shows an error state.
+Live player stats pulled through a Next.js API proxy (`/api/nba/...`) that keeps the CSP `connect-src 'self'` intact. Stats load in batches with skeleton rows so the table feels alive while data comes in. Each player row handles its own error state independently — if a fetch fails (NBA API rate limits are real), the row shows an error state. Teams/players/stats routes serve with `public, s-maxage=300` and the historical league data route with `s-maxage=86400` — reduces repeat hits to the NBA and ESPN APIs while keeping data fresh enough.
 
 ### 🃏 Pokémon TCG Browser
 
 Card browser powered by the `@tcgdex/sdk` TypeScript SDK, proxied through Next.js API routes to satisfy a strict `connect-src 'self'` CSP. Browse and search all cards with debounced filtering, a type filter pill bar, and infinite scroll backed by an `IntersectionObserver`. Page state (search query, type filter, scroll position) lives in the URL — shareable and back-navigable. The set index groups cards by series; each set has its own detail page with a full card grid. Individual card pages show attack costs, retreat cost, weakness, and resistance using actual Pokémon TCG energy icons parsed from effect text. A separate page covers the TCG Pocket expansion families.
 
-Key implementation details: server components own the static header/metadata for set and card pages (SDK called at render time); client components own the scroll and pagination. The `IntersectionObserver` uses a stable `[]` dep with a single event handler ref updated every render — no stale closures, no individual state mirrors. `AbortController` on every fetch prevents stale responses from overwriting data on rapid filter changes.
+Key implementation details: the browse page fetches page 1 server-side via an async server component + `Suspense` — real cards on first paint, no client-side skeleton flash. Server components own the static header/metadata for set and card pages (SDK called at render time); client components own the scroll and pagination. The `IntersectionObserver` uses a stable `[]` dep with a single event handler ref updated every render — no stale closures, no individual state mirrors. `AbortController` on every fetch prevents stale responses from overwriting data on rapid filter changes.
+
+Card detail, set detail, sets list, and pocket pages all export `revalidate = 86400` (ISR) — each rebuilds in the background at most once a day so visitors always hit a cached static response. The set detail page also has `generateStaticParams` that pre-renders the 10 most recent sets at build time so the most-visited pages are warm on deploy.
+
+The API routes set explicit `Cache-Control` headers: `public, s-maxage=3600, stale-while-revalidate=86400` on all TCG endpoints so a CDN can hold results for an hour and revalidate in the background — visitors never wait on a revalidation. Error responses are left without a cache header so a transient failure can't get stuck in the CDN.
+
+### 🔍 GraphQL Pokédex
+
+A Pokémon browser built on the PokeAPI Hasura endpoint — search by name or filter by type, shows sprite, type badges, and base stat bars for every Pokémon. Uses plain `fetch` instead of Apollo or urql: GraphQL is just HTTP, and a 10-line wrapper covers everything needed here without the 60kb bundle cost of a full client library.
+
+The browser calls PokeAPI through a `/api/graphql` proxy route (CSP `connect-src 'self'` + keeps the upstream URL out of the client bundle). Server-side renders page 1 via `fetchPokemonDirect` with `next: { revalidate: 3600 }` so repeated renders within an hour hit Next.js's data cache instead of re-hitting PokeAPI. Infinite scroll uses the same `IntersectionObserver` ref pattern as the TCG browser.
+
+A collapsible "Show query" panel in the UI displays the live GraphQL query and variables — updates in real time as you type or switch type filters. Useful as a debugging aid and as a demo of how query variables work.
 
 ### 📅 Calendar
 
@@ -39,6 +53,8 @@ There's also a dedicated events section outside the grid. `/calendar/events` is 
 The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/calendar/events`) which attach an Auth0 access token server-side before forwarding to the Express backend — the token never reaches the browser. A `useCalendarEvents` hook fetches the correct date window for each view and re-fetches automatically on navigation.
 
 Built without a calendar library — `date-fns` handles all date math (grid construction, view navigation, slot matching). This was a deliberate choice: FullCalendar's full React support requires a paid license, and the custom build keeps the bundle small and gives full control over the interaction model.
+
+All four view components are wrapped in `React.memo` and `CalendarContent` uses `useCallback` on the callbacks passed to them — without stable prop references, memo is effectively useless. `layoutDayEvents` (the overlap layout algorithm) is wrapped in `useMemo` in both `DayView` and `WeekView` so the O(n²) computation only reruns when events actually change, not on every render triggered by unrelated state like the modal.
 
 Event rendering matches Google Calendar's conventions: multi-day timed events (ones that cross midnight) float up to the all-day row as spanning bars; single-day timed events are absolute-positioned blocks in the time grid that span their actual duration; multi-day events in the month view appear on every day they cover, with a flat continuation-bar style on days after the start.
 
@@ -129,6 +145,14 @@ src/
 - `datetime-local` inputs produce naive strings with no timezone offset (e.g. `"2026-02-24T00:00"`); without explicit conversion, Postgres interprets them as UTC, which shifts events to the wrong day in non-UTC timezones — wrapping with `formatISO(parseISO(s))` adds the local offset before the value leaves the browser
 - `react-hooks/set-state-in-effect` flags any function in the effect body that calls setState — even async ones — if the call is synchronous before the first `await`; the compliant pattern is to call setState only inside `.then()` / `.catch()` callbacks so the effect body itself never triggers a render
 - for "optimistic-ish" form state (like card attachments that need to batch with the parent save), staging changes locally and flushing them all at once on submit is simpler than trying to sync individual operations as they happen — and it means the user never sees a half-saved state if they cancel
+- streaming SSR with `Suspense` + async server components removes the "skeleton flash on arrival" problem without shipping any extra JavaScript — the skeleton streams immediately, the real data replaces it once the server fetch resolves
+- `revalidate = 86400` (ISR) is the right default for content that rarely changes but does eventually change — static performance with eventual consistency, no manual cache invalidation; `generateStaticParams` + ISR together means the most-visited pages are pre-built and the long tail renders on demand
+- the `hasServerData` ref one-time-skip pattern is a clean way to hand server-fetched data to a client component without it re-fetching on mount — initialize state from the prop, skip the first effect run via a ref that flips to `false`, and after that everything works exactly like a fully client-side component
+- `stale-while-revalidate` is what turns `s-maxage` from a hard wall into a background refresh — the CDN serves the stale cached response immediately (no wait) and kicks off a revalidation request in parallel; the next visitor gets the fresh version
+- `private` in `Cache-Control` is important for query-specific or user-derived responses — without it a shared CDN could serve one user's result to another; only error responses should have no `Cache-Control` at all, so a transient failure can't get stuck in the CDN
+- `React.memo` without `useCallback` on the parent's callbacks is a trap — memo compares props by reference, and an inline arrow function creates a new reference every render, so the memo never actually skips; the pattern only works when both sides do their part
+- `useMemo` on derived arrays (like the event overlap layout) creates stable references that downstream memos can depend on; nesting the memos with clean dep arrays avoids the situation where everything recomputes together anyway
+- `next/dynamic` with a `loading` skeleton is the right code-splitting tool for large client components that are only needed on a specific page — the skeleton shows only during SPA navigation (the initial SSR load renders the full component); `ThoughtsSkeleton` reuses the same CSS module classes as the real content so bubble shapes are pixel-identical and there's no layout shift on reveal
 
 ---
 

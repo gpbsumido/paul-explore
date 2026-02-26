@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { format, isToday, getHours, getMinutes } from "date-fns";
 import {
   HOURS,
@@ -28,7 +29,7 @@ interface DayViewProps {
   onChipClick: (event: CalendarEvent) => void;
 }
 
-export default function DayView({
+function DayView({
   currentDate,
   events,
   onSlotClick,
@@ -36,10 +37,21 @@ export default function DayView({
 }: DayViewProps) {
   const today = isToday(currentDate);
 
-  // allDay events + multi-day timed events covering this day go in the banner row
-  const allDaySectionEvents = spanningEventsForDay(events, currentDate);
-  // single-day timed events get positioned absolutely in the scroll grid
-  const dayTimedEvents = singleDayTimedEventsForDay(events, currentDate);
+  // only recompute when events or the displayed date actually change
+  const allDaySectionEvents = useMemo(
+    () => spanningEventsForDay(events, currentDate),
+    [events, currentDate],
+  );
+  const dayTimedEvents = useMemo(
+    () => singleDayTimedEventsForDay(events, currentDate),
+    [events, currentDate],
+  );
+
+  // layout is a separate memo so it doesn't rerun if only allDaySectionEvents changed
+  const timedLayout = useMemo(
+    () => layoutDayEvents(dayTimedEvents, ROW_HEIGHT),
+    [dayTimedEvents],
+  );
 
   const now = new Date();
   const currentTimeTop = today
@@ -133,7 +145,7 @@ export default function DayView({
           ))}
 
           {/* Event blocks — side by side when they overlap, same as Google Calendar */}
-          {layoutDayEvents(dayTimedEvents, ROW_HEIGHT).map(
+          {timedLayout.map(
             ({ ev, topPx, heightPx, column, totalColumns }) => (
               <div
                 key={ev.id}
@@ -165,3 +177,7 @@ export default function DayView({
     </div>
   );
 }
+
+// DayView only needs to re-render when the date changes or events update.
+// Modal state changes in CalendarContent shouldn't touch this at all.
+export default memo(DayView);

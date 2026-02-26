@@ -1,5 +1,86 @@
 # Changelog
 
+## 2026-02-26 - version 0.1.19
+
+- added `error.tsx` route-segment error boundaries to `graphql`, `tcg/pokemon`, `calendar`, and `fantasy` so errors don't crash pages
+- shared `RouteError` component with errot message, and a "Try again" button wired to Next.js's `reset()` function
+- `reset()` re-renders just the failing route segment without a full page reload
+
+## 2026-02-26 - version 0.1.18
+
+- `ThoughtsSkeleton` widths for messages were collapsing, so changed up the width from percentage to actual widths
+
+## 2026-02-26 - version 0.1.17
+
+- added `next/dynamic` lazy loading to all five thoughts pages (styling, tcg, graphql, calendar, search-bar) — each content component now ships in its own JS chunk instead of being bundled with the page
+- `ThoughtsSkeleton` component in `src/components/` — replicates the iMessage phone container, sticky top bar, and a mix of sent/received shimmer bubbles; shown as the `loading` fallback while the chunk downloads on SPA navigation
+- the skeleton uses the same CSS module classes as the real pages so bubble shapes, border-radius curves, and layout stay identical to the real content; the typing indicator animation plays from the start
+- `StylingContent` is the biggest winner since it imports `Button`, `Modal`, and `Input` — those primitives no longer land in any other page's initial bundle
+- `SearchBarContent` also earns a separate chunk since it pulls in `SearchDemo` which includes the full client-side threading logic
+
+## 2026-02-26 - version 0.1.16
+
+- replaced the iMessage thread-list protected page with a full feature showcase hub
+- sticky header with site name, user info, logout, and theme toggle — replaces the old top bar
+- six feature cards in a responsive 1/2/3-column grid, each with a dark mini-preview mockup and staggered entrance animations on page load (75ms cascade)
+- mini-previews are static mockups of the real feature UI: NBA stats table, league standings rows, TCG card grid, Pocket expansion list, calendar month grid, and GraphQL Pokédex rows
+- "Open" link per card goes to the feature; "About" link (where it exists) goes to the write-up thoughts page
+- dev-notes section below the feature grid shows compact link cards for all six thoughts pages, scroll-triggered with the same reveal animation
+- entrance animations reuse the `reveal()` helper and `useInView` hook from the landing page so the pattern is consistent
+- `FeatureHub.tsx` is the new client component — `page.tsx` is now three lines that fetch the Auth0 session and hand off user info
+- `ThreadList.tsx` and `protected.module.css` superseded; `types/protected.ts` updated with `FeatureItem` and `ThoughtItem` types
+
+## 2026-02-26 - version 0.1.15
+
+- `React.memo` on `CalendarGrid`, `DayView`, `WeekView`, `YearView`, and `EventChip` — these were re-rendering on every CalendarContent state change (modal open/close, etc.) even when their props hadn't changed
+- `MiniMonth` inside `YearView` also wrapped in `memo` since there are 12 on screen at once
+- `useCallback` on `openCreateModal`, `openEditModal`, and `handleMonthClick` in `CalendarContent` — without stable callback references, memo on the view components was effectively useless since the props changed identity on every render
+- `visibleEvents` memoized in `CalendarContent` from `calendarEvents.events` so the views see a stable array reference rather than depending on the hook's object wrapper being stable
+- `useMemo` on `layoutDayEvents` in `DayView` (now `timedLayout`) — the overlap computation only reruns when `dayTimedEvents` actually changes, not on every render
+- `useMemo` on `layoutDayEvents` for all 7 columns in `WeekView` (now `timedLayouts`) — computed once per events/navigation change instead of inline in the render loop on every paint
+- `weekStart` and `weekDays` memoized in `WeekView` so downstream useMemos have stable deps; `allDaySpanned` also memoized
+
+## 2026-02-26 - version 0.1.14
+
+- added `Cache-Control` headers to all API proxy routes so the CDN (and browser) know what they're allowed to hold onto
+- TCG card, set, sets, and series routes: `public, s-maxage=3600, stale-while-revalidate=86400` — data is stable for hours; CDN serves the cached response and revalidates in the background so the page never blocks on a revalidation
+- GraphQL proxy: `private, max-age=60` — results vary by query body so CDN sharing would be wrong; `private` keeps it browser-only, `max-age=60` lets the browser reuse the same query result for a minute before hitting the proxy again
+- NBA teams/players/stats routes: `public, s-maxage=300` — data updates at most daily; 5-minute CDN window keeps NBA API rate limits comfortable
+- NBA league history route: `public, s-maxage=86400` — historical season data is immutable once the season ends, so a full day of CDN cache is fine
+- calendar routes left untouched — auth-scoped, user-specific, should never be shared or held by a CDN
+- error responses (4xx/5xx) never receive a `Cache-Control` header so a transient failure can't poison the CDN
+
+## 2026-02-26 - version 0.1.13
+
+- added ISR (`export const revalidate = 86400`) to the TCG card detail, set detail, sets list, and pocket pages — each page rebuilds in the background at most once a day so visitors always hit a cached static response
+- `generateStaticParams` on the set detail page pre-renders the 10 most recent sets at build time (`STATIC_PRERENDER_COUNT = 10`) — newest sets get a warm static page right after each deploy since those are the most-visited after a release; TCGdex returns sets oldest-first so we take `.slice(-10)`; gracefully returns `[]` if the SDK is down at build time
+
+## 2026-02-25 - version 0.1.12
+
+- streaming SSR for GraphQL Pokédex and TCG browse — page 1 is now fetched server-side so the grid renders on first paint instead of after a client-side effect
+- `fetchPokemonDirect` added to `lib/graphql.ts` — calls PokeAPI directly from the server (no proxy needed) with `next: { revalidate: 3600 }` so repeated renders hit Next.js's fetch cache instead of PokeAPI every time
+- `graphql/page.tsx` introduces `PokemonWithData` async server component + `GraphQLSkeleton` — Suspense boundary streams the skeleton immediately while the server fetch resolves
+- `GraphQLContent` accepts an `initialData` prop; pre-seeds `pokemon`, `total`, and `loadedKey` state from it and skips the initial `useEffect` fetch via a `hasServerData` ref
+- `tcg/pokemon/page.tsx` follows the same pattern: `BrowseWithData` fetches page 1 via the TCGdex SDK directly, `BrowseSkeleton` shows the filter bar + card grid placeholders during the stream
+- `BrowseContent` accepts `initialCards`; skips page-1 fetch when server data exists and URL has no active filters; if `?page=N` is in the URL it still loads pages 2–N to restore scroll position
+- protected page header and footer are now sticky — changed `min-height: 100dvh` to `height: 100dvh` on `main` and added `overflow-y: auto; min-height: 0` to `.threadList` so only the thread list scrolls
+- both pages fall back gracefully when the upstream is unavailable at server time — the client components handle it the same way they always did
+
+## 2026-02-25 - version 0.1.12
+
+- added GraphQL Pokédex at `/graphql` — search and filter
+- `/api/graphql` proxy route forwards POST bodies to the upstream endpoint, keeping the URL server-side and `connect-src` locked to same-origin
+- `src/types/graphql.ts` — PokeAPI response shapes (`Pokemon`, `PokemonListResult`, `GraphQLResponse`), `POKEMON_TYPES` const, `PAGE_SIZE`
+- `src/lib/graphql.ts` — query strings (`LIST_QUERY`, `LIST_BY_TYPE_QUERY`), `buildPokemonQuery`, `fetchPokemon`, sprite/name/stat helpers, `POKEMON_TYPE_COLORS`
+- live "Show query" panel in the browser: collapses/expands to show the current GraphQL query + variables, updates as you search or switch type
+- loading state is derived (`loadedKey !== filterKey`) same pattern as the calendar and TCG browser — no extra setState in the effect body
+- `raw.githubusercontent.com` added to `img-src` CSP for PokeAPI sprites
+- `/api/` paths skip the auth redirect in `proxy.ts` — API route handlers manage their own auth where needed
+- added `/thoughts/graphql` write-up: why GraphQL over REST, why plain fetch over Apollo, how Hasura auto-generates the schema, the proxy pattern, query variables vs interpolation
+- two new threads added to the protected page: GraphQL Pokédex and GraphQL thoughts
+- GraphQL Pokédex section added to the landing page (indigo gradient, mock browser UI)
+- Calendar and GraphQL cards added to FeaturesSection; grid changed to `sm:grid-cols-2 md:grid-cols-3` to accommodate 6 features
+
 ## 2026-02-24 - version 0.1.11
 
 - updated event modal styling

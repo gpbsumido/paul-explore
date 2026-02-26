@@ -47,7 +47,7 @@ export default function FeaturesSection() {
           integration — all in one project.
         </p>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
           <FeatureCard
             icon="🔐"
             title="Auth & Security"
@@ -75,6 +75,20 @@ export default function FeaturesSection() {
             description="Card browser with infinite scroll, URL-synced filters, and per-set grids built on the TCGdex SDK."
             visible={visible}
             delay="delay-[400ms]"
+          />
+          <FeatureCard
+            icon="📅"
+            title="Personal Calendar"
+            description="Four-view calendar with multi-day events, time-grid overlap layout, and Pokémon card attachments."
+            visible={visible}
+            delay="delay-[500ms]"
+          />
+          <FeatureCard
+            icon="◈"
+            title="GraphQL Pokédex"
+            description="Pokémon browser using the PokeAPI Hasura endpoint — typed queries, field selection, plain fetch over Apollo."
+            visible={visible}
+            delay="delay-[600ms]"
           />
         </div>
       </div>

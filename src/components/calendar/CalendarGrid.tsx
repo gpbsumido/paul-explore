@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   startOfMonth,
   endOfMonth,
@@ -45,7 +46,7 @@ function isSpanning(ev: CalendarEvent): boolean {
   );
 }
 
-export default function CalendarGrid({
+function CalendarGrid({
   currentDate,
   events,
   onDayClick,
@@ -148,3 +149,8 @@ export default function CalendarGrid({
     </div>
   );
 }
+
+// CalendarGrid gets re-rendered any time CalendarContent re-renders (modal open/close,
+// date navigation, etc.). The grid is expensive to diff so wrapping in memo means it
+// only updates when the events array or current date actually changes.
+export default memo(CalendarGrid);

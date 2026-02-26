@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import type { CSSProperties, MouseEvent } from "react";
 import type { CalendarEvent } from "@/types/calendar";
 import { Tooltip } from "@/components/ui";
@@ -35,7 +35,7 @@ interface EventChipProps {
  * Tooltip uses the Tooltip primitive (fixed position) so it escapes
  * overflow:hidden containers without needing a portal.
  */
-export default function EventChip({
+function EventChip({
   event,
   onClick,
   block = false,
@@ -80,3 +80,7 @@ export default function EventChip({
     </Tooltip>
   );
 }
+
+// There can be a lot of these on screen at once (month grid with many events).
+// Skipping re-renders when the event data and callbacks haven't changed is worth it.
+export default memo(EventChip);

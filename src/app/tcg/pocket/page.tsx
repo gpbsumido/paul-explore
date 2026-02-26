@@ -10,6 +10,9 @@ export const metadata: Metadata = {
 
 const tcgdex = new TCGdex("en");
 
+// Pocket sets are updated infrequently — rebuild at most once a day
+export const revalidate = 86400;
+
 type SetResume = {
   id: string;
   name: string;
