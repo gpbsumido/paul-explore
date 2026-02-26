@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-02-26 - version 0.1.14
+
+- added `Cache-Control` headers to all API proxy routes so the CDN (and browser) know what they're allowed to hold onto
+- TCG card, set, sets, and series routes: `public, s-maxage=3600, stale-while-revalidate=86400` — data is stable for hours; CDN serves the cached response and revalidates in the background so the page never blocks on a revalidation
+- GraphQL proxy: `private, max-age=60` — results vary by query body so CDN sharing would be wrong; `private` keeps it browser-only, `max-age=60` lets the browser reuse the same query result for a minute before hitting the proxy again
+- NBA teams/players/stats routes: `public, s-maxage=300` — data updates at most daily; 5-minute CDN window keeps NBA API rate limits comfortable
+- NBA league history route: `public, s-maxage=86400` — historical season data is immutable once the season ends, so a full day of CDN cache is fine
+- calendar routes left untouched — auth-scoped, user-specific, should never be shared or held by a CDN
+- error responses (4xx/5xx) never receive a `Cache-Control` header so a transient failure can't poison the CDN
+
 ## 2026-02-26 - version 0.1.13
 
 - added ISR (`export const revalidate = 86400`) to the TCG card detail, set detail, sets list, and pocket pages — each page rebuilds in the background at most once a day so visitors always hit a cached static response

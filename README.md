@@ -18,7 +18,7 @@ Started from scratch with a token-driven palette in `src/styles/tokens.css`. Tai
 
 ### 🏀 NBA Stats
 
-Live player stats pulled through a Next.js API proxy (`/api/nba/...`) that keeps the CSP `connect-src 'self'` intact. Stats load in batches with skeleton rows so the table feels alive while data comes in. Each player row handles its own error state independently — if a fetch fails (NBA API rate limits are real), the row shows an error state.
+Live player stats pulled through a Next.js API proxy (`/api/nba/...`) that keeps the CSP `connect-src 'self'` intact. Stats load in batches with skeleton rows so the table feels alive while data comes in. Each player row handles its own error state independently — if a fetch fails (NBA API rate limits are real), the row shows an error state. Teams/players/stats routes serve with `public, s-maxage=300` and the historical league data route with `s-maxage=86400` — reduces repeat hits to the NBA and ESPN APIs while keeping data fresh enough.
 
 ### 🃏 Pokémon TCG Browser
 
@@ -27,6 +27,8 @@ Card browser powered by the `@tcgdex/sdk` TypeScript SDK, proxied through Next.j
 Key implementation details: the browse page fetches page 1 server-side via an async server component + `Suspense` — real cards on first paint, no client-side skeleton flash. Server components own the static header/metadata for set and card pages (SDK called at render time); client components own the scroll and pagination. The `IntersectionObserver` uses a stable `[]` dep with a single event handler ref updated every render — no stale closures, no individual state mirrors. `AbortController` on every fetch prevents stale responses from overwriting data on rapid filter changes.
 
 Card detail, set detail, sets list, and pocket pages all export `revalidate = 86400` (ISR) — each rebuilds in the background at most once a day so visitors always hit a cached static response. The set detail page also has `generateStaticParams` that pre-renders the 10 most recent sets at build time so the most-visited pages are warm on deploy.
+
+The API routes set explicit `Cache-Control` headers: `public, s-maxage=3600, stale-while-revalidate=86400` on all TCG endpoints so a CDN can hold results for an hour and revalidate in the background — visitors never wait on a revalidation. Error responses are left without a cache header so a transient failure can't get stuck in the CDN.
 
 ### 🔍 GraphQL Pokédex
 
@@ -142,6 +144,8 @@ src/
 - streaming SSR with `Suspense` + async server components removes the "skeleton flash on arrival" problem without shipping any extra JavaScript — the skeleton streams immediately, the real data replaces it once the server fetch resolves
 - `revalidate = 86400` (ISR) is the right default for content that rarely changes but does eventually change — static performance with eventual consistency, no manual cache invalidation; `generateStaticParams` + ISR together means the most-visited pages are pre-built and the long tail renders on demand
 - the `hasServerData` ref one-time-skip pattern is a clean way to hand server-fetched data to a client component without it re-fetching on mount — initialize state from the prop, skip the first effect run via a ref that flips to `false`, and after that everything works exactly like a fully client-side component
+- `stale-while-revalidate` is what turns `s-maxage` from a hard wall into a background refresh — the CDN serves the stale cached response immediately (no wait) and kicks off a revalidation request in parallel; the next visitor gets the fresh version
+- `private` in `Cache-Control` is important for query-specific or user-derived responses — without it a shared CDN could serve one user's result to another; only error responses should have no `Cache-Control` at all, so a transient failure can't get stuck in the CDN
 
 ---
 
