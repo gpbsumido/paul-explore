@@ -13,14 +13,22 @@ import {
   POKEMON_TYPE_COLORS,
   DEFAULT_TYPE_COLOR,
 } from "@/lib/graphql";
-import { POKEMON_TYPES, PAGE_SIZE, type Pokemon } from "@/types/graphql";
+import {
+  POKEMON_TYPES,
+  PAGE_SIZE,
+  type Pokemon,
+  type PokemonListResult,
+} from "@/types/graphql";
 import PokemonCard from "./PokemonCard";
 
 /**
  * Formats the query + variables into a readable snippet for the "Query" panel.
  * Just for display — not executed.
  */
-function formatQuerySnippet(query: string, variables: Record<string, unknown>): string {
+function formatQuerySnippet(
+  query: string,
+  variables: Record<string, unknown>,
+): string {
   return `${query.trim()}\n\n# variables\n${JSON.stringify(variables, null, 2)}`;
 }
 
@@ -85,7 +93,12 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
     setOffset(0);
     setError(null);
 
-    const { query, variables } = buildPokemonQuery(debouncedName, activeType, PAGE_SIZE, 0);
+    const { query, variables } = buildPokemonQuery(
+      debouncedName,
+      activeType,
+      PAGE_SIZE,
+      0,
+    );
 
     fetchPokemon(query, variables, controller.signal)
       .then((data) => {
@@ -96,7 +109,9 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
       })
       .catch(() => {
         if (!controller.signal.aborted) {
-          setError("Couldn't load Pokémon — check your connection and try again.");
+          setError(
+            "Couldn't load Pokémon — check your connection and try again.",
+          );
           setLoadedKey(filterKey);
         }
       });
@@ -109,7 +124,12 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
     setOffset(nextOffset);
     setLoadingMore(true);
     try {
-      const { query, variables } = buildPokemonQuery(debouncedName, activeType, PAGE_SIZE, nextOffset);
+      const { query, variables } = buildPokemonQuery(
+        debouncedName,
+        activeType,
+        PAGE_SIZE,
+        nextOffset,
+      );
       const data = await fetchPokemon(query, variables);
       setPokemon((prev) => [...prev, ...data.pokemon_v2_pokemon]);
     } catch {
@@ -136,7 +156,9 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) onScrollRef.current(); },
+      ([entry]) => {
+        if (entry.isIntersecting) onScrollRef.current();
+      },
       { rootMargin: "200px" },
     );
     observer.observe(el);
@@ -161,7 +183,13 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
             className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors shrink-0"
           >
             <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
-              <path d="M6 1L1 6l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M6 1L1 6l5 5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
             Back
           </Link>
@@ -228,12 +256,16 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
             ) : (
               <>
                 Showing{" "}
-                <span className="font-medium text-foreground">{pokemon.length}</span>{" "}
-                of{" "}
-                <span className="font-medium text-foreground">{total}</span>{" "}
+                <span className="font-medium text-foreground">
+                  {pokemon.length}
+                </span>{" "}
+                of <span className="font-medium text-foreground">{total}</span>{" "}
                 Pokémon
                 {activeType && (
-                  <> — <span className="capitalize">{activeType}</span> type</>
+                  <>
+                    {" "}
+                    — <span className="capitalize">{activeType}</span> type
+                  </>
                 )}
               </>
             )}
@@ -244,7 +276,13 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
             className="text-xs text-muted hover:text-foreground transition-colors flex items-center gap-1"
           >
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M3 2L1 5l2 3M7 2l2 3-2 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M3 2L1 5l2 3M7 2l2 3-2 3"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
             {showQuery ? "Hide query" : "Show query"}
           </button>
@@ -262,7 +300,10 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
               </span>
             </div>
             <pre className="overflow-x-auto px-4 py-3 text-[11px] leading-relaxed text-foreground/80 font-mono whitespace-pre">
-              {formatQuerySnippet(liveQuery === LIST_QUERY ? LIST_QUERY : LIST_BY_TYPE_QUERY, liveVars)}
+              {formatQuerySnippet(
+                liveQuery === LIST_QUERY ? LIST_QUERY : LIST_BY_TYPE_QUERY,
+                liveVars,
+              )}
             </pre>
           </div>
         )}
@@ -285,9 +326,10 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
             {pokemon.map((p) => (
               <PokemonCard key={p.id} pokemon={p} />
             ))}
-            {loadingMore && Array.from({ length: PAGE_SIZE }).map((_, i) => (
-              <SkeletonCard key={`sk-${i}`} />
-            ))}
+            {loadingMore &&
+              Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                <SkeletonCard key={`sk-${i}`} />
+              ))}
           </div>
         )}
 
