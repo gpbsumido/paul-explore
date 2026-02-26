@@ -79,8 +79,9 @@ const FEATURES: FeatureItem[] = [
       "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
     href: "/protected/vitals",
     color: "#22c55e",
+    thoughtsHref: "/thoughts/vitals",
   },
-];
+].reverse();
 
 const THOUGHTS: ThoughtItem[] = [
   {
@@ -119,7 +120,13 @@ const THOUGHTS: ThoughtItem[] = [
     preview: "Why GraphQL, why plain fetch over Apollo",
     color: "#6366f1",
   },
-];
+  {
+    title: "Web Vitals",
+    href: "/thoughts/vitals",
+    preview: "Real-user metrics, sendBeacon, P75, and the collection pipeline",
+    color: "#22c55e",
+  },
+].reverse();
 
 // ---- Mini preview sub-components ----
 // Static mockups that look like mini screenshots. In light mode they use a
@@ -151,10 +158,18 @@ function NBAPreview() {
           key={p.name}
           className="grid grid-cols-[1fr_2.5rem_2.5rem_2.5rem] items-center border-b border-black/5 dark:border-white/5 px-2 py-1.5 last:border-b-0"
         >
-          <span className="truncate text-[9px] text-black/70 dark:text-white/70">{p.name}</span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">{p.pts}</span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">{p.reb}</span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">{p.ast}</span>
+          <span className="truncate text-[9px] text-black/70 dark:text-white/70">
+            {p.name}
+          </span>
+          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
+            {p.pts}
+          </span>
+          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
+            {p.reb}
+          </span>
+          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
+            {p.ast}
+          </span>
         </div>
       ))}
     </div>
@@ -175,9 +190,15 @@ function LeaguePreview() {
           key={t.rank}
           className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-2"
         >
-          <span className="w-4 shrink-0 text-[9px] font-bold text-black/30 dark:text-white/30">#{t.rank}</span>
-          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">{t.name}</span>
-          <span className="shrink-0 tabular-nums text-[9px] text-black/40 dark:text-white/40">{t.record}</span>
+          <span className="w-4 shrink-0 text-[9px] font-bold text-black/30 dark:text-white/30">
+            #{t.rank}
+          </span>
+          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
+            {t.name}
+          </span>
+          <span className="shrink-0 tabular-nums text-[9px] text-black/40 dark:text-white/40">
+            {t.record}
+          </span>
         </div>
       ))}
     </div>
@@ -223,7 +244,9 @@ function PocketPreview() {
           className={`flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-gradient-to-r ${exp.gradient} px-2.5 py-2`}
         >
           <div className="h-5 w-5 shrink-0 rounded-sm bg-white/20" />
-          <span className="truncate text-[9px] font-semibold text-white/80">{exp.name}</span>
+          <span className="truncate text-[9px] font-semibold text-white/80">
+            {exp.name}
+          </span>
         </div>
       ))}
     </div>
@@ -294,9 +317,21 @@ function CalendarPreview() {
 }
 
 const GRAPHQL_POKEMON = [
-  { name: "Pikachu", types: ["Electric"], gradient: "from-yellow-400 to-amber-500" },
-  { name: "Charizard", types: ["Fire", "Flying"], gradient: "from-orange-500 to-red-600" },
-  { name: "Mewtwo", types: ["Psychic"], gradient: "from-purple-500 to-violet-700" },
+  {
+    name: "Pikachu",
+    types: ["Electric"],
+    gradient: "from-yellow-400 to-amber-500",
+  },
+  {
+    name: "Charizard",
+    types: ["Fire", "Flying"],
+    gradient: "from-orange-500 to-red-600",
+  },
+  {
+    name: "Mewtwo",
+    types: ["Psychic"],
+    gradient: "from-purple-500 to-violet-700",
+  },
 ];
 
 function GraphQLPreview() {
@@ -307,11 +342,18 @@ function GraphQLPreview() {
           key={p.name}
           className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-2"
         >
-          <div className={`h-5 w-5 shrink-0 rounded-full bg-gradient-to-br ${p.gradient}`} />
-          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">{p.name}</span>
+          <div
+            className={`h-5 w-5 shrink-0 rounded-full bg-gradient-to-br ${p.gradient}`}
+          />
+          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
+            {p.name}
+          </span>
           <div className="flex shrink-0 gap-1">
             {p.types.map((t) => (
-              <span key={t} className="rounded bg-black/10 dark:bg-white/10 px-1 py-px text-[7px] text-black/50 dark:text-white/50">
+              <span
+                key={t}
+                className="rounded bg-black/10 dark:bg-white/10 px-1 py-px text-[7px] text-black/50 dark:text-white/50"
+              >
                 {t}
               </span>
             ))}
@@ -324,17 +366,17 @@ function GraphQLPreview() {
 
 // Mock data for the vitals preview — values chosen to look like a healthy site.
 const VITALS_MOCK = [
-  { name: "LCP",  value: "1.8s",  rating: "good",             pct: 55 },
-  { name: "FCP",  value: "1.2s",  rating: "good",             pct: 35 },
-  { name: "INP",  value: "84ms",  rating: "good",             pct: 25 },
-  { name: "CLS",  value: "0.04",  rating: "good",             pct: 16 },
+  { name: "LCP", value: "1.8s", rating: "good", pct: 55 },
+  { name: "FCP", value: "1.2s", rating: "good", pct: 35 },
+  { name: "INP", value: "84ms", rating: "good", pct: 25 },
+  { name: "CLS", value: "0.04", rating: "good", pct: 16 },
   { name: "TTFB", value: "620ms", rating: "needs-improvement", pct: 65 },
 ] as const;
 
 const VITALS_DOT_COLORS = {
-  good:              "#22c55e",
+  good: "#22c55e",
   "needs-improvement": "#f59e0b",
-  poor:              "#ef4444",
+  poor: "#ef4444",
 } as const;
 
 function VitalsPreview() {
@@ -359,7 +401,10 @@ function VitalsPreview() {
           >
             <div
               className="h-full rounded-full"
-              style={{ width: `${m.pct}%`, backgroundColor: VITALS_DOT_COLORS[m.rating] }}
+              style={{
+                width: `${m.pct}%`,
+                backgroundColor: VITALS_DOT_COLORS[m.rating],
+              }}
             />
           </div>
           <span className="shrink-0 tabular-nums text-[9px] text-black/50 dark:text-white/50">
@@ -423,7 +468,9 @@ function FeatureCard({ feature, delay, visible }: FeatureCardProps) {
           </h3>
         </div>
 
-        <p className="flex-1 text-[13px] leading-relaxed text-muted">{feature.description}</p>
+        <p className="flex-1 text-[13px] leading-relaxed text-muted">
+          {feature.description}
+        </p>
 
         {/* About on the left, Open on the right */}
         <div className="mt-3 flex items-center justify-between">
@@ -474,8 +521,12 @@ function ThoughtCard({ thought, delay, visible }: ThoughtCardProps) {
         style={{ backgroundColor: thought.color }}
       />
       <div className="min-w-0">
-        <p className="text-[13px] font-semibold leading-snug text-foreground">{thought.title}</p>
-        <p className="mt-0.5 truncate text-[11px] text-muted">{thought.preview}</p>
+        <p className="text-[13px] font-semibold leading-snug text-foreground">
+          {thought.title}
+        </p>
+        <p className="mt-0.5 truncate text-[11px] text-muted">
+          {thought.preview}
+        </p>
       </div>
     </Link>
   );
@@ -512,7 +563,9 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
       {/* Sticky header */}
       <header className="sticky top-0 z-30 border-b border-border bg-background">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <span className="text-base font-bold tracking-tight text-foreground">paul-explore</span>
+          <span className="text-base font-bold tracking-tight text-foreground">
+            paul-explore
+          </span>
 
           <div className="flex items-center gap-3">
             {/* User info — hidden on small screens where space is tight */}
@@ -521,7 +574,9 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
                 {userName}
               </span>
               {userEmail && (
-                <span className="mt-0.5 text-[11px] leading-none text-muted">{userEmail}</span>
+                <span className="mt-0.5 text-[11px] leading-none text-muted">
+                  {userEmail}
+                </span>
               )}
             </div>
             <ThemeToggle />
@@ -542,7 +597,8 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
             Hey {firstName}, here&apos;s what&apos;s live.
           </h1>
           <p className="mt-1.5 text-[14px] text-muted">
-            {FEATURES.length} features — click any card to jump in, or hit About to read how it was built.
+            {FEATURES.length} features — click any card to jump in, or hit About
+            to read how it was built.
           </p>
         </div>
 

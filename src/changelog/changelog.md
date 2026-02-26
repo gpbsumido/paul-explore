@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-02-26 - version 0.2.4
+
+- added "What I'm doing to improve these" section to `/protected/vitals` dashboard
+- five cards (one per metric) each showing a short title and plain-English explanation of what is in the codebase to improve that score
+
 ## 2026-02-26 - version 0.2.3
 
 - added `/protected/vitals` dashboard showing Core Web Vitals collected from users

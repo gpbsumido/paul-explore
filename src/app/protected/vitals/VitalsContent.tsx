@@ -133,6 +133,37 @@ function TableCell({ data, config }: TableCellProps) {
   );
 }
 
+// ---- IMPROVEMENTS ----
+
+// one card per metric explaining what's in the codebase to improve that score
+const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
+  {
+    metric: "LCP",
+    what: "ISR + static pre-rendering",
+    how: "High-traffic TCG/Pokedex pages use revalidate = 86400 and generateStaticParams, so the largest painted element is already in a CDN-cached HTML file before the first request arrives.",
+  },
+  {
+    metric: "FCP",
+    what: "Code splitting + streaming SSR",
+    how: "next/dynamic with a ThoughtsSkeleton loading fallback splits each write-up into its own chunk. Suspense boundaries stream the skeleton immediately while data fetches resolve in parallel on the server.",
+  },
+  {
+    metric: "INP",
+    what: "Memo + stable callbacks throughout the calendar",
+    how: "All four calendar view components are wrapped in React.memo. useCallback on every callback passed to them prevents memo from being silently bypassed. useMemo on layoutDayEvents keeps the overlap algorithm from running on unrelated state changes.",
+  },
+  {
+    metric: "CLS",
+    what: "Pixel-identical skeletons, no unsized content",
+    how: "ThoughtsSkeleton reuses the exact same CSS module classes as the real chat bubbles, so widths and spacing are identical before and after hydration. No layout shift on reveal.",
+  },
+  {
+    metric: "TTFB",
+    what: "CDN caching on proxy routes + connection pooling",
+    how: "NBA and TCG API proxy routes set public, s-maxage=300/3600 so repeat requests hit the CDN instead of origin. ISR pages skip the server entirely. Railway Postgres is accessed through a pg pool so there is no per-request connection handshake.",
+  },
+];
+
 // ---- VitalsContent ----
 
 /**
@@ -259,6 +290,32 @@ export default function VitalsContent({ summary, byPage }: VitalsResponse) {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Improvement notes — what's actively being done per metric */}
+        <div className="mt-10">
+          <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50">
+            What I&apos;m doing to improve these
+          </h2>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {IMPROVEMENTS.map(({ metric, what, how }) => (
+              <div
+                key={metric}
+                className="rounded-xl border border-border bg-surface p-4"
+              >
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
+                  {metric}
+                </span>
+                <p className="mt-1.5 text-[13px] font-semibold leading-snug text-foreground">
+                  {what}
+                </p>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-muted">
+                  {how}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>
