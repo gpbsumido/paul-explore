@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-02-26 - version 0.2.0
+
+- added Vercel Speed Insights to the root layout with Core Web Vitals (LCP, CLS, FCP, INP, TTFB) now flow into the Vercel dashboard
+- `<SpeedInsights />` renders after the app tree so it never blocks first paint; Vercel injects the beacon script asynchronously
+
 ## 2026-02-26 - version 0.1.18
 
 - `ThoughtsSkeleton` widths for messages were collapsing, so changed up the width from percentage to actual widths

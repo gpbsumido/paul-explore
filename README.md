@@ -66,14 +66,15 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 
 ## Tech stack
 
-| Layer     | Choice                              |
-| --------- | ----------------------------------- |
-| Framework | Next.js 16 (App Router)             |
-| Language  | TypeScript                          |
-| Styling   | Tailwind CSS v4 + custom CSS tokens |
-| Auth      | Auth0 (`@auth0/nextjs-auth0`)       |
-| Runtime   | React 19                            |
-| Linting   | ESLint (Next.js config)             |
+| Layer       | Choice                              |
+| ----------- | ----------------------------------- |
+| Framework   | Next.js 16 (App Router)             |
+| Language    | TypeScript                          |
+| Styling     | Tailwind CSS v4 + custom CSS tokens |
+| Auth        | Auth0 (`@auth0/nextjs-auth0`)       |
+| Runtime     | React 19                            |
+| Monitoring  | Vercel Speed Insights               |
+| Linting     | ESLint (Next.js config)             |
 
 ---
 
@@ -153,6 +154,7 @@ src/
 - `React.memo` without `useCallback` on the parent's callbacks is a trap — memo compares props by reference, and an inline arrow function creates a new reference every render, so the memo never actually skips; the pattern only works when both sides do their part
 - `useMemo` on derived arrays (like the event overlap layout) creates stable references that downstream memos can depend on; nesting the memos with clean dep arrays avoids the situation where everything recomputes together anyway
 - `next/dynamic` with a `loading` skeleton is the right code-splitting tool for large client components that are only needed on a specific page — the skeleton shows only during SPA navigation (the initial SSR load renders the full component); `ThoughtsSkeleton` reuses the same CSS module classes as the real content so bubble shapes are pixel-identical and there's no layout shift on reveal
+- Vercel Speed Insights is one import away from real-user Core Web Vitals data — `<SpeedInsights />` placed after the app tree means the beacon script loads asynchronously and never competes with first paint; field data (actual user sessions) takes a day or two to aggregate but lab scores show up immediately
 
 ---
 
