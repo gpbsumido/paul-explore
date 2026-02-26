@@ -43,8 +43,8 @@ export default function FeaturesSection() {
         <p
           className={`mx-auto mt-3 max-w-lg text-center text-neutral-400 dark:text-neutral-600 ${reveal(visible, "delay-100")}`}
         >
-          Authentication, design systems, live data, and full-stack API
-          integration — all in one project.
+          Authentication, design systems, live data, full-stack API integration,
+          and real-user performance monitoring — all in one project.
         </p>
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
@@ -54,6 +54,13 @@ export default function FeaturesSection() {
             description="Auth0 integration with CSP headers, proxy middleware, and protected routes."
             visible={visible}
             delay="delay-100"
+          />
+          <FeatureCard
+            icon="📊"
+            title="Web Vitals Dashboard"
+            description="Real-user Core Web Vitals collected via sendBeacon, aggregated as P75 in Postgres, and displayed on a protected dashboard."
+            visible={visible}
+            delay="delay-[700ms]"
           />
           <FeatureCard
             icon="🎨"
