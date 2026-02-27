@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-02-26 - version 0.2.6
+
+- fixed double-skeleton flash when navigating from protected page to any thoughts page
+- removed `next/dynamic` from all thoughts `page.tsx` files — App Router already code-splits client components per route, so `next/dynamic` was adding a second Suspense boundary (one server-side from the RSC stream, one client-side from the chunk download) causing two skeleton renders
+- added `src/app/thoughts/loading.tsx` — shows `ThoughtsSkeleton` once during the RSC fetch, which is the correct place for this loading state
+- updated protected `loading.tsx` skeleton to match the actual FeatureHub layout — replaced the stale iMessage thread-list skeleton with bones for the sticky header, feature card grid (7 cards), and dev-notes thought card grid (7 cards)
+
 ## 2026-02-26 - version 0.2.5
 
 - added `VitalsSection` to the landing page after GraphQLSection
