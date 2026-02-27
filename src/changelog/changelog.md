@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-02-26 - version 0.2.7
+
+- removed `src/app/loading.tsx` (root-level hero skeleton) — it was a Suspense boundary that cascaded before every route-specific loading state, causing two completely different skeletons in sequence when navigating to thoughts pages
+- restored `src/app/thoughts/loading.tsx` with ThoughtsSkeleton — now the only skeleton shown when navigating to any thoughts page
+- routes without a `loading.tsx` (calendar, NBA stats, league history) use React's `startTransition` to keep the previous page visible during navigation, which is correct since those pages have no server-side async work in their page.tsx
+
 ## 2026-02-26 - version 0.2.6
 
 - fixed double-skeleton flash when navigating from protected page to any thoughts page
