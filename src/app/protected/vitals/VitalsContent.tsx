@@ -1,36 +1,20 @@
-"use client";
-
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+import VersionSelector from "./VersionSelector";
+import VitalsChart from "./VitalsChart";
+import {
+  METRIC_ORDER,
+  METRIC_CONFIGS,
+  formatValue,
+  type MetricConfig,
+} from "@/lib/vitals";
 import type {
   MetricName,
   MetricSummary,
   PageMetricData,
-  PageVitals,
   VitalsResponse,
+  VersionMetrics,
 } from "@/types/vitals";
-
-// render order follows the typical CWV audit sequence
-const METRIC_ORDER: MetricName[] = ["LCP", "FCP", "INP", "CLS", "TTFB"];
-
-type MetricConfig = {
-  name: MetricName;
-  label: string;
-  // "ms" for timing metrics, "" for dimensionless scores like CLS
-  unit: "ms" | "";
-  // Google's Good threshold — at or below this is green
-  good: number;
-  // Google's Poor threshold — above this is red, between is yellow
-  poor: number;
-};
-
-const METRIC_CONFIGS: Record<MetricName, MetricConfig> = {
-  LCP: { name: "LCP", label: "Largest Contentful Paint", unit: "ms", good: 2500, poor: 4000 },
-  FCP: { name: "FCP", label: "First Contentful Paint",   unit: "ms", good: 1800, poor: 3000 },
-  INP: { name: "INP", label: "Interaction to Next Paint", unit: "ms", good: 200,  poor: 500  },
-  CLS: { name: "CLS", label: "Cumulative Layout Shift",  unit: "",   good: 0.1,  poor: 0.25 },
-  TTFB:{ name: "TTFB",label: "Time to First Byte",       unit: "ms", good: 800,  poor: 1800 },
-};
 
 type Rating = "good" | "needs-improvement" | "poor";
 
@@ -38,27 +22,31 @@ const RATING_STYLES: Record<
   Rating,
   { bg: string; text: string; dot: string; label: string }
 > = {
-  "good":              { bg: "bg-green-500/10",  text: "text-green-600 dark:text-green-400",  dot: "bg-green-500",  label: "Good" },
-  "needs-improvement": { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400", dot: "bg-yellow-500", label: "Needs work" },
-  "poor":              { bg: "bg-red-500/10",    text: "text-red-600 dark:text-red-400",       dot: "bg-red-500",    label: "Poor" },
+  good: {
+    bg: "bg-green-500/10",
+    text: "text-green-600 dark:text-green-400",
+    dot: "bg-green-500",
+    label: "Good",
+  },
+  "needs-improvement": {
+    bg: "bg-yellow-500/10",
+    text: "text-yellow-600 dark:text-yellow-400",
+    dot: "bg-yellow-500",
+    label: "Needs work",
+  },
+  poor: {
+    bg: "bg-red-500/10",
+    text: "text-red-600 dark:text-red-400",
+    dot: "bg-red-500",
+    label: "Poor",
+  },
 };
 
-/** Derives a CWV rating from a raw P75 value and the metric's thresholds. */
+/** Maps a raw P75 value to a Good/Needs work/Poor rating. */
 function getRating(value: number, config: MetricConfig): Rating {
   if (value <= config.good) return "good";
   if (value <= config.poor) return "needs-improvement";
   return "poor";
-}
-
-/**
- * Formats a metric value for display.
- * Timing metrics: values >= 1000ms get displayed as seconds (e.g. "2.4s"),
- * smaller values as milliseconds (e.g. "340ms").
- * CLS (unit = "") stays as a decimal like "0.042".
- */
-function formatValue(value: number, unit: "ms" | ""): string {
-  if (unit === "") return value.toFixed(3);
-  return value >= 1000 ? `${(value / 1000).toFixed(1)}s` : `${Math.round(value)}ms`;
 }
 
 // ---- MetricCard ----
@@ -127,7 +115,9 @@ function TableCell({ data, config }: TableCellProps) {
   const { text } = RATING_STYLES[rating];
 
   return (
-    <td className={`px-3 py-3 text-center tabular-nums text-[12px] font-medium ${text}`}>
+    <td
+      className={`px-3 py-3 text-center tabular-nums text-[12px] font-medium ${text}`}
+    >
       {formatValue(data.p75, config.unit)}
     </td>
   );
@@ -154,8 +144,8 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
   },
   {
     metric: "CLS",
-    what: "Pixel-identical skeletons, no unsized content",
-    how: "ThoughtsSkeleton reuses the exact same CSS module classes as the real chat bubbles, so widths and spacing are identical before and after hydration. No layout shift on reveal.",
+    what: "Pixel-matched skeletons per view, no unsized content",
+    how: "Each lazy-loaded calendar view (day, week, year) ships with a skeleton that mirrors the real view's exact row heights and grid structure, so the page doesn't shift when the JS chunk arrives. ThoughtsSkeleton uses the same CSS module classes as the real chat bubbles for the same reason.",
   },
   {
     metric: "TTFB",
@@ -166,6 +156,12 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
 
 // ---- VitalsContent ----
 
+type Props = VitalsResponse & {
+  versions: string[];
+  selectedVersion: string | undefined;
+  byVersion: VersionMetrics[];
+};
+
 /**
  * Protected vitals dashboard. Shows five metric cards at the top (global P75
  * per metric) and a page-by-page breakdown table below.
@@ -173,7 +169,13 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
  * All data comes from the server component so there's no client-side fetch —
  * this component just handles the presentation layer.
  */
-export default function VitalsContent({ summary, byPage }: VitalsResponse) {
+export default function VitalsContent({
+  summary,
+  byPage,
+  versions,
+  selectedVersion,
+  byVersion,
+}: Props) {
   const hasData = byPage.length > 0;
 
   return (
@@ -200,7 +202,11 @@ export default function VitalsContent({ summary, byPage }: VitalsResponse) {
           <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
             Web Vitals
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            <VersionSelector
+              versions={versions}
+              selectedVersion={selectedVersion}
+            />
             <ThemeToggle />
           </div>
         </div>
@@ -213,7 +219,8 @@ export default function VitalsContent({ summary, byPage }: VitalsResponse) {
             Core Web Vitals
           </h1>
           <p className="mt-1 text-[13px] text-muted">
-            P75 scores from real users. Pages need at least 5 samples to appear in the table.
+            P75 scores from real users. Pages need at least 5 samples to appear
+            in the table.
           </p>
         </div>
 
@@ -227,6 +234,16 @@ export default function VitalsContent({ summary, byPage }: VitalsResponse) {
             />
           ))}
         </div>
+
+        {/* Version trend charts */}
+        {byVersion.length >= 2 && (
+          <div className="mt-8">
+            <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50">
+              Trend across versions
+            </h2>
+            <VitalsChart byVersion={byVersion} />
+          </div>
+        )}
 
         {/* By-page table */}
         <div className="mt-8">
@@ -284,9 +301,12 @@ export default function VitalsContent({ summary, byPage }: VitalsResponse) {
           ) : (
             // shown until enough real-user data comes in
             <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
-              <p className="text-[14px] font-medium text-foreground">No data yet</p>
+              <p className="text-[14px] font-medium text-foreground">
+                No data yet
+              </p>
               <p className="mt-1 text-[13px] text-muted">
-                Visit a few pages and check back — pages need 5+ samples to show up here.
+                Visit a few pages and check back — pages need 5+ samples to show
+                up here.
               </p>
             </div>
           )}

@@ -52,6 +52,8 @@ There's also a dedicated events section outside the grid. `/calendar/events` is 
 
 The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/calendar/events`) which attach an Auth0 access token server-side before forwarding to the Express backend — the token never reaches the browser. A `useCalendarEvents` hook fetches the correct date window for each view and re-fetches automatically on navigation.
 
+First load performance: a `CalendarWithData` async server component fetches the current month's events directly from the backend at request time (bypassing the `/api/` proxy to avoid a loopback call). It's wrapped in a `Suspense` boundary backed by a route-segment `loading.tsx` — a 42-cell pulse skeleton that streams in the HTML shell. When the server fetch resolves, `CalendarContent` receives `initialEvents` and `useCalendarEvents` seeds from that data without firing a redundant client-side fetch. DayView, WeekView, YearView, and EventModal are lazy-loaded with `next/dynamic` so only CalendarGrid — the LCP element — ships in the initial bundle.
+
 Built without a calendar library — `date-fns` handles all date math (grid construction, view navigation, slot matching). This was a deliberate choice: FullCalendar's full React support requires a paid license, and the custom build keeps the bundle small and gives full control over the interaction model.
 
 All four view components are wrapped in `React.memo` and `CalendarContent` uses `useCallback` on the callbacks passed to them — without stable prop references, memo is effectively useless. `layoutDayEvents` (the overlap layout algorithm) is wrapped in `useMemo` in both `DayView` and `WeekView` so the O(n²) computation only reruns when events actually change, not on every render triggered by unrelated state like the modal.
@@ -60,11 +62,13 @@ Event rendering matches Google Calendar's conventions: multi-day timed events (o
 
 ### 📊 Web Vitals Dashboard
 
-Real-user Core Web Vitals collected from every page load and displayed on a protected dashboard at `/protected/vitals`. Five metric cards show the global P75 for LCP, FCP, INP, CLS, and TTFB with color-coded Good/Needs work/Poor ratings. A by-page table below breaks the same numbers down per route — cells are individually color-coded so you can spot which pages are dragging down a specific metric.
+Real-user Core Web Vitals collected from every page load and displayed on a protected dashboard at `/protected/vitals`. Five metric cards show the global P75 for LCP, FCP, INP, CLS, and TTFB with color-coded Good/Needs work/Poor ratings. A by-page table breaks the same numbers down per route. A version trend section (unovis sparklines) shows P75 across the last 5 app versions so you can see whether a deploy actually moved the numbers.
 
-The collection pipeline: `WebVitalsReporter` (root layout client component) registers all five `web-vitals` observers once on mount and beacons each metric to `/api/vitals` when it fires. The Next.js API route validates the shape and forwards to the Express backend, which writes one row per metric event into the `web_vitals` Postgres table. The dashboard page fetches `/api/vitals/summary` and `/api/vitals/by-page` in parallel from the server component with `cache: "no-store"`, so numbers are always current. Pages under 5 samples are excluded from the by-page table to keep single-visit noise out.
+The collection pipeline: `WebVitalsReporter` (root layout client component) registers all five `web-vitals` observers once on mount and beacons each metric to `/api/vitals` when it fires. Each beacon includes `app_version`, which is read directly from `package.json` at build time — no manual env var needed. The Next.js API route validates the shape and forwards to the Express backend, which writes one row per event into the `web_vitals` Postgres table.
 
-Formatting: timing metrics below 1000ms display as rounded milliseconds (`340ms`), at or above 1000ms as one-decimal seconds (`2.4s`). CLS stays as a 3-decimal dimensionless score (`0.042`).
+The dashboard nav has a version selector. Selecting "From v0.3.1" filters all aggregates to rows from that version onwards using a semver-aware Postgres comparison (`string_to_array(app_version, '.')::int[]`) so `0.10.0 > 0.9.0` works correctly. The selected version is a URL param so filtered views are shareable. Defaults to the latest version on first load.
+
+Formatting: timing metrics below 1000ms display as rounded milliseconds (`340ms`), at or above 1000ms as one-decimal seconds (`2.4s`). CLS stays as a 3-decimal dimensionless score (`0.042`). Pages under 5 samples are excluded from the by-page table.
 
 ### 🏆 Fantasy League History
 
@@ -81,8 +85,10 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 | Styling     | Tailwind CSS v4 + custom CSS tokens |
 | Auth        | Auth0 (`@auth0/nextjs-auth0`)       |
 | Runtime     | React 19                            |
+| Charts      | unovis (`@unovis/react`)            |
 | Monitoring  | Vercel Speed Insights               |
 | Linting     | ESLint (Next.js config)             |
+| Bundle      | `@next/bundle-analyzer` (`npm run analyze`) |
 
 ---
 
@@ -162,10 +168,19 @@ src/
 - `private` in `Cache-Control` is important for query-specific or user-derived responses — without it a shared CDN could serve one user's result to another; only error responses should have no `Cache-Control` at all, so a transient failure can't get stuck in the CDN
 - `React.memo` without `useCallback` on the parent's callbacks is a trap — memo compares props by reference, and an inline arrow function creates a new reference every render, so the memo never actually skips; the pattern only works when both sides do their part
 - `useMemo` on derived arrays (like the event overlap layout) creates stable references that downstream memos can depend on; nesting the memos with clean dep arrays avoids the situation where everything recomputes together anyway
-- `next/dynamic` with a `loading` skeleton is the right code-splitting tool for large client components that are only needed on a specific page — the skeleton shows only during SPA navigation (the initial SSR load renders the full component); `ThoughtsSkeleton` reuses the same CSS module classes as the real content so bubble shapes are pixel-identical and there's no layout shift on reveal
+- `next/dynamic` in a server component creates two separate Suspense boundaries — one server-side (RSC stream) and one client-side (chunk download) — causing a double-skeleton flash; the correct pattern is a route-segment `loading.tsx` (shown once, during the RSC fetch) with a plain static import; in the App Router, client components are automatically code-split per route so `next/dynamic` adds nothing for route-local components and only introduces the double-render problem; `ThoughtsSkeleton` reuses the same CSS module classes as the real content so bubble shapes are pixel-identical and there is no layout shift on reveal
 - Vercel Speed Insights is one import away from real-user Core Web Vitals data — `<SpeedInsights />` placed after the app tree means the beacon script loads asynchronously and never competes with first paint; field data (actual user sessions) takes a day or two to aggregate but lab scores show up immediately
 - `navigator.sendBeacon` is the right delivery mechanism for analytics — a regular fetch can get cancelled when the browser tears down the page on navigation, sendBeacon queues the request at the OS level and guarantees delivery; the `Blob` wrapper is required to send JSON since sendBeacon defaults to text/plain otherwise
 - the pathname ref pattern (`useRef` updated on pathname change, observers read from it at fire time) solves the SPA navigation accuracy problem cleanly — registering observers once per mount avoids duplicate registrations while the ref ensures each metric is tagged with the page the user was on when it fired, not the initial page
+- `@next/bundle-analyzer` requires `--webpack` because Next.js 16 uses Turbopack by default — the analyzer is incompatible with Turbopack and throws if you omit the flag
+- the most useful thing the bundle analyzer does is surface server-only libraries appearing in the client bundle: `jose`, `oauth4webapi`, and `openid-client` have no business in a browser; seeing them in the treemap is a signal that something is wrong, not just large
+- `Auth0Provider` was wrapping the entire app and pulling the full Auth0 client SDK into every page load despite `useUser` being called zero times in the codebase — a quick grep confirmed it, the fix was three lines removed from the root layout; auth protection was always in the middleware and individual server components, not React context
+- Next.js App Router's `icon.tsx` and `opengraph-image.tsx` file conventions generate favicons and OG images at build time using `ImageResponse` (Satori under the hood) without needing a separate CDN or pre-generated image files; the icon file produces `<link rel="icon">` automatically, and the OG image is served at `/opengraph-image` and referenced in metadata
+- `openGraph.images` in page metadata overrides the file-based `opengraph-image.tsx` for that route — useful when you want a shared generator function but need the image URL to also appear in explicit metadata objects; the root layout carries the fallback so pages without their own metadata still get the right `og:image`
+- extracting `TITLE` and `DESCRIPTION` as module-level consts in page files keeps the metadata DRY when the same strings need to appear in `title`, `openGraph.title`, `openGraph.description`, `twitter.title`, and `twitter.description` — five places that would otherwise all need updating together
+- `auth0.middleware()` makes a network round-trip on every request; `auth0.getSession()` just reads the encrypted session cookie locally — calling middleware only for `/auth/*` routes and getSession everywhere else removes that TTFB hit from every protected page load
+- the `initialEvents` seed pattern in `useCalendarEvents` is a clean handoff from server to client: set state from the prop, pre-mark the range as loaded, and the hook behaves exactly like normal from that point — no special casing needed in the effect or mutation handlers
+- when a server component needs to fetch data, call the upstream directly rather than going through your own API routes — a loopback HTTP call to the same server wastes time and adds latency that shows up in TTFB
 
 ---
 

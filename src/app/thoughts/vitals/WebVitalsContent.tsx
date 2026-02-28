@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import styles from "@/app/thoughts/styling/styling.module.css";
@@ -39,9 +37,9 @@ export default function WebVitalsContent() {
         <Received pos="last">is that like Lighthouse?</Received>
 
         <Sent pos="first">
-          sort of, but opposite — Lighthouse runs in a controlled lab environment
-          on a simulated device. the dashboard shows data from real users on real
-          connections
+          sort of, but opposite — Lighthouse runs in a controlled lab
+          environment on a simulated device. the dashboard shows data from real
+          users on real connections
         </Sent>
         <Sent pos="middle">
           there&apos;s a collector running on every page that reports the five
@@ -69,19 +67,19 @@ export default function WebVitalsContent() {
           good is under 1.8s
         </Sent>
         <Sent pos="middle">
-          INP — Interaction to Next Paint. measures how quickly the page responds
-          to clicks, taps, and key presses. replaced FID in 2024 as the official
-          interactivity metric. good is under 200ms
+          INP — Interaction to Next Paint. measures how quickly the page
+          responds to clicks, taps, and key presses. replaced FID in 2024 as the
+          official interactivity metric. good is under 200ms
         </Sent>
         <Sent pos="middle">
-          CLS — Cumulative Layout Shift. a score for how much content jumps around
-          while the page loads. score of 0 is perfect, under 0.1 is good. the one
-          that makes you click the wrong button because the page shifted
+          CLS — Cumulative Layout Shift. a score for how much content jumps
+          around while the page loads. score of 0 is perfect, under 0.1 is good.
+          the one that makes you click the wrong button because the page shifted
         </Sent>
         <Sent pos="last">
-          TTFB — Time to First Byte. how long the browser waits for the server to
-          start sending a response. good is under 800ms. a high TTFB usually means
-          something slow is happening server-side before any HTML arrives
+          TTFB — Time to First Byte. how long the browser waits for the server
+          to start sending a response. good is under 800ms. a high TTFB usually
+          means something slow is happening server-side before any HTML arrives
         </Sent>
 
         <Timestamp>9:11 AM</Timestamp>
@@ -100,29 +98,31 @@ export default function WebVitalsContent() {
           it any way I want
         </Sent>
         <Sent pos="last">
-          and honestly, building the pipeline is the more interesting part. knowing
-          what sendBeacon does and why, how to store and aggregate percentile data
-          in Postgres, how to wire a collection client to a backend — that&apos;s
-          the stuff that&apos;s worth knowing as a developer
+          and honestly, building the pipeline is the more interesting part.
+          knowing what sendBeacon does and why, how to store and aggregate
+          percentile data in Postgres, how to wire a collection client to a
+          backend — that&apos;s the stuff that&apos;s worth knowing as a
+          developer
         </Sent>
 
         <Received>how does the pipeline actually work</Received>
 
         <Sent pos="first">
           the <code>web-vitals</code> npm package is the same one Vercel uses
-          under the hood. it hooks into browser APIs to detect each metric at the
-          right time and fires a callback with the name, value, and a rating
+          under the hood. it hooks into browser APIs to detect each metric at
+          the right time and fires a callback with the name, value, and a rating
         </Sent>
         <Sent pos="middle">
-          <code>WebVitalsReporter</code> is a client component in the root layout.
-          it registers all five collectors once on mount and sends each metric to{" "}
-          <code>/api/vitals</code> when it fires. that&apos;s a Next.js route that
-          validates the shape and forwards it to the Express backend
+          <code>WebVitalsReporter</code> is a client component in the root
+          layout. it registers all five collectors once on mount and sends each
+          metric to <code>/api/vitals</code> when it fires. that&apos;s a
+          Next.js route that validates the shape and forwards it to the Express
+          backend
         </Sent>
         <Sent pos="last">
-          the backend inserts one row per metric event into a <code>web_vitals</code>{" "}
-          Postgres table. no fancy streaming or queues — at portfolio traffic
-          levels a straight insert is fine
+          the backend inserts one row per metric event into a{" "}
+          <code>web_vitals</code> Postgres table. no fancy streaming or queues —
+          at portfolio traffic levels a straight insert is fine
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -139,8 +139,8 @@ export default function WebVitalsContent() {
 
         <Sent pos="first">
           reliability. a regular fetch can get cancelled mid-flight when the
-          browser tears down the page — navigation, tab close, reload. the request
-          just disappears
+          browser tears down the page — navigation, tab close, reload. the
+          request just disappears
         </Sent>
         <Sent pos="middle">
           <code>navigator.sendBeacon</code> queues the request at the browser
@@ -149,9 +149,10 @@ export default function WebVitalsContent() {
         </Sent>
         <Sent pos="last">
           the one catch: sendBeacon sends as <code>text/plain</code> by default,
-          which the Express JSON parser won&apos;t read. you need to wrap the body
-          in a <code>Blob</code> with an explicit <code>application/json</code>{" "}
-          content type — otherwise the payload arrives as an unparsed string
+          which the Express JSON parser won&apos;t read. you need to wrap the
+          body in a <code>Blob</code> with an explicit{" "}
+          <code>application/json</code> content type — otherwise the payload
+          arrives as an unparsed string
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -179,10 +180,10 @@ navigator.sendBeacon(
           response arrives
         </Sent>
         <Sent pos="middle">
-          INP and CLS are different — they accumulate over the whole page session
-          and fire when the page is hidden (tab switch, navigation, close).
-          INP reports the worst single interaction, CLS reports the total shift
-          score
+          INP and CLS are different — they accumulate over the whole page
+          session and fire when the page is hidden (tab switch, navigation,
+          close). INP reports the worst single interaction, CLS reports the
+          total shift score
         </Sent>
         <Sent pos="last">
           this is why sendBeacon matters. if a user clicks a link and
@@ -206,12 +207,14 @@ navigator.sendBeacon(
           dominated by a single extreme outlier
         </Sent>
         <Sent pos="last">
-          Google uses P75 for the official CWV thresholds in search ranking —
-          so it&apos;s also the right metric to optimize against if you care
-          about SEO
+          Google uses P75 for the official CWV thresholds in search ranking — so
+          it&apos;s also the right metric to optimize against if you care about
+          SEO
         </Sent>
 
-        <Received>what&apos;s the 5-sample minimum in the by-page table</Received>
+        <Received>
+          what&apos;s the 5-sample minimum in the by-page table
+        </Received>
 
         <Sent pos="first">
           noise control. if I visit the calendar once, that&apos;s one LCP
@@ -221,8 +224,8 @@ navigator.sendBeacon(
         </Sent>
         <Sent pos="last">
           5 samples is a low bar but it&apos;s enough to filter out single-visit
-          artifacts. with real traffic you&apos;d want more — 50+, 100+ — but for
-          a portfolio site 5 is a reasonable start
+          artifacts. with real traffic you&apos;d want more — 50+, 100+ — but
+          for a portfolio site 5 is a reasonable start
         </Sent>
 
         <Timestamp>9:43 AM</Timestamp>
@@ -241,9 +244,9 @@ navigator.sendBeacon(
           same <code>checkJwt</code> middleware as every other protected route
         </Sent>
         <Sent pos="last">
-          <code>cache: &quot;no-store&quot;</code> on both fetches so the numbers
-          are always live when you open the page — vitals data should never be
-          served stale from a CDN
+          <code>cache: &quot;no-store&quot;</code> on both fetches so the
+          numbers are always live when you open the page — vitals data should
+          never be served stale from a CDN
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -263,21 +266,25 @@ const [summaryRes, byPageRes] = await Promise.all([
         <Received>what would you improve</Received>
 
         <Sent pos="first">
-          time range filter — right now the aggregation covers all-time data.
-          being able to see last 7 days vs last 30 days would make regressions
-          easier to spot
+          version filtering is in now — each beacon includes the{" "}
+          <code>app_version</code> from <code>package.json</code>, baked into
+          the bundle at build time. the dashboard nav has a dropdown that filters
+          all aggregates to &quot;from version X onwards&quot; so you can see
+          whether a specific deploy actually moved the numbers
         </Sent>
         <Sent pos="middle">
-          device and connection breakdown — the <code>web-vitals</code> package
-          gives you <code>navigationType</code> but doesn&apos;t expose device
-          category or effective connection type. you&apos;d need to read those
-          from the Network Information API separately and include them in the
-          beacon payload
+          there&apos;s also a trend chart now using unovis — one sparkline per
+          metric showing P75 across the last 5 versions. line color follows the
+          Good/Poor thresholds so you can tell at a glance if things are going
+          the right direction
         </Sent>
         <Sent pos="last">
-          and alert thresholds — an email or Slack ping when a page&apos;s LCP
-          P75 crosses 4000ms would make this actually useful as an ops tool
-          rather than just a dashboard
+          still want: device and connection breakdown (the{" "}
+          <code>web-vitals</code> package gives <code>navigationType</code> but
+          not device category or effective connection type — you&apos;d need the
+          Network Information API for that), and alert thresholds so a bad P75
+          actually notifies you instead of waiting for someone to open the
+          dashboard
         </Sent>
 
         <Received>what does building this show as a dev</Received>
@@ -294,10 +301,10 @@ const [summaryRes, byPageRes] = await Promise.all([
           browser and backend technology wired together
         </Sent>
         <Sent pos="last">
-          the data pipeline here is the same shape as any event analytics system.
-          knowing how to build it for web vitals means you can adapt it for
-          custom business events, error tracking, or feature usage metrics with
-          minimal changes
+          the data pipeline here is the same shape as any event analytics
+          system. knowing how to build it for web vitals means you can adapt it
+          for custom business events, error tracking, or feature usage metrics
+          with minimal changes
         </Sent>
 
         <Received>that tracks</Received>
@@ -305,8 +312,10 @@ const [summaryRes, byPageRes] = await Promise.all([
         <Sent>
           yeah — and selfishly it&apos;s useful for the site itself. I can
           actually see whether the ISR caching, streaming SSR, and next/dynamic
-          lazy loading are making a measurable difference to real users, not just
-          green numbers on a report
+          lazy loading are making a measurable difference to real users, not
+          just green numbers on a report. the version filter makes that
+          concrete: pick the version where streaming SSR shipped and see if LCP
+          dropped
         </Sent>
 
         {/* Typing indicator */}

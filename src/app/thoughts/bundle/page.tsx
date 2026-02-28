@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import WebVitalsContent from "./WebVitalsContent";
+import BundleContent from "./BundleContent";
 
-const TITLE = "Web Vitals | Thoughts";
+const TITLE = "Bundle Analysis | Thoughts";
 const DESCRIPTION =
-  "Why I built a real-user vitals pipeline instead of just using Lighthouse — the collection stack, sendBeacon, P75, and what field data actually tells you.";
+  "How running the bundle analyzer revealed Auth0Provider pulling jose, oauth4webapi, and openid-client into the browser bundle — and why removing it cost nothing.";
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   openGraph: {
     type: "article",
-    url: `${SITE_URL}/thoughts/vitals`,
+    url: `${SITE_URL}/thoughts/bundle`,
     title: TITLE,
     description: DESCRIPTION,
     images: [OG_IMAGE],
@@ -24,6 +24,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function WebVitalsThoughtsPage() {
-  return <WebVitalsContent />;
+export default function BundleThoughtsPage() {
+  return <BundleContent />;
 }

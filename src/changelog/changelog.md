@@ -1,5 +1,71 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.2
+
+- calendar CLS fix: day, week, and year views now each have a pixel-matched skeleton shown while the JS chunk downloads; DaySkeleton mirrors DayView's 44px row height and 4.5rem gutter, WeekSkeleton mirrors WeekView's 48px rows and 7-column header, YearSkeleton mirrors YearView's responsive grid of 12 mini month cards
+- extracted all four skeletons into `src/app/calendar/CalendarSkeletons.tsx` -- MonthSkeleton (previously inlined in loading.tsx), DaySkeleton, WeekSkeleton, YearSkeleton; loading.tsx now just re-exports MonthSkeleton to keep things in one place
+- each `next/dynamic` call for DayView, WeekView, and YearView in CalendarContent now passes a `loading` prop so there's no unsized layout jump on first switch
+- updated the CLS improvement card in the vitals dashboard to accurately describe what's in the codebase now
+- updated `/thoughts/calendar` write-up to mention the view-specific skeletons and the CLS fix
+
+## 2026-02-28 - version 0.3.1
+
+- `WebVitalsReporter` now includes `app_version` in every beacon -- read directly from `package.json` at build time via a static import, no env var needed; old rows default to `unknown` and still show under "All versions"
+- version selector added to the vitals dashboard nav -- a `<select>` that pushes `?v=X.Y.Z` to the URL; selecting a version filters all aggregates to that version and above; defaults to the latest version on first load; "All versions" is always available
+- version filtering is semver-aware -- uses `string_to_array(app_version, '.')::int[]` in Postgres so `0.10.0 > 0.9.0` sorts correctly; `unknown` rows are excluded from filtered views
+- version trend charts added using unovis -- one sparkline per metric showing P75 across the last 5 versions, color-coded by Good/Poor thresholds; only shows when there are at least 2 versions of data
+- new `GET /api/vitals/versions` and `GET /api/vitals/by-version` BFF routes -- both return empty gracefully if the backend endpoints are not deployed yet, so the selector and chart just stay hidden
+- `VitalsPage` fetches versions, version trend data, and aggregates in parallel; selected version lives in the URL so filtered views are shareable
+- extracted `METRIC_ORDER`, `METRIC_CONFIGS`, `MetricConfig`, `formatValue`, and `getRatingColor` into `src/lib/vitals.ts` -- was duplicated between `VitalsContent` and `VitalsChart`
+- updated `/thoughts/vitals` write-up to cover version filtering and the trend chart
+
+## 2026-02-27 - version 0.3.0
+
+- calendar page now streams server-side data on first load -- `CalendarWithData` async server component fetches the current month's events directly from the backend at request time; `CalendarContent` is wrapped in a `Suspense` boundary so the skeleton arrives in the HTML shell and real data replaces it once the fetch resolves
+- `loading.tsx` added to the calendar route segment -- 42-cell animate-pulse skeleton matching the month grid exactly (7 columns, 6 rows), prevents layout shift when the stream resolves
+- `useCalendarEvents` hook now accepts an `initialEvents` prop; when provided it seeds state from server data and pre-marks the current range as loaded so no redundant client-side fetch fires on mount
+- `CalendarContent` uses `next/dynamic` for DayView, WeekView, YearView, and EventModal -- these only load when the user actually needs them; CalendarGrid stays as a static import since it's the LCP element
+- extracted `GRID_COLS`, `GRID_CELLS`, and `LAST_ROW_START` as named constants in `loading.tsx` so the skeleton dimensions are readable and won't drift from the real grid
+- `proxy.ts` now calls `auth0.middleware()` only for `/auth/*` routes; all other routes use `auth0.getSession()` which reads the encrypted session cookie locally with no network round-trip -- removes TTFB overhead on every protected page load
+- server component calls the backend directly instead of going through `/api/calendar/events` to avoid a loopback HTTP call to the same server
+- updated `/thoughts/calendar` write-up with a section on the streaming SSR approach and lazy-loaded views
+
+## 2026-02-27 - version 0.2.9
+
+- added `src/app/icon.tsx`, a custom favicon using Next.js ImageResponse (dark background, white "P", served at /icon as PNG; falls back to existing favicon.ico in older browsers)
+- added `src/app/opengraph-image.tsx` for shared OG image generated at build time; dark background with site name and feature list
+- added `src/lib/site.ts` — SITE_URL and OG_IMAGE config pulled from NEXT_PUBLIC_SITE_URL with paulsumido.com as fallback; single place to update if the domain changes
+- added Open Graph and Twitter card metadata to pages
+- each page extracts TITLE and DESCRIPTION as module-level consts to avoid repeating the strings across title, openGraph, and twitter fields
+- added fallback openGraph and twitter metadata to root layout.tsx so pages without their own get at least the og:image and siteName
+- thoughts pages use `type: "article"`, feature pages use `type: "website"`
+
+## 2026-02-27 - version 0.2.8
+
+- added `/thoughts/bundle` write-up covering the bundle analyzer setup
+- added "Bundle Analysis" thought card to the FeatureHub dev notes grid
+- removed `Auth0Provider` from `src/app/layout.tsx` since `useUser` is never called anywhere in the codebase, so the provider was wrapping the entire app for no reason and pulling the full Auth0 client SDK (`jose`, `oauth4webapi`, `openid-client`, `swr`) into the browser bundle
+- removed the `auth0.getSession()` call from the root layout that existed solely to feed the provider
+- root layout is now a synchronous function instead of async — no await calls remain at this level
+- Auth0 session access still works in protected routes via `auth0.getSession()` in their own server components and API routes
+- added `@next/bundle-analyzer` as a dev dependency
+- configured in `next.config.ts` to activate when `ANALYZE=true` — wraps the existing config so the analyzer is a no-op in normal builds
+- added `npm run analyze` script (`ANALYZE=true next build --webpack`) — the `--webpack` flag is required because `@next/bundle-analyzer` does not work with Turbopack, which Next.js 16 uses by default
+- some components were unecessarily client components, so converted them into server components
+
+## 2026-02-26 - version 0.2.7
+
+- removed `src/app/loading.tsx` (root-level hero skeleton) — it was a Suspense boundary that cascaded before every route-specific loading state, causing two completely different skeletons in sequence when navigating to thoughts pages
+- restored `src/app/thoughts/loading.tsx` with ThoughtsSkeleton — now the only skeleton shown when navigating to any thoughts page
+- routes without a `loading.tsx` (calendar, NBA stats, league history) use React's `startTransition` to keep the previous page visible during navigation, which is correct since those pages have no server-side async work in their page.tsx
+
+## 2026-02-26 - version 0.2.6
+
+- fixed double-skeleton flash when navigating from protected page to any thoughts page
+- removed `next/dynamic` from all thoughts `page.tsx` files — App Router already code-splits client components per route, so `next/dynamic` was adding a second Suspense boundary (one server-side from the RSC stream, one client-side from the chunk download) causing two skeleton renders
+- added `src/app/thoughts/loading.tsx` — shows `ThoughtsSkeleton` once during the RSC fetch, which is the correct place for this loading state
+- updated protected `loading.tsx` skeleton to match the actual FeatureHub layout — replaced the stale iMessage thread-list skeleton with bones for the sticky header, feature card grid (7 cards), and dev-notes thought card grid (7 cards)
+
 ## 2026-02-26 - version 0.2.5
 
 - added `VitalsSection` to the landing page after GraphQLSection

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import dynamic from "next/dynamic";
 import {
   addDays,
   addWeeks,
@@ -18,14 +19,33 @@ import {
 } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
-import DayView from "@/components/calendar/DayView";
-import WeekView from "@/components/calendar/WeekView";
-import YearView from "@/components/calendar/YearView";
-import EventModal from "@/components/calendar/EventModal";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import type { CalendarView, CalendarEvent, ModalState } from "@/types/calendar";
+import { DaySkeleton, WeekSkeleton, YearSkeleton } from "./CalendarSkeletons";
 
-export default function CalendarContent() {
+// CalendarGrid is the LCP element so it stays as a static import.
+// Everything else only loads after the user switches views or opens a modal,
+// so lazily loading them keeps the initial bundle lean.
+// Each dynamic() gets a loading fallback whose dimensions match the real view
+// so there's no layout shift while the JS chunk downloads.
+const DayView = dynamic(() => import("@/components/calendar/DayView"), {
+  loading: () => <DaySkeleton />,
+});
+const WeekView = dynamic(() => import("@/components/calendar/WeekView"), {
+  loading: () => <WeekSkeleton />,
+});
+const YearView = dynamic(() => import("@/components/calendar/YearView"), {
+  loading: () => <YearSkeleton />,
+});
+const EventModal = dynamic(() => import("@/components/calendar/EventModal"));
+
+interface CalendarContentProps {
+  /** SSR seed data for the current month. Skips the initial client-side fetch
+   *  when provided, so the calendar grid renders without a loading state. */
+  initialEvents?: CalendarEvent[];
+}
+
+export default function CalendarContent({ initialEvents }: CalendarContentProps) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [view, setView] = useState<CalendarView>("month");
   const [modal, setModal] = useState<ModalState>({ open: false });
@@ -56,7 +76,7 @@ export default function CalendarContent() {
     }
   }, [currentDate, view]);
 
-  const calendarEvents = useCalendarEvents({ start, end });
+  const calendarEvents = useCalendarEvents({ start, end, initialEvents });
 
   // Stable reference for the events array so the memoized view components don't
   // re-render just because calendarEvents returned a new object wrapper.

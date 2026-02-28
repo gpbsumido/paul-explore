@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import type { VitalsResponse } from "@/types/vitals";
+import type { VitalsResponse, VersionMetrics } from "@/types/vitals";
 import VitalsContent from "./VitalsContent";
 
 export const metadata: Metadata = {
@@ -12,17 +12,22 @@ export const metadata: Metadata = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
-/**
- * Fetches both vitals aggregations in parallel and passes them down.
- * cache: "no-store" keeps the numbers fresh on every visit — these aren't
- * the kind of data you want served stale.
- */
-async function fetchVitals(token: string): Promise<VitalsResponse> {
+async function fetchVitals(
+  token: string,
+  version: string | undefined,
+): Promise<VitalsResponse> {
   const headers = { Authorization: `Bearer ${token}` };
+  const query = version ? `?v=${encodeURIComponent(version)}` : "";
 
   const [summaryRes, byPageRes] = await Promise.all([
-    fetch(`${API_URL}/api/vitals/summary`, { headers, cache: "no-store" }),
-    fetch(`${API_URL}/api/vitals/by-page`, { headers, cache: "no-store" }),
+    fetch(`${API_URL}/api/vitals/summary${query}`, {
+      headers,
+      cache: "no-store",
+    }),
+    fetch(`${API_URL}/api/vitals/by-page${query}`, {
+      headers,
+      cache: "no-store",
+    }),
   ]);
 
   const { summary } = summaryRes.ok
@@ -36,7 +41,39 @@ async function fetchVitals(token: string): Promise<VitalsResponse> {
   return { summary, byPage };
 }
 
-export default async function VitalsPage() {
+async function fetchVersions(token: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/vitals/versions`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const { versions } = await res.json();
+    return versions ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchByVersion(token: string): Promise<VersionMetrics[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/vitals/by-version`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const { byVersion } = await res.json();
+    return byVersion ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function VitalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ v?: string }>;
+}) {
   let token: string | undefined;
   try {
     ({ token } = await auth0.getAccessToken());
@@ -44,7 +81,27 @@ export default async function VitalsPage() {
     redirect("/api/auth/login");
   }
 
-  const { summary, byPage } = await fetchVitals(token!);
+  const { v: urlVersion } = await searchParams;
 
-  return <VitalsContent summary={summary} byPage={byPage} />;
+  // fetch versions first to know what the latest is
+  const [versions, byVersion] = await Promise.all([
+    fetchVersions(token!),
+    fetchByVersion(token!),
+  ]);
+
+  // "all" = explicit all-versions selection; no param = default to latest version
+  const showAll = urlVersion === "all";
+  const selectedVersion = showAll ? undefined : (urlVersion ?? versions[0]);
+
+  const { summary, byPage } = await fetchVitals(token!, selectedVersion);
+
+  return (
+    <VitalsContent
+      summary={summary}
+      byPage={byPage}
+      versions={versions}
+      selectedVersion={selectedVersion}
+      byVersion={byVersion}
+    />
+  );
 }

@@ -17,6 +17,7 @@ const STAGGER_DELAYS = [
   "delay-300",
   "delay-[375ms]",
   "delay-[450ms]",
+  "delay-[525ms]",
 ] as const;
 
 // These are strictly UI data so they live here, not in a separate config file.
@@ -125,6 +126,12 @@ const THOUGHTS: ThoughtItem[] = [
     href: "/thoughts/vitals",
     preview: "Real-user metrics, sendBeacon, P75, and the collection pipeline",
     color: "#22c55e",
+  },
+  {
+    title: "Bundle Analysis",
+    href: "/thoughts/bundle",
+    preview: "How the analyzer found Auth0Provider shipping jose to the browser for no reason",
+    color: "#f97316",
   },
 ].reverse();
 
@@ -451,9 +458,15 @@ function FeatureCard({ feature, delay, visible }: FeatureCardProps) {
         reveal(visible, delay),
       ].join(" ")}
     >
-      {/* Preview area — light gray in light mode, near-black in dark */}
-      <div className="bg-neutral-100 dark:bg-neutral-950 p-3">
-        {Preview && <Preview />}
+      {/* Preview area — height matches the skeleton exactly (112px) so there's
+          no layout shift when the loading state swaps out for real content. */}
+      <div
+        className="bg-neutral-100 dark:bg-neutral-950 overflow-hidden"
+        style={{ height: 112 }}
+      >
+        <div className="p-3">
+          {Preview && <Preview />}
+        </div>
       </div>
 
       {/* Card body */}

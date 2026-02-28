@@ -1,19 +1,28 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
-import ThoughtsSkeleton from "@/components/ThoughtsSkeleton";
+import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import StylingContent from "./StylingContent";
+
+const TITLE = "Styling Decisions | Thoughts";
+const DESCRIPTION =
+  "How I set up design tokens, reusable components, and theming — told as a conversation.";
 
 export const metadata: Metadata = {
-  title: "Styling Decisions | Thoughts",
-  description:
-    "How I set up design tokens, reusable components, and theming — told as a conversation.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    type: "article",
+    url: `${SITE_URL}/thoughts/styling`,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
 };
-
-// Lazy-load the content component so its JS chunk ships separately.
-// The demo components in StylingContent pull in Button, Modal, and Input,
-// so keeping them out of the initial bundle is worth the split.
-const StylingContent = dynamic(() => import("./StylingContent"), {
-  loading: () => <ThoughtsSkeleton />,
-});
 
 export default function StylingPage() {
   return <StylingContent />;

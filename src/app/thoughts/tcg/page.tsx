@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
-import dynamic from "next/dynamic";
-import ThoughtsSkeleton from "@/components/ThoughtsSkeleton";
+import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import TcgContent from "./TcgContent";
+
+const TITLE = "TCG Pages | Thoughts";
+const DESCRIPTION =
+  "How and why the Pokemon TCG browser was built — API proxy architecture, server/client splits, pagination patterns, and trade-offs.";
 
 export const metadata: Metadata = {
-  title: "TCG Pages | Thoughts",
-  description:
-    "How and why the Pokemon TCG browser was built — API proxy architecture, server/client splits, pagination patterns, and trade-offs.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    type: "article",
+    url: `${SITE_URL}/thoughts/tcg`,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
 };
-
-// Lazy-load so the TCG write-up chunk only downloads when someone actually
-// navigates here — keeps the main bundle from growing with each thoughts page.
-const TcgContent = dynamic(() => import("./TcgContent"), {
-  loading: () => <ThoughtsSkeleton />,
-});
 
 export default function TcgPage() {
   return <TcgContent />;

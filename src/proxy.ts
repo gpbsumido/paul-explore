@@ -8,21 +8,20 @@ const PUBLIC_PATHS = ["/", "/auth/login", "/auth/logout", "/auth/callback"];
  * @returns - the response object
  */
 export async function proxy(request: Request) {
-  // let auth0 handle session cookies and auth routes
-  const authRes = await auth0.middleware(request);
-
   const { pathname } = new URL(request.url);
 
-  // don't add CSP to auth redirects, just return as-is
+  // Auth routes: let auth0.middleware() handle the full OIDC flow
+  // (login, callback, logout, silent token refresh).
   if (pathname.startsWith("/auth/")) {
-    return authRes;
+    return auth0.middleware(request);
   }
 
   // check if the path is public or is api (which handles it's own auth)
   const isPublic =
     PUBLIC_PATHS.some((p) => pathname === p) || pathname.startsWith("/api/");
 
-  // if not public, check if the user is logged in
+  // For protected pages: getSession() reads the encrypted session cookie
+  // locally -- no network call, so it doesn't add TTFB the way middleware() does.
   if (!isPublic) {
     const session = await auth0.getSession();
     if (!session) {
@@ -54,11 +53,6 @@ export async function proxy(request: Request) {
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   });
-
-  // keep auth0 cookies
-  for (const cookie of authRes.headers.getSetCookie()) {
-    response.headers.append("set-cookie", cookie);
-  }
 
   // set the CSP header
   response.headers.set("Content-Security-Policy", csp);
