@@ -144,8 +144,8 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
   },
   {
     metric: "CLS",
-    what: "Pixel-identical skeletons, no unsized content",
-    how: "ThoughtsSkeleton reuses the exact same CSS module classes as the real chat bubbles, so widths and spacing are identical before and after hydration. No layout shift on reveal.",
+    what: "Pixel-matched skeletons per view, no unsized content",
+    how: "Each lazy-loaded calendar view (day, week, year) ships with a skeleton that mirrors the real view's exact row heights and grid structure, so the page doesn't shift when the JS chunk arrives. ThoughtsSkeleton uses the same CSS module classes as the real chat bubbles for the same reason.",
   },
   {
     metric: "TTFB",

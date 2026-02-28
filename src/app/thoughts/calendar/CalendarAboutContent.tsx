@@ -429,11 +429,19 @@ async function CalendarWithData() {
           no -- DayView, WeekView, YearView, and EventModal are all lazily
           loaded with <code>next/dynamic</code>
         </Sent>
-        <Sent pos="last">
+        <Sent pos="middle">
           CalendarGrid stays as a static import since it&apos;s the LCP element
           and needs to be in the initial bundle. the others only load when the
           user actually switches views or opens the modal, so they don&apos;t
           cost anything on the default month view load
+        </Sent>
+        <Sent pos="last">
+          each dynamic view has a pixel-matched skeleton as its{" "}
+          <code>loading</code> fallback. DaySkeleton, WeekSkeleton, and
+          YearSkeleton mirror the real views&apos; exact row heights and grid
+          structure, so the page doesn&apos;t shift when the chunk arrives.
+          without that, switching to day view on first load would cause a big
+          CLS hit
         </Sent>
 
         <Timestamp>10:55 AM</Timestamp>
