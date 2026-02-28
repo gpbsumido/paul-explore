@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+import VersionSelector from "./VersionSelector";
 import type {
   MetricName,
   MetricSummary,
@@ -212,6 +213,11 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
 
 // ---- VitalsContent ----
 
+type Props = VitalsResponse & {
+  versions: string[];
+  selectedVersion: string | undefined;
+};
+
 /**
  * Protected vitals dashboard. Shows five metric cards at the top (global P75
  * per metric) and a page-by-page breakdown table below.
@@ -219,7 +225,12 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
  * All data comes from the server component so there's no client-side fetch —
  * this component just handles the presentation layer.
  */
-export default function VitalsContent({ summary, byPage }: VitalsResponse) {
+export default function VitalsContent({
+  summary,
+  byPage,
+  versions,
+  selectedVersion,
+}: Props) {
   const hasData = byPage.length > 0;
 
   return (
@@ -246,7 +257,11 @@ export default function VitalsContent({ summary, byPage }: VitalsResponse) {
           <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
             Web Vitals
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            <VersionSelector
+              versions={versions}
+              selectedVersion={selectedVersion}
+            />
             <ThemeToggle />
           </div>
         </div>

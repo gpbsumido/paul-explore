@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-02-27 - version 0.3.1
+
+- added version-based filtering to the Web Vitals dashboard — each beacon now includes `app_version` (baked into the bundle from `package.json` via `NEXT_PUBLIC_APP_VERSION`); the dashboard nav shows a version selector when the backend returns data, and selecting a version reloads the page with `?v=X` in the URL so the filtered scores are shareable
+- `next.config.ts` reads `version` from `package.json` at build time and exposes it as `NEXT_PUBLIC_APP_VERSION`
+- `WebVitalsReporter` adds `app_version` to every beacon payload; old rows in the DB default to `unknown` so existing data is preserved under "All versions"
+- `GET /api/vitals` BFF forwards `?v=` to both backend summary and by-page endpoints
+- new `GET /api/vitals/versions` BFF endpoint fetches distinct versions from the backend; returns `[]` gracefully if the backend endpoint doesn't exist yet so the selector simply stays hidden
+- `VitalsPage` accepts `searchParams` so the selected version is part of the URL (shareable, no client state needed); fetches versions list in parallel with summary and by-page
+- `VersionSelector` is a small `"use client"` `<select>` that calls `router.push("?v=X")` on change; options read "From v0.3.0" to make the "onwards" semantic clear; "All versions" clears the param
+- version filtering is semver-aware: selecting "From v0.3.0" includes 0.3.0, 0.3.1, 0.10.0, etc. — uses `string_to_array(app_version, '.')::int[]` comparison in Postgres so `0.10.0 > 0.9.0` correctly
+
 ## 2026-02-27 - version 0.3.0
 
 - calendar page now streams server-side data on first load -- `CalendarWithData` async server component fetches the current month's events directly from the backend at request time; `CalendarContent` is wrapped in a `Suspense` boundary so the skeleton arrives in the HTML shell and real data replaces it once the fetch resolves
