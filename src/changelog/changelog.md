@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-02-27 - version 0.3.1
+
+- added version-based filtering to the Web Vitals dashboard — each beacon now includes `app_version` (baked into the bundle from `package.json` via `NEXT_PUBLIC_APP_VERSION`); the dashboard nav shows a version selector when the backend returns data, and selecting a version reloads the page with `?v=X` in the URL so the filtered scores are shareable
+- `next.config.ts` reads `version` from `package.json` at build time and exposes it as `NEXT_PUBLIC_APP_VERSION`
+- `WebVitalsReporter` adds `app_version` to every beacon payload; old rows in the DB default to `unknown` so existing data is preserved under "All versions"
+- `GET /api/vitals` BFF forwards `?v=` to both backend summary and by-page endpoints
+- new `GET /api/vitals/versions` BFF endpoint fetches distinct versions from the backend; returns `[]` gracefully if the backend endpoint doesn't exist yet so the selector simply stays hidden
+- `VitalsPage` accepts `searchParams` so the selected version is part of the URL (shareable, no client state needed); fetches versions list in parallel with summary and by-page
+- `VersionSelector` is a small `"use client"` `<select>` that calls `router.push("?v=X")` on change; options read "From v0.3.0" to make the "onwards" semantic clear; "All versions" clears the param
+- version filtering is semver-aware: selecting "From v0.3.0" includes 0.3.0, 0.3.1, 0.10.0, etc. — uses `string_to_array(app_version, '.')::int[]` comparison in Postgres so `0.10.0 > 0.9.0` correctly
+
+## 2026-02-27 - version 0.3.0
+
+- calendar page now streams server-side data on first load -- `CalendarWithData` async server component fetches the current month's events directly from the backend at request time; `CalendarContent` is wrapped in a `Suspense` boundary so the skeleton arrives in the HTML shell and real data replaces it once the fetch resolves
+- `loading.tsx` added to the calendar route segment -- 42-cell animate-pulse skeleton matching the month grid exactly (7 columns, 6 rows), prevents layout shift when the stream resolves
+- `useCalendarEvents` hook now accepts an `initialEvents` prop; when provided it seeds state from server data and pre-marks the current range as loaded so no redundant client-side fetch fires on mount
+- `CalendarContent` uses `next/dynamic` for DayView, WeekView, YearView, and EventModal -- these only load when the user actually needs them; CalendarGrid stays as a static import since it's the LCP element
+- extracted `GRID_COLS`, `GRID_CELLS`, and `LAST_ROW_START` as named constants in `loading.tsx` so the skeleton dimensions are readable and won't drift from the real grid
+- `proxy.ts` now calls `auth0.middleware()` only for `/auth/*` routes; all other routes use `auth0.getSession()` which reads the encrypted session cookie locally with no network round-trip -- removes TTFB overhead on every protected page load
+- server component calls the backend directly instead of going through `/api/calendar/events` to avoid a loopback HTTP call to the same server
+- updated `/thoughts/calendar` write-up with a section on the streaming SSR approach and lazy-loaded views
+
+## 2026-02-27 - version 0.2.9
+
+- added `src/app/icon.tsx`, a custom favicon using Next.js ImageResponse (dark background, white "P", served at /icon as PNG; falls back to existing favicon.ico in older browsers)
+- added `src/app/opengraph-image.tsx` for shared OG image generated at build time; dark background with site name and feature list
+- added `src/lib/site.ts` — SITE_URL and OG_IMAGE config pulled from NEXT_PUBLIC_SITE_URL with paulsumido.com as fallback; single place to update if the domain changes
+- added Open Graph and Twitter card metadata to pages
+- each page extracts TITLE and DESCRIPTION as module-level consts to avoid repeating the strings across title, openGraph, and twitter fields
+- added fallback openGraph and twitter metadata to root layout.tsx so pages without their own get at least the og:image and siteName
+- thoughts pages use `type: "article"`, feature pages use `type: "website"`
+
 ## 2026-02-27 - version 0.2.8
 
 - added `/thoughts/bundle` write-up covering the bundle analyzer setup

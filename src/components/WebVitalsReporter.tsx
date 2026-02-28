@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { version } from "../../package.json";
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 import type { MetricType } from "web-vitals";
 
@@ -12,6 +13,7 @@ type VitalPayload = {
   rating: string;
   page: string;
   nav_type: string;
+  app_version: string;
 };
 
 /**
@@ -30,6 +32,7 @@ function sendVital(metric: MetricType, page: string) {
     rating: metric.rating,
     page,
     nav_type: metric.navigationType,
+    app_version: version,
   };
 
   const body = JSON.stringify(payload);

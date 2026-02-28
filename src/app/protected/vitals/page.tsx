@@ -13,16 +13,26 @@ export const metadata: Metadata = {
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 /**
- * Fetches both vitals aggregations in parallel and passes them down.
+ * Fetches both vitals aggregations and the distinct versions list in parallel.
  * cache: "no-store" keeps the numbers fresh on every visit — these aren't
  * the kind of data you want served stale.
  */
-async function fetchVitals(token: string): Promise<VitalsResponse> {
+async function fetchVitals(
+  token: string,
+  version: string | undefined,
+): Promise<VitalsResponse> {
   const headers = { Authorization: `Bearer ${token}` };
+  const query = version ? `?v=${encodeURIComponent(version)}` : "";
 
   const [summaryRes, byPageRes] = await Promise.all([
-    fetch(`${API_URL}/api/vitals/summary`, { headers, cache: "no-store" }),
-    fetch(`${API_URL}/api/vitals/by-page`, { headers, cache: "no-store" }),
+    fetch(`${API_URL}/api/vitals/summary${query}`, {
+      headers,
+      cache: "no-store",
+    }),
+    fetch(`${API_URL}/api/vitals/by-page${query}`, {
+      headers,
+      cache: "no-store",
+    }),
   ]);
 
   const { summary } = summaryRes.ok
@@ -36,7 +46,25 @@ async function fetchVitals(token: string): Promise<VitalsResponse> {
   return { summary, byPage };
 }
 
-export default async function VitalsPage() {
+async function fetchVersions(token: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/vitals/versions`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const { versions } = await res.json();
+    return versions ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export default async function VitalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ v?: string }>;
+}) {
   let token: string | undefined;
   try {
     ({ token } = await auth0.getAccessToken());
@@ -44,7 +72,19 @@ export default async function VitalsPage() {
     redirect("/api/auth/login");
   }
 
-  const { summary, byPage } = await fetchVitals(token!);
+  const { v: selectedVersion } = await searchParams;
 
-  return <VitalsContent summary={summary} byPage={byPage} />;
+  const [{ summary, byPage }, versions] = await Promise.all([
+    fetchVitals(token!, selectedVersion),
+    fetchVersions(token!),
+  ]);
+
+  return (
+    <VitalsContent
+      summary={summary}
+      byPage={byPage}
+      versions={versions}
+      selectedVersion={selectedVersion}
+    />
+  );
 }

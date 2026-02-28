@@ -3,11 +3,28 @@ import type { Metadata } from "next";
 import GraphQLContent from "./GraphQLContent";
 import { fetchPokemonDirect } from "@/lib/graphql";
 import { PAGE_SIZE, type PokemonListResult } from "@/types/graphql";
+import { SITE_URL, OG_IMAGE } from "@/lib/site";
+
+const TITLE = "GraphQL Pokédex";
+const DESCRIPTION =
+  "Browse 1,000+ Pokémon with a live GraphQL query — search by name, filter by type, view base stats. Powered by the PokeAPI Hasura endpoint via a Next.js proxy.";
 
 export const metadata: Metadata = {
-  title: "GraphQL Pokédex",
-  description:
-    "Browse 1,000+ Pokémon with a live GraphQL query — search by name, filter by type, view base stats. Powered by the PokeAPI Hasura endpoint via a Next.js proxy.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    url: `${SITE_URL}/graphql`,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
 };
 
 /**

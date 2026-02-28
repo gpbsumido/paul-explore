@@ -5,10 +5,28 @@ import ThemeToggle from "@/components/ThemeToggle";
 import TCGdex, { Query } from "@tcgdex/sdk";
 import BrowseContent from "./BrowseContent";
 import { toPlain, type CardResume } from "@/lib/tcg";
+import { SITE_URL, OG_IMAGE } from "@/lib/site";
+
+const TITLE = "Pokémon TCG | Browse";
+const DESCRIPTION =
+  "Browse and search Pokémon TCG cards by name or type with infinite scroll.";
 
 export const metadata: Metadata = {
-  title: "Pokémon TCG | Browse",
-  description: "Browse and search Pokémon TCG cards by name or type with infinite scroll.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    url: `${SITE_URL}/tcg/pokemon`,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
 };
 
 // One TCGdex instance per server process — no reason to re-create it

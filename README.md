@@ -52,6 +52,8 @@ There's also a dedicated events section outside the grid. `/calendar/events` is 
 
 The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/calendar/events`) which attach an Auth0 access token server-side before forwarding to the Express backend — the token never reaches the browser. A `useCalendarEvents` hook fetches the correct date window for each view and re-fetches automatically on navigation.
 
+First load performance: a `CalendarWithData` async server component fetches the current month's events directly from the backend at request time (bypassing the `/api/` proxy to avoid a loopback call). It's wrapped in a `Suspense` boundary backed by a route-segment `loading.tsx` — a 42-cell pulse skeleton that streams in the HTML shell. When the server fetch resolves, `CalendarContent` receives `initialEvents` and `useCalendarEvents` seeds from that data without firing a redundant client-side fetch. DayView, WeekView, YearView, and EventModal are lazy-loaded with `next/dynamic` so only CalendarGrid — the LCP element — ships in the initial bundle.
+
 Built without a calendar library — `date-fns` handles all date math (grid construction, view navigation, slot matching). This was a deliberate choice: FullCalendar's full React support requires a paid license, and the custom build keeps the bundle small and gives full control over the interaction model.
 
 All four view components are wrapped in `React.memo` and `CalendarContent` uses `useCallback` on the callbacks passed to them — without stable prop references, memo is effectively useless. `layoutDayEvents` (the overlap layout algorithm) is wrapped in `useMemo` in both `DayView` and `WeekView` so the O(n²) computation only reruns when events actually change, not on every render triggered by unrelated state like the modal.
@@ -170,6 +172,12 @@ src/
 - `@next/bundle-analyzer` requires `--webpack` because Next.js 16 uses Turbopack by default — the analyzer is incompatible with Turbopack and throws if you omit the flag
 - the most useful thing the bundle analyzer does is surface server-only libraries appearing in the client bundle: `jose`, `oauth4webapi`, and `openid-client` have no business in a browser; seeing them in the treemap is a signal that something is wrong, not just large
 - `Auth0Provider` was wrapping the entire app and pulling the full Auth0 client SDK into every page load despite `useUser` being called zero times in the codebase — a quick grep confirmed it, the fix was three lines removed from the root layout; auth protection was always in the middleware and individual server components, not React context
+- Next.js App Router's `icon.tsx` and `opengraph-image.tsx` file conventions generate favicons and OG images at build time using `ImageResponse` (Satori under the hood) without needing a separate CDN or pre-generated image files; the icon file produces `<link rel="icon">` automatically, and the OG image is served at `/opengraph-image` and referenced in metadata
+- `openGraph.images` in page metadata overrides the file-based `opengraph-image.tsx` for that route — useful when you want a shared generator function but need the image URL to also appear in explicit metadata objects; the root layout carries the fallback so pages without their own metadata still get the right `og:image`
+- extracting `TITLE` and `DESCRIPTION` as module-level consts in page files keeps the metadata DRY when the same strings need to appear in `title`, `openGraph.title`, `openGraph.description`, `twitter.title`, and `twitter.description` — five places that would otherwise all need updating together
+- `auth0.middleware()` makes a network round-trip on every request; `auth0.getSession()` just reads the encrypted session cookie locally — calling middleware only for `/auth/*` routes and getSession everywhere else removes that TTFB hit from every protected page load
+- the `initialEvents` seed pattern in `useCalendarEvents` is a clean handoff from server to client: set state from the prop, pre-mark the range as loaded, and the hook behaves exactly like normal from that point — no special casing needed in the effect or mutation handlers
+- when a server component needs to fetch data, call the upstream directly rather than going through your own API routes — a loopback HTTP call to the same server wastes time and adds latency that shows up in TTFB
 
 ---
 

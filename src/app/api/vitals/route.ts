@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
 // GET /api/vitals
 // fetches summary and by-page aggregates in parallel — auth required
-export async function GET() {
+export async function GET(request: NextRequest) {
   let token: string | undefined;
   try {
     ({ token } = await auth0.getAccessToken());
@@ -60,11 +60,13 @@ export async function GET() {
   }
 
   const headers = { Authorization: `Bearer ${token}` };
+  const v = request.nextUrl.searchParams.get("v");
+  const query = v ? `?v=${encodeURIComponent(v)}` : "";
 
   try {
     const [summaryRes, byPageRes] = await Promise.all([
-      fetch(`${API_URL}/api/vitals/summary`, { headers }),
-      fetch(`${API_URL}/api/vitals/by-page`, { headers }),
+      fetch(`${API_URL}/api/vitals/summary${query}`, { headers }),
+      fetch(`${API_URL}/api/vitals/by-page${query}`, { headers }),
     ]);
 
     if (!summaryRes.ok || !byPageRes.ok) {
