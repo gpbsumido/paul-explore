@@ -126,6 +126,12 @@ const THOUGHTS: ThoughtItem[] = [
     preview: "Real-user metrics, sendBeacon, P75, and the collection pipeline",
     color: "#22c55e",
   },
+  {
+    title: "Bundle Analysis",
+    href: "/thoughts/bundle",
+    preview: "How the analyzer found Auth0Provider shipping jose to the browser for no reason",
+    color: "#f97316",
+  },
 ].reverse();
 
 // ---- Mini preview sub-components ----
