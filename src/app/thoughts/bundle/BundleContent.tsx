@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import styles from "@/app/thoughts/styling/styling.module.css";
@@ -46,9 +44,9 @@ export default function BundleContent() {
         </Sent>
         <Sent pos="last">
           you need it when you suspect the bundle is larger than it should be
-          but you don&apos;t know why. &quot;large bundle&quot; is vague —
-          the analyzer tells you which specific package is the culprit and
-          roughly how much it&apos;s adding
+          but you don&apos;t know why. &quot;large bundle&quot; is vague — the
+          analyzer tells you which specific package is the culprit and roughly
+          how much it&apos;s adding
         </Sent>
 
         <Received>how do you set it up</Received>
@@ -67,18 +65,16 @@ const withBundleAnalyzer = bundleAnalyzer({
 export default withBundleAnalyzer(nextConfig);`}
         </div>
 
-        <Sent pos="first">
-          then add a script alias in package.json:
-        </Sent>
+        <Sent pos="first">then add a script alias in package.json:</Sent>
 
         <div className={styles.codeBubble}>
           {`"analyze": "ANALYZE=true next build --webpack"`}
         </div>
 
         <Sent pos="last">
-          the <code>--webpack</code> flag is required. Next.js 16 uses
-          Turbopack by default for builds, and the analyzer does not work
-          with Turbopack — it throws an error if you omit it
+          the <code>--webpack</code> flag is required. Next.js 16 uses Turbopack
+          by default for builds, and the analyzer does not work with Turbopack —
+          it throws an error if you omit it
         </Sent>
 
         <Timestamp>10:07 AM</Timestamp>
@@ -87,20 +83,16 @@ export default withBundleAnalyzer(nextConfig);`}
 
         <Sent pos="first">
           three things came up. the first was a huge chunk labeled{" "}
-          <code>proxy.js</code> in the edge bundle. the second was
-          Auth0-related packages taking up a lot of the client bundle — jose,
-          oauth4webapi, openid-client, swr. the third was{" "}
-          <code>date-fns</code> showing as 24 modules
+          <code>proxy.js</code> in the edge bundle. the second was Auth0-related
+          packages taking up a lot of the client bundle — jose, oauth4webapi,
+          openid-client, swr. the third was <code>date-fns</code> showing as 24
+          modules
         </Sent>
-        <Sent pos="last">
-          only one of those was actually a problem
-        </Sent>
+        <Sent pos="last">only one of those was actually a problem</Sent>
 
         <Received>which one</Received>
 
-        <Sent pos="first">
-          the Auth0 chunk. the other two were expected
-        </Sent>
+        <Sent pos="first">the Auth0 chunk. the other two were expected</Sent>
         <Sent pos="middle">
           <code>proxy.js</code> is the Next.js middleware —{" "}
           <code>src/proxy.ts</code> runs in the edge runtime and handles Auth0
@@ -135,8 +127,8 @@ export default withBundleAnalyzer(nextConfig);`}
         <Sent pos="last">
           the problem: <code>useUser</code> was never called anywhere in the
           codebase. not once. the provider was wrapping the whole app and
-          pulling in the full Auth0 client SDK for a feature that
-          didn&apos;t exist in the UI
+          pulling in the full Auth0 client SDK for a feature that didn&apos;t
+          exist in the UI
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -195,7 +187,9 @@ const session = await auth0.getSession();
         </Sent>
 
         <Received pos="first">does that break auth</Received>
-        <Received pos="last">how does the app still know who&apos;s logged in</Received>
+        <Received pos="last">
+          how does the app still know who&apos;s logged in
+        </Received>
 
         <Sent pos="first">
           auth was never in the React tree to begin with. the actual protection
@@ -205,8 +199,8 @@ const session = await auth0.getSession();
           every request hits <code>src/proxy.ts</code> before it reaches any
           page. if the route is not in the public list and there&apos;s no
           session cookie, the middleware redirects to login. the browser never
-          sees the protected page at all. that&apos;s server-side, nothing to
-          do with React context
+          sees the protected page at all. that&apos;s server-side, nothing to do
+          with React context
         </Sent>
         <Sent pos="last">
           for pages that need the user&apos;s name or email — like the protected
@@ -255,13 +249,15 @@ const { token } = await auth0.getAccessToken();
           context with only the user object, not the full Auth0 client SDK
         </Sent>
 
-        <Received>what does this actually look like in the analyzer after</Received>
+        <Received>
+          what does this actually look like in the analyzer after
+        </Received>
 
         <Sent pos="first">
           the client bundle treemap loses the Auth0 cluster entirely. jose,
-          oauth4webapi, openid-client, and swr disappear from the client
-          report. they&apos;re still present in the node.js server bundle
-          because the BFF routes still use them server-side
+          oauth4webapi, openid-client, and swr disappear from the client report.
+          they&apos;re still present in the node.js server bundle because the
+          BFF routes still use them server-side
         </Sent>
         <Sent pos="last">
           the edge bundle is unchanged. <code>proxy.js</code> is still large
@@ -275,15 +271,14 @@ const { token } = await auth0.getAccessToken();
         <Sent pos="first">
           the bundle analyzer is most useful for finding things that{" "}
           <em>shouldn&apos;t</em> be in a bundle rather than things that are too
-          large. a 200kb package is fine if you actually need it. a 50kb
-          package is a problem if nothing calls it
+          large. a 200kb package is fine if you actually need it. a 50kb package
+          is a problem if nothing calls it
         </Sent>
         <Sent pos="middle">
-          the pattern to look for is server-only libraries (crypto, JWT
-          parsers, database drivers) appearing in the client or edge bundle.
-          that usually means something that should only run on the server is
-          being imported in a client component or shared module that the client
-          also imports
+          the pattern to look for is server-only libraries (crypto, JWT parsers,
+          database drivers) appearing in the client or edge bundle. that usually
+          means something that should only run on the server is being imported
+          in a client component or shared module that the client also imports
         </Sent>
         <Sent pos="last">
           in this case it was a React provider importing a client SDK that had

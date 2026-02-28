@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import styles from "@/app/thoughts/styling/styling.module.css";
@@ -61,14 +59,14 @@ export default function CalendarAboutContent() {
           I forget what I got or when
         </Sent>
         <Sent pos="middle">
-          so the calendar started as a way to log those moments. mark the day
-          we played, note what happened, attach the cards I pulled, and have
+          so the calendar started as a way to log those moments. mark the day we
+          played, note what happened, attach the cards I pulled, and have
           something to look back at
         </Sent>
         <Sent pos="last">
           the rest of the features — all four views, the event list, the card
-          search — grew out of wanting it to actually be usable rather than
-          just a proof-of-concept
+          search — grew out of wanting it to actually be usable rather than just
+          a proof-of-concept
         </Sent>
 
         <Timestamp>10:04 AM</Timestamp>
@@ -235,16 +233,16 @@ export async function GET(request: Request) {
         <Received>were there any tricky rendering problems</Received>
 
         <Sent pos="first">
-          multi-day events were wrong for a while — an event spanning
-          Monday through Thursday would only show a chip on Monday
+          multi-day events were wrong for a while — an event spanning Monday
+          through Thursday would only show a chip on Monday
         </Sent>
         <Sent pos="middle">
           the backend was already doing the right thing with overlap queries.
           the bug was on the frontend: I was using{" "}
           <code>isSameDay(startDate, day)</code> to filter, which only matched
-          the start day. switched to{" "}
-          <code>differenceInCalendarDays</code> offset checks — if the event
-          started on or before this day and ends on or after it, show a chip
+          the start day. switched to <code>differenceInCalendarDays</code>{" "}
+          offset checks — if the event started on or before this day and ends on
+          or after it, show a chip
         </Sent>
         <Sent pos="last">
           multi-day timed events also now go in the all-day row instead of
@@ -312,14 +310,14 @@ for (let j = 0; j < sorted.length; j++) {
           felt like a form from 2012
         </Sent>
         <Sent pos="middle">
-          split it into two columns on desktop: event details on the left,
-          card search and attached cards on the right. stacks back to single
-          column on mobile. section headers with trailing rules keep it from
-          feeling like one undifferentiated blob
+          split it into two columns on desktop: event details on the left, card
+          search and attached cards on the right. stacks back to single column
+          on mobile. section headers with trailing rules keep it from feeling
+          like one undifferentiated blob
         </Sent>
         <Sent pos="last">
-          other small things: color swatches show a white checkmark instead of
-          a ring, quantity stepper replaced the raw number input, explicit Add
+          other small things: color swatches show a white checkmark instead of a
+          ring, quantity stepper replaced the raw number input, explicit Add
           button per search result instead of click-anywhere, and there&apos;s
           an inline warning if end is before start
         </Sent>
@@ -343,7 +341,9 @@ for (let j = 0; j < sorted.length; j++) {
 
         <Timestamp>10:47 AM</Timestamp>
 
-        <Received>did you do any render optimization on the calendar components</Received>
+        <Received>
+          did you do any render optimization on the calendar components
+        </Received>
 
         <Sent pos="first">
           yeah, all four view components are wrapped in <code>React.memo</code>{" "}
@@ -358,10 +358,10 @@ for (let j = 0; j < sorted.length; j++) {
           handlers passed down to the views
         </Sent>
         <Sent pos="last">
-          also wrapped <code>layoutDayEvents</code> in <code>useMemo</code>{" "}
-          in <code>DayView</code> and <code>WeekView</code>. that&apos;s the
-          greedy overlap algorithm that figures out side-by-side positioning
-          for concurrent events. it only needs to rerun when the events list
+          also wrapped <code>layoutDayEvents</code> in <code>useMemo</code> in{" "}
+          <code>DayView</code> and <code>WeekView</code>. that&apos;s the greedy
+          overlap algorithm that figures out side-by-side positioning for
+          concurrent events. it only needs to rerun when the events list
           actually changes, not every time the component renders
         </Sent>
 

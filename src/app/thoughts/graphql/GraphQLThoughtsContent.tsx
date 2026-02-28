@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import styles from "@/app/thoughts/styling/styling.module.css";
@@ -52,9 +50,7 @@ export default function GraphQLThoughtsContent() {
 
         <Received>why GraphQL instead of a REST API</Received>
 
-        <Sent pos="first">
-          two things — field selection and the schema
-        </Sent>
+        <Sent pos="first">two things — field selection and the schema</Sent>
         <Sent pos="middle">
           REST gives you whatever the server decided to return. if you call{" "}
           <code>/api/pokemon/pikachu</code>, you get a massive JSON blob with
@@ -139,7 +135,9 @@ async function gql(query, variables, signal) {
           file
         </Sent>
 
-        <Received>variables vs string interpolation — does it matter for a public API?</Received>
+        <Received>
+          variables vs string interpolation — does it matter for a public API?
+        </Received>
 
         <Sent pos="first">
           yes, always use variables — even against a public API
@@ -173,26 +171,33 @@ async function gql(query, variables, signal) {
         </Sent>
         <Sent pos="last">
           that also handles the AbortController cleanly — when a new search
-          fires, the old controller is aborted, and the{" "}
-          <code>loadedKey</code> update in the new fetch&apos;s{" "}
-          <code>.then()</code> never fires for the aborted request, so loading
-          stays true until the right results land
+          fires, the old controller is aborted, and the <code>loadedKey</code>{" "}
+          update in the new fetch&apos;s <code>.then()</code> never fires for
+          the aborted request, so loading stays true until the right results
+          land
         </Sent>
 
         <Timestamp>11:29 AM</Timestamp>
 
-        <Received pos="first">hold on — is the first grid load still a client-side fetch?</Received>
-        <Received pos="last">does the user still see a skeleton flash on arrival?</Received>
+        <Received pos="first">
+          hold on — is the first grid load still a client-side fetch?
+        </Received>
+        <Received pos="last">
+          does the user still see a skeleton flash on arrival?
+        </Received>
 
         <Sent pos="first">not anymore — page 1 is fetched server-side now</Sent>
         <Sent pos="middle">
           there&apos;s a <code>fetchPokemonDirect</code> in the lib that calls
           PokeAPI straight from the server, no proxy needed. the{" "}
           <code>/api/graphql</code> proxy only exists for the browser (CSP +
-          endpoint hiding) — server code doesn&apos;t have those constraints.
-          it also passes <code>next: {"{"} revalidate: 3600 {"}"}</code> to the
-          underlying fetch so repeated renders within an hour hit Next.js&apos;s
-          data cache instead of PokeAPI every time
+          endpoint hiding) — server code doesn&apos;t have those constraints. it
+          also passes{" "}
+          <code>
+            next: {"{"} revalidate: 3600 {"}"}
+          </code>{" "}
+          to the underlying fetch so repeated renders within an hour hit
+          Next.js&apos;s data cache instead of PokeAPI every time
         </Sent>
         <Sent pos="last">
           <code>page.tsx</code> has a <code>PokemonWithData</code> async server
@@ -202,7 +207,9 @@ async function gql(query, variables, signal) {
           Pokémon, no loading spinner
         </Sent>
 
-        <Received>how does GraphQLContent know not to re-fetch on mount</Received>
+        <Received>
+          how does GraphQLContent know not to re-fetch on mount
+        </Received>
 
         <Sent pos="first">
           two things. <code>loadedKey</code> is pre-seeded to the default filter
@@ -217,11 +224,13 @@ async function gql(query, variables, signal) {
           fetch. one-time skip, nothing special after
         </Sent>
 
-        <Received>what if PokeAPI is down when the page renders server-side</Received>
+        <Received>
+          what if PokeAPI is down when the page renders server-side
+        </Received>
 
         <Sent>
-          the server fetch is in a try/catch that swallows the error and
-          passes <code>initialData={"{undefined}"}</code> to{" "}
+          the server fetch is in a try/catch that swallows the error and passes{" "}
+          <code>initialData={"{undefined}"}</code> to{" "}
           <code>GraphQLContent</code>. it initialises with an empty array and
           falls back to the client-side fetch on mount, same as before. not
           great UX but it doesn&apos;t crash
@@ -250,10 +259,10 @@ async function gql(query, variables, signal) {
         <Received>what does this show as a dev</Received>
 
         <Sent pos="first">
-          that I understand GraphQL as a specification, not just as
-          &quot;the Apollo thing&quot;. knowing when to use it — typed schema,
-          field selection, nested relationships across tables — versus when a
-          REST endpoint is simpler and faster to build
+          that I understand GraphQL as a specification, not just as &quot;the
+          Apollo thing&quot;. knowing when to use it — typed schema, field
+          selection, nested relationships across tables — versus when a REST
+          endpoint is simpler and faster to build
         </Sent>
         <Sent pos="last">
           and that I reach for the right tool, not the popular one. plain fetch
@@ -263,7 +272,11 @@ async function gql(query, variables, signal) {
 
         <Received>makes sense</Received>
 
-        <Sent>yeah, it&apos;s one of those things that looks overcomplicated until you work with a real nested schema and suddenly the self-documenting query language pays for itself</Sent>
+        <Sent>
+          yeah, it&apos;s one of those things that looks overcomplicated until
+          you work with a real nested schema and suddenly the self-documenting
+          query language pays for itself
+        </Sent>
 
         {/* Typing indicator */}
         <div className={styles.typingDots}>

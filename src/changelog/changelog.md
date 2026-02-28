@@ -11,6 +11,7 @@
 - added `@next/bundle-analyzer` as a dev dependency
 - configured in `next.config.ts` to activate when `ANALYZE=true` — wraps the existing config so the analyzer is a no-op in normal builds
 - added `npm run analyze` script (`ANALYZE=true next build --webpack`) — the `--webpack` flag is required because `@next/bundle-analyzer` does not work with Turbopack, which Next.js 16 uses by default
+- some components were unecessarily client components, so converted them into server components
 
 ## 2026-02-26 - version 0.2.7
 

@@ -1,12 +1,9 @@
-"use client";
-
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import type {
   MetricName,
   MetricSummary,
   PageMetricData,
-  PageVitals,
   VitalsResponse,
 } from "@/types/vitals";
 
@@ -25,11 +22,41 @@ type MetricConfig = {
 };
 
 const METRIC_CONFIGS: Record<MetricName, MetricConfig> = {
-  LCP: { name: "LCP", label: "Largest Contentful Paint", unit: "ms", good: 2500, poor: 4000 },
-  FCP: { name: "FCP", label: "First Contentful Paint",   unit: "ms", good: 1800, poor: 3000 },
-  INP: { name: "INP", label: "Interaction to Next Paint", unit: "ms", good: 200,  poor: 500  },
-  CLS: { name: "CLS", label: "Cumulative Layout Shift",  unit: "",   good: 0.1,  poor: 0.25 },
-  TTFB:{ name: "TTFB",label: "Time to First Byte",       unit: "ms", good: 800,  poor: 1800 },
+  LCP: {
+    name: "LCP",
+    label: "Largest Contentful Paint",
+    unit: "ms",
+    good: 2500,
+    poor: 4000,
+  },
+  FCP: {
+    name: "FCP",
+    label: "First Contentful Paint",
+    unit: "ms",
+    good: 1800,
+    poor: 3000,
+  },
+  INP: {
+    name: "INP",
+    label: "Interaction to Next Paint",
+    unit: "ms",
+    good: 200,
+    poor: 500,
+  },
+  CLS: {
+    name: "CLS",
+    label: "Cumulative Layout Shift",
+    unit: "",
+    good: 0.1,
+    poor: 0.25,
+  },
+  TTFB: {
+    name: "TTFB",
+    label: "Time to First Byte",
+    unit: "ms",
+    good: 800,
+    poor: 1800,
+  },
 };
 
 type Rating = "good" | "needs-improvement" | "poor";
@@ -38,9 +65,24 @@ const RATING_STYLES: Record<
   Rating,
   { bg: string; text: string; dot: string; label: string }
 > = {
-  "good":              { bg: "bg-green-500/10",  text: "text-green-600 dark:text-green-400",  dot: "bg-green-500",  label: "Good" },
-  "needs-improvement": { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400", dot: "bg-yellow-500", label: "Needs work" },
-  "poor":              { bg: "bg-red-500/10",    text: "text-red-600 dark:text-red-400",       dot: "bg-red-500",    label: "Poor" },
+  good: {
+    bg: "bg-green-500/10",
+    text: "text-green-600 dark:text-green-400",
+    dot: "bg-green-500",
+    label: "Good",
+  },
+  "needs-improvement": {
+    bg: "bg-yellow-500/10",
+    text: "text-yellow-600 dark:text-yellow-400",
+    dot: "bg-yellow-500",
+    label: "Needs work",
+  },
+  poor: {
+    bg: "bg-red-500/10",
+    text: "text-red-600 dark:text-red-400",
+    dot: "bg-red-500",
+    label: "Poor",
+  },
 };
 
 /** Derives a CWV rating from a raw P75 value and the metric's thresholds. */
@@ -58,7 +100,9 @@ function getRating(value: number, config: MetricConfig): Rating {
  */
 function formatValue(value: number, unit: "ms" | ""): string {
   if (unit === "") return value.toFixed(3);
-  return value >= 1000 ? `${(value / 1000).toFixed(1)}s` : `${Math.round(value)}ms`;
+  return value >= 1000
+    ? `${(value / 1000).toFixed(1)}s`
+    : `${Math.round(value)}ms`;
 }
 
 // ---- MetricCard ----
@@ -127,7 +171,9 @@ function TableCell({ data, config }: TableCellProps) {
   const { text } = RATING_STYLES[rating];
 
   return (
-    <td className={`px-3 py-3 text-center tabular-nums text-[12px] font-medium ${text}`}>
+    <td
+      className={`px-3 py-3 text-center tabular-nums text-[12px] font-medium ${text}`}
+    >
       {formatValue(data.p75, config.unit)}
     </td>
   );
@@ -213,7 +259,8 @@ export default function VitalsContent({ summary, byPage }: VitalsResponse) {
             Core Web Vitals
           </h1>
           <p className="mt-1 text-[13px] text-muted">
-            P75 scores from real users. Pages need at least 5 samples to appear in the table.
+            P75 scores from real users. Pages need at least 5 samples to appear
+            in the table.
           </p>
         </div>
 
@@ -284,9 +331,12 @@ export default function VitalsContent({ summary, byPage }: VitalsResponse) {
           ) : (
             // shown until enough real-user data comes in
             <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
-              <p className="text-[14px] font-medium text-foreground">No data yet</p>
+              <p className="text-[14px] font-medium text-foreground">
+                No data yet
+              </p>
               <p className="mt-1 text-[13px] text-muted">
-                Visit a few pages and check back — pages need 5+ samples to show up here.
+                Visit a few pages and check back — pages need 5+ samples to show
+                up here.
               </p>
             </div>
           )}

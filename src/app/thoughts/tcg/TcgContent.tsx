@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import styles from "../styling/styling.module.css";
@@ -82,8 +80,8 @@ fetch("/api/tcg/cards?q=charizard")`}
 
         <Sent pos="first">yes, and some pages do exactly that</Sent>
         <Sent pos="middle">
-          the set detail page is a server component — it calls the SDK at
-          render time for metadata, logo, release year, legality. fast, no
+          the set detail page is a server component — it calls the SDK at render
+          time for metadata, logo, release year, legality. fast, no
           interactivity needed
         </Sent>
         <Sent pos="last">
@@ -127,9 +125,8 @@ export default async function SetDetailPage({ params }) {
           the page number is <code>loadedPages</code> state — not a ref
         </Sent>
         <Sent pos="last">
-          it syncs to the URL as you scroll —{" "}
-          <code>?page=3</code> — so sharing or back-navigating restores exactly
-          where you were
+          it syncs to the URL as you scroll — <code>?page=3</code> — so sharing
+          or back-navigating restores exactly where you were
         </Sent>
 
         <Received pos="first">infinite scroll — how does that work</Received>
@@ -165,8 +162,8 @@ export default async function SetDetailPage({ params }) {
           to go through React&apos;s effect queue to stay current
         </Sent>
         <Sent pos="last">
-          the observer reconnects on <code>cards.length</code> change — that&apos;s
-          intentional, not <code>[]</code>. reconnecting forces{" "}
+          the observer reconnects on <code>cards.length</code> change —
+          that&apos;s intentional, not <code>[]</code>. reconnecting forces{" "}
           <code>observe()</code> to immediately report current intersection
           state, which fixes the case where the sentinel is already in the
           viewport after load. the ref handles stale closures; the dep handles
@@ -204,10 +201,12 @@ useEffect(() => {
           params
         </Sent>
         <Sent pos="middle">
-          on mount, the component reads the URL to initialize state. as the
-          user types or scrolls, the URL updates with{" "}
-          <code>router.replace(..., {"{"} scroll: false {"}"}</code>) — no
-          scroll jump
+          on mount, the component reads the URL to initialize state. as the user
+          types or scrolls, the URL updates with{" "}
+          <code>
+            router.replace(..., {"{"} scroll: false {"}"}
+          </code>
+          ) — no scroll jump
         </Sent>
         <Sent pos="last">
           back/forward navigation changes the URL, which syncs back into state.
@@ -233,9 +232,9 @@ useEffect(() => {
         <Sent pos="first">two layers</Sent>
         <Sent pos="middle">
           for server components that <code>await</code> data —{" "}
-          <code>loading.tsx</code> files next to the page. Next.js wraps them
-          in a Suspense boundary automatically and streams the skeleton HTML to
-          the browser while the server fetch runs
+          <code>loading.tsx</code> files next to the page. Next.js wraps them in
+          a Suspense boundary automatically and streams the skeleton HTML to the
+          browser while the server fetch runs
         </Sent>
         <Sent pos="last">
           for the client-side infinite scroll append, skeleton card tiles are
@@ -282,8 +281,8 @@ useEffect(() => {
         </Sent>
         <Sent pos="middle">
           the TCG pages use them throughout. retry buttons use{" "}
-          <code>{"<Button variant=\"outline\" size=\"sm\">"}</code>. the search
-          bar uses <code>Input</code> with <code>hideLabel</code> and{" "}
+          <code>{'<Button variant="outline" size="sm">'}</code>. the search bar
+          uses <code>Input</code> with <code>hideLabel</code> and{" "}
           <code>size=&quot;sm&quot;</code> — visible label is hidden via{" "}
           <code>sr-only</code> for accessibility but still there for screen
           readers
@@ -297,7 +296,9 @@ useEffect(() => {
         <Timestamp>9:49 AM</Timestamp>
 
         <Received pos="first">the card detail page looks good</Received>
-        <Received pos="last">what&apos;s going on with the energy icons</Received>
+        <Received pos="last">
+          what&apos;s going on with the energy icons
+        </Received>
 
         <Sent pos="first">
           attack costs, retreat cost, weakness, and resistance all show the
@@ -310,8 +311,8 @@ useEffect(() => {
         </Sent>
         <Sent pos="last">
           effect text also gets parsed — <code>{"{P}"}</code> in &quot;Discard 2{" "}
-          {"{P}"} Energy&quot; is replaced with the Psychic icon inline, using
-          a regex split on the <code>{"{X}"}</code> token pattern
+          {"{P}"} Energy&quot; is replaced with the Psychic icon inline, using a
+          regex split on the <code>{"{X}"}</code> token pattern
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -411,34 +412,38 @@ const fetchCards = async (...) => {
 
         <Timestamp>10:10 AM</Timestamp>
 
-        <Received pos="first">does the browse page still fetch page 1 client-side?</Received>
-        <Received pos="last">does every fresh load show the skeleton grid?</Received>
+        <Received pos="first">
+          does the browse page still fetch page 1 client-side?
+        </Received>
+        <Received pos="last">
+          does every fresh load show the skeleton grid?
+        </Received>
 
         <Sent pos="first">
-          no, that&apos;s fixed. the browse page fetches page 1 server-side now —
-          same streaming pattern as the GraphQL Pokédex
+          no, that&apos;s fixed. the browse page fetches page 1 server-side now
+          — same streaming pattern as the GraphQL Pokédex
         </Sent>
         <Sent pos="middle">
           <code>page.tsx</code> has a <code>BrowseWithData</code> async server
           component that calls the TCGdex SDK directly — one module-level{" "}
-          <code>new TCGdex(&quot;en&quot;)</code> instance per server process, same
-          as the API route. a <code>BrowseSkeleton</code> mirrors the filter bar
-          and card grid and wraps it in a <code>Suspense</code> boundary, so
-          that streams immediately while the fetch resolves
+          <code>new TCGdex(&quot;en&quot;)</code> instance per server process,
+          same as the API route. a <code>BrowseSkeleton</code> mirrors the
+          filter bar and card grid and wraps it in a <code>Suspense</code>{" "}
+          boundary, so that streams immediately while the fetch resolves
         </Sent>
         <Sent pos="last">
           <code>BrowseContent</code> gets <code>initialCards</code> as a prop.
           it initialises state from that and skips the page-1 fetch — but only
-          when the URL has no active filters. land on{" "}
-          <code>?q=charizard</code> and the server data is the wrong page, so
-          it throws it away and fetches with the right params client-side
+          when the URL has no active filters. land on <code>?q=charizard</code>{" "}
+          and the server data is the wrong page, so it throws it away and
+          fetches with the right params client-side
         </Sent>
 
         <Received>what about scroll restore — does ?page=N still work</Received>
 
         <Sent pos="first">
-          yes. if there&apos;s server data and <code>?page=4</code> in the
-          URL, it loads pages 2–4, not 1–4 — saves one round trip since page 1
+          yes. if there&apos;s server data and <code>?page=4</code> in the URL,
+          it loads pages 2–4, not 1–4 — saves one round trip since page 1
           already came from the server
         </Sent>
         <Sent pos="last">
@@ -455,7 +460,9 @@ const fetchCards = async (...) => {
           cache headers on the API routes. the <code>/api/tcg/cards</code>{" "}
           endpoint hits TCGdex cold on every request — card and set data barely
           ever changes. adding{" "}
-          <code>Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400</code>{" "}
+          <code>
+            Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400
+          </code>{" "}
           means Vercel&apos;s CDN (or any edge cache) serves repeat fetches
           without touching the origin
         </Sent>
