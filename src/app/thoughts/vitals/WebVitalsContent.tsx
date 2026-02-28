@@ -266,21 +266,25 @@ const [summaryRes, byPageRes] = await Promise.all([
         <Received>what would you improve</Received>
 
         <Sent pos="first">
-          time range filter — right now the aggregation covers all-time data.
-          being able to see last 7 days vs last 30 days would make regressions
-          easier to spot
+          version filtering is in now — each beacon includes the{" "}
+          <code>app_version</code> from <code>package.json</code>, baked into
+          the bundle at build time. the dashboard nav has a dropdown that filters
+          all aggregates to &quot;from version X onwards&quot; so you can see
+          whether a specific deploy actually moved the numbers
         </Sent>
         <Sent pos="middle">
-          device and connection breakdown — the <code>web-vitals</code> package
-          gives you <code>navigationType</code> but doesn&apos;t expose device
-          category or effective connection type. you&apos;d need to read those
-          from the Network Information API separately and include them in the
-          beacon payload
+          there&apos;s also a trend chart now using unovis — one sparkline per
+          metric showing P75 across the last 5 versions. line color follows the
+          Good/Poor thresholds so you can tell at a glance if things are going
+          the right direction
         </Sent>
         <Sent pos="last">
-          and alert thresholds — an email or Slack ping when a page&apos;s LCP
-          P75 crosses 4000ms would make this actually useful as an ops tool
-          rather than just a dashboard
+          still want: device and connection breakdown (the{" "}
+          <code>web-vitals</code> package gives <code>navigationType</code> but
+          not device category or effective connection type — you&apos;d need the
+          Network Information API for that), and alert thresholds so a bad P75
+          actually notifies you instead of waiting for someone to open the
+          dashboard
         </Sent>
 
         <Received>what does building this show as a dev</Received>
@@ -309,7 +313,9 @@ const [summaryRes, byPageRes] = await Promise.all([
           yeah — and selfishly it&apos;s useful for the site itself. I can
           actually see whether the ISR caching, streaming SSR, and next/dynamic
           lazy loading are making a measurable difference to real users, not
-          just green numbers on a report
+          just green numbers on a report. the version filter makes that
+          concrete: pick the version where streaming SSR shipped and see if LCP
+          dropped
         </Sent>
 
         {/* Typing indicator */}

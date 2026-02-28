@@ -62,11 +62,13 @@ Event rendering matches Google Calendar's conventions: multi-day timed events (o
 
 ### 📊 Web Vitals Dashboard
 
-Real-user Core Web Vitals collected from every page load and displayed on a protected dashboard at `/protected/vitals`. Five metric cards show the global P75 for LCP, FCP, INP, CLS, and TTFB with color-coded Good/Needs work/Poor ratings. A by-page table below breaks the same numbers down per route — cells are individually color-coded so you can spot which pages are dragging down a specific metric.
+Real-user Core Web Vitals collected from every page load and displayed on a protected dashboard at `/protected/vitals`. Five metric cards show the global P75 for LCP, FCP, INP, CLS, and TTFB with color-coded Good/Needs work/Poor ratings. A by-page table breaks the same numbers down per route. A version trend section (unovis sparklines) shows P75 across the last 5 app versions so you can see whether a deploy actually moved the numbers.
 
-The collection pipeline: `WebVitalsReporter` (root layout client component) registers all five `web-vitals` observers once on mount and beacons each metric to `/api/vitals` when it fires. The Next.js API route validates the shape and forwards to the Express backend, which writes one row per metric event into the `web_vitals` Postgres table. The dashboard page fetches `/api/vitals/summary` and `/api/vitals/by-page` in parallel from the server component with `cache: "no-store"`, so numbers are always current. Pages under 5 samples are excluded from the by-page table to keep single-visit noise out.
+The collection pipeline: `WebVitalsReporter` (root layout client component) registers all five `web-vitals` observers once on mount and beacons each metric to `/api/vitals` when it fires. Each beacon includes `app_version`, which is read directly from `package.json` at build time — no manual env var needed. The Next.js API route validates the shape and forwards to the Express backend, which writes one row per event into the `web_vitals` Postgres table.
 
-Formatting: timing metrics below 1000ms display as rounded milliseconds (`340ms`), at or above 1000ms as one-decimal seconds (`2.4s`). CLS stays as a 3-decimal dimensionless score (`0.042`).
+The dashboard nav has a version selector. Selecting "From v0.3.1" filters all aggregates to rows from that version onwards using a semver-aware Postgres comparison (`string_to_array(app_version, '.')::int[]`) so `0.10.0 > 0.9.0` works correctly. The selected version is a URL param so filtered views are shareable. Defaults to the latest version on first load.
+
+Formatting: timing metrics below 1000ms display as rounded milliseconds (`340ms`), at or above 1000ms as one-decimal seconds (`2.4s`). CLS stays as a 3-decimal dimensionless score (`0.042`). Pages under 5 samples are excluded from the by-page table.
 
 ### 🏆 Fantasy League History
 
@@ -83,6 +85,7 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 | Styling     | Tailwind CSS v4 + custom CSS tokens |
 | Auth        | Auth0 (`@auth0/nextjs-auth0`)       |
 | Runtime     | React 19                            |
+| Charts      | unovis (`@unovis/react`)            |
 | Monitoring  | Vercel Speed Insights               |
 | Linting     | ESLint (Next.js config)             |
 | Bundle      | `@next/bundle-analyzer` (`npm run analyze`) |

@@ -1,15 +1,15 @@
 # Changelog
 
-## 2026-02-27 - version 0.3.1
+## 2026-02-28 - version 0.3.1
 
-- added version-based filtering to the Web Vitals dashboard — each beacon now includes `app_version` (baked into the bundle from `package.json` via `NEXT_PUBLIC_APP_VERSION`); the dashboard nav shows a version selector when the backend returns data, and selecting a version reloads the page with `?v=X` in the URL so the filtered scores are shareable
-- `next.config.ts` reads `version` from `package.json` at build time and exposes it as `NEXT_PUBLIC_APP_VERSION`
-- `WebVitalsReporter` adds `app_version` to every beacon payload; old rows in the DB default to `unknown` so existing data is preserved under "All versions"
-- `GET /api/vitals` BFF forwards `?v=` to both backend summary and by-page endpoints
-- new `GET /api/vitals/versions` BFF endpoint fetches distinct versions from the backend; returns `[]` gracefully if the backend endpoint doesn't exist yet so the selector simply stays hidden
-- `VitalsPage` accepts `searchParams` so the selected version is part of the URL (shareable, no client state needed); fetches versions list in parallel with summary and by-page
-- `VersionSelector` is a small `"use client"` `<select>` that calls `router.push("?v=X")` on change; options read "From v0.3.0" to make the "onwards" semantic clear; "All versions" clears the param
-- version filtering is semver-aware: selecting "From v0.3.0" includes 0.3.0, 0.3.1, 0.10.0, etc. — uses `string_to_array(app_version, '.')::int[]` comparison in Postgres so `0.10.0 > 0.9.0` correctly
+- `WebVitalsReporter` now includes `app_version` in every beacon -- read directly from `package.json` at build time via a static import, no env var needed; old rows default to `unknown` and still show under "All versions"
+- version selector added to the vitals dashboard nav -- a `<select>` that pushes `?v=X.Y.Z` to the URL; selecting a version filters all aggregates to that version and above; defaults to the latest version on first load; "All versions" is always available
+- version filtering is semver-aware -- uses `string_to_array(app_version, '.')::int[]` in Postgres so `0.10.0 > 0.9.0` sorts correctly; `unknown` rows are excluded from filtered views
+- version trend charts added using unovis -- one sparkline per metric showing P75 across the last 5 versions, color-coded by Good/Poor thresholds; only shows when there are at least 2 versions of data
+- new `GET /api/vitals/versions` and `GET /api/vitals/by-version` BFF routes -- both return empty gracefully if the backend endpoints are not deployed yet, so the selector and chart just stay hidden
+- `VitalsPage` fetches versions, version trend data, and aggregates in parallel; selected version lives in the URL so filtered views are shareable
+- extracted `METRIC_ORDER`, `METRIC_CONFIGS`, `MetricConfig`, `formatValue`, and `getRatingColor` into `src/lib/vitals.ts` -- was duplicated between `VitalsContent` and `VitalsChart`
+- updated `/thoughts/vitals` write-up to cover version filtering and the trend chart
 
 ## 2026-02-27 - version 0.3.0
 

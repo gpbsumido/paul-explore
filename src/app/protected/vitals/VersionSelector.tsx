@@ -17,16 +17,20 @@ export default function VersionSelector({
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const v = e.target.value;
-    router.push(v ? `?v=${encodeURIComponent(v)}` : "?");
+    if (v === "all") {
+      router.push("?v=all");
+    } else {
+      router.push(`?v=${encodeURIComponent(v)}`);
+    }
   }
 
   return (
     <select
-      value={selectedVersion ?? ""}
+      value={selectedVersion ?? "all"}
       onChange={handleChange}
       className="rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-muted focus:outline-none"
     >
-      <option value="">All versions</option>
+      <option value="all">All versions</option>
       {versions.map((v) => (
         <option key={v} value={v}>
           From v{v}
