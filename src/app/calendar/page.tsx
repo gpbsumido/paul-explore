@@ -3,10 +3,27 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import CalendarContent from "./CalendarContent";
+import { SITE_URL, OG_IMAGE } from "@/lib/site";
+
+const TITLE = "Calendar";
+const DESCRIPTION = "A personal calendar for tracking events.";
 
 export const metadata: Metadata = {
-  title: "Calendar",
-  description: "A personal calendar for tracking events.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    url: `${SITE_URL}/calendar`,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
 };
 
 export default function CalendarPage() {

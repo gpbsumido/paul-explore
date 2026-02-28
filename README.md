@@ -170,6 +170,9 @@ src/
 - `@next/bundle-analyzer` requires `--webpack` because Next.js 16 uses Turbopack by default — the analyzer is incompatible with Turbopack and throws if you omit the flag
 - the most useful thing the bundle analyzer does is surface server-only libraries appearing in the client bundle: `jose`, `oauth4webapi`, and `openid-client` have no business in a browser; seeing them in the treemap is a signal that something is wrong, not just large
 - `Auth0Provider` was wrapping the entire app and pulling the full Auth0 client SDK into every page load despite `useUser` being called zero times in the codebase — a quick grep confirmed it, the fix was three lines removed from the root layout; auth protection was always in the middleware and individual server components, not React context
+- Next.js App Router's `icon.tsx` and `opengraph-image.tsx` file conventions generate favicons and OG images at build time using `ImageResponse` (Satori under the hood) without needing a separate CDN or pre-generated image files; the icon file produces `<link rel="icon">` automatically, and the OG image is served at `/opengraph-image` and referenced in metadata
+- `openGraph.images` in page metadata overrides the file-based `opengraph-image.tsx` for that route — useful when you want a shared generator function but need the image URL to also appear in explicit metadata objects; the root layout carries the fallback so pages without their own metadata still get the right `og:image`
+- extracting `TITLE` and `DESCRIPTION` as module-level consts in page files keeps the metadata DRY when the same strings need to appear in `title`, `openGraph.title`, `openGraph.description`, `twitter.title`, and `twitter.description` — five places that would otherwise all need updating together
 
 ---
 

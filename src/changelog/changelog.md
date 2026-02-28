@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-02-27 - version 0.2.9
+
+- added `src/app/icon.tsx`, a custom favicon using Next.js ImageResponse (dark background, white "P", served at /icon as PNG; falls back to existing favicon.ico in older browsers)
+- added `src/app/opengraph-image.tsx` for shared OG image generated at build time; dark background with site name and feature list
+- added `src/lib/site.ts` — SITE_URL and OG_IMAGE config pulled from NEXT_PUBLIC_SITE_URL with paulsumido.com as fallback; single place to update if the domain changes
+- added Open Graph and Twitter card metadata to pages
+- each page extracts TITLE and DESCRIPTION as module-level consts to avoid repeating the strings across title, openGraph, and twitter fields
+- added fallback openGraph and twitter metadata to root layout.tsx so pages without their own get at least the og:image and siteName
+- thoughts pages use `type: "article"`, feature pages use `type: "website"`
+
 ## 2026-02-27 - version 0.2.8
 
 - added `/thoughts/bundle` write-up covering the bundle analyzer setup

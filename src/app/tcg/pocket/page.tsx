@@ -2,10 +2,27 @@ import TCGdex from "@tcgdex/sdk";
 import type { Metadata } from "next";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+import { SITE_URL, OG_IMAGE } from "@/lib/site";
+
+const TITLE = "Pokémon TCG Pocket";
+const DESCRIPTION = "Browse Pokémon TCG Pocket sets grouped by expansion family.";
 
 export const metadata: Metadata = {
-  title: "Pokémon TCG Pocket",
-  description: "Browse Pokémon TCG Pocket sets grouped by expansion family.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    url: `${SITE_URL}/tcg/pocket`,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [OG_IMAGE.url],
+  },
 };
 
 const tcgdex = new TCGdex("en");
