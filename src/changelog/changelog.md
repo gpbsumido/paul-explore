@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.2
+
+- calendar CLS fix: day, week, and year views now each have a pixel-matched skeleton shown while the JS chunk downloads; DaySkeleton mirrors DayView's 44px row height and 4.5rem gutter, WeekSkeleton mirrors WeekView's 48px rows and 7-column header, YearSkeleton mirrors YearView's responsive grid of 12 mini month cards
+- extracted all four skeletons into `src/app/calendar/CalendarSkeletons.tsx` -- MonthSkeleton (previously inlined in loading.tsx), DaySkeleton, WeekSkeleton, YearSkeleton; loading.tsx now just re-exports MonthSkeleton to keep things in one place
+- each `next/dynamic` call for DayView, WeekView, and YearView in CalendarContent now passes a `loading` prop so there's no unsized layout jump on first switch
+- updated the CLS improvement card in the vitals dashboard to accurately describe what's in the codebase now
+- updated `/thoughts/calendar` write-up to mention the view-specific skeletons and the CLS fix
+
 ## 2026-02-28 - version 0.3.1
 
 - `WebVitalsReporter` now includes `app_version` in every beacon -- read directly from `package.json` at build time via a static import, no env var needed; old rows default to `unknown` and still show under "All versions"

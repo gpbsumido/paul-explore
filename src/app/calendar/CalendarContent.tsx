@@ -21,13 +21,22 @@ import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import type { CalendarView, CalendarEvent, ModalState } from "@/types/calendar";
+import { DaySkeleton, WeekSkeleton, YearSkeleton } from "./CalendarSkeletons";
 
 // CalendarGrid is the LCP element so it stays as a static import.
 // Everything else only loads after the user switches views or opens a modal,
 // so lazily loading them keeps the initial bundle lean.
-const DayView = dynamic(() => import("@/components/calendar/DayView"));
-const WeekView = dynamic(() => import("@/components/calendar/WeekView"));
-const YearView = dynamic(() => import("@/components/calendar/YearView"));
+// Each dynamic() gets a loading fallback whose dimensions match the real view
+// so there's no layout shift while the JS chunk downloads.
+const DayView = dynamic(() => import("@/components/calendar/DayView"), {
+  loading: () => <DaySkeleton />,
+});
+const WeekView = dynamic(() => import("@/components/calendar/WeekView"), {
+  loading: () => <WeekSkeleton />,
+});
+const YearView = dynamic(() => import("@/components/calendar/YearView"), {
+  loading: () => <YearSkeleton />,
+});
 const EventModal = dynamic(() => import("@/components/calendar/EventModal"));
 
 interface CalendarContentProps {
