@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-02-27 - version 0.2.8
+
+- added `/thoughts/bundle` write-up covering the bundle analyzer setup
+- added "Bundle Analysis" thought card to the FeatureHub dev notes grid
+- removed `Auth0Provider` from `src/app/layout.tsx` since `useUser` is never called anywhere in the codebase, so the provider was wrapping the entire app for no reason and pulling the full Auth0 client SDK (`jose`, `oauth4webapi`, `openid-client`, `swr`) into the browser bundle
+- removed the `auth0.getSession()` call from the root layout that existed solely to feed the provider
+- root layout is now a synchronous function instead of async — no await calls remain at this level
+- Auth0 session access still works in protected routes via `auth0.getSession()` in their own server components and API routes
+- added `@next/bundle-analyzer` as a dev dependency
+- configured in `next.config.ts` to activate when `ANALYZE=true` — wraps the existing config so the analyzer is a no-op in normal builds
+- added `npm run analyze` script (`ANALYZE=true next build --webpack`) — the `--webpack` flag is required because `@next/bundle-analyzer` does not work with Turbopack, which Next.js 16 uses by default
+
 ## 2026-02-26 - version 0.2.7
 
 - removed `src/app/loading.tsx` (root-level hero skeleton) — it was a Suspense boundary that cascaded before every route-specific loading state, causing two completely different skeletons in sequence when navigating to thoughts pages

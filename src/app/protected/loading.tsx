@@ -130,7 +130,7 @@ export default function ProtectedLoading() {
         <div className="mt-14">
           <Bone style={{ height: 11, width: 72, marginBottom: 12 }} />
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 7 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <ThoughtCardSkeleton key={i} />
             ))}
           </div>

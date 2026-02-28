@@ -1,12 +1,13 @@
 {
   "name": "paul-explore",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "analyze": "ANALYZE=true next build --webpack"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.15.0",
@@ -19,6 +20,7 @@
     "web-vitals": "^5.1.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.6",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^20",
     "@types/react": "^19",

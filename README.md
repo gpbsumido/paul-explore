@@ -83,6 +83,7 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 | Runtime     | React 19                            |
 | Monitoring  | Vercel Speed Insights               |
 | Linting     | ESLint (Next.js config)             |
+| Bundle      | `@next/bundle-analyzer` (`npm run analyze`) |
 
 ---
 
@@ -166,6 +167,9 @@ src/
 - Vercel Speed Insights is one import away from real-user Core Web Vitals data — `<SpeedInsights />` placed after the app tree means the beacon script loads asynchronously and never competes with first paint; field data (actual user sessions) takes a day or two to aggregate but lab scores show up immediately
 - `navigator.sendBeacon` is the right delivery mechanism for analytics — a regular fetch can get cancelled when the browser tears down the page on navigation, sendBeacon queues the request at the OS level and guarantees delivery; the `Blob` wrapper is required to send JSON since sendBeacon defaults to text/plain otherwise
 - the pathname ref pattern (`useRef` updated on pathname change, observers read from it at fire time) solves the SPA navigation accuracy problem cleanly — registering observers once per mount avoids duplicate registrations while the ref ensures each metric is tagged with the page the user was on when it fired, not the initial page
+- `@next/bundle-analyzer` requires `--webpack` because Next.js 16 uses Turbopack by default — the analyzer is incompatible with Turbopack and throws if you omit the flag
+- the most useful thing the bundle analyzer does is surface server-only libraries appearing in the client bundle: `jose`, `oauth4webapi`, and `openid-client` have no business in a browser; seeing them in the treemap is a signal that something is wrong, not just large
+- `Auth0Provider` was wrapping the entire app and pulling the full Auth0 client SDK into every page load despite `useUser` being called zero times in the codebase — a quick grep confirmed it, the fix was three lines removed from the root layout; auth protection was always in the middleware and individual server components, not React context
 
 ---
 
