@@ -12,6 +12,9 @@ import type { CalendarEvent } from "@/types/calendar";
 interface Options {
   start: string;
   end: string;
+  /** SSR seed data from the server component. When provided, the initial
+   *  client-side fetch is skipped for that range. */
+  initialEvents?: CalendarEvent[];
 }
 
 export interface UseCalendarEventsReturn {
@@ -27,24 +30,32 @@ export interface UseCalendarEventsReturn {
 }
 
 /**
- * Fetches calendar events for the given date window and keeps local state in
- * sync when you create, update, or delete events. Re-fetches automatically
- * whenever start/end changes (i.e. user navigates to a different month/week).
+ * Manages calendar events for a given date window.
  *
- * loading is derived from whether the current range has been resolved yet,
- * so no setState ever fires synchronously inside the effect body.
+ * Fetches on mount and re-fetches whenever start/end changes (navigation).
+ * `loading` is derived from whether the current range has resolved -- no
+ * setState ever fires synchronously in the effect body, keeping the
+ * react-hooks/set-state-in-effect rule happy.
+ *
+ * When initialEvents is provided (SSR path), state is seeded from that data
+ * and the range is pre-marked as loaded so no redundant fetch fires on mount.
  */
 export function useCalendarEvents({
   start,
   end,
+  initialEvents,
 }: Options): UseCalendarEventsReturn {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents ?? []);
   const [error, setError] = useState<string | null>(null);
 
-  // tracks the range that was last resolved — loading is derived from this
-  // so the effect body itself never calls setState directly
-  const [loadedRange, setLoadedRange] = useState<string | null>(null);
+  // tracks the last range that finished loading -- loading is derived from
+  // this so the effect body itself never calls setState directly.
+  // pre-seeded to the initial range when server data is provided so the
+  // first client render doesn't show a loading state.
   const rangeKey = `${start}|${end}`;
+  const [loadedRange, setLoadedRange] = useState<string | null>(
+    initialEvents ? rangeKey : null,
+  );
   const loading = loadedRange !== rangeKey;
 
   useEffect(() => {

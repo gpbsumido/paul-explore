@@ -375,6 +375,69 @@ const timedLayouts = useMemo(
 );`}
         </div>
 
+        <Received>how does the initial load feel performance-wise</Received>
+
+        <Sent pos="first">
+          the calendar was showing a blank page until JavaScript hydrated and
+          the client-side fetch finished. FCP and LCP were both bad
+        </Sent>
+        <Sent pos="middle">
+          fixed it with streaming SSR. there&apos;s now a{" "}
+          <code>CalendarWithData</code> async server component that fetches the
+          current month&apos;s events directly from the backend at request time.
+          it&apos;s wrapped in a <code>Suspense</code> boundary with{" "}
+          <code>loading.tsx</code> as the fallback, so the skeleton streams in
+          the HTML shell immediately and the real grid replaces it once the
+          server fetch resolves
+        </Sent>
+        <Sent pos="last">
+          the server component calls the backend directly instead of going
+          through <code>/api/calendar/events</code> -- that avoids a loopback
+          HTTP call to the same server. if auth or the backend is down it just
+          falls back gracefully and lets the client fetch on mount as before
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// page.tsx -- server component fetches before first paint
+async function CalendarWithData() {
+  const { token } = await auth0.getAccessToken();
+  const res = await fetch(\`\${API_URL}/api/calendar/events?...\`, {
+    headers: { Authorization: \`Bearer \${token}\` },
+    cache: "no-store",
+  });
+  const { events } = await res.json();
+  return <CalendarContent initialEvents={events} />;
+}`}
+        </div>
+
+        <Received>and the hook doesn&apos;t re-fetch if you already have data?</Received>
+
+        <Sent pos="first">
+          right -- <code>useCalendarEvents</code> accepts an{" "}
+          <code>initialEvents</code> prop. when it&apos;s provided, the hook
+          seeds state from that data and pre-marks the current range as loaded
+        </Sent>
+        <Sent pos="last">
+          so the first client render has real data immediately -- no loading
+          state, no skeleton, no extra network request. if the user navigates to
+          a different month it re-fetches normally from there
+        </Sent>
+
+        <Received>what about the other views -- do they all load upfront too</Received>
+
+        <Sent pos="first">
+          no -- DayView, WeekView, YearView, and EventModal are all lazily
+          loaded with <code>next/dynamic</code>
+        </Sent>
+        <Sent pos="last">
+          CalendarGrid stays as a static import since it&apos;s the LCP element
+          and needs to be in the initial bundle. the others only load when the
+          user actually switches views or opens the modal, so they don&apos;t
+          cost anything on the default month view load
+        </Sent>
+
+        <Timestamp>10:55 AM</Timestamp>
+
         <Received>what would you still improve</Received>
 
         <Sent pos="first">

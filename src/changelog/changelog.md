@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-02-27 - version 0.3.0
+
+- calendar page now streams server-side data on first load -- `CalendarWithData` async server component fetches the current month's events directly from the backend at request time; `CalendarContent` is wrapped in a `Suspense` boundary so the skeleton arrives in the HTML shell and real data replaces it once the fetch resolves
+- `loading.tsx` added to the calendar route segment -- 42-cell animate-pulse skeleton matching the month grid exactly (7 columns, 6 rows), prevents layout shift when the stream resolves
+- `useCalendarEvents` hook now accepts an `initialEvents` prop; when provided it seeds state from server data and pre-marks the current range as loaded so no redundant client-side fetch fires on mount
+- `CalendarContent` uses `next/dynamic` for DayView, WeekView, YearView, and EventModal -- these only load when the user actually needs them; CalendarGrid stays as a static import since it's the LCP element
+- extracted `GRID_COLS`, `GRID_CELLS`, and `LAST_ROW_START` as named constants in `loading.tsx` so the skeleton dimensions are readable and won't drift from the real grid
+- `proxy.ts` now calls `auth0.middleware()` only for `/auth/*` routes; all other routes use `auth0.getSession()` which reads the encrypted session cookie locally with no network round-trip -- removes TTFB overhead on every protected page load
+- server component calls the backend directly instead of going through `/api/calendar/events` to avoid a loopback HTTP call to the same server
+- updated `/thoughts/calendar` write-up with a section on the streaming SSR approach and lazy-loaded views
+
 ## 2026-02-27 - version 0.2.9
 
 - added `src/app/icon.tsx`, a custom favicon using Next.js ImageResponse (dark background, white "P", served at /icon as PNG; falls back to existing favicon.ico in older browsers)
