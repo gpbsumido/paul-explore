@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
-import type { VitalsResponse } from "@/types/vitals";
+import type { VitalsResponse, VersionMetrics } from "@/types/vitals";
 import VitalsContent from "./VitalsContent";
 
 export const metadata: Metadata = {
@@ -12,11 +12,6 @@ export const metadata: Metadata = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
-/**
- * Fetches both vitals aggregations and the distinct versions list in parallel.
- * cache: "no-store" keeps the numbers fresh on every visit — these aren't
- * the kind of data you want served stale.
- */
 async function fetchVitals(
   token: string,
   version: string | undefined,
@@ -60,6 +55,20 @@ async function fetchVersions(token: string): Promise<string[]> {
   }
 }
 
+async function fetchByVersion(token: string): Promise<VersionMetrics[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/vitals/by-version`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const { byVersion } = await res.json();
+    return byVersion ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function VitalsPage({
   searchParams,
 }: {
@@ -72,12 +81,19 @@ export default async function VitalsPage({
     redirect("/api/auth/login");
   }
 
-  const { v: selectedVersion } = await searchParams;
+  const { v: urlVersion } = await searchParams;
 
-  const [{ summary, byPage }, versions] = await Promise.all([
-    fetchVitals(token!, selectedVersion),
+  // fetch versions first to know what the latest is
+  const [versions, byVersion] = await Promise.all([
     fetchVersions(token!),
+    fetchByVersion(token!),
   ]);
+
+  // "all" = explicit all-versions selection; no param = default to latest version
+  const showAll = urlVersion === "all";
+  const selectedVersion = showAll ? undefined : (urlVersion ?? versions[0]);
+
+  const { summary, byPage } = await fetchVitals(token!, selectedVersion);
 
   return (
     <VitalsContent
@@ -85,6 +101,7 @@ export default async function VitalsPage({
       byPage={byPage}
       versions={versions}
       selectedVersion={selectedVersion}
+      byVersion={byVersion}
     />
   );
 }

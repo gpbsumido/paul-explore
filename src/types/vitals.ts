@@ -29,3 +29,15 @@ export type VitalsResponse = {
   summary: Partial<Record<MetricName, MetricSummary>>;
   byPage: PageVitals[];
 };
+
+/** P75 and sample count for one metric in one version — from GET /api/vitals/by-version. */
+export type VersionMetricData = {
+  p75: number;
+  total: number;
+};
+
+/** All metrics aggregated for a single app version. */
+export type VersionMetrics = {
+  version: string;
+  metrics: Partial<Record<MetricName, VersionMetricData>>;
+};

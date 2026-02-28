@@ -1,64 +1,20 @@
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import VersionSelector from "./VersionSelector";
+import VitalsChart from "./VitalsChart";
+import {
+  METRIC_ORDER,
+  METRIC_CONFIGS,
+  formatValue,
+  type MetricConfig,
+} from "@/lib/vitals";
 import type {
   MetricName,
   MetricSummary,
   PageMetricData,
   VitalsResponse,
+  VersionMetrics,
 } from "@/types/vitals";
-
-// render order follows the typical CWV audit sequence
-const METRIC_ORDER: MetricName[] = ["LCP", "FCP", "INP", "CLS", "TTFB"];
-
-type MetricConfig = {
-  name: MetricName;
-  label: string;
-  // "ms" for timing metrics, "" for dimensionless scores like CLS
-  unit: "ms" | "";
-  // Google's Good threshold — at or below this is green
-  good: number;
-  // Google's Poor threshold — above this is red, between is yellow
-  poor: number;
-};
-
-const METRIC_CONFIGS: Record<MetricName, MetricConfig> = {
-  LCP: {
-    name: "LCP",
-    label: "Largest Contentful Paint",
-    unit: "ms",
-    good: 2500,
-    poor: 4000,
-  },
-  FCP: {
-    name: "FCP",
-    label: "First Contentful Paint",
-    unit: "ms",
-    good: 1800,
-    poor: 3000,
-  },
-  INP: {
-    name: "INP",
-    label: "Interaction to Next Paint",
-    unit: "ms",
-    good: 200,
-    poor: 500,
-  },
-  CLS: {
-    name: "CLS",
-    label: "Cumulative Layout Shift",
-    unit: "",
-    good: 0.1,
-    poor: 0.25,
-  },
-  TTFB: {
-    name: "TTFB",
-    label: "Time to First Byte",
-    unit: "ms",
-    good: 800,
-    poor: 1800,
-  },
-};
 
 type Rating = "good" | "needs-improvement" | "poor";
 
@@ -86,24 +42,11 @@ const RATING_STYLES: Record<
   },
 };
 
-/** Derives a CWV rating from a raw P75 value and the metric's thresholds. */
+/** Maps a raw P75 value to a Good/Needs work/Poor rating. */
 function getRating(value: number, config: MetricConfig): Rating {
   if (value <= config.good) return "good";
   if (value <= config.poor) return "needs-improvement";
   return "poor";
-}
-
-/**
- * Formats a metric value for display.
- * Timing metrics: values >= 1000ms get displayed as seconds (e.g. "2.4s"),
- * smaller values as milliseconds (e.g. "340ms").
- * CLS (unit = "") stays as a decimal like "0.042".
- */
-function formatValue(value: number, unit: "ms" | ""): string {
-  if (unit === "") return value.toFixed(3);
-  return value >= 1000
-    ? `${(value / 1000).toFixed(1)}s`
-    : `${Math.round(value)}ms`;
 }
 
 // ---- MetricCard ----
@@ -216,6 +159,7 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
 type Props = VitalsResponse & {
   versions: string[];
   selectedVersion: string | undefined;
+  byVersion: VersionMetrics[];
 };
 
 /**
@@ -230,6 +174,7 @@ export default function VitalsContent({
   byPage,
   versions,
   selectedVersion,
+  byVersion,
 }: Props) {
   const hasData = byPage.length > 0;
 
@@ -289,6 +234,16 @@ export default function VitalsContent({
             />
           ))}
         </div>
+
+        {/* Version trend charts */}
+        {byVersion.length >= 2 && (
+          <div className="mt-8">
+            <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50">
+              Trend across versions
+            </h2>
+            <VitalsChart byVersion={byVersion} />
+          </div>
+        )}
 
         {/* By-page table */}
         <div className="mt-8">
