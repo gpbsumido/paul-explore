@@ -24,9 +24,7 @@ export async function generateStaticParams() {
   try {
     const sets = await tcgdex.set.list();
     if (!sets?.length) return [];
-    return sets
-      .slice(-STATIC_PRERENDER_COUNT)
-      .map((s) => ({ setId: s.id }));
+    return sets.slice(-STATIC_PRERENDER_COUNT).map((s) => ({ setId: s.id }));
   } catch {
     // If the SDK is down at build time, skip static generation entirely —
     // the pages still work, they just render on first request instead.
@@ -40,7 +38,7 @@ export async function generateMetadata({
   params: Promise<{ setId: string }>;
 }): Promise<Metadata> {
   const { setId } = await params;
-  const set = await tcgdex.set.get(setId);
+  const set = await tcgdex.set.get(setId).catch(() => null);
   if (!set) return { title: "Set | Pokémon TCG" };
   return {
     title: `${set.name} | Pokémon TCG`,
@@ -54,7 +52,7 @@ export default async function SetDetailPage({
   params: Promise<{ setId: string }>;
 }) {
   const { setId } = await params;
-  const set = await tcgdex.set.get(setId);
+  const set = await tcgdex.set.get(setId).catch(() => null);
   if (!set) notFound();
 
   const releaseYear = set.releaseDate?.split("-")[0];
@@ -68,7 +66,13 @@ export default async function SetDetailPage({
             className="flex items-center gap-1.5 text-sm text-red-400 hover:text-red-300 transition-colors shrink-0"
           >
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M5 1L1 5l4 4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
             Sets
           </Link>

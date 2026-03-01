@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.8
+
+- fixed build crash on `/tcg/pokemon/sets/[setId]`: `generateStaticParams` already had a try/catch so an SDK list failure returns `[]` and skips pre-rendering, but `generateMetadata` and the page component had bare `tcgdex.set.get()` calls with no error handling. A network timeout during static generation threw an unhandled exception that killed the build worker; both calls now use `.catch(() => null)` so a timeout produces a graceful 404 for that set instead of taking down the whole build
+
 ## 2026-02-28 - version 0.3.7
 
 - ThoughtCard text no longer truncates, preview text wraps to new lines instead of getting cut off with an ellipsis
