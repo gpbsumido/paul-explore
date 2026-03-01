@@ -317,7 +317,7 @@ export default function EventModal({
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className="h-6 w-6 rounded-full transition-all inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+                  className="h-6 w-6 rounded-full inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
                   style={{ backgroundColor: c }}
                   aria-label={`Color ${c}`}
                   aria-pressed={color === c}

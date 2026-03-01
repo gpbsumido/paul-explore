@@ -37,7 +37,9 @@ const WeekView = dynamic(() => import("@/components/calendar/WeekView"), {
 const YearView = dynamic(() => import("@/components/calendar/YearView"), {
   loading: () => <YearSkeleton />,
 });
-const EventModal = dynamic(() => import("@/components/calendar/EventModal"));
+const EventModal = dynamic(() => import("@/components/calendar/EventModal"), {
+  loading: () => null,
+});
 
 interface CalendarContentProps {
   /** SSR seed data for the current month. Skips the initial client-side fetch
@@ -45,7 +47,9 @@ interface CalendarContentProps {
   initialEvents?: CalendarEvent[];
 }
 
-export default function CalendarContent({ initialEvents }: CalendarContentProps) {
+export default function CalendarContent({
+  initialEvents,
+}: CalendarContentProps) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [view, setView] = useState<CalendarView>("month");
   const [modal, setModal] = useState<ModalState>({ open: false });
@@ -80,7 +84,10 @@ export default function CalendarContent({ initialEvents }: CalendarContentProps)
 
   // Stable reference for the events array so the memoized view components don't
   // re-render just because calendarEvents returned a new object wrapper.
-  const visibleEvents = useMemo(() => calendarEvents.events, [calendarEvents.events]);
+  const visibleEvents = useMemo(
+    () => calendarEvents.events,
+    [calendarEvents.events],
+  );
 
   function handleNavigate(direction: -1 | 1) {
     setCurrentDate((prev) => {

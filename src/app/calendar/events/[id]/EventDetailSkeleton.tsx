@@ -7,7 +7,7 @@ export default function EventDetailSkeleton() {
         <div className="h-6 w-64 rounded bg-surface animate-pulse" />
         <div className="h-4 w-48 rounded bg-surface animate-pulse" />
       </div>
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}

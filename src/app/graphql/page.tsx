@@ -27,6 +27,10 @@ export const metadata: Metadata = {
   },
 };
 
+// Pokémon data changes infrequently -- cache for an hour so repeat visits
+// don't hammer PokeAPI and the first byte arrives from the CDN instead.
+export const revalidate = 3600;
+
 /**
  * Fetches page 1 of Pokémon on the server and hands it down to GraphQLContent
  * so the grid is populated on the first paint rather than after a client-side

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.6
+
+- FCP fix for `/calendar/events/[id]`: was fully client-side (useState + useEffect fetching event + cards after hydration -- blank page, then skeleton, then content); converted to async server component with Suspense using the same CalendarWithData pattern -- EventDetailWithData fetches both in parallel directly from the backend, EventDetailSkeleton streams in the HTML shell, real content on the first paint
+- added `loading.tsx` for the `/calendar/events/[id]` route segment so navigating to an event shows the skeleton immediately during SSR
+- fixed EventDetailSkeleton grid to match the real content: added `md:grid-cols-5` to the card grid (was `grid-cols-3 sm:grid-cols-4`, missing the wider breakpoint)
+- added `loading: () => null` to the EventModal `next/dynamic` call -- without a loading prop, a missing chunk throws to the nearest Suspense boundary (root); explicit null keeps the modal quiet while the chunk downloads on first open
+- `transition-all` → specific property lists across 7 files:
+  - `FeaturesSection.tsx`: gradient overlay uses `opacity` + `transform` (scale) -- changed to `transition-[opacity,transform]`
+  - `YearView.tsx`, `BrowseContent.tsx`, `sets/page.tsx`, `pocket/page.tsx` (×2), `SetCardsGrid.tsx`: all hover only `border-color` + `box-shadow` -- changed to `transition-[border-color,box-shadow]`
+  - `EventModal.tsx`: color swatch buttons had `transition-all` on focus-visible outlines; removed the transition (focus indicators should appear instantly per WCAG)
+- added `export const revalidate = 86400` to `/tcg/pokemon/page.tsx` -- card data is static, no reason to re-render the RSC per request
+- added `export const revalidate = 3600` to `/graphql/page.tsx` -- Pokémon data changes infrequently; cached RSC serves repeat visits without re-hitting PokeAPI
+- updated `/thoughts/calendar` with an exchange on the event detail SSR conversion
+
 ## 2026-02-28 - version 0.3.5
 
 - TTFB fix on "/": landing page was calling `auth0.getSession()` solely to redirect logged-in users, which forced Next.js to treat the page as dynamic and re-render it on every request; moved the redirect to `proxy.ts` middleware (which already runs per-request) so the page component has no async work and Next.js can statically pre-render it at build time
