@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.18
+
+- converted `BrowseContent` and `SetCardsGrid` from manual `useState + useCallback + AbortController + loadedPages` infinite scroll to `useInfiniteQuery`; the query key changes when search or type changes, which causes TanStack to cancel the in-flight request via its own abort signal — removing `abortRef`, `AbortError` catch, and the `useCallback(fetchCards)` wrapper entirely
+- `getNextPageParam: (lastPage, _allPages, lastPageParam) => lastPage.hasMore ? lastPageParam + 1 : undefined` drives sequential pagination; `initialPageParam` reads `?page=N` from the URL on mount so the session resumes from the last loaded page without the old sequential restore loop (the `for (let p = 1; p <= targetPage; p++)` loop is gone)
+- `data.pages.flatMap(p => p.cards)` replaces the hand-rolled `setCards` append with dedup; `isFetchingNextPage` replaces `loadingMore` state and drives the skeleton tile row appended to the grid while the next page loads; `isLoading` drives the full-grid skeleton (first page only); `hasNextPage` gates the sentinel observer
+- `initialData` in `BrowseContent` seeds the query cache with the SSR-fetched page 1 when `initialCards` is provided and the URL has no active filters; `staleTime: 30_000` when seeded, `10 * 60_000` otherwise; the server data is scoped to the no-filter query key so switching to a search automatically fetches fresh filtered results
+- `hasServerData` ref, `isFirstMountRef`, `initialPageRef`, `loadedPages` state, and the restore loop are all removed; URL sync now watches `latestPage = data?.pageParams.at(-1)` — a derived number — so the effect only runs when the actual page depth changes
+- added `CardPage = { cards: CardResume[]; hasMore: boolean }` to `src/lib/tcg.ts` and exported it; both components import the type from there; `SetCardsGrid` removes its local `CardResume` redefinition and imports from `@/lib/tcg` instead
+- added a new iMessage exchange to `/thoughts/tcg` covering the `useInfiniteQuery` migration: what replaces `AbortController`, why the restore loop was dropped, and how the sentinel pattern changed
+- updated README TCG section to reflect `useInfiniteQuery` as the pagination mechanism and remove the `AbortController` mention
+
 ## 2026-03-01 - version 0.3.17
 
 - converted `EventsContent` from a manual `useState + useEffect + useRef(AbortController) + filterKey/loadedKey` derived loading pattern to `useQuery(queryKeys.calendar.eventsList({ startDate, endDate, cardName: debouncedCardName }))`; when any of the three backend filter params changes, the key changes and TanStack Query fires a fresh fetch automatically — no manual trigger, no AbortController wiring
