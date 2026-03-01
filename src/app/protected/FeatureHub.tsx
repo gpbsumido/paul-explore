@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useTransition, type RefObject } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useInView } from "@/app/landing/useInView";
 import { reveal } from "@/app/landing/Section";
+import { queryKeys } from "@/lib/queryKeys";
 import type { FeatureItem, ThoughtItem } from "@/types/protected";
 
 // How long each card waits before its entrance animation kicks off.
@@ -561,16 +563,14 @@ export default function FeatureHub() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const [userName, setUserName] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
-  useEffect(() => {
-    fetch("/api/me")
-      .then((r) => r.json())
-      .then(({ name, email }: { name: string | null; email: string | null }) => {
-        setUserName(name ?? "there");
-        setUserEmail(email ?? undefined);
-      });
-  }, []);
+  const meQuery = useQuery({
+    queryKey: queryKeys.me(),
+    queryFn: (): Promise<{ name: string | null; email: string | null }> =>
+      fetch("/api/me").then((r) => r.json()),
+    staleTime: 5 * 60_000,
+  });
+  const userName = meQuery.isLoading ? null : (meQuery.data?.name ?? "there");
+  const userEmail = meQuery.data?.email ?? undefined;
 
   const [thoughtsRef, thoughtsVisible] = useInView(0.1);
 

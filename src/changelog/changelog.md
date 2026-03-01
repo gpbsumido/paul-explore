@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.13
+
+- converted `FeatureHub`'s `/api/me` fetch from a manual `useState` + `useEffect` pattern to `useQuery({ queryKey: queryKeys.me(), staleTime: 5 * 60_000 })`; removes two state variables and the effect entirely; `isLoading` drives the skeleton bones in the header while the request is in-flight, same as before but without the boilerplate
+- converted `LeagueContent` from five `useState` variables (`teams`, `members`, `leagueName`, `loading`, `error`) plus `useRef`, `useCallback`, and `useEffect` to a single `useQuery({ queryKey: queryKeys.nba.league(season), staleTime: 60 * 60_000 })`; the query function fetches and sorts teams in one place, returning `{ leagueName, teams, members }` as a single object; switching the season selector now automatically triggers a refetch because `season` is part of the query key; the retry button calls `leagueQuery.refetch()` instead of re-calling the old callback
+
 ## 2026-03-01 - version 0.3.12
 
 - added `@tanstack/react-query` and `@tanstack/react-query-devtools` as the data fetching layer for the app; this is the foundation for converting every manual useEffect + fetch + AbortController + derived-loading-state pattern to proper query and mutation hooks over the next several steps
