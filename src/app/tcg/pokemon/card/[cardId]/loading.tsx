@@ -32,23 +32,25 @@ export default function CardDetailLoading() {
           {/* Details */}
           <div className="flex-1 flex flex-col gap-5 min-w-0">
             {/* Name + HP */}
-            <div className="flex items-start justify-between gap-4">
-              <Bone className="h-10 w-56" />
-              <Bone className="h-8 w-16 shrink-0" />
-            </div>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-4">
+                <Bone className="h-10 w-56" />
+                <Bone className="h-8 w-16 shrink-0" />
+              </div>
 
-            {/* Type pills */}
-            <div className="flex gap-2">
-              <Bone className="h-6 w-16" />
-              <Bone className="h-6 w-16" />
+              {/* Type pills */}
+              <div className="flex gap-2">
+                <Bone className="h-6 w-16" />
+                <Bone className="h-6 w-16" />
+              </div>
             </div>
 
             {/* Meta grid */}
             <div className="rounded-xl border border-border bg-surface p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex flex-col gap-1.5">
+                <div key={i} className="flex flex-col gap-0.5">
                   <Bone className="h-2.5 w-16" />
-                  <Bone className="h-4 w-24" />
+                  <Bone className="h-[14px] w-24" />
                 </div>
               ))}
             </div>

@@ -5,7 +5,7 @@ function Bone({ className }: { className: string }) {
 }
 
 function SetCardSkeleton() {
-  return <div className="rounded-lg bg-surface animate-pulse" style={{ aspectRatio: "3/2" }} />;
+  return <div className="rounded-lg bg-surface animate-pulse h-[88px]" />;
 }
 
 export default function SetsLoading() {
