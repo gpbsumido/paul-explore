@@ -19,6 +19,17 @@ export const queryKeys = {
      */
     events: (range: { start: string; end: string }) =>
       ["calendar", "events", range] as const,
+
+    /**
+     * Events list page. Keyed by the three backend filter params: date range
+     * and card name. Title filtering runs client-side so it does not appear
+     * in the key — typing in the title box never triggers a network request.
+     */
+    eventsList: (filters: {
+      startDate: string;
+      endDate: string;
+      cardName: string;
+    }) => ["calendar", "eventsList", filters] as const,
   },
 
   nba: {

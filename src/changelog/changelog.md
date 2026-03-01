@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.17
+
+- converted `EventsContent` from a manual `useState + useEffect + useRef(AbortController) + filterKey/loadedKey` derived loading pattern to `useQuery(queryKeys.calendar.eventsList({ startDate, endDate, cardName: debouncedCardName }))`; when any of the three backend filter params changes, the key changes and TanStack Query fires a fresh fetch automatically — no manual trigger, no AbortController wiring
+- added `calendar.eventsList` to `queryKeys.ts` as a separate factory from `calendar.events`; the events list page takes `{ startDate, endDate, cardName }` (raw date strings plus debounced card name) while the calendar grid uses `{ start, end }` ISO timestamps; different shapes warrant separate keys so the two caches never collide
+- the `queryFn` receives TanStack Query's abort `signal` from context and passes it to `fetch`; changing a filter cancels the previous in-flight request automatically on key change, replacing the manual `abortRef.current?.abort()` call
+- `loading` is `eventsQuery.isLoading` — true only when there is no data for the current filter params and a fetch is in-flight; background refetches (focus, remount with `staleTime: 0`) happen silently without replacing the result list with a skeleton
+- title filtering moved from inline `events.filter(...)` to a `useMemo` over `eventsQuery.data`; the memo re-runs only when the returned events or `debouncedTitle` change, not on every render; the `.sort(startDate desc)` is included in the memo so the array is stable until data or title changes
+- error message rendered from `eventsQuery.error?.message` so the thrown error text from the `queryFn` reaches the user directly, with a fallback string for unexpected error shapes
+- removed `useState(events)`, `useState(error)`, `useState(loadedKey)`, `useEffect`, `useRef`, and the `filterKey` derived string; imports drop `useEffect` and `useRef`, add `useMemo`, `useQuery`, and `queryKeys`
+
 ## 2026-03-01 - version 0.3.16
 
 - converted `createEvent`, `updateEvent`, and `deleteEvent` in `useCalendarEvents` from manual `useCallback + setQueryData` handlers to three `useMutation` hooks with the full optimistic update pattern
