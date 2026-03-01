@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.3
+
+- protected hub CLS fix: FeatureHub's feature card preview area now has a fixed height of 112px with overflow-hidden, matching the skeleton's preview bone exactly; VitalsPreview with 5 rows was taller than 112px and was causing a layout shift on every page load
+- vitals chart CLS fix: VitalsChart now renders a matching 5-card skeleton grid on the server instead of returning null; unovis needs the DOM so it was always a client-only render, and the chart popping in after hydration was pushing the by-page table down
+- protected hub stagger fix: STAGGER_DELAYS only had 7 entries for 8 thought cards; Styling Decisions (index 7) fell back to delay "" and fired at the same time as Bundle Analysis instead of last in the cascade; added delay-[525ms] to complete the sequence
+- `CalendarSkeletons.tsx` code quality: moved GRID_COLS, GRID_CELLS, LAST_ROW_START, and the other view constants to module level instead of inlining them inside functions; added WEEK_DAY_COUNT and YEAR_MONTH_COUNT so magic numbers don't drift from the real views
+- improved calendar page metadata description
+
 ## 2026-02-28 - version 0.3.2
 
 - calendar CLS fix: day, week, and year views now each have a pixel-matched skeleton shown while the JS chunk downloads; DaySkeleton mirrors DayView's 44px row height and 4.5rem gutter, WeekSkeleton mirrors WeekView's 48px rows and 7-column header, YearSkeleton mirrors YearView's responsive grid of 12 mini month cards

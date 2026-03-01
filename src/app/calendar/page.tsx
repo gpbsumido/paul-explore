@@ -10,7 +10,8 @@ import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import type { CalendarEvent } from "@/types/calendar";
 
 const TITLE = "Calendar";
-const DESCRIPTION = "A personal calendar for tracking events.";
+const DESCRIPTION =
+  "A full-stack personal calendar with day, week, month, and year views. Create events, attach Pokémon cards, and navigate across dates -- all persisted in Postgres per user.";
 
 export const metadata: Metadata = {
   title: TITLE,

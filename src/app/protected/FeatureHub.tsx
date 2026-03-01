@@ -8,7 +8,6 @@ import { reveal } from "@/app/landing/Section";
 import type { FeatureItem, ThoughtItem } from "@/types/protected";
 
 // How long each card waits before its entrance animation kicks off.
-// 75ms increments keep the cascade snappy — just over half a second total.
 const STAGGER_DELAYS = [
   "",
   "delay-75",
@@ -130,7 +129,8 @@ const THOUGHTS: ThoughtItem[] = [
   {
     title: "Bundle Analysis",
     href: "/thoughts/bundle",
-    preview: "How the analyzer found Auth0Provider shipping jose to the browser for no reason",
+    preview:
+      "How the analyzer found Auth0Provider shipping jose to the browser for no reason",
     color: "#f97316",
   },
 ].reverse();
@@ -458,15 +458,13 @@ function FeatureCard({ feature, delay, visible }: FeatureCardProps) {
         reveal(visible, delay),
       ].join(" ")}
     >
-      {/* Preview area — height matches the skeleton exactly (112px) so there's
+      {/* Preview area - height matches the skeleton exactly (112px) so there's
           no layout shift when the loading state swaps out for real content. */}
       <div
         className="bg-neutral-100 dark:bg-neutral-950 overflow-hidden"
         style={{ height: 112 }}
       >
-        <div className="p-3">
-          {Preview && <Preview />}
-        </div>
+        <div className="p-3">{Preview && <Preview />}</div>
       </div>
 
       {/* Card body */}
