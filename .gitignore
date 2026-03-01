@@ -185,3 +185,6 @@ dist
 
 # macOS
 .DS_Store
+
+# plans
+/plans
