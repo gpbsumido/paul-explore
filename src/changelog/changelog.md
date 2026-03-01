@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.7
+
+- ThoughtCard text no longer truncates, preview text wraps to new lines instead of getting cut off with an ellipsis
+- cards in the same grid row stay equal height: `h-full` on the inner Link fills the grid item's height (CSS grid stretches all items in a row to the tallest by default via `align-items: stretch`); without it, the card background and border stopped at content height even when the grid item was taller
+
 ## 2026-02-28 - version 0.3.6
 
 - FCP fix for `/calendar/events/[id]`: was fully client-side (useState + useEffect fetching event + cards after hydration -- blank page, then skeleton, then content); converted to async server component with Suspense using the same CalendarWithData pattern -- EventDetailWithData fetches both in parallel directly from the backend, EventDetailSkeleton streams in the HTML shell, real content on the first paint

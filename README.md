@@ -12,7 +12,7 @@ A personal playground and portfolio — somewhere between a sandbox and a showca
 
 Auth0 integration wired into a custom Next.js middleware proxy. Protected routes redirect unauthenticated users to login. CSP headers are generated per-request with nonces so inline scripts stay locked down without breaking `next/script`. The `/api/` paths are explicitly set to be public so API routes don't trigger auth redirect.
 
-After login, you land on the feature hub at `/protected` — a showcase grid of all six features with dark mini-preview mockups inside each card and staggered entrance animations. Cards animate in on page load with a 75ms cascade; the dev-notes section below the grid is scroll-triggered. The hub is a client component (`FeatureHub.tsx`) handed user info from a thin server component that just calls `auth0.getSession()`.
+After login, you land on the feature hub at `/protected` — a showcase grid of all six features with dark mini-preview mockups inside each card and staggered entrance animations. Cards animate in on page load with a 75ms cascade; the dev-notes section below the grid is scroll-triggered. The hub is a client component (`FeatureHub.tsx`) handed user info from a thin server component that just calls `auth0.getSession()`. Dev-notes cards show the full preview text (wraps to multiple lines) and cards in the same grid row stay equal height via `h-full` on the link and CSS grid's default `align-items: stretch`.
 
 ### 🎨 Design System
 
@@ -192,6 +192,7 @@ src/
 - the event detail page was the last remaining client-side-only data fetch in the calendar; converting it to an async server component with Suspense cut FCP from "blank -> skeleton -> content" (two round trips) to "skeleton -> content" (one server render delivers both the skeleton and the data)
 - `transition-all` on hover effects that only change `border-color` and `box-shadow` makes the browser check every CSS property for changes on each frame; card hover effects across the TCG and calendar pages all changed to `transition-[border-color,box-shadow]` -- same visual result, measurably less per-frame work
 - focus indicators (`:focus-visible` outlines) should not be transitioned; the browser's instant focus ring is more accessible than a fade, and removing the `transition-all` from those buttons is both a performance win and a WCAG improvement
+- CSS grid's `align-items: stretch` makes every item in a row fill the tallest item's height automatically -- but only the grid item (the outer div) gets stretched; an inner element like a link or button needs `h-full` to fill that height and make the card background/border extend to match; `min-w-0` on the grid item is the prerequisite, since without it an item with non-wrapping text resists shrinking below its content width and overflows the column
 
 ---
 

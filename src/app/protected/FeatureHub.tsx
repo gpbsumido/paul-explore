@@ -514,8 +514,11 @@ interface ThoughtCardProps {
 
 /** Compact link card for the dev-notes section. */
 function ThoughtCard({ thought, delay, visible }: ThoughtCardProps) {
+  // h-full on the Link fills the grid item's height so all cards in a row
+  // stay the same height even when preview text wraps to multiple lines.
+  // The grid handles row equalization via align-items: stretch (default).
   return (
-    <div className={reveal(visible, delay)}>
+    <div className={`min-w-0 ${reveal(visible, delay)}`}>
       <Link
         href={thought.href}
         className="flex h-full items-start gap-3 rounded-xl border border-border bg-surface p-3 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
@@ -528,7 +531,7 @@ function ThoughtCard({ thought, delay, visible }: ThoughtCardProps) {
           <p className="text-[13px] font-semibold leading-snug text-foreground">
             {thought.title}
           </p>
-          <p className="mt-0.5 truncate text-[11px] text-muted">
+          <p className="mt-0.5 text-[11px] text-muted">
             {thought.preview}
           </p>
         </div>
