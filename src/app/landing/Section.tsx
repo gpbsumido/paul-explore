@@ -1,6 +1,6 @@
 /* shared transition helpers + section wrapper */
 
-const base = "transition-all duration-700 ease-out";
+const base = "transition-[opacity,transform] duration-700 ease-out";
 const hidden = "opacity-0 translate-y-8";
 const shown = "opacity-100 translate-y-0";
 

@@ -83,6 +83,30 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
 // that comes from calling setState inside an effect.
 const emptySubscribe = () => () => {};
 
+// Placeholder shown on the server (and briefly during hydration) while unovis
+// bootstraps. Matches MetricTrendChart's card structure exactly -- same grid,
+// same padding, same h-20 chart area -- so nothing shifts when it swaps out.
+function ChartSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {METRIC_ORDER.map((metric) => {
+        const config = METRIC_CONFIGS[metric];
+        return (
+          <div key={metric} className="rounded-xl border border-border bg-surface p-4">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
+              {metric}
+            </span>
+            <p className="mt-0.5 text-[10px] leading-tight text-muted/60">
+              {config.label}
+            </p>
+            <div className="mt-2 h-20 rounded-lg bg-surface-raised animate-pulse" />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Grid of P75 trend sparklines, one per metric, across the last 5 versions. */
 export default function VitalsChart({ byVersion }: { byVersion: VersionMetrics[] }) {
   const isClient = useSyncExternalStore(
@@ -91,7 +115,11 @@ export default function VitalsChart({ byVersion }: { byVersion: VersionMetrics[]
     () => false,
   );
 
-  if (!isClient || byVersion.length < 2) return null;
+  if (byVersion.length < 2) return null;
+
+  // unovis needs the DOM -- render a matching skeleton on the server so the
+  // space is already occupied when the chart swaps in after hydration
+  if (!isClient) return <ChartSkeleton />;
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

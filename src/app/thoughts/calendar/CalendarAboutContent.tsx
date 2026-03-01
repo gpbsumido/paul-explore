@@ -444,6 +444,32 @@ async function CalendarWithData() {
           CLS hit
         </Sent>
 
+        <Timestamp>10:51 AM</Timestamp>
+
+        <Received>what about the event detail page at /calendar/events/:id</Received>
+
+        <Sent pos="first">
+          that one was fully client-side for a long time — it used{" "}
+          <code>useState</code> + <code>useEffect</code> to fetch the event and
+          its cards after hydration. blank page, then skeleton, then content.
+          two round trips before anything showed up
+        </Sent>
+        <Sent pos="middle">
+          converted it to the same SSR pattern. there&apos;s now an{" "}
+          <code>EventDetailWithData</code> async server component that fetches
+          both the event and its cards in parallel from the backend at request
+          time. wrapped in a <code>Suspense</code> boundary with{" "}
+          <code>EventDetailSkeleton</code> as the fallback, plus a{" "}
+          <code>loading.tsx</code> for the route segment so navigating to an
+          event shows the skeleton immediately
+        </Sent>
+        <Sent pos="last">
+          same direct-to-backend approach — skip the <code>/api/</code> proxy to
+          avoid the loopback call, fall back gracefully if the token or backend
+          is unavailable. real content on the first paint instead of waiting for
+          client JS to run
+        </Sent>
+
         <Timestamp>10:55 AM</Timestamp>
 
         <Received>what would you still improve</Received>

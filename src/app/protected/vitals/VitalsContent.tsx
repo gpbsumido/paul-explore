@@ -139,8 +139,8 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
   },
   {
     metric: "INP",
-    what: "Memo + stable callbacks throughout the calendar",
-    how: "All four calendar view components are wrapped in React.memo. useCallback on every callback passed to them prevents memo from being silently bypassed. useMemo on layoutDayEvents keeps the overlap algorithm from running on unrelated state changes.",
+    what: "Specific transitions + startTransition for non-urgent updates",
+    how: "Replaced transition-all with explicit property lists (transition-[opacity,transform] for entrance animations, transition-[border-color,box-shadow] for hover) so the browser only watches the properties that actually change. startTransition wraps state updates that kick off large re-renders so input events aren't blocked.",
   },
   {
     metric: "CLS",
@@ -149,8 +149,8 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
   },
   {
     metric: "TTFB",
-    what: "CDN caching on proxy routes + connection pooling",
-    how: "NBA and TCG API proxy routes set public, s-maxage=300/3600 so repeat requests hit the CDN instead of origin. ISR pages skip the server entirely. Railway Postgres is accessed through a pg pool so there is no per-request connection handshake.",
+    what: "Static landing page + CDN caching + connection pooling",
+    how: "The landing page is statically rendered at build time -- the logged-in redirect moved to middleware so the page component no longer calls getSession() and forces a dynamic render. NBA and TCG proxy routes set public, s-maxage=300/3600 for CDN caching. Railway Postgres uses a connection pool so there is no per-request handshake.",
   },
 ];
 

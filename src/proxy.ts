@@ -16,7 +16,18 @@ export async function proxy(request: Request) {
     return auth0.middleware(request);
   }
 
-  // check if the path is public or is api (which handles it's own auth)
+  // Logged-in users who hit the landing page get bounced to the hub immediately.
+  // Doing this in middleware keeps the redirect off the page's render path --
+  // page.tsx becomes a static build artifact and doesn't pay the cookie-read
+  // cost on every request.
+  if (pathname === "/") {
+    const session = await auth0.getSession();
+    if (session) {
+      return NextResponse.redirect(new URL("/protected", request.url));
+    }
+  }
+
+  // check if the path is public or is api (which handles its own auth)
   const isPublic =
     PUBLIC_PATHS.some((p) => pathname === p) || pathname.startsWith("/api/");
 

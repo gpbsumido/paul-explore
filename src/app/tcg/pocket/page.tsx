@@ -145,7 +145,7 @@ export default async function PocketPage() {
                 {/* Primary set */}
                 <Link
                   href={`/tcg/pokemon/sets/${primary.id}`}
-                  className="group col-span-1 rounded-xl overflow-hidden border border-border bg-surface hover:border-red-400/50 hover:shadow-xl hover:shadow-red-500/10 transition-all"
+                  className="group col-span-1 rounded-xl overflow-hidden border border-border bg-surface hover:border-red-400/50 hover:shadow-xl hover:shadow-red-500/10 transition-[border-color,box-shadow]"
                 >
                   <div className="bg-gradient-to-br from-indigo-950/80 to-indigo-900/30 px-5 py-6 flex items-center gap-4">
                     {primary.logo ? (
@@ -179,7 +179,7 @@ export default async function PocketPage() {
                   <Link
                     key={set.id}
                     href={`/tcg/pokemon/sets/${set.id}`}
-                    className="group rounded-xl border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-all p-4 flex flex-col gap-3"
+                    className="group rounded-xl border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-[border-color,box-shadow] p-4 flex flex-col gap-3"
                   >
                     {set.logo ? (
                       // eslint-disable-next-line @next/next/no-img-element

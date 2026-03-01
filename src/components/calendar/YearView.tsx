@@ -38,7 +38,7 @@ const MiniMonth = memo(function MiniMonth({ month, events, isCurrent, onClick }:
     <button
       onClick={onClick}
       className={[
-        "rounded-xl border bg-surface p-3 text-left w-full transition-all hover:border-foreground/20 hover:shadow-md",
+        "rounded-xl border bg-surface p-3 text-left w-full transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-md",
         // flag tape on the current month — same red stripe as the month grid today cell
         isCurrent
           ? "border-t-2 border-t-red-500 border-x-border border-b-border"

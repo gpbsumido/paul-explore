@@ -29,7 +29,10 @@ export const metadata: Metadata = {
   },
 };
 
-// One TCGdex instance per server process — no reason to re-create it
+// Cache the rendered RSC for 24 hours -- TCG card data almost never changes.
+export const revalidate = 86400;
+
+// One TCGdex instance per server process -- no reason to re-create it
 // on every request. Same pattern as the /api/tcg/cards route.
 const tcgdex = new TCGdex("en");
 const PER_PAGE = 20;
