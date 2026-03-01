@@ -97,7 +97,7 @@ export default async function SetsPage() {
                 <Link
                   key={set.id}
                   href={`/tcg/pokemon/sets/${set.id}`}
-                  className="group rounded-lg border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-all p-3 flex flex-col gap-2"
+                  className="group rounded-lg border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-[border-color,box-shadow] p-3 flex flex-col gap-2"
                 >
                   {set.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element

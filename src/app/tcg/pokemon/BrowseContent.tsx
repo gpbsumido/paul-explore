@@ -237,7 +237,7 @@ function CardTile({ card }: { card: CardResume }) {
   return (
     <Link
       href={`/tcg/pokemon/card/${card.id}`}
-      className="group rounded-lg overflow-hidden border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-all"
+      className="group rounded-lg overflow-hidden border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-[border-color,box-shadow]"
     >
       {card.image ? (
         // eslint-disable-next-line @next/next/no-img-element

@@ -1,5 +1,47 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.7
+
+- ThoughtCard text no longer truncates, preview text wraps to new lines instead of getting cut off with an ellipsis
+- cards in the same grid row stay equal height: `h-full` on the inner Link fills the grid item's height (CSS grid stretches all items in a row to the tallest by default via `align-items: stretch`); without it, the card background and border stopped at content height even when the grid item was taller
+
+## 2026-02-28 - version 0.3.6
+
+- FCP fix for `/calendar/events/[id]`: was fully client-side (useState + useEffect fetching event + cards after hydration -- blank page, then skeleton, then content); converted to async server component with Suspense using the same CalendarWithData pattern -- EventDetailWithData fetches both in parallel directly from the backend, EventDetailSkeleton streams in the HTML shell, real content on the first paint
+- added `loading.tsx` for the `/calendar/events/[id]` route segment so navigating to an event shows the skeleton immediately during SSR
+- fixed EventDetailSkeleton grid to match the real content: added `md:grid-cols-5` to the card grid (was `grid-cols-3 sm:grid-cols-4`, missing the wider breakpoint)
+- added `loading: () => null` to the EventModal `next/dynamic` call -- without a loading prop, a missing chunk throws to the nearest Suspense boundary (root); explicit null keeps the modal quiet while the chunk downloads on first open
+- `transition-all` → specific property lists across 7 files:
+  - `FeaturesSection.tsx`: gradient overlay uses `opacity` + `transform` (scale) -- changed to `transition-[opacity,transform]`
+  - `YearView.tsx`, `BrowseContent.tsx`, `sets/page.tsx`, `pocket/page.tsx` (×2), `SetCardsGrid.tsx`: all hover only `border-color` + `box-shadow` -- changed to `transition-[border-color,box-shadow]`
+  - `EventModal.tsx`: color swatch buttons had `transition-all` on focus-visible outlines; removed the transition (focus indicators should appear instantly per WCAG)
+- added `export const revalidate = 86400` to `/tcg/pokemon/page.tsx` -- card data is static, no reason to re-render the RSC per request
+- added `export const revalidate = 3600` to `/graphql/page.tsx` -- Pokémon data changes infrequently; cached RSC serves repeat visits without re-hitting PokeAPI
+- updated `/thoughts/calendar` with an exchange on the event detail SSR conversion
+
+## 2026-02-28 - version 0.3.5
+
+- TTFB fix on "/": landing page was calling `auth0.getSession()` solely to redirect logged-in users, which forced Next.js to treat the page as dynamic and re-render it on every request; moved the redirect to `proxy.ts` middleware (which already runs per-request) so the page component has no async work and Next.js can statically pre-render it at build time
+- updated the TTFB improvement card in the vitals dashboard to mention the static landing page
+- updated `/thoughts/vitals` with a new exchange on why the landing page TTFB was bad and how the middleware redirect fixed it
+
+## 2026-02-28 - version 0.3.4
+
+- INP fix: replaced `transition-all` in `Section.tsx`'s `reveal()` with `transition-[opacity,transform]` -- `transition-all` forces the browser to watch every CSS property for changes on every frame, even for an animation that only touches opacity and transform; scoping it to the two actual properties cuts per-frame work across every staggered card on the site
+- INP fix: split entrance animation and hover transition onto separate elements in FeatureCard and ThoughtCard -- both previously lived on the same div, which caused the last `transition-property` rule to silently clobber the other; outer div now carries the entrance animation only, inner div carries the hover effect only
+- INP fix: wrapped `setLoaded(true)` in `startTransition` inside FeatureHub -- setting loaded kicks off staggered re-renders across 7+ cards; marking it non-urgent lets React drain any queued input events before doing the paint
+- INP fix: `VersionSelector` now wraps `router.push()` in `startTransition` for the same reason; the `<select>` goes visually disabled with reduced opacity while the transition is pending so the user gets feedback without a blocked interaction
+- updated the INP improvement card in the vitals dashboard to describe what's actually in the codebase: specific transition properties + startTransition, not the old memo/callback note which described calendar optimizations
+- updated `/thoughts/vitals` with a new exchange covering why `transition-all` is expensive and how `startTransition` defers non-urgent re-renders
+
+## 2026-02-28 - version 0.3.3
+
+- protected hub CLS fix: FeatureHub's feature card preview area now has a fixed height of 112px with overflow-hidden, matching the skeleton's preview bone exactly; VitalsPreview with 5 rows was taller than 112px and was causing a layout shift on every page load
+- vitals chart CLS fix: VitalsChart now renders a matching 5-card skeleton grid on the server instead of returning null; unovis needs the DOM so it was always a client-only render, and the chart popping in after hydration was pushing the by-page table down
+- protected hub stagger fix: STAGGER_DELAYS only had 7 entries for 8 thought cards; Styling Decisions (index 7) fell back to delay "" and fired at the same time as Bundle Analysis instead of last in the cascade; added delay-[525ms] to complete the sequence
+- `CalendarSkeletons.tsx` code quality: moved GRID_COLS, GRID_CELLS, LAST_ROW_START, and the other view constants to module level instead of inlining them inside functions; added WEEK_DAY_COUNT and YEAR_MONTH_COUNT so magic numbers don't drift from the real views
+- improved calendar page metadata description
+
 ## 2026-02-28 - version 0.3.2
 
 - calendar CLS fix: day, week, and year views now each have a pixel-matched skeleton shown while the JS chunk downloads; DaySkeleton mirrors DayView's 44px row height and 4.5rem gutter, WeekSkeleton mirrors WeekView's 48px rows and 7-column header, YearSkeleton mirrors YearView's responsive grid of 12 mini month cards

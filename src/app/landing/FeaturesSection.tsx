@@ -19,7 +19,8 @@ function FeatureCard({
     <div
       className={`group relative overflow-hidden rounded-2xl border border-border bg-surface p-6 ${reveal(visible, delay)}`}
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100" />
+      {/* opacity + scale change on hover -- only watch those two properties */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 opacity-0 transition-[opacity,transform] duration-500 group-hover:scale-100 group-hover:opacity-100" />
       <div className="relative z-10">
         <span className="text-3xl">{icon}</span>
         <h3 className="mt-3 text-lg font-semibold text-foreground">{title}</h3>

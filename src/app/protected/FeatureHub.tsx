@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type RefObject } from "react";
+import { useState, useEffect, useTransition, type RefObject } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useInView } from "@/app/landing/useInView";
@@ -8,7 +8,6 @@ import { reveal } from "@/app/landing/Section";
 import type { FeatureItem, ThoughtItem } from "@/types/protected";
 
 // How long each card waits before its entrance animation kicks off.
-// 75ms increments keep the cascade snappy — just over half a second total.
 const STAGGER_DELAYS = [
   "",
   "delay-75",
@@ -130,7 +129,8 @@ const THOUGHTS: ThoughtItem[] = [
   {
     title: "Bundle Analysis",
     href: "/thoughts/bundle",
-    preview: "How the analyzer found Auth0Provider shipping jose to the browser for no reason",
+    preview:
+      "How the analyzer found Auth0Provider shipping jose to the browser for no reason",
     color: "#f97316",
   },
 ].reverse();
@@ -450,60 +450,54 @@ interface FeatureCardProps {
 function FeatureCard({ feature, delay, visible }: FeatureCardProps) {
   const Preview = PREVIEW_MAP[feature.id];
 
+  // Outer div for entrance animations, inner div for hover
+  // (avoid transition conflicts)
   return (
-    <div
-      className={[
-        "flex flex-col overflow-hidden rounded-2xl border border-border bg-surface",
-        "transition-all hover:border-foreground/15 hover:shadow-md",
-        reveal(visible, delay),
-      ].join(" ")}
-    >
-      {/* Preview area — height matches the skeleton exactly (112px) so there's
-          no layout shift when the loading state swaps out for real content. */}
-      <div
-        className="bg-neutral-100 dark:bg-neutral-950 overflow-hidden"
-        style={{ height: 112 }}
-      >
-        <div className="p-3">
-          {Preview && <Preview />}
-        </div>
-      </div>
-
-      {/* Card body */}
-      <div className="flex flex-1 flex-col p-4">
-        <div className="mb-1 flex items-center gap-2">
-          <div
-            className="h-2 w-2 shrink-0 rounded-full"
-            style={{ backgroundColor: feature.color }}
-          />
-          <h3 className="text-[15px] font-semibold leading-snug text-foreground">
-            {feature.title}
-          </h3>
+    <div className={reveal(visible, delay)}>
+      <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface h-full transition-[border-color,box-shadow] hover:border-foreground/15 hover:shadow-md">
+        <div
+          className="bg-neutral-100 dark:bg-neutral-950 overflow-hidden"
+          style={{ height: 112 }}
+        >
+          <div className="p-3">{Preview && <Preview />}</div>
         </div>
 
-        <p className="flex-1 text-[13px] leading-relaxed text-muted">
-          {feature.description}
-        </p>
+        {/* Card body */}
+        <div className="flex flex-1 flex-col p-4">
+          <div className="mb-1 flex items-center gap-2">
+            <div
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: feature.color }}
+            />
+            <h3 className="text-[15px] font-semibold leading-snug text-foreground">
+              {feature.title}
+            </h3>
+          </div>
 
-        {/* About on the left, Open on the right */}
-        <div className="mt-3 flex items-center justify-between">
-          {feature.thoughtsHref ? (
+          <p className="flex-1 text-[13px] leading-relaxed text-muted">
+            {feature.description}
+          </p>
+
+          {/* About on the left, Open on the right */}
+          <div className="mt-3 flex items-center justify-between">
+            {feature.thoughtsHref ? (
+              <Link
+                href={feature.thoughtsHref}
+                className="text-[13px] text-muted transition-colors hover:text-foreground"
+              >
+                About
+              </Link>
+            ) : (
+              <div />
+            )}
             <Link
-              href={feature.thoughtsHref}
-              className="text-[13px] text-muted transition-colors hover:text-foreground"
+              href={feature.href}
+              className="text-[13px] font-semibold transition-opacity hover:opacity-75"
+              style={{ color: feature.color }}
             >
-              About
+              Open →
             </Link>
-          ) : (
-            <div />
-          )}
-          <Link
-            href={feature.href}
-            className="text-[13px] font-semibold transition-opacity hover:opacity-75"
-            style={{ color: feature.color }}
-          >
-            Open →
-          </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -520,28 +514,29 @@ interface ThoughtCardProps {
 
 /** Compact link card for the dev-notes section. */
 function ThoughtCard({ thought, delay, visible }: ThoughtCardProps) {
+  // h-full on the Link fills the grid item's height so all cards in a row
+  // stay the same height even when preview text wraps to multiple lines.
+  // The grid handles row equalization via align-items: stretch (default).
   return (
-    <Link
-      href={thought.href}
-      className={[
-        "flex items-start gap-3 rounded-xl border border-border bg-surface p-3",
-        "transition-all hover:border-foreground/20 hover:shadow-sm",
-        reveal(visible, delay),
-      ].join(" ")}
-    >
-      <div
-        className="mt-0.5 h-2 w-2 shrink-0 rounded-full"
-        style={{ backgroundColor: thought.color }}
-      />
-      <div className="min-w-0">
-        <p className="text-[13px] font-semibold leading-snug text-foreground">
-          {thought.title}
-        </p>
-        <p className="mt-0.5 truncate text-[11px] text-muted">
-          {thought.preview}
-        </p>
-      </div>
-    </Link>
+    <div className={`min-w-0 ${reveal(visible, delay)}`}>
+      <Link
+        href={thought.href}
+        className="flex h-full items-start gap-3 rounded-xl border border-border bg-surface p-3 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
+      >
+        <div
+          className="mt-0.5 h-2 w-2 shrink-0 rounded-full"
+          style={{ backgroundColor: thought.color }}
+        />
+        <div className="min-w-0">
+          <p className="text-[13px] font-semibold leading-snug text-foreground">
+            {thought.title}
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted">
+            {thought.preview}
+          </p>
+        </div>
+      </Link>
+    </div>
   );
 }
 
@@ -561,9 +556,14 @@ interface FeatureHubProps {
 export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
   // Set visible on the first animation frame after mount so the CSS transition
   // fires rather than snapping to the final state instantly.
+  // startTransition marks this as non-urgent so React handles any queued
+  // clicks before re-rendering the whole card grid.
   const [loaded, setLoaded] = useState(false);
+  const [, startTransition] = useTransition();
   useEffect(() => {
-    const id = requestAnimationFrame(() => setLoaded(true));
+    const id = requestAnimationFrame(() => {
+      startTransition(() => setLoaded(true));
+    });
     return () => cancelAnimationFrame(id);
   }, []);
 

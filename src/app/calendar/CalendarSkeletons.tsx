@@ -2,21 +2,30 @@
 // Each skeleton matches the real view's dimensions so the page doesn't shift
 // when the chunk arrives and swaps in -- that's what was tanking CLS.
 
-const HOUR_COUNT = 24;
-
-// Day view constants mirrored from DayView.tsx
+// Mirrored from DayView.tsx so the skeleton stays in sync with the real view.
 const DAY_ROW_HEIGHT = 44;
 const DAY_GUTTER_WIDTH = "4.5rem";
 
-// Week view constants mirrored from WeekView.tsx
+// Mirrored from WeekView.tsx.
 const WEEK_ROW_HEIGHT = 48;
+const WEEK_DAY_COUNT = 7;
 
-/** Skeleton for the month grid, shared between loading.tsx and VersionSelector. */
+// Hour rows in a full day -- same for both day and week views.
+const HOUR_COUNT = 24;
+
+// Month grid dimensions -- 7 columns, always 6 rows (42 cells total).
+const MONTH_COLS = 7;
+const MONTH_CELLS = 42;
+const MONTH_LAST_ROW_START = 35; // cells 35-41 are the bottom row
+
+// How many mini month cards the year view renders.
+const YEAR_MONTH_COUNT = 12;
+
+/**
+ * Skeleton for the month grid. Shared between the route-segment loading.tsx
+ * (shown during the SSR stream) and the month view's own loading state.
+ */
 export function MonthSkeleton() {
-  const GRID_COLS = 7;
-  const GRID_CELLS = 42;
-  const LAST_ROW_START = 35;
-
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
       {/* CalendarHeader skeleton */}
@@ -37,9 +46,9 @@ export function MonthSkeleton() {
         {/* Day-of-week label row */}
         <div
           className="grid border-b border-border bg-surface"
-          style={{ gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))` }}
+          style={{ gridTemplateColumns: `repeat(${MONTH_COLS}, minmax(0, 1fr))` }}
         >
-          {Array.from({ length: GRID_COLS }).map((_, i) => (
+          {Array.from({ length: MONTH_COLS }).map((_, i) => (
             <div key={i} className="py-2.5 flex justify-center">
               <div className="h-2.5 w-6 rounded bg-surface-raised animate-pulse" />
             </div>
@@ -49,11 +58,11 @@ export function MonthSkeleton() {
         {/* Day cells */}
         <div
           className="grid"
-          style={{ gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))` }}
+          style={{ gridTemplateColumns: `repeat(${MONTH_COLS}, minmax(0, 1fr))` }}
         >
-          {Array.from({ length: GRID_CELLS }).map((_, i) => {
-            const isLastCol = (i + 1) % GRID_COLS === 0;
-            const isLastRow = i >= LAST_ROW_START;
+          {Array.from({ length: MONTH_CELLS }).map((_, i) => {
+            const isLastCol = (i + 1) % MONTH_COLS === 0;
+            const isLastRow = i >= MONTH_LAST_ROW_START;
             return (
               <div
                 key={i}
@@ -74,7 +83,10 @@ export function MonthSkeleton() {
   );
 }
 
-/** Skeleton for the day view. Matches DayView's heading + 24-row time grid exactly. */
+/**
+ * Skeleton for the day view. Mirrors DayView's header block and 24-row time
+ * grid at the exact same row height and gutter width.
+ */
 export function DaySkeleton() {
   return (
     <div className="rounded-xl border border-border overflow-hidden">
@@ -86,7 +98,7 @@ export function DaySkeleton() {
 
       {/* Time grid */}
       <div className="relative flex">
-        {/* Hour label gutter */}
+        {/* Hour label gutter -- width matches DayView's GUTTER_WIDTH */}
         <div
           className="shrink-0 border-r border-border"
           style={{ width: DAY_GUTTER_WIDTH }}
@@ -117,15 +129,17 @@ export function DaySkeleton() {
   );
 }
 
-/** Skeleton for the week view. Matches WeekView's 7-column header + 24-row time grid. */
+/**
+ * Skeleton for the week view. Mirrors WeekView's 7-column day headers and
+ * 24-row time grid at the exact same row height.
+ */
 export function WeekSkeleton() {
   return (
     <div className="rounded-xl border border-border overflow-x-auto">
-      {/* Column headers */}
+      {/* Column headers -- w-12 gutter spacer matches WeekView */}
       <div className="flex border-b border-border">
-        {/* gutter spacer -- same as WeekView's w-12 */}
         <div className="w-12 shrink-0 border-r border-border" />
-        {Array.from({ length: 7 }).map((_, i) => (
+        {Array.from({ length: WEEK_DAY_COUNT }).map((_, i) => (
           <div
             key={i}
             className="flex-1 py-2 text-center border-r border-border last:border-r-0"
@@ -138,7 +152,7 @@ export function WeekSkeleton() {
 
       {/* Time grid */}
       <div className="flex">
-        {/* Hour label gutter -- w-12 matches WeekView's gutter */}
+        {/* Hour label gutter -- w-12 matches WeekView */}
         <div className="w-12 shrink-0 border-r border-border">
           {Array.from({ length: HOUR_COUNT }).map((_, i) => (
             <div
@@ -151,8 +165,8 @@ export function WeekSkeleton() {
           ))}
         </div>
 
-        {/* 7 day columns */}
-        {Array.from({ length: 7 }).map((_, ci) => (
+        {/* Day columns */}
+        {Array.from({ length: WEEK_DAY_COUNT }).map((_, ci) => (
           <div key={ci} className="flex-1 border-r border-border last:border-r-0">
             {Array.from({ length: HOUR_COUNT }).map((_, ri) => (
               <div
@@ -169,29 +183,30 @@ export function WeekSkeleton() {
 }
 
 /**
- * Skeleton for the year view. Matches YearView's responsive grid of 12 mini month cards.
- * Each card mirrors the MiniMonth structure: name + 7-col day labels + 6 rows of day dots.
+ * Skeleton for the year view. Mirrors YearView's responsive 2/3/4-column grid
+ * of 12 mini month cards -- each card has a month name, 7-col day labels, and
+ * 6 rows of day circles.
  */
 export function YearSkeleton() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-      {Array.from({ length: 12 }).map((_, i) => (
+      {Array.from({ length: YEAR_MONTH_COUNT }).map((_, i) => (
         <div key={i} className="rounded-xl border border-border bg-surface p-3">
           {/* Month name */}
           <div className="h-3 w-14 rounded bg-surface-raised animate-pulse mb-2.5" />
 
           {/* Day-of-week label row */}
           <div className="grid grid-cols-7 mb-1">
-            {Array.from({ length: 7 }).map((_, j) => (
+            {Array.from({ length: WEEK_DAY_COUNT }).map((_, j) => (
               <div key={j} className="flex justify-center">
                 <div className="h-2 w-2.5 rounded bg-surface-raised animate-pulse" />
               </div>
             ))}
           </div>
 
-          {/* Day cells -- 6 rows x 7 cols = 42 */}
+          {/* Day cells -- 6 rows x 7 cols */}
           <div className="grid grid-cols-7 gap-y-0.5">
-            {Array.from({ length: 42 }).map((_, j) => (
+            {Array.from({ length: MONTH_CELLS }).map((_, j) => (
               <div key={j} className="flex justify-center py-0.5">
                 <div className="h-5 w-5 rounded-full bg-surface-raised animate-pulse" />
               </div>
