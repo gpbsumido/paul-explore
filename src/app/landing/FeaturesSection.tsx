@@ -61,42 +61,42 @@ export default function FeaturesSection() {
             title="Web Vitals Dashboard"
             description="Real-user Core Web Vitals collected via sendBeacon, aggregated as P75 in Postgres, and displayed on a protected dashboard."
             visible={visible}
-            delay="delay-[700ms]"
+            delay="delay-200"
           />
           <FeatureCard
             icon="🎨"
             title="Design System"
             description="Token-driven palette, theme toggling, and reusable components."
             visible={visible}
-            delay="delay-200"
+            delay="delay-300"
           />
           <FeatureCard
             icon="🏀"
             title="NBA Stats"
             description="Live player stats via API proxy with batch loading and error handling."
             visible={visible}
-            delay="delay-300"
+            delay="delay-400"
           />
           <FeatureCard
             icon="🃏"
             title="Pokémon TCG"
             description="Card browser with infinite scroll, URL-synced filters, and per-set grids built on the TCGdex SDK."
             visible={visible}
-            delay="delay-[400ms]"
+            delay="delay-500"
           />
           <FeatureCard
             icon="📅"
             title="Personal Calendar"
             description="Four-view calendar with multi-day events, time-grid overlap layout, and Pokémon card attachments."
             visible={visible}
-            delay="delay-[500ms]"
+            delay="delay-600"
           />
           <FeatureCard
             icon="◈"
             title="GraphQL Pokédex"
             description="Pokémon browser using the PokeAPI Hasura endpoint — typed queries, field selection, plain fetch over Apollo."
             visible={visible}
-            delay="delay-[600ms]"
+            delay="delay-700"
           />
         </div>
       </div>

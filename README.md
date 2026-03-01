@@ -10,7 +10,7 @@ A personal playground and portfolio — somewhere between a sandbox and a showca
 
 ### 🔐 Auth & Security
 
-Auth0 integration wired into a custom Next.js middleware proxy. Protected routes redirect unauthenticated users to login. CSP headers are generated per-request with nonces so inline scripts stay locked down without breaking `next/script`. The `/api/` paths are explicitly set to be public so API routes don't trigger auth redirect.
+Auth0 integration wired into a custom Next.js middleware proxy. Protected routes redirect unauthenticated users to login. CSP headers are set in middleware with `script-src 'self' 'unsafe-inline'` — the `'unsafe-inline'` is required because Next.js App Router inlines RSC payload scripts (`self.__next_f.push(...)`) directly into HTML with no nonce, and using `'strict-dynamic'` with nonces blocks them silently. The alternative (making the root layout async to read and propagate a nonce) opts every page out of static generation and hurts TTFB/LCP. The real XSS protection is React's automatic JSX escaping — no `dangerouslySetInnerHTML` anywhere in the codebase means user-generated data never reaches the DOM as raw HTML. The `/api/` paths are explicitly public so API routes don't trigger auth redirect.
 
 After login, you land on the feature hub at `/protected` — a showcase grid of all six features with dark mini-preview mockups inside each card and staggered entrance animations. Cards animate in on page load with a 75ms cascade; the dev-notes section below the grid is scroll-triggered. The hub is a client component (`FeatureHub.tsx`) handed user info from a thin server component that just calls `auth0.getSession()`. Dev-notes cards show the full preview text (wraps to multiple lines) and cards in the same grid row stay equal height via `h-full` on the link and CSS grid's default `align-items: stretch`.
 
@@ -154,7 +154,7 @@ src/
 
 - Tailwind v4's `@theme` block is actually a clean way to bridge CSS custom properties into utility classes — one token file, two systems
 - `useSyncExternalStore` is underused for things like theme preference — avoids the hydration mismatch that `useState` + `useEffect` creates
-- Next.js middleware for auth is straightforward until CSP nonces get involved — the nonce has to flow from the middleware through to the layout server component via request headers
+- Next.js middleware for auth is straightforward, but CSP nonces and static generation are fundamentally at odds — Next.js inlines RSC payload scripts with no nonce attribute, so `'strict-dynamic'` blocks them; the fix (async root layout reading the nonce via `headers()`) works but forces every page into dynamic rendering; for sites with no `dangerouslySetInnerHTML`, `'self' 'unsafe-inline'` preserves static generation and is the standard approach for Next.js apps
 - Per-row error states in a data table feel much better UX-wise than a single top-level error banner that wipes the whole table
 - `IntersectionObserver` only fires on intersection _state changes_ — if the sentinel is already visible after the first load it never re-triggers; fixing it with `cards.length` in deps (reconnect after each fetch) works but a stable observer + event handler ref is cleaner
 - The event handler ref pattern (`ref.current = () => { ... }` assigned in the render body, no `useEffect`) is the right tool for external APIs that hold callback references — one ref instead of mirroring every piece of state individually

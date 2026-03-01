@@ -40,32 +40,24 @@ export async function proxy(request: Request) {
     }
   }
 
-  // generate a per-request nonce for inline scripts
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-
   const csp = [
     `default-src 'self'`,
-    `script-src 'nonce-${nonce}' 'strict-dynamic'`,
+    // 'self' allows Next.js static chunks; 'unsafe-inline' is required for
+    // Next.js App Router RSC payload scripts (self.__next_f.push(...)) that
+    // are inlined into the HTML at build time and cannot carry a per-request
+    // nonce. This is the standard CSP for Next.js apps with static pages.
+    `script-src 'self' 'unsafe-inline'`,
     `style-src 'self' 'unsafe-inline'`,
     `img-src 'self' data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
     `font-src 'self'`,
-    `connect-src 'self'`,
+    `connect-src 'self' https://vitals.vercel-insights.com`,
     `object-src 'none'`,
     `base-uri 'self'`,
     `form-action 'self'`,
     `frame-ancestors 'none'`,
   ].join("; ");
 
-  // pass nonce to layout via request headers
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-
-  // create the response object
-  const response = NextResponse.next({
-    request: { headers: requestHeaders },
-  });
-
-  // set the CSP header
+  const response = NextResponse.next();
   response.headers.set("Content-Security-Policy", csp);
 
   return response;

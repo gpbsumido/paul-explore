@@ -8,16 +8,7 @@ import { reveal } from "@/app/landing/Section";
 import type { FeatureItem, ThoughtItem } from "@/types/protected";
 
 // How long each card waits before its entrance animation kicks off.
-const STAGGER_DELAYS = [
-  "",
-  "delay-75",
-  "delay-150",
-  "delay-[225ms]",
-  "delay-300",
-  "delay-[375ms]",
-  "delay-[450ms]",
-  "delay-[525ms]",
-] as const;
+const STAGGER_MS = 75;
 
 // These are strictly UI data so they live here, not in a separate config file.
 const FEATURES: FeatureItem[] = [
@@ -132,6 +123,13 @@ const THOUGHTS: ThoughtItem[] = [
     preview:
       "How the analyzer found Auth0Provider shipping jose to the browser for no reason",
     color: "#f97316",
+  },
+  {
+    title: "CSP & Security",
+    href: "/thoughts/security",
+    preview:
+      "Why 'unsafe-inline' is the right call for Next.js static pages, and what actually prevents XSS",
+    color: "#ec4899",
   },
 ].reverse();
 
@@ -438,7 +436,7 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
 
 interface FeatureCardProps {
   feature: FeatureItem;
-  delay: string;
+  delayMs: number;
   visible: boolean;
 }
 
@@ -447,13 +445,13 @@ interface FeatureCardProps {
  * a mini screenshot of the feature (light gray in light mode, near-black in dark).
  * The bottom half has the title, description, and navigation links.
  */
-function FeatureCard({ feature, delay, visible }: FeatureCardProps) {
+function FeatureCard({ feature, delayMs, visible }: FeatureCardProps) {
   const Preview = PREVIEW_MAP[feature.id];
 
   // Outer div for entrance animations, inner div for hover
   // (avoid transition conflicts)
   return (
-    <div className={reveal(visible, delay)}>
+    <div className={reveal(visible)} style={{ transitionDelay: `${delayMs}ms` }}>
       <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface h-full transition-[border-color,box-shadow] hover:border-foreground/15 hover:shadow-md">
         <div
           className="bg-neutral-100 dark:bg-neutral-950 overflow-hidden"
@@ -508,17 +506,17 @@ function FeatureCard({ feature, delay, visible }: FeatureCardProps) {
 
 interface ThoughtCardProps {
   thought: ThoughtItem;
-  delay: string;
+  delayMs: number;
   visible: boolean;
 }
 
 /** Compact link card for the dev-notes section. */
-function ThoughtCard({ thought, delay, visible }: ThoughtCardProps) {
+function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
   // h-full on the Link fills the grid item's height so all cards in a row
   // stay the same height even when preview text wraps to multiple lines.
   // The grid handles row equalization via align-items: stretch (default).
   return (
-    <div className={`min-w-0 ${reveal(visible, delay)}`}>
+    <div className={`min-w-0 ${reveal(visible)}`} style={{ transitionDelay: `${delayMs}ms` }}>
       <Link
         href={thought.href}
         className="flex h-full items-start gap-3 rounded-xl border border-border bg-surface p-3 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
@@ -621,7 +619,7 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
             <FeatureCard
               key={feature.id}
               feature={feature}
-              delay={STAGGER_DELAYS[i] ?? ""}
+              delayMs={i * STAGGER_MS}
               visible={loaded}
             />
           ))}
@@ -642,7 +640,7 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
               <ThoughtCard
                 key={thought.href}
                 thought={thought}
-                delay={STAGGER_DELAYS[i] ?? ""}
+                delayMs={i * STAGGER_MS}
                 visible={thoughtsVisible}
               />
             ))}
