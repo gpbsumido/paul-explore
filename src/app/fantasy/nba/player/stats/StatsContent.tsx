@@ -1,124 +1,111 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui";
-import type {
-  Team,
-  Player,
-  PlayerStats,
-  SortKey,
-  PlayerRow,
-} from "@/types/nba";
+import type { Team, Player, PlayerStats, PlayerRow, SortKey } from "./types";
+import { queryKeys } from "@/lib/queryKeys";
 import { COLUMNS, getSortValue } from "@/lib/nba";
 import { selectChevron } from "@/assets/icons";
 import ErrorRowModal from "./ErrorRowModal";
 import NoStats from "./NoStats";
 
 export default function StatsContent() {
-  const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
-  const [rows, setRows] = useState<PlayerRow[]>([]);
-  const [remaining, setRemaining] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("pts");
   const [sortAsc, setSortAsc] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
 
-  // fetch teams
+  /** Full list of NBA teams, sorted alphabetically for the selector. */
+  const teamsQuery = useQuery({
+    queryKey: queryKeys.nba.teams(),
+    queryFn: async (): Promise<Team[]> => {
+      const res = await fetch("/api/nba/teams");
+      if (!res.ok) throw new Error("Failed to load teams");
+      const json = await res.json();
+      const list: Team[] = json.data?.data ?? json.data ?? [];
+      return [...list].sort((a, b) => a.full_name.localeCompare(b.full_name));
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  const teams = teamsQuery.data ?? [];
+
+  // Auto-select the first team once teams load. onSuccess was removed in
+  // TanStack Query v5 so we watch teamsQuery.data in an effect instead.
   useEffect(() => {
-    fetch("/api/nba/teams")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load teams");
-        return res.json();
-      })
-      .then((json) => {
-        const list: Team[] = json.data?.data ?? json.data ?? [];
-        const sorted = [...list].sort((a, b) =>
-          a.full_name.localeCompare(b.full_name),
-        );
-        setTeams(sorted);
-      })
-      .catch((err) => setError(err.message));
-  }, []);
-
-  const abortRef = useRef<AbortController | null>(null);
-
-  // fetch team stats
-  const fetchTeamStats = useCallback(async (teamId: number) => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setLoading(true);
-    setError(null);
-    setRows([]);
-    setRemaining(0);
-
-    try {
-      const playersRes = await fetch(`/api/nba/players/${teamId}`, { signal: controller.signal });
-      if (!playersRes.ok) throw new Error("Failed to load players");
-      const playersJson = await playersRes.json();
-      const players: Player[] =
-        playersJson.data?.data ?? playersJson.data ?? [];
-
-      setRemaining(players.length);
-
-      const BATCH_SIZE = 3;
-
-      for (let i = 0; i < players.length; i += BATCH_SIZE) {
-        if (controller.signal.aborted) break;
-        const batch = players.slice(i, i + BATCH_SIZE);
-        const statsResults = await Promise.allSettled(
-          batch.map(async (player) => {
-            const res = await fetch(`/api/nba/stats/${player.id}`, { signal: controller.signal });
-            if (!res.ok) throw new Error("Failed");
-            const statsJson = await res.json();
-            const raw = statsJson.data?.data ?? statsJson.data;
-            const stats: PlayerStats = Array.isArray(raw) ? raw[0] : raw;
-            if (!stats) throw new Error("No data");
-            return {
-              id: player.id,
-              name: `${player.first_name} ${player.last_name}`,
-              pos: player.position || "—",
-              stats,
-            } as PlayerRow;
-          }),
-        );
-
-        if (controller.signal.aborted) break;
-
-        const batchRows: PlayerRow[] = statsResults.map((result, idx) => {
-          if (result.status === "fulfilled") return result.value;
-          const player = batch[idx];
-          return {
-            id: player.id,
-            name: `${player.first_name} ${player.last_name}`,
-            pos: player.position || "—",
-            stats: null,
-            error: true,
-          };
-        });
-
-        setRows((prev) => [...prev, ...batchRows]);
-        setRemaining((prev) => Math.max(0, prev - batch.length));
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") return;
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      if (!controller.signal.aborted) setLoading(false);
+    if (teamsQuery.data && teamsQuery.data.length > 0 && selectedTeamId === null) {
+      setSelectedTeamId(teamsQuery.data[0].id);
     }
-  }, []);
+  }, [teamsQuery.data, selectedTeamId]);
+
+  /** Roster for the selected team. Stays disabled until a team is chosen. */
+  const playersQuery = useQuery({
+    queryKey: queryKeys.nba.players(selectedTeamId!),
+    queryFn: async (): Promise<Player[]> => {
+      const res = await fetch(`/api/nba/players/${selectedTeamId}`);
+      if (!res.ok) throw new Error("Failed to load players");
+      const json = await res.json();
+      return json.data?.data ?? json.data ?? [];
+    },
+    enabled: !!selectedTeamId,
+    staleTime: 5 * 60_000,
+  });
+
+  const players = playersQuery.data ?? [];
+
+  /** One query per player, all firing in parallel. Replaces the manual batch loop. */
+  const statsQueries = useQueries({
+    queries: players.map((p) => ({
+      queryKey: queryKeys.nba.stats(p.id),
+      queryFn: async (): Promise<PlayerStats> => {
+        const res = await fetch(`/api/nba/stats/${p.id}`);
+        if (!res.ok) throw new Error("Failed");
+        const json = await res.json();
+        const raw = json.data?.data ?? json.data;
+        const stats: PlayerStats = Array.isArray(raw) ? raw[0] : raw;
+        if (!stats) throw new Error("No data");
+        return stats;
+      },
+      staleTime: 5 * 60_000,
+      enabled: players.length > 0,
+    })),
+  });
+
+  /** Number of stats queries still in-flight, drives the skeleton row count. */
+  const remaining = statsQueries.filter((q) => q.isPending).length;
+
+  /**
+   * Resolved player rows only. Pending players are not included here so they
+   * render as skeleton rows below the resolved ones instead of blank data cells.
+   */
+  const rows: PlayerRow[] = players
+    .map((p, i) => {
+      const q = statsQueries[i];
+      if (!q || q.isPending) return null;
+      return {
+        id: p.id,
+        name: `${p.first_name} ${p.last_name}`,
+        pos: p.position || "—",
+        stats: q.data ?? null,
+        error: q.isError,
+      };
+    })
+    .filter(Boolean) as PlayerRow[];
+
+  /** Whether teams or players failed to load, which blocks the whole page. */
+  const topLevelError = teamsQuery.isError || playersQuery.isError;
+  const topLevelErrorMessage = teamsQuery.isError
+    ? (teamsQuery.error instanceof Error ? teamsQuery.error.message : "Failed to load teams")
+    : (playersQuery.error instanceof Error ? playersQuery.error.message : "Failed to load players");
 
   // handle team change
   function handleTeamChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const id = Number(e.target.value);
     if (!id) return;
     setSelectedTeamId(id);
-    fetchTeamStats(id);
   }
 
   // handle sort
@@ -131,7 +118,7 @@ export default function StatsContent() {
     }
   }
 
-  // populate sorted rows
+  /** Sorted version of resolved rows, re-computed on every sort change. */
   const sortedRows = [...rows].sort((a, b) => {
     const aVal = getSortValue(a, sortKey);
     const bVal = getSortValue(b, sortKey);
@@ -201,26 +188,28 @@ export default function StatsContent() {
 
       {/* ---- Content ---- */}
       <div className="flex-1 flex flex-col">
-        {error && (
+        {topLevelError && (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 py-10 text-center text-muted text-[15px]">
-            <span>{error}</span>
+            <span>{topLevelErrorMessage}</span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => selectedTeamId && fetchTeamStats(selectedTeamId)}
+              onClick={() =>
+                teamsQuery.isError ? teamsQuery.refetch() : playersQuery.refetch()
+              }
             >
               Retry
             </Button>
           </div>
         )}
 
-        {!error && !selectedTeamId && !loading && (
+        {!selectedTeamId && !teamsQuery.isLoading && !teamsQuery.isError && (
           <div className="flex-1 flex items-center justify-center text-muted text-[15px] px-4 py-10 text-center">
             Pick a team to view player stats
           </div>
         )}
 
-        {!error && (rows.length > 0 || remaining > 0) && (
+        {!topLevelError && (rows.length > 0 || remaining > 0) && (
           <div className="flex-1 bg-gradient-to-br from-secondary-600 to-primary-700 dark:from-secondary-900 dark:to-primary-950">
             <div className="overflow-x-auto rounded-xl m-3 border border-black/10 bg-white/25 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-white/10 dark:shadow-xl">
               <table className="w-full min-w-[480px] border-collapse text-[13px]">
@@ -274,9 +263,7 @@ export default function StatsContent() {
                           >
                             <span className="font-medium">{row.name}</span>
                           </td>
-                          <td
-                            className={`${tdBase} text-right`}
-                          >
+                          <td className={`${tdBase} text-right`}>
                             <span className="text-white/60 dark:text-white/50 text-[11px] ml-1">
                               {row.pos}
                             </span>
@@ -289,10 +276,7 @@ export default function StatsContent() {
                             row.stats!.stl?.toFixed(1),
                             row.stats!.blk?.toFixed(1),
                           ].map((val, j) => (
-                            <td
-                              key={j}
-                              className={`${tdBase} text-right`}
-                            >
+                            <td key={j} className={`${tdBase} text-right`}>
                               {val}
                             </td>
                           ))}
@@ -302,7 +286,7 @@ export default function StatsContent() {
                   ))}
                   {remaining > 0 &&
                     Array.from({ length: remaining }).map((_, i) => {
-                      const rowIdx = rows.length + i;
+                      const rowIdx = sortedRows.length + i;
                       return (
                         <tr
                           key={`skel-${i}`}
@@ -315,10 +299,7 @@ export default function StatsContent() {
                           </td>
                           {Array.from({ length: COLUMNS.length - 1 }).map(
                             (_, j) => (
-                              <td
-                                key={j}
-                                className={`${tdBase} text-right`}
-                              >
+                              <td key={j} className={`${tdBase} text-right`}>
                                 <div className="h-3.5 w-9 rounded bg-white/20 dark:bg-white/10 animate-pulse ml-auto" />
                               </td>
                             ),
@@ -332,7 +313,7 @@ export default function StatsContent() {
           </div>
         )}
 
-        {!error && !loading && selectedTeamId && rows.length === 0 && (
+        {!topLevelError && !playersQuery.isFetching && selectedTeamId && players.length === 0 && (
           <NoStats />
         )}
       </div>

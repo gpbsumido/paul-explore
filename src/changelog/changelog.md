@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.14
+
+- created `src/app/fantasy/nba/player/stats/types.ts` to co-locate all types for the Player Stats page; it re-exports `Team`, `Player`, `PlayerStats`, `SortKey`, and `PlayerRow` from `@/types/nba` so `StatsContent` has one local import source instead of reaching into the global types directory
+- converted `StatsContent` teams fetch from a bare `useEffect + fetch + setState` to `useQuery(queryKeys.nba.teams(), staleTime: 5 * 60_000)`; the query function fetches, checks `res.ok`, and sorts the list alphabetically before returning, so the selector is always in the right order without extra state
+- auto-selection of the first team uses a `useEffect` that watches `teamsQuery.data`; `onSuccess` was removed in TanStack Query v5 so this is the correct v5 pattern; the `selectedTeamId` dep prevents the effect from overwriting a user-selected team on re-renders
+- converted players fetch to `useQuery(queryKeys.nba.players(selectedTeamId), enabled: !!selectedTeamId, staleTime: 5 * 60_000)`; when the team selector changes, the key changes and TanStack Query re-fetches automatically with no manual trigger
+- converted per-player stats fetches from a `Promise.allSettled` batch loop with `AbortController + useCallback + useRef` to `useQueries`; all player queries fire in parallel instead of in batches of three, which is faster when the network and API can handle the concurrency; `useQueries` also handles cancellation and deduplication automatically
+- `remaining` is now `statsQueries.filter(q => q.isPending).length` — a derived value from query state rather than a manually tracked counter; skeleton rows are shown for in-flight queries and disappear as each one resolves
+- resolved rows are filtered from `players.map(...)` — only queries that are no longer `isPending` contribute to the rows array; pending players appear as skeleton rows instead of empty data cells; `q.isError` drives the per-row error state that shows the red row and opens the error modal on click
+- retry wires to `teamsQuery.refetch()` or `playersQuery.refetch()` depending on which layer failed; per-row errors are retried implicitly by the query cache
+- removed `AbortController`, `abortRef`, `useCallback`, `useEffect` for fetching, and five `useState` variables (`teams`, `rows`, `remaining`, `loading`, `error`)
+
 ## 2026-03-01 - version 0.3.13
 
 - converted `FeatureHub`'s `/api/me` fetch from a manual `useState` + `useEffect` pattern to `useQuery({ queryKey: queryKeys.me(), staleTime: 5 * 60_000 })`; removes two state variables and the effect entirely; `isLoading` drives the skeleton bones in the header while the request is in-flight, same as before but without the boilerplate
