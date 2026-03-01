@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useId, type ReactNode } from "react";
 import { format, formatISO, addHours, parseISO } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
-import type { CalendarEvent, DraftCard } from "@/types/calendar";
+import type { CalendarEvent, DraftCard, EventCard } from "@/types/calendar";
 import type { CardResume } from "@/lib/tcg";
 import {
   EVENT_COLORS,
   toInputValue,
-  fetchEventCards,
   addCardToEvent,
   updateEventCard,
   removeCardFromEvent,
@@ -79,15 +79,31 @@ export default function EventModal({
   // ids of already-persisted cards that the user removed this session
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
-  // load attached cards when opening an existing event
+  /**
+   * Fetches the cards attached to an existing event. Disabled for new events
+   * (no event.id yet). staleTime: 0 so reopening the modal always shows fresh
+   * data, but the first render uses the cached response while the refetch runs
+   * in the background.
+   */
+  const cardQuery = useQuery<EventCard[]>({
+    queryKey: ["calendar", "events", event?.id, "cards"],
+    queryFn: () =>
+      fetch(`/api/calendar/events/${event!.id}/cards`)
+        .then((r) => r.json())
+        .then((d) => d.cards as EventCard[]),
+    enabled: !!event?.id,
+    staleTime: 0,
+  });
+
+  // Seed local cards state from the query the first time data arrives.
+  // The check on cards.length keeps user edits (adds, removes, quantity
+  // changes) from being overwritten if the query refetches in the background
+  // while the modal is open.
   useEffect(() => {
-    if (!event?.id) return;
-    fetchEventCards(event.id)
-      .then((fetched) => setCards(fetched.map((c) => ({ ...c }))))
-      .catch(() => {
-        // non-fatal — cards section just starts empty if the fetch fails
-      });
-  }, [event?.id]);
+    if (cardQuery.data && cards.length === 0) {
+      setCards(cardQuery.data.map((c) => ({ ...c })));
+    }
+  }, [cardQuery.data, cards.length]);
 
   /** Stage a card locally. Actual write happens on save so we can batch it with the event. */
   function handleCardSelected(card: CardResume) {

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.20
+
+- converted `CardSearch` from a manual `useState(results) + useState(loadedQuery) + useRef(AbortController) + useEffect` fetch pattern to `useQuery`; the query key is `["tcg", "cards", "search", debouncedQuery]` so TanStack cancels the in-flight fetch and issues a fresh one automatically on every keystroke — no `abortRef`, no `AbortError` catch, no manual `setResults`
+- `enabled: debouncedQuery.trim().length > 0` prevents any fetch until the user starts typing; `staleTime: 5 * 60_000` caches each distinct search term for 5 minutes so re-typing the same query is instant; `placeholderData: []` resets the visible list to empty while the new fetch is in flight so old results never flash for the new query
+- `results = (searchQuery.data ?? []).slice(0, DROPDOWN_LIMIT)` and `loading = searchQuery.isLoading && debouncedQuery.trim().length > 0` are derived from the query; a `useEffect([searchQuery.data])` opens the dropdown automatically when results arrive; removed `useState(results)`, `useState(loadedQuery)`, `abortRef`, and the fetch `useEffect`
+- converted `EventModal` card loading from a custom `useEffect` that called `fetchEventCards` to `useQuery<EventCard[]>`; the query is `["calendar", "events", event?.id, "cards"]` with `enabled: !!event?.id` and `staleTime: 0` so reopening the modal always shows fresh data with the first render using the cached response while the refetch runs in the background
+- a seeding `useEffect([cardQuery.data, cards.length])` copies freshly fetched `EventCard[]` into local `DraftCard[]` state on first arrival; the `cards.length === 0` guard prevents the query's background refetches from overwriting quantity/notes edits the user has made while the modal is open
+- removed `fetchEventCards` import from `EventModal`; removed `EventCard` import from `@/types/calendar` that was previously unused after the conversion (it is re-added from the correct location for the `useQuery` type parameter)
+- updated three "Things I learned" bullets in the README: IntersectionObserver bullet now mentions `fetchNextPage` and the React 19 `useEffect` requirement; AbortController bullet now describes TanStack's built-in signal handling; `hasServerData` ref bullet now describes the `initialData` option that replaces it
+
 ## 2026-03-01 - version 0.3.19
 
 - converted `GraphQLContent` from a manual `useState + useEffect + AbortController + loadedKey/filterKey/hasServerData` pattern to `useInfiniteQuery`; the query key includes `debouncedName` and `activeType` so TanStack cancels the in-flight request and fires a fresh one automatically on every filter change — no `abortRef`, no explicit abort, no `AbortError` catch
