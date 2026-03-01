@@ -256,6 +256,46 @@ async function gql(query, variables, signal) {
           Hasura exposes the full introspection endpoint, so the data is there
         </Sent>
 
+        <Timestamp>11:45 AM</Timestamp>
+
+        <Received pos="first">
+          did the loadedKey and hasServerData stuff ever get cleaned up
+        </Received>
+        <Received pos="last">that was a lot of manual state for one page</Received>
+
+        <Sent pos="first">
+          yes, this one got converted to <code>useInfiniteQuery</code> too
+        </Sent>
+        <Sent pos="middle">
+          <code>loadedKey</code>, <code>filterKey</code>,{" "}
+          <code>hasServerData</code>, <code>abortRef</code>,{" "}
+          <code>offset</code> state, and <code>handleLoadMore</code> are all
+          gone. the query key includes <code>debouncedName</code> and{" "}
+          <code>activeType</code> — when either changes TanStack cancels the
+          in-flight request and fires a fresh fetch on the new key
+          automatically
+        </Sent>
+        <Sent pos="last">
+          <code>isFetchingNextPage</code> replaces the <code>loadingMore</code>{" "}
+          boolean and <code>isLoading</code> replaces the derived{" "}
+          <code>loading = loadedKey !== filterKey</code> expression — both come
+          straight from the hook, no manual state to keep in sync
+        </Sent>
+
+        <Received>how does it know not to re-fetch the server data on mount</Received>
+
+        <Sent pos="first">
+          the <code>initialData</code> prop goes straight into the query cache
+          as the first page. TanStack treats it as fresh for 30 seconds and
+          skips the initial fetch — no <code>hasServerData</code> ref needed
+        </Sent>
+        <Sent pos="last">
+          once the user types or picks a type the key changes and the new
+          fetch fires on the new key. the seeded data stays cached for the
+          no-filter key. it is the same one-time skip, just baked into how{" "}
+          <code>initialData</code> works rather than a manual flag
+        </Sent>
+
         <Received>what does this show as a dev</Received>
 
         <Sent pos="first">

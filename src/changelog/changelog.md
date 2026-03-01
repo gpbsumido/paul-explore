@@ -1,5 +1,93 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.20
+
+- converted `CardSearch` from a manual `useState(results) + useState(loadedQuery) + useRef(AbortController) + useEffect` fetch pattern to `useQuery`; the query key is `["tcg", "cards", "search", debouncedQuery]` so TanStack cancels the in-flight fetch and issues a fresh one automatically on every keystroke — no `abortRef`, no `AbortError` catch, no manual `setResults`
+- `enabled: debouncedQuery.trim().length > 0` prevents any fetch until the user starts typing; `staleTime: 5 * 60_000` caches each distinct search term for 5 minutes so re-typing the same query is instant; `placeholderData: []` resets the visible list to empty while the new fetch is in flight so old results never flash for the new query
+- `results = (searchQuery.data ?? []).slice(0, DROPDOWN_LIMIT)` and `loading = searchQuery.isLoading && debouncedQuery.trim().length > 0` are derived from the query; a `useEffect([searchQuery.data])` opens the dropdown automatically when results arrive; removed `useState(results)`, `useState(loadedQuery)`, `abortRef`, and the fetch `useEffect`
+- converted `EventModal` card loading from a custom `useEffect` that called `fetchEventCards` to `useQuery<EventCard[]>`; the query is `["calendar", "events", event?.id, "cards"]` with `enabled: !!event?.id` and `staleTime: 0` so reopening the modal always shows fresh data with the first render using the cached response while the refetch runs in the background
+- a seeding `useEffect([cardQuery.data, cards.length])` copies freshly fetched `EventCard[]` into local `DraftCard[]` state on first arrival; the `cards.length === 0` guard prevents the query's background refetches from overwriting quantity/notes edits the user has made while the modal is open
+- removed `fetchEventCards` import from `EventModal`; removed `EventCard` import from `@/types/calendar` that was previously unused after the conversion (it is re-added from the correct location for the `useQuery` type parameter)
+- updated three "Things I learned" bullets in the README: IntersectionObserver bullet now mentions `fetchNextPage` and the React 19 `useEffect` requirement; AbortController bullet now describes TanStack's built-in signal handling; `hasServerData` ref bullet now describes the `initialData` option that replaces it
+
+## 2026-03-01 - version 0.3.19
+
+- converted `GraphQLContent` from a manual `useState + useEffect + AbortController + loadedKey/filterKey/hasServerData` pattern to `useInfiniteQuery`; the query key includes `debouncedName` and `activeType` so TanStack cancels the in-flight request and fires a fresh one automatically on every filter change — no `abortRef`, no explicit abort, no `AbortError` catch
+- removed `useState(pokemon)`, `useState(total)`, `useState(offset)`, `useState(error)`, `useState(loadingMore)`, `useState(loadedKey)`, `abortRef`, `hasServerData` ref, `EMPTY_FILTER_KEY` constant, and `handleLoadMore`; `useEffect` now exists only for the `IntersectionObserver` reconnect
+- `getNextPageParam: (lastPage, allPages) => lastPage.pokemon.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined` drives sequential offset pagination; `initialPageParam: 0` starts at offset 0
+- `pokemon` is `useMemo(() => data?.pages.flatMap(p => p.pokemon) ?? [])` and `total` is `data?.pages[0]?.total ?? 0`; `isLoading` replaces the derived `loading = loadedKey !== filterKey`; `isFetchingNextPage` replaces the `loadingMore` boolean
+- `initialData` prop seeds the query cache when server-side data is available: `{ pages: [seedPage], pageParams: [0] }` with `staleTime: 30_000`; TanStack skips the initial fetch and considers the data fresh for 30 seconds — replaces the `hasServerData` ref and the pre-seeded `loadedKey` trick
+- added `PokemonPage = { pokemon: Pokemon[]; total: number }` to `src/types/graphql.ts` — the per-page shape for `useInfiniteQuery`'s `TData`
+- added `fetchPokemonPage({ name, type, offset, signal })` to `src/lib/graphql.ts`; it calls `buildPokemonQuery` + `fetchPokemon` and maps `PokemonListResult` to `PokemonPage`; the component's `queryFn` delegates to this function so the mapping logic stays in the lib
+- the live query panel is unchanged; `buildPokemonQuery` is still called with `debouncedName`, `activeType`, `PAGE_SIZE`, and `displayOffset` (derived from `data?.pageParams.at(-1)`) so the panel reflects the most recently fetched page
+- added a new iMessage exchange to `/thoughts/graphql` covering the `useInfiniteQuery` migration: what was removed, how the key change replaces `AbortController`, and how `initialData` replaces `hasServerData`
+
+## 2026-03-01 - version 0.3.18
+
+- converted `BrowseContent` and `SetCardsGrid` from manual `useState + useCallback + AbortController + loadedPages` infinite scroll to `useInfiniteQuery`; the query key changes when search or type changes, which causes TanStack to cancel the in-flight request via its own abort signal — removing `abortRef`, `AbortError` catch, and the `useCallback(fetchCards)` wrapper entirely
+- `getNextPageParam: (lastPage, _allPages, lastPageParam) => lastPage.hasMore ? lastPageParam + 1 : undefined` drives sequential pagination; `initialPageParam` reads `?page=N` from the URL on mount so the session resumes from the last loaded page without the old sequential restore loop (the `for (let p = 1; p <= targetPage; p++)` loop is gone)
+- `data.pages.flatMap(p => p.cards)` replaces the hand-rolled `setCards` append with dedup; `isFetchingNextPage` replaces `loadingMore` state and drives the skeleton tile row appended to the grid while the next page loads; `isLoading` drives the full-grid skeleton (first page only); `hasNextPage` gates the sentinel observer
+- `initialData` in `BrowseContent` seeds the query cache with the SSR-fetched page 1 when `initialCards` is provided and the URL has no active filters; `staleTime: 30_000` when seeded, `10 * 60_000` otherwise; the server data is scoped to the no-filter query key so switching to a search automatically fetches fresh filtered results
+- `hasServerData` ref, `isFirstMountRef`, `initialPageRef`, `loadedPages` state, and the restore loop are all removed; URL sync now watches `latestPage = data?.pageParams.at(-1)` — a derived number — so the effect only runs when the actual page depth changes
+- added `CardPage = { cards: CardResume[]; hasMore: boolean }` to `src/lib/tcg.ts` and exported it; both components import the type from there; `SetCardsGrid` removes its local `CardResume` redefinition and imports from `@/lib/tcg` instead
+- added a new iMessage exchange to `/thoughts/tcg` covering the `useInfiniteQuery` migration: what replaces `AbortController`, why the restore loop was dropped, and how the sentinel pattern changed
+- updated README TCG section to reflect `useInfiniteQuery` as the pagination mechanism and remove the `AbortController` mention
+
+## 2026-03-01 - version 0.3.17
+
+- converted `EventsContent` from a manual `useState + useEffect + useRef(AbortController) + filterKey/loadedKey` derived loading pattern to `useQuery(queryKeys.calendar.eventsList({ startDate, endDate, cardName: debouncedCardName }))`; when any of the three backend filter params changes, the key changes and TanStack Query fires a fresh fetch automatically — no manual trigger, no AbortController wiring
+- added `calendar.eventsList` to `queryKeys.ts` as a separate factory from `calendar.events`; the events list page takes `{ startDate, endDate, cardName }` (raw date strings plus debounced card name) while the calendar grid uses `{ start, end }` ISO timestamps; different shapes warrant separate keys so the two caches never collide
+- the `queryFn` receives TanStack Query's abort `signal` from context and passes it to `fetch`; changing a filter cancels the previous in-flight request automatically on key change, replacing the manual `abortRef.current?.abort()` call
+- `loading` is `eventsQuery.isLoading` — true only when there is no data for the current filter params and a fetch is in-flight; background refetches (focus, remount with `staleTime: 0`) happen silently without replacing the result list with a skeleton
+- title filtering moved from inline `events.filter(...)` to a `useMemo` over `eventsQuery.data`; the memo re-runs only when the returned events or `debouncedTitle` change, not on every render; the `.sort(startDate desc)` is included in the memo so the array is stable until data or title changes
+- error message rendered from `eventsQuery.error?.message` so the thrown error text from the `queryFn` reaches the user directly, with a fallback string for unexpected error shapes
+- removed `useState(events)`, `useState(error)`, `useState(loadedKey)`, `useEffect`, `useRef`, and the `filterKey` derived string; imports drop `useEffect` and `useRef`, add `useMemo`, `useQuery`, and `queryKeys`
+
+## 2026-03-01 - version 0.3.16
+
+- converted `createEvent`, `updateEvent`, and `deleteEvent` in `useCalendarEvents` from manual `useCallback + setQueryData` handlers to three `useMutation` hooks with the full optimistic update pattern
+- each mutation follows the same lifecycle: `onMutate` cancels all in-flight calendar event queries, snapshots the current cache entry for the visible range, and applies the change immediately to the cache so the grid responds before the server round-trip completes; `onError` restores the snapshot so a failed write leaves nothing broken; `onSettled` invalidates all calendar event queries via a `["calendar", "events"]` prefix match so every cached range syncs with the server regardless of which month is on screen
+- the prefix invalidation covers multi-day events near month boundaries: deleting an event from the March view now also invalidates the April view's cache so stale data doesn't show up on next navigation
+- `UseCalendarEventsReturn` gains `isCreating`, `isUpdating`, and `isDeleting` booleans derived from each mutation's `isPending` state; these replace the local `saving` and `deleting` booleans that `EventModal` was managing itself
+- `EventModal` removes `const [saving, setSaving]` and `const [deleting, setDeleting]` state; it now accepts optional `isSaving` and `isDeleting` props which `CalendarContent` passes as `isCreating || isUpdating` and `isDeleting` from the hook; the three buttons (Cancel, Save/Create, Delete) read from props instead of local state; `setSaving(false)` in the catch block is gone because `isPending` resets automatically when a mutation settles
+- `CalendarContent` passes `isSaving={calendarEvents.isCreating || calendarEvents.isUpdating}` and `isDeleting={calendarEvents.isDeleting}` to `EventModal`
+- added exchange to `/thoughts/calendar` covering the switch to `useMutation` and what the optimistic pattern buys: automatic rollback on error, `isPending` driving button state, and prefix invalidation broadcasting to all cached ranges
+
+## 2026-03-01 - version 0.3.15
+
+- converted the read side of `useCalendarEvents` from a manual `useEffect + AbortController + useState(loadedRange)` pattern to `useQuery(queryKeys.calendar.events({ start, end }))`; the query key includes both `start` and `end` so navigating months automatically triggers a fresh fetch without a manual effect dependency
+- the `queryFn` receives TanStack Query's own `signal` from context and passes it to `fetch`, replacing the manual `AbortController`; when the user navigates before a fetch completes, TanStack Query cancels the in-flight request automatically on key change
+- `staleTime: 0` so every mount triggers a background check against the server; calendar events can be written from another tab or device at any time, and unlike static reference data (teams, league history) serving a stale cache silently would be incorrect
+- `initialData: initialEvents` and `initialDataUpdatedAt: Date.now() - 29_000` feed SSR-seeded events into the query cache on first render so the calendar shows data immediately with no loading state; the 29-second age hint tells TanStack Query the data is almost stale and queues a background refetch after mount without blocking the first paint
+- `loading` is `isLoading || isFetching` so the loading indicator covers both the initial fetch and background refreshes; `error` is derived from `isError` and `queryError.message`; `events` is `data ?? []`
+- mutation handlers (`handleCreate`, `handleUpdate`, `handleDelete`) now write to the query cache via `queryClient.setQueryData` instead of calling `setEvents`; the effect is identical from the caller's perspective (changes appear immediately), but the data source is now the query cache rather than a parallel `useState`; the `useCallback` deps include `queryClient`, `start`, and `end` so each handler targets the currently visible month's cache key
+- removed `useState(events)`, `useState(error)`, `useState(loadedRange)`, `useEffect`, and the derived `loading = loadedRange !== rangeKey` expression; the return signature (`events`, `loading`, `error`, `createEvent`, `updateEvent`, `deleteEvent`) is unchanged so `CalendarContent` needs no updates
+- `fetchEvents` import removed since the queryFn now inlines the fetch directly to get access to the abort signal
+
+## 2026-03-01 - version 0.3.14
+
+- created `src/app/fantasy/nba/player/stats/types.ts` to co-locate all types for the Player Stats page; it re-exports `Team`, `Player`, `PlayerStats`, `SortKey`, and `PlayerRow` from `@/types/nba` so `StatsContent` has one local import source instead of reaching into the global types directory
+- converted `StatsContent` teams fetch from a bare `useEffect + fetch + setState` to `useQuery(queryKeys.nba.teams(), staleTime: 5 * 60_000)`; the query function fetches, checks `res.ok`, and sorts the list alphabetically before returning, so the selector is always in the right order without extra state
+- auto-selection of the first team uses a `useEffect` that watches `teamsQuery.data`; `onSuccess` was removed in TanStack Query v5 so this is the correct v5 pattern; the `selectedTeamId` dep prevents the effect from overwriting a user-selected team on re-renders
+- converted players fetch to `useQuery(queryKeys.nba.players(selectedTeamId), enabled: !!selectedTeamId, staleTime: 5 * 60_000)`; when the team selector changes, the key changes and TanStack Query re-fetches automatically with no manual trigger
+- converted per-player stats fetches from a `Promise.allSettled` batch loop with `AbortController + useCallback + useRef` to `useQueries`; all player queries fire in parallel instead of in batches of three, which is faster when the network and API can handle the concurrency; `useQueries` also handles cancellation and deduplication automatically
+- `remaining` is now `statsQueries.filter(q => q.isPending).length` — a derived value from query state rather than a manually tracked counter; skeleton rows are shown for in-flight queries and disappear as each one resolves
+- resolved rows are filtered from `players.map(...)` — only queries that are no longer `isPending` contribute to the rows array; pending players appear as skeleton rows instead of empty data cells; `q.isError` drives the per-row error state that shows the red row and opens the error modal on click
+- retry wires to `teamsQuery.refetch()` or `playersQuery.refetch()` depending on which layer failed; per-row errors are retried implicitly by the query cache
+- removed `AbortController`, `abortRef`, `useCallback`, `useEffect` for fetching, and five `useState` variables (`teams`, `rows`, `remaining`, `loading`, `error`)
+
+## 2026-03-01 - version 0.3.13
+
+- converted `FeatureHub`'s `/api/me` fetch from a manual `useState` + `useEffect` pattern to `useQuery({ queryKey: queryKeys.me(), staleTime: 5 * 60_000 })`; removes two state variables and the effect entirely; `isLoading` drives the skeleton bones in the header while the request is in-flight, same as before but without the boilerplate
+- converted `LeagueContent` from five `useState` variables (`teams`, `members`, `leagueName`, `loading`, `error`) plus `useRef`, `useCallback`, and `useEffect` to a single `useQuery({ queryKey: queryKeys.nba.league(season), staleTime: 60 * 60_000 })`; the query function fetches and sorts teams in one place, returning `{ leagueName, teams, members }` as a single object; switching the season selector now automatically triggers a refetch because `season` is part of the query key; the retry button calls `leagueQuery.refetch()` instead of re-calling the old callback
+
+## 2026-03-01 - version 0.3.12
+
+- added `@tanstack/react-query` and `@tanstack/react-query-devtools` as the data fetching layer for the app; this is the foundation for converting every manual useEffect + fetch + AbortController + derived-loading-state pattern to proper query and mutation hooks over the next several steps
+- created `src/app/providers.tsx`, a client component that wraps the app in `QueryClientProvider`; the `QueryClient` lives in `useState` so each server render gets a fresh instance while the browser keeps a stable singleton across navigations; `ReactQueryDevtools` mounts only when `NODE_ENV` is development so there's no bundle impact in production
+- created `src/lib/queryKeys.ts` with typed key factory functions for every data domain in the app (me, calendar events, nba teams/players/stats/league, tcg cards, graphql pokemon); centralizing keys here means a `useQuery` call and its corresponding `invalidateQueries` call always use the same shape, change a key once and every reference stays in sync
+- wired `Providers` into the root layout wrapping `ThemeProvider`, so `useQuery` and `useMutation` are available anywhere in the component tree
+
 ## 2026-03-01 - version 0.3.11
 
 - added `/dev/skeletons` hub page as a dev-only preview tool (404s in production via `notFound()` guard): inline previews of all calendar skeletons (Month, Day, Week, Year), event skeletons (EventList, EventDetail), ThoughtsSkeleton, and FeatureHub header bones; plus linked sub-routes for the full-page skeletons that need their own page to render correctly, `/dev/skeletons/protected`, `/dev/skeletons/tcg-sets`, `/dev/skeletons/tcg-pocket`, `/dev/skeletons/tcg-card`, and `/dev/skeletons/tcg-set-detail`
