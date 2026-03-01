@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.5
+
+- TTFB fix on "/": landing page was calling `auth0.getSession()` solely to redirect logged-in users, which forced Next.js to treat the page as dynamic and re-render it on every request; moved the redirect to `proxy.ts` middleware (which already runs per-request) so the page component has no async work and Next.js can statically pre-render it at build time
+- updated the TTFB improvement card in the vitals dashboard to mention the static landing page
+- updated `/thoughts/vitals` with a new exchange on why the landing page TTFB was bad and how the middleware redirect fixed it
+
 ## 2026-02-28 - version 0.3.4
 
 - INP fix: replaced `transition-all` in `Section.tsx`'s `reveal()` with `transition-[opacity,transform]` -- `transition-all` forces the browser to watch every CSS property for changes on every frame, even for an animation that only touches opacity and transform; scoping it to the two actual properties cuts per-frame work across every staggered card on the site

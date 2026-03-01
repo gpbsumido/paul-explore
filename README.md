@@ -70,6 +70,8 @@ The dashboard nav has a version selector. Selecting "From v0.3.1" filters all ag
 
 Formatting: timing metrics below 1000ms display as rounded milliseconds (`340ms`), at or above 1000ms as one-decimal seconds (`2.4s`). CLS stays as a 3-decimal dimensionless score (`0.042`). Pages under 5 samples are excluded from the by-page table.
 
+TTFB on the landing page was fixed by moving the logged-in redirect from the page component to `proxy.ts` middleware. The page was calling `auth0.getSession()` only to bounce authenticated users to `/protected` -- that single call forced Next.js to treat the page as dynamic and re-render it server-side on every request. With the redirect in middleware (which runs anyway), `page.tsx` becomes a plain sync function and Next.js statically pre-renders it at build time.
+
 ### 🏆 Fantasy League History
 
 ESPN fantasy league data by season. Teams sort by final standings, expand to show their full roster with positions. Season selector spans back to the league's first year. Glassmorphism card design because I wanted to try it and the gradient background made it work.
@@ -184,6 +186,7 @@ src/
 - `transition-all` is a quiet INP killer: the browser has to check every CSS property for changes on every animation frame, even if only opacity and transform are actually moving; replacing it with `transition-[opacity,transform]` or `transition-[border-color,box-shadow]` narrows the work to exactly what changes; on a page with 15+ simultaneously animating cards the difference is measurable
 - entrance animation and hover transition conflict silently in CSS: if both set `transition-property` on the same element, the last rule wins and the other is dropped entirely with no warning; the fix is to separate them — outer wrapper div owns the entrance animation, inner element owns the hover transition, and neither interferes with the other
 - `startTransition` is the right tool for state updates that trigger large re-renders: wrapping `setLoaded(true)` (which kicks off staggered animations across a grid of cards) or `router.push()` in a transition marks the work as non-urgent; React processes any pending input events first, which directly shortens INP
+- calling `auth0.getSession()` (or any cookie/header read) in a page server component makes Next.js treat that route as dynamic even if the only reason for the call is a redirect; moving redirect-only session checks to middleware keeps the page component free of dynamic APIs so Next.js can statically pre-render it at build time -- the redirect still fires, it just happens in the layer that already runs per-request
 
 ---
 

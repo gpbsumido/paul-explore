@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { auth0 } from "@/lib/auth0";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import LandingContent from "./LandingContent";
 
@@ -26,12 +24,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function Home() {
-  const session = await auth0.getSession();
-
-  if (session) {
-    redirect("/protected");
-  }
-
+export default function Home() {
   return <LandingContent />;
 }

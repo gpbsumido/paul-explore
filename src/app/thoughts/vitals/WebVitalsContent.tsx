@@ -348,6 +348,30 @@ const [summaryRes, byPageRes] = await Promise.all([
           whatever the user was doing
         </Sent>
 
+        <Timestamp>10:17 AM</Timestamp>
+
+        <Received>what about TTFB for the landing page</Received>
+
+        <Sent pos="first">
+          the landing page was calling <code>auth0.getSession()</code> on every
+          request — just to redirect logged-in users to the hub. that one line
+          makes Next.js treat the page as dynamic, which means a fresh server
+          render on every request instead of serving a cached static file
+        </Sent>
+        <Sent pos="middle">
+          the fix: move the redirect to the middleware. middleware already runs
+          on every request anyway, so the session check isn&apos;t extra work —
+          it just moved. with that call out of the page component, Next.js can
+          statically pre-render the landing page at build time and serve the
+          same HTML file to every visitor
+        </Sent>
+        <Sent pos="last">
+          the page itself is pure static content — no per-request data, no user
+          state. it never needed to be dynamic. the pattern applies anywhere you
+          call <code>getSession()</code> only for a redirect: that belongs in
+          middleware, not in the page
+        </Sent>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />
