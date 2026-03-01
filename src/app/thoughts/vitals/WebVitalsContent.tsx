@@ -318,6 +318,36 @@ const [summaryRes, byPageRes] = await Promise.all([
           dropped
         </Sent>
 
+        <Timestamp>10:05 AM</Timestamp>
+
+        <Received>you mentioned INP is under 200ms. how do you keep that low</Received>
+
+        <Sent pos="first">
+          two things. the obvious one: don&apos;t do expensive work on
+          interaction. but the subtler one is CSS — <code>transition-all</code>{" "}
+          tells the browser to watch every CSS property for changes on every
+          animation frame. even if only opacity changes, the browser still has
+          to check border, padding, font-size, everything, every frame
+        </Sent>
+        <Sent pos="middle">
+          I replaced all <code>transition-all</code> with explicit property
+          lists. entrance animations use{" "}
+          <code>transition-[opacity,transform]</code>, hover effects use{" "}
+          <code>transition-[border-color,box-shadow]</code>. the browser only
+          watches what actually changes, which cuts the work per frame
+          significantly on a page with 15+ animated cards
+        </Sent>
+        <Sent pos="last">
+          the other fix is <code>startTransition</code>. when the hub page
+          mounts, setting the &quot;loaded&quot; flag kicks off staggered
+          animations across 7 feature cards. wrapping that state update in{" "}
+          <code>startTransition</code> marks it as non-urgent — React processes
+          any pending input events first before repainting all those cards. same
+          pattern in the version selector: <code>router.push()</code> in a
+          transition so selecting a different version doesn&apos;t block
+          whatever the user was doing
+        </Sent>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />

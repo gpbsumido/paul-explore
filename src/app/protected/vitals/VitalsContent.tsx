@@ -139,8 +139,8 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
   },
   {
     metric: "INP",
-    what: "Memo + stable callbacks throughout the calendar",
-    how: "All four calendar view components are wrapped in React.memo. useCallback on every callback passed to them prevents memo from being silently bypassed. useMemo on layoutDayEvents keeps the overlap algorithm from running on unrelated state changes.",
+    what: "Specific transitions + startTransition for non-urgent updates",
+    how: "Replaced transition-all with explicit property lists (transition-[opacity,transform] for entrance animations, transition-[border-color,box-shadow] for hover) so the browser only watches the properties that actually change. startTransition wraps state updates that kick off large re-renders so input events aren't blocked.",
   },
   {
     metric: "CLS",

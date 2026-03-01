@@ -181,6 +181,9 @@ src/
 - `auth0.middleware()` makes a network round-trip on every request; `auth0.getSession()` just reads the encrypted session cookie locally — calling middleware only for `/auth/*` routes and getSession everywhere else removes that TTFB hit from every protected page load
 - the `initialEvents` seed pattern in `useCalendarEvents` is a clean handoff from server to client: set state from the prop, pre-mark the range as loaded, and the hook behaves exactly like normal from that point — no special casing needed in the effect or mutation handlers
 - when a server component needs to fetch data, call the upstream directly rather than going through your own API routes — a loopback HTTP call to the same server wastes time and adds latency that shows up in TTFB
+- `transition-all` is a quiet INP killer: the browser has to check every CSS property for changes on every animation frame, even if only opacity and transform are actually moving; replacing it with `transition-[opacity,transform]` or `transition-[border-color,box-shadow]` narrows the work to exactly what changes; on a page with 15+ simultaneously animating cards the difference is measurable
+- entrance animation and hover transition conflict silently in CSS: if both set `transition-property` on the same element, the last rule wins and the other is dropped entirely with no warning; the fix is to separate them — outer wrapper div owns the entrance animation, inner element owns the hover transition, and neither interferes with the other
+- `startTransition` is the right tool for state updates that trigger large re-renders: wrapping `setLoaded(true)` (which kicks off staggered animations across a grid of cards) or `router.push()` in a transition marks the work as non-urgent; React processes any pending input events first, which directly shortens INP
 
 ---
 

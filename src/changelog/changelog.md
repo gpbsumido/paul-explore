@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-02-28 - version 0.3.4
+
+- INP fix: replaced `transition-all` in `Section.tsx`'s `reveal()` with `transition-[opacity,transform]` -- `transition-all` forces the browser to watch every CSS property for changes on every frame, even for an animation that only touches opacity and transform; scoping it to the two actual properties cuts per-frame work across every staggered card on the site
+- INP fix: split entrance animation and hover transition onto separate elements in FeatureCard and ThoughtCard -- both previously lived on the same div, which caused the last `transition-property` rule to silently clobber the other; outer div now carries the entrance animation only, inner div carries the hover effect only
+- INP fix: wrapped `setLoaded(true)` in `startTransition` inside FeatureHub -- setting loaded kicks off staggered re-renders across 7+ cards; marking it non-urgent lets React drain any queued input events before doing the paint
+- INP fix: `VersionSelector` now wraps `router.push()` in `startTransition` for the same reason; the `<select>` goes visually disabled with reduced opacity while the transition is pending so the user gets feedback without a blocked interaction
+- updated the INP improvement card in the vitals dashboard to describe what's actually in the codebase: specific transition properties + startTransition, not the old memo/callback note which described calendar optimizations
+- updated `/thoughts/vitals` with a new exchange covering why `transition-all` is expensive and how `startTransition` defers non-urgent re-renders
+
 ## 2026-02-28 - version 0.3.3
 
 - protected hub CLS fix: FeatureHub's feature card preview area now has a fixed height of 112px with overflow-hidden, matching the skeleton's preview bone exactly; VitalsPreview with 5 rows was taller than 112px and was causing a layout shift on every page load
