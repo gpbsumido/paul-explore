@@ -372,6 +372,48 @@ const [summaryRes, byPageRes] = await Promise.all([
           middleware, not in the page
         </Sent>
 
+        <Timestamp>10:25 AM</Timestamp>
+
+        <Received>what about /protected — that page had bad TTFB too</Received>
+
+        <Sent pos="first">
+          same root cause. the page component was calling{" "}
+          <code>auth0.getSession()</code> to get the user&apos;s name and email
+          to pass down to <code>FeatureHub</code>. that one call makes Next.js
+          treat the route as dynamic, so every visit hit a cold serverless
+          function with a 1.5–3s startup penalty
+        </Sent>
+        <Sent pos="middle">
+          the fix: make <code>page.tsx</code> a plain sync component with no
+          auth calls. Next.js can now statically pre-render it at build time and
+          Vercel serves the HTML from CDN edge — TTFB drops from around 2.1s to
+          roughly 50ms
+        </Sent>
+        <Sent pos="last">
+          user info (name, email) moves to a small <code>GET /api/me</code> BFF
+          route. <code>FeatureHub</code> fetches it on mount and shows skeleton
+          bones in the header while in-flight. the cookie decrypt server-side is
+          fast — even with network round-trip the user details fill in well
+          after first paint, so FCP and LCP are unaffected
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// page.tsx — plain sync component, no auth, statically pre-rendered
+export default function Protected() {
+  return <FeatureHub />;
+}
+
+// FeatureHub.tsx — fetches user info after the page is already painted
+useEffect(() => {
+  fetch("/api/me")
+    .then((r) => r.json())
+    .then(({ name, email }) => {
+      setUserName(name ?? "there");
+      setUserEmail(email ?? undefined);
+    });
+}, []);`}
+        </div>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />

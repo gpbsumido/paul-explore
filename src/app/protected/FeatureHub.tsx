@@ -540,18 +540,14 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
 
 // ---- FeatureHub ----
 
-interface FeatureHubProps {
-  userName: string;
-  userEmail: string | undefined;
-}
-
 /**
  * The protected page hub. Shows a sticky header with user info, a staggered grid
  * of feature cards each with a themed mini-preview, and a dev-notes section below.
  *
  * Feature cards animate in on page load. Dev notes animate on scroll.
+ * User name/email are fetched client-side from /api/me so page.tsx can be static.
  */
-export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
+export default function FeatureHub() {
   // Set visible on the first animation frame after mount so the CSS transition
   // fires rather than snapping to the final state instantly.
   // startTransition marks this as non-urgent so React handles any queued
@@ -565,9 +561,20 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
     return () => cancelAnimationFrame(id);
   }, []);
 
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then(({ name, email }: { name: string | null; email: string | null }) => {
+        setUserName(name ?? "there");
+        setUserEmail(email ?? undefined);
+      });
+  }, []);
+
   const [thoughtsRef, thoughtsVisible] = useInView(0.1);
 
-  const firstName = userName.split(" ")[0];
+  const firstName = userName ? userName.split(" ")[0] : null;
 
   return (
     <div className="min-h-dvh bg-background">
@@ -581,13 +588,22 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
           <div className="flex items-center gap-3">
             {/* User info — hidden on small screens where space is tight */}
             <div className="hidden flex-col items-end sm:flex">
-              <span className="text-[12px] font-medium leading-none text-foreground">
-                {userName}
-              </span>
-              {userEmail && (
-                <span className="mt-0.5 text-[11px] leading-none text-muted">
-                  {userEmail}
-                </span>
+              {userName === null ? (
+                <>
+                  <div className="h-[11px] w-[88px] rounded bg-surface animate-pulse" />
+                  <div className="mt-0.5 h-[10px] w-[120px] rounded bg-surface animate-pulse" />
+                </>
+              ) : (
+                <>
+                  <span className="text-[12px] font-medium leading-none text-foreground">
+                    {userName}
+                  </span>
+                  {userEmail && (
+                    <span className="mt-0.5 text-[11px] leading-none text-muted">
+                      {userEmail}
+                    </span>
+                  )}
+                </>
               )}
             </div>
             <ThemeToggle />
@@ -605,7 +621,13 @@ export default function FeatureHub({ userName, userEmail }: FeatureHubProps) {
         {/* Page heading */}
         <div className={`mb-8 ${reveal(loaded, "")}`}>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-            Hey {firstName}, here&apos;s what&apos;s live.
+            Hey{" "}
+            {firstName === null ? (
+              <span className="inline-block h-4 w-16 translate-y-0.5 rounded bg-surface animate-pulse" />
+            ) : (
+              firstName
+            )}
+            , here&apos;s what&apos;s live.
           </h1>
           <p className="mt-1.5 text-[14px] text-muted">
             {FEATURES.length} features — click any card to jump in, or hit About

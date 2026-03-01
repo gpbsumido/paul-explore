@@ -32,9 +32,9 @@ function FeatureCardSkeleton() {
       />
 
       {/* Card body */}
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className="flex flex-1 flex-col p-4">
         {/* Title row: dot + name */}
-        <div className="flex items-center gap-2">
+        <div className="mb-1 flex items-center gap-2">
           <div
             style={{
               width: 8,
@@ -45,17 +45,20 @@ function FeatureCardSkeleton() {
               animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
             }}
           />
-          <Bone style={{ height: 14, width: "55%" }} />
+          <Bone style={{ height: 16, width: "55%" }} />
         </div>
 
         {/* Description lines */}
-        <Bone style={{ height: 10, width: "95%" }} />
-        <Bone style={{ height: 10, width: "78%" }} />
+        <div className="flex flex-1 flex-col gap-1.5">
+          <Bone style={{ height: 13, width: "95%" }} />
+          <Bone style={{ height: 13, width: "85%" }} />
+          <Bone style={{ height: 13, width: "70%" }} />
+        </div>
 
         {/* Footer links */}
-        <div className="mt-2 flex items-center justify-between">
-          <Bone style={{ height: 11, width: 36 }} />
-          <Bone style={{ height: 11, width: 52 }} />
+        <div className="mt-3 flex items-center justify-between">
+          <Bone style={{ height: 14, width: 36 }} />
+          <Bone style={{ height: 14, width: 52 }} />
         </div>
       </div>
     </div>
@@ -77,9 +80,9 @@ function ThoughtCardSkeleton() {
           animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
         }}
       />
-      <div className="flex flex-1 flex-col gap-1.5">
-        <Bone style={{ height: 12, width: "65%" }} />
-        <Bone style={{ height: 10, width: "88%" }} />
+      <div className="flex flex-1 flex-col gap-0.5">
+        <Bone style={{ height: 14, width: "65%" }} />
+        <Bone style={{ height: 12, width: "88%" }} />
       </div>
     </div>
   );

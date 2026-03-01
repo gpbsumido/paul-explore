@@ -93,7 +93,7 @@ function CalendarGrid({
               key={day.toISOString()}
               onClick={() => onDayClick(day)}
               className={[
-                "min-h-[88px] sm:min-h-[100px] p-1.5 sm:p-2 text-left border-b border-r border-border cursor-pointer transition-colors",
+                "h-[128px] sm:h-[132px] p-1.5 sm:p-2 overflow-hidden text-left border-b border-r border-border cursor-pointer transition-colors",
                 isLastCol ? "border-r-0" : "",
                 // red flag-tape stripe pinned to the top of today's cell
                 today ? "border-t-2 border-t-red-500" : "",

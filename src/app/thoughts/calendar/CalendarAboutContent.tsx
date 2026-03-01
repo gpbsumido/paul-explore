@@ -472,6 +472,43 @@ async function CalendarWithData() {
 
         <Timestamp>10:55 AM</Timestamp>
 
+        <Timestamp>10:54 AM</Timestamp>
+
+        <Received>you ever look at the real CLS scores for the calendar</Received>
+
+        <Sent pos="first">
+          yeah, it was bad for a while. month view CLS was sitting around 0.41,
+          which is well into the poor zone
+        </Sent>
+        <Sent pos="last">
+          the culprit was <code>min-h</code> on the month cells. each cell grew
+          to fit its event count, so a cell with 3 chips was about 40px taller
+          than an empty one. every time events loaded in or you navigated months,
+          the whole grid shifted
+        </Sent>
+
+        <Received>how did you fix it</Received>
+
+        <Sent pos="first">
+          switched to a fixed height, <code>h-[128px] sm:h-[132px]</code>, with{" "}
+          <code>overflow-hidden</code>. worked out the math first to make sure
+          it was enough: 3 chips at 20px each, 2px gaps between them, the "+N
+          more" overflow line, and the padding on all sides
+        </Sent>
+        <Sent pos="middle">
+          came out to 122px on mobile and 126px on desktop. the fixed heights
+          give a little buffer above that so nothing gets clipped in normal use,
+          and the same change went into <code>MonthSkeleton</code> so the
+          skeleton matches the real grid exactly
+        </Sent>
+        <Sent pos="last">
+          the skeletons for day, week, and year all needed fixing too. week view
+          was missing the always-present all-day row entirely (28px shift on
+          every switch), the year view cards were 52px too tall because the
+          skeleton used two separate grids where the real view uses one. had to
+          audit every pixel to get them all consistent
+        </Sent>
+
         <Received>what would you still improve</Received>
 
         <Sent pos="first">
