@@ -10,6 +10,12 @@ export type CardResume = {
   localId: string;
 };
 
+/** One page of cards as returned by the useInfiniteQuery queryFn. */
+export type CardPage = {
+  cards: CardResume[];
+  hasMore: boolean;
+};
+
 export const POKEMON_TYPES = [
   "Colorless",
   "Darkness",

@@ -1,110 +1,75 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+import { type CardResume, type CardPage } from "@/lib/tcg";
+import { queryKeys } from "@/lib/queryKeys";
 
 const PER_PAGE = 20;
-
-type CardResume = {
-  id: string;
-  name: string;
-  image?: string;
-  localId: string;
-};
 
 export default function SetCardsGrid({ setId }: { setId: string }) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const rawPage = parseInt(searchParams.get("page") ?? "1", 10);
-  const initialPageRef = useRef(Number.isNaN(rawPage) ? 1 : rawPage);
-  const isFirstMountRef = useRef(true);
-  const [loadedPages, setLoadedPages] = useState(initialPageRef.current);
+  const initialPageParam = Number.isNaN(rawPage) ? 1 : rawPage;
 
-  const [cards, setCards] = useState<CardResume[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+  } = useInfiniteQuery<CardPage>({
+    queryKey: queryKeys.tcg.cards({ setId }),
+    queryFn: async ({ pageParam, signal }): Promise<CardPage> => {
+      const params = new URLSearchParams({ setId, page: String(pageParam) });
+      const res = await fetch(`/api/tcg/cards?${params}`, { signal });
+      if (!res.ok) throw new Error("Failed to fetch cards");
+      const data: CardResume[] = await res.json();
+      return { cards: data, hasMore: data.length >= PER_PAGE };
+    },
+    initialPageParam,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPage.hasMore ? (lastPageParam as number) + 1 : undefined,
+    staleTime: 10 * 60_000,
+  });
+
+  const cards = useMemo(
+    () => data?.pages.flatMap((p) => p.cards) ?? [],
+    [data?.pages],
+  );
+
+  const latestPage = (data?.pageParams.at(-1) as number | undefined) ?? 1;
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (loadedPages > 1) params.set("page", loadedPages.toString());
+    if (latestPage > 1) params.set("page", String(latestPage));
     const qs = params.toString();
     router.replace(`/tcg/pokemon/sets/${setId}${qs ? `?${qs}` : ""}`, { scroll: false });
-  }, [loadedPages, setId, router]);
+  }, [latestPage, setId, router]);
 
-  const fetchCards = useCallback(
-    async (pg: number, append: boolean) => {
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-      setLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams({ setId, page: pg.toString() });
-        const res = await fetch(`/api/tcg/cards?${params}`, { signal: controller.signal });
-        if (!res.ok) throw new Error("Failed to fetch cards");
-        const data: CardResume[] = await res.json();
-
-        if (append) {
-          setCards((prev) => {
-            const seen = new Set(prev.map((c) => c.id));
-            return [...prev, ...data.filter((c) => !seen.has(c.id))];
-          });
-        } else {
-          const seen = new Set<string>();
-          setCards(data.filter((c) => seen.has(c.id) ? false : seen.add(c.id) && true));
-        }
-        setHasMore(data.length >= PER_PAGE);
-      } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") return;
-        setError("Failed to load cards.");
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    },
-    [setId]
-  );
+  const onScrollRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    if (isFirstMountRef.current) {
-      isFirstMountRef.current = false;
-      const targetPage = initialPageRef.current;
-      if (targetPage > 1) {
-        const restore = async () => {
-          for (let p = 1; p <= targetPage; p++) {
-            await fetchCards(p, p > 1);
-          }
-        };
-        restore();
-        return;
-      }
-    }
-    fetchCards(1, false);
-  }, [fetchCards]);
+    onScrollRef.current = () => {
+      if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // always fresh — assigned in render, not in an effect
-  const onScrollRef = useRef<() => void>(() => {});
-  onScrollRef.current = () => {
-    if (!hasMore || loading || cards.length === 0) return;
-    const nextPage = loadedPages + 1;
-    setLoadedPages(nextPage);
-    fetchCards(nextPage, true);
-  };
-
-  // cards.length dep forces reconnect after each fetch — needed so the
-  // observer re-fires if the sentinel is already in the viewport
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) onScrollRef.current(); },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -112,7 +77,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-4">
-      {loading && cards.length === 0 ? (
+      {isLoading && cards.length === 0 ? (
         <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {Array.from({ length: 20 }).map((_, i) => (
             <div
@@ -122,13 +87,13 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
             />
           ))}
         </div>
-      ) : error ? (
+      ) : isError ? (
         <div className="flex flex-col items-center gap-3 py-20 text-center text-muted text-sm">
-          <span>{error}</span>
+          <span>Failed to load cards.</span>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => fetchCards(1, false)}
+            onClick={() => refetch()}
           >
             Retry
           </Button>
@@ -158,7 +123,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
               )}
             </Link>
           ))}
-          {loading && Array.from({ length: PER_PAGE }).map((_, i) => (
+          {isFetchingNextPage && Array.from({ length: PER_PAGE }).map((_, i) => (
             <div
               key={`sk-${i}`}
               className="rounded-lg bg-surface animate-pulse"

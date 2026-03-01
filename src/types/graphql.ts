@@ -23,6 +23,12 @@ export type PokemonListResult = {
   };
 };
 
+/** One page of Pokémon as returned by fetchPokemonPage — used as the TData for useInfiniteQuery. */
+export type PokemonPage = {
+  pokemon: Pokemon[];
+  total: number;
+};
+
 /** Wrapper around every PokeAPI GraphQL response — errors array is non-null on failure. */
 export type GraphQLResponse<T> = {
   data: T;
