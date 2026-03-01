@@ -23,6 +23,10 @@ interface EventModalProps {
   onSave: (event: CalendarEvent) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   onClose: () => void;
+  /** True while a create or update mutation is in-flight. Drives button state. */
+  isSaving?: boolean;
+  /** True while a delete mutation is in-flight. Drives button state. */
+  isDeleting?: boolean;
 }
 
 /** Section header with a trailing rule — keeps the two columns visually organized. */
@@ -43,6 +47,8 @@ export default function EventModal({
   onSave,
   onDelete,
   onClose,
+  isSaving = false,
+  isDeleting = false,
 }: EventModalProps) {
   const uid = useId();
   const isEdit = !!event;
@@ -61,9 +67,7 @@ export default function EventModal({
   const [allDay, setAllDay] = useState(event?.allDay ?? false);
   const [color, setColor] = useState(event?.color ?? EVENT_COLORS[0]);
   const [titleError, setTitleError] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   // end < start is derived — no extra state needed
   const endBeforeStart = endDate < startDate;
@@ -139,7 +143,6 @@ export default function EventModal({
       setTitleError(true);
       return;
     }
-    setSaving(true);
     setSaveError(null);
 
     // datetime-local inputs produce naive strings (no tz); add local offset
@@ -193,18 +196,16 @@ export default function EventModal({
       onClose();
     } catch {
       setSaveError("Couldn't save the event. Please try again.");
-      setSaving(false);
     }
   }
 
   async function handleDelete() {
     if (!event || !onDelete) return;
-    setDeleting(true);
     try {
       await onDelete(event.id);
       onClose();
     } catch {
-      setDeleting(false);
+      // isDeleting resets automatically when the mutation settles
     }
   }
 
@@ -372,9 +373,9 @@ export default function EventModal({
             variant="danger"
             size="sm"
             onClick={handleDelete}
-            disabled={deleting || saving}
+            disabled={isDeleting || isSaving}
           >
-            {deleting ? "Deleting…" : "Delete"}
+            {isDeleting ? "Deleting…" : "Delete"}
           </Button>
         ) : (
           <span />
@@ -384,7 +385,7 @@ export default function EventModal({
             variant="outline"
             size="sm"
             onClick={onClose}
-            disabled={saving || deleting}
+            disabled={isSaving || isDeleting}
           >
             Cancel
           </Button>
@@ -392,9 +393,9 @@ export default function EventModal({
             variant="primary"
             size="sm"
             onClick={handleSave}
-            disabled={saving || deleting}
+            disabled={isSaving || isDeleting}
           >
-            {saving ? "Saving…" : isEdit ? "Save" : "Create"}
+            {isSaving ? "Saving…" : isEdit ? "Save" : "Create"}
           </Button>
         </div>
       </div>

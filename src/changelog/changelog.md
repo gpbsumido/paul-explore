@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.16
+
+- converted `createEvent`, `updateEvent`, and `deleteEvent` in `useCalendarEvents` from manual `useCallback + setQueryData` handlers to three `useMutation` hooks with the full optimistic update pattern
+- each mutation follows the same lifecycle: `onMutate` cancels all in-flight calendar event queries, snapshots the current cache entry for the visible range, and applies the change immediately to the cache so the grid responds before the server round-trip completes; `onError` restores the snapshot so a failed write leaves nothing broken; `onSettled` invalidates all calendar event queries via a `["calendar", "events"]` prefix match so every cached range syncs with the server regardless of which month is on screen
+- the prefix invalidation covers multi-day events near month boundaries: deleting an event from the March view now also invalidates the April view's cache so stale data doesn't show up on next navigation
+- `UseCalendarEventsReturn` gains `isCreating`, `isUpdating`, and `isDeleting` booleans derived from each mutation's `isPending` state; these replace the local `saving` and `deleting` booleans that `EventModal` was managing itself
+- `EventModal` removes `const [saving, setSaving]` and `const [deleting, setDeleting]` state; it now accepts optional `isSaving` and `isDeleting` props which `CalendarContent` passes as `isCreating || isUpdating` and `isDeleting` from the hook; the three buttons (Cancel, Save/Create, Delete) read from props instead of local state; `setSaving(false)` in the catch block is gone because `isPending` resets automatically when a mutation settles
+- `CalendarContent` passes `isSaving={calendarEvents.isCreating || calendarEvents.isUpdating}` and `isDeleting={calendarEvents.isDeleting}` to `EventModal`
+- added exchange to `/thoughts/calendar` covering the switch to `useMutation` and what the optimistic pattern buys: automatic rollback on error, `isPending` driving button state, and prefix invalidation broadcasting to all cached ranges
+
+## 2026-03-01 - version 0.3.15
+
+- converted the read side of `useCalendarEvents` from a manual `useEffect + AbortController + useState(loadedRange)` pattern to `useQuery(queryKeys.calendar.events({ start, end }))`; the query key includes both `start` and `end` so navigating months automatically triggers a fresh fetch without a manual effect dependency
+- the `queryFn` receives TanStack Query's own `signal` from context and passes it to `fetch`, replacing the manual `AbortController`; when the user navigates before a fetch completes, TanStack Query cancels the in-flight request automatically on key change
+- `staleTime: 0` so every mount triggers a background check against the server; calendar events can be written from another tab or device at any time, and unlike static reference data (teams, league history) serving a stale cache silently would be incorrect
+- `initialData: initialEvents` and `initialDataUpdatedAt: Date.now() - 29_000` feed SSR-seeded events into the query cache on first render so the calendar shows data immediately with no loading state; the 29-second age hint tells TanStack Query the data is almost stale and queues a background refetch after mount without blocking the first paint
+- `loading` is `isLoading || isFetching` so the loading indicator covers both the initial fetch and background refreshes; `error` is derived from `isError` and `queryError.message`; `events` is `data ?? []`
+- mutation handlers (`handleCreate`, `handleUpdate`, `handleDelete`) now write to the query cache via `queryClient.setQueryData` instead of calling `setEvents`; the effect is identical from the caller's perspective (changes appear immediately), but the data source is now the query cache rather than a parallel `useState`; the `useCallback` deps include `queryClient`, `start`, and `end` so each handler targets the currently visible month's cache key
+- removed `useState(events)`, `useState(error)`, `useState(loadedRange)`, `useEffect`, and the derived `loading = loadedRange !== rangeKey` expression; the return signature (`events`, `loading`, `error`, `createEvent`, `updateEvent`, `deleteEvent`) is unchanged so `CalendarContent` needs no updates
+- `fetchEvents` import removed since the queryFn now inlines the fetch directly to get access to the abort signal
+
 ## 2026-03-01 - version 0.3.14
 
 - created `src/app/fantasy/nba/player/stats/types.ts` to co-locate all types for the Player Stats page; it re-exports `Team`, `Player`, `PlayerStats`, `SortKey`, and `PlayerRow` from `@/types/nba` so `StatsContent` has one local import source instead of reaching into the global types directory
