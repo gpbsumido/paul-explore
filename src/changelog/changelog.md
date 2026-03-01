@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.19
+
+- converted `GraphQLContent` from a manual `useState + useEffect + AbortController + loadedKey/filterKey/hasServerData` pattern to `useInfiniteQuery`; the query key includes `debouncedName` and `activeType` so TanStack cancels the in-flight request and fires a fresh one automatically on every filter change — no `abortRef`, no explicit abort, no `AbortError` catch
+- removed `useState(pokemon)`, `useState(total)`, `useState(offset)`, `useState(error)`, `useState(loadingMore)`, `useState(loadedKey)`, `abortRef`, `hasServerData` ref, `EMPTY_FILTER_KEY` constant, and `handleLoadMore`; `useEffect` now exists only for the `IntersectionObserver` reconnect
+- `getNextPageParam: (lastPage, allPages) => lastPage.pokemon.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined` drives sequential offset pagination; `initialPageParam: 0` starts at offset 0
+- `pokemon` is `useMemo(() => data?.pages.flatMap(p => p.pokemon) ?? [])` and `total` is `data?.pages[0]?.total ?? 0`; `isLoading` replaces the derived `loading = loadedKey !== filterKey`; `isFetchingNextPage` replaces the `loadingMore` boolean
+- `initialData` prop seeds the query cache when server-side data is available: `{ pages: [seedPage], pageParams: [0] }` with `staleTime: 30_000`; TanStack skips the initial fetch and considers the data fresh for 30 seconds — replaces the `hasServerData` ref and the pre-seeded `loadedKey` trick
+- added `PokemonPage = { pokemon: Pokemon[]; total: number }` to `src/types/graphql.ts` — the per-page shape for `useInfiniteQuery`'s `TData`
+- added `fetchPokemonPage({ name, type, offset, signal })` to `src/lib/graphql.ts`; it calls `buildPokemonQuery` + `fetchPokemon` and maps `PokemonListResult` to `PokemonPage`; the component's `queryFn` delegates to this function so the mapping logic stays in the lib
+- the live query panel is unchanged; `buildPokemonQuery` is still called with `debouncedName`, `activeType`, `PAGE_SIZE`, and `displayOffset` (derived from `data?.pageParams.at(-1)`) so the panel reflects the most recently fetched page
+- added a new iMessage exchange to `/thoughts/graphql` covering the `useInfiniteQuery` migration: what was removed, how the key change replaces `AbortController`, and how `initialData` replaces `hasServerData`
+
 ## 2026-03-01 - version 0.3.18
 
 - converted `BrowseContent` and `SetCardsGrid` from manual `useState + useCallback + AbortController + loadedPages` infinite scroll to `useInfiniteQuery`; the query key changes when search or type changes, which causes TanStack to cancel the in-flight request via its own abort signal — removing `abortRef`, `AbortError` catch, and the `useCallback(fetchCards)` wrapper entirely

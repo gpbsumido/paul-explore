@@ -95,14 +95,16 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
   }, [debouncedSearch, type, latestPage, router]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Always-fresh ref — avoids stale closures without listing hasNextPage /
-  // isFetchingNextPage as observer effect deps, which would reconnect the
-  // observer on every loading-state change rather than just on cards.length.
   const onScrollRef = useRef<() => void>(() => {});
-  onScrollRef.current = () => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-  };
+
+  // Keep the ref current whenever pagination state changes. Updating in an
+  // effect (not during render) satisfies React 19's ref-access rules while
+  // still giving the observer callback a fresh closure on every render.
+  useEffect(() => {
+    onScrollRef.current = () => {
+      if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Reconnect after each fetch so the observer fires even if the sentinel is
   // already in the viewport — the reconnect forces observe() to immediately

@@ -57,9 +57,12 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const onScrollRef = useRef<() => void>(() => {});
-  onScrollRef.current = () => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-  };
+
+  useEffect(() => {
+    onScrollRef.current = () => {
+      if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
     const el = sentinelRef.current;
