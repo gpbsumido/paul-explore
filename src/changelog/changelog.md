@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.12
+
+- added `@tanstack/react-query` and `@tanstack/react-query-devtools` as the data fetching layer for the app; this is the foundation for converting every manual useEffect + fetch + AbortController + derived-loading-state pattern to proper query and mutation hooks over the next several steps
+- created `src/app/providers.tsx`, a client component that wraps the app in `QueryClientProvider`; the `QueryClient` lives in `useState` so each server render gets a fresh instance while the browser keeps a stable singleton across navigations; `ReactQueryDevtools` mounts only when `NODE_ENV` is development so there's no bundle impact in production
+- created `src/lib/queryKeys.ts` with typed key factory functions for every data domain in the app (me, calendar events, nba teams/players/stats/league, tcg cards, graphql pokemon); centralizing keys here means a `useQuery` call and its corresponding `invalidateQueries` call always use the same shape, change a key once and every reference stays in sync
+- wired `Providers` into the root layout wrapping `ThemeProvider`, so `useQuery` and `useMutation` are available anywhere in the component tree
+
 ## 2026-03-01 - version 0.3.11
 
 - added `/dev/skeletons` hub page as a dev-only preview tool (404s in production via `notFound()` guard): inline previews of all calendar skeletons (Month, Day, Week, Year), event skeletons (EventList, EventDetail), ThoughtsSkeleton, and FeatureHub header bones; plus linked sub-routes for the full-page skeletons that need their own page to render correctly, `/dev/skeletons/protected`, `/dev/skeletons/tcg-sets`, `/dev/skeletons/tcg-pocket`, `/dev/skeletons/tcg-card`, and `/dev/skeletons/tcg-set-detail`

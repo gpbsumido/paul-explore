@@ -87,6 +87,7 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 | Styling     | Tailwind CSS v4 + custom CSS tokens |
 | Auth        | Auth0 (`@auth0/nextjs-auth0`)       |
 | Runtime     | React 19                            |
+| Data fetching | TanStack Query v5               |
 | Charts      | unovis (`@unovis/react`)            |
 | Monitoring  | Vercel Speed Insights               |
 | Linting     | ESLint (Next.js config)             |
@@ -197,6 +198,8 @@ src/
 - `min-h` on calendar day cells was the CLS source: each cell grew to fit its event count, so a cell with 3 chips was ~40px taller than an empty one; the layout shifted every time events loaded in or you navigated months; replacing it with a fixed `h-` plus `overflow-hidden` (calculated from the max content height at each breakpoint) makes every cell the same size regardless of events -- nothing moves
 - skeleton bones need to match real element dimensions precisely, not just "approximately"; a title bone that's 14px when the real text renders at 16px, or a description with 2 lines when the real wraps to 3, will cause a layout shift when content loads in and the skeleton collapses or expands to meet it; the right approach is to measure the real element's computed line-height, padding, and gap values and set bone heights to match exactly, then confirm visually with a side-by-side dev tool like a `/dev/skeletons` preview route
 - `aspectRatio` on skeleton cards that represent content-driven layouts (not media like images or videos) produces the wrong height at most viewport widths; a set card with `padding + logo + footer` adds up to a fixed ~88px regardless of width, so the skeleton should use `h-[88px]` not `aspectRatio: "3/2"` which scales with column width and ends up nearly double the real height at common breakpoints
+- TanStack Query's `QueryClient` needs to live in `useState` (not as a module-level singleton) in a Next.js App Router app: a module-level client would be shared across all server renders and requests, leaking data between users; the `useState` pattern gives each server render its own instance while the browser naturally gets a stable singleton since state only initializes once on the client
+- centralizing query keys in a typed factory file (`queryKeys.ts`) pays for itself immediately: without it, `invalidateQueries` calls are just string arrays that drift out of sync with their `useQuery` counterparts over time; with factories, TypeScript catches mismatches at compile time and renaming a key is a one-line change
 - if a page needs user info but the info itself isn't needed for the first paint, don't call `getSession()` in the page component -- that makes Next.js treat the route as dynamic and bypasses static generation entirely; the better pattern is to make the page a plain sync component (so Next.js can pre-render it statically) and have a client component fetch the user info from a lightweight BFF route on mount; the static HTML arrives from CDN edge instantly and the user details fill in a moment later -- FCP and LCP are unaffected since the page skeleton is already painted
 
 ---
