@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-03-01 - version 0.3.11
+
+- added `/dev/skeletons` hub page as a dev-only preview tool (404s in production via `notFound()` guard): inline previews of all calendar skeletons (Month, Day, Week, Year), event skeletons (EventList, EventDetail), ThoughtsSkeleton, and FeatureHub header bones; plus linked sub-routes for the full-page skeletons that need their own page to render correctly, `/dev/skeletons/protected`, `/dev/skeletons/tcg-sets`, `/dev/skeletons/tcg-pocket`, `/dev/skeletons/tcg-card`, and `/dev/skeletons/tcg-set-detail`
+
+## 2026-03-01 - version 0.3.10
+
+- updated some skeletons to fully match actual components
+- fixed `/protected` TTFB (was 2.1s) and FCP (was 3.0s): `page.tsx` was calling `auth0.getSession()` to pass user info to `FeatureHub`, which forced Next.js to treat the route as dynamic and spin up a cold serverless function on every visit; removed the session call from `page.tsx` so it's now a plain sync component — Next.js statically pre-renders it at build time and Vercel serves the HTML from CDN edge; TTFB drops from cold-start (~2.1s) to CDN-served static (~50ms)
+- added `GET /api/me` — reads the Auth0 session cookie server-side and returns `{ name, email }`; same BFF pattern as the calendar routes so the token never reaches the browser; `FeatureHub` fetches this on mount and shows pulsing skeleton bones in the header while in-flight, replacing them with name and email once resolved; the cookie decrypt is fast (~5ms) so even including network round-trip, FCP is unaffected since the page HTML has already painted by then
+
 ## 2026-03-01 - version 0.3.9
 
 - refactored stagger delay approach in `FeatureHub`: replaced the hardcoded `STAGGER_DELAYS` array with a single `STAGGER_MS = 75` constant; delay is now computed as `i * STAGGER_MS` and applied via an inline `transitionDelay` style instead of Tailwind delay classes — dynamic class names like `delay-[${ms}ms]` are stripped by Tailwind's scanner at build time, so inline styles are the correct approach; new cards and dev notes automatically get the right delay with no array to maintain
