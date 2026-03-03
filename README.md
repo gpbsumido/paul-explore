@@ -14,6 +14,14 @@ Auth0 integration wired into a custom Next.js middleware proxy. Protected routes
 
 After login, you land on the feature hub at `/protected` — a showcase grid of all six features with dark mini-preview mockups inside each card and staggered entrance animations. Cards animate in on page load with a 75ms cascade; the dev-notes section below the grid is scroll-triggered. `page.tsx` is a plain sync component with no auth calls so Next.js statically pre-renders it at build time — Vercel serves the HTML from CDN edge instead of a cold serverless function, cutting TTFB from ~2.1s to ~50ms. `FeatureHub.tsx` fetches user info (name, email) on mount via `GET /api/me`, which reads the Auth0 session cookie server-side and returns the two fields; skeleton bones show in the header while the request is in-flight. Dev-notes cards show the full preview text (wraps to multiple lines) and cards in the same grid row stay equal height via `h-full` on the link and CSS grid's default `align-items: stretch`.
 
+### ✨ Landing Page Hero
+
+The hero section has a live Three.js particle network running as a full-viewport canvas layer behind the text. 160 nodes split into two tiers: 22 larger "star" anchors and 138 smaller particles. Every particle gets a tangential velocity nudge on each frame, perpendicular to its radial direction from the center, so the whole field slowly swirls without needing an explicit orbit system. Moving the mouse pulls nearby particles toward the cursor, clustering them into a dense web of connections that forms and dissolves as particles drift in and out of range.
+
+Connection lines are drawn between any two particles within `CONNECT_DIST` world units. The line buffer is pre-allocated as a `Float32Array` at worst-case `MAX_PAIRS = N*(N-1)/2` and `drawRange` is updated each frame to only draw the live connections, so there are no per-frame allocations or GC pauses during the 12,720 pairwise checks per tick. Line color fades toward black as two particles drift toward the connection threshold, so clusters look bright and sparse edges look dim. Squared distances (`dx*dx + dy*dy + dz*dz`) skip the square root in the hot loop.
+
+The canvas is split into two `Points` objects (star 3.5px, small 2px) sharing a color palette of blue, indigo, violet, and cyan from the design tokens. `alpha: true` + `setClearColor(0, 0)` lets the page background show through in both light and dark mode. The camera drifts with mouse/touch position via a lerp so it feels like parallax. Loaded with `next/dynamic` and `ssr: false` so Three.js never runs on the server. All three geometries, three materials, and the renderer are disposed on unmount.
+
 ### 🎨 Design System
 
 Started from scratch with a token-driven palette in `src/styles/tokens.css`. Tailwind v4's `@theme` block bridges those tokens into utility classes so both systems share a single source of truth. Dark mode using custom `ThemeProvider` and `useSyncExternalStore` — defaults to OS preference, persists manual overrides to localStorage, no flash on load. Reusable UI primitives: `Button` (5 variants including danger, 4 sizes, loading state), `Input`, `Textarea`, `IconButton`, `Modal`, `Chip`.
@@ -87,6 +95,7 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 | Styling     | Tailwind CSS v4 + custom CSS tokens |
 | Auth        | Auth0 (`@auth0/nextjs-auth0`)       |
 | Runtime     | React 19                            |
+| 3D Graphics | Three.js (`three`, `@types/three`)  |
 | Charts      | unovis (`@unovis/react`)            |
 | Monitoring  | Vercel Speed Insights               |
 | Linting     | ESLint (Next.js config)             |
@@ -152,6 +161,10 @@ src/
 
 ## Things I learned / found interesting
 
+- pre-allocating a `Float32Array` for Three.js line geometry at worst-case size and updating `drawRange` each frame is the right pattern for dynamic geometry that changes every tick; creating a new `BufferGeometry` per frame allocates and garbage-collects thousands of typed arrays per second which shows up as frame drops; one static buffer with a moving draw range costs nothing extra
+- tangential velocity bias (nudge perpendicular to the radial direction) creates a natural orbital swirl without any explicit orbit math or angle tracking; just `vel.x += -ry/rLen * strength` and `vel.y += rx/rLen * strength` every frame and the particles naturally circle the center
+- to do mouse attraction in Three.js you need world-space coordinates, not screen pixels; `Raycaster.ray.intersectPlane` unprojecting the NDC cursor position onto a `z=0` plane gives you the mouse position in the same coordinate space as the particles so the distance checks and force vectors work correctly
+- `PointsMaterial` with `sizeAttenuation: false` keeps dots a fixed pixel size at any depth, which is what you want for a crisp pixel-dot look; `sizeAttenuation: true` scales the point by its distance from the camera which gives a perspective-blurry blob effect
 - Tailwind v4's `@theme` block is actually a clean way to bridge CSS custom properties into utility classes — one token file, two systems
 - `useSyncExternalStore` is underused for things like theme preference — avoids the hydration mismatch that `useState` + `useEffect` creates
 - Next.js middleware for auth is straightforward, but CSP nonces and static generation are fundamentally at odds — Next.js inlines RSC payload scripts with no nonce attribute, so `'strict-dynamic'` blocks them; the fix (async root layout reading the nonce via `headers()`) works but forces every page into dynamic rendering; for sites with no `dangerouslySetInnerHTML`, `'self' 'unsafe-inline'` preserves static generation and is the standard approach for Next.js apps

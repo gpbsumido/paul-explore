@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-03-02 - version 0.3.13
+
+- added `/thoughts/landing-page` write-up covering the Three.js particle network: why Three.js in the hero, how the orbital swirl works (tangential nudge per frame instead of explicit orbit math), the pre-allocated `Float32Array` line buffer with `drawRange`, why line colors fade toward black as particles drift apart, how mouse attraction uses `Raycaster.intersectPlane` to get world-space coordinates, the 3-draw-call render loop, and canvas layering with `pointer-events-none` and `z-10` on the text
+- updated README with a dedicated landing page hero section, Three.js entry in the tech stack table, and four new "Things I learned" bullets covering the pre-allocated buffer pattern, tangential velocity bias for orbits, mouse world-space unprojection, and `sizeAttenuation: false` for pixel-crisp dots
+
+## 2026-03-02 - version 0.3.12
+
+- added a Three.js particle network to the hero section (`HeroScene.tsx`): 160 nodes (22 larger "star" anchors, 138 small particles) that orbit the center and draw live connection lines to any neighbor within range
+- moving the mouse pulls nearby particles toward the cursor, clustering them into a dense web of lines that appears and disappears as particles move in and out of connection range
+- each particle has a tangential velocity bias (perpendicular to the radial direction) so the whole field naturally swirls without needing an explicit orbit system
+- line color fades to black as the distance between two particles grows toward the connection threshold, so connections look bright when particles cluster and dim as they drift apart
+- line geometry is pre-allocated at MAX_PAIRS worst case and uses `drawRange` updated each frame rather than creating new geometry, so there's no GC pressure from 12,720 pairwise checks per tick
+- two Points objects (star-sized 3.5px and small 2px) share the color palette of blue, indigo, violet, and cyan matching the design tokens
+- canvas uses `alpha: true` and `setClearColor(0, 0)` so the page background shows through on both light and dark mode
+- camera parallax on mouse and touch movement, with a reused `Vector3` inside the tick loop to avoid per-frame allocations
+- loaded with `next/dynamic` and `ssr: false` so Three.js never runs server-side
+- cleanup disposes all three geometries, three materials, and the renderer on unmount
+- installed `three` and `@types/three`
+
 ## 2026-03-01 - version 0.3.11
 
 - added `/dev/skeletons` hub page as a dev-only preview tool (404s in production via `notFound()` guard): inline previews of all calendar skeletons (Month, Day, Week, Year), event skeletons (EventList, EventDetail), ThoughtsSkeleton, and FeatureHub header bones; plus linked sub-routes for the full-page skeletons that need their own page to render correctly, `/dev/skeletons/protected`, `/dev/skeletons/tcg-sets`, `/dev/skeletons/tcg-pocket`, `/dev/skeletons/tcg-card`, and `/dev/skeletons/tcg-set-detail`
