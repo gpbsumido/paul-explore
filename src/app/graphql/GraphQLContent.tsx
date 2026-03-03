@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Input } from "@/components/ui";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   buildPokemonQuery,
-  fetchPokemon,
+  fetchPokemonPage,
   LIST_QUERY,
   LIST_BY_TYPE_QUERY,
   POKEMON_TYPE_COLORS,
@@ -16,9 +17,10 @@ import {
 import {
   POKEMON_TYPES,
   PAGE_SIZE,
-  type Pokemon,
   type PokemonListResult,
+  type PokemonPage,
 } from "@/types/graphql";
+import { queryKeys } from "@/lib/queryKeys";
 import PokemonCard from "./PokemonCard";
 
 /**
@@ -32,17 +34,13 @@ function formatQuerySnippet(
   return `${query.trim()}\n\n# variables\n${JSON.stringify(variables, null, 2)}`;
 }
 
-/**
- * The filter key for the initial empty state (no search, no type).
- * Pre-seeding loadedKey to this value tells the derived loading flag that
- * the current results are already fresh — no fetch needed on first render.
- */
-const EMPTY_FILTER_KEY = "||";
-
 interface GraphQLContentProps {
   /**
-   * Page 1 results fetched server-side — when present the component skips
-   * its own initial useEffect fetch and uses this data directly.
+   * Page 1 results fetched server-side — seeds the query cache so the grid
+   * renders without a loading state on the initial unfiltered visit.
+   * When the user types or picks a type the query key changes and a fresh
+   * fetch fires on the new key; the seeded data stays cached for the
+   * no-filter key.
    */
   initialData?: PokemonListResult;
 }
@@ -51,107 +49,73 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
   const [name, setName] = useState("");
   const [activeType, setActiveType] = useState("");
   const debouncedName = useDebounce(name, 350);
-
-  const [pokemon, setPokemon] = useState<Pokemon[]>(
-    initialData?.pokemon_v2_pokemon ?? [],
-  );
-  const [total, setTotal] = useState(
-    initialData?.pokemon_v2_pokemon_aggregate.aggregate.count ?? 0,
-  );
-  const [offset, setOffset] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [showQuery, setShowQuery] = useState(false);
 
-  // Pre-seed loadedKey so derived `loading` is false when server data exists.
-  // Once the user types or picks a type, filterKey diverges and a real fetch fires.
-  const [loadedKey, setLoadedKey] = useState<string | null>(
-    initialData ? EMPTY_FILTER_KEY : null,
+  // Convert the raw GraphQL shape into the PokemonPage shape once so the
+  // initialData option below stays tidy.
+  const seedPage: PokemonPage | undefined = initialData
+    ? {
+        pokemon: initialData.pokemon_v2_pokemon,
+        total: initialData.pokemon_v2_pokemon_aggregate.aggregate.count,
+      }
+    : undefined;
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error: queryError,
+  } = useInfiniteQuery<PokemonPage>({
+    queryKey: queryKeys.graphql.pokemon({ name: debouncedName, type: activeType }),
+    queryFn: ({ pageParam, signal }) =>
+      fetchPokemonPage({
+        name: debouncedName,
+        type: activeType,
+        offset: pageParam as number,
+        signal,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.pokemon.length === PAGE_SIZE
+        ? allPages.length * PAGE_SIZE
+        : undefined,
+    initialData: seedPage
+      ? { pages: [seedPage], pageParams: [0] }
+      : undefined,
+    // SSR-seeded data is recent; background refetch after 30s. Without seed
+    // data, Pokémon rarely changes so cache for 10 minutes.
+    staleTime: seedPage ? 30_000 : 10 * 60_000,
+  });
+
+  const pokemon = useMemo(
+    () => data?.pages.flatMap((p) => p.pokemon) ?? [],
+    [data?.pages],
   );
-  const filterKey = `${debouncedName}||${activeType}`;
-  const loading = loadedKey !== filterKey;
-
-  const abortRef = useRef<AbortController | null>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const onScrollRef = useRef<() => void>(() => {});
-
-  // Skip the very first effect run when the server already fetched page 1.
-  // After the user changes a filter this ref flips to false and fetches resume.
-  const hasServerData = useRef(!!initialData);
-
-  // re-fetch from scratch whenever search or type changes
-  useEffect(() => {
-    if (hasServerData.current) {
-      hasServerData.current = false;
-      return;
-    }
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setOffset(0);
-    setError(null);
-
-    const { query, variables } = buildPokemonQuery(
-      debouncedName,
-      activeType,
-      PAGE_SIZE,
-      0,
-    );
-
-    fetchPokemon(query, variables, controller.signal)
-      .then((data) => {
-        if (controller.signal.aborted) return;
-        setPokemon(data.pokemon_v2_pokemon);
-        setTotal(data.pokemon_v2_pokemon_aggregate.aggregate.count);
-        setLoadedKey(filterKey);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) {
-          setError(
-            "Couldn't load Pokémon — check your connection and try again.",
-          );
-          setLoadedKey(filterKey);
-        }
-      });
-
-    return () => controller.abort();
-  }, [debouncedName, activeType]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function handleLoadMore() {
-    const nextOffset = offset + PAGE_SIZE;
-    setOffset(nextOffset);
-    setLoadingMore(true);
-    try {
-      const { query, variables } = buildPokemonQuery(
-        debouncedName,
-        activeType,
-        PAGE_SIZE,
-        nextOffset,
-      );
-      const data = await fetchPokemon(query, variables);
-      setPokemon((prev) => [...prev, ...data.pokemon_v2_pokemon]);
-    } catch {
-      // silently fail — the existing results stay, user can retry
-    } finally {
-      setLoadingMore(false);
-    }
-  }
+  const total = data?.pages[0]?.total ?? 0;
+  const loading = isLoading;
+  const loadingMore = isFetchingNextPage;
 
   function toggleType(type: string) {
     setActiveType((prev) => (prev === type ? "" : type));
   }
 
-  const hasMore = pokemon.length < total;
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const onScrollRef = useRef<() => void>(() => {});
 
-  // always fresh — assigned in render so the observer closure is never stale
-  onScrollRef.current = () => {
-    if (!hasMore || loading || loadingMore || pokemon.length === 0) return;
-    handleLoadMore();
-  };
+  // Keep the ref current whenever the pagination state changes. Updating it
+  // in an effect (not during render) satisfies React 19's ref-access rules
+  // while still giving the observer callback a fresh closure on every render.
+  useEffect(() => {
+    onScrollRef.current = () => {
+      if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // reconnect the observer after each fetch — re-fires if the sentinel is already in view
+  // Reconnect after each fetch so the observer fires even if the sentinel is
+  // already in the viewport after new cards render.
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -165,12 +129,16 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
     return () => observer.disconnect();
   }, [pokemon.length]);
 
+  // Offset of the last fetched page — drives the live query display so the
+  // panel reflects what was actually sent most recently.
+  const displayOffset = (data?.pageParams.at(-1) as number | undefined) ?? 0;
+
   // what the current query/variables look like — shown in the collapsible panel
   const { query: liveQuery, variables: liveVars } = buildPokemonQuery(
     debouncedName,
     activeType,
     PAGE_SIZE,
-    offset,
+    displayOffset,
   );
 
   return (
@@ -315,8 +283,10 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
               <SkeletonCard key={i} />
             ))}
           </div>
-        ) : error ? (
-          <p className="text-center text-red-500 py-16 text-sm">{error}</p>
+        ) : isError ? (
+          <p className="text-center text-red-500 py-16 text-sm">
+            {queryError?.message ?? "Couldn't load Pokémon — check your connection and try again."}
+          </p>
         ) : pokemon.length === 0 ? (
           <p className="text-center text-muted py-16 text-sm">
             No Pokémon matched your search.

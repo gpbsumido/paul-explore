@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useId, type ReactNode } from "react";
 import { format, formatISO, addHours, parseISO } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
-import type { CalendarEvent, DraftCard } from "@/types/calendar";
+import type { CalendarEvent, DraftCard, EventCard } from "@/types/calendar";
 import type { CardResume } from "@/lib/tcg";
 import {
   EVENT_COLORS,
   toInputValue,
-  fetchEventCards,
   addCardToEvent,
   updateEventCard,
   removeCardFromEvent,
@@ -23,6 +23,10 @@ interface EventModalProps {
   onSave: (event: CalendarEvent) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   onClose: () => void;
+  /** True while a create or update mutation is in-flight. Drives button state. */
+  isSaving?: boolean;
+  /** True while a delete mutation is in-flight. Drives button state. */
+  isDeleting?: boolean;
 }
 
 /** Section header with a trailing rule — keeps the two columns visually organized. */
@@ -43,6 +47,8 @@ export default function EventModal({
   onSave,
   onDelete,
   onClose,
+  isSaving = false,
+  isDeleting = false,
 }: EventModalProps) {
   const uid = useId();
   const isEdit = !!event;
@@ -61,9 +67,7 @@ export default function EventModal({
   const [allDay, setAllDay] = useState(event?.allDay ?? false);
   const [color, setColor] = useState(event?.color ?? EVENT_COLORS[0]);
   const [titleError, setTitleError] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   // end < start is derived — no extra state needed
   const endBeforeStart = endDate < startDate;
@@ -75,15 +79,31 @@ export default function EventModal({
   // ids of already-persisted cards that the user removed this session
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
-  // load attached cards when opening an existing event
+  /**
+   * Fetches the cards attached to an existing event. Disabled for new events
+   * (no event.id yet). staleTime: 0 so reopening the modal always shows fresh
+   * data, but the first render uses the cached response while the refetch runs
+   * in the background.
+   */
+  const cardQuery = useQuery<EventCard[]>({
+    queryKey: ["calendar", "events", event?.id, "cards"],
+    queryFn: () =>
+      fetch(`/api/calendar/events/${event!.id}/cards`)
+        .then((r) => r.json())
+        .then((d) => d.cards as EventCard[]),
+    enabled: !!event?.id,
+    staleTime: 0,
+  });
+
+  // Seed local cards state from the query the first time data arrives.
+  // The check on cards.length keeps user edits (adds, removes, quantity
+  // changes) from being overwritten if the query refetches in the background
+  // while the modal is open.
   useEffect(() => {
-    if (!event?.id) return;
-    fetchEventCards(event.id)
-      .then((fetched) => setCards(fetched.map((c) => ({ ...c }))))
-      .catch(() => {
-        // non-fatal — cards section just starts empty if the fetch fails
-      });
-  }, [event?.id]);
+    if (cardQuery.data && cards.length === 0) {
+      setCards(cardQuery.data.map((c) => ({ ...c })));
+    }
+  }, [cardQuery.data, cards.length]);
 
   /** Stage a card locally. Actual write happens on save so we can batch it with the event. */
   function handleCardSelected(card: CardResume) {
@@ -139,7 +159,6 @@ export default function EventModal({
       setTitleError(true);
       return;
     }
-    setSaving(true);
     setSaveError(null);
 
     // datetime-local inputs produce naive strings (no tz); add local offset
@@ -193,18 +212,16 @@ export default function EventModal({
       onClose();
     } catch {
       setSaveError("Couldn't save the event. Please try again.");
-      setSaving(false);
     }
   }
 
   async function handleDelete() {
     if (!event || !onDelete) return;
-    setDeleting(true);
     try {
       await onDelete(event.id);
       onClose();
     } catch {
-      setDeleting(false);
+      // isDeleting resets automatically when the mutation settles
     }
   }
 
@@ -372,9 +389,9 @@ export default function EventModal({
             variant="danger"
             size="sm"
             onClick={handleDelete}
-            disabled={deleting || saving}
+            disabled={isDeleting || isSaving}
           >
-            {deleting ? "Deleting…" : "Delete"}
+            {isDeleting ? "Deleting…" : "Delete"}
           </Button>
         ) : (
           <span />
@@ -384,7 +401,7 @@ export default function EventModal({
             variant="outline"
             size="sm"
             onClick={onClose}
-            disabled={saving || deleting}
+            disabled={isSaving || isDeleting}
           >
             Cancel
           </Button>
@@ -392,9 +409,9 @@ export default function EventModal({
             variant="primary"
             size="sm"
             onClick={handleSave}
-            disabled={saving || deleting}
+            disabled={isSaving || isDeleting}
           >
-            {saving ? "Saving…" : isEdit ? "Save" : "Create"}
+            {isSaving ? "Saving…" : isEdit ? "Save" : "Create"}
           </Button>
         </div>
       </div>

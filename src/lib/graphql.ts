@@ -1,4 +1,4 @@
-import type { Pokemon, PokemonListResult, GraphQLResponse } from "@/types/graphql";
+import type { Pokemon, PokemonListResult, PokemonPage, GraphQLResponse } from "@/types/graphql";
 import { PAGE_SIZE } from "@/types/graphql";
 
 // ---------------------------------------------------------------------------
@@ -116,6 +116,30 @@ export async function fetchPokemon(
   const json = (await res.json()) as GraphQLResponse<PokemonListResult>;
   if (json.errors?.length) throw new Error(json.errors[0].message);
   return json.data;
+}
+
+/**
+ * Fetches one page of Pokémon for the given filter state and offset.
+ * Returns the PokemonPage shape consumed by useInfiniteQuery — the flat
+ * pokemon array and the total count (needed to derive hasNextPage).
+ */
+export async function fetchPokemonPage({
+  name,
+  type,
+  offset,
+  signal,
+}: {
+  name: string;
+  type: string;
+  offset: number;
+  signal?: AbortSignal;
+}): Promise<PokemonPage> {
+  const { query, variables } = buildPokemonQuery(name, type, PAGE_SIZE, offset);
+  const result = await fetchPokemon(query, variables, signal);
+  return {
+    pokemon: result.pokemon_v2_pokemon,
+    total: result.pokemon_v2_pokemon_aggregate.aggregate.count,
+  };
 }
 
 // The PokeAPI Hasura endpoint — only referenced server-side.

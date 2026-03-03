@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { CalendarEvent } from "@/types/calendar";
+import { queryKeys } from "@/lib/queryKeys";
 import EventRow from "./EventRow";
 import EventListSkeleton from "./EventListSkeleton";
 
@@ -17,63 +19,55 @@ export default function EventsContent() {
   const debouncedCardName = useDebounce(cardName, 400);
   const debouncedTitle = useDebounce(titleQuery, 200);
 
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  /**
+   * Fetches events from the backend filtered by date range and card name.
+   * staleTime: 0 means every mount triggers a background check — events can
+   * change any time the user adds or edits calendar events elsewhere.
+   * When startDate, endDate, or debouncedCardName changes the key changes
+   * and TanStack Query fires a fresh fetch automatically, replacing the old
+   * useEffect + AbortController + filterKey/loadedKey pattern.
+   */
+  const eventsQuery = useQuery({
+    queryKey: queryKeys.calendar.eventsList({
+      startDate,
+      endDate,
+      cardName: debouncedCardName,
+    }),
+    queryFn: async ({ signal }): Promise<CalendarEvent[]> => {
+      const params = new URLSearchParams();
+      if (startDate) params.set("start", new Date(startDate).toISOString());
+      if (endDate) {
+        // end of the selected day
+        const d = new Date(endDate);
+        d.setHours(23, 59, 59, 999);
+        params.set("end", d.toISOString());
+      }
+      if (debouncedCardName) params.set("cardName", debouncedCardName);
+      const qs = params.toString();
+      const res = await fetch(
+        `/api/calendar/events${qs ? `?${qs}` : ""}`,
+        { signal },
+      );
+      if (!res.ok) throw new Error("Couldn't load events — check your connection.");
+      const data = await res.json();
+      return data.events ?? [];
+    },
+    staleTime: 0,
+  });
 
-  // key that uniquely identifies the current backend fetch params
-  const filterKey = `${startDate}|${endDate}|${debouncedCardName}`;
-  const [loadedKey, setLoadedKey] = useState<string | null>(null);
-  const loading = loadedKey !== filterKey;
-
-  useEffect(() => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    const params = new URLSearchParams();
-    if (startDate) params.set("start", new Date(startDate).toISOString());
-    if (endDate) {
-      // end of the selected day
-      const d = new Date(endDate);
-      d.setHours(23, 59, 59, 999);
-      params.set("end", d.toISOString());
-    }
-    if (debouncedCardName) params.set("cardName", debouncedCardName);
-    const qs = params.toString();
-
-    fetch(`/api/calendar/events${qs ? `?${qs}` : ""}`, {
-      signal: controller.signal,
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("fetch failed");
-        return res.json();
-      })
-      .then((data) => {
-        if (!controller.signal.aborted) {
-          setEvents(data.events ?? []);
-          setError(null);
-          setLoadedKey(filterKey);
-        }
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) {
-          setError("Couldn't load events — check your connection.");
-          setLoadedKey(filterKey);
-        }
-      });
-
-    return () => controller.abort();
-  }, [startDate, endDate, debouncedCardName, filterKey]);
+  const loading = eventsQuery.isLoading;
 
   // title filter runs client-side on whatever the backend returned
-  const displayed = events
-    .filter(
-      (e) =>
-        !debouncedTitle ||
-        e.title.toLowerCase().includes(debouncedTitle.toLowerCase()),
-    )
-    .sort((a, b) => b.startDate.localeCompare(a.startDate));
+  const displayed = useMemo(() => {
+    const events = eventsQuery.data ?? [];
+    return events
+      .filter(
+        (e) =>
+          !debouncedTitle ||
+          e.title.toLowerCase().includes(debouncedTitle.toLowerCase()),
+      )
+      .sort((a, b) => b.startDate.localeCompare(a.startDate));
+  }, [eventsQuery.data, debouncedTitle]);
 
   const hasFilters = titleQuery || cardName || startDate || endDate;
 
@@ -135,9 +129,9 @@ export default function EventsContent() {
       {/* Results */}
       {loading ? (
         <EventListSkeleton />
-      ) : error ? (
+      ) : eventsQuery.isError ? (
         <p className="text-sm text-red-600 dark:text-red-400 py-8 text-center">
-          {error}
+          {eventsQuery.error?.message ?? "Couldn't load events."}
         </p>
       ) : displayed.length === 0 ? (
         <p className="text-sm text-muted py-16 text-center">

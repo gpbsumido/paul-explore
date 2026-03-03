@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui";
 import { type CardResume } from "@/lib/tcg";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -15,60 +16,44 @@ type Props = {
 /**
  * Debounced card search backed by /api/tcg/cards.
  *
- * Loading state is derived from `loadedQuery !== debouncedQuery` rather than
- * a separate boolean flag, so we never call setState synchronously in an effect.
+ * useQuery handles fetching, request cancellation, and caching. The query
+ * is disabled when the input is empty so no request fires until the user
+ * starts typing. Results are cached for 5 minutes so searching the same
+ * term again is instant. placeholderData resets the visible list to empty
+ * whenever the debounced query changes, so the old results never flash
+ * while the new fetch is in flight.
  */
 export default function CardSearch({ onSelectCard }: Props) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 350);
-
-  const [results, setResults] = useState<CardResume[]>([]);
-  // which query the current results belong to — drives the loading derivation
-  const [loadedQuery, setLoadedQuery] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-
-  const abortRef = useRef<AbortController | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // in-flight when the debounced query doesn't match what we've loaded yet
-  const loading = !!debouncedQuery.trim() && loadedQuery !== debouncedQuery;
+  const searchQuery = useQuery<CardResume[]>({
+    queryKey: ["tcg", "cards", "search", debouncedQuery],
+    queryFn: ({ signal }) =>
+      fetch(
+        `/api/tcg/cards?q=${encodeURIComponent(debouncedQuery.trim())}&page=1`,
+        { signal },
+      ).then((r) => {
+        if (!r.ok) throw new Error("search failed");
+        return r.json() as Promise<CardResume[]>;
+      }),
+    enabled: debouncedQuery.trim().length > 0,
+    staleTime: 5 * 60_000,
+    placeholderData: [],
+  });
+
+  const results = (searchQuery.data ?? []).slice(0, DROPDOWN_LIMIT);
+  const loading = searchQuery.isLoading && debouncedQuery.trim().length > 0;
   const showDropdown = open && !!debouncedQuery.trim() && results.length > 0;
 
+  // Open the dropdown automatically when results arrive
   useEffect(() => {
-    const q = debouncedQuery.trim();
-    if (!q) {
-      // abort any in-flight fetch; no setState — showDropdown derives false from empty query
-      abortRef.current?.abort();
-      return;
-    }
+    if ((searchQuery.data?.length ?? 0) > 0) setOpen(true);
+  }, [searchQuery.data]);
 
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    const params = new URLSearchParams({ q, page: "1" });
-    fetch(`/api/tcg/cards?${params}`, { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error("search failed");
-        return res.json() as Promise<CardResume[]>;
-      })
-      .then((data) => {
-        if (!controller.signal.aborted) {
-          setResults(data.slice(0, DROPDOWN_LIMIT));
-          setLoadedQuery(debouncedQuery);
-          if (data.length > 0) setOpen(true);
-        }
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) {
-          setLoadedQuery(debouncedQuery);
-        }
-      });
-
-    return () => controller.abort();
-  }, [debouncedQuery]);
-
-  // close dropdown when the user clicks outside this component
+  // Close dropdown when the user clicks outside this component
   useEffect(() => {
     function handlePointerDown(e: MouseEvent) {
       if (
@@ -85,8 +70,6 @@ export default function CardSearch({ onSelectCard }: Props) {
   function handleSelect(card: CardResume) {
     onSelectCard(card);
     setQuery("");
-    setResults([]);
-    setLoadedQuery(null);
     setOpen(false);
   }
 

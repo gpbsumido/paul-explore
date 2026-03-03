@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui";
 import { selectChevron } from "@/assets/icons";
+import { queryKeys } from "@/lib/queryKeys";
 import type { ESPNLeagueResponse, ESPNTeam, ESPNMember } from "@/types/espn";
 
 const POSITION_MAP: Record<number, string> = {
@@ -138,47 +140,30 @@ function TeamCard({
 
 export default function LeagueContent() {
   const [season, setSeason] = useState(CURRENT_YEAR);
-  const [teams, setTeams] = useState<ESPNTeam[]>([]);
-  const [members, setMembers] = useState<ESPNMember[]>([]);
-  const [leagueName, setLeagueName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const abortRef = useRef<AbortController | null>(null);
-
-  const fetchLeague = useCallback(async (yr: number) => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setLoading(true);
-    setError(null);
-    setTeams([]);
-    setMembers([]);
-
-    try {
-      const res = await fetch(`/api/nba/league/${yr}`, { signal: controller.signal });
+  const leagueQuery = useQuery({
+    queryKey: queryKeys.nba.league(season),
+    queryFn: async (): Promise<{
+      leagueName: string;
+      teams: ESPNTeam[];
+      members: ESPNMember[];
+    }> => {
+      const res = await fetch(`/api/nba/league/${season}`);
       if (!res.ok) throw new Error("Failed to load league data");
       const data: ESPNLeagueResponse = await res.json();
-
-      setLeagueName(data.settings.name);
-      setMembers(data.members ?? []);
-
       const sorted = [...data.teams].sort(
         (a, b) => a.rankCalculatedFinal - b.rankCalculatedFinal,
       );
-      setTeams(sorted);
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") return;
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      if (!controller.signal.aborted) setLoading(false);
-    }
-  }, []);
+      return {
+        leagueName: data.settings.name,
+        teams: sorted,
+        members: data.members ?? [],
+      };
+    },
+    staleTime: 60 * 60_000,
+  });
 
-  useEffect(() => {
-    fetchLeague(season);
-  }, [season, fetchLeague]);
+  const { leagueName = "", teams = [], members = [] } = leagueQuery.data ?? {};
 
   function handleSeasonChange(e: React.ChangeEvent<HTMLSelectElement>) {
     setSeason(Number(e.target.value));
@@ -236,26 +221,30 @@ export default function LeagueContent() {
 
       {/* ---- Content ---- */}
       <div className="flex-1 flex flex-col">
-        {loading && (
+        {leagueQuery.isLoading && (
           <div className="flex-1 flex items-center justify-center text-muted text-[15px] px-4 py-10">
             Loading league data…
           </div>
         )}
 
-        {error && (
+        {leagueQuery.isError && (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 py-10 text-center text-muted text-[15px]">
-            <span>{error}</span>
+            <span>
+              {leagueQuery.error instanceof Error
+                ? leagueQuery.error.message
+                : "Something went wrong"}
+            </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => fetchLeague(season)}
+              onClick={() => leagueQuery.refetch()}
             >
               Retry
             </Button>
           </div>
         )}
 
-        {!loading && !error && teams.length > 0 && (
+        {!leagueQuery.isLoading && !leagueQuery.isError && teams.length > 0 && (
           <div className="flex-1 bg-gradient-to-br from-secondary-600 to-primary-700 dark:from-secondary-900 dark:to-primary-950 px-4 py-4 flex flex-col gap-3">
             {leagueName && (
               <p className="text-[13px] text-white/80 dark:text-white/70 text-center">
@@ -270,7 +259,7 @@ export default function LeagueContent() {
           </div>
         )}
 
-        {!loading && !error && teams.length === 0 && (
+        {!leagueQuery.isLoading && !leagueQuery.isError && teams.length === 0 && (
           <div className="flex-1 flex items-center justify-center text-muted text-[15px] px-4 py-10 text-center">
             No league data available
           </div>

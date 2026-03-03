@@ -472,6 +472,67 @@ const fetchCards = async (...) => {
           small, but it&apos;s inconsistent with the rest of the pages
         </Sent>
 
+        <Timestamp>10:24 AM</Timestamp>
+
+        <Received pos="first">
+          did you ever clean up the AbortController and loadedPages state
+        </Received>
+        <Received pos="last">that restore loop looked fragile</Received>
+
+        <Sent pos="first">
+          yes, both files got converted to <code>useInfiniteQuery</code>
+        </Sent>
+        <Sent pos="middle">
+          the query key changes when search or type changes — TanStack cancels
+          the in-flight fetch automatically via its own abort signal. no more{" "}
+          <code>abortRef</code>, no more <code>AbortError</code> catch
+        </Sent>
+        <Sent pos="last">
+          <code>loadedPages</code> state is gone too.{" "}
+          <code>data.pages.flatMap(p ={">"} p.cards)</code> is the cards array
+          and <code>fetchNextPage()</code> appends the next page to it — no
+          dedup loop, no append flag
+        </Sent>
+
+        <Received pos="first">
+          what about the scroll restore loop — pages 2 through N on mount
+        </Received>
+        <Received pos="last">
+          that was the part that was hardest to follow
+        </Received>
+
+        <Sent pos="first">
+          dropped. <code>initialPageParam</code> reads <code>?page=N</code>{" "}
+          from the URL on mount and <code>getNextPageParam</code> returns{" "}
+          <code>lastPageParam + 1</code>, so pages continue from wherever the
+          session ended
+        </Sent>
+        <Sent pos="last">
+          the sentinel observer still calls <code>fetchNextPage()</code> guarded
+          by <code>hasNextPage</code> — same pattern, half the wiring
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  useInfiniteQuery({
+    queryKey: queryKeys.tcg.cards({ q: debouncedSearch, type }),
+    queryFn: async ({ pageParam, signal }) => {
+      const res = await fetch(\`/api/tcg/cards?page=\${pageParam}...\`, { signal });
+      const cards = await res.json();
+      return { cards, hasMore: cards.length >= PER_PAGE };
+    },
+    initialPageParam,
+    getNextPageParam: (lastPage, _pages, lastPageParam) =>
+      lastPage.hasMore ? lastPageParam + 1 : undefined,
+  });
+
+const cards = data?.pages.flatMap(p => p.cards) ?? [];
+
+onScrollRef.current = () => {
+  if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+};`}
+        </div>
+
         <Received>what does all this show as a frontend dev</Received>
 
         <Sent pos="first">

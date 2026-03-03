@@ -203,6 +203,8 @@ export default function CalendarContent({
           onSave={handleSave}
           onDelete={handleDelete}
           onClose={() => setModal({ open: false })}
+          isSaving={calendarEvents.isCreating || calendarEvents.isUpdating}
+          isDeleting={calendarEvents.isDeleting}
         />
       )}
     </div>

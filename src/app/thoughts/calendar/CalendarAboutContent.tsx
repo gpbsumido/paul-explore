@@ -550,6 +550,51 @@ async function CalendarWithData() {
           reason about and update independently
         </Sent>
 
+        <Timestamp>11:05 AM</Timestamp>
+
+        <Received>did you end up moving the calendar mutations to TanStack Query too</Received>
+
+        <Sent pos="first">
+          yeah, all three -- create, update, and delete are now{" "}
+          <code>useMutation</code> with the full optimistic update pattern
+        </Sent>
+        <Sent pos="middle">
+          <code>onMutate</code> cancels any in-flight fetches, snapshots the
+          current cache, and applies the change immediately so the grid reacts
+          before the server responds. <code>onError</code> restores the
+          snapshot if the write fails. <code>onSettled</code> invalidates all
+          calendar event queries
+        </Sent>
+        <Sent pos="last">
+          the invalidation uses a prefix match on{" "}
+          <code>[&quot;calendar&quot;, &quot;events&quot;]</code> rather than
+          the exact range key. that way a create or delete broadcasts to every
+          cached month, not just the one on screen -- which matters for
+          multi-day events near month boundaries
+        </Sent>
+
+        <Received>what did you get from that over the setQueryData approach</Received>
+
+        <Sent pos="first">
+          a few things. <code>isPending</code> on each mutation drives the save
+          and delete button states in the modal. the modal used to manage local{" "}
+          <code>saving</code> and <code>deleting</code> booleans and reset them
+          in catch blocks -- now it just reads the mutation state from props
+        </Sent>
+        <Sent pos="middle">
+          automatic rollback on error was the other one. the old{" "}
+          <code>setQueryData</code> approach had no rollback -- if the API call
+          failed, the optimistic change would stick around until the next fetch.
+          the mutation pattern cleans that up cleanly via{" "}
+          <code>onError</code> restoring the snapshot
+        </Sent>
+        <Sent pos="last">
+          and the mental model is cleaner. the mutation owns its whole
+          lifecycle -- optimistic apply, error rollback, server sync -- instead
+          of those three concerns being scattered across separate callbacks and
+          state variables
+        </Sent>
+
         <Received>nice. anything else worth mentioning</Received>
 
         <Sent pos="first">

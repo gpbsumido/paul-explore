@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import "./globals.css";
@@ -42,7 +43,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <Providers>
+          <ThemeProvider>{children}</ThemeProvider>
+        </Providers>
         <SpeedInsights />
         <WebVitalsReporter />
       </body>
