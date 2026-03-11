@@ -12,14 +12,17 @@ import {
   endOfWeek,
   eachDayOfInterval,
   isSameMonth,
+  isSameDay,
   isToday,
+  parseISO,
 } from "date-fns";
 import { DAY_LABELS, eventsForDay } from "@/lib/calendar";
-import type { CalendarEvent } from "@/types/calendar";
+import type { CalendarEvent, Countdown } from "@/types/calendar";
 
 interface MiniMonthProps {
   month: Date;
   events: CalendarEvent[];
+  countdowns: Countdown[];
   /** Whether this month is the currently viewed month — gets flag-tape treatment. */
   isCurrent: boolean;
   onClick: () => void;
@@ -28,7 +31,7 @@ interface MiniMonthProps {
 // MiniMonth renders a full mini-grid per month. There are 12 of them on screen
 // and they're cheap individually, but 12x the work still adds up on each keystroke
 // or modal toggle in the parent.
-const MiniMonth = memo(function MiniMonth({ month, events, isCurrent, onClick }: MiniMonthProps) {
+const MiniMonth = memo(function MiniMonth({ month, events, countdowns, isCurrent, onClick }: MiniMonthProps) {
   const days = eachDayOfInterval({
     start: startOfWeek(startOfMonth(month)),
     end: endOfWeek(endOfMonth(month)),
@@ -70,6 +73,13 @@ const MiniMonth = memo(function MiniMonth({ month, events, isCurrent, onClick }:
           const today = isToday(day);
           // only show event dots for days that belong to this month
           const dayEvents = inMonth ? eventsForDay(events, day) : [];
+          const dayCds = inMonth
+            ? countdowns.filter((c) => isSameDay(parseISO(c.targetDate), day))
+            : [];
+          const allDots = [
+            ...dayEvents.map((ev) => ev.color),
+            ...dayCds.map((c) => c.color),
+          ];
 
           return (
             <div key={day.toISOString()} className="flex flex-col items-center mb-0.5">
@@ -87,14 +97,14 @@ const MiniMonth = memo(function MiniMonth({ month, events, isCurrent, onClick }:
                 {format(day, "d")}
               </span>
 
-              {/* Colored event dots — up to 3 per day */}
-              {dayEvents.length > 0 && (
+              {/* Colored dots — events and countdowns share the 3-dot budget */}
+              {allDots.length > 0 && (
                 <div className="flex gap-px mt-0.5">
-                  {dayEvents.slice(0, 3).map((ev, i) => (
+                  {allDots.slice(0, 3).map((color, i) => (
                     <div
                       key={i}
                       className="h-[3px] w-[3px] rounded-full"
-                      style={{ backgroundColor: ev.color }}
+                      style={{ backgroundColor: color }}
                     />
                   ))}
                 </div>
@@ -110,12 +120,14 @@ const MiniMonth = memo(function MiniMonth({ month, events, isCurrent, onClick }:
 interface YearViewProps {
   currentDate: Date;
   events: CalendarEvent[];
+  countdowns?: Countdown[];
   onMonthClick: (date: Date) => void;
 }
 
 function YearView({
   currentDate,
   events,
+  countdowns = [],
   onMonthClick,
 }: YearViewProps) {
   const months = eachMonthOfInterval({
@@ -130,6 +142,7 @@ function YearView({
           key={month.toISOString()}
           month={month}
           events={events}
+          countdowns={countdowns}
           isCurrent={isSameMonth(month, currentDate)}
           onClick={() => onMonthClick(month)}
         />

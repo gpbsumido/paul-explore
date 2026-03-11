@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.31
+
+- wired countdowns into all four calendar views so they show up inline on their target date
+- `CalendarGrid` (month view): countdowns filter by exact day match using `isSameDay(parseISO(targetDate), day)`; events claim chips first, countdowns fill whatever slots are left inside the shared `VISIBLE_CHIPS = 3` budget; countdown chips use a dashed left border in the countdown color to stay visually distinct from event chips
+- `DayView`: added countdown props and a `dayCountdowns` memo; all-day banner now shows even when there are only countdowns (no events required); countdown chips render below event chips in the same section
+- `WeekView`: countdown chips land in the all-day CSS grid row, one per day column; they share the grid with multi-day event bars so they auto-stack into new rows if both land on the same day
+- `YearView`: countdown dots share the 3-dot-per-day budget in `MiniMonth` alongside event dots; no click handler needed since MiniMonth navigates to the month view on click anyway
+- `CalendarContent`: added `useCountdowns()` call (no SSR seed needed since this is not the countdowns page), `CountdownModalState` for the inline edit modal, and `CountdownModal` as a lazy dynamic import; countdown click from any view opens the modal in edit mode
+
 ## 2026-03-11 - version 0.3.30
 
 - added `/calendar/countdown` page: `page.tsx` is a server component that SSR-seeds countdowns by calling the backend directly (no loopback), same pattern as the calendar page; `CountdownsWithData` wrapped in Suspense with an inline pulse skeleton so the shell streams immediately

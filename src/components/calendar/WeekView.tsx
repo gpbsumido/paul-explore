@@ -7,13 +7,14 @@ import {
   addDays,
   eachDayOfInterval,
   isToday,
+  isSameDay,
   getHours,
   getMinutes,
   parseISO,
   differenceInCalendarDays,
 } from "date-fns";
 import { HOURS, slotDate, formatHour, singleDayTimedEventsForDay, layoutDayEvents } from "@/lib/calendar";
-import type { CalendarEvent } from "@/types/calendar";
+import type { CalendarEvent, Countdown } from "@/types/calendar";
 import EventChip from "@/components/calendar/EventChip";
 
 /** Fixed px height for each hour row — used for current-time indicator math. */
@@ -25,8 +26,10 @@ const GUTTER_WIDTH = "3rem";
 interface WeekViewProps {
   currentDate: Date;
   events: CalendarEvent[];
+  countdowns?: Countdown[];
   onSlotClick: (date: Date) => void;
   onChipClick: (event: CalendarEvent) => void;
+  onCountdownClick?: (countdown: Countdown) => void;
 }
 
 /**
@@ -71,8 +74,10 @@ function getEventColSpan(
 function WeekView({
   currentDate,
   events,
+  countdowns = [],
   onSlotClick,
   onChipClick,
+  onCountdownClick,
 }: WeekViewProps) {
   // memoize weekStart and weekDays so they only change on navigation, not on every render
   const weekStart = useMemo(() => startOfWeek(currentDate), [currentDate]);
@@ -171,7 +176,7 @@ function WeekView({
             ))}
           </div>
 
-          {/* Event layer — CSS grid so overlapping events stack into rows */}
+          {/* Event and countdown layer — CSS grid so overlapping items stack into rows */}
           <div
             className="relative grid gap-y-0.5 py-0.5"
             style={{ gridTemplateColumns: "repeat(7, 1fr)" }}
@@ -189,6 +194,26 @@ function WeekView({
                   <EventChip event={ev} onClick={() => onChipClick(ev)} />
                 </div>
               );
+            })}
+            {weekDays.map((day, dayIdx) => {
+              const dayCds = countdowns.filter((c) =>
+                isSameDay(parseISO(c.targetDate), day),
+              );
+              return dayCds.map((c) => (
+                <div
+                  key={c.id}
+                  style={{ gridColumn: `${dayIdx + 1} / span 1` }}
+                  className="px-0.5"
+                >
+                  <div
+                    onClick={() => onCountdownClick?.(c)}
+                    className="rounded px-1.5 py-0.5 text-[11px] leading-tight truncate cursor-pointer hover:opacity-75 transition-opacity border-dashed bg-surface"
+                    style={{ borderLeftColor: c.color, borderLeftWidth: 3 }}
+                  >
+                    {c.title}
+                  </div>
+                </div>
+              ));
             })}
           </div>
         </div>

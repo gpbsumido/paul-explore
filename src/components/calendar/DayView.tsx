@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useMemo } from "react";
-import { format, isToday, getHours, getMinutes } from "date-fns";
+import { format, isToday, isSameDay, parseISO, getHours, getMinutes } from "date-fns";
 import {
   HOURS,
   slotDate,
@@ -10,7 +10,7 @@ import {
   singleDayTimedEventsForDay,
   layoutDayEvents,
 } from "@/lib/calendar";
-import type { CalendarEvent } from "@/types/calendar";
+import type { CalendarEvent, Countdown } from "@/types/calendar";
 import EventChip from "@/components/calendar/EventChip";
 
 /** Fixed px height per hour row — drives all the time-position math. */
@@ -25,15 +25,19 @@ const GUTTER_WIDTH = "4.5rem";
 interface DayViewProps {
   currentDate: Date;
   events: CalendarEvent[];
+  countdowns?: Countdown[];
   onSlotClick: (date: Date) => void;
   onChipClick: (event: CalendarEvent) => void;
+  onCountdownClick?: (countdown: Countdown) => void;
 }
 
 function DayView({
   currentDate,
   events,
+  countdowns = [],
   onSlotClick,
   onChipClick,
+  onCountdownClick,
 }: DayViewProps) {
   const today = isToday(currentDate);
 
@@ -41,6 +45,12 @@ function DayView({
   const allDaySectionEvents = useMemo(
     () => spanningEventsForDay(events, currentDate),
     [events, currentDate],
+  );
+
+  // countdowns that land exactly on this day
+  const dayCountdowns = useMemo(
+    () => countdowns.filter((c) => isSameDay(parseISO(c.targetDate), currentDate)),
+    [countdowns, currentDate],
   );
   const dayTimedEvents = useMemo(
     () => singleDayTimedEventsForDay(events, currentDate),
@@ -90,8 +100,8 @@ function DayView({
         </div>
       </div>
 
-      {/* All-day banner — allDay events + multi-day timed events */}
-      {allDaySectionEvents.length > 0 && (
+      {/* All-day banner — allDay events, multi-day timed events, and countdowns */}
+      {(allDaySectionEvents.length > 0 || dayCountdowns.length > 0) && (
         <div className="flex items-start border-b border-border">
           <div
             className="shrink-0 px-2 py-1.5 text-right"
@@ -104,6 +114,16 @@ function DayView({
           <div className="flex-1 p-1.5 space-y-0.5">
             {allDaySectionEvents.map((ev) => (
               <EventChip key={ev.id} event={ev} onClick={() => onChipClick(ev)} />
+            ))}
+            {dayCountdowns.map((c) => (
+              <div
+                key={c.id}
+                onClick={() => onCountdownClick?.(c)}
+                className="rounded px-2 py-0.5 text-xs leading-tight truncate cursor-pointer hover:opacity-75 transition-opacity border-dashed bg-surface"
+                style={{ borderLeftColor: c.color, borderLeftWidth: 3 }}
+              >
+                {c.title}
+              </div>
             ))}
           </div>
         </div>

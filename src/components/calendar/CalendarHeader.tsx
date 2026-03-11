@@ -62,12 +62,19 @@ export default function CalendarHeader({
 
         {/* Right: links + view switcher */}
         <div className="flex items-center gap-3">
-          {/* Events and About — hidden on small screens to keep the header tidy */}
+          {/* Events, Countdowns, and About — hidden on small screens to keep the header tidy */}
           <Link
             href="/calendar/events"
             className="hidden sm:inline text-xs text-muted hover:text-foreground transition-colors"
           >
             Events
+          </Link>
+          <div className="hidden sm:block h-4 w-px bg-border" />
+          <Link
+            href="/calendar/countdown"
+            className="hidden sm:inline text-xs text-muted hover:text-foreground transition-colors"
+          >
+            Countdowns
           </Link>
           <div className="hidden sm:block h-4 w-px bg-border" />
           <Link
