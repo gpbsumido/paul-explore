@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.24
+
+- fixed LCP and a minor CLS on `/protected` caused by the `reveal()` entrance animation system: the H1 heading was wrapped in `reveal(loaded, "")` which renders it as `opacity-0` until after hydration and a 700ms CSS transition, making LCP consistently bad since the browser doesn't count invisible elements as LCP candidates; removed the `reveal()` wrapper from the heading div so the H1 is visible in the SSR HTML on first paint
+- replaced the inline skeleton `<span>` in the H1 for the loading user name with a plain `"there"` fallback; the skeleton span was a minor CLS source when the real name arrived and changed the H1 layout; the text "there" and a typical first name are close enough in length that there's no visible shift
+- feature cards and dev notes sections keep their staggered entrance animations since they aren't LCP candidates
+
 ## 2026-03-11 - version 0.3.23
 
 - fixed a two-round-trip fetch waterfall on `/protected/vitals` that was hurting TTFB and LCP: `fetchVersions` and `fetchByVersion` ran in parallel, then `fetchVitals` waited for them to finish so it could use `versions[0]` as the default selected version, adding a full extra backend round trip on every page load; all three fetches now run in a single `Promise.all` by passing `urlVersion` directly (or `undefined` for all-time aggregates), then `selectedVersion` is derived from the versions result after everything resolves

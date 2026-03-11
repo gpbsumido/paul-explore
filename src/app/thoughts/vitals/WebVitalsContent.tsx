@@ -421,6 +421,33 @@ useEffect(() => {
 }, []);`}
         </div>
 
+        <Timestamp>10:29 AM</Timestamp>
+
+        <Received>what about LCP on /protected, that was bad too</Received>
+
+        <Sent pos="first">
+          the entrance animations. the hub page uses a{" "}
+          <code>reveal()</code> helper that starts elements at{" "}
+          <code>opacity-0 translate-y-8</code> and fades them in after
+          hydration. the H1 heading was wrapped in it, same as the cards
+        </Sent>
+        <Sent pos="middle">
+          the problem: browsers exclude <code>opacity: 0</code> elements
+          from LCP consideration entirely. the H1 is the biggest text element
+          on the page, but it doesn&apos;t count until it becomes visible.
+          so LCP was measured after hydration, plus a 700ms CSS transition,
+          plus whatever bundle parse time took. easily 2.5s+
+        </Sent>
+        <Sent pos="last">
+          fix was simple: remove the <code>reveal()</code> wrapper from the
+          heading div so the H1 is visible in the SSR HTML on first paint.
+          cards still animate because they&apos;re below the heading and
+          aren&apos;t the LCP element. also swapped the inline skeleton span
+          for the loading name state to just say &quot;there&quot; — the
+          skeleton span was a minor CLS source when the real name arrived and
+          changed the H1&apos;s layout
+        </Sent>
+
         <Timestamp>10:33 AM</Timestamp>
 
         <Received>
