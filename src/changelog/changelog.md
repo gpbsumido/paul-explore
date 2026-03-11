@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.27
+
+- fixed CLS on `/protected/vitals` caused by the chart skeleton and real chart having different heights: the skeleton was a flat `h-20` (80px) div, but the real `VisXYContainer` at `height={80}` also includes `VisAxis type="x"` which renders version tick labels below the 80px plot area, making the actual rendered height around 100px; all five metric charts swapping simultaneously on hydration caused a ~20px layout shift each
+- extracted `CHART_AREA_HEIGHT` and `CHART_CONTAINER_HEIGHT` consts at the top of `VitalsChart.tsx`; both the skeleton div and the real chart wrapper now use `CHART_CONTAINER_HEIGHT` (100px) as their reserved height, so future height adjustments only need to happen in one place
+
 ## 2026-03-11 - version 0.3.26
 
 - fixed `src/middleware.ts`: `auth0.middleware()` by itself does not redirect unauthenticated users for non-auth routes — it handles login/logout/callback and touches rolling sessions, then returns `NextResponse.next()` regardless of session state; added an explicit `auth0.getSession(req)` check before `auth0.middleware` for `/protected/*` routes so unauthenticated requests are redirected to login immediately; `getSession(req)` reads from `req.cookies` directly (no network call, no `next/headers`), so this adds no measurable TTFB cost and unauthenticated requests skip `auth0.middleware` entirely which is actually slightly faster

@@ -491,6 +491,32 @@ const [versions, byVersion, { summary, byPage }] = await Promise.all([
 const selectedVersion = urlVersion ?? versions[0];`}
         </div>
 
+        <Timestamp>10:38 AM</Timestamp>
+
+        <Received>
+          what about CLS on the vitals page, that was bad too
+        </Received>
+
+        <Sent pos="first">
+          the chart skeleton. unovis can&apos;t render server-side so the page
+          shows a skeleton grid while hydrating, then swaps in the real charts.
+          the skeleton used <code>h-20</code> (80px) for each chart area
+        </Sent>
+        <Sent pos="middle">
+          the real chart uses <code>VisXYContainer height=&#123;80&#125;</code>
+          for the plot area, but also includes <code>VisAxis type=&quot;x&quot;</code>{" "}
+          which renders version tick labels below that 80px boundary. actual
+          rendered height is around 100px. all five metric charts swapping
+          simultaneously added about 20px of shift each
+        </Sent>
+        <Sent pos="last">
+          fix: extract <code>CHART_AREA_HEIGHT = 80</code> and{" "}
+          <code>CHART_CONTAINER_HEIGHT = CHART_AREA_HEIGHT + 20</code> at the
+          top of the file. both the skeleton div and the real chart wrapper use{" "}
+          <code>CHART_CONTAINER_HEIGHT</code> so they reserve the same space.
+          future height changes only need to happen in one place
+        </Sent>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />
