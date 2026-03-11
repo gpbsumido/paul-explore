@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.29
+
+- added `src/hooks/useCountdowns.ts` with `useCountdowns`; same TanStack Query + optimistic update pattern as `useCalendarEvents` with one difference: no date-range scoping means there's only ever one cache entry to snapshot and restore, so the mutation logic is simpler; all three mutations (create, update, delete) cancel in-flight fetches, apply optimistically, roll back on error, and invalidate on settle
+- added `src/components/calendar/CountdownModal.tsx`; single-column modal using the existing `Modal`, `Input`, `Textarea`, and `Button` primitives; shows a live "X days away / X days ago / Today!" preview below the date input using `differenceInCalendarDays`; `FIELD_LABELS` const at the top keeps all label strings in one place; delete button only renders in edit mode, same danger variant as `EventModal`
+
 ## 2026-03-11 - version 0.3.28
 
 - added `Countdown` and `CountdownModalState` types to `src/types/calendar.ts`; countdowns are a separate type from `CalendarEvent` so calendar views can handle the two cases independently without a discriminant field everywhere
