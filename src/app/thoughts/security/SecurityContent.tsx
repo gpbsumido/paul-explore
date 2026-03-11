@@ -195,6 +195,67 @@ export default function SecurityContent() {
           endpoints — same origin, plus the specific external services that need
           it (Speed Insights, TCGdex, GitHub raw for Pokémon sprites)
         </Sent>
+
+        <Timestamp>10:30 AM</Timestamp>
+
+        <Received>
+          so after all that, did the middleware stick around
+        </Received>
+
+        <Sent pos="first">
+          no, it got removed entirely for a while. after switching to{" "}
+          <code>&apos;unsafe-inline&apos;</code> the CSP part was simpler, but
+          the bigger issue was <code>auth0.middleware()</code> itself. it makes
+          a network call to Auth0 on every single request — not just auth routes,
+          every page
+        </Sent>
+        <Sent pos="middle">
+          so the landing page, TCG browser, all of it — every visit was paying
+          that latency cost. it showed up in TTFB data immediately. the whole
+          middleware got pulled to stop the bleeding
+        </Sent>
+        <Sent pos="last">
+          the protected page&apos;s auth was handled differently during that
+          period — <code>page.tsx</code> was calling{" "}
+          <code>auth0.getSession()</code> as a redirect guard, which just reads
+          a cookie with no network call. but that made the page dynamic, which
+          is its own TTFB problem
+        </Sent>
+
+        <Timestamp>10:35 AM</Timestamp>
+
+        <Received>is the middleware back now</Received>
+
+        <Sent pos="first">
+          yeah, with a tight matcher and smarter logic this time. the matcher
+          only covers <code>/api/auth/*</code> and <code>/protected/*</code>.
+          everything else in the app — landing page, TCG browser, calendar — is
+          completely untouched
+        </Sent>
+        <Sent pos="middle">
+          the important thing: <code>auth0.middleware()</code> by itself
+          doesn&apos;t actually redirect unauthenticated users for non-auth
+          routes. it handles login/logout/callback and touches rolling sessions,
+          but for anything else it just returns <code>NextResponse.next()</code>
+          regardless of whether there&apos;s a session or not
+        </Sent>
+        <Sent pos="middle">
+          so for <code>/protected/*</code>, the middleware calls{" "}
+          <code>auth0.getSession(req)</code> first — that&apos;s the middleware-
+          safe overload that reads from <code>req.cookies</code> directly, no
+          network call, basically just a cookie decrypt. if there&apos;s no
+          session it redirects to login and <code>auth0.middleware</code> never
+          runs. if there is a session, <code>auth0.middleware</code> runs after
+          to handle rolling session refresh
+        </Sent>
+        <Sent pos="last">
+          and <code>/protected/page.tsx</code> has{" "}
+          <code>export const dynamic = &quot;force-static&quot;</code>. the
+          middleware does the auth check at the edge before the cached static
+          HTML is ever returned, so the page can be fully pre-rendered without
+          being publicly accessible. if anything dynamic gets added to the page
+          component later the build fails rather than silently downgrading
+        </Sent>
       </div>
     </div>
   );

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.26
+
+- fixed `src/middleware.ts`: `auth0.middleware()` by itself does not redirect unauthenticated users for non-auth routes — it handles login/logout/callback and touches rolling sessions, then returns `NextResponse.next()` regardless of session state; added an explicit `auth0.getSession(req)` check before `auth0.middleware` for `/protected/*` routes so unauthenticated requests are redirected to login immediately; `getSession(req)` reads from `req.cookies` directly (no network call, no `next/headers`), so this adds no measurable TTFB cost and unauthenticated requests skip `auth0.middleware` entirely which is actually slightly faster
+- added accurate comment to `fetchVitals` in the vitals page explaining that `next: { revalidate: 60 }` keys the data cache by URL only (Authorization header is not part of the key), and why that's fine here: the vitals aggregates are site-wide P75 scores, not per-user data, so the cached response is correct for any authenticated caller; auth is still enforced at the page level before the fetch runs
+
+## 2026-03-11 - version 0.3.25
+
+- restored `src/middleware.ts` with a narrow `config.matcher` covering only `/api/auth/:path*` and `/protected/:path*`; the middleware was removed previously because `auth0.middleware()` was running on every route in the app and making a network call to Auth0 on each request, which showed up as TTFB degradation across the whole site; the new matcher limits that cost to only the routes that actually need token refresh and session validation
+- `/api/auth/*` is in the matcher so the Auth0 login/logout/callback routes work at all; `/protected/*` is in the matcher so unauthenticated users get redirected to login and access tokens are silently refreshed before they expire
+- added `export const dynamic = "force-static"` to `src/app/protected/page.tsx` as an explicit build-time guarantee that the page is always statically pre-rendered; middleware enforcing auth at the edge and the page being statically cached are orthogonal, the middleware runs before the cached HTML is served so a static page can still be auth-protected; if anything dynamic is ever added to the page component the build fails instead of silently downgrading
+
 ## 2026-03-11 - version 0.3.24
 
 - fixed LCP and a minor CLS on `/protected` caused by the `reveal()` entrance animation system: the H1 heading was wrapped in `reveal(loaded, "")` which renders it as `opacity-0` until after hydration and a 700ms CSS transition, making LCP consistently bad since the browser doesn't count invisible elements as LCP candidates; removed the `reveal()` wrapper from the heading div so the H1 is visible in the SSR HTML on first paint

@@ -20,6 +20,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
  * Uses revalidate: 60 instead of no-store because this data changes maybe a
  * few times a day at most, not per-request. Saves a backend round trip for
  * anyone who refreshes within the same minute.
+ *
+ * Note on the cache key: Next.js data cache keys fetch() by URL only, the
+ * Authorization header is not included. That means two requests within 60s
+ * could get the same cached backend response regardless of which token was
+ * used. This is fine here because the vitals aggregates are site-wide P75
+ * scores, not per-user data, so the response is the same for any authenticated
+ * caller. Auth is still enforced at the page level via auth0.getAccessToken()
+ * before this function is ever called.
  */
 async function fetchVitals(
   token: string,
