@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.28
+
+- added `Countdown` and `CountdownModalState` types to `src/types/calendar.ts`; countdowns are a separate type from `CalendarEvent` so calendar views can handle the two cases independently without a discriminant field everywhere
+- added countdown API client helpers to `src/lib/calendar.ts`: `fetchCountdowns`, `createCountdown`, `updateCountdown`, `deleteCountdown`; follow the same fetch pattern as the existing event helpers (hit the Next.js BFF, auth token never leaves the server)
+- added `queryKeys.calendar.countdowns` to `src/lib/queryKeys.ts`; not scoped by date range because countdowns are fetched all at once and displayed wherever their target date falls in the calendar
+- added BFF proxy routes at `/api/calendar/countdowns` (GET list, POST create) and `/api/calendar/countdowns/[id]` (GET, PUT, DELETE); same pattern as the events BFF routes, `auth0.getAccessToken()` attaches the JWT server-side
+
 ## 2026-03-11 - version 0.3.27
 
 - fixed CLS on `/protected/vitals` caused by the chart skeleton and real chart having different heights: the skeleton was a flat `h-20` (80px) div, but the real `VisXYContainer` at `height={80}` also includes `VisAxis type="x"` which renders version tick labels below the 80px plot area, making the actual rendered height around 100px; all five metric charts swapping simultaneously on hydration caused a ~20px layout shift each
