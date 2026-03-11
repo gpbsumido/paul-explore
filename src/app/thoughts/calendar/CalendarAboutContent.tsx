@@ -613,6 +613,145 @@ async function CalendarWithData() {
 
         <Sent>yeah, happy to</Sent>
 
+        <Timestamp>11:14 AM</Timestamp>
+
+        <Received>what did you add after all that</Received>
+
+        <Sent pos="first">
+          countdowns. a separate page at <code>/calendar/countdown</code> where
+          you can add a named event with a target date and a color. it shows you
+          how many days away it is, and the countdown shows up inline on its date
+          across all four calendar views
+        </Sent>
+        <Sent pos="last">
+          it fits naturally in the calendar because a countdown is still just a
+          date you care about. but it&apos;s not an event -- no start time, no
+          end time, no duration. forcing it into the <code>CalendarEvent</code>{" "}
+          type would mean adding nullable fields everywhere and writing
+          discriminant checks to avoid treating them the same
+        </Sent>
+
+        <Received>so you kept them as separate types</Received>
+
+        <Sent pos="first">
+          right. <code>Countdown</code> is its own type:{" "}
+          <code>title</code>, <code>description</code> (optional),{" "}
+          <code>targetDate</code> as a <code>DATE</code> string, <code>color</code>,
+          and the standard <code>id</code> and <code>createdAt</code>
+        </Sent>
+        <Sent pos="middle">
+          <code>targetDate</code> is stored as Postgres <code>DATE</code>, not{" "}
+          <code>TIMESTAMP WITH TIME ZONE</code>. there&apos;s no time component
+          and no timezone to reason about -- a countdown lands on a calendar day,
+          full stop. pg returns <code>DATE</code> as a plain{" "}
+          <code>&quot;YYYY-MM-DD&quot;</code> string (no Date object, no UTC
+          conversion), so there&apos;s no timezone drift to undo on the frontend
+        </Sent>
+        <Sent pos="last">
+          the calendar views get countdowns as a separate prop:{" "}
+          <code>countdowns?: Countdown[]</code> alongside{" "}
+          <code>events: CalendarEvent[]</code>. the type boundary stays clean --
+          no discriminant field on a union, no casting, no{" "}
+          <code>if (&apos;targetDate&apos; in item)</code> checks scattered
+          through the rendering code
+        </Sent>
+
+        <Received>how does the fetch strategy differ from events</Received>
+
+        <Sent pos="first">
+          events use a date-windowed query key:{" "}
+          <code>[&quot;calendar&quot;, &quot;events&quot;, start, end]</code>.
+          every time you navigate months the window changes, a new key is
+          computed, and TanStack Query fetches the matching range from the backend
+        </Sent>
+        <Sent pos="middle">
+          countdowns don&apos;t need that. there are maybe 10 of them total, they
+          rarely change, and they need to show up across all views regardless of
+          which month is visible. so there&apos;s a single key:{" "}
+          <code>queryKeys.calendar.countdowns()</code> --{" "}
+          <code>[&quot;calendar&quot;, &quot;countdowns&quot;]</code>, no date
+          parameters. one fetch, one cache entry, filtered client-side per day
+          using <code>isSameDay(parseISO(c.targetDate), day)</code>
+        </Sent>
+        <Sent pos="last">
+          the hook is <code>useCountdowns()</code> -- same optimistic mutation
+          pattern as <code>useCalendarEvents</code>, but the invalidation is
+          simpler because there&apos;s only ever one cache entry to broadcast to.
+          no prefix-scoped invalidation needed, just the exact key
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// events — scoped by date window, one key per visible range
+["calendar", "events", "2026-03-01T00:00:00Z", "2026-03-31T23:59:59Z"]
+
+// countdowns — single key, no date params, filtered client-side
+["calendar", "countdowns"]`}
+        </div>
+
+        <Received>where do they show up in the views</Received>
+
+        <Sent pos="first">
+          month grid: countdown chips use a dashed left border in the countdown
+          color to stay visually distinct from event chips. events claim the{" "}
+          <code>VISIBLE_CHIPS = 3</code> budget first, countdowns fill whatever
+          slots are left. if everything overflows, there&apos;s a single "+N
+          more" line covering both
+        </Sent>
+        <Sent pos="middle">
+          day and week views: countdowns go in the all-day section. in day view
+          the all-day banner now shows whenever there are countdowns OR all-day
+          events -- previously it was hidden if only timed events existed. in
+          week view they land in the all-day CSS grid row, one per column, and
+          auto-stack into new rows if an event bar is already occupying that
+          column
+        </Sent>
+        <Sent pos="last">
+          year view: countdown dots share the 3-dot-per-day budget in each{" "}
+          <code>MiniMonth</code> cell alongside event dots. year view is
+          read-only anyway so there&apos;s no click handler -- a tap navigates
+          to the month, where you&apos;d click the chip to open the modal
+        </Sent>
+
+        <Received>what&apos;s the live preview in the modal</Received>
+
+        <Sent pos="first">
+          the modal shows a small badge below the date picker as you type: "42
+          days away", "3 days ago", or "Today!" when the date is today. it uses{" "}
+          <code>differenceInCalendarDays(parseISO(targetDate), new Date())</code>{" "}
+          so it updates live as the date field changes
+        </Sent>
+        <Sent pos="last">
+          small thing but it makes picking a date feel more meaningful -- you
+          see immediately whether you&apos;re setting something a month out or a
+          year away. similar to how a flight search shows you "in 47 days" next
+          to the calendar picker
+        </Sent>
+
+        <Received>what about the dedicated countdown page</Received>
+
+        <Sent pos="first">
+          <code>/calendar/countdown</code> is the same SSR seed pattern as the
+          main calendar. a <code>CountdownsWithData</code> async server component
+          fetches directly from the backend at request time and passes{" "}
+          <code>initialCountdowns</code> into the client component. wrapped in
+          Suspense with an inline pulse skeleton so the shell streams immediately
+        </Sent>
+        <Sent pos="last">
+          the list sorts by target date client-side via a{" "}
+          <code>useMemo</code> rather than relying on insertion order, because
+          optimistic creates append to the end of the cache array. sorting
+          post-create keeps the order correct without waiting for the next
+          re-fetch to come back with the right sequence from the backend
+        </Sent>
+
+        <Received>nice, that&apos;s a clean addition</Received>
+
+        <Sent>it fits well. the calendar was already the most personal part of
+          the app -- countdowns make it feel a bit more like an actual planning
+          tool and less like a demo</Sent>
+
+        <Timestamp>11:22 AM</Timestamp>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />
