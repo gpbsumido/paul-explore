@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.30
+
+- added `/calendar/countdown` page: `page.tsx` is a server component that SSR-seeds countdowns by calling the backend directly (no loopback), same pattern as the calendar page; `CountdownsWithData` wrapped in Suspense with an inline pulse skeleton so the shell streams immediately
+- added `CountdownContent.tsx`: client component with the sorted list and modal wiring; `useMemo` re-sorts by `targetDate` after optimistic creates append to the end; `CountdownModal` is dynamically imported since it's only needed on user interaction
+- added `CountdownCard.tsx`: memo'd card with a 3px colored left border (same stripe as `EventChip`), formatted target date, and a days-remaining badge that highlights when the date is today
+- updated `useCountdowns` to accept `initialCountdowns` so the SSR seed works; same `initialDataUpdatedAt: Date.now() - 29_000` trick as `useCalendarEvents` to queue a background refetch shortly after mount without blocking the UI
+
 ## 2026-03-11 - version 0.3.29
 
 - added `src/hooks/useCountdowns.ts` with `useCountdowns`; same TanStack Query + optimistic update pattern as `useCalendarEvents` with one difference: no date-range scoping means there's only ever one cache entry to snapshot and restore, so the mutation logic is simpler; all three mutations (create, update, delete) cancel in-flight fetches, apply optimistically, roll back on error, and invalidate on settle

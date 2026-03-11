@@ -32,6 +32,13 @@ export interface UseCountdownsReturn {
   isDeleting: boolean;
 }
 
+interface Options {
+  /** SSR seed from the server component. Skips the initial client-side fetch
+   *  when provided, so the list renders without a loading state on first paint.
+   *  Works the same way as initialEvents in useCalendarEvents. */
+  initialCountdowns?: Countdown[];
+}
+
 /**
  * Manages the current user's countdowns.
  *
@@ -39,6 +46,11 @@ export interface UseCountdownsReturn {
  * change as often as calendar events, but the list is small enough that
  * a quick re-fetch is painless and correctness matters more than skipping
  * the occasional network call.
+ *
+ * initialCountdowns feeds initialData so SSR-seeded countdowns show up
+ * immediately with no loading state on first paint. initialDataUpdatedAt is
+ * set to 29 seconds ago so TanStack Query queues a background refetch shortly
+ * after mount without blocking the UI, same pattern as useCalendarEvents.
  *
  * All three mutations use the optimistic update pattern:
  *   onMutate  -- cancel any in-flight fetch, snapshot the cache, apply the
@@ -49,7 +61,9 @@ export interface UseCountdownsReturn {
  *   onSettled -- invalidate the countdowns cache so the server's version
  *                wins after everything settles
  */
-export function useCountdowns(): UseCountdownsReturn {
+export function useCountdowns({
+  initialCountdowns,
+}: Options = {}): UseCountdownsReturn {
   const queryClient = useQueryClient();
 
   // ---- Read ----------------------------------------------------------------
@@ -64,6 +78,8 @@ export function useCountdowns(): UseCountdownsReturn {
     queryKey: COUNTDOWNS_KEY,
     queryFn: fetchCountdowns,
     staleTime: 0,
+    initialData: initialCountdowns,
+    initialDataUpdatedAt: initialCountdowns ? Date.now() - 29_000 : undefined,
   });
 
   const countdowns = data ?? [];
