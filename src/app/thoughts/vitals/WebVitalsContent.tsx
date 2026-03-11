@@ -244,19 +244,26 @@ navigator.sendBeacon(
           same <code>checkJwt</code> middleware as every other protected route
         </Sent>
         <Sent pos="last">
-          <code>cache: &quot;no-store&quot;</code> on both fetches so the
-          numbers are always live when you open the page — vitals data should
-          never be served stale from a CDN
+          the summary and by-page fetches use{" "}
+          <code>next: {`{ revalidate: 60 }`}</code> instead of{" "}
+          <code>no-store</code>. aggregate vitals data doesn&apos;t change
+          on every request, it changes when new rows come in. 60 seconds is
+          fresh enough and saves a backend round trip for anyone who refreshes
+          within the same minute. versions and by-version stay as{" "}
+          <code>no-store</code> since those need to reflect a freshly deployed
+          version immediately
         </Sent>
 
         <div className={styles.codeBubble}>
-          {`// both aggregations in one server render
+          {`// summary and by-page cached for 60s each
 const [summaryRes, byPageRes] = await Promise.all([
   fetch(\`\${API_URL}/api/vitals/summary\`, {
-    headers, cache: "no-store"
+    headers,
+    next: { revalidate: 60 },
   }),
   fetch(\`\${API_URL}/api/vitals/by-page\`, {
-    headers, cache: "no-store"
+    headers,
+    next: { revalidate: 60 },
   }),
 ]);`}
         </div>
@@ -412,6 +419,49 @@ useEffect(() => {
       setUserEmail(email ?? undefined);
     });
 }, []);`}
+        </div>
+
+        <Timestamp>10:33 AM</Timestamp>
+
+        <Received>
+          what about TTFB on the vitals dashboard itself, that page was slow
+          too
+        </Received>
+
+        <Sent pos="first">
+          yeah, that one was a fetch waterfall I introduced. the page needed to
+          default to the latest version, so it fetched versions and byVersion
+          first, then started the main vitals fetch once those resolved. two
+          sequential backend round trips before any HTML could go out
+        </Sent>
+        <Sent pos="middle">
+          the fix was to decouple the data from the version default. pass the
+          URL param directly to <code>fetchVitals</code>, undefined if
+          there&apos;s no param in the URL. that gives all-time aggregates.
+          then all three fetches go into one <code>Promise.all</code> and{" "}
+          <code>selectedVersion</code> is derived from the versions result
+          after everything resolves
+        </Sent>
+        <Sent pos="last">
+          small trade-off: on first load with no URL param the data is
+          technically all-time aggregates, not filtered to the latest version.
+          but the dropdown shows the latest version selected so the next pick
+          filters correctly. one backend round trip saved on every page load is
+          worth that
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// before: two round trips
+const [versions, byVersion] = await Promise.all([...]);
+const { summary, byPage } = await fetchVitals(token, versions[0]);
+
+// after: one parallel round trip
+const [versions, byVersion, { summary, byPage }] = await Promise.all([
+  fetchVersions(token),
+  fetchByVersion(token),
+  fetchVitals(token, urlVersion), // undefined = all-time aggregates
+]);
+const selectedVersion = urlVersion ?? versions[0];`}
         </div>
 
         {/* Typing indicator */}

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.23
+
+- fixed a two-round-trip fetch waterfall on `/protected/vitals` that was hurting TTFB and LCP: `fetchVersions` and `fetchByVersion` ran in parallel, then `fetchVitals` waited for them to finish so it could use `versions[0]` as the default selected version, adding a full extra backend round trip on every page load; all three fetches now run in a single `Promise.all` by passing `urlVersion` directly (or `undefined` for all-time aggregates), then `selectedVersion` is derived from the versions result after everything resolves
+- replaced `cache: "no-store"` on the summary and by-page fetches inside `fetchVitals` with `next: { revalidate: 60 }` so repeated requests within the same minute hit the Next.js data cache instead of going to the backend again; versions and by-version stay as no-store since those are quick and need to reflect newly deployed versions
+- added JSDoc to all three server-only fetch functions in the vitals page component
+
 ## 2026-03-02 - version 0.3.22
 
 - added `/thoughts/landing-page` write-up covering the Three.js particle network: why Three.js in the hero, how the orbital swirl works (tangential nudge per frame instead of explicit orbit math), the pre-allocated `Float32Array` line buffer with `drawRange`, why line colors fade toward black as particles drift apart, how mouse attraction uses `Raycaster.intersectPlane` to get world-space coordinates, the 3-draw-call render loop, and canvas layering with `pointer-events-none` and `z-10` on the text
