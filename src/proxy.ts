@@ -26,11 +26,12 @@ import { auth0 } from "@/lib/auth0";
 
 const CSP = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline'`,
+  `script-src 'self' 'unsafe-inline' https://vercel.live`,
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
   `font-src 'self'`,
-  `connect-src 'self' https://vitals.vercel-insights.com`,
+  `connect-src 'self' https://vitals.vercel-insights.com https://vercel.live`,
+  `frame-src https://vercel.live`,
   `object-src 'none'`,
   `base-uri 'self'`,
   `form-action 'self'`,
