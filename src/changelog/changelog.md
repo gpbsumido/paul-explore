@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.1
+
+- added `useGoogleCalendarStatus` hook (`src/hooks/useGoogleCalendarStatus.ts`): wraps `useQuery` with `queryKeys.google.authStatus()`, `staleTime: 5min`; returns `{ connected, loading }` with `connected` defaulting to `false` during load so callers never need to check both fields
+- added `google.authStatus` key to `queryKeys.ts` under a new `google` namespace
+- updated `CalendarHeader`: shows a green dot with title "Synced with Google Calendar" and a small refresh icon button when connected; clicking the button invalidates `["calendar", "events"]` (prefix match) so all range-keyed event queries refetch; both elements are `hidden sm:inline-flex` to avoid cluttering mobile; nothing renders when not connected
+- updated `SettingsContent`: uses `useQueryClient` to invalidate `queryKeys.google.authStatus()` on disconnect (so the CalendarHeader indicator disappears immediately) and on return from the OAuth flow when `?gcal=connected` is present in the URL (so the indicator lights up without waiting for the 5-minute stale window)
+
 ## 2026-03-12 - version 0.4.0
 
 - added three BFF routes for Google Calendar OAuth: `GET /api/google/auth/url` (returns the Google authorization URL), `GET /api/google/auth/status` (returns `{ connected: boolean }`), `DELETE /api/google/auth/disconnect` (removes tokens and stops the watch channel); all three proxy to the backend with the user's Bearer token via the standard `auth0.getAccessToken()` pattern

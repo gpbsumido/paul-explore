@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import ThemeToggle from "@/components/ThemeToggle";
 import Button from "@/components/ui/Button";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ---- Google Calendar icon ----
 // Simplified version of the Google Calendar mark — just enough to be recognizable
@@ -55,6 +57,7 @@ function ConnectionRowSkeleton() {
 export default function SettingsContent() {
   const searchParams = useSearchParams();
   const gcalParam = searchParams.get("gcal");
+  const queryClient = useQueryClient();
 
   const [statusLoading, setStatusLoading] = useState(true);
   const [connected, setConnected] = useState(false);
@@ -87,6 +90,15 @@ export default function SettingsContent() {
     fetchStatus();
   }, [fetchStatus]);
 
+  // when returning from the Google OAuth flow with ?gcal=connected, invalidate
+  // the status cache so the CalendarHeader sync indicator lights up immediately
+  // without waiting for the 5-minute stale window to expire.
+  useEffect(() => {
+    if (gcalParam === "connected") {
+      queryClient.invalidateQueries({ queryKey: queryKeys.google.authStatus() });
+    }
+  }, [gcalParam, queryClient]);
+
   async function handleConnect() {
     setConnecting(true);
     try {
@@ -106,6 +118,9 @@ export default function SettingsContent() {
       const res = await fetch("/api/google/auth/disconnect", { method: "DELETE" });
       if (!res.ok) throw new Error("Disconnect failed");
       setConnected(false);
+      // also push the new status into the TanStack cache so the CalendarHeader
+      // indicator disappears right away without waiting for the next refetch
+      queryClient.invalidateQueries({ queryKey: queryKeys.google.authStatus() });
       setBanner({ type: "success", message: "Google Calendar disconnected." });
     } catch {
       setBanner({ type: "error", message: "Could not disconnect. Try again." });
