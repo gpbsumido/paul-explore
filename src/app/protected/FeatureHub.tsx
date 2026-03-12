@@ -611,6 +611,12 @@ export default function FeatureHub() {
               )}
             </div>
             <ThemeToggle />
+            <Link
+              href="/protected/settings"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Settings
+            </Link>
             <a
               href="/auth/logout"
               className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
