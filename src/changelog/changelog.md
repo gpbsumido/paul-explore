@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.0
+
+- added three BFF routes for Google Calendar OAuth: `GET /api/google/auth/url` (returns the Google authorization URL), `GET /api/google/auth/status` (returns `{ connected: boolean }`), `DELETE /api/google/auth/disconnect` (removes tokens and stops the watch channel); all three proxy to the backend with the user's Bearer token via the standard `auth0.getAccessToken()` pattern
+- added `/protected/settings` page with a `SettingsContent` client component; shows a "Connected accounts" section with a Google Calendar row; on mount fetches connection status and shows a skeleton while loading; "Connect" redirects to the Google OAuth URL, "Disconnect" calls the DELETE BFF and updates state in place; connected state shows a green "Connected" badge alongside the Disconnect button
+- settings page reads the `?gcal` query param on load and shows an inline banner for `connected`, `denied`, and `error` states (the OAuth callback redirects back here with that param); banner is dismissible
+- added "Settings" link to the `FeatureHub` sticky header between the theme toggle and "Log out", matching the same `text-[13px] font-medium text-muted hover:text-foreground` style as the logout link
+
 ## 2026-03-11 - version 0.3.37
 
 - fixed cookie issue causing HTTP 431 error by adding session limit
