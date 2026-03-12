@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.2
+
+- fixed CSP violation blocking Vercel Live feedback widget: added `https://vercel.live` to `script-src` and `connect-src`, and added `frame-src https://vercel.live` in `src/proxy.ts`
+
 ## 2026-03-12 - version 0.4.1
 
 - added `useGoogleCalendarStatus` hook (`src/hooks/useGoogleCalendarStatus.ts`): wraps `useQuery` with `queryKeys.google.authStatus()`, `staleTime: 5min`; returns `{ connected, loading }` with `connected` defaulting to `false` during load so callers never need to check both fields
