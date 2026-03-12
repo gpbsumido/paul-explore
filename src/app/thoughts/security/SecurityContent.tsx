@@ -237,7 +237,7 @@ export default function SecurityContent() {
           the broad matcher means the proxy runs on every request. but the key
           property from before is still preserved: <code>auth0.middleware()</code>{" "}
           — the one that makes a network call to Auth0 — is only invoked for{" "}
-          <code>/api/auth/*</code> and authenticated <code>/protected/*</code>{" "}
+          <code>/auth/*</code> and authenticated <code>/protected/*</code>{" "}
           requests. everything else hits <code>NextResponse.next()</code> with
           the CSP header attached and returns immediately. no network round-trip
         </Sent>
