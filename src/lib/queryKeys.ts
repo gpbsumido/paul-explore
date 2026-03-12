@@ -71,4 +71,13 @@ export const queryKeys = {
     pokemon: (params: { name: string; type: string }) =>
       ["graphql", "pokemon", params] as const,
   },
+
+  google: {
+    /**
+     * Whether the current user has connected their Google Calendar.
+     * Polled every 5 minutes from the calendar header so the sync indicator
+     * stays accurate without hammering the backend.
+     */
+    authStatus: () => ["google", "auth", "status"] as const,
+  },
 } as const;

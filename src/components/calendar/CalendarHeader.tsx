@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import type { CalendarView } from "@/types/calendar";
 import { VIEWS, VIEW_LABELS, formatHeading } from "@/lib/calendar";
 import { Button, IconButton } from "@/components/ui";
+import { useGoogleCalendarStatus } from "@/hooks/useGoogleCalendarStatus";
 
 interface CalendarHeaderProps {
   currentDate: Date;
@@ -22,6 +24,15 @@ export default function CalendarHeader({
   onToday,
   onNewCountdown,
 }: CalendarHeaderProps) {
+  const { connected } = useGoogleCalendarStatus();
+  const queryClient = useQueryClient();
+
+  function handleSync() {
+    // invalidates all calendar event queries regardless of range so every
+    // view gets fresh data after a manual sync trigger
+    queryClient.invalidateQueries({ queryKey: ["calendar", "events"] });
+  }
+
   return (
     <div className="mb-6 space-y-2">
       {/* Big heading row — this is the visual anchor of the whole view */}
@@ -86,7 +97,12 @@ export default function CalendarHeader({
                 className="flex items-center justify-center w-4 h-4 rounded-full text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                  <path d="M4 1v6M1 4h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <path
+                    d="M4 1v6M1 4h6"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
             )}
@@ -99,6 +115,39 @@ export default function CalendarHeader({
             About
           </Link>
           <div className="hidden sm:block h-4 w-px bg-border" />
+
+          {/* Google Calendar sync indicator, only visible when connected */}
+          {connected && (
+            <span className="hidden sm:inline-flex items-center gap-1.5">
+              <span
+                className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0"
+                title="Synced with Google Calendar"
+              />
+              <button
+                onClick={handleSync}
+                aria-label="Refresh calendar from Google"
+                title="Refresh from Google Calendar"
+                className="flex items-center justify-center text-muted hover:text-foreground transition-colors"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M10.5 6a4.5 4.5 0 1 1-1.1-2.95M10.5 1.5v3h-3"
+                    stroke="currentColor"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </span>
+          )}
+          {connected && <div className="hidden sm:block h-4 w-px bg-border" />}
 
           {/* View switcher — Year hidden on mobile (too small to be useful) */}
           <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
