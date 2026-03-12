@@ -6,4 +6,8 @@ export const auth0 = new Auth0Client({
     // without an audience Auth0 issues an opaque token — useless for the API
     audience: process.env.AUTH0_AUDIENCE,
   },
+  session: {
+    absoluteDuration: 86400,
+    rolling: true,
+  },
 });
