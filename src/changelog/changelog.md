@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.37
+
+- fixed cookie issue causing HTTP 431 error by adding session limit
+
 ## 2026-03-11 - version 0.3.36
 
 - fixed auth routes 404ing: `proxy.ts` was checking `pathname.startsWith("/api/auth/")` but `@auth0/nextjs-auth0` v4 registers its routes at `/auth/*` (login, logout, callback) — not `/api/auth/*`; those requests were falling through to `NextResponse.next()`, Next.js found no page, and returned 404; users could not log in or out
