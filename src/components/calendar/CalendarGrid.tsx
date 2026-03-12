@@ -16,8 +16,9 @@ import {
   differenceInCalendarDays,
 } from "date-fns";
 import { DAY_LABELS, eventsForDay } from "@/lib/calendar";
-import type { CalendarEvent } from "@/types/calendar";
+import type { CalendarEvent, Countdown } from "@/types/calendar";
 import EventChip from "@/components/calendar/EventChip";
+import CountdownChip from "@/components/calendar/CountdownChip";
 
 /** Max chips shown per cell before the "+N more" overflow line. */
 const VISIBLE_CHIPS = 3;
@@ -25,8 +26,10 @@ const VISIBLE_CHIPS = 3;
 interface CalendarGridProps {
   currentDate: Date;
   events: CalendarEvent[];
+  countdowns?: Countdown[];
   onDayClick: (date: Date) => void;
   onChipClick: (event: CalendarEvent) => void;
+  onCountdownClick?: (countdown: Countdown) => void;
 }
 
 /** True for Saturday (6) and Sunday (0). */
@@ -49,8 +52,10 @@ function isSpanning(ev: CalendarEvent): boolean {
 function CalendarGrid({
   currentDate,
   events,
+  countdowns = [],
   onDayClick,
   onChipClick,
+  onCountdownClick,
 }: CalendarGridProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -88,6 +93,19 @@ function CalendarGrid({
           // spanning bars always float above single-day chips (same as GCal)
           const allDisplay = [...spanningEvs, ...timedEvs];
 
+          // countdowns land on a single date, so filter by exact day match
+          const dayCountdowns = inMonth
+            ? countdowns.filter((c) => isSameDay(parseISO(c.targetDate), day))
+            : [];
+
+          // events claim the first slots; countdowns fill whatever's left
+          const eventSlots = allDisplay.slice(0, VISIBLE_CHIPS);
+          const remainingSlots = VISIBLE_CHIPS - eventSlots.length;
+          const countdownSlots = dayCountdowns.slice(0, remainingSlots);
+          const overflowCount =
+            allDisplay.length - eventSlots.length +
+            (dayCountdowns.length - countdownSlots.length);
+
           return (
             <div
               key={day.toISOString()}
@@ -121,10 +139,10 @@ function CalendarGrid({
                 {format(day, "d")}
               </span>
 
-              {/* Event chips — spanning bars first, single-day chips below */}
-              {inMonth && allDisplay.length > 0 && (
+              {/* Event and countdown chips — spanning event bars first, then timed events, then countdowns */}
+              {inMonth && (eventSlots.length > 0 || countdownSlots.length > 0) && (
                 <div className="mt-1 space-y-0.5">
-                  {allDisplay.slice(0, VISIBLE_CHIPS).map((ev) => (
+                  {eventSlots.map((ev) => (
                     <EventChip
                       key={ev.id}
                       event={ev}
@@ -135,9 +153,16 @@ function CalendarGrid({
                       }
                     />
                   ))}
-                  {allDisplay.length > VISIBLE_CHIPS && (
+                  {countdownSlots.map((c) => (
+                    <CountdownChip
+                      key={c.id}
+                      countdown={c}
+                      onClick={() => onCountdownClick?.(c)}
+                    />
+                  ))}
+                  {overflowCount > 0 && (
                     <div className="text-[10px] text-muted px-1 leading-tight">
-                      +{allDisplay.length - VISIBLE_CHIPS} more
+                      +{overflowCount} more
                     </div>
                   )}
                 </div>

@@ -453,7 +453,10 @@ function FeatureCard({ feature, delayMs, visible }: FeatureCardProps) {
   // Outer div for entrance animations, inner div for hover
   // (avoid transition conflicts)
   return (
-    <div className={reveal(visible)} style={{ transitionDelay: `${delayMs}ms` }}>
+    <div
+      className={reveal(visible)}
+      style={{ transitionDelay: `${delayMs}ms` }}
+    >
       <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface h-full transition-[border-color,box-shadow] hover:border-foreground/15 hover:shadow-md">
         <div
           className="bg-neutral-100 dark:bg-neutral-950 overflow-hidden"
@@ -518,7 +521,10 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
   // stay the same height even when preview text wraps to multiple lines.
   // The grid handles row equalization via align-items: stretch (default).
   return (
-    <div className={`min-w-0 ${reveal(visible)}`} style={{ transitionDelay: `${delayMs}ms` }}>
+    <div
+      className={`min-w-0 ${reveal(visible)}`}
+      style={{ transitionDelay: `${delayMs}ms` }}
+    >
       <Link
         href={thought.href}
         className="flex h-full items-start gap-3 rounded-xl border border-border bg-surface p-3 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
@@ -531,9 +537,7 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
           <p className="text-[13px] font-semibold leading-snug text-foreground">
             {thought.title}
           </p>
-          <p className="mt-0.5 text-[11px] text-muted">
-            {thought.preview}
-          </p>
+          <p className="mt-0.5 text-[11px] text-muted">{thought.preview}</p>
         </div>
       </Link>
     </div>
@@ -618,16 +622,9 @@ export default function FeatureHub() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:py-12">
-        {/* Page heading */}
-        <div className={`mb-8 ${reveal(loaded, "")}`}>
+        <div className="mb-8">
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-            Hey{" "}
-            {firstName === null ? (
-              <span className="inline-block h-4 w-16 translate-y-0.5 rounded bg-surface animate-pulse" />
-            ) : (
-              firstName
-            )}
-            , here&apos;s what&apos;s live.
+            Hey {firstName ?? "there"}, here&apos;s what&apos;s live.
           </h1>
           <p className="mt-1.5 text-[14px] text-muted">
             {FEATURES.length} features — click any card to jump in, or hit About

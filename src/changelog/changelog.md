@@ -1,5 +1,79 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.35
+
+- `EventModal` and `CountdownModal` both show an `[Event] [Countdown]` segmented toggle in the header when opened in create mode; clicking the inactive tab swaps to the other modal, carrying the date across so it pre-fills the new form; in edit mode the toggle is hidden and the header shows the plain title as before; the toggle is implemented via `onSwitchToCountdown` / `onSwitchToEvent` optional props so neither modal depends on the other
+
+## 2026-03-11 - version 0.3.34
+
+- added a `+` button next to the "Countdowns" link in `CalendarHeader` (desktop only, matching the `hidden sm:inline` pattern); clicking it opens `CountdownModal` in create mode directly from any calendar view; header accepts a new optional `onNewCountdown` prop; `CalendarContent` passes `openNewCountdownModal` which carries the `initialDate` through so switching to the event modal also pre-fills the date
+
+## 2026-03-11 - version 0.3.33
+
+- replaced all inline countdown chip divs in `CalendarGrid`, `DayView`, and `WeekView` with a new `CountdownChip` component; styling now matches `EventChip` exactly — same `border-l-[3px]` stripe, same `${color}18` translucent fill, same `text-xs font-medium px-2 py-0.5` sizing — with a small red dot (`h-1.5 w-1.5 rounded-full bg-red-500`) on the far right as the only visual differentiator; chip uses `flex` instead of `truncate` on the outer element so the dot always shows
+
+## 2026-03-11 - version 0.3.32
+
+- migrated `useCountdowns` from `useQuery` to `useInfiniteQuery`; cursor-based pagination using a composite `"YYYY-MM-DD__<uuid>"` cursor so page boundaries are stable across inserts and deletes; `getNextPageParam` returns `lastPage.nextCursor ?? undefined`; `countdowns` is now `data?.pages.flatMap(p => p.countdowns) ?? []` via `useMemo`; adds `fetchNextPage`, `hasNextPage`, `isFetchingNextPage` to the return shape
+- `CountdownContent` now destructures `fetchNextPage`, `hasNextPage`, `isFetchingNextPage` and renders a "Load more" button below the list when `hasNextPage` is true
+- `page.tsx` SSR seed updated: fetches and passes a full `CountdownPage` object as `initialPage` (was `initialCountdowns: Countdown[]`); hook seeds `initialData: { pages: [initialPage], pageParams: [undefined] }` with `staleTime: 0` — immediately stale so TanStack queues a background refetch on mount without blocking the UI; removed `initialDataUpdatedAt` (was `Date.now() - 29_000`) since it's redundant with `staleTime: 0` and calling `Date.now()` in render violates React's purity rules
+
+## 2026-03-11 - version 0.3.31
+
+- wired countdowns into all four calendar views so they show up inline on their target date
+- `CalendarGrid` (month view): countdowns filter by exact day match using `isSameDay(parseISO(targetDate), day)`; events claim chips first, countdowns fill whatever slots are left inside the shared `VISIBLE_CHIPS = 3` budget; countdown chips use a dashed left border in the countdown color to stay visually distinct from event chips
+- `DayView`: added countdown props and a `dayCountdowns` memo; all-day banner now shows even when there are only countdowns (no events required); countdown chips render below event chips in the same section
+- `WeekView`: countdown chips land in the all-day CSS grid row, one per day column; they share the grid with multi-day event bars so they auto-stack into new rows if both land on the same day
+- `YearView`: countdown dots share the 3-dot-per-day budget in `MiniMonth` alongside event dots; no click handler needed since MiniMonth navigates to the month view on click anyway
+- `CalendarContent`: added `useCountdowns()` call (no SSR seed needed since this is not the countdowns page), `CountdownModalState` for the inline edit modal, and `CountdownModal` as a lazy dynamic import; countdown click from any view opens the modal in edit mode
+
+## 2026-03-11 - version 0.3.30
+
+- added `/calendar/countdown` page: `page.tsx` is a server component that SSR-seeds countdowns by calling the backend directly (no loopback), same pattern as the calendar page; `CountdownsWithData` wrapped in Suspense with an inline pulse skeleton so the shell streams immediately
+- added `CountdownContent.tsx`: client component with the sorted list and modal wiring; `useMemo` re-sorts by `targetDate` after optimistic creates append to the end; `CountdownModal` is dynamically imported since it's only needed on user interaction
+- added `CountdownCard.tsx`: memo'd card with a 3px colored left border (same stripe as `EventChip`), formatted target date, and a days-remaining badge that highlights when the date is today
+- updated `useCountdowns` to accept `initialCountdowns` so the SSR seed works; same `initialDataUpdatedAt: Date.now() - 29_000` trick as `useCalendarEvents` to queue a background refetch shortly after mount without blocking the UI
+
+## 2026-03-11 - version 0.3.29
+
+- added `src/hooks/useCountdowns.ts` with `useCountdowns`; same TanStack Query + optimistic update pattern as `useCalendarEvents` with one difference: no date-range scoping means there's only ever one cache entry to snapshot and restore, so the mutation logic is simpler; all three mutations (create, update, delete) cancel in-flight fetches, apply optimistically, roll back on error, and invalidate on settle
+- added `src/components/calendar/CountdownModal.tsx`; single-column modal using the existing `Modal`, `Input`, `Textarea`, and `Button` primitives; shows a live "X days away / X days ago / Today!" preview below the date input using `differenceInCalendarDays`; `FIELD_LABELS` const at the top keeps all label strings in one place; delete button only renders in edit mode, same danger variant as `EventModal`
+
+## 2026-03-11 - version 0.3.28
+
+- added `Countdown` and `CountdownModalState` types to `src/types/calendar.ts`; countdowns are a separate type from `CalendarEvent` so calendar views can handle the two cases independently without a discriminant field everywhere
+- added countdown API client helpers to `src/lib/calendar.ts`: `fetchCountdowns`, `createCountdown`, `updateCountdown`, `deleteCountdown`; follow the same fetch pattern as the existing event helpers (hit the Next.js BFF, auth token never leaves the server)
+- added `queryKeys.calendar.countdowns` to `src/lib/queryKeys.ts`; not scoped by date range because countdowns are fetched all at once and displayed wherever their target date falls in the calendar
+- added BFF proxy routes at `/api/calendar/countdowns` (GET list, POST create) and `/api/calendar/countdowns/[id]` (GET, PUT, DELETE); same pattern as the events BFF routes, `auth0.getAccessToken()` attaches the JWT server-side
+
+## 2026-03-11 - version 0.3.27
+
+- fixed CLS on `/protected/vitals` caused by the chart skeleton and real chart having different heights: the skeleton was a flat `h-20` (80px) div, but the real `VisXYContainer` at `height={80}` also includes `VisAxis type="x"` which renders version tick labels below the 80px plot area, making the actual rendered height around 100px; all five metric charts swapping simultaneously on hydration caused a ~20px layout shift each
+- extracted `CHART_AREA_HEIGHT` and `CHART_CONTAINER_HEIGHT` consts at the top of `VitalsChart.tsx`; both the skeleton div and the real chart wrapper now use `CHART_CONTAINER_HEIGHT` (100px) as their reserved height, so future height adjustments only need to happen in one place
+
+## 2026-03-11 - version 0.3.26
+
+- fixed `src/middleware.ts`: `auth0.middleware()` by itself does not redirect unauthenticated users for non-auth routes — it handles login/logout/callback and touches rolling sessions, then returns `NextResponse.next()` regardless of session state; added an explicit `auth0.getSession(req)` check before `auth0.middleware` for `/protected/*` routes so unauthenticated requests are redirected to login immediately; `getSession(req)` reads from `req.cookies` directly (no network call, no `next/headers`), so this adds no measurable TTFB cost and unauthenticated requests skip `auth0.middleware` entirely which is actually slightly faster
+- added accurate comment to `fetchVitals` in the vitals page explaining that `next: { revalidate: 60 }` keys the data cache by URL only (Authorization header is not part of the key), and why that's fine here: the vitals aggregates are site-wide P75 scores, not per-user data, so the cached response is correct for any authenticated caller; auth is still enforced at the page level before the fetch runs
+
+## 2026-03-11 - version 0.3.25
+
+- restored `src/middleware.ts` with a narrow `config.matcher` covering only `/api/auth/:path*` and `/protected/:path*`; the middleware was removed previously because `auth0.middleware()` was running on every route in the app and making a network call to Auth0 on each request, which showed up as TTFB degradation across the whole site; the new matcher limits that cost to only the routes that actually need token refresh and session validation
+- `/api/auth/*` is in the matcher so the Auth0 login/logout/callback routes work at all; `/protected/*` is in the matcher so unauthenticated users get redirected to login and access tokens are silently refreshed before they expire
+- added `export const dynamic = "force-static"` to `src/app/protected/page.tsx` as an explicit build-time guarantee that the page is always statically pre-rendered; middleware enforcing auth at the edge and the page being statically cached are orthogonal, the middleware runs before the cached HTML is served so a static page can still be auth-protected; if anything dynamic is ever added to the page component the build fails instead of silently downgrading
+
+## 2026-03-11 - version 0.3.24
+
+- fixed LCP and a minor CLS on `/protected` caused by the `reveal()` entrance animation system: the H1 heading was wrapped in `reveal(loaded, "")` which renders it as `opacity-0` until after hydration and a 700ms CSS transition, making LCP consistently bad since the browser doesn't count invisible elements as LCP candidates; removed the `reveal()` wrapper from the heading div so the H1 is visible in the SSR HTML on first paint
+- replaced the inline skeleton `<span>` in the H1 for the loading user name with a plain `"there"` fallback; the skeleton span was a minor CLS source when the real name arrived and changed the H1 layout; the text "there" and a typical first name are close enough in length that there's no visible shift
+- feature cards and dev notes sections keep their staggered entrance animations since they aren't LCP candidates
+
+## 2026-03-11 - version 0.3.23
+
+- fixed a two-round-trip fetch waterfall on `/protected/vitals` that was hurting TTFB and LCP: `fetchVersions` and `fetchByVersion` ran in parallel, then `fetchVitals` waited for them to finish so it could use `versions[0]` as the default selected version, adding a full extra backend round trip on every page load; all three fetches now run in a single `Promise.all` by passing `urlVersion` directly (or `undefined` for all-time aggregates), then `selectedVersion` is derived from the versions result after everything resolves
+- replaced `cache: "no-store"` on the summary and by-page fetches inside `fetchVitals` with `next: { revalidate: 60 }` so repeated requests within the same minute hit the Next.js data cache instead of going to the backend again; versions and by-version stay as no-store since those are quick and need to reflect newly deployed versions
+- added JSDoc to all three server-only fetch functions in the vitals page component
+
 ## 2026-03-02 - version 0.3.22
 
 - added `/thoughts/landing-page` write-up covering the Three.js particle network: why Three.js in the hero, how the orbital swirl works (tangential nudge per frame instead of explicit orbit math), the pre-allocated `Float32Array` line buffer with `drawRange`, why line colors fade toward black as particles drift apart, how mouse attraction uses `Raycaster.intersectPlane` to get world-space coordinates, the 3-draw-call render loop, and canvas layering with `pointer-events-none` and `z-10` on the text
@@ -18,6 +92,7 @@
 - loaded with `next/dynamic` and `ssr: false` so Three.js never runs server-side
 - cleanup disposes all three geometries, three materials, and the renderer on unmount
 - installed `three` and `@types/three`
+
 ## 2026-03-01 - version 0.3.20
 
 - converted `CardSearch` from a manual `useState(results) + useState(loadedQuery) + useRef(AbortController) + useEffect` fetch pattern to `useQuery`; the query key is `["tcg", "cards", "search", debouncedQuery]` so TanStack cancels the in-flight fetch and issues a fresh one automatically on every keystroke — no `abortRef`, no `AbortError` catch, no manual `setResults`

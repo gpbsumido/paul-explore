@@ -17,6 +17,8 @@ import type {
   EventCard,
   EventSearchFilters,
   EventLayout,
+  Countdown,
+  CountdownPage,
 } from "@/types/calendar";
 
 export const DAY_LABELS = [
@@ -123,9 +125,14 @@ export function spanningEventsForDay(
     if (s > 0 || en < 0) return false;
     if (e.allDay) return true;
     // multi-day timed events go up here, not in the scrollable time grid
-    return differenceInCalendarDays(parseISO(e.endDate), parseISO(e.startDate)) >= 1;
+    return (
+      differenceInCalendarDays(parseISO(e.endDate), parseISO(e.startDate)) >= 1
+    );
   });
-  return [...covering.filter((e) => e.allDay), ...covering.filter((e) => !e.allDay)];
+  return [
+    ...covering.filter((e) => e.allDay),
+    ...covering.filter((e) => !e.allDay),
+  ];
 }
 
 /**
@@ -362,4 +369,67 @@ export async function removeCardFromEvent(
     method: "DELETE",
   });
   if (!res.ok) throw new Error("Failed to remove card from event");
+}
+
+// ---------------------------------------------------------------------------
+// Countdown helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches one page of countdowns for the current user, sorted by target date
+ * ascending. Pass the nextCursor from the previous page to get the next one.
+ * Hits the Next.js BFF route, which attaches the auth token server-side.
+ */
+export async function fetchCountdowns(cursor?: string): Promise<CountdownPage> {
+  const url = cursor
+    ? `/api/calendar/countdowns?cursor=${encodeURIComponent(cursor)}`
+    : `/api/calendar/countdowns`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch countdowns");
+  return res.json() as Promise<CountdownPage>;
+}
+
+/**
+ * Creates a new countdown. The id and createdAt come back from the server,
+ * so you only pass the fields the user actually fills in.
+ */
+export async function createCountdown(
+  data: Omit<Countdown, "id" | "createdAt">,
+): Promise<Countdown> {
+  const res = await fetch("/api/calendar/countdowns", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create countdown");
+  const body = await res.json();
+  return body.countdown as Countdown;
+}
+
+/**
+ * Partially updates a countdown. Pass only the fields you want to change,
+ * everything else stays as-is on the backend.
+ */
+export async function updateCountdown(
+  id: string,
+  fields: Partial<Omit<Countdown, "id" | "createdAt">>,
+): Promise<Countdown> {
+  const res = await fetch(`/api/calendar/countdowns/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Failed to update countdown");
+  const data = await res.json();
+  return data.countdown as Countdown;
+}
+
+/**
+ * Deletes a countdown by id. The backend returns 204 so there's nothing to parse.
+ */
+export async function deleteCountdown(id: string): Promise<void> {
+  const res = await fetch(`/api/calendar/countdowns/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete countdown");
 }

@@ -41,6 +41,28 @@ export type ModalState =
   | { open: false }
   | { open: true; initialDate: Date; editingEvent?: CalendarEvent };
 
+/** A named date you want to count down to (or up from, if it's passed). */
+export type Countdown = {
+  id: string;
+  title: string;
+  description?: string;
+  /** ISO date string, "YYYY-MM-DD". No time component, no timezone. */
+  targetDate: string;
+  color: string;
+  createdAt: string;
+};
+
+/** One page of countdown results as returned by the paginated list endpoint. */
+export type CountdownPage = {
+  countdowns: Countdown[];
+  /** Opaque cursor for the next page. Null when this is the last page. */
+  nextCursor: string | null;
+};
+
+export type CountdownModalState =
+  | { open: false }
+  | { open: true; editingCountdown?: Countdown; initialDate?: Date };
+
 /** Computed geometry for one event in the day/week time grid after overlap resolution. */
 export type EventLayout = {
   ev: CalendarEvent;

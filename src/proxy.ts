@@ -1,69 +1,84 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
-const PUBLIC_PATHS = ["/", "/auth/login", "/auth/logout", "/auth/callback"];
-
 /**
- * @param request - the request object
- * @returns - the response object
+ * Single proxy entry point for auth, session enforcement, and CSP headers.
+ *
+ * Three responsibilities:
+ *
+ * 1. Auth0 OIDC routes (/api/auth/*) — delegated entirely to auth0.middleware()
+ *    which handles login, callback, logout, and silent token refresh.
+ *
+ * 2. Session enforcement — unauthenticated requests to /protected are
+ *    redirected to /api/auth/login before auth0.middleware() ever runs.
+ *    auth0.getSession(request) reads the encrypted cookie locally (no network
+ *    call) so enforcement adds no measurable TTFB. Authenticated /protected
+ *    requests go through auth0.middleware() for rolling session refresh.
+ *    Logged-in users hitting / are bounced straight to the hub.
+ *
+ * 3. CSP headers — applied on every pass-through response so every page load
+ *    carries the policy. 'unsafe-inline' in script-src is required for Next.js
+ *    App Router RSC payload scripts (self.__next_f.push(...)) that are inlined
+ *    into the HTML at build time with no nonce attribute. See README for the
+ *    full reasoning.
  */
-export async function proxy(request: Request) {
-  const { pathname } = new URL(request.url);
 
-  // Auth routes: let auth0.middleware() handle the full OIDC flow
-  // (login, callback, logout, silent token refresh).
-  if (pathname.startsWith("/auth/")) {
+const CSP = [
+  `default-src 'self'`,
+  `script-src 'self' 'unsafe-inline'`,
+  `style-src 'self' 'unsafe-inline'`,
+  `img-src 'self' data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
+  `font-src 'self'`,
+  `connect-src 'self' https://vitals.vercel-insights.com`,
+  `object-src 'none'`,
+  `base-uri 'self'`,
+  `form-action 'self'`,
+  `frame-ancestors 'none'`,
+].join("; ");
+
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Auth0 OIDC routes — the SDK owns the full login / callback / logout flow.
+  if (pathname.startsWith("/api/auth/")) {
     return auth0.middleware(request);
   }
 
-  // Logged-in users who hit the landing page get bounced to the hub immediately.
-  // Doing this in middleware keeps the redirect off the page's render path --
-  // page.tsx becomes a static build artifact and doesn't pay the cookie-read
-  // cost on every request.
+  // Logged-in users landing on / skip the marketing page and go straight to
+  // the hub. getSession(request) is the middleware-safe overload that reads
+  // from request.cookies directly — no next/headers dependency, no network
+  // call. This is what keeps the landing page statically pre-rendered at
+  // build time (page.tsx has no auth calls) while still redirecting sessions.
   if (pathname === "/") {
-    const session = await auth0.getSession();
+    const session = await auth0.getSession(request);
     if (session) {
       return NextResponse.redirect(new URL("/protected", request.url));
     }
   }
 
-  // check if the path is public or is api (which handles its own auth)
-  const isPublic =
-    PUBLIC_PATHS.some((p) => pathname === p) || pathname.startsWith("/api/");
-
-  // For protected pages: getSession() reads the encrypted session cookie
-  // locally -- no network call, so it doesn't add TTFB the way middleware() does.
-  if (!isPublic) {
-    const session = await auth0.getSession();
+  // Enforce auth on /protected routes before auth0.middleware runs.
+  // Unauthenticated requests redirect immediately — auth0.middleware is
+  // skipped entirely, which keeps the redirect path as cheap as possible.
+  // Authenticated requests go through auth0.middleware for rolling session
+  // refresh (updates the cookie maxAge so the session stays alive).
+  if (pathname.startsWith("/protected")) {
+    const session = await auth0.getSession(request);
     if (!session) {
-      return NextResponse.redirect(new URL("/auth/login", request.url));
+      const loginUrl = new URL("/api/auth/login", request.url);
+      loginUrl.searchParams.set("returnTo", pathname);
+      return NextResponse.redirect(loginUrl);
     }
+    const res = await auth0.middleware(request);
+    res.headers.set("Content-Security-Policy", CSP);
+    return res;
   }
 
-  const csp = [
-    `default-src 'self'`,
-    // 'self' allows Next.js static chunks; 'unsafe-inline' is required for
-    // Next.js App Router RSC payload scripts (self.__next_f.push(...)) that
-    // are inlined into the HTML at build time and cannot carry a per-request
-    // nonce. This is the standard CSP for Next.js apps with static pages.
-    `script-src 'self' 'unsafe-inline'`,
-    `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
-    `font-src 'self'`,
-    `connect-src 'self' https://vitals.vercel-insights.com`,
-    `object-src 'none'`,
-    `base-uri 'self'`,
-    `form-action 'self'`,
-    `frame-ancestors 'none'`,
-  ].join("; ");
-
+  // All other routes: pass through with CSP headers.
   const response = NextResponse.next();
-  response.headers.set("Content-Security-Policy", csp);
-
+  response.headers.set("Content-Security-Policy", CSP);
   return response;
 }
 
-// match all routes except for specified ones
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",

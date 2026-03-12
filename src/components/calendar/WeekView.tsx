@@ -7,14 +7,22 @@ import {
   addDays,
   eachDayOfInterval,
   isToday,
+  isSameDay,
   getHours,
   getMinutes,
   parseISO,
   differenceInCalendarDays,
 } from "date-fns";
-import { HOURS, slotDate, formatHour, singleDayTimedEventsForDay, layoutDayEvents } from "@/lib/calendar";
-import type { CalendarEvent } from "@/types/calendar";
+import {
+  HOURS,
+  slotDate,
+  formatHour,
+  singleDayTimedEventsForDay,
+  layoutDayEvents,
+} from "@/lib/calendar";
+import type { CalendarEvent, Countdown } from "@/types/calendar";
 import EventChip from "@/components/calendar/EventChip";
+import CountdownChip from "@/components/calendar/CountdownChip";
 
 /** Fixed px height for each hour row — used for current-time indicator math. */
 const ROW_HEIGHT = 48;
@@ -25,8 +33,10 @@ const GUTTER_WIDTH = "3rem";
 interface WeekViewProps {
   currentDate: Date;
   events: CalendarEvent[];
+  countdowns?: Countdown[];
   onSlotClick: (date: Date) => void;
   onChipClick: (event: CalendarEvent) => void;
+  onCountdownClick?: (countdown: Countdown) => void;
 }
 
 /**
@@ -67,12 +77,13 @@ function getEventColSpan(
   return { startIdx, endIdx };
 }
 
-
 function WeekView({
   currentDate,
   events,
+  countdowns = [],
   onSlotClick,
   onChipClick,
+  onCountdownClick,
 }: WeekViewProps) {
   // memoize weekStart and weekDays so they only change on navigation, not on every render
   const weekStart = useMemo(() => startOfWeek(currentDate), [currentDate]);
@@ -171,7 +182,7 @@ function WeekView({
             ))}
           </div>
 
-          {/* Event layer — CSS grid so overlapping events stack into rows */}
+          {/* Event and countdown layer — CSS grid so overlapping items stack into rows */}
           <div
             className="relative grid gap-y-0.5 py-0.5"
             style={{ gridTemplateColumns: "repeat(7, 1fr)" }}
@@ -189,6 +200,23 @@ function WeekView({
                   <EventChip event={ev} onClick={() => onChipClick(ev)} />
                 </div>
               );
+            })}
+            {weekDays.map((day, dayIdx) => {
+              const dayCds = countdowns.filter((c) =>
+                isSameDay(parseISO(c.targetDate), day),
+              );
+              return dayCds.map((c) => (
+                <div
+                  key={c.id}
+                  style={{ gridColumn: `${dayIdx + 1} / span 1` }}
+                  className="px-0.5"
+                >
+                  <CountdownChip
+                    countdown={c}
+                    onClick={() => onCountdownClick?.(c)}
+                  />
+                </div>
+              ));
             })}
           </div>
         </div>
@@ -208,7 +236,9 @@ function WeekView({
               className="flex items-start justify-end pr-1 pt-1 border-b border-border last:border-b-0"
               style={{ height: ROW_HEIGHT }}
             >
-              <span className="text-[10px] text-muted/30">{formatHour(hour)}</span>
+              <span className="text-[10px] text-muted/30">
+                {formatHour(hour)}
+              </span>
             </div>
           ))}
         </div>
@@ -251,7 +281,11 @@ function WeekView({
                         right: `calc(${((totalColumns - column - 1) / totalColumns) * 100}% + 2px)`,
                       }}
                     >
-                      <EventChip event={ev} onClick={() => onChipClick(ev)} block />
+                      <EventChip
+                        event={ev}
+                        onClick={() => onChipClick(ev)}
+                        block
+                      />
                     </div>
                   ),
                 )}

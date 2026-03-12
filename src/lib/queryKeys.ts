@@ -30,6 +30,13 @@ export const queryKeys = {
       endDate: string;
       cardName: string;
     }) => ["calendar", "eventsList", filters] as const,
+
+    /**
+     * All countdowns for the current user. Not scoped by date range because
+     * countdowns are fetched all at once and shown wherever their target date
+     * falls in the calendar. One key, one request, no range math needed.
+     */
+    countdowns: () => ["calendar", "countdowns"] as const,
   },
 
   nba: {

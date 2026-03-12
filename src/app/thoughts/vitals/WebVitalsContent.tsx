@@ -244,19 +244,26 @@ navigator.sendBeacon(
           same <code>checkJwt</code> middleware as every other protected route
         </Sent>
         <Sent pos="last">
-          <code>cache: &quot;no-store&quot;</code> on both fetches so the
-          numbers are always live when you open the page — vitals data should
-          never be served stale from a CDN
+          the summary and by-page fetches use{" "}
+          <code>next: {`{ revalidate: 60 }`}</code> instead of{" "}
+          <code>no-store</code>. aggregate vitals data doesn&apos;t change
+          on every request, it changes when new rows come in. 60 seconds is
+          fresh enough and saves a backend round trip for anyone who refreshes
+          within the same minute. versions and by-version stay as{" "}
+          <code>no-store</code> since those need to reflect a freshly deployed
+          version immediately
         </Sent>
 
         <div className={styles.codeBubble}>
-          {`// both aggregations in one server render
+          {`// summary and by-page cached for 60s each
 const [summaryRes, byPageRes] = await Promise.all([
   fetch(\`\${API_URL}/api/vitals/summary\`, {
-    headers, cache: "no-store"
+    headers,
+    next: { revalidate: 60 },
   }),
   fetch(\`\${API_URL}/api/vitals/by-page\`, {
-    headers, cache: "no-store"
+    headers,
+    next: { revalidate: 60 },
   }),
 ]);`}
         </div>
@@ -413,6 +420,102 @@ useEffect(() => {
     });
 }, []);`}
         </div>
+
+        <Timestamp>10:29 AM</Timestamp>
+
+        <Received>what about LCP on /protected, that was bad too</Received>
+
+        <Sent pos="first">
+          the entrance animations. the hub page uses a{" "}
+          <code>reveal()</code> helper that starts elements at{" "}
+          <code>opacity-0 translate-y-8</code> and fades them in after
+          hydration. the H1 heading was wrapped in it, same as the cards
+        </Sent>
+        <Sent pos="middle">
+          the problem: browsers exclude <code>opacity: 0</code> elements
+          from LCP consideration entirely. the H1 is the biggest text element
+          on the page, but it doesn&apos;t count until it becomes visible.
+          so LCP was measured after hydration, plus a 700ms CSS transition,
+          plus whatever bundle parse time took. easily 2.5s+
+        </Sent>
+        <Sent pos="last">
+          fix was simple: remove the <code>reveal()</code> wrapper from the
+          heading div so the H1 is visible in the SSR HTML on first paint.
+          cards still animate because they&apos;re below the heading and
+          aren&apos;t the LCP element. also swapped the inline skeleton span
+          for the loading name state to just say &quot;there&quot; — the
+          skeleton span was a minor CLS source when the real name arrived and
+          changed the H1&apos;s layout
+        </Sent>
+
+        <Timestamp>10:33 AM</Timestamp>
+
+        <Received>
+          what about TTFB on the vitals dashboard itself, that page was slow
+          too
+        </Received>
+
+        <Sent pos="first">
+          yeah, that one was a fetch waterfall I introduced. the page needed to
+          default to the latest version, so it fetched versions and byVersion
+          first, then started the main vitals fetch once those resolved. two
+          sequential backend round trips before any HTML could go out
+        </Sent>
+        <Sent pos="middle">
+          the fix was to decouple the data from the version default. pass the
+          URL param directly to <code>fetchVitals</code>, undefined if
+          there&apos;s no param in the URL. that gives all-time aggregates.
+          then all three fetches go into one <code>Promise.all</code> and{" "}
+          <code>selectedVersion</code> is derived from the versions result
+          after everything resolves
+        </Sent>
+        <Sent pos="last">
+          small trade-off: on first load with no URL param the data is
+          technically all-time aggregates, not filtered to the latest version.
+          but the dropdown shows the latest version selected so the next pick
+          filters correctly. one backend round trip saved on every page load is
+          worth that
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// before: two round trips
+const [versions, byVersion] = await Promise.all([...]);
+const { summary, byPage } = await fetchVitals(token, versions[0]);
+
+// after: one parallel round trip
+const [versions, byVersion, { summary, byPage }] = await Promise.all([
+  fetchVersions(token),
+  fetchByVersion(token),
+  fetchVitals(token, urlVersion), // undefined = all-time aggregates
+]);
+const selectedVersion = urlVersion ?? versions[0];`}
+        </div>
+
+        <Timestamp>10:38 AM</Timestamp>
+
+        <Received>
+          what about CLS on the vitals page, that was bad too
+        </Received>
+
+        <Sent pos="first">
+          the chart skeleton. unovis can&apos;t render server-side so the page
+          shows a skeleton grid while hydrating, then swaps in the real charts.
+          the skeleton used <code>h-20</code> (80px) for each chart area
+        </Sent>
+        <Sent pos="middle">
+          the real chart uses <code>VisXYContainer height=&#123;80&#125;</code>
+          for the plot area, but also includes <code>VisAxis type=&quot;x&quot;</code>{" "}
+          which renders version tick labels below that 80px boundary. actual
+          rendered height is around 100px. all five metric charts swapping
+          simultaneously added about 20px of shift each
+        </Sent>
+        <Sent pos="last">
+          fix: extract <code>CHART_AREA_HEIGHT = 80</code> and{" "}
+          <code>CHART_CONTAINER_HEIGHT = CHART_AREA_HEIGHT + 20</code> at the
+          top of the file. both the skeleton div and the real chart wrapper use{" "}
+          <code>CHART_CONTAINER_HEIGHT</code> so they reserve the same space.
+          future height changes only need to happen in one place
+        </Sent>
 
         {/* Typing indicator */}
         <div className={styles.typingDots}>

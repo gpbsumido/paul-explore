@@ -195,6 +195,69 @@ export default function SecurityContent() {
           endpoints — same origin, plus the specific external services that need
           it (Speed Insights, TCGdex, GitHub raw for Pokémon sprites)
         </Sent>
+
+        <Timestamp>10:30 AM</Timestamp>
+
+        <Received>
+          so after all that, did the middleware stick around
+        </Received>
+
+        <Sent pos="first">
+          no, it got removed entirely for a while. after switching to{" "}
+          <code>&apos;unsafe-inline&apos;</code> the CSP part was simpler, but
+          the bigger issue was <code>auth0.middleware()</code> itself. it makes
+          a network call to Auth0 on every single request — not just auth routes,
+          every page
+        </Sent>
+        <Sent pos="middle">
+          so the landing page, TCG browser, all of it — every visit was paying
+          that latency cost. it showed up in TTFB data immediately. the whole
+          middleware got pulled to stop the bleeding
+        </Sent>
+        <Sent pos="last">
+          the protected page&apos;s auth was handled differently during that
+          period — <code>page.tsx</code> was calling{" "}
+          <code>auth0.getSession()</code> as a redirect guard, which just reads
+          a cookie with no network call. but that made the page dynamic, which
+          is its own TTFB problem
+        </Sent>
+
+        <Timestamp>10:35 AM</Timestamp>
+
+        <Received>is the middleware back now</Received>
+
+        <Sent pos="first">
+          yeah, with smarter logic this time. Next.js 16 introduced{" "}
+          <code>proxy.ts</code> as the new convention alongside{" "}
+          <code>middleware.ts</code> — you can only have one. we were running
+          both, which broke the build, so everything got consolidated into{" "}
+          <code>proxy.ts</code> with a broad matcher
+        </Sent>
+        <Sent pos="middle">
+          the broad matcher means the proxy runs on every request. but the key
+          property from before is still preserved: <code>auth0.middleware()</code>{" "}
+          — the one that makes a network call to Auth0 — is only invoked for{" "}
+          <code>/api/auth/*</code> and authenticated <code>/protected/*</code>{" "}
+          requests. everything else hits <code>NextResponse.next()</code> with
+          the CSP header attached and returns immediately. no network round-trip
+        </Sent>
+        <Sent pos="middle">
+          for <code>/protected/*</code> the logic is the same as before:{" "}
+          <code>auth0.getSession(req)</code> runs first — that&apos;s the proxy-
+          safe overload that reads from <code>req.cookies</code> directly, no
+          network call, just a cookie decrypt. if there&apos;s no session it
+          redirects to login and <code>auth0.middleware</code> never runs. if
+          there is a session, <code>auth0.middleware</code> runs after to handle
+          rolling session refresh
+        </Sent>
+        <Sent pos="last">
+          and <code>/protected/page.tsx</code> has{" "}
+          <code>export const dynamic = &quot;force-static&quot;</code>. the
+          proxy does the auth check at the edge before the cached static HTML is
+          ever returned, so the page can be fully pre-rendered without being
+          publicly accessible. if anything dynamic gets added to the page
+          component later the build fails rather than silently downgrading
+        </Sent>
       </div>
     </div>
   );
