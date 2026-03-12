@@ -227,33 +227,35 @@ export default function SecurityContent() {
         <Received>is the middleware back now</Received>
 
         <Sent pos="first">
-          yeah, with a tight matcher and smarter logic this time. the matcher
-          only covers <code>/api/auth/*</code> and <code>/protected/*</code>.
-          everything else in the app — landing page, TCG browser, calendar — is
-          completely untouched
+          yeah, with smarter logic this time. Next.js 16 introduced{" "}
+          <code>proxy.ts</code> as the new convention alongside{" "}
+          <code>middleware.ts</code> — you can only have one. we were running
+          both, which broke the build, so everything got consolidated into{" "}
+          <code>proxy.ts</code> with a broad matcher
         </Sent>
         <Sent pos="middle">
-          the important thing: <code>auth0.middleware()</code> by itself
-          doesn&apos;t actually redirect unauthenticated users for non-auth
-          routes. it handles login/logout/callback and touches rolling sessions,
-          but for anything else it just returns <code>NextResponse.next()</code>
-          regardless of whether there&apos;s a session or not
+          the broad matcher means the proxy runs on every request. but the key
+          property from before is still preserved: <code>auth0.middleware()</code>{" "}
+          — the one that makes a network call to Auth0 — is only invoked for{" "}
+          <code>/api/auth/*</code> and authenticated <code>/protected/*</code>{" "}
+          requests. everything else hits <code>NextResponse.next()</code> with
+          the CSP header attached and returns immediately. no network round-trip
         </Sent>
         <Sent pos="middle">
-          so for <code>/protected/*</code>, the middleware calls{" "}
-          <code>auth0.getSession(req)</code> first — that&apos;s the middleware-
+          for <code>/protected/*</code> the logic is the same as before:{" "}
+          <code>auth0.getSession(req)</code> runs first — that&apos;s the proxy-
           safe overload that reads from <code>req.cookies</code> directly, no
-          network call, basically just a cookie decrypt. if there&apos;s no
-          session it redirects to login and <code>auth0.middleware</code> never
-          runs. if there is a session, <code>auth0.middleware</code> runs after
-          to handle rolling session refresh
+          network call, just a cookie decrypt. if there&apos;s no session it
+          redirects to login and <code>auth0.middleware</code> never runs. if
+          there is a session, <code>auth0.middleware</code> runs after to handle
+          rolling session refresh
         </Sent>
         <Sent pos="last">
           and <code>/protected/page.tsx</code> has{" "}
           <code>export const dynamic = &quot;force-static&quot;</code>. the
-          middleware does the auth check at the edge before the cached static
-          HTML is ever returned, so the page can be fully pre-rendered without
-          being publicly accessible. if anything dynamic gets added to the page
+          proxy does the auth check at the edge before the cached static HTML is
+          ever returned, so the page can be fully pre-rendered without being
+          publicly accessible. if anything dynamic gets added to the page
           component later the build fails rather than silently downgrading
         </Sent>
       </div>

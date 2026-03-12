@@ -410,7 +410,9 @@ async function CalendarWithData() {
 }`}
         </div>
 
-        <Received>and the hook doesn&apos;t re-fetch if you already have data?</Received>
+        <Received>
+          and the hook doesn&apos;t re-fetch if you already have data?
+        </Received>
 
         <Sent pos="first">
           right -- <code>useCalendarEvents</code> accepts an{" "}
@@ -423,7 +425,9 @@ async function CalendarWithData() {
           a different month it re-fetches normally from there
         </Sent>
 
-        <Received>what about the other views -- do they all load upfront too</Received>
+        <Received>
+          what about the other views -- do they all load upfront too
+        </Received>
 
         <Sent pos="first">
           no -- DayView, WeekView, YearView, and EventModal are all lazily
@@ -446,7 +450,9 @@ async function CalendarWithData() {
 
         <Timestamp>10:51 AM</Timestamp>
 
-        <Received>what about the event detail page at /calendar/events/:id</Received>
+        <Received>
+          what about the event detail page at /calendar/events/:id
+        </Received>
 
         <Sent pos="first">
           that one was fully client-side for a long time — it used{" "}
@@ -474,7 +480,9 @@ async function CalendarWithData() {
 
         <Timestamp>10:54 AM</Timestamp>
 
-        <Received>you ever look at the real CLS scores for the calendar</Received>
+        <Received>
+          you ever look at the real CLS scores for the calendar
+        </Received>
 
         <Sent pos="first">
           yeah, it was bad for a while. month view CLS was sitting around 0.41,
@@ -483,8 +491,8 @@ async function CalendarWithData() {
         <Sent pos="last">
           the culprit was <code>min-h</code> on the month cells. each cell grew
           to fit its event count, so a cell with 3 chips was about 40px taller
-          than an empty one. every time events loaded in or you navigated months,
-          the whole grid shifted
+          than an empty one. every time events loaded in or you navigated
+          months, the whole grid shifted
         </Sent>
 
         <Received>how did you fix it</Received>
@@ -492,8 +500,8 @@ async function CalendarWithData() {
         <Sent pos="first">
           switched to a fixed height, <code>h-[128px] sm:h-[132px]</code>, with{" "}
           <code>overflow-hidden</code>. worked out the math first to make sure
-          it was enough: 3 chips at 20px each, 2px gaps between them, the "+N
-          more" overflow line, and the padding on all sides
+          it was enough: 3 chips at 20px each, 2px gaps between them, the
+          &quot;+N more&quot; overflow line, and the padding on all sides
         </Sent>
         <Sent pos="middle">
           came out to 122px on mobile and 126px on desktop. the fixed heights
@@ -552,7 +560,9 @@ async function CalendarWithData() {
 
         <Timestamp>11:05 AM</Timestamp>
 
-        <Received>did you end up moving the calendar mutations to TanStack Query too</Received>
+        <Received>
+          did you end up moving the calendar mutations to TanStack Query too
+        </Received>
 
         <Sent pos="first">
           yeah, all three -- create, update, and delete are now{" "}
@@ -561,9 +571,9 @@ async function CalendarWithData() {
         <Sent pos="middle">
           <code>onMutate</code> cancels any in-flight fetches, snapshots the
           current cache, and applies the change immediately so the grid reacts
-          before the server responds. <code>onError</code> restores the
-          snapshot if the write fails. <code>onSettled</code> invalidates all
-          calendar event queries
+          before the server responds. <code>onError</code> restores the snapshot
+          if the write fails. <code>onSettled</code> invalidates all calendar
+          event queries
         </Sent>
         <Sent pos="last">
           the invalidation uses a prefix match on{" "}
@@ -573,7 +583,9 @@ async function CalendarWithData() {
           multi-day events near month boundaries
         </Sent>
 
-        <Received>what did you get from that over the setQueryData approach</Received>
+        <Received>
+          what did you get from that over the setQueryData approach
+        </Received>
 
         <Sent pos="first">
           a few things. <code>isPending</code> on each mutation drives the save
@@ -585,14 +597,14 @@ async function CalendarWithData() {
           automatic rollback on error was the other one. the old{" "}
           <code>setQueryData</code> approach had no rollback -- if the API call
           failed, the optimistic change would stick around until the next fetch.
-          the mutation pattern cleans that up cleanly via{" "}
-          <code>onError</code> restoring the snapshot
+          the mutation pattern cleans that up cleanly via <code>onError</code>{" "}
+          restoring the snapshot
         </Sent>
         <Sent pos="last">
-          and the mental model is cleaner. the mutation owns its whole
-          lifecycle -- optimistic apply, error rollback, server sync -- instead
-          of those three concerns being scattered across separate callbacks and
-          state variables
+          and the mental model is cleaner. the mutation owns its whole lifecycle
+          -- optimistic apply, error rollback, server sync -- instead of those
+          three concerns being scattered across separate callbacks and state
+          variables
         </Sent>
 
         <Received>nice. anything else worth mentioning</Received>
@@ -620,8 +632,8 @@ async function CalendarWithData() {
         <Sent pos="first">
           countdowns. a separate page at <code>/calendar/countdown</code> where
           you can add a named event with a target date and a color. it shows you
-          how many days away it is, and the countdown shows up inline on its date
-          across all four calendar views
+          how many days away it is, and the countdown shows up inline on its
+          date across all four calendar views
         </Sent>
         <Sent pos="last">
           it fits naturally in the calendar because a countdown is still just a
@@ -634,16 +646,16 @@ async function CalendarWithData() {
         <Received>so you kept them as separate types</Received>
 
         <Sent pos="first">
-          right. <code>Countdown</code> is its own type:{" "}
-          <code>title</code>, <code>description</code> (optional),{" "}
-          <code>targetDate</code> as a <code>DATE</code> string, <code>color</code>,
-          and the standard <code>id</code> and <code>createdAt</code>
+          right. <code>Countdown</code> is its own type: <code>title</code>,{" "}
+          <code>description</code> (optional), <code>targetDate</code> as a{" "}
+          <code>DATE</code> string, <code>color</code>, and the standard{" "}
+          <code>id</code> and <code>createdAt</code>
         </Sent>
         <Sent pos="middle">
           <code>targetDate</code> is stored as Postgres <code>DATE</code>, not{" "}
           <code>TIMESTAMP WITH TIME ZONE</code>. there&apos;s no time component
-          and no timezone to reason about -- a countdown lands on a calendar day,
-          full stop. pg returns <code>DATE</code> as a plain{" "}
+          and no timezone to reason about -- a countdown lands on a calendar
+          day, full stop. pg returns <code>DATE</code> as a plain{" "}
           <code>&quot;YYYY-MM-DD&quot;</code> string (no Date object, no UTC
           conversion), so there&apos;s no timezone drift to undo on the frontend
         </Sent>
@@ -662,12 +674,13 @@ async function CalendarWithData() {
           events use a date-windowed query key:{" "}
           <code>[&quot;calendar&quot;, &quot;events&quot;, start, end]</code>.
           every time you navigate months the window changes, a new key is
-          computed, and TanStack Query fetches the matching range from the backend
+          computed, and TanStack Query fetches the matching range from the
+          backend
         </Sent>
         <Sent pos="middle">
-          countdowns don&apos;t need that. there are maybe 10 of them total, they
-          rarely change, and they need to show up across all views regardless of
-          which month is visible. so there&apos;s a single key:{" "}
+          countdowns don&apos;t need that. there are maybe 10 of them total,
+          they rarely change, and they need to show up across all views
+          regardless of which month is visible. so there&apos;s a single key:{" "}
           <code>queryKeys.calendar.countdowns()</code> --{" "}
           <code>[&quot;calendar&quot;, &quot;countdowns&quot;]</code>, no date
           parameters. one fetch, one cache entry, filtered client-side per day
@@ -676,8 +689,8 @@ async function CalendarWithData() {
         <Sent pos="last">
           the hook is <code>useCountdowns()</code> -- same optimistic mutation
           pattern as <code>useCalendarEvents</code>, but the invalidation is
-          simpler because there&apos;s only ever one cache entry to broadcast to.
-          no prefix-scoped invalidation needed, just the exact key
+          simpler because there&apos;s only ever one cache entry to broadcast
+          to. no prefix-scoped invalidation needed, just the exact key
         </Sent>
 
         <div className={styles.codeBubble}>
@@ -694,8 +707,8 @@ async function CalendarWithData() {
           month grid: countdown chips use a dashed left border in the countdown
           color to stay visually distinct from event chips. events claim the{" "}
           <code>VISIBLE_CHIPS = 3</code> budget first, countdowns fill whatever
-          slots are left. if everything overflows, there&apos;s a single "+N
-          more" line covering both
+          slots are left. if everything overflows, there&apos;s a single
+          &quot;+N more&quot; line covering both
         </Sent>
         <Sent pos="middle">
           day and week views: countdowns go in the all-day section. in day view
@@ -715,40 +728,46 @@ async function CalendarWithData() {
         <Received>what&apos;s the live preview in the modal</Received>
 
         <Sent pos="first">
-          the modal shows a small badge below the date picker as you type: "42
-          days away", "3 days ago", or "Today!" when the date is today. it uses{" "}
-          <code>differenceInCalendarDays(parseISO(targetDate), new Date())</code>{" "}
+          the modal shows a small badge below the date picker as you type:
+          &quot;42 days away&quot;, &quot;3 days ago&quot;, or
+          &quot;Today!&quot; when the date is today. it uses{" "}
+          <code>
+            differenceInCalendarDays(parseISO(targetDate), new Date())
+          </code>{" "}
           so it updates live as the date field changes
         </Sent>
         <Sent pos="last">
           small thing but it makes picking a date feel more meaningful -- you
           see immediately whether you&apos;re setting something a month out or a
-          year away. similar to how a flight search shows you "in 47 days" next
-          to the calendar picker
+          year away. similar to how a flight search shows you &quot;in 47
+          days&quot; next to the calendar picker
         </Sent>
 
         <Received>what about the dedicated countdown page</Received>
 
         <Sent pos="first">
           <code>/calendar/countdown</code> is the same SSR seed pattern as the
-          main calendar. a <code>CountdownsWithData</code> async server component
-          fetches directly from the backend at request time and passes{" "}
+          main calendar. a <code>CountdownsWithData</code> async server
+          component fetches directly from the backend at request time and passes{" "}
           <code>initialCountdowns</code> into the client component. wrapped in
-          Suspense with an inline pulse skeleton so the shell streams immediately
+          Suspense with an inline pulse skeleton so the shell streams
+          immediately
         </Sent>
         <Sent pos="last">
-          the list sorts by target date client-side via a{" "}
-          <code>useMemo</code> rather than relying on insertion order, because
-          optimistic creates append to the end of the cache array. sorting
-          post-create keeps the order correct without waiting for the next
-          re-fetch to come back with the right sequence from the backend
+          the list sorts by target date client-side via a <code>useMemo</code>{" "}
+          rather than relying on insertion order, because optimistic creates
+          append to the end of the cache array. sorting post-create keeps the
+          order correct without waiting for the next re-fetch to come back with
+          the right sequence from the backend
         </Sent>
 
         <Received>nice, that&apos;s a clean addition</Received>
 
-        <Sent>it fits well. the calendar was already the most personal part of
-          the app -- countdowns make it feel a bit more like an actual planning
-          tool and less like a demo</Sent>
+        <Sent>
+          it fits well. the calendar was already the most personal part of the
+          app -- countdowns make it feel a bit more like an actual planning tool
+          and less like a demo
+        </Sent>
 
         <Timestamp>11:22 AM</Timestamp>
 
