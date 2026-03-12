@@ -20,7 +20,14 @@ import {
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
-import type { CalendarView, CalendarEvent, ModalState } from "@/types/calendar";
+import { useCountdowns } from "@/hooks/useCountdowns";
+import type {
+  CalendarView,
+  CalendarEvent,
+  ModalState,
+  Countdown,
+  CountdownModalState,
+} from "@/types/calendar";
 import { DaySkeleton, WeekSkeleton, YearSkeleton } from "./CalendarSkeletons";
 
 // CalendarGrid is the LCP element so it stays as a static import.
@@ -40,6 +47,10 @@ const YearView = dynamic(() => import("@/components/calendar/YearView"), {
 const EventModal = dynamic(() => import("@/components/calendar/EventModal"), {
   loading: () => null,
 });
+const CountdownModal = dynamic(
+  () => import("@/components/calendar/CountdownModal"),
+  { loading: () => null },
+);
 
 interface CalendarContentProps {
   /** SSR seed data for the current month. Skips the initial client-side fetch
@@ -53,6 +64,9 @@ export default function CalendarContent({
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [view, setView] = useState<CalendarView>("month");
   const [modal, setModal] = useState<ModalState>({ open: false });
+  const [countdownModal, setCountdownModal] = useState<CountdownModalState>({
+    open: false,
+  });
 
   // calculate fetch window
   const { start, end } = useMemo(() => {
@@ -81,6 +95,19 @@ export default function CalendarContent({
   }, [currentDate, view]);
 
   const calendarEvents = useCalendarEvents({ start, end, initialEvents });
+
+  // Countdowns don't need a date window — they're all fetched at once and
+  // filtered client-side per day. No SSR seed needed here because the
+  // /calendar/countdown page handles the server-side data loading.
+  const {
+    countdowns,
+    createCountdown,
+    isCreating: isCreatingCountdown,
+    updateCountdown,
+    isUpdating: isUpdatingCountdown,
+    deleteCountdown,
+    isDeleting: isDeletingCountdown,
+  } = useCountdowns();
 
   // Stable reference for the events array so the memoized view components don't
   // re-render just because calendarEvents returned a new object wrapper.
@@ -127,6 +154,14 @@ export default function CalendarContent({
     });
   }, []);
 
+  const openNewCountdownModal = useCallback((initialDate?: Date) => {
+    setCountdownModal({ open: true, initialDate });
+  }, []);
+
+  const openCountdownModal = useCallback((countdown: Countdown) => {
+    setCountdownModal({ open: true, editingCountdown: countdown });
+  }, []);
+
   async function handleSave(eventData: CalendarEvent) {
     if (modal.open && modal.editingEvent) {
       const { id, ...fields } = eventData;
@@ -142,6 +177,20 @@ export default function CalendarContent({
     await calendarEvents.deleteEvent(id);
   }
 
+  async function handleCountdownSave(
+    data: Omit<Countdown, "id" | "createdAt">,
+  ) {
+    if (countdownModal.open && countdownModal.editingCountdown) {
+      await updateCountdown(countdownModal.editingCountdown.id, data);
+    } else {
+      await createCountdown(data);
+    }
+  }
+
+  async function handleCountdownDelete(id: string) {
+    await deleteCountdown(id);
+  }
+
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
       <CalendarHeader
@@ -150,6 +199,7 @@ export default function CalendarContent({
         onNavigate={handleNavigate}
         onViewChange={setView}
         onToday={handleToday}
+        onNewCountdown={() => openNewCountdownModal()}
       />
 
       {calendarEvents.error && (
@@ -167,30 +217,37 @@ export default function CalendarContent({
           <DayView
             currentDate={currentDate}
             events={visibleEvents}
+            countdowns={countdowns}
             onSlotClick={openCreateModal}
             onChipClick={openEditModal}
+            onCountdownClick={openCountdownModal}
           />
         )}
         {view === "week" && (
           <WeekView
             currentDate={currentDate}
             events={visibleEvents}
+            countdowns={countdowns}
             onSlotClick={openCreateModal}
             onChipClick={openEditModal}
+            onCountdownClick={openCountdownModal}
           />
         )}
         {view === "month" && (
           <CalendarGrid
             currentDate={currentDate}
             events={visibleEvents}
+            countdowns={countdowns}
             onDayClick={openCreateModal}
             onChipClick={openEditModal}
+            onCountdownClick={openCountdownModal}
           />
         )}
         {view === "year" && (
           <YearView
             currentDate={currentDate}
             events={visibleEvents}
+            countdowns={countdowns}
             onMonthClick={handleMonthClick}
           />
         )}
@@ -205,6 +262,39 @@ export default function CalendarContent({
           onClose={() => setModal({ open: false })}
           isSaving={calendarEvents.isCreating || calendarEvents.isUpdating}
           isDeleting={calendarEvents.isDeleting}
+          onSwitchToCountdown={
+            modal.editingEvent
+              ? undefined
+              : () => {
+                  openNewCountdownModal(modal.initialDate);
+                  setModal({ open: false });
+                }
+          }
+        />
+      )}
+
+      {countdownModal.open && (
+        <CountdownModal
+          countdown={countdownModal.editingCountdown}
+          initialDate={
+            countdownModal.open ? countdownModal.initialDate : undefined
+          }
+          onSave={handleCountdownSave}
+          onDelete={handleCountdownDelete}
+          onClose={() => setCountdownModal({ open: false })}
+          isSaving={isCreatingCountdown || isUpdatingCountdown}
+          isDeleting={isDeletingCountdown}
+          onSwitchToEvent={
+            countdownModal.editingCountdown
+              ? undefined
+              : () => {
+                  setModal({
+                    open: true,
+                    initialDate: countdownModal.initialDate ?? new Date(),
+                  });
+                  setCountdownModal({ open: false });
+                }
+          }
         />
       )}
     </div>

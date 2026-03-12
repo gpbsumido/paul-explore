@@ -1,7 +1,14 @@
 "use client";
 
 import { memo, useMemo } from "react";
-import { format, isToday, getHours, getMinutes } from "date-fns";
+import {
+  format,
+  isToday,
+  isSameDay,
+  parseISO,
+  getHours,
+  getMinutes,
+} from "date-fns";
 import {
   HOURS,
   slotDate,
@@ -10,8 +17,9 @@ import {
   singleDayTimedEventsForDay,
   layoutDayEvents,
 } from "@/lib/calendar";
-import type { CalendarEvent } from "@/types/calendar";
+import type { CalendarEvent, Countdown } from "@/types/calendar";
 import EventChip from "@/components/calendar/EventChip";
+import CountdownChip from "@/components/calendar/CountdownChip";
 
 /** Fixed px height per hour row — drives all the time-position math. */
 const ROW_HEIGHT = 44;
@@ -25,15 +33,19 @@ const GUTTER_WIDTH = "4.5rem";
 interface DayViewProps {
   currentDate: Date;
   events: CalendarEvent[];
+  countdowns?: Countdown[];
   onSlotClick: (date: Date) => void;
   onChipClick: (event: CalendarEvent) => void;
+  onCountdownClick?: (countdown: Countdown) => void;
 }
 
 function DayView({
   currentDate,
   events,
+  countdowns = [],
   onSlotClick,
   onChipClick,
+  onCountdownClick,
 }: DayViewProps) {
   const today = isToday(currentDate);
 
@@ -41,6 +53,13 @@ function DayView({
   const allDaySectionEvents = useMemo(
     () => spanningEventsForDay(events, currentDate),
     [events, currentDate],
+  );
+
+  // countdowns that land exactly on this day
+  const dayCountdowns = useMemo(
+    () =>
+      countdowns.filter((c) => isSameDay(parseISO(c.targetDate), currentDate)),
+    [countdowns, currentDate],
   );
   const dayTimedEvents = useMemo(
     () => singleDayTimedEventsForDay(events, currentDate),
@@ -90,8 +109,8 @@ function DayView({
         </div>
       </div>
 
-      {/* All-day banner — allDay events + multi-day timed events */}
-      {allDaySectionEvents.length > 0 && (
+      {/* All-day banner — allDay events, multi-day timed events, and countdowns */}
+      {(allDaySectionEvents.length > 0 || dayCountdowns.length > 0) && (
         <div className="flex items-start border-b border-border">
           <div
             className="shrink-0 px-2 py-1.5 text-right"
@@ -103,7 +122,18 @@ function DayView({
           </div>
           <div className="flex-1 p-1.5 space-y-0.5">
             {allDaySectionEvents.map((ev) => (
-              <EventChip key={ev.id} event={ev} onClick={() => onChipClick(ev)} />
+              <EventChip
+                key={ev.id}
+                event={ev}
+                onClick={() => onChipClick(ev)}
+              />
+            ))}
+            {dayCountdowns.map((c) => (
+              <CountdownChip
+                key={c.id}
+                countdown={c}
+                onClick={() => onCountdownClick?.(c)}
+              />
             ))}
           </div>
         </div>
@@ -115,14 +145,19 @@ function DayView({
        */}
       <div className="relative flex">
         {/* Time labels */}
-        <div className="shrink-0 border-r border-border" style={{ width: GUTTER_WIDTH }}>
+        <div
+          className="shrink-0 border-r border-border"
+          style={{ width: GUTTER_WIDTH }}
+        >
           {HOURS.map((hour) => (
             <div
               key={hour}
               className="flex items-start justify-end pr-2 pt-1.5 border-b border-border last:border-b-0"
               style={{ height: ROW_HEIGHT }}
             >
-              <span className="text-[10px] text-muted/30">{formatHour(hour)}</span>
+              <span className="text-[10px] text-muted/30">
+                {formatHour(hour)}
+              </span>
             </div>
           ))}
         </div>
@@ -145,22 +180,20 @@ function DayView({
           ))}
 
           {/* Event blocks — side by side when they overlap, same as Google Calendar */}
-          {timedLayout.map(
-            ({ ev, topPx, heightPx, column, totalColumns }) => (
-              <div
-                key={ev.id}
-                className="absolute z-10 min-w-[40px]"
-                style={{
-                  top: topPx,
-                  height: heightPx,
-                  left: `calc(${(column / totalColumns) * 100}% + 2px)`,
-                  right: `calc(${((totalColumns - column - 1) / totalColumns) * 100}% + 2px)`,
-                }}
-              >
-                <EventChip event={ev} onClick={() => onChipClick(ev)} block />
-              </div>
-            ),
-          )}
+          {timedLayout.map(({ ev, topPx, heightPx, column, totalColumns }) => (
+            <div
+              key={ev.id}
+              className="absolute z-10 min-w-[40px]"
+              style={{
+                top: topPx,
+                height: heightPx,
+                left: `calc(${(column / totalColumns) * 100}% + 2px)`,
+                right: `calc(${((totalColumns - column - 1) / totalColumns) * 100}% + 2px)`,
+              }}
+            >
+              <EventChip event={ev} onClick={() => onChipClick(ev)} block />
+            </div>
+          ))}
         </div>
 
         {/* Current time indicator — pulsing dot + line across the day column */}

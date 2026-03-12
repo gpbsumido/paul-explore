@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useId, type ReactNode } from "react";
+import { useState, useId, type ReactNode } from "react";
 import { format, formatISO, addHours, parseISO } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
@@ -27,6 +27,8 @@ interface EventModalProps {
   isSaving?: boolean;
   /** True while a delete mutation is in-flight. Drives button state. */
   isDeleting?: boolean;
+  /** Called when the user switches to the countdown modal in create mode. */
+  onSwitchToCountdown?: () => void;
 }
 
 /** Section header with a trailing rule — keeps the two columns visually organized. */
@@ -49,6 +51,7 @@ export default function EventModal({
   onClose,
   isSaving = false,
   isDeleting = false,
+  onSwitchToCountdown,
 }: EventModalProps) {
   const uid = useId();
   const isEdit = !!event;
@@ -95,15 +98,21 @@ export default function EventModal({
     staleTime: 0,
   });
 
-  // Seed local cards state from the query the first time data arrives.
-  // The check on cards.length keeps user edits (adds, removes, quantity
-  // changes) from being overwritten if the query refetches in the background
-  // while the modal is open.
-  useEffect(() => {
+  // Seed local cards state the first time query data arrives.
+  // "Adjusting state on prop changes" pattern (React docs) — track the last
+  // seen query snapshot in state rather than a ref so it's readable during
+  // render without violating the React Compiler's ref-during-render rule.
+  // Calling setState here causes React to immediately re-render with the new
+  // state without painting the empty frame first.
+  const [seenQueryData, setSeenQueryData] = useState<EventCard[] | undefined>(
+    undefined,
+  );
+  if (cardQuery.data !== seenQueryData) {
+    setSeenQueryData(cardQuery.data);
     if (cardQuery.data && cards.length === 0) {
       setCards(cardQuery.data.map((c) => ({ ...c })));
     }
-  }, [cardQuery.data, cards.length]);
+  }
 
   /** Stage a card locally. Actual write happens on save so we can batch it with the event. */
   function handleCardSelected(card: CardResume) {
@@ -234,9 +243,27 @@ export default function EventModal({
     >
       {/* header */}
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-base font-semibold text-foreground">
-          {isEdit ? "Edit event" : "New event"}
-        </h2>
+        {isEdit || !onSwitchToCountdown ? (
+          <h2 className="text-base font-semibold text-foreground">
+            {isEdit ? "Edit event" : "New event"}
+          </h2>
+        ) : (
+          <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
+            <button
+              type="button"
+              className="h-7 px-3 text-xs font-medium rounded-md bg-foreground text-background"
+            >
+              Event
+            </button>
+            <button
+              type="button"
+              onClick={onSwitchToCountdown}
+              className="h-7 px-3 text-xs font-medium rounded-md text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            >
+              Countdown
+            </button>
+          </div>
+        )}
         <IconButton aria-label="Close" size="sm" onClick={onClose}>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <path

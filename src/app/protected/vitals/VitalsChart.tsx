@@ -14,6 +14,13 @@ import type { MetricName, VersionMetrics } from "@/types/vitals";
 
 type DataPoint = { index: number; p75: number; version: string };
 
+// The VisAxis type="x" renders version tick labels *below* the VisXYContainer
+// boundary, adding roughly 20px on top of the 80px plot area. Both the skeleton
+// and the real chart use this height so they stay in sync and nothing shifts on
+// hydration.
+const CHART_AREA_HEIGHT = 80;
+const CHART_CONTAINER_HEIGHT = CHART_AREA_HEIGHT + 20;
+
 interface MetricChartProps {
   metric: MetricName;
   byVersion: VersionMetrics[];
@@ -59,8 +66,8 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
           Not enough data
         </p>
       ) : (
-        <div className="mt-2">
-          <VisXYContainer data={data} height={80}>
+        <div className="mt-2" style={{ height: CHART_CONTAINER_HEIGHT }}>
+          <VisXYContainer data={data} height={CHART_AREA_HEIGHT}>
             <VisLine x={x} y={y} color={color} curveType={CurveType.MonotoneX} />
             <VisAxis
               type="x"
@@ -85,7 +92,7 @@ const emptySubscribe = () => () => {};
 
 // Placeholder shown on the server (and briefly during hydration) while unovis
 // bootstraps. Matches MetricTrendChart's card structure exactly -- same grid,
-// same padding, same h-20 chart area -- so nothing shifts when it swaps out.
+// same padding, same CHART_CONTAINER_HEIGHT -- so nothing shifts when it swaps out.
 function ChartSkeleton() {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -99,7 +106,10 @@ function ChartSkeleton() {
             <p className="mt-0.5 text-[10px] leading-tight text-muted/60">
               {config.label}
             </p>
-            <div className="mt-2 h-20 rounded-lg bg-surface-raised animate-pulse" />
+            <div
+              className="mt-2 rounded-lg bg-surface-raised animate-pulse"
+              style={{ height: CHART_CONTAINER_HEIGHT }}
+            />
           </div>
         );
       })}
