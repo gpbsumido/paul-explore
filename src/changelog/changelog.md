@@ -1,8 +1,16 @@
 # Changelog
 
-## 2026-03-12 - version 0.4.2
+## 2026-03-12 - version 0.4.4
 
 - fixed CSP violation blocking Vercel Live feedback widget: added `https://vercel.live` to `script-src` and `connect-src`, and added `frame-src https://vercel.live` in `src/proxy.ts`
+
+## 2026-03-12 - version 0.4.3
+
+- fixed Google Calendar OAuth connect flow so it works from any environment: `SettingsContent` now passes `?origin=${window.location.origin}` when fetching the auth URL, the BFF forwards it to the backend, and the backend embeds it in the signed state so the callback redirects back to the right origin after OAuth completes; added `http://localhost:3000` to `ALLOWED_ORIGINS` in `routes/google.js` so local dev works too
+
+## 2026-03-12 - version 0.4.2
+
+- fixed off-by-one day bug in countdown `getDaysLabel`: `parseISO("YYYY-MM-DD")` was treating the target date as UTC midnight, causing countdowns to show one day early for users west of UTC; replaced with `new Date(\`${targetDate}T00:00:00\`)`to parse as local midnight in both`CountdownCard.tsx`and`CountdownModal.tsx`
 
 ## 2026-03-12 - version 0.4.1
 

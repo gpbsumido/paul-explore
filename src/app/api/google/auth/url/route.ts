@@ -8,8 +8,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
  *
  * Asks the backend to generate the Google OAuth authorization URL for the
  * current user. The frontend redirects to that URL to kick off the connect flow.
+ *
+ * Forwards the ?origin param so the backend can embed it in the signed state
+ * and redirect back to the right environment after OAuth completes.
  */
-export async function GET() {
+export async function GET(request: Request) {
   let token: string | undefined;
   try {
     ({ token } = await auth0.getAccessToken());
@@ -18,8 +21,14 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const origin = searchParams.get("origin");
+
   try {
-    const res = await fetch(`${API_URL}/api/google/auth/url`, {
+    const backendUrl = new URL(`${API_URL}/api/google/auth/url`);
+    if (origin) backendUrl.searchParams.set("origin", origin);
+
+    const res = await fetch(backendUrl.toString(), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {

@@ -17,7 +17,7 @@ function getDaysLabel(targetDate: string): {
   text: string;
   highlight: boolean;
 } {
-  const days = differenceInCalendarDays(parseISO(targetDate), new Date());
+  const days = differenceInCalendarDays(new Date(`${targetDate}T00:00:00`), new Date());
   if (days === 0) return { text: "Today!", highlight: true };
   if (days > 0)
     return { text: `${days} day${days === 1 ? "" : "s"} away`, highlight: false };
