@@ -11,6 +11,7 @@ interface CalendarHeaderProps {
   onNavigate: (direction: -1 | 1) => void;
   onViewChange: (view: CalendarView) => void;
   onToday: () => void;
+  onNewCountdown?: () => void;
 }
 
 export default function CalendarHeader({
@@ -19,6 +20,7 @@ export default function CalendarHeader({
   onNavigate,
   onViewChange,
   onToday,
+  onNewCountdown,
 }: CalendarHeaderProps) {
   return (
     <div className="mb-6 space-y-2">
@@ -70,12 +72,25 @@ export default function CalendarHeader({
             Events
           </Link>
           <div className="hidden sm:block h-4 w-px bg-border" />
-          <Link
-            href="/calendar/countdown"
-            className="hidden sm:inline text-xs text-muted hover:text-foreground transition-colors"
-          >
-            Countdowns
-          </Link>
+          <span className="hidden sm:inline-flex items-center gap-1">
+            <Link
+              href="/calendar/countdown"
+              className="text-xs text-muted hover:text-foreground transition-colors"
+            >
+              Countdowns
+            </Link>
+            {onNewCountdown && (
+              <button
+                onClick={onNewCountdown}
+                aria-label="New countdown"
+                className="flex items-center justify-center w-4 h-4 rounded-full text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                  <path d="M4 1v6M1 4h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
+          </span>
           <div className="hidden sm:block h-4 w-px bg-border" />
           <Link
             href="/thoughts/calendar"

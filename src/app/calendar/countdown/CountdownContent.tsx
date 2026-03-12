@@ -4,7 +4,11 @@ import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui";
 import { useCountdowns } from "@/hooks/useCountdowns";
-import type { Countdown, CountdownModalState } from "@/types/calendar";
+import type {
+  Countdown,
+  CountdownModalState,
+  CountdownPage,
+} from "@/types/calendar";
 import CountdownCard from "./CountdownCard";
 
 // CountdownModal is only needed when the user opens it, so lazy-load it to
@@ -16,11 +20,11 @@ const CountdownModal = dynamic(
 );
 
 interface CountdownContentProps {
-  initialCountdowns?: Countdown[];
+  initialPage?: CountdownPage;
 }
 
 export default function CountdownContent({
-  initialCountdowns,
+  initialPage,
 }: CountdownContentProps) {
   const {
     countdowns,
@@ -30,7 +34,10 @@ export default function CountdownContent({
     isUpdating,
     deleteCountdown,
     isDeleting,
-  } = useCountdowns({ initialCountdowns });
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useCountdowns({ initialPage });
 
   const [modal, setModal] = useState<CountdownModalState>({ open: false });
 
@@ -88,6 +95,19 @@ export default function CountdownContent({
             </li>
           ))}
         </ul>
+      )}
+
+      {hasNextPage && (
+        <div className="mt-6 flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? "Loading..." : "Load more"}
+          </Button>
+        </div>
       )}
 
       {modal.open && (

@@ -18,6 +18,7 @@ import {
 import { DAY_LABELS, eventsForDay } from "@/lib/calendar";
 import type { CalendarEvent, Countdown } from "@/types/calendar";
 import EventChip from "@/components/calendar/EventChip";
+import CountdownChip from "@/components/calendar/CountdownChip";
 
 /** Max chips shown per cell before the "+N more" overflow line. */
 const VISIBLE_CHIPS = 3;
@@ -153,17 +154,11 @@ function CalendarGrid({
                     />
                   ))}
                   {countdownSlots.map((c) => (
-                    <div
+                    <CountdownChip
                       key={c.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onCountdownClick?.(c);
-                      }}
-                      className="rounded px-1.5 py-0.5 text-[11px] leading-tight truncate cursor-pointer hover:opacity-75 transition-opacity border-dashed bg-surface"
-                      style={{ borderLeftColor: c.color, borderLeftWidth: 3 }}
-                    >
-                      {c.title}
-                    </div>
+                      countdown={c}
+                      onClick={() => onCountdownClick?.(c)}
+                    />
                   ))}
                   {overflowCount > 0 && (
                     <div className="text-[10px] text-muted px-1 leading-tight">

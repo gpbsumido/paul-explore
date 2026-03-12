@@ -3,9 +3,10 @@ import { auth0 } from "@/lib/auth0";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
-// GET /api/calendar/countdowns
-// returns all countdowns for the current user, sorted by target date
-export async function GET() {
+// GET /api/calendar/countdowns?cursor=<cursor>
+// returns one page of countdowns sorted by target date ascending.
+// forwards the cursor query param to the backend unchanged.
+export async function GET(request: NextRequest) {
   let token: string | undefined;
   try {
     ({ token } = await auth0.getAccessToken());
@@ -14,8 +15,14 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const cursor = searchParams.get("cursor");
+  const backendUrl = cursor
+    ? `${API_URL}/api/calendar/countdowns?cursor=${encodeURIComponent(cursor)}`
+    : `${API_URL}/api/calendar/countdowns`;
+
   try {
-    const res = await fetch(`${API_URL}/api/calendar/countdowns`, {
+    const res = await fetch(backendUrl, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {

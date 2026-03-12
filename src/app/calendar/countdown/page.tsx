@@ -4,7 +4,7 @@ import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { auth0 } from "@/lib/auth0";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import type { Countdown } from "@/types/calendar";
+import type { CountdownPage } from "@/types/calendar";
 import CountdownContent from "./CountdownContent";
 
 const TITLE = "Countdowns";
@@ -39,7 +39,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
  * will client-fetch on mount via useCountdowns in that case.
  */
 async function CountdownsWithData() {
-  let initialCountdowns: Countdown[] | undefined;
+  let initialPage: CountdownPage | undefined;
 
   try {
     const { token } = await auth0.getAccessToken();
@@ -49,15 +49,14 @@ async function CountdownsWithData() {
         cache: "no-store",
       });
       if (res.ok) {
-        const data = await res.json();
-        initialCountdowns = data.countdowns as Countdown[];
+        initialPage = (await res.json()) as CountdownPage;
       }
     }
   } catch {
     // auth error or backend down, CountdownContent handles it
   }
 
-  return <CountdownContent initialCountdowns={initialCountdowns} />;
+  return <CountdownContent initialPage={initialPage} />;
 }
 
 export default function CountdownPage() {

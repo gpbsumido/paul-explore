@@ -13,9 +13,16 @@ import {
   parseISO,
   differenceInCalendarDays,
 } from "date-fns";
-import { HOURS, slotDate, formatHour, singleDayTimedEventsForDay, layoutDayEvents } from "@/lib/calendar";
+import {
+  HOURS,
+  slotDate,
+  formatHour,
+  singleDayTimedEventsForDay,
+  layoutDayEvents,
+} from "@/lib/calendar";
 import type { CalendarEvent, Countdown } from "@/types/calendar";
 import EventChip from "@/components/calendar/EventChip";
+import CountdownChip from "@/components/calendar/CountdownChip";
 
 /** Fixed px height for each hour row — used for current-time indicator math. */
 const ROW_HEIGHT = 48;
@@ -69,7 +76,6 @@ function getEventColSpan(
   );
   return { startIdx, endIdx };
 }
-
 
 function WeekView({
   currentDate,
@@ -205,13 +211,10 @@ function WeekView({
                   style={{ gridColumn: `${dayIdx + 1} / span 1` }}
                   className="px-0.5"
                 >
-                  <div
+                  <CountdownChip
+                    countdown={c}
                     onClick={() => onCountdownClick?.(c)}
-                    className="rounded px-1.5 py-0.5 text-[11px] leading-tight truncate cursor-pointer hover:opacity-75 transition-opacity border-dashed bg-surface"
-                    style={{ borderLeftColor: c.color, borderLeftWidth: 3 }}
-                  >
-                    {c.title}
-                  </div>
+                  />
                 </div>
               ));
             })}
@@ -233,7 +236,9 @@ function WeekView({
               className="flex items-start justify-end pr-1 pt-1 border-b border-border last:border-b-0"
               style={{ height: ROW_HEIGHT }}
             >
-              <span className="text-[10px] text-muted/30">{formatHour(hour)}</span>
+              <span className="text-[10px] text-muted/30">
+                {formatHour(hour)}
+              </span>
             </div>
           ))}
         </div>
@@ -276,7 +281,11 @@ function WeekView({
                         right: `calc(${((totalColumns - column - 1) / totalColumns) * 100}% + 2px)`,
                       }}
                     >
-                      <EventChip event={ev} onClick={() => onChipClick(ev)} block />
+                      <EventChip
+                        event={ev}
+                        onClick={() => onChipClick(ev)}
+                        block
+                      />
                     </div>
                   ),
                 )}

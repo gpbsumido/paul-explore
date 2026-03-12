@@ -154,6 +154,10 @@ export default function CalendarContent({
     });
   }, []);
 
+  const openNewCountdownModal = useCallback((initialDate?: Date) => {
+    setCountdownModal({ open: true, initialDate });
+  }, []);
+
   const openCountdownModal = useCallback((countdown: Countdown) => {
     setCountdownModal({ open: true, editingCountdown: countdown });
   }, []);
@@ -195,6 +199,7 @@ export default function CalendarContent({
         onNavigate={handleNavigate}
         onViewChange={setView}
         onToday={handleToday}
+        onNewCountdown={() => openNewCountdownModal()}
       />
 
       {calendarEvents.error && (
@@ -257,17 +262,39 @@ export default function CalendarContent({
           onClose={() => setModal({ open: false })}
           isSaving={calendarEvents.isCreating || calendarEvents.isUpdating}
           isDeleting={calendarEvents.isDeleting}
+          onSwitchToCountdown={
+            modal.editingEvent
+              ? undefined
+              : () => {
+                  openNewCountdownModal(modal.initialDate);
+                  setModal({ open: false });
+                }
+          }
         />
       )}
 
       {countdownModal.open && (
         <CountdownModal
           countdown={countdownModal.editingCountdown}
+          initialDate={
+            countdownModal.open ? countdownModal.initialDate : undefined
+          }
           onSave={handleCountdownSave}
           onDelete={handleCountdownDelete}
           onClose={() => setCountdownModal({ open: false })}
           isSaving={isCreatingCountdown || isUpdatingCountdown}
           isDeleting={isDeletingCountdown}
+          onSwitchToEvent={
+            countdownModal.editingCountdown
+              ? undefined
+              : () => {
+                  setModal({
+                    open: true,
+                    initialDate: countdownModal.initialDate ?? new Date(),
+                  });
+                  setCountdownModal({ open: false });
+                }
+          }
         />
       )}
     </div>

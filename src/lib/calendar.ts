@@ -18,6 +18,7 @@ import type {
   EventSearchFilters,
   EventLayout,
   Countdown,
+  CountdownPage,
 } from "@/types/calendar";
 
 export const DAY_LABELS = [
@@ -124,9 +125,14 @@ export function spanningEventsForDay(
     if (s > 0 || en < 0) return false;
     if (e.allDay) return true;
     // multi-day timed events go up here, not in the scrollable time grid
-    return differenceInCalendarDays(parseISO(e.endDate), parseISO(e.startDate)) >= 1;
+    return (
+      differenceInCalendarDays(parseISO(e.endDate), parseISO(e.startDate)) >= 1
+    );
   });
-  return [...covering.filter((e) => e.allDay), ...covering.filter((e) => !e.allDay)];
+  return [
+    ...covering.filter((e) => e.allDay),
+    ...covering.filter((e) => !e.allDay),
+  ];
 }
 
 /**
@@ -370,14 +376,17 @@ export async function removeCardFromEvent(
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches all countdowns for the current user, sorted by target date ascending.
+ * Fetches one page of countdowns for the current user, sorted by target date
+ * ascending. Pass the nextCursor from the previous page to get the next one.
  * Hits the Next.js BFF route, which attaches the auth token server-side.
  */
-export async function fetchCountdowns(): Promise<Countdown[]> {
-  const res = await fetch("/api/calendar/countdowns");
+export async function fetchCountdowns(cursor?: string): Promise<CountdownPage> {
+  const url = cursor
+    ? `/api/calendar/countdowns?cursor=${encodeURIComponent(cursor)}`
+    : `/api/calendar/countdowns`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch countdowns");
-  const data = await res.json();
-  return data.countdowns as Countdown[];
+  return res.json() as Promise<CountdownPage>;
 }
 
 /**

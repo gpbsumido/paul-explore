@@ -1,24 +1,33 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
+import { useMemo } from "react";
 import {
   fetchCountdowns,
   createCountdown as createCountdownApi,
   updateCountdown as updateCountdownApi,
   deleteCountdown as deleteCountdownApi,
 } from "@/lib/calendar";
-import type { Countdown } from "@/types/calendar";
+import type { Countdown, CountdownPage } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
 
-// countdowns are fetched all at once, not by date range, so there's only
-// ever one cache entry to snapshot and restore on error. Cancelling and
-// invalidating by this key is all we need.
+// Single cache key — countdowns aren't scoped by date range, so there's
+// only ever one infinite query to snapshot, update, and invalidate.
 const COUNTDOWNS_KEY = queryKeys.calendar.countdowns();
 
 export interface UseCountdownsReturn {
+  /** All countdowns across every page that has been loaded so far. */
   countdowns: Countdown[];
   loading: boolean;
   error: string | null;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
   createCountdown: (
     data: Omit<Countdown, "id" | "createdAt">,
   ) => Promise<Countdown>;
@@ -33,39 +42,33 @@ export interface UseCountdownsReturn {
 }
 
 interface Options {
-  /** SSR seed from the server component. Skips the initial client-side fetch
-   *  when provided, so the list renders without a loading state on first paint.
-   *  Works the same way as initialEvents in useCalendarEvents. */
-  initialCountdowns?: Countdown[];
+  /** SSR seed from the server component. Seeds the first page so the list
+   *  renders without a loading state on first paint. Same pattern as
+   *  initialEvents in useCalendarEvents. */
+  initialPage?: CountdownPage;
 }
 
 /**
- * Manages the current user's countdowns.
+ * Manages the current user's countdowns with cursor-based pagination.
  *
- * staleTime is 0 so the list is verified on every mount. Countdowns don't
- * change as often as calendar events, but the list is small enough that
- * a quick re-fetch is painless and correctness matters more than skipping
- * the occasional network call.
+ * Cursor format is "YYYY-MM-DD__<uuid>" — a composite of the last seen
+ * target_date and id. The backend uses this for keyset pagination so inserts
+ * or deletes between pages don't shift items the way OFFSET would.
  *
- * initialCountdowns feeds initialData so SSR-seeded countdowns show up
- * immediately with no loading state on first paint. initialDataUpdatedAt is
- * set to 29 seconds ago so TanStack Query queues a background refetch shortly
- * after mount without blocking the UI, same pattern as useCalendarEvents.
+ * staleTime is 0 so each mount re-validates immediately. initialPage feeds the
+ * first page via initialData so SSR-seeded countdowns show with no loading
+ * state on first paint; staleTime: 0 ensures a background refetch fires right
+ * after mount without blocking the UI.
  *
- * All three mutations use the optimistic update pattern:
- *   onMutate  -- cancel any in-flight fetch, snapshot the cache, apply the
- *                change immediately so the UI responds without waiting for
- *                the server
- *   onError   -- restore the snapshot so nothing is left broken if the
- *                write fails
- *   onSettled -- invalidate the countdowns cache so the server's version
- *                wins after everything settles
+ * All three mutations use the optimistic update pattern across the full paged
+ * cache. The snapshot/restore covers every loaded page so rollbacks are
+ * complete even if the user has scrolled through multiple pages before a
+ * write fails.
  */
 export function useCountdowns({
-  initialCountdowns,
+  initialPage,
 }: Options = {}): UseCountdownsReturn {
   const queryClient = useQueryClient();
-
   // ---- Read ----------------------------------------------------------------
 
   const {
@@ -74,15 +77,31 @@ export function useCountdowns({
     isFetching,
     isError,
     error: queryError,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: COUNTDOWNS_KEY,
-    queryFn: fetchCountdowns,
+    queryFn: ({ pageParam }) =>
+      fetchCountdowns(pageParam as string | undefined),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage: CountdownPage) =>
+      lastPage.nextCursor ?? undefined,
     staleTime: 0,
-    initialData: initialCountdowns,
-    initialDataUpdatedAt: initialCountdowns ? Date.now() - 29_000 : undefined,
+    initialData: initialPage
+      ? ({
+          pages: [initialPage],
+          pageParams: [undefined],
+        } as InfiniteData<CountdownPage, string | undefined>)
+      : undefined,
   });
 
-  const countdowns = data ?? [];
+  // flatten all loaded pages into one stable array for callers that just want
+  // the full list (calendar views, countdown list sorting)
+  const countdowns = useMemo(
+    () => data?.pages.flatMap((p) => p.countdowns) ?? [],
+    [data],
+  );
 
   const loading = isLoading || isFetching;
 
@@ -95,48 +114,40 @@ export function useCountdowns({
   // ---- Mutations -----------------------------------------------------------
 
   /**
-   * Optimistically push a temp countdown with a client-assigned id. The
-   * real id from the server replaces it when the invalidation re-fetches.
+   * Optimistically push a temp countdown into the first page. Display sort
+   * handles the visual position; the real id arrives after invalidation
+   * refetches.
    */
   const createMutation = useMutation({
     mutationFn: (data: Omit<Countdown, "id" | "createdAt">) =>
       createCountdownApi(data),
-    onMutate: async (data) => {
+    onMutate: async (newData) => {
       await queryClient.cancelQueries({ queryKey: COUNTDOWNS_KEY });
-      const snapshot = queryClient.getQueryData<Countdown[]>(COUNTDOWNS_KEY);
+      const snapshot =
+        queryClient.getQueryData<InfiniteData<CountdownPage>>(COUNTDOWNS_KEY);
       const temp: Countdown = {
-        ...data,
+        ...newData,
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
       };
-      queryClient.setQueryData<Countdown[]>(COUNTDOWNS_KEY, (prev) => [
-        ...(prev ?? []),
-        temp,
-      ]);
-      return { snapshot };
-    },
-    onError: (_err, _vars, context) => {
-      queryClient.setQueryData(COUNTDOWNS_KEY, context?.snapshot);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: COUNTDOWNS_KEY });
-    },
-  });
-
-  /** Optimistically update the matching countdown in place. */
-  const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      fields,
-    }: {
-      id: string;
-      fields: Partial<Omit<Countdown, "id" | "createdAt">>;
-    }) => updateCountdownApi(id, fields),
-    onMutate: async ({ id, fields }) => {
-      await queryClient.cancelQueries({ queryKey: COUNTDOWNS_KEY });
-      const snapshot = queryClient.getQueryData<Countdown[]>(COUNTDOWNS_KEY);
-      queryClient.setQueryData<Countdown[]>(COUNTDOWNS_KEY, (prev) =>
-        (prev ?? []).map((c) => (c.id === id ? { ...c, ...fields } : c)),
+      queryClient.setQueryData<InfiniteData<CountdownPage>>(
+        COUNTDOWNS_KEY,
+        (prev) => {
+          if (!prev) {
+            return {
+              pages: [{ countdowns: [temp], nextCursor: null }],
+              pageParams: [undefined],
+            };
+          }
+          return {
+            ...prev,
+            pages: prev.pages.map((page, i) =>
+              i === 0
+                ? { ...page, countdowns: [...page.countdowns, temp] }
+                : page,
+            ),
+          };
+        },
       );
       return { snapshot };
     },
@@ -148,14 +159,63 @@ export function useCountdowns({
     },
   });
 
-  /** Optimistically filter out the deleted countdown, restore on error. */
+  /** Optimistically update the matching countdown across all loaded pages. */
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      fields,
+    }: {
+      id: string;
+      fields: Partial<Omit<Countdown, "id" | "createdAt">>;
+    }) => updateCountdownApi(id, fields),
+    onMutate: async ({ id, fields }) => {
+      await queryClient.cancelQueries({ queryKey: COUNTDOWNS_KEY });
+      const snapshot =
+        queryClient.getQueryData<InfiniteData<CountdownPage>>(COUNTDOWNS_KEY);
+      queryClient.setQueryData<InfiniteData<CountdownPage>>(
+        COUNTDOWNS_KEY,
+        (prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            pages: prev.pages.map((page) => ({
+              ...page,
+              countdowns: page.countdowns.map((c) =>
+                c.id === id ? { ...c, ...fields } : c,
+              ),
+            })),
+          };
+        },
+      );
+      return { snapshot };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(COUNTDOWNS_KEY, context?.snapshot);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: COUNTDOWNS_KEY });
+    },
+  });
+
+  /** Optimistically remove the countdown from whichever page contains it. */
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteCountdownApi(id),
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: COUNTDOWNS_KEY });
-      const snapshot = queryClient.getQueryData<Countdown[]>(COUNTDOWNS_KEY);
-      queryClient.setQueryData<Countdown[]>(COUNTDOWNS_KEY, (prev) =>
-        (prev ?? []).filter((c) => c.id !== id),
+      const snapshot =
+        queryClient.getQueryData<InfiniteData<CountdownPage>>(COUNTDOWNS_KEY);
+      queryClient.setQueryData<InfiniteData<CountdownPage>>(
+        COUNTDOWNS_KEY,
+        (prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            pages: prev.pages.map((page) => ({
+              ...page,
+              countdowns: page.countdowns.filter((c) => c.id !== id),
+            })),
+          };
+        },
       );
       return { snapshot };
     },
@@ -171,10 +231,12 @@ export function useCountdowns({
     countdowns,
     loading,
     error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     createCountdown: (data) => createMutation.mutateAsync(data),
     isCreating: createMutation.isPending,
-    updateCountdown: (id, fields) =>
-      updateMutation.mutateAsync({ id, fields }),
+    updateCountdown: (id, fields) => updateMutation.mutateAsync({ id, fields }),
     isUpdating: updateMutation.isPending,
     deleteCountdown: (id) => deleteMutation.mutateAsync(id),
     isDeleting: deleteMutation.isPending,

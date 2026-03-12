@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { differenceInCalendarDays, parseISO } from "date-fns";
+import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
 import type { Countdown } from "@/types/calendar";
 import { EVENT_COLORS } from "@/lib/calendar";
@@ -18,6 +18,8 @@ const FIELD_LABELS = {
 interface CountdownModalProps {
   /** Omit to open in create mode. Pass a countdown to open in edit mode. */
   countdown?: Countdown;
+  /** Pre-fills targetDate when switching from the event modal. */
+  initialDate?: Date;
   onSave: (data: Omit<Countdown, "id" | "createdAt">) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onClose: () => void;
@@ -25,6 +27,8 @@ interface CountdownModalProps {
   isSaving: boolean;
   /** True while a delete is in-flight. */
   isDeleting: boolean;
+  /** Called when the user switches to the event modal in create mode. */
+  onSwitchToEvent?: () => void;
 }
 
 /**
@@ -46,19 +50,23 @@ function getDaysLabel(targetDate: string): string | null {
  */
 export default function CountdownModal({
   countdown,
+  initialDate,
   onSave,
   onDelete,
   onClose,
   isSaving,
   isDeleting,
+  onSwitchToEvent,
 }: CountdownModalProps) {
   const isEdit = !!countdown;
 
   const [title, setTitle] = useState(countdown?.title ?? "");
-  const [description, setDescription] = useState(
-    countdown?.description ?? "",
+  const [description, setDescription] = useState(countdown?.description ?? "");
+  const [targetDate, setTargetDate] = useState(
+    countdown?.targetDate ??
+      (initialDate ? format(initialDate, "yyyy-MM-dd") : ""),
   );
-  const [targetDate, setTargetDate] = useState(countdown?.targetDate ?? "");
+
   const [color, setColor] = useState(countdown?.color ?? EVENT_COLORS[0]);
   const [titleError, setTitleError] = useState(false);
   const [dateError, setDateError] = useState(false);
@@ -111,9 +119,27 @@ export default function CountdownModal({
     >
       {/* header */}
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-base font-semibold text-foreground">
-          {isEdit ? "Edit countdown" : "New countdown"}
-        </h2>
+        {isEdit || !onSwitchToEvent ? (
+          <h2 className="text-base font-semibold text-foreground">
+            {isEdit ? "Edit countdown" : "New countdown"}
+          </h2>
+        ) : (
+          <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
+            <button
+              type="button"
+              onClick={onSwitchToEvent}
+              className="h-7 px-3 text-xs font-medium rounded-md text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            >
+              Event
+            </button>
+            <button
+              type="button"
+              className="h-7 px-3 text-xs font-medium rounded-md bg-foreground text-background"
+            >
+              Countdown
+            </button>
+          </div>
+        )}
         <IconButton aria-label="Close" size="sm" onClick={onClose}>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <path
@@ -163,11 +189,7 @@ export default function CountdownModal({
             size="sm"
           />
           {/* live preview so the user knows what they're picking right away */}
-          {daysLabel && (
-            <p className="mt-1 text-xs text-muted">
-              {daysLabel}
-            </p>
-          )}
+          {daysLabel && <p className="mt-1 text-xs text-muted">{daysLabel}</p>}
         </div>
 
         {/* color swatches, same pattern as EventModal */}

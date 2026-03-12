@@ -58,7 +58,7 @@ There's a write-up page at `/calendar/about` (same iMessage format as the other 
 
 There's also a dedicated events section outside the grid. `/calendar/events` is a searchable, filterable list of all your events — title search runs client-side against whatever the backend returned, card name and date range filters hit the backend and re-fetch. `/calendar/events/[id]` is the detail view: full event info plus the attached card grid, SSR'd with the same `CalendarWithData` pattern -- an async server component (`EventDetailWithData`) fetches the event and its cards in parallel directly from the backend at request time, wrapped in a Suspense boundary with `EventDetailSkeleton` as the fallback and a `loading.tsx` for the route segment. Both pages share a layout with a sticky nav so neither one has to re-implement it.
 
-`/calendar/countdown` is a separate page for date countdowns. A countdown stores a title, optional description, target date (Postgres `DATE`, not `TIMESTAMP` -- no time component, no timezone math), and a color. Countdowns are managed with a `useCountdowns` hook that uses a single unscoped query key `["calendar", "countdowns"]` rather than a date-windowed key like events: all countdowns fit in one fetch and need to surface across every visible month, so there is no date parameter to scope by. They are filtered client-side per day with `isSameDay(parseISO(c.targetDate), day)`. In the month grid, countdown chips use a dashed left border and share the `VISIBLE_CHIPS = 3` budget with events (events claim slots first). In the day and week all-day row, countdown chips appear alongside spanning event bars, auto-stacking into new CSS grid rows on collision. In year view, countdown dots share the 3-dot-per-day limit in each `MiniMonth` cell. All four calendar views accept `countdowns?: Countdown[]` and `onCountdownClick?` as optional props so existing behavior is unchanged when countdowns are absent. The `CountdownModal` shows a live "X days away / X days ago / Today!" preview as you type the target date, derived from `differenceInCalendarDays(parseISO(targetDate), new Date())`.
+`/calendar/countdown` is a separate page for date countdowns. A countdown stores a title, optional description, target date (Postgres `DATE`, not `TIMESTAMP` -- no time component, no timezone math), and a color. Countdowns are managed with a `useCountdowns` hook using `useInfiniteQuery` with cursor-based pagination (`COUNTDOWN_PAGE_SIZE = 50`; composite `"YYYY-MM-DD__<uuid>"` cursor keeps page boundaries stable across inserts and deletes). The hook uses a single unscoped query key `["calendar", "countdowns"]` rather than a date-windowed key like events: countdowns need to surface across every visible month, so there is no date parameter to scope by. They are filtered client-side per day with `isSameDay(parseISO(c.targetDate), day)`. Countdown chips across all four views use the same visual style as `EventChip` — `border-l-[3px]` stripe in the countdown color, `${color}18` translucent fill, identical text/padding — with a small red dot on the far right as the only differentiator. In the month grid they share the `VISIBLE_CHIPS = 3` budget with events (events claim slots first). In the day and week all-day row, countdown chips appear alongside spanning event bars, auto-stacking into CSS grid rows on collision. In year view, countdown dots share the 3-dot-per-day limit in each `MiniMonth` cell. The `CalendarHeader` has a `+` button next to the "Countdowns" link (desktop only) that opens `CountdownModal` in create mode directly from any calendar view. In create mode, both `EventModal` and `CountdownModal` show an `[Event] [Countdown]` segmented toggle so you can switch between the two without closing. The `CountdownModal` shows a live "X days away / X days ago / Today!" preview as you type, derived from `differenceInCalendarDays(parseISO(targetDate), new Date())`.
 
 The frontend uses a BFF pattern: the browser calls Next.js API routes (`/api/calendar/events`) which attach an Auth0 access token server-side before forwarding to the Express backend — the token never reaches the browser. A `useCalendarEvents` hook owns all reads and writes: `useQuery` fetches the correct date window with `staleTime: 0` (calendar events can change on any device at any time, so every mount re-validates) and seeds from `initialEvents` via `initialDataUpdatedAt: Date.now() - 29_000` — telling TanStack the data is almost stale so a background re-fetch is queued shortly after mount without blocking the UI. Create, update, and delete all use `useMutation` with the full optimistic update lifecycle: `onMutate` cancels in-flight fetches, snapshots the cache, and applies the change immediately so the grid responds before the server round-trip completes; `onError` restores the snapshot if the write fails; `onSettled` broadcasts a prefix-scoped invalidation (`["calendar", "events"]`) that syncs every cached date range — not just the visible month — so multi-day events near month boundaries don't leave stale data in adjacent views.
 
@@ -90,19 +90,19 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 
 ## Tech stack
 
-| Layer       | Choice                              |
-| ----------- | ----------------------------------- |
-| Framework   | Next.js 16 (App Router)             |
-| Language    | TypeScript                          |
-| Styling     | Tailwind CSS v4 + custom CSS tokens |
-| Auth        | Auth0 (`@auth0/nextjs-auth0`)       |
-| Runtime     | React 19                            |
-| 3D Graphics | Three.js (`three`, `@types/three`)  |
-| Data fetching | TanStack Query v5               |
-| Charts      | unovis (`@unovis/react`)            |
-| Monitoring  | Vercel Speed Insights               |
-| Linting     | ESLint (Next.js config)             |
-| Bundle      | `@next/bundle-analyzer` (`npm run analyze`) |
+| Layer         | Choice                                      |
+| ------------- | ------------------------------------------- |
+| Framework     | Next.js 16 (App Router)                     |
+| Language      | TypeScript                                  |
+| Styling       | Tailwind CSS v4 + custom CSS tokens         |
+| Auth          | Auth0 (`@auth0/nextjs-auth0`)               |
+| Runtime       | React 19                                    |
+| 3D Graphics   | Three.js (`three`, `@types/three`)          |
+| Data fetching | TanStack Query v5                           |
+| Charts        | unovis (`@unovis/react`)                    |
+| Monitoring    | Vercel Speed Insights                       |
+| Linting       | ESLint (Next.js config)                     |
+| Bundle        | `@next/bundle-analyzer` (`npm run analyze`) |
 
 ---
 

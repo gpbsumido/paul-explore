@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.35
+
+- `EventModal` and `CountdownModal` both show an `[Event] [Countdown]` segmented toggle in the header when opened in create mode; clicking the inactive tab swaps to the other modal, carrying the date across so it pre-fills the new form; in edit mode the toggle is hidden and the header shows the plain title as before; the toggle is implemented via `onSwitchToCountdown` / `onSwitchToEvent` optional props so neither modal depends on the other
+
+## 2026-03-11 - version 0.3.34
+
+- added a `+` button next to the "Countdowns" link in `CalendarHeader` (desktop only, matching the `hidden sm:inline` pattern); clicking it opens `CountdownModal` in create mode directly from any calendar view; header accepts a new optional `onNewCountdown` prop; `CalendarContent` passes `openNewCountdownModal` which carries the `initialDate` through so switching to the event modal also pre-fills the date
+
+## 2026-03-11 - version 0.3.33
+
+- replaced all inline countdown chip divs in `CalendarGrid`, `DayView`, and `WeekView` with a new `CountdownChip` component; styling now matches `EventChip` exactly — same `border-l-[3px]` stripe, same `${color}18` translucent fill, same `text-xs font-medium px-2 py-0.5` sizing — with a small red dot (`h-1.5 w-1.5 rounded-full bg-red-500`) on the far right as the only visual differentiator; chip uses `flex` instead of `truncate` on the outer element so the dot always shows
+
+## 2026-03-11 - version 0.3.32
+
+- migrated `useCountdowns` from `useQuery` to `useInfiniteQuery`; cursor-based pagination using a composite `"YYYY-MM-DD__<uuid>"` cursor so page boundaries are stable across inserts and deletes; `getNextPageParam` returns `lastPage.nextCursor ?? undefined`; `countdowns` is now `data?.pages.flatMap(p => p.countdowns) ?? []` via `useMemo`; adds `fetchNextPage`, `hasNextPage`, `isFetchingNextPage` to the return shape
+- `CountdownContent` now destructures `fetchNextPage`, `hasNextPage`, `isFetchingNextPage` and renders a "Load more" button below the list when `hasNextPage` is true
+- `page.tsx` SSR seed updated: fetches and passes a full `CountdownPage` object as `initialPage` (was `initialCountdowns: Countdown[]`); hook seeds `initialData: { pages: [initialPage], pageParams: [undefined] }` with `staleTime: 0` — immediately stale so TanStack queues a background refetch on mount without blocking the UI; removed `initialDataUpdatedAt` (was `Date.now() - 29_000`) since it's redundant with `staleTime: 0` and calling `Date.now()` in render violates React's purity rules
+
 ## 2026-03-11 - version 0.3.31
 
 - wired countdowns into all four calendar views so they show up inline on their target date
@@ -74,6 +92,7 @@
 - loaded with `next/dynamic` and `ssr: false` so Three.js never runs server-side
 - cleanup disposes all three geometries, three materials, and the renderer on unmount
 - installed `three` and `@types/three`
+
 ## 2026-03-01 - version 0.3.20
 
 - converted `CardSearch` from a manual `useState(results) + useState(loadedQuery) + useRef(AbortController) + useEffect` fetch pattern to `useQuery`; the query key is `["tcg", "cards", "search", debouncedQuery]` so TanStack cancels the in-flight fetch and issues a fresh one automatically on every keystroke — no `abortRef`, no `AbortError` catch, no manual `setResults`

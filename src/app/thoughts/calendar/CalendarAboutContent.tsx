@@ -704,11 +704,14 @@ async function CalendarWithData() {
         <Received>where do they show up in the views</Received>
 
         <Sent pos="first">
-          month grid: countdown chips use a dashed left border in the countdown
-          color to stay visually distinct from event chips. events claim the{" "}
-          <code>VISIBLE_CHIPS = 3</code> budget first, countdowns fill whatever
-          slots are left. if everything overflows, there&apos;s a single
-          &quot;+N more&quot; line covering both
+          month grid: countdown chips share the <code>VISIBLE_CHIPS = 3</code>{" "}
+          budget with events (events claim slots first). they use the same{" "}
+          <code>CountdownChip</code> component as day and week -- same{" "}
+          <code>border-l-[3px]</code> stripe and <code>{`${"{color}"}18`}</code>{" "}
+          translucent fill as <code>EventChip</code>, with a small red dot on
+          the far right as the only visual differentiator. if everything
+          overflows, there&apos;s a single &quot;+N more&quot; line covering
+          both
         </Sent>
         <Sent pos="middle">
           day and week views: countdowns go in the all-day section. in day view
@@ -748,17 +751,31 @@ async function CalendarWithData() {
         <Sent pos="first">
           <code>/calendar/countdown</code> is the same SSR seed pattern as the
           main calendar. a <code>CountdownsWithData</code> async server
-          component fetches directly from the backend at request time and passes{" "}
-          <code>initialCountdowns</code> into the client component. wrapped in
-          Suspense with an inline pulse skeleton so the shell streams
-          immediately
+          component fetches the first page directly from the backend at request
+          time and passes an <code>initialPage: CountdownPage</code> into the
+          client component. wrapped in Suspense with an inline pulse skeleton so
+          the shell streams immediately
+        </Sent>
+        <Sent pos="middle">
+          <code>useCountdowns</code> uses <code>useInfiniteQuery</code> with
+          cursor-based pagination -- composite{" "}
+          <code>&quot;YYYY-MM-DD__&#123;uuid&#125;&quot;</code> cursor so page
+          boundaries are stable across inserts and deletes.{" "}
+          <code>staleTime: 0</code> makes the SSR-seeded data immediately stale
+          so TanStack queues a background refetch on mount without blocking the
+          UI. when there are more pages, a &quot;Load more&quot; button appears
+          below the list
         </Sent>
         <Sent pos="last">
           the list sorts by target date client-side via a <code>useMemo</code>{" "}
           rather than relying on insertion order, because optimistic creates
           append to the end of the cache array. sorting post-create keeps the
-          order correct without waiting for the next re-fetch to come back with
-          the right sequence from the backend
+          order correct without waiting for the next re-fetch. you can also
+          create a countdown directly from any calendar view via the{" "}
+          <code>+</code> button next to &quot;Countdowns&quot; in the header --
+          and both <code>EventModal</code> and <code>CountdownModal</code> have
+          an <code>[Event] [Countdown]</code> toggle in create mode so you can
+          switch without closing
         </Sent>
 
         <Received>nice, that&apos;s a clean addition</Received>
