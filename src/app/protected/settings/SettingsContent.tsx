@@ -102,7 +102,8 @@ export default function SettingsContent() {
   async function handleConnect() {
     setConnecting(true);
     try {
-      const res = await fetch("/api/google/auth/url");
+      const origin = encodeURIComponent(window.location.origin);
+      const res = await fetch(`/api/google/auth/url?origin=${origin}`);
       if (!res.ok) throw new Error("Failed to get URL");
       const { url } = await res.json();
       window.location.href = url;
