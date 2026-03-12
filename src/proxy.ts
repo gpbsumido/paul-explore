@@ -6,11 +6,12 @@ import { auth0 } from "@/lib/auth0";
  *
  * Three responsibilities:
  *
- * 1. Auth0 OIDC routes (/api/auth/*) — delegated entirely to auth0.middleware()
+ * 1. Auth0 OIDC routes (/auth/*) — delegated entirely to auth0.middleware()
  *    which handles login, callback, logout, and silent token refresh.
+ *    Note: @auth0/nextjs-auth0 v4 uses /auth/* not /api/auth/*.
  *
  * 2. Session enforcement — unauthenticated requests to /protected are
- *    redirected to /api/auth/login before auth0.middleware() ever runs.
+ *    redirected to /auth/login before auth0.middleware() ever runs.
  *    auth0.getSession(request) reads the encrypted cookie locally (no network
  *    call) so enforcement adds no measurable TTFB. Authenticated /protected
  *    requests go through auth0.middleware() for rolling session refresh.
@@ -40,7 +41,8 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Auth0 OIDC routes — the SDK owns the full login / callback / logout flow.
-  if (pathname.startsWith("/api/auth/")) {
+  // v4 of @auth0/nextjs-auth0 uses /auth/* (not /api/auth/*).
+  if (pathname.startsWith("/auth/")) {
     return auth0.middleware(request);
   }
 
@@ -64,7 +66,7 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/protected")) {
     const session = await auth0.getSession(request);
     if (!session) {
-      const loginUrl = new URL("/api/auth/login", request.url);
+      const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("returnTo", pathname);
       return NextResponse.redirect(loginUrl);
     }
