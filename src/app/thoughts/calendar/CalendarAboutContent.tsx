@@ -735,7 +735,8 @@ async function CalendarWithData() {
           &quot;42 days away&quot;, &quot;3 days ago&quot;, or
           &quot;Today!&quot; when the date is today. it uses{" "}
           <code>
-            differenceInCalendarDays(parseISO(targetDate), new Date())
+            differenceInCalendarDays(new Date(`${"${targetDate}"}T00:00:00`),
+            new Date())
           </code>{" "}
           so it updates live as the date field changes
         </Sent>
@@ -745,6 +746,29 @@ async function CalendarWithData() {
           year away. similar to how a flight search shows you &quot;in 47
           days&quot; next to the calendar picker
         </Sent>
+
+        <Received>wait, doesn&apos;t parseISO treat &quot;YYYY-MM-DD&quot; as UTC midnight</Received>
+
+        <Sent pos="first">
+          yeah, caught that one. <code>parseISO(&quot;2026-03-28&quot;)</code>{" "}
+          returns midnight UTC — in UTC-8 that&apos;s 4pm on March 27 local
+          time, so <code>differenceInCalendarDays</code> was comparing against
+          the wrong local date
+        </Sent>
+        <Sent pos="last">
+          fix is one character: <code>new Date(`${"${targetDate}"}T00:00:00`)</code>{" "}
+          instead of <code>parseISO(targetDate)</code>. no timezone suffix means
+          the JS engine parses it as local midnight, which is exactly what you
+          want for a date-only field
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// before — parsed as UTC midnight, off by one in non-UTC timezones
+differenceInCalendarDays(parseISO("2026-03-28"), new Date())
+
+// after — parsed as local midnight, always correct
+differenceInCalendarDays(new Date("2026-03-28T00:00:00"), new Date())`}
+        </div>
 
         <Received>what about the dedicated countdown page</Received>
 

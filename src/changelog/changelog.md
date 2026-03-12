@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.2
+
+- fixed off-by-one day bug in countdown `getDaysLabel`: `parseISO("YYYY-MM-DD")` was treating the target date as UTC midnight, causing countdowns to show one day early for users west of UTC; replaced with `new Date(\`${targetDate}T00:00:00\`)`to parse as local midnight in both`CountdownCard.tsx`and`CountdownModal.tsx`
+
 ## 2026-03-12 - version 0.4.1
 
 - added `useGoogleCalendarStatus` hook (`src/hooks/useGoogleCalendarStatus.ts`): wraps `useQuery` with `queryKeys.google.authStatus()`, `staleTime: 5min`; returns `{ connected, loading }` with `connected` defaulting to `false` during load so callers never need to check both fields

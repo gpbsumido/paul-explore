@@ -37,7 +37,7 @@ interface CountdownModalProps {
  */
 function getDaysLabel(targetDate: string): string | null {
   if (!targetDate) return null;
-  const days = differenceInCalendarDays(parseISO(targetDate), new Date());
+  const days = differenceInCalendarDays(new Date(`${targetDate}T00:00:00`), new Date());
   if (days === 0) return "Today!";
   if (days > 0) return `${days} day${days === 1 ? "" : "s"} away`;
   return `${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"} ago`;
