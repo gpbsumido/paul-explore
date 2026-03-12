@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-11 - version 0.3.36
+
+- fixed auth routes 404ing: `proxy.ts` was checking `pathname.startsWith("/api/auth/")` but `@auth0/nextjs-auth0` v4 registers its routes at `/auth/*` (login, logout, callback) — not `/api/auth/*`; those requests were falling through to `NextResponse.next()`, Next.js found no page, and returned 404; users could not log in or out
+- updated `proxy.ts` to check `/auth/` prefix; updated the unauthenticated `/protected` redirect target and the `vitals/page.tsx` fallback redirect from `/api/auth/login` → `/auth/login`
+- no performance impact: the prefix check is a pure string comparison; `auth0.middleware()` scope is unchanged — still only invoked for `/auth/*` and authenticated `/protected/*` requests
+- the broken logout was a mild security issue: session cookies had no UI escape path; the fix restores the ability for users to terminate their own sessions
+
 ## 2026-03-11 - version 0.3.35
 
 - `EventModal` and `CountdownModal` both show an `[Event] [Countdown]` segmented toggle in the header when opened in create mode; clicking the inactive tab swaps to the other modal, carrying the date across so it pre-fills the new form; in edit mode the toggle is hidden and the header shows the plain title as before; the toggle is implemented via `onSwitchToCountdown` / `onSwitchToEvent` optional props so neither modal depends on the other

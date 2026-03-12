@@ -105,7 +105,7 @@ export default async function VitalsPage({
   try {
     ({ token } = await auth0.getAccessToken());
   } catch {
-    redirect("/api/auth/login");
+    redirect("/auth/login");
   }
 
   const { v: urlVersion } = await searchParams;
