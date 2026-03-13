@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
 import type { CalendarEvent, DraftCard, EventCard } from "@/types/calendar";
 import type { CardResume } from "@/lib/tcg";
+import { useCalendars } from "@/hooks/useCalendars";
 import {
   EVENT_COLORS,
   toInputValue,
@@ -29,6 +30,9 @@ interface EventModalProps {
   isDeleting?: boolean;
   /** Called when the user switches to the countdown modal in create mode. */
   onSwitchToCountdown?: () => void;
+  /** Pre-selected calendar from the header. Used as the default when creating
+   *  a new event. Ignored when editing — the event's own calendarId wins. */
+  defaultCalendarId?: string | null;
 }
 
 /** Section header with a trailing rule — keeps the two columns visually organized. */
@@ -52,6 +56,7 @@ export default function EventModal({
   isSaving = false,
   isDeleting = false,
   onSwitchToCountdown,
+  defaultCalendarId,
 }: EventModalProps) {
   const uid = useId();
   const isEdit = !!event;
@@ -69,8 +74,13 @@ export default function EventModal({
   );
   const [allDay, setAllDay] = useState(event?.allDay ?? false);
   const [color, setColor] = useState(event?.color ?? EVENT_COLORS[0]);
+  const [calendarId, setCalendarId] = useState<string | undefined>(
+    event?.calendarId ?? defaultCalendarId ?? undefined,
+  );
   const [titleError, setTitleError] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  const { calendars } = useCalendars();
 
   // end < start is derived — no extra state needed
   const endBeforeStart = endDate < startDate;
@@ -185,6 +195,7 @@ export default function EventModal({
         endDate: toISO(allDay ? `${endDate.split("T")[0]}T23:59` : endDate),
         allDay,
         color,
+        calendarId,
       };
       await onSave(savedEvent);
 
@@ -350,6 +361,37 @@ export default function EventModal({
             <p className="-mt-1 text-xs text-amber-600 dark:text-amber-400">
               End is before start — check your dates
             </p>
+          )}
+
+          {/* Calendar selector — only shown when the user has more than one calendar */}
+          {calendars.length > 1 && (
+            <div>
+              <p className={LABEL_CLASS}>Calendar</p>
+              <div className="relative mt-1">
+                <select
+                  value={calendarId ?? ""}
+                  onChange={(e) => setCalendarId(e.target.value || undefined)}
+                  className="w-full appearance-none pl-6 pr-3 py-1.5 text-sm rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer"
+                >
+                  <option value="">No calendar</option>
+                  {calendars.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                {calendarId && (
+                  <span
+                    className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor: calendars.find(
+                        (c) => c.id === calendarId,
+                      )?.color,
+                    }}
+                  />
+                )}
+              </div>
+            </div>
           )}
 
           {/* Color swatches — circles with a checkmark on the selected one */}

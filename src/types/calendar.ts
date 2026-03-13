@@ -1,5 +1,31 @@
 export type CalendarView = "day" | "week" | "month" | "year";
 
+/** A named calendar that groups events and optionally links to a Google Calendar. */
+export type Calendar = {
+  id: string;
+  name: string;
+  color: string;
+  syncMode: "none" | "push" | "two_way";
+  googleCalId?: string;
+  googleCalName?: string;
+  /** Present on all calendars returned by getCalendars. 'owner' for owned calendars. */
+  role: "owner" | "editor" | "viewer";
+  /** Auth0 sub of the owner — only present on shared (non-owned) calendars. */
+  ownerSub?: string;
+  /** Email of the owner — only present on shared calendars. */
+  ownerEmail?: string;
+};
+
+/** A member of a shared calendar. id is null for the synthesized owner entry. */
+export type CalendarMember = {
+  id: string | null;
+  userSub: string;
+  email: string;
+  role: "owner" | "editor" | "viewer";
+  invitedBy?: string;
+  createdAt?: string;
+};
+
 export type CalendarEvent = {
   id: string;
   title: string;
@@ -8,6 +34,7 @@ export type CalendarEvent = {
   endDate: string;
   color: string;
   allDay: boolean;
+  calendarId?: string;
 };
 
 export type EventCard = {

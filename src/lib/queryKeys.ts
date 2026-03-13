@@ -17,7 +17,7 @@ export const queryKeys = {
      * Calendar events for a specific date window. Keyed by start and end
      * so navigating months never serves stale data for the wrong range.
      */
-    events: (range: { start: string; end: string }) =>
+    events: (range: { start: string; end: string; calendarId?: string }) =>
       ["calendar", "events", range] as const,
 
     /**
@@ -37,6 +37,13 @@ export const queryKeys = {
      * falls in the calendar. One key, one request, no range math needed.
      */
     countdowns: () => ["calendar", "countdowns"] as const,
+
+    /** All named calendars for the current user. */
+    calendars: () => ["calendar", "calendars"] as const,
+
+    /** Members of a specific calendar. Keyed by calendar ID. */
+    calendarMembers: (calendarId: string) =>
+      ["calendar", "members", calendarId] as const,
   },
 
   nba: {
