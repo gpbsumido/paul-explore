@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-13 - version 0.4.11
+
+- added BFF route `src/app/api/calendar/calendars/[id]/members/route.ts`: GET proxies member list (accessible by owner or any member), POST proxies invite-by-email and returns 201
+- added BFF route `src/app/api/calendar/calendars/[id]/members/[memberSub]/route.ts`: PUT proxies role update, DELETE proxies member removal and forwards `{ googleAclRemoved }` body so the frontend can warn when Google access was not revoked; memberSub is re-encoded with encodeURIComponent when forwarding to the backend since Auth0 subs contain pipe characters
+
 ## 2026-03-12 - version 0.4.10
 
 - added multi-calendar thread to `src/app/thoughts/calendar/CalendarAboutContent.tsx`: covers why a `calendars` table was needed over per-event sync config, the three sync modes (`none`/`push`/`two_way`) and when to use each, how two_way automatically creates the Google Calendar and registers a per-calendar watch channel, the `userId:calId` channel token format for routing webhook notifications to the right calendar, and the import-vs-filter difference between push and two_way
