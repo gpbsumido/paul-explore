@@ -52,9 +52,13 @@ A collapsible "Show query" panel in the UI displays the live GraphQL query and v
 
 A full-stack personal calendar. Four views — day, week, month, year — all navigable with prev/next and a "Today" jump. Click any cell or time slot to open a create-event modal; click an existing event chip to edit or delete it. Events persist in PostgreSQL (Railway) and are scoped per user via Auth0.
 
+**Calendar sharing**: each calendar can be shared with other app users as editor (can create/edit/delete events) or viewer (read-only). The owner invites by email from the Sharing tab in the calendar edit modal. Members appear in the calendar selector in the header with a person icon. Owners can update roles or remove members; members can leave via a leave button. If the calendar is two-way synced with Google Calendar, sharing also grants/revokes Google Calendar ACL entries — invite is fire-and-forget (non-blocking), removal is awaited and surfaces a `googleAclRemoved` flag so the frontend can warn if Google access wasn't fully revoked.
+
+Each calendar has its own **sync mode**: Local only (app only, no Google Calendar needed), Push (imports events from an existing Google Calendar, read-only from Google), or Two-way (creates a Google Calendar in your account, full bidirectional sync via push webhooks). Hover over a calendar name in the header to edit it — the edit modal has Details and Sharing tabs.
+
 You can also attach Pokémon cards to any event — useful for tournament prep or tracking what you're planning to bring to a trade meetup. The card search reuses the existing TCGdex browse endpoint with a debounced input. Card changes are staged locally while the modal is open and flushed to the backend in a single batch when you save, so it doesn't make API calls as you're still picking.
 
-There's a write-up page at `/calendar/about` (same iMessage format as the other thoughts pages) covering the architecture decisions — why date-fns, why a custom grid over FullCalendar, the BFF auth pattern, timezone handling, what a junction table buys you over a JSON column, and what's still on the list.
+There's a write-up page at `/thoughts/calendar` (same iMessage format as the other thoughts pages) covering the architecture decisions — why date-fns, why a custom grid over FullCalendar, the BFF auth pattern, timezone handling, what a junction table buys you over a JSON column, the calendar sharing model, and the Auth0 email claim fix.
 
 There's also a dedicated events section outside the grid. `/calendar/events` is a searchable, filterable list of all your events — title search runs client-side against whatever the backend returned, card name and date range filters hit the backend and re-fetch. `/calendar/events/[id]` is the detail view: full event info plus the attached card grid, SSR'd with the same `CalendarWithData` pattern -- an async server component (`EventDetailWithData`) fetches the event and its cards in parallel directly from the backend at request time, wrapped in a Suspense boundary with `EventDetailSkeleton` as the fallback and a `loading.tsx` for the route segment. Both pages share a layout with a sticky nav so neither one has to re-implement it.
 
@@ -154,10 +158,10 @@ src/
 ├── components/
 │   ├── calendar/         # Calendar views, event modal, CardSearch, AttachedCardsList, EventCardTile
 │   └── ui/               # Shared primitives (Button, IconButton, Input, Textarea, Modal)
-├── hooks/                # useCalendarEvents, useDebounce
-├── lib/                  # Shared utilities (calendar helpers, TCG helpers, auth0 client)
+├── hooks/                # useCalendarEvents, useCalendars, useCalendarMembers, useCountdowns, useDebounce
+├── lib/                  # Shared utilities (calendar helpers, TCG helpers, auth0 client, backendFetch)
 ├── styles/               # Design tokens
-└── types/                # TypeScript types (CalendarEvent, EventCard, DraftCard, etc.)
+└── types/                # TypeScript types (CalendarEvent, CalendarMember, EventCard, DraftCard, etc.)
 ```
 
 ---
@@ -225,6 +229,10 @@ src/
 - a plain text fallback ("there") is a better loading state than an inline skeleton span inside an H1: a skeleton span changes the line height and flow of the heading when the real name arrives, which registers as a layout shift; "there" and a first name are similar enough in length that the swap is invisible, and it reads naturally as a real sentence in the SSR HTML
 - a fetch waterfall in a server component hurts TTFB just as much as a slow database query: if fetch B depends on a value from fetch A, the server sits idle waiting for A before B can even start; the fix is to decouple them — either pass a safe default that lets both start immediately, or restructure so the dependency is resolved after both fetches return rather than before either starts
 - `placeholderData` in TanStack Query controls what the component sees while a new key's fetch is in-flight: `keepPreviousData` shows the previous key's data (good for pagination, where page 2 is related to page 1 and a blank flash would be jarring); `placeholderData: []` (or any static value) resets the visible result to that value on every key change (good for search, where the old query's results are completely unrelated to the new one and letting them linger would be misleading); choosing wrong produces either a blank flash between pages or stale results bleeding into a new search
+- Auth0 access tokens don't include the `email` claim by default — only the ID token does; the access token is what the Express backend validates, so `req.auth.payload.email` is undefined without a post-login Action that calls `api.accessToken.setCustomClaim("email", event.user.email)`; if a backend middleware relies on email from the token (e.g. to upsert a users table), it silently no-ops on every request until the claim is added
+- centralizing backend fetch auth in a BFF utility (`backendFetch.ts`) removes duplicated `getAccessToken()` calls across every API route; the utility fetches the token once and builds the Authorization header, making it easy to add or remove headers (like `X-User-Email`) across all routes in one place instead of hunting through 12 files
+- a publicly exposed backend (Railway, fly.io, Render) can't safely trust custom headers like `X-User-Email` from the client — anyone with a valid JWT can set arbitrary header values; the right fix is to include the claim in the signed JWT itself (via an Auth0 Action) so the backend reads it from `req.auth.payload` which can't be spoofed; headers forwarded by a trusted BFF are a reasonable fallback but only safe when the backend is on a private network
+- `position: fixed` + `getBoundingClientRect` is the right pattern for tooltips that need to break out of `overflow: hidden` containers (like calendar grid cells or event chips); CSS-only `position: absolute` approaches fail because the nearest positioned ancestor clips the tooltip; fixed positioning uses the viewport as the reference frame so the tooltip is always fully visible regardless of nesting
 
 ---
 

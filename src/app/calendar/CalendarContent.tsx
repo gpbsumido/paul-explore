@@ -21,6 +21,7 @@ import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useCountdowns } from "@/hooks/useCountdowns";
+import { useCalendars } from "@/hooks/useCalendars";
 import type {
   CalendarView,
   CalendarEvent,
@@ -67,6 +68,19 @@ export default function CalendarContent({
   const [countdownModal, setCountdownModal] = useState<CountdownModalState>({
     open: false,
   });
+  // undefined = not yet initialized (auto-select first calendar once loaded)
+  // null      = user explicitly chose "All calendars"
+  // string    = user chose a specific calendar
+  const [selectedCalendarId, setSelectedCalendarId] = useState<
+    string | null | undefined
+  >(undefined);
+
+  const { calendars } = useCalendars();
+
+  const effectiveCalendarId =
+    selectedCalendarId === undefined
+      ? (calendars[0]?.id ?? null)
+      : selectedCalendarId;
 
   // calculate fetch window
   const { start, end } = useMemo(() => {
@@ -94,7 +108,12 @@ export default function CalendarContent({
     }
   }, [currentDate, view]);
 
-  const calendarEvents = useCalendarEvents({ start, end, initialEvents });
+  const calendarEvents = useCalendarEvents({
+    start,
+    end,
+    calendarId: effectiveCalendarId,
+    initialEvents,
+  });
 
   // Countdowns don't need a date window — they're all fetched at once and
   // filtered client-side per day. No SSR seed needed here because the
@@ -200,6 +219,8 @@ export default function CalendarContent({
         onViewChange={setView}
         onToday={handleToday}
         onNewCountdown={() => openNewCountdownModal()}
+        selectedCalendarId={effectiveCalendarId}
+        onSelectCalendar={setSelectedCalendarId}
       />
 
       {calendarEvents.error && (
@@ -262,6 +283,7 @@ export default function CalendarContent({
           onClose={() => setModal({ open: false })}
           isSaving={calendarEvents.isCreating || calendarEvents.isUpdating}
           isDeleting={calendarEvents.isDeleting}
+          defaultCalendarId={effectiveCalendarId}
           onSwitchToCountdown={
             modal.editingEvent
               ? undefined

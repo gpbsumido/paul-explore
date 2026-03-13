@@ -1,5 +1,77 @@
 # Changelog
 
+## 2026-03-13 - version 0.4.18
+
+- created `src/lib/backendFetch.ts`: `getBackendAuth()` fetches the Auth0 access token, `buildHeaders()` assembles the Authorization header; all 12 calendar BFF routes migrated to use it — removes duplicated `getAccessToken()` boilerplate from every route
+- added `InfoTip` component to `src/components/ui`: ⓘ badge that shows a rich multi-line popover on hover using `position: fixed` + `getBoundingClientRect` to punch through `overflow: hidden` containers; supports `side="top"` (default) and `side="bottom"`
+- info tips added in `CalendarModal`: sync mode explainer (Local only / Push / Two-way) and invite explainer (account requirement + Editor vs Viewer role descriptions)
+- info tips added in `CalendarHeader`: calendar explainer next to the "+" button (pops below), countdowns explainer next to the Countdowns link (pops below)
+- fixed owner email not showing in Sharing tab: `upsertUser` middleware now reads `X-User-Email` header as fallback; Auth0 post-login Action is the primary fix (adds `email` claim to the access token); owner member row shows "You" when email is still null as a final fallback
+- updated `CalendarAboutContent.tsx`: added thread covering the Auth0 email claim problem, why it silently broke sharing, the JWT custom claim fix, the BFF header approach and why the signed claim is safer on a public backend, and the `backendFetch` utility extraction
+
+## 2026-03-13 - version 0.4.16
+
+- added pencil icon (hover-reveal) to owned calendars in the header dropdown and single-calendar label; clicking opens `CalendarModal` in edit mode wired to `updateCalendar` and `deleteCalendar` — this is how you access the Sharing tab
+- added leave icon (hover-reveal) to shared calendars in the header dropdown and single-calendar label; clicking calls `DELETE /members/me` and shows an 8-second warning banner if Google ACL cleanup failed
+- non-owners now default to the Sharing tab when the edit modal opens; Details tab fields are disabled with an explanatory note and the Save button is hidden
+- `useCalendars` now exposes `isCreating`, `isUpdating`, `isDeleting` loading states; create and edit modals both use them so save/delete buttons show proper loading state
+
+## 2026-03-13 - version 0.4.15
+
+- added sharing chat thread to `src/app/thoughts/calendar/CalendarAboutContent.tsx`: covers why we store a `users` table locally instead of calling the Auth0 Management API, how the membership model works (ownership lives on `calendars.user_sub`, members live in `calendar_members`), editor vs viewer access via `getCalendarForMutation`, and how Google ACL entries are written on invite (fire-and-forget) and revoked on remove (awaited with `googleAclRemoved` flag)
+
+## 2026-03-13 - version 0.4.14
+
+- replaced the native `<select>` in `CalendarHeader` with a custom dropdown so shared calendars can show a person icon next to their name; dropdown closes on outside click via `mousedown` listener; chevron indicates it is interactive; single-calendar static label also gets a person icon when the calendar is shared
+- added `PersonIcon` component (head circle + shoulder arc SVG)
+
+## 2026-03-13 - version 0.4.13
+
+- added Sharing tab to `CalendarModal` (edit mode only): tab strip switches between Details and Sharing; owners can invite by email with editor/viewer role selector, change existing member roles via inline tab strip, and remove members; removal checks `googleAclRemoved` and shows an 8-second amber warning when Google access was not revoked; non-owners see a read-only member list with "Shared by [owner email]" header; `SharingTabSkeleton` shows 3 pulsed rows while the member list loads; Save button hidden on Sharing tab
+
+## 2026-03-13 - version 0.4.12
+
+- added `CalendarMember` type to `src/types/calendar.ts`
+- updated `Calendar` type to include `role`, `ownerSub`, `ownerEmail` fields returned by the UNION query
+- added `calendarMembers(calendarId)` key factory to `src/lib/queryKeys.ts`
+- updated `useCalendars` to expose `inviteMember`, `updateMemberRole`, `removeMember` mutations; each invalidates `calendars` and `calendarMembers` on settled
+- added `useCalendarMembers(calendarId)` hook for fetching the member list; enabled only when calendarId is non-null; 30s stale time
+
+## 2026-03-13 - version 0.4.11
+
+- added BFF route `src/app/api/calendar/calendars/[id]/members/route.ts`: GET proxies member list (accessible by owner or any member), POST proxies invite-by-email and returns 201
+- added BFF route `src/app/api/calendar/calendars/[id]/members/[memberSub]/route.ts`: PUT proxies role update, DELETE proxies member removal and forwards `{ googleAclRemoved }` body so the frontend can warn when Google access was not revoked; memberSub is re-encoded with encodeURIComponent when forwarding to the backend since Auth0 subs contain pipe characters
+
+## 2026-03-12 - version 0.4.10
+
+- added multi-calendar thread to `src/app/thoughts/calendar/CalendarAboutContent.tsx`: covers why a `calendars` table was needed over per-event sync config, the three sync modes (`none`/`push`/`two_way`) and when to use each, how two_way automatically creates the Google Calendar and registers a per-calendar watch channel, the `userId:calId` channel token format for routing webhook notifications to the right calendar, and the import-vs-filter difference between push and two_way
+
+## 2026-03-12 - version 0.4.9
+
+- updated `CalendarModal`: when syncMode is `two_way` and the saved calendar has no `googleCalId`, replaces the modal body with `CalendarModalSkeleton` + "Connecting to Google Calendar…" message while the `POST connect-google` request is in-flight; on success calls `onBanner` with a success message then closes; on failure calls `onBanner` with a warning (calendar is already saved, user can retry by editing) then closes; same flow applies in edit mode when changing syncMode to `two_way`; added `onBanner` prop
+- updated `CalendarHeader`: added `banner` state (`success | warning`), auto-dismissed after 5 s with a manual dismiss button; passes `onBanner` to `CalendarModal`
+
+## 2026-03-12 - version 0.4.8
+
+- added `calendarId` field to `CalendarEvent` type
+- updated `EventModal`: accepts `defaultCalendarId` prop (from the header's selected calendar), adds `calendarId` form state initialized to the event's own `calendarId` in edit mode or `defaultCalendarId` in create mode, renders a calendar select dropdown (color dot + name) when the user has more than one calendar, includes `calendarId` in the saved event payload
+- updated `CalendarContent`: passes `defaultCalendarId={effectiveCalendarId}` to `EventModal`
+
+## 2026-03-12 - version 0.4.7
+
+- added `src/components/calendar/CalendarModal.tsx` with `CalendarModalSkeleton` export: name input, color swatch picker (same pattern as EventModal), three-option sync mode strip (Two-way disabled with tooltip when Google is not connected), connected badge with Disconnect button in edit mode, create-notice when two_way is selected with no linked calendar, inline confirm for delete; on save with syncMode=two_way and no googleCalId, automatically calls POST connect-google to create the dedicated calendar
+- added BFF `DELETE /api/calendar/calendars/[id]/google/route.ts` proxying to the backend disconnect endpoint
+
+## 2026-03-12 - version 0.4.6
+
+- added `Calendar` type to `src/types/calendar.ts` with `id`, `name`, `color`, `syncMode` (`none | push | two_way`), and optional `googleCalId`/`googleCalName`
+- added `queryKeys.calendar.calendars()` to `src/lib/queryKeys.ts`
+- added `src/hooks/useCalendars.ts`: `useQuery` with 60s staleTime, three `useMutation`s (create, update, delete) that each invalidate the calendars key on `onSettled`; no optimistic updates since calendar mutations are infrequent
+
+## 2026-03-12 - version 0.4.5
+
+- added BFF routes for calendar CRUD: `GET`/`POST` at `src/app/api/calendar/calendars/route.ts`, `PUT`/`DELETE` at `src/app/api/calendar/calendars/[id]/route.ts`, and `POST` at `src/app/api/calendar/calendars/[id]/connect-google/route.ts`; all follow the same `auth0.getAccessToken()` + forward-to-backend pattern as the existing event routes
+
 ## 2026-03-12 - version 0.4.4
 
 - fixed CSP violation blocking Vercel Live feedback widget: added `https://vercel.live` to `script-src` and `connect-src`, and added `frame-src https://vercel.live` in `src/proxy.ts`
