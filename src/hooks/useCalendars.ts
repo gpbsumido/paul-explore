@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Calendar } from "@/types/calendar";
+import type { Calendar, CalendarMember } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
 
 // ---- API helpers -----------------------------------------------------------
@@ -45,32 +45,79 @@ async function apiDeleteCalendar(id: string): Promise<void> {
   if (!res.ok) throw new Error("Failed to delete calendar");
 }
 
-// ---- Hook ------------------------------------------------------------------
+// ---- Sharing API helpers ---------------------------------------------------
+
+async function apiFetchMembers(calendarId: string): Promise<CalendarMember[]> {
+  const res = await fetch(`/api/calendar/calendars/${calendarId}/members`);
+  if (!res.ok) throw new Error("Failed to fetch members");
+  const json = await res.json();
+  return json.members as CalendarMember[];
+}
+
+async function apiInviteMember(
+  calendarId: string,
+  email: string,
+  role: "editor" | "viewer",
+): Promise<CalendarMember> {
+  const res = await fetch(`/api/calendar/calendars/${calendarId}/members`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, role }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error ?? "Failed to invite member");
+  }
+  const json = await res.json();
+  return json.member as CalendarMember;
+}
+
+async function apiUpdateMemberRole(
+  calendarId: string,
+  memberSub: string,
+  role: "editor" | "viewer",
+): Promise<CalendarMember> {
+  const res = await fetch(
+    `/api/calendar/calendars/${calendarId}/members/${encodeURIComponent(memberSub)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    },
+  );
+  if (!res.ok) throw new Error("Failed to update member role");
+  const json = await res.json();
+  return json.member as CalendarMember;
+}
+
+async function apiRemoveMember(
+  calendarId: string,
+  memberSub: string,
+): Promise<{ googleAclRemoved: boolean }> {
+  const res = await fetch(
+    `/api/calendar/calendars/${calendarId}/members/${encodeURIComponent(memberSub)}`,
+    { method: "DELETE" },
+  );
+  if (!res.ok) throw new Error("Failed to remove member");
+  return res.json();
+}
+
+// ---- Hooks -----------------------------------------------------------------
 
 /**
- * Manages the current user's calendars.
- *
- * Calendar mutations are infrequent (users rarely rename or delete calendars)
- * so there are no optimistic updates -- we just invalidate and let the query
- * refetch on settled. This keeps the code simple and ensures the UI always
- * reflects what the server says after a mutation.
- *
- * @returns calendars list, loading state, and create/update/delete mutators
+ * Manages the current user's calendars (owned and shared).
+ * Also exposes sharing mutations: inviteMember, updateMemberRole, removeMember.
  */
 export function useCalendars() {
   const queryClient = useQueryClient();
 
-  // ---- Read ----------------------------------------------------------------
-
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.calendar.calendars(),
     queryFn: fetchCalendars,
-    staleTime: 60_000, // calendars don't change often; 1-minute stale is fine
+    staleTime: 60_000,
   });
 
   const calendars = data ?? [];
-
-  // ---- Mutations -----------------------------------------------------------
 
   const createMutation = useMutation({
     mutationFn: (fields: Pick<Calendar, "name" | "color" | "syncMode">) =>
@@ -100,6 +147,46 @@ export function useCalendars() {
     },
   });
 
+  const inviteMutation = useMutation({
+    mutationFn: ({
+      calendarId,
+      email,
+      role,
+    }: {
+      calendarId: string;
+      email: string;
+      role: "editor" | "viewer";
+    }) => apiInviteMember(calendarId, email, role),
+    onSettled: (_data, _err, { calendarId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.calendars() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.calendarMembers(calendarId) });
+    },
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: ({
+      calendarId,
+      memberSub,
+      role,
+    }: {
+      calendarId: string;
+      memberSub: string;
+      role: "editor" | "viewer";
+    }) => apiUpdateMemberRole(calendarId, memberSub, role),
+    onSettled: (_data, _err, { calendarId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.calendarMembers(calendarId) });
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: ({ calendarId, memberSub }: { calendarId: string; memberSub: string }) =>
+      apiRemoveMember(calendarId, memberSub),
+    onSettled: (_data, _err, { calendarId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.calendars() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.calendarMembers(calendarId) });
+    },
+  });
+
   return {
     calendars,
     isLoading,
@@ -110,5 +197,27 @@ export function useCalendars() {
       fields: Partial<Pick<Calendar, "name" | "color" | "syncMode" | "googleCalId" | "googleCalName">>,
     ) => updateMutation.mutateAsync({ id, fields }),
     deleteCalendar: (id: string) => deleteMutation.mutateAsync(id),
+    inviteMember: (calendarId: string, email: string, role: "editor" | "viewer") =>
+      inviteMutation.mutateAsync({ calendarId, email, role }),
+    updateMemberRole: (calendarId: string, memberSub: string, role: "editor" | "viewer") =>
+      updateRoleMutation.mutateAsync({ calendarId, memberSub, role }),
+    removeMember: (calendarId: string, memberSub: string) =>
+      removeMutation.mutateAsync({ calendarId, memberSub }),
   };
+}
+
+/**
+ * Fetches the member list for a specific calendar.
+ * Returns the owner entry (synthesized, id=null) plus all members.
+ * Enabled only when calendarId is non-null.
+ */
+export function useCalendarMembers(calendarId: string | null) {
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.calendar.calendarMembers(calendarId ?? ""),
+    queryFn: () => apiFetchMembers(calendarId!),
+    enabled: !!calendarId,
+    staleTime: 30_000,
+  });
+
+  return { members: data ?? [], isLoading };
 }

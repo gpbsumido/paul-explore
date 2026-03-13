@@ -40,6 +40,10 @@ export const queryKeys = {
 
     /** All named calendars for the current user. */
     calendars: () => ["calendar", "calendars"] as const,
+
+    /** Members of a specific calendar. Keyed by calendar ID. */
+    calendarMembers: (calendarId: string) =>
+      ["calendar", "members", calendarId] as const,
   },
 
   nba: {

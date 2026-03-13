@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-03-13 - version 0.4.12
+
+- added `CalendarMember` type to `src/types/calendar.ts`
+- updated `Calendar` type to include `role`, `ownerSub`, `ownerEmail` fields returned by the UNION query
+- added `calendarMembers(calendarId)` key factory to `src/lib/queryKeys.ts`
+- updated `useCalendars` to expose `inviteMember`, `updateMemberRole`, `removeMember` mutations; each invalidates `calendars` and `calendarMembers` on settled
+- added `useCalendarMembers(calendarId)` hook for fetching the member list; enabled only when calendarId is non-null; 30s stale time
+
 ## 2026-03-13 - version 0.4.11
 
 - added BFF route `src/app/api/calendar/calendars/[id]/members/route.ts`: GET proxies member list (accessible by owner or any member), POST proxies invite-by-email and returns 201
