@@ -18,6 +18,7 @@ export type CalendarEvent = {
   endDate: string;
   color: string;
   allDay: boolean;
+  calendarId?: string;
 };
 
 export type EventCard = {

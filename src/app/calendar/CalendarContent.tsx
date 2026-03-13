@@ -68,7 +68,9 @@ export default function CalendarContent({
   const [countdownModal, setCountdownModal] = useState<CountdownModalState>({
     open: false,
   });
-  const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
+  const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(
+    null,
+  );
 
   const { calendars } = useCalendars();
 
@@ -102,7 +104,12 @@ export default function CalendarContent({
     }
   }, [currentDate, view]);
 
-  const calendarEvents = useCalendarEvents({ start, end, calendarId: effectiveCalendarId, initialEvents });
+  const calendarEvents = useCalendarEvents({
+    start,
+    end,
+    calendarId: effectiveCalendarId,
+    initialEvents,
+  });
 
   // Countdowns don't need a date window — they're all fetched at once and
   // filtered client-side per day. No SSR seed needed here because the
@@ -272,6 +279,7 @@ export default function CalendarContent({
           onClose={() => setModal({ open: false })}
           isSaving={calendarEvents.isCreating || calendarEvents.isUpdating}
           isDeleting={calendarEvents.isDeleting}
+          defaultCalendarId={effectiveCalendarId}
           onSwitchToCountdown={
             modal.editingEvent
               ? undefined

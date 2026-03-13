@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.8
+
+- added `calendarId` field to `CalendarEvent` type
+- updated `EventModal`: accepts `defaultCalendarId` prop (from the header's selected calendar), adds `calendarId` form state initialized to the event's own `calendarId` in edit mode or `defaultCalendarId` in create mode, renders a calendar select dropdown (color dot + name) when the user has more than one calendar, includes `calendarId` in the saved event payload
+- updated `CalendarContent`: passes `defaultCalendarId={effectiveCalendarId}` to `EventModal`
+
 ## 2026-03-12 - version 0.4.7
 
 - added `src/components/calendar/CalendarModal.tsx` with `CalendarModalSkeleton` export: name input, color swatch picker (same pattern as EventModal), three-option sync mode strip (Two-way disabled with tooltip when Google is not connected), connected badge with Disconnect button in edit mode, create-notice when two_way is selected with no linked calendar, inline confirm for delete; on save with syncMode=two_way and no googleCalId, automatically calls POST connect-google to create the dedicated calendar
