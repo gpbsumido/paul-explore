@@ -307,10 +307,12 @@ export default function CalendarModal({
   onBanner,
 }: CalendarModalProps) {
   const isEdit = !!calendar;
+  const isOwner = !calendar || calendar.role === "owner";
   const queryClient = useQueryClient();
   const { connected } = useGoogleCalendarStatus();
 
-  const [tab, setTab] = useState<"details" | "sharing">("details");
+  // non-owners go straight to the sharing tab — they can't edit calendar details
+  const [tab, setTab] = useState<"details" | "sharing">(isOwner ? "details" : "sharing");
 
   const [name, setName] = useState(calendar?.name ?? "");
   const [color, setColor] = useState(calendar?.color ?? EVENT_COLORS[0]);
@@ -478,6 +480,11 @@ export default function CalendarModal({
       {/* details tab */}
       {tab === "details" && (
         <div className={connecting ? "hidden" : "space-y-4"}>
+          {!isOwner && (
+            <p className="text-xs text-muted rounded-lg bg-surface border border-border px-3 py-2">
+              Only the calendar owner can edit these settings.
+            </p>
+          )}
           <Input
             label="Name"
             required
@@ -490,6 +497,7 @@ export default function CalendarModal({
             placeholder="Calendar name"
             error={nameError ? "Name is required" : undefined}
             size="sm"
+            disabled={!isOwner}
           />
 
           <div>
@@ -499,7 +507,8 @@ export default function CalendarModal({
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setColor(c)}
+                  disabled={!isOwner}
+                  onClick={() => isOwner && setColor(c)}
                   className="h-6 w-6 rounded-full inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
                   style={{ backgroundColor: c }}
                   aria-label={`Color ${c}`}
@@ -545,7 +554,7 @@ export default function CalendarModal({
                   >
                     <button
                       type="button"
-                      disabled={isDisabled || isBusy}
+                      disabled={isDisabled || isBusy || !isOwner}
                       onClick={() => setSyncMode(value)}
                       className={[
                         "w-full h-7 px-2 text-xs font-medium rounded-md transition-colors",
@@ -668,7 +677,7 @@ export default function CalendarModal({
           >
             {tab === "sharing" ? "Close" : "Cancel"}
           </Button>
-          {tab === "details" && (
+          {tab === "details" && isOwner && (
             <Button
               variant="primary"
               size="sm"

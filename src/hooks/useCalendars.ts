@@ -102,6 +102,12 @@ async function apiRemoveMember(
   return res.json();
 }
 
+async function apiLeaveCalendar(calendarId: string): Promise<{ googleAclRemoved: boolean }> {
+  const res = await fetch(`/api/calendar/calendars/${calendarId}/members/me`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to leave calendar");
+  return res.json();
+}
+
 // ---- Hooks -----------------------------------------------------------------
 
 /**
@@ -187,9 +193,19 @@ export function useCalendars() {
     },
   });
 
+  const leaveMutation = useMutation({
+    mutationFn: (calendarId: string) => apiLeaveCalendar(calendarId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.calendar.calendars() });
+    },
+  });
+
   return {
     calendars,
     isLoading,
+    isCreating: createMutation.isPending,
+    isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
     createCalendar: (fields: Pick<Calendar, "name" | "color" | "syncMode">) =>
       createMutation.mutateAsync(fields),
     updateCalendar: (
@@ -203,6 +219,7 @@ export function useCalendars() {
       updateRoleMutation.mutateAsync({ calendarId, memberSub, role }),
     removeMember: (calendarId: string, memberSub: string) =>
       removeMutation.mutateAsync({ calendarId, memberSub }),
+    leaveCalendar: (calendarId: string) => leaveMutation.mutateAsync(calendarId),
   };
 }
 

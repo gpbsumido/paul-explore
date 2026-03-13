@@ -37,6 +37,35 @@ function PersonIcon() {
   );
 }
 
+function PencilIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+      <path
+        d="M7 1.5l1.5 1.5L3 8.5H1.5V7L7 1.5z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Door-with-arrow icon representing "leave". */
+function LeaveIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+      <path
+        d="M4 2H2a1 1 0 00-1 1v4a1 1 0 001 1h2M6.5 7l2-2-2-2M8.5 5H4"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function CalendarHeader({
   currentDate,
   view,
@@ -49,8 +78,19 @@ export default function CalendarHeader({
 }: CalendarHeaderProps) {
   const { connected } = useGoogleCalendarStatus();
   const queryClient = useQueryClient();
-  const { calendars, createCalendar } = useCalendars();
+  const {
+    calendars,
+    createCalendar,
+    updateCalendar,
+    deleteCalendar,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    leaveCalendar,
+  } = useCalendars();
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [editingCalendar, setEditingCalendar] = useState<Calendar | null>(null);
+  const [leavingId, setLeavingId] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [banner, setBanner] = useState<{
     message: string;
@@ -82,6 +122,24 @@ export default function CalendarHeader({
     // invalidates all calendar event queries regardless of range so every
     // view gets fresh data after a manual sync trigger
     queryClient.invalidateQueries({ queryKey: ["calendar", "events"] });
+  }
+
+  async function handleLeave(calendarId: string) {
+    setLeavingId(calendarId);
+    setDropdownOpen(false);
+    try {
+      const result = await leaveCalendar(calendarId);
+      if (!result.googleAclRemoved) {
+        setBanner({
+          message: "You left the calendar. Your Google Calendar access may still be active — remove it from your Google Calendar settings.",
+          variant: "warning",
+        });
+      }
+    } catch {
+      setBanner({ message: "Could not leave the calendar. Please try again.", variant: "warning" });
+    } finally {
+      setLeavingId(null);
+    }
   }
 
   return (
@@ -154,7 +212,7 @@ export default function CalendarHeader({
           {/* Calendar name/selector inline after nav — no extra row, no CLS */}
           <div className="hidden sm:block h-4 w-px bg-border" />
           {calendars.length === 1 ? (
-            <span className="hidden sm:flex items-center gap-1.5 text-xs text-muted">
+            <span className="hidden sm:flex items-center gap-1.5 text-xs text-muted group">
               <span
                 className="inline-block w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: calendars[0].color }}
@@ -164,6 +222,27 @@ export default function CalendarHeader({
                 <span title={`Shared by ${calendars[0].ownerEmail ?? "another user"}`}>
                   <PersonIcon />
                 </span>
+              )}
+              {/* edit (owner) or leave (member) button — visible on hover */}
+              {calendars[0].role === "owner" ? (
+                <button
+                  onClick={() => setEditingCalendar(calendars[0])}
+                  aria-label="Edit calendar"
+                  title="Edit calendar"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-muted hover:text-foreground"
+                >
+                  <PencilIcon />
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleLeave(calendars[0].id)}
+                  disabled={leavingId === calendars[0].id}
+                  aria-label="Leave calendar"
+                  title="Leave calendar"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-muted hover:text-red-500"
+                >
+                  <LeaveIcon />
+                </button>
               )}
             </span>
           ) : calendars.length > 1 ? (
@@ -188,7 +267,7 @@ export default function CalendarHeader({
                 </svg>
               </button>
               {dropdownOpen && (
-                <div className="absolute left-0 top-full mt-1 min-w-[160px] rounded-lg border border-border bg-background shadow-md z-50 py-1">
+                <div className="absolute left-0 top-full mt-1 min-w-[180px] rounded-lg border border-border bg-background shadow-md z-50 py-1">
                   <button
                     onClick={() => { onSelectCalendar(null); setDropdownOpen(false); }}
                     className="w-full px-3 py-1.5 text-xs text-left text-muted hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
@@ -196,22 +275,44 @@ export default function CalendarHeader({
                     All calendars
                   </button>
                   {calendars.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => { onSelectCalendar(c.id); setDropdownOpen(false); }}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                    >
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
-                      <span className="flex-1 truncate">{c.name}</span>
-                      {c.role !== "owner" && (
-                        <span
-                          title={`Shared by ${c.ownerEmail ?? "another user"}`}
-                          className="text-muted"
+                    <div key={c.id} className="flex items-center group/item hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+                      <button
+                        onClick={() => { onSelectCalendar(c.id); setDropdownOpen(false); }}
+                        className="flex-1 flex items-center gap-2 px-3 py-1.5 text-xs text-left min-w-0"
+                      >
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
+                        <span className="flex-1 truncate">{c.name}</span>
+                        {c.role !== "owner" && (
+                          <span
+                            title={`Shared by ${c.ownerEmail ?? "another user"}`}
+                            className="text-muted shrink-0"
+                          >
+                            <PersonIcon />
+                          </span>
+                        )}
+                      </button>
+                      {/* edit (owner) or leave (member) */}
+                      {c.role === "owner" ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setEditingCalendar(c); setDropdownOpen(false); }}
+                          aria-label={`Edit ${c.name}`}
+                          title="Edit calendar"
+                          className="px-2 py-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity text-muted hover:text-foreground shrink-0"
                         >
-                          <PersonIcon />
-                        </span>
+                          <PencilIcon />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleLeave(c.id); }}
+                          disabled={leavingId === c.id}
+                          aria-label={`Leave ${c.name}`}
+                          title="Leave calendar"
+                          className="px-2 py-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity text-muted hover:text-red-500 shrink-0"
+                        >
+                          <LeaveIcon />
+                        </button>
                       )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -343,6 +444,23 @@ export default function CalendarHeader({
           }
           onClose={() => setCalendarModalOpen(false)}
           onBanner={(message, variant) => setBanner({ message, variant })}
+          isSaving={isCreating}
+        />
+      )}
+
+      {editingCalendar && (
+        <CalendarModal
+          calendar={editingCalendar}
+          onSave={(fields) => updateCalendar(editingCalendar.id, fields)}
+          onDelete={
+            editingCalendar.role === "owner"
+              ? () => deleteCalendar(editingCalendar.id)
+              : undefined
+          }
+          onClose={() => setEditingCalendar(null)}
+          onBanner={(message, variant) => setBanner({ message, variant })}
+          isSaving={isUpdating}
+          isDeleting={isDeleting}
         />
       )}
     </div>

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-03-13 - version 0.4.16
+
+- added pencil icon (hover-reveal) to owned calendars in the header dropdown and single-calendar label; clicking opens `CalendarModal` in edit mode wired to `updateCalendar` and `deleteCalendar` — this is how you access the Sharing tab
+- added leave icon (hover-reveal) to shared calendars in the header dropdown and single-calendar label; clicking calls `DELETE /members/me` and shows an 8-second warning banner if Google ACL cleanup failed
+- non-owners now default to the Sharing tab when the edit modal opens; Details tab fields are disabled with an explanatory note and the Save button is hidden
+- `useCalendars` now exposes `isCreating`, `isUpdating`, `isDeleting` loading states; create and edit modals both use them so save/delete buttons show proper loading state
+
 ## 2026-03-13 - version 0.4.15
 
 - added sharing chat thread to `src/app/thoughts/calendar/CalendarAboutContent.tsx`: covers why we store a `users` table locally instead of calling the Auth0 Management API, how the membership model works (ownership lives on `calendars.user_sub`, members live in `calendar_members`), editor vs viewer access via `getCalendarForMutation`, and how Google ACL entries are written on invite (fire-and-forget) and revoked on remove (awaited with `googleAclRemoved` flag)
