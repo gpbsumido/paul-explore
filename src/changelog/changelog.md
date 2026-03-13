@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.5
+
+- added BFF routes for calendar CRUD: `GET`/`POST` at `src/app/api/calendar/calendars/route.ts`, `PUT`/`DELETE` at `src/app/api/calendar/calendars/[id]/route.ts`, and `POST` at `src/app/api/calendar/calendars/[id]/connect-google/route.ts`; all follow the same `auth0.getAccessToken()` + forward-to-backend pattern as the existing event routes
+
 ## 2026-03-12 - version 0.4.4
 
 - fixed CSP violation blocking Vercel Live feedback widget: added `https://vercel.live` to `script-src` and `connect-src`, and added `frame-src https://vercel.live` in `src/proxy.ts`
