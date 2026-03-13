@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-13 - version 0.4.13
+
+- added Sharing tab to `CalendarModal` (edit mode only): tab strip switches between Details and Sharing; owners can invite by email with editor/viewer role selector, change existing member roles via inline tab strip, and remove members; removal checks `googleAclRemoved` and shows an 8-second amber warning when Google access was not revoked; non-owners see a read-only member list with "Shared by [owner email]" header; `SharingTabSkeleton` shows 3 pulsed rows while the member list loads; Save button hidden on Sharing tab
+
 ## 2026-03-13 - version 0.4.12
 
 - added `CalendarMember` type to `src/types/calendar.ts`
