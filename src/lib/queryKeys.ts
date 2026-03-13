@@ -37,6 +37,9 @@ export const queryKeys = {
      * falls in the calendar. One key, one request, no range math needed.
      */
     countdowns: () => ["calendar", "countdowns"] as const,
+
+    /** All named calendars for the current user. */
+    calendars: () => ["calendar", "calendars"] as const,
   },
 
   nba: {

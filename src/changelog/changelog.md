@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.6
+
+- added `Calendar` type to `src/types/calendar.ts` with `id`, `name`, `color`, `syncMode` (`none | push | two_way`), and optional `googleCalId`/`googleCalName`
+- added `queryKeys.calendar.calendars()` to `src/lib/queryKeys.ts`
+- added `src/hooks/useCalendars.ts`: `useQuery` with 60s staleTime, three `useMutation`s (create, update, delete) that each invalidate the calendars key on `onSettled`; no optimistic updates since calendar mutations are infrequent
+
 ## 2026-03-12 - version 0.4.5
 
 - added BFF routes for calendar CRUD: `GET`/`POST` at `src/app/api/calendar/calendars/route.ts`, `PUT`/`DELETE` at `src/app/api/calendar/calendars/[id]/route.ts`, and `POST` at `src/app/api/calendar/calendars/[id]/connect-google/route.ts`; all follow the same `auth0.getAccessToken()` + forward-to-backend pattern as the existing event routes

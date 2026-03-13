@@ -1,5 +1,15 @@
 export type CalendarView = "day" | "week" | "month" | "year";
 
+/** A named calendar that groups events and optionally links to a Google Calendar. */
+export type Calendar = {
+  id: string;
+  name: string;
+  color: string;
+  syncMode: "none" | "push" | "two_way";
+  googleCalId?: string;
+  googleCalName?: string;
+};
+
 export type CalendarEvent = {
   id: string;
   title: string;
