@@ -903,6 +903,79 @@ differenceInCalendarDays(new Date("2026-03-28T00:00:00"), new Date())`}
 
         <Timestamp>11:34 AM</Timestamp>
 
+        <Received>
+          you added sharing. how does it know who to invite, you need accounts
+          right
+        </Received>
+
+        <Sent pos="first">
+          yeah, people need to have logged in at least once. the first time
+          anyone hits the calendar api their auth0 sub and email get written to
+          a users table. that row is what makes invite by email possible
+        </Sent>
+        <Sent pos="last">
+          before that table existed there was no way to map an email to a user.
+          the auth0 management api can do it but it needs machine to machine
+          tokens and has strict rate limits. reading the jwt on first request is
+          just simpler and it stays current automatically if someone changes
+          their email
+        </Sent>
+
+        <Received>
+          so if i invite someone who has never opened the app it fails
+        </Received>
+
+        <Sent>
+          it returns a generic not found message. no clue given about whether
+          the email is registered or not, just ask them to log in first and try
+          again
+        </Sent>
+
+        <Received>how does ownership work</Received>
+
+        <Sent pos="first">
+          the owner is stored as user_sub on the calendars row itself, not as a
+          row in calendar_members. members are only the people you have shared
+          it with
+        </Sent>
+        <Sent pos="last">
+          this keeps deletion simple. delete a calendar and the foreign key
+          cascade removes all the member rows automatically. no orphaned data,
+          no cleanup job needed
+        </Sent>
+
+        <Received>what can editors do vs viewers</Received>
+
+        <Sent pos="first">
+          editors can create, edit, and delete events. viewers can only read.
+          the check runs in a single db helper called getCalendarForMutation
+          that both the calendar and event routes go through
+        </Sent>
+        <Sent pos="last">
+          if you pass required role as editor it checks whether the user is the
+          owner or has an editor row in calendar_members. if they are a viewer
+          the helper returns null and the route sends back a 403
+        </Sent>
+
+        <Received>
+          does the shared calendar show up in google calendar too
+        </Received>
+
+        <Sent pos="first">
+          if the calendar is two_way and the owner has google connected, yes.
+          when you add a member we call the google calendar acl api with the
+          owner's token and grant them reader or writer access on the google
+          calendar. that makes it show up in their google calendar app
+        </Sent>
+        <Sent pos="last">
+          the acl call is fire and forget on invite so it does not slow down the
+          response. on remove we await it and return a flag so the frontend can
+          warn you if google access was not fully revoked. the member is gone
+          from the app either way
+        </Sent>
+
+        <Timestamp>11:52 AM</Timestamp>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />

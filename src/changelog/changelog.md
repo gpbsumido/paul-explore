@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-13 - version 0.4.15
+
+- added sharing chat thread to `src/app/thoughts/calendar/CalendarAboutContent.tsx`: covers why we store a `users` table locally instead of calling the Auth0 Management API, how the membership model works (ownership lives on `calendars.user_sub`, members live in `calendar_members`), editor vs viewer access via `getCalendarForMutation`, and how Google ACL entries are written on invite (fire-and-forget) and revoked on remove (awaited with `googleAclRemoved` flag)
+
 ## 2026-03-13 - version 0.4.14
 
 - replaced the native `<select>` in `CalendarHeader` with a custom dropdown so shared calendars can show a person icon next to their name; dropdown closes on outside click via `mousedown` listener; chevron indicates it is interactive; single-calendar static label also gets a person icon when the calendar is shared
