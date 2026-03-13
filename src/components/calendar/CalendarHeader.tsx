@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import type { CalendarView, Calendar } from "@/types/calendar";
@@ -22,6 +22,21 @@ interface CalendarHeaderProps {
   onSelectCalendar: (id: string | null) => void;
 }
 
+/** Small person silhouette indicating a shared (non-owned) calendar. */
+function PersonIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+      <circle cx="5" cy="3.5" r="2" stroke="currentColor" strokeWidth="1.2" />
+      <path
+        d="M1 9c0-2.2 1.8-4 4-4s4 1.8 4 4"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function CalendarHeader({
   currentDate,
   view,
@@ -36,10 +51,24 @@ export default function CalendarHeader({
   const queryClient = useQueryClient();
   const { calendars, createCalendar } = useCalendars();
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [banner, setBanner] = useState<{
     message: string;
     variant: "success" | "warning";
   } | null>(null);
+
+  // Close the calendar dropdown when clicking outside it
+  const handleDropdownOutsideClick = useCallback((e: MouseEvent) => {
+    if (!(e.target as Element).closest("[data-calendar-dropdown]")) {
+      setDropdownOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    document.addEventListener("mousedown", handleDropdownOutsideClick);
+    return () => document.removeEventListener("mousedown", handleDropdownOutsideClick);
+  }, [dropdownOpen, handleDropdownOutsideClick]);
 
   // Auto-dismiss the banner after 5 seconds. The timeout is reset whenever
   // a new banner arrives so rapid create/edit actions don't get cut short.
@@ -131,28 +160,60 @@ export default function CalendarHeader({
                 style={{ backgroundColor: calendars[0].color }}
               />
               {calendars[0].name}
+              {calendars[0].role !== "owner" && (
+                <span title={`Shared by ${calendars[0].ownerEmail ?? "another user"}`}>
+                  <PersonIcon />
+                </span>
+              )}
             </span>
           ) : calendars.length > 1 ? (
-            <div className="hidden sm:block relative">
-              <select
-                value={selectedCalendarId ?? ""}
-                onChange={(e) => onSelectCalendar(e.target.value || null)}
-                className="appearance-none pl-5 pr-6 py-0.5 text-xs rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer"
+            <div data-calendar-dropdown className="hidden sm:block relative">
+              <button
+                onClick={() => setDropdownOpen((v) => !v)}
+                className="flex items-center gap-1.5 px-2 py-0.5 text-xs rounded border border-border bg-background text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
-                <option value="">All calendars</option>
-                {calendars.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              {selectedCalendarId && (
-                <span
-                  className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 inline-block w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: calendars.find((c) => c.id === selectedCalendarId)?.color,
-                  }}
-                />
+                {selectedCalendarId && (
+                  <span
+                    className="inline-block w-2 h-2 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: calendars.find((c) => c.id === selectedCalendarId)?.color,
+                    }}
+                  />
+                )}
+                {selectedCalendarId
+                  ? calendars.find((c) => c.id === selectedCalendarId)?.name ?? "Calendar"
+                  : "All calendars"}
+                <svg width="8" height="5" viewBox="0 0 8 5" fill="none" aria-hidden="true">
+                  <path d="M1 1l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {dropdownOpen && (
+                <div className="absolute left-0 top-full mt-1 min-w-[160px] rounded-lg border border-border bg-background shadow-md z-50 py-1">
+                  <button
+                    onClick={() => { onSelectCalendar(null); setDropdownOpen(false); }}
+                    className="w-full px-3 py-1.5 text-xs text-left text-muted hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                  >
+                    All calendars
+                  </button>
+                  {calendars.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => { onSelectCalendar(c.id); setDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    >
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
+                      <span className="flex-1 truncate">{c.name}</span>
+                      {c.role !== "owner" && (
+                        <span
+                          title={`Shared by ${c.ownerEmail ?? "another user"}`}
+                          className="text-muted"
+                        >
+                          <PersonIcon />
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           ) : null}

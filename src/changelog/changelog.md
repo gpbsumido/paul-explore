@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-13 - version 0.4.14
+
+- replaced the native `<select>` in `CalendarHeader` with a custom dropdown so shared calendars can show a person icon next to their name; dropdown closes on outside click via `mousedown` listener; chevron indicates it is interactive; single-calendar static label also gets a person icon when the calendar is shared
+- added `PersonIcon` component (head circle + shoulder arc SVG)
+
 ## 2026-03-13 - version 0.4.13
 
 - added Sharing tab to `CalendarModal` (edit mode only): tab strip switches between Details and Sharing; owners can invite by email with editor/viewer role selector, change existing member roles via inline tab strip, and remove members; removal checks `googleAclRemoved` and shows an 8-second amber warning when Google access was not revoked; non-owners see a read-only member list with "Shared by [owner email]" header; `SharingTabSkeleton` shows 3 pulsed rows while the member list loads; Save button hidden on Sharing tab
