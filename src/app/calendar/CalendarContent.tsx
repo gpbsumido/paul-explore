@@ -68,15 +68,19 @@ export default function CalendarContent({
   const [countdownModal, setCountdownModal] = useState<CountdownModalState>({
     open: false,
   });
-  const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(
-    null,
-  );
+  // undefined = not yet initialized (auto-select first calendar once loaded)
+  // null      = user explicitly chose "All calendars"
+  // string    = user chose a specific calendar
+  const [selectedCalendarId, setSelectedCalendarId] = useState<
+    string | null | undefined
+  >(undefined);
 
   const { calendars } = useCalendars();
 
-  // null means "use first calendar". Derive the effective id so no effect is
-  // needed — the first render after calendars load will pick up the right value.
-  const effectiveCalendarId = selectedCalendarId ?? calendars[0]?.id ?? null;
+  const effectiveCalendarId =
+    selectedCalendarId === undefined
+      ? (calendars[0]?.id ?? null)
+      : selectedCalendarId;
 
   // calculate fetch window
   const { start, end } = useMemo(() => {

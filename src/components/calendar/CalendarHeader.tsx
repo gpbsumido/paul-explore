@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import type { CalendarView, Calendar } from "@/types/calendar";
+// Calendar type retained for the onSave cast below
 import { VIEWS, VIEW_LABELS, formatHeading } from "@/lib/calendar";
 import { Button, IconButton } from "@/components/ui";
 import { useGoogleCalendarStatus } from "@/hooks/useGoogleCalendarStatus";
@@ -33,12 +34,8 @@ export default function CalendarHeader({
 }: CalendarHeaderProps) {
   const { connected } = useGoogleCalendarStatus();
   const queryClient = useQueryClient();
-  const { calendars, createCalendar, updateCalendar, deleteCalendar } =
-    useCalendars();
+  const { calendars, createCalendar } = useCalendars();
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
-  const [editingCalendar, setEditingCalendar] = useState<Calendar | undefined>(
-    undefined,
-  );
   const [banner, setBanner] = useState<{
     message: string;
     variant: "success" | "warning";
@@ -57,8 +54,6 @@ export default function CalendarHeader({
     // view gets fresh data after a manual sync trigger
     queryClient.invalidateQueries({ queryKey: ["calendar", "events"] });
   }
-
-  const selectedCalendar = calendars.find((c) => c.id === selectedCalendarId);
 
   return (
     <div className="mb-6 space-y-2">
@@ -95,63 +90,9 @@ export default function CalendarHeader({
         </div>
       )}
 
-      {/* Calendar selector row — only shown once calendars have loaded */}
-      {calendars.length > 0 && (
-        <div className="flex items-center gap-2">
-          {calendars.length === 1 ? (
-            <span className="flex items-center gap-1.5 text-xs text-muted">
-              <span
-                className="inline-block w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: calendars[0].color }}
-              />
-              {calendars[0].name}
-            </span>
-          ) : (
-            <div className="relative">
-              <select
-                value={selectedCalendarId ?? ""}
-                onChange={(e) => onSelectCalendar(e.target.value || null)}
-                className="appearance-none pl-5 pr-6 py-0.5 text-xs rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer"
-              >
-                <option value="">All calendars</option>
-                {calendars.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              {selectedCalendar && (
-                <span
-                  className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 inline-block w-2 h-2 rounded-full"
-                  style={{ backgroundColor: selectedCalendar.color }}
-                />
-              )}
-            </div>
-          )}
-          {/* "+" button to open CalendarModal in create mode */}
-          <button
-            onClick={() => {
-              setEditingCalendar(undefined);
-              setCalendarModalOpen(true);
-            }}
-            aria-label="New calendar"
-            className="flex items-center justify-center w-4 h-4 rounded-full text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-          >
-            <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-              <path
-                d="M4 1v6M1 4h6"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-      )}
-
-      {/* Controls row — navigation + links + view switcher */}
+      {/* Controls row — navigation + calendar selector + links + view switcher */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Left: prev/today/next */}
+        {/* Left: prev/today/next + calendar name/selector + new-calendar button */}
         <div className="flex items-center gap-2">
           <IconButton aria-label="Previous" onClick={() => onNavigate(-1)}>
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
@@ -180,6 +121,59 @@ export default function CalendarHeader({
               />
             </svg>
           </IconButton>
+
+          {/* Calendar name/selector inline after nav — no extra row, no CLS */}
+          <div className="hidden sm:block h-4 w-px bg-border" />
+          {calendars.length === 1 ? (
+            <span className="hidden sm:flex items-center gap-1.5 text-xs text-muted">
+              <span
+                className="inline-block w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: calendars[0].color }}
+              />
+              {calendars[0].name}
+            </span>
+          ) : calendars.length > 1 ? (
+            <div className="hidden sm:block relative">
+              <select
+                value={selectedCalendarId ?? ""}
+                onChange={(e) => onSelectCalendar(e.target.value || null)}
+                className="appearance-none pl-5 pr-6 py-0.5 text-xs rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer"
+              >
+                <option value="">All calendars</option>
+                {calendars.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              {selectedCalendarId && (
+                <span
+                  className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 inline-block w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor: calendars.find((c) => c.id === selectedCalendarId)?.color,
+                  }}
+                />
+              )}
+            </div>
+          ) : null}
+          <button
+            onClick={() => {
+              setCalendarModalOpen(true);
+            }}
+            aria-label="New calendar"
+            title="New calendar"
+            className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          >
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+              <path
+                d="M4 1v6M1 4h6"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            Calendar
+          </button>
         </div>
 
         {/* Right: links + view switcher */}
@@ -283,24 +277,8 @@ export default function CalendarHeader({
 
       {calendarModalOpen && (
         <CalendarModal
-          calendar={editingCalendar}
-          onSave={async (fields) => {
-            if (editingCalendar) {
-              return updateCalendar(editingCalendar.id, fields);
-            }
-            return createCalendar(
-              fields as Pick<Calendar, "name" | "color" | "syncMode">,
-            );
-          }}
-          onDelete={
-            editingCalendar
-              ? async () => {
-                  await deleteCalendar(editingCalendar.id);
-                  if (selectedCalendarId === editingCalendar.id) {
-                    onSelectCalendar(null);
-                  }
-                }
-              : undefined
+          onSave={(fields) =>
+            createCalendar(fields as Pick<Calendar, "name" | "color" | "syncMode">)
           }
           onClose={() => setCalendarModalOpen(false)}
           onBanner={(message, variant) => setBanner({ message, variant })}
