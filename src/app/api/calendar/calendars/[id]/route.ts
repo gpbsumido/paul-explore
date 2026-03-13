@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { auth0 } from "@/lib/auth0";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 
 // PUT /api/calendar/calendars/:id
 export async function PUT(
@@ -10,9 +8,10 @@ export async function PUT(
 ) {
   const { id } = await params;
 
-  let token: string | undefined;
+  let token: string;
+  let email: string | null;
   try {
-    ({ token } = await auth0.getAccessToken());
+    ({ token, email } = await getBackendAuth());
   } catch (err) {
     console.error("[calendars BFF] PUT — getAccessToken failed:", err);
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -23,10 +22,7 @@ export async function PUT(
   try {
     const res = await fetch(`${API_URL}/api/calendar/calendars/${id}`, {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
     if (!res.ok) {
@@ -49,9 +45,10 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
-  let token: string | undefined;
+  let token: string;
+  let email: string | null;
   try {
-    ({ token } = await auth0.getAccessToken());
+    ({ token, email } = await getBackendAuth());
   } catch (err) {
     console.error("[calendars BFF] DELETE — getAccessToken failed:", err);
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -60,7 +57,7 @@ export async function DELETE(
   try {
     const res = await fetch(`${API_URL}/api/calendar/calendars/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: buildHeaders(token, email),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Failed to delete calendar" }));

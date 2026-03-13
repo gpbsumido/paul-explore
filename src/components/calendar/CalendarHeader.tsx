@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { CalendarView, Calendar } from "@/types/calendar";
 // Calendar type retained for the onSave cast below
 import { VIEWS, VIEW_LABELS, formatHeading } from "@/lib/calendar";
-import { Button, IconButton } from "@/components/ui";
+import { Button, IconButton, InfoTip } from "@/components/ui";
 import { useGoogleCalendarStatus } from "@/hooks/useGoogleCalendarStatus";
 import { useCalendars } from "@/hooks/useCalendars";
 import CalendarModal from "@/components/calendar/CalendarModal";
@@ -318,24 +318,32 @@ export default function CalendarHeader({
               )}
             </div>
           ) : null}
-          <button
-            onClick={() => {
-              setCalendarModalOpen(true);
-            }}
-            aria-label="New calendar"
-            title="New calendar"
-            className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-          >
-            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
-              <path
-                d="M4 1v6M1 4h6"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            Calendar
-          </button>
+          <span className="hidden sm:inline-flex items-center gap-1">
+            <button
+              onClick={() => {
+                setCalendarModalOpen(true);
+              }}
+              aria-label="New calendar"
+              title="New calendar"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            >
+              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+                <path
+                  d="M4 1v6M1 4h6"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Calendar
+            </button>
+            <InfoTip maxWidth={240} side="bottom">
+              Calendars organize your events. Each calendar has its own color and sync mode.
+              Hover over a calendar name to edit it or manage sharing.
+              {"\n\n"}
+              Sync modes: Local only (app only), Push (import from Google, read-only), Two-way (full sync with Google Calendar).
+            </InfoTip>
+          </span>
         </div>
 
         {/* Right: links + view switcher */}
@@ -348,13 +356,16 @@ export default function CalendarHeader({
             Events
           </Link>
           <div className="hidden sm:block h-4 w-px bg-border" />
-          <span className="hidden sm:inline-flex items-center gap-1">
+          <span className="hidden sm:inline-flex items-center gap-1.5">
             <Link
               href="/calendar/countdown"
               className="text-xs text-muted hover:text-foreground transition-colors"
             >
               Countdowns
             </Link>
+            <InfoTip maxWidth={220} side="bottom">
+              Countdowns track time until a specific date — like a trip, exam, or deadline. They show on the calendar grid as chips and have their own dedicated page.
+            </InfoTip>
             {onNewCountdown && (
               <button
                 onClick={onNewCountdown}

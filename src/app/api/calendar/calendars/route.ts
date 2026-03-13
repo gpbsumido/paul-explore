@@ -1,13 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { auth0 } from "@/lib/auth0";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 
 // GET /api/calendar/calendars
 export async function GET() {
-  let token: string | undefined;
+  let token: string;
+  let email: string | null;
   try {
-    ({ token } = await auth0.getAccessToken());
+    ({ token, email } = await getBackendAuth());
   } catch (err) {
     console.error("[calendars BFF] GET — getAccessToken failed:", err);
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -15,7 +14,7 @@ export async function GET() {
 
   try {
     const res = await fetch(`${API_URL}/api/calendar/calendars`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: buildHeaders(token, email),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => null);
@@ -32,9 +31,10 @@ export async function GET() {
 
 // POST /api/calendar/calendars
 export async function POST(request: NextRequest) {
-  let token: string | undefined;
+  let token: string;
+  let email: string | null;
   try {
-    ({ token } = await auth0.getAccessToken());
+    ({ token, email } = await getBackendAuth());
   } catch (err) {
     console.error("[calendars BFF] POST — getAccessToken failed:", err);
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -45,10 +45,7 @@ export async function POST(request: NextRequest) {
   try {
     const res = await fetch(`${API_URL}/api/calendar/calendars`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
     if (!res.ok) {

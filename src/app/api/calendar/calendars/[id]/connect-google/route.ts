@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { auth0 } from "@/lib/auth0";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 
 // POST /api/calendar/calendars/:id/connect-google
 export async function POST(
@@ -10,9 +8,10 @@ export async function POST(
 ) {
   const { id } = await params;
 
-  let token: string | undefined;
+  let token: string;
+  let email: string | null;
   try {
-    ({ token } = await auth0.getAccessToken());
+    ({ token, email } = await getBackendAuth());
   } catch (err) {
     console.error("[calendars BFF] POST connect-google — getAccessToken failed:", err);
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -21,7 +20,7 @@ export async function POST(
   try {
     const res = await fetch(`${API_URL}/api/calendar/calendars/${id}/connect-google`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: buildHeaders(token, email),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Failed to connect Google Calendar" }));

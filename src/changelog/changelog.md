@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-13 - version 0.4.18
+
+- created `src/lib/backendFetch.ts`: `getBackendAuth()` fetches the Auth0 access token, `buildHeaders()` assembles the Authorization header; all 12 calendar BFF routes migrated to use it — removes duplicated `getAccessToken()` boilerplate from every route
+- added `InfoTip` component to `src/components/ui`: ⓘ badge that shows a rich multi-line popover on hover using `position: fixed` + `getBoundingClientRect` to punch through `overflow: hidden` containers; supports `side="top"` (default) and `side="bottom"`
+- info tips added in `CalendarModal`: sync mode explainer (Local only / Push / Two-way) and invite explainer (account requirement + Editor vs Viewer role descriptions)
+- info tips added in `CalendarHeader`: calendar explainer next to the "+" button (pops below), countdowns explainer next to the Countdowns link (pops below)
+- fixed owner email not showing in Sharing tab: `upsertUser` middleware now reads `X-User-Email` header as fallback; Auth0 post-login Action is the primary fix (adds `email` claim to the access token); owner member row shows "You" when email is still null as a final fallback
+- updated `CalendarAboutContent.tsx`: added thread covering the Auth0 email claim problem, why it silently broke sharing, the JWT custom claim fix, the BFF header approach and why the signed claim is safer on a public backend, and the `backendFetch` utility extraction
+
 ## 2026-03-13 - version 0.4.16
 
 - added pencil icon (hover-reveal) to owned calendars in the header dropdown and single-calendar label; clicking opens `CalendarModal` in edit mode wired to `updateCalendar` and `deleteCalendar` — this is how you access the Sharing tab

@@ -976,6 +976,75 @@ differenceInCalendarDays(new Date("2026-03-28T00:00:00"), new Date())`}
 
         <Timestamp>11:52 AM</Timestamp>
 
+        <Received>
+          how does the sharing ui know who to show in the member list
+        </Received>
+
+        <Sent pos="first">
+          the backend has a <code>users</code> table. every authenticated
+          request runs an <code>upsertUser</code> middleware that writes{" "}
+          <code>(sub, email)</code> from the JWT. when you open the sharing
+          tab it fetches <code>GET /members/:id</code>, which synthesizes the
+          owner entry from <code>getUserBySub</code> and returns the rest from{" "}
+          <code>calendar_members</code>
+        </Sent>
+        <Sent pos="last">
+          the invite flow works the same way in reverse:{" "}
+          <code>getUserByEmail</code> looks up the invitee in the users table.
+          if they haven&apos;t logged in yet, they won&apos;t be there and you
+          get a generic &ldquo;no account found&rdquo; error — no enumeration
+          risk
+        </Sent>
+
+        <Received>
+          wait so if the email isn&apos;t in the jwt the whole thing breaks?
+        </Received>
+
+        <Sent pos="first">
+          yes — and that&apos;s exactly what happened. Auth0 doesn&apos;t
+          include <code>email</code> in the access token by default. the ID
+          token has it, but the backend only sees the access token. so{" "}
+          <code>req.auth.payload.email</code> was undefined,{" "}
+          <code>upsertUser</code> silently bailed out, and nobody ever made it
+          into the users table
+        </Sent>
+        <Sent pos="middle">
+          the fix: a post-login Action in Auth0 that calls{" "}
+          <code>
+            api.accessToken.setCustomClaim(&ldquo;email&rdquo;,
+            event.user.email)
+          </code>
+          . one Action, one line. after a fresh login the claim is in the
+          token, upsertUser fires, and sharing works
+        </Sent>
+        <Sent pos="last">
+          while debugging, I also added a BFF header approach —{" "}
+          <code>X-User-Email</code> forwarded from the Next.js session to the
+          backend. it works, but the backend is deployed on Railway with a
+          public URL, so anyone with a valid JWT could set their own email to
+          anything. the signed JWT claim is the right fix because it can&apos;t
+          be spoofed
+        </Sent>
+
+        <Received>what about the bff routes, any cleanup there</Received>
+
+        <Sent pos="first">
+          yeah. every BFF route was doing its own{" "}
+          <code>auth0.getAccessToken()</code> call and manually building the{" "}
+          <code>Authorization</code> header. twelve files, same three lines
+          each. extracted to <code>src/lib/backendFetch.ts</code>:{" "}
+          <code>getBackendAuth()</code> fetches the token,{" "}
+          <code>buildHeaders()</code> assembles the header object
+        </Sent>
+        <Sent pos="last">
+          it also made the email header experiment a one-line change across
+          all routes instead of twelve — and reverting it was the same. that
+          kind of centralization pays for itself the first time you need to
+          change something that touches every API call
+        </Sent>
+
+        <Timestamp>12:08 PM</Timestamp>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />

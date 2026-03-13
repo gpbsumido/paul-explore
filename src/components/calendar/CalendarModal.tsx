@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Modal, Input, Button, IconButton } from "@/components/ui";
+import { Modal, Input, Button, IconButton, InfoTip } from "@/components/ui";
 import type { Calendar } from "@/types/calendar";
 import { EVENT_COLORS } from "@/lib/calendar";
 import { LABEL_CLASS } from "@/components/ui/styles";
@@ -169,7 +169,9 @@ function SharingTab({
         <ul className="space-y-2">
           {members.map((m) => (
             <li key={m.userSub} className="flex items-center gap-2 min-w-0">
-              <span className="flex-1 text-xs truncate">{m.email}</span>
+              <span className="flex-1 text-xs truncate text-foreground">
+                {m.email ?? (m.role === "owner" && calendarRole === "owner" ? "You" : "—")}
+              </span>
               {calendarRole === "owner" && m.role !== "owner" ? (
                 <>
                   <div className="flex items-center rounded border border-border overflow-hidden shrink-0">
@@ -228,6 +230,16 @@ function SharingTab({
 
       {calendarRole === "owner" && (
         <div className="pt-3 border-t border-border space-y-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted">Invite by email</span>
+            <InfoTip maxWidth={240}>
+              The person must already have an account in this app. Share the link with them first so they can sign up.
+              {"\n\n"}
+              <strong>Editor</strong> — can create, edit, and delete events on this calendar.
+              {"\n\n"}
+              <strong>Viewer</strong> — can only see events, no changes.
+            </InfoTip>
+          </div>
           <div className="flex gap-2">
             <input
               type="email"
@@ -537,7 +549,16 @@ export default function CalendarModal({
           </div>
 
           <div>
-            <p className={LABEL_CLASS}>Sync</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <p className={LABEL_CLASS}>Sync</p>
+              <InfoTip maxWidth={260}>
+                <strong>Local only</strong> — events stay in this app only. No Google Calendar needed.
+                {"\n\n"}
+                <strong>Push</strong> — imports events from an existing Google Calendar into this app (read-only from Google).
+                {"\n\n"}
+                <strong>Two-way</strong> — creates a Google Calendar in your account and keeps both in sync. Changes made here or in Google Calendar appear in both places. Requires Google Calendar to be connected.
+              </InfoTip>
+            </div>
             <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
               {SYNC_OPTIONS.map(({ value, label }) => {
                 const isActive = syncMode === value;

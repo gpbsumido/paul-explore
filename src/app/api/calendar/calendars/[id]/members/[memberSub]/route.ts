@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { auth0 } from "@/lib/auth0";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 
 /** PUT /api/calendar/calendars/:id/members/:memberSub — body: { role } → { member } */
 export async function PUT(
@@ -11,9 +9,10 @@ export async function PUT(
   // Next.js decodes dynamic segments automatically — use as-is when forwarding
   const { id, memberSub } = await params;
 
-  let token: string | undefined;
+  let token: string;
+  let email: string | null;
   try {
-    ({ token } = await auth0.getAccessToken());
+    ({ token, email } = await getBackendAuth());
   } catch (err) {
     console.error("[members BFF] PUT — getAccessToken failed:", err);
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -26,10 +25,7 @@ export async function PUT(
       `${API_URL}/api/calendar/calendars/${id}/members/${encodeURIComponent(memberSub)}`,
       {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
         body: JSON.stringify(body),
       },
     );
@@ -55,9 +51,10 @@ export async function DELETE(
 ) {
   const { id, memberSub } = await params;
 
-  let token: string | undefined;
+  let token: string;
+  let email: string | null;
   try {
-    ({ token } = await auth0.getAccessToken());
+    ({ token, email } = await getBackendAuth());
   } catch (err) {
     console.error("[members BFF] DELETE — getAccessToken failed:", err);
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -68,7 +65,7 @@ export async function DELETE(
       `${API_URL}/api/calendar/calendars/${id}/members/${encodeURIComponent(memberSub)}`,
       {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: buildHeaders(token, email),
       },
     );
     if (!res.ok) {
