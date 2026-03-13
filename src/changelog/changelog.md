@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.7
+
+- added `src/components/calendar/CalendarModal.tsx` with `CalendarModalSkeleton` export: name input, color swatch picker (same pattern as EventModal), three-option sync mode strip (Two-way disabled with tooltip when Google is not connected), connected badge with Disconnect button in edit mode, create-notice when two_way is selected with no linked calendar, inline confirm for delete; on save with syncMode=two_way and no googleCalId, automatically calls POST connect-google to create the dedicated calendar
+- added BFF `DELETE /api/calendar/calendars/[id]/google/route.ts` proxying to the backend disconnect endpoint
+
 ## 2026-03-12 - version 0.4.6
 
 - added `Calendar` type to `src/types/calendar.ts` with `id`, `name`, `color`, `syncMode` (`none | push | two_way`), and optional `googleCalId`/`googleCalName`
