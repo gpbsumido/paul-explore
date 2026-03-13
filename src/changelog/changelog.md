@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-12 - version 0.4.10
+
+- added multi-calendar thread to `src/app/thoughts/calendar/CalendarAboutContent.tsx`: covers why a `calendars` table was needed over per-event sync config, the three sync modes (`none`/`push`/`two_way`) and when to use each, how two_way automatically creates the Google Calendar and registers a per-calendar watch channel, the `userId:calId` channel token format for routing webhook notifications to the right calendar, and the import-vs-filter difference between push and two_way
+
 ## 2026-03-12 - version 0.4.9
 
 - updated `CalendarModal`: when syncMode is `two_way` and the saved calendar has no `googleCalId`, replaces the modal body with `CalendarModalSkeleton` + "Connecting to Google Calendar…" message while the `POST connect-google` request is in-flight; on success calls `onBanner` with a success message then closes; on failure calls `onBanner` with a warning (calendar is already saved, user can retry by editing) then closes; same flow applies in edit mode when changing syncMode to `two_way`; added `onBanner` prop

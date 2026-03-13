@@ -812,6 +812,97 @@ differenceInCalendarDays(new Date("2026-03-28T00:00:00"), new Date())`}
 
         <Timestamp>11:22 AM</Timestamp>
 
+        <Received pos="first">what did you add after that</Received>
+        <Received pos="last">besides the countdowns</Received>
+
+        <Sent pos="first">
+          multi-calendar support. instead of every event living in one flat
+          bucket, users can create named calendars with individual colors and
+          Google sync settings
+        </Sent>
+        <Sent pos="last">
+          each calendar has a <code>syncMode</code>: <code>none</code> keeps it
+          local only, <code>push</code> is the original one-way behavior, and{" "}
+          <code>two_way</code> creates a dedicated Google Calendar and registers
+          its own webhook channel
+        </Sent>
+
+        <Received>
+          why a calendars table, why not just put sync config on the event
+        </Received>
+
+        <Sent pos="first">
+          sync config belongs to the calendar, not the event. if you have a work
+          calendar and a personal one they need different{" "}
+          <code>google_cal_id</code>s and different sync modes. duplicating that
+          on every event row would be wrong and impossible to update atomically
+        </Sent>
+        <Sent pos="last">
+          the FK also gives you cascade delete for free. remove a calendar and
+          all its events go with it. without a parent table you end up with
+          parallel arrays and no clean join path
+        </Sent>
+
+        <Received>
+          walk me through two_way -- what actually happens when you save
+        </Received>
+
+        <Sent pos="first">
+          you name the calendar, pick two-way, hit save. the backend creates the
+          calendar row, then calls <code>POST /calendar/v3/calendars</code> to
+          create it in your Google account, then registers a watch channel scoped
+          to just that calendar. nothing to set up in Google first
+        </Sent>
+        <Sent pos="middle">
+          the calendar shows up in your Google Calendar list a few seconds after
+          saving. events you create here push to it. events you add on your phone
+          in Google come back here automatically
+        </Sent>
+        <Sent pos="last">
+          the modal shows a skeleton and a &quot;Connecting to Google
+          Calendar&hellip;&quot; message while the channel registration is in
+          flight. on success you get a green banner. if the connect step fails
+          the calendar is still saved and you get a warning telling you to edit
+          it and retry
+        </Sent>
+
+        <Received>
+          how do you handle multiple two_way calendars at once
+        </Received>
+
+        <Sent pos="first">
+          each calendar gets its own watch channel. the channel token used to be
+          just the <code>userId</code>. it is now <code>userId:calId</code> so
+          when Google fires a notification the webhook handler splits on the
+          colon and looks up which calendar row to read and update the sync token
+          on
+        </Sent>
+        <Sent pos="last">
+          one user with three two_way calendars has three live channels, three
+          sets of channel IDs and resource IDs stored in the{" "}
+          <code>calendars</code> table, and three separate expiry timers that the
+          cron job renews independently
+        </Sent>
+
+        <Received>
+          push and two_way both receive webhook notifications -- what is
+          different about them
+        </Received>
+
+        <Sent pos="first">
+          push calendars have always skipped events that are not already in our
+          database. that filter is what keeps Gmail calendar events and random
+          invites from showing up here
+        </Sent>
+        <Sent pos="last">
+          two_way calendars own their Google Calendar entirely, so the filter
+          inverts. a new event in that calendar gets imported regardless of
+          whether we created it. that is the whole point -- things you add on
+          your phone in Google need to come back here
+        </Sent>
+
+        <Timestamp>11:34 AM</Timestamp>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />
