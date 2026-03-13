@@ -31,6 +31,11 @@ interface CalendarModalProps {
   isSaving?: boolean;
   /** True while the delete mutation is in-flight. */
   isDeleting?: boolean;
+  /**
+   * Called just before the modal closes after a connect-google attempt, so the
+   * parent can display a result banner outside the modal.
+   */
+  onBanner?: (message: string, variant: "success" | "warning") => void;
 }
 
 // ---- Skeleton --------------------------------------------------------------
@@ -99,6 +104,7 @@ export default function CalendarModal({
   onClose,
   isSaving = false,
   isDeleting = false,
+  onBanner,
 }: CalendarModalProps) {
   const isEdit = !!calendar;
   const queryClient = useQueryClient();
@@ -136,25 +142,39 @@ export default function CalendarModal({
     try {
       const saved = await onSave({ name: name.trim(), color, syncMode });
 
-      // if two_way was chosen but there is no Google Calendar yet, create one now.
-      // non-fatal: the calendar is saved; the user can retry the connect later.
+      // Trigger connect-google when two_way is chosen but no calendar is linked yet.
+      // Applies to both create mode and edit mode (syncMode changed to two_way).
       if (syncMode === "two_way" && !saved.googleCalId) {
         setConnecting(true);
         try {
-          await fetch(`/api/calendar/calendars/${saved.id}/connect-google`, {
-            method: "POST",
-          });
+          const res = await fetch(
+            `/api/calendar/calendars/${saved.id}/connect-google`,
+            { method: "POST" },
+          );
+          if (!res.ok) throw new Error("connect failed");
           queryClient.invalidateQueries({
             queryKey: queryKeys.calendar.calendars(),
           });
+          onBanner?.(
+            isEdit
+              ? "Calendar updated and synced with Google."
+              : "Calendar created and synced with Google.",
+            "success",
+          );
+          onClose();
         } catch {
-          // intentionally swallowed
+          // Calendar is already saved; connect failure is non-fatal.
+          onBanner?.(
+            "Calendar saved but Google sync failed. You can retry by editing the calendar.",
+            "warning",
+          );
+          onClose();
         } finally {
           setConnecting(false);
         }
+      } else {
+        onClose();
       }
-
-      onClose();
     } catch {
       setSaveError("Couldn't save the calendar. Please try again.");
     }
@@ -219,7 +239,16 @@ export default function CalendarModal({
         </IconButton>
       </div>
 
-      <div className="space-y-4">
+      {connecting ? (
+        <div>
+          <CalendarModalSkeleton />
+          <p className="mt-3 text-center text-xs text-muted">
+            Connecting to Google Calendar…
+          </p>
+        </div>
+      ) : null}
+
+      <div className={connecting ? "hidden" : "space-y-4"}>
         {/* Name */}
         <Input
           label="Name"
@@ -347,8 +376,8 @@ export default function CalendarModal({
         )}
       </div>
 
-      {/* action row */}
-      <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
+      {/* action row — hidden while the connect-google POST is running */}
+      <div className={connecting ? "hidden" : "flex items-center justify-between mt-5 pt-4 border-t border-border"}>
         {isEdit && onDelete ? (
           confirmDelete ? (
             <div className="flex items-center gap-2">

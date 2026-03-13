@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import type { CalendarView, Calendar } from "@/types/calendar";
@@ -39,6 +39,18 @@ export default function CalendarHeader({
   const [editingCalendar, setEditingCalendar] = useState<Calendar | undefined>(
     undefined,
   );
+  const [banner, setBanner] = useState<{
+    message: string;
+    variant: "success" | "warning";
+  } | null>(null);
+
+  // Auto-dismiss the banner after 5 seconds. The timeout is reset whenever
+  // a new banner arrives so rapid create/edit actions don't get cut short.
+  useEffect(() => {
+    if (!banner) return;
+    const id = setTimeout(() => setBanner(null), 5000);
+    return () => clearTimeout(id);
+  }, [banner]);
 
   function handleSync() {
     // invalidates all calendar event queries regardless of range so every
@@ -54,6 +66,34 @@ export default function CalendarHeader({
       <h2 className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums tracking-tight leading-none">
         {formatHeading(currentDate, view)}
       </h2>
+
+      {/* Connect-google result banner — auto-dismissed after 5 s */}
+      {banner && (
+        <div
+          className={[
+            "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs",
+            banner.variant === "success"
+              ? "bg-green-500/10 text-green-700 dark:text-green-400"
+              : "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+          ].join(" ")}
+        >
+          <span>{banner.message}</span>
+          <button
+            onClick={() => setBanner(null)}
+            aria-label="Dismiss"
+            className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path
+                d="M1 1l8 8M9 1L1 9"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Calendar selector row — only shown once calendars have loaded */}
       {calendars.length > 0 && (
@@ -263,6 +303,7 @@ export default function CalendarHeader({
               : undefined
           }
           onClose={() => setCalendarModalOpen(false)}
+          onBanner={(message, variant) => setBanner({ message, variant })}
         />
       )}
     </div>
