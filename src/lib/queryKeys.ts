@@ -17,7 +17,7 @@ export const queryKeys = {
      * Calendar events for a specific date window. Keyed by start and end
      * so navigating months never serves stale data for the wrong range.
      */
-    events: (range: { start: string; end: string }) =>
+    events: (range: { start: string; end: string; calendarId?: string }) =>
       ["calendar", "events", range] as const,
 
     /**

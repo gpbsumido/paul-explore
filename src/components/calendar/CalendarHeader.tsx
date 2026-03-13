@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
-import type { CalendarView } from "@/types/calendar";
+import type { CalendarView, Calendar } from "@/types/calendar";
 import { VIEWS, VIEW_LABELS, formatHeading } from "@/lib/calendar";
 import { Button, IconButton } from "@/components/ui";
 import { useGoogleCalendarStatus } from "@/hooks/useGoogleCalendarStatus";
+import { useCalendars } from "@/hooks/useCalendars";
+import CalendarModal from "@/components/calendar/CalendarModal";
 
 interface CalendarHeaderProps {
   currentDate: Date;
@@ -14,6 +17,8 @@ interface CalendarHeaderProps {
   onViewChange: (view: CalendarView) => void;
   onToday: () => void;
   onNewCountdown?: () => void;
+  selectedCalendarId: string | null;
+  onSelectCalendar: (id: string | null) => void;
 }
 
 export default function CalendarHeader({
@@ -23,9 +28,17 @@ export default function CalendarHeader({
   onViewChange,
   onToday,
   onNewCountdown,
+  selectedCalendarId,
+  onSelectCalendar,
 }: CalendarHeaderProps) {
   const { connected } = useGoogleCalendarStatus();
   const queryClient = useQueryClient();
+  const { calendars, createCalendar, updateCalendar, deleteCalendar } =
+    useCalendars();
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [editingCalendar, setEditingCalendar] = useState<Calendar | undefined>(
+    undefined,
+  );
 
   function handleSync() {
     // invalidates all calendar event queries regardless of range so every
@@ -33,12 +46,68 @@ export default function CalendarHeader({
     queryClient.invalidateQueries({ queryKey: ["calendar", "events"] });
   }
 
+  const selectedCalendar = calendars.find((c) => c.id === selectedCalendarId);
+
   return (
     <div className="mb-6 space-y-2">
       {/* Big heading row — this is the visual anchor of the whole view */}
       <h2 className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums tracking-tight leading-none">
         {formatHeading(currentDate, view)}
       </h2>
+
+      {/* Calendar selector row — only shown once calendars have loaded */}
+      {calendars.length > 0 && (
+        <div className="flex items-center gap-2">
+          {calendars.length === 1 ? (
+            <span className="flex items-center gap-1.5 text-xs text-muted">
+              <span
+                className="inline-block w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: calendars[0].color }}
+              />
+              {calendars[0].name}
+            </span>
+          ) : (
+            <div className="relative">
+              <select
+                value={selectedCalendarId ?? ""}
+                onChange={(e) => onSelectCalendar(e.target.value || null)}
+                className="appearance-none pl-5 pr-6 py-0.5 text-xs rounded border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-foreground/20 cursor-pointer"
+              >
+                <option value="">All calendars</option>
+                {calendars.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              {selectedCalendar && (
+                <span
+                  className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 inline-block w-2 h-2 rounded-full"
+                  style={{ backgroundColor: selectedCalendar.color }}
+                />
+              )}
+            </div>
+          )}
+          {/* "+" button to open CalendarModal in create mode */}
+          <button
+            onClick={() => {
+              setEditingCalendar(undefined);
+              setCalendarModalOpen(true);
+            }}
+            aria-label="New calendar"
+            className="flex items-center justify-center w-4 h-4 rounded-full text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          >
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+              <path
+                d="M4 1v6M1 4h6"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Controls row — navigation + links + view switcher */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -171,6 +240,31 @@ export default function CalendarHeader({
           </div>
         </div>
       </div>
+
+      {calendarModalOpen && (
+        <CalendarModal
+          calendar={editingCalendar}
+          onSave={async (fields) => {
+            if (editingCalendar) {
+              return updateCalendar(editingCalendar.id, fields);
+            }
+            return createCalendar(
+              fields as Pick<Calendar, "name" | "color" | "syncMode">,
+            );
+          }}
+          onDelete={
+            editingCalendar
+              ? async () => {
+                  await deleteCalendar(editingCalendar.id);
+                  if (selectedCalendarId === editingCalendar.id) {
+                    onSelectCalendar(null);
+                  }
+                }
+              : undefined
+          }
+          onClose={() => setCalendarModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

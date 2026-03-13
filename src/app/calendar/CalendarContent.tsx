@@ -21,6 +21,7 @@ import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useCountdowns } from "@/hooks/useCountdowns";
+import { useCalendars } from "@/hooks/useCalendars";
 import type {
   CalendarView,
   CalendarEvent,
@@ -67,6 +68,13 @@ export default function CalendarContent({
   const [countdownModal, setCountdownModal] = useState<CountdownModalState>({
     open: false,
   });
+  const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
+
+  const { calendars } = useCalendars();
+
+  // null means "use first calendar". Derive the effective id so no effect is
+  // needed — the first render after calendars load will pick up the right value.
+  const effectiveCalendarId = selectedCalendarId ?? calendars[0]?.id ?? null;
 
   // calculate fetch window
   const { start, end } = useMemo(() => {
@@ -94,7 +102,7 @@ export default function CalendarContent({
     }
   }, [currentDate, view]);
 
-  const calendarEvents = useCalendarEvents({ start, end, initialEvents });
+  const calendarEvents = useCalendarEvents({ start, end, calendarId: effectiveCalendarId, initialEvents });
 
   // Countdowns don't need a date window — they're all fetched at once and
   // filtered client-side per day. No SSR seed needed here because the
@@ -200,6 +208,8 @@ export default function CalendarContent({
         onViewChange={setView}
         onToday={handleToday}
         onNewCountdown={() => openNewCountdownModal()}
+        selectedCalendarId={effectiveCalendarId}
+        onSelectCalendar={setSelectedCalendarId}
       />
 
       {calendarEvents.error && (
