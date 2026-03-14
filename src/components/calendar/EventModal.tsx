@@ -14,6 +14,7 @@ import {
   updateEventCard,
   removeCardFromEvent,
 } from "@/lib/calendar";
+import { queryKeys } from "@/lib/queryKeys";
 import { LABEL_CLASS } from "@/components/ui/styles";
 import CardSearch from "./CardSearch";
 import AttachedCardsList from "./AttachedCardsList";
@@ -99,7 +100,7 @@ export default function EventModal({
    * in the background.
    */
   const cardQuery = useQuery<EventCard[]>({
-    queryKey: ["calendar", "events", event?.id, "cards"],
+    queryKey: queryKeys.calendar.eventCards(event?.id ?? ""),
     queryFn: () =>
       fetch(`/api/calendar/events/${event!.id}/cards`)
         .then((r) => r.json())

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui";
 import { type CardResume } from "@/lib/tcg";
 import { useDebounce } from "@/hooks/useDebounce";
+import { queryKeys } from "@/lib/queryKeys";
 
 /** Max results to show in the dropdown — keeps it from getting unwieldy. */
 const DROPDOWN_LIMIT = 5;
@@ -30,7 +31,7 @@ export default function CardSearch({ onSelectCard }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const searchQuery = useQuery<CardResume[]>({
-    queryKey: ["tcg", "cards", "search", debouncedQuery],
+    queryKey: queryKeys.tcg.search(debouncedQuery),
     queryFn: ({ signal }) =>
       fetch(
         `/api/tcg/cards?q=${encodeURIComponent(debouncedQuery.trim())}&page=1`,

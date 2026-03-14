@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-14 - version 0.4.19
+
+- added `queryKeys.calendar.eventCards(eventId)` to `src/lib/queryKeys.ts`: factory for the event card attachment query; fixes `EventModal` which was using a hard-coded `["calendar", "events", event?.id, "cards"]` key outside the factory
+- added `queryKeys.tcg.search(query)` to `src/lib/queryKeys.ts`: separate from `tcg.cards` (the browse page key) since modal card search has no type/set filters and shouldn't share a cache with the browse page
+- updated `src/components/calendar/EventModal.tsx`: replaced hand-written query key with `queryKeys.calendar.eventCards(event?.id ?? "")`
+- updated `src/components/calendar/CardSearch.tsx`: replaced hand-written `["tcg", "cards", "search", debouncedQuery]` key with `queryKeys.tcg.search(debouncedQuery)`
+- updated `src/app/landing/HeroSection.tsx`: added `loading: () => null` to the `next/dynamic` HeroScene import; the scene is a decorative background so there's nothing to hold space for while the chunk downloads, but omitting `loading` entirely throws to the nearest Suspense boundary on slow connections
+- added `src/app/protected/vitals/loading.tsx`: route-segment skeleton for the vitals dashboard that matches VitalsContent's exact layout (sticky nav, 5 metric cards on the same grid breakpoints, by-page table with header and rows, improvements grid); previously this async server component had no skeleton and would show a blank page during the parallel backend fetches
+
 ## 2026-03-13 - version 0.4.18
 
 - created `src/lib/backendFetch.ts`: `getBackendAuth()` fetches the Auth0 access token, `buildHeaders()` assembles the Authorization header; all 12 calendar BFF routes migrated to use it — removes duplicated `getAccessToken()` boilerplate from every route
