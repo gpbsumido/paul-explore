@@ -4,7 +4,12 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 // Three.js touches window/canvas immediately on import so it has to be
 // client-only. ssr:false keeps it out of the server render entirely.
-const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
+// loading:null is intentional, the scene is a decorative background so
+// there's nothing to hold space for while the JS chunk loads.
+const HeroScene = dynamic(() => import("./HeroScene"), {
+  ssr: false,
+  loading: () => null,
+});
 
 // Applied to each hero text element so they fade up on load.
 const heroReveal =

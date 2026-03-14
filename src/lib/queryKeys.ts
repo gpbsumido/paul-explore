@@ -44,6 +44,13 @@ export const queryKeys = {
     /** Members of a specific calendar. Keyed by calendar ID. */
     calendarMembers: (calendarId: string) =>
       ["calendar", "members", calendarId] as const,
+
+    /**
+     * TCG cards attached to a specific event. Keyed by event ID so opening
+     * different events never shares a cache entry.
+     */
+    eventCards: (eventId: string) =>
+      ["calendar", "events", eventId, "cards"] as const,
   },
 
   nba: {
@@ -68,6 +75,13 @@ export const queryKeys = {
      */
     cards: (params: { q?: string; type?: string; setId?: string }) =>
       ["tcg", "cards", params] as const,
+
+    /**
+     * Debounced card search used in the event modal card picker. Separate
+     * from tcg.cards because this is a simple string query with no filters,
+     * and we don't want modal searches polluting the browse page cache.
+     */
+    search: (query: string) => ["tcg", "cards", "search", query] as const,
   },
 
   graphql: {
