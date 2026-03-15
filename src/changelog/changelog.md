@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.7
+
+- rewrote `src/app/landing/AuthSection.tsx`: replaced `useInView` hook + `reveal()` CSS classes with Framer Motion bilateral split
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - left column (`motion.div`) slides in from left using `slideInLeft` variant + `spring.smooth`
+  - right column (`motion.div`) slides in from right using `slideInRight` variant + `spring.smooth` at `delay: 0.1`
+  - added animated SVG lock icon above the heading: shackle arc draws via `pathLength: 0 → 1` (0.45s tween), body outline draws after at `delay: 0.35`, keyhole dot fades in at `delay: 0.65` — fully sequenced before the slide-in reads as complete
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+  - `useReducedMotion()` check: passes `instantTransition` to all motion elements; SVG paths skip to `pathLength: 1` with `duration: 0`
+
 ## 2026-03-15 - version 0.5.6
 
 - rewrote `src/app/landing/FeaturesSection.tsx`: replaced `useInView` hook + `reveal()` CSS class pattern with Framer Motion
