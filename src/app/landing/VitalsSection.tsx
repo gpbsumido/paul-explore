@@ -40,7 +40,7 @@ export default function VitalsSection() {
   const [ref, visible] = useInView();
 
   return (
-    <Section className="bg-gradient-to-br from-green-950 to-neutral-900 dark:from-green-950 dark:to-neutral-950">
+    <Section className="bg-gradient-to-br from-green-950 to-neutral-900">
       <div ref={ref as RefObject<HTMLDivElement>}>
         <h2
           className={`text-center text-3xl font-bold tracking-tight text-white md:text-4xl ${reveal(visible)}`}

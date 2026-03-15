@@ -6,15 +6,15 @@ export default function DesignSection() {
   const [ref, visible] = useInView();
 
   return (
-    <Section className="bg-background">
+    <Section className="bg-black">
       <div ref={ref as RefObject<HTMLDivElement>}>
         <h2
-          className={`text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl ${reveal(visible)}`}
+          className={`text-center text-3xl font-bold tracking-tight text-white md:text-4xl ${reveal(visible)}`}
         >
           Design System
         </h2>
         <p
-          className={`mx-auto mt-3 max-w-lg text-center text-muted ${reveal(visible, "delay-100")}`}
+          className={`mx-auto mt-3 max-w-lg text-center text-white/70 ${reveal(visible, "delay-100")}`}
         >
           A token-driven palette with semantic color aliases, consistent
           spacing, and theme toggling.
@@ -38,7 +38,7 @@ export default function DesignSection() {
           ].map(([bg, label]) => (
             <div key={label} className="flex flex-col items-center gap-1">
               <div className={`h-10 w-10 rounded-lg ${bg} shadow-sm`} />
-              <span className="text-[10px] text-muted">{label}</span>
+              <span className="text-[10px] text-white/50">{label}</span>
             </div>
           ))}
         </div>
@@ -50,7 +50,7 @@ export default function DesignSection() {
           <span className="inline-flex items-center rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background">
             Primary
           </span>
-          <span className="inline-flex items-center rounded-full border border-border bg-surface px-5 py-2 text-sm font-medium text-foreground">
+          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/5 px-5 py-2 text-sm font-medium text-white">
             Secondary
           </span>
           <span className="inline-flex items-center rounded-full bg-primary-500 px-5 py-2 text-sm font-medium text-white">
@@ -68,7 +68,7 @@ export default function DesignSection() {
           {(["sm", "md", "lg", "xl", "2xl", "full"] as const).map((r) => (
             <div
               key={r}
-              className={`flex h-14 w-14 items-center justify-center border border-border bg-surface-raised text-[10px] text-muted shadow-sm rounded-${r}`}
+              className={`flex h-14 w-14 items-center justify-center border border-white/10 bg-white/5 text-[10px] text-white/50 shadow-sm rounded-${r}`}
             >
               {r}
             </div>

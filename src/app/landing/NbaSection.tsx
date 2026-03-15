@@ -18,14 +18,14 @@ function StatRow({
   odd?: boolean;
 }) {
   return (
-    <tr className={odd ? "bg-surface-raised/50" : ""}>
-      <td className="px-3 py-2 text-sm font-medium text-foreground">{name}</td>
-      <td className="px-3 py-2 text-sm text-muted">{team}</td>
-      <td className="px-3 py-2 text-right text-sm font-semibold text-primary-500">
+    <tr className={odd ? "bg-white/5" : ""}>
+      <td className="px-3 py-2 text-sm font-medium text-white">{name}</td>
+      <td className="px-3 py-2 text-sm text-white/60">{team}</td>
+      <td className="px-3 py-2 text-right text-sm font-semibold text-primary-400">
         {pts}
       </td>
-      <td className="px-3 py-2 text-right text-sm text-foreground">{reb}</td>
-      <td className="px-3 py-2 text-right text-sm text-foreground">{ast}</td>
+      <td className="px-3 py-2 text-right text-sm text-white">{reb}</td>
+      <td className="px-3 py-2 text-right text-sm text-white">{ast}</td>
     </tr>
   );
 }
@@ -34,7 +34,7 @@ export default function NbaSection() {
   const [ref, visible] = useInView();
 
   return (
-    <Section className="bg-gradient-to-br from-secondary-600 to-primary-700 dark:from-secondary-900 dark:to-primary-950">
+    <Section className="bg-gradient-to-br from-secondary-900 to-primary-950">
       <div ref={ref as RefObject<HTMLDivElement>}>
         <h2
           className={`text-center text-3xl font-bold tracking-tight text-white md:text-4xl ${reveal(visible)}`}

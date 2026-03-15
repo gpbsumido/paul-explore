@@ -17,14 +17,14 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border border-border bg-surface p-6 ${reveal(visible, delay)}`}
+      className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 ${reveal(visible, delay)}`}
     >
       {/* opacity + scale change on hover -- only watch those two properties */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 opacity-0 transition-[opacity,transform] duration-500 group-hover:scale-100 group-hover:opacity-100" />
       <div className="relative z-10">
         <span className="text-3xl">{icon}</span>
-        <h3 className="mt-3 text-lg font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>
+        <h3 className="mt-3 text-lg font-semibold text-white">{title}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-white/60">{description}</p>
       </div>
     </div>
   );
@@ -34,7 +34,7 @@ export default function FeaturesSection() {
   const [ref, visible] = useInView();
 
   return (
-    <Section className="bg-neutral-950 text-neutral-50 dark:bg-neutral-100 dark:text-neutral-950">
+    <Section className="bg-neutral-950 text-neutral-50">
       <div ref={ref as RefObject<HTMLDivElement>}>
         <h2
           className={`text-center text-3xl font-bold tracking-tight md:text-4xl ${reveal(visible)}`}
@@ -42,7 +42,7 @@ export default function FeaturesSection() {
           What I Built
         </h2>
         <p
-          className={`mx-auto mt-3 max-w-lg text-center text-neutral-400 dark:text-neutral-600 ${reveal(visible, "delay-100")}`}
+          className={`mx-auto mt-3 max-w-lg text-center text-neutral-400 ${reveal(visible, "delay-100")}`}
         >
           Authentication, design systems, live data, full-stack API integration,
           and real-user performance monitoring — all in one project.

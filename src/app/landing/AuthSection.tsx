@@ -6,42 +6,42 @@ export default function AuthSection() {
   const [ref, visible] = useInView();
 
   return (
-    <Section className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-950 dark:to-neutral-950">
+    <Section className="bg-gradient-to-br from-primary-950 to-neutral-950">
       <div
         ref={ref as RefObject<HTMLDivElement>}
         className="grid items-center gap-8 md:gap-12 md:grid-cols-2"
       >
         {/* left: text */}
         <div className={reveal(visible)}>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
             Auth & Security
           </h2>
-          <ul className="mt-6 space-y-4 text-muted">
+          <ul className="mt-6 space-y-4 text-white/70">
             <li className="flex items-start gap-3">
-              <span className="mt-0.5 text-primary-500">&#9654;</span>
+              <span className="mt-0.5 text-primary-400">&#9654;</span>
               <span>
-                <strong className="text-foreground">Auth0 SDK</strong> —
+                <strong className="text-white">Auth0 SDK</strong> —
                 session management with server-side token handling
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="mt-0.5 text-primary-500">&#9654;</span>
+              <span className="mt-0.5 text-primary-400">&#9654;</span>
               <span>
-                <strong className="text-foreground">CSP Headers</strong> —
+                <strong className="text-white">CSP Headers</strong> —
                 strict Content-Security-Policy via middleware
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="mt-0.5 text-primary-500">&#9654;</span>
+              <span className="mt-0.5 text-primary-400">&#9654;</span>
               <span>
-                <strong className="text-foreground">Proxy Middleware</strong>{" "}
+                <strong className="text-white">Proxy Middleware</strong>{" "}
                 — API calls proxied server-side to hide secrets
               </span>
             </li>
             <li className="flex items-start gap-3">
-              <span className="mt-0.5 text-primary-500">&#9654;</span>
+              <span className="mt-0.5 text-primary-400">&#9654;</span>
               <span>
-                <strong className="text-foreground">Route Protection</strong>{" "}
+                <strong className="text-white">Route Protection</strong>{" "}
                 — unauthenticated users redirected from private pages
               </span>
             </li>

@@ -53,7 +53,7 @@ export default function CalendarSection() {
   const [ref, visible] = useInView();
 
   return (
-    <Section className="bg-gradient-to-br from-teal-900 to-neutral-900 dark:from-teal-950 dark:to-neutral-950">
+    <Section className="bg-gradient-to-br from-teal-900 to-neutral-900">
       <div ref={ref as RefObject<HTMLDivElement>}>
         <h2
           className={`text-center text-3xl font-bold tracking-tight text-white md:text-4xl ${reveal(visible)}`}

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.3
+
+- wrapped `LandingContent` in `<div className="bg-black">` — landing page is now always dark regardless of the user's light/dark theme preference; app pages (`/protected`, `/calendar`, etc.) retain `bg-background` and are unaffected
+- **HeroSection**: `bg-background` → `bg-black`; `text-foreground` → `text-white`; `text-muted` → `text-white/70`
+- **FeaturesSection**: removed `dark:bg-neutral-100 dark:text-neutral-950` overrides (landing is always dark now); removed `dark:text-neutral-600` on subtitle; card `border-border bg-surface` → `border-white/10 bg-white/5`; card text `text-foreground` → `text-white`, `text-muted` → `text-white/60`
+- **AuthSection**: section gradient `from-primary-50 to-primary-100 dark:from-primary-950 dark:to-neutral-950` → `from-primary-950 to-neutral-950` (dark variant made permanent); `text-foreground` → `text-white`; `text-muted` → `text-white/70`; bullet icons `text-primary-500` → `text-primary-400` (more readable on dark)
+- **DesignSection**: `bg-background` → `bg-black`; heading and body text updated to `text-white`/`text-white/70`/`text-white/50`; secondary button `border-border bg-surface text-foreground` → `border-white/20 bg-white/5 text-white`; radius demo boxes `border-border bg-surface-raised text-muted` → `border-white/10 bg-white/5 text-white/50`
+- **NbaSection**: section gradient `from-secondary-600 to-primary-700 dark:from-secondary-900 dark:to-primary-950` → `from-secondary-900 to-primary-950`; `StatRow` — `bg-surface-raised/50` → `bg-white/5`; `text-foreground` → `text-white`; `text-muted` → `text-white/60`; pts column `text-primary-500` → `text-primary-400`
+- **TcgSection, CalendarSection, GraphQLSection, VitalsSection**: removed now-redundant `dark:` gradient overrides (all were identical to their light-mode values anyway on a dark page)
+- **FooterSection**: `bg-background` → `bg-black`; `text-foreground` → `text-white`; `text-muted` → `text-white/70`
+
 ## 2026-03-15 - version 0.5.2
 
 - rewrote `src/components/ui/Modal.tsx`: replaced CSS `animate-modal-enter` with Framer Motion `AnimatePresence`; backdrop fades in/out (`opacity 0→1`, 180ms), modal panel springs in with `spring.smooth` (`opacity 0, scale 0.95, y 12` → resting); glass styling applied — `rgba(15,15,15,0.88)` background, `blur(24px)` backdrop-filter, `rgba(255,255,255,0.12)` border; removed `bg-surface` class so the panel is no longer overridden by the CSS surface token

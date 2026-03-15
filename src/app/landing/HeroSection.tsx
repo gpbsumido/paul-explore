@@ -32,7 +32,7 @@ export default function HeroSection() {
         <ThemeToggle />
       </div>
 
-      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6 text-center">
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black px-6 text-center">
         {/* 3D wireframe shapes in the background, pointer events off so
             they don't interfere with any clicks on the hero content. */}
         <HeroScene />
@@ -43,12 +43,12 @@ export default function HeroSection() {
         <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-secondary-500/10 blur-3xl" />
 
         <h1
-          className={`${heroReveal} [animation-delay:100ms] relative z-10 text-5xl font-bold tracking-tight text-foreground md:text-7xl`}
+          className={`${heroReveal} [animation-delay:100ms] relative z-10 text-5xl font-bold tracking-tight text-white md:text-7xl`}
         >
           Paul Sumido Portfolio
         </h1>
         <p
-          className={`${heroReveal} [animation-delay:300ms] relative z-10 mt-4 max-w-md text-lg text-muted md:text-xl`}
+          className={`${heroReveal} [animation-delay:300ms] relative z-10 mt-4 max-w-md text-lg text-white/70 md:text-xl`}
         >
           A playground where I can test different styles and functionality.
         </p>

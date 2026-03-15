@@ -17,7 +17,7 @@ export default function TcgSection() {
   const [ref, visible] = useInView();
 
   return (
-    <Section className="bg-gradient-to-br from-neutral-900 to-red-950 dark:from-neutral-950 dark:to-red-950">
+    <Section className="bg-gradient-to-br from-neutral-900 to-red-950">
       <div ref={ref as RefObject<HTMLDivElement>}>
         <h2
           className={`text-center text-3xl font-bold tracking-tight text-white md:text-4xl ${reveal(visible)}`}

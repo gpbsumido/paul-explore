@@ -13,7 +13,7 @@ import FooterSection from "./landing/FooterSection";
 
 export default function LandingContent() {
   return (
-    <>
+    <div className="bg-black">
       <HeroSection />
       <FeaturesSection />
       <AuthSection />
@@ -24,6 +24,6 @@ export default function LandingContent() {
       <GraphQLSection />
       <VitalsSection />
       <FooterSection />
-    </>
+    </div>
   );
 }
