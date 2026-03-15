@@ -106,6 +106,37 @@
   --foreground: var(--color-foreground);
 
   /* ========================================
+     FEATURE PASTEL ACCENTS
+     One pastel per feature, used for card tints,
+     section glows, glass border accents, and chips.
+     All are Tailwind-200-level — readable on black,
+     distinct from each other.
+     ======================================== */
+  --color-feature-calendar:  #a7f3d0;
+  --color-feature-tcg:       #fecdd3;
+  --color-feature-nba:       #fde68a;
+  --color-feature-vitals:    #ddd6fe;
+  --color-feature-graphql:   #bfdbfe;
+  --color-feature-auth:      #fca5a5;
+  --color-feature-particles: #a5f3fc;
+  --color-feature-motion:    #d9f99d;
+  --color-feature-sync:      #bae6fd;
+
+  /* ========================================
+     GLASS SYSTEM
+     Standard glass card pattern:
+       background: var(--glass-bg)
+       backdrop-filter: blur(16px)
+       border: 1px solid var(--glass-border)
+     For pastel-tinted glass use color-mix inline:
+       background: color-mix(in srgb, <pastel> 6%, var(--glass-bg))
+     ======================================== */
+  --glass-bg:           rgba(255, 255, 255, 0.05);
+  --glass-bg-hover:     rgba(255, 255, 255, 0.08);
+  --glass-border:       rgba(255, 255, 255, 0.10);
+  --glass-border-strong: rgba(255, 255, 255, 0.18);
+
+  /* ========================================
      SPACING - 4px base scale
      ======================================== */
   --spacing-0:   0px;

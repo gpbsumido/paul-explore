@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.0
+
+- UI redesign start — B&W base with pastel feature accents and glassmorphism throughout
+- added nine pastel feature color tokens to `src/styles/tokens.css`: `--color-feature-calendar` (#a7f3d0 mint), `--color-feature-tcg` (#fecdd3 rose), `--color-feature-nba` (#fde68a amber), `--color-feature-vitals` (#ddd6fe violet), `--color-feature-graphql` (#bfdbfe blue), `--color-feature-auth` (#fca5a5 salmon), `--color-feature-particles` (#a5f3fc cyan), `--color-feature-motion` (#d9f99d lime), `--color-feature-sync` (#bae6fd sky) — Tailwind-200-level pastels, readable on black, distinct per feature
+- added glass system tokens to `src/styles/tokens.css`: `--glass-bg`, `--glass-bg-hover`, `--glass-border`, `--glass-border-strong` — standard frosted-glass recipe used by cards, modals, and navbars going forward
+
 ## 2026-03-14 - version 0.4.19
 
 - added `queryKeys.calendar.eventCards(eventId)` to `src/lib/queryKeys.ts`: factory for the event card attachment query; fixes `EventModal` which was using a hard-coded `["calendar", "events", event?.id, "cards"]` key outside the factory
