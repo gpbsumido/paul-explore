@@ -1,51 +1,100 @@
-import { type RefObject } from "react";
-import { useInView } from "./useInView";
-import Section, { reveal } from "./Section";
+"use client";
+
+import { useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import Section from "./Section";
+import { spring, instantTransition } from "@/lib/animations";
+
+const headingWipe = {
+  hidden: { clipPath: "inset(0 100% 0 0)" },
+  visible: { clipPath: "inset(0 0% 0 0)" },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const SWATCHES = [
+  ["bg-primary-400", "P400"],
+  ["bg-primary-500", "P500"],
+  ["bg-primary-600", "P600"],
+  ["bg-secondary-400", "S400"],
+  ["bg-secondary-500", "S500"],
+  ["bg-secondary-600", "S600"],
+  ["bg-neutral-300 dark:bg-neutral-600", "N"],
+  ["bg-error-500", "Err"],
+  ["bg-success-500", "Ok"],
+  ["bg-warning-500", "Warn"],
+] as const;
+
+const RADII = ["sm", "md", "lg", "xl", "2xl", "full"] as const;
 
 export default function DesignSection() {
-  const [ref, visible] = useInView();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-15% 0px" });
+  const prefersReduced = useReducedMotion();
+  const transition = prefersReduced ? instantTransition : undefined;
 
   return (
     <Section className="bg-black">
-      <div ref={ref as RefObject<HTMLDivElement>}>
-        <h2
-          className={`text-center text-3xl font-bold tracking-tight text-white md:text-4xl ${reveal(visible)}`}
+      <div ref={ref}>
+        <motion.h2
+          className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
+          variants={headingWipe}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth }}
         >
           Design System
-        </h2>
-        <p
-          className={`mx-auto mt-3 max-w-lg text-center text-white/70 ${reveal(visible, "delay-100")}`}
+        </motion.h2>
+
+        <motion.p
+          className="mx-auto mt-3 max-w-lg text-center text-white/70"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: 0.1 }}
         >
           A token-driven palette with semantic color aliases, consistent
           spacing, and theme toggling.
-        </p>
+        </motion.p>
 
-        {/* color swatches */}
-        <div
-          className={`mt-10 flex flex-wrap justify-center gap-3 ${reveal(visible, "delay-200")}`}
-        >
-          {[
-            ["bg-primary-400", "P400"],
-            ["bg-primary-500", "P500"],
-            ["bg-primary-600", "P600"],
-            ["bg-secondary-400", "S400"],
-            ["bg-secondary-500", "S500"],
-            ["bg-secondary-600", "S600"],
-            ["bg-neutral-300 dark:bg-neutral-600", "N"],
-            ["bg-error-500", "Err"],
-            ["bg-success-500", "Ok"],
-            ["bg-warning-500", "Warn"],
-          ].map(([bg, label]) => (
-            <div key={label} className="flex flex-col items-center gap-1">
+        {/* color swatches — each scatters in from a deterministic offset */}
+        <div className="mt-10 flex flex-wrap justify-center gap-3">
+          {SWATCHES.map(([bg, label], i) => (
+            <motion.div
+              key={label}
+              className="flex flex-col items-center gap-1"
+              initial={prefersReduced ? { opacity: 0 } : {
+                x: ((i % 3) - 1) * 30,
+                y: Math.sin(i * 1.7) * 20,
+                rotate: Math.cos(i * 2.3) * 12,
+                scale: 0.7,
+                opacity: 0,
+              }}
+              animate={inView
+                ? { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }
+                : undefined
+              }
+              transition={prefersReduced
+                ? { ...instantTransition }
+                : { ...spring.bounce, delay: i * 0.04 }
+              }
+            >
               <div className={`h-10 w-10 rounded-lg ${bg} shadow-sm`} />
               <span className="text-[10px] text-white/50">{label}</span>
-            </div>
+            </motion.div>
           ))}
         </div>
 
         {/* button variants */}
-        <div
-          className={`mt-10 flex flex-wrap justify-center gap-3 ${reveal(visible, "delay-300")}`}
+        <motion.div
+          className="mt-10 flex flex-wrap justify-center gap-3"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: 0.3 }}
         >
           <span className="inline-flex items-center rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background">
             Primary
@@ -59,13 +108,17 @@ export default function DesignSection() {
           <span className="inline-flex items-center rounded-full bg-error-500 px-5 py-2 text-sm font-medium text-white">
             Destructive
           </span>
-        </div>
+        </motion.div>
 
-        {/* radius & shadow demo */}
-        <div
-          className={`mt-10 flex flex-wrap justify-center gap-4 ${reveal(visible, "delay-[400ms]")}`}
+        {/* radius demo */}
+        <motion.div
+          className="mt-10 flex flex-wrap justify-center gap-4"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: 0.4 }}
         >
-          {(["sm", "md", "lg", "xl", "2xl", "full"] as const).map((r) => (
+          {RADII.map((r) => (
             <div
               key={r}
               className={`flex h-14 w-14 items-center justify-center border border-white/10 bg-white/5 text-[10px] text-white/50 shadow-sm rounded-${r}`}
@@ -73,7 +126,7 @@ export default function DesignSection() {
               {r}
             </div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </Section>
   );

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.9
+
+- rewrote `src/app/landing/DesignSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - heading uses clipPath left-to-right wipe with `spring.smooth` (consistent with FeaturesSection)
+  - subtitle fades up with `spring.smooth` at `delay: 0.1`
+  - color swatches each animate individually from a deterministic scattered start: `x: ((i%3)-1)*30`, `y: Math.sin(i*1.7)*20`, `rotate: Math.cos(i*2.3)*12`, `scale: 0.7, opacity: 0` → resting position with `spring.bounce` and `delay: i*0.04`; reduced-motion falls back to a plain opacity fade
+  - button variants and radius demo rows fade up at `delay: 0.3` and `delay: 0.4` respectively
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
 ## 2026-03-15 - version 0.5.8
 
 - replaced emoji icons in `FeaturesSection` with custom 24x24 stroke SVG icons: key (auth), ECG pulse line (vitals), three stacked layers (design system), ascending bar chart (NBA), two offset cards (TCG), calendar grid with dots (calendar), three connected graph nodes (GraphQL); `FeatureCard` prop changed from `icon: string` to `icon: React.ReactNode`
