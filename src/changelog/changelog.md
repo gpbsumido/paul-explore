@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.2
+
+- rewrote `src/components/ui/Modal.tsx`: replaced CSS `animate-modal-enter` with Framer Motion `AnimatePresence`; backdrop fades in/out (`opacity 0→1`, 180ms), modal panel springs in with `spring.smooth` (`opacity 0, scale 0.95, y 12` → resting); glass styling applied — `rgba(15,15,15,0.88)` background, `blur(24px)` backdrop-filter, `rgba(255,255,255,0.12)` border; removed `bg-surface` class so the panel is no longer overridden by the CSS surface token
+- removed `@keyframes modal-enter` from `src/styles/tokens.css` and `--animate-modal-enter` Tailwind alias from `src/app/globals.css` — both superseded by Framer Motion
+
 ## 2026-03-15 - version 0.5.1
 
 - installed `framer-motion@12.36.0`
