@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.6
+
+- rewrote `src/app/landing/FeaturesSection.tsx`: replaced `useInView` hook + `reveal()` CSS class pattern with Framer Motion
+  - removed imports of `./useInView` and `reveal` from `./Section`; added `"use client"` directive
+  - section heading (`motion.h2`) wipes in left-to-right via `clipPath: "inset(0 100% 0 0)"` → `"inset(0 0% 0 0)"` with `spring.smooth`
+  - subtitle (`motion.p`) fades up with `spring.smooth` at `delay: 0.15`
+  - grid container is now `motion.div` with `style={{ perspective: "1000px" }}` and `staggerContainer(0.07, 0.1)` variants
+  - `FeatureCard` is now `motion.div` using `cardFlipIn` variant + `spring.bounce`; accepts `transition` prop for reduced-motion override
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })` instead of the custom hook
+  - `useReducedMotion()` check passes `instantTransition` to all animated elements when true; dropped `visible/delay` props from `FeatureCard`
+
 ## 2026-03-15 - version 0.5.5
 
 - tuned `ShaderGradientScene` colors to be visible: `color1: #000000`, `color2: #ffffff`, `color3: #555555`; `uStrength: 3.5`, `uDensity: 1.8`, `uFrequency: 3.0`, `brightness: 1.8`, `cDistance: 20` — previous colors (`#050505`, `#1a1a1a`, `#3a3a3a`) were indistinguishable from the black background
