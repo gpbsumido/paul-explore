@@ -249,6 +249,50 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
           everything else is still the platform
         </Sent>
 
+        <Timestamp>10:38 AM</Timestamp>
+
+        {/* ---- Interactive gradient ---- */}
+        <Received pos="first">
+          you made the hero gradient interactive — mouse moves shift the light
+          source
+        </Received>
+        <Received pos="last">how does that fit with the B&W direction</Received>
+
+        <Sent pos="first">
+          ShaderGradient{"'"}s camera angles are live props —{" "}
+          <code>cAzimuthAngle</code> and <code>cPolarAngle</code> update every
+          frame based on where the mouse is on the section. the library{"'"}s{" "}
+          <code>smoothTime</code> prop eases the camera to the target so it
+          doesn{"'"}t snap
+        </Sent>
+        <Sent pos="middle">
+          it fits the B&W direction because it{"'"}s not adding color — it{"'"}s
+          adding depth. the waves catch light differently depending on your viewing
+          angle, the same way brushed metal or fabric does. it rewards curiosity
+          without breaking the palette
+        </Sent>
+        <Sent pos="last">
+          practically: a dark scrim at <code>bg-black/50</code> sits between the
+          gradient and the text so legibility never breaks even when the gradient
+          sweeps bright. the gradient earns the interaction, the scrim earns the
+          readability
+        </Sent>
+
+        <Received>performance concern — mouse events + WebGL every frame</Received>
+
+        <Sent pos="first">
+          the mouse handler itself is RAF-throttled. <code>onMouseMove</code>{" "}
+          writes to refs, and a <code>requestAnimationFrame</code> callback
+          flushes them to React state once per frame maximum. no setState spam on
+          every pixel of cursor movement
+        </Sent>
+        <Sent pos="last">
+          the WebGL side is ShaderGradient{"'"}s problem — it{"'"}s already
+          running an animation loop for the wave motion. the camera update is just
+          a uniform change, not a re-render. no extra draw calls, no geometry
+          changes
+        </Sent>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />

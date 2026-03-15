@@ -356,189 +356,97 @@ className="opacity-0 translate-y-8
         <Received pos="last">did you ever add that</Received>
 
         <Sent pos="first">
-          sort of — went further than parallax blobs. added a Three.js particle
-          network as the hero background instead
+          went further. replaced the particle network with a ShaderGradient — a
+          WebGL water-plane shader with animated waves. the hero background is now
+          a rolling B&W gradient that responds to mouse movement
         </Sent>
         <Sent pos="last">
-          160 nodes floating in 3D space, connecting to nearby neighbors with
-          live lines. move the mouse and they cluster around the cursor. feels
-          way more alive than a static gradient
+          move the mouse and the light source shifts with your cursor. the camera
+          azimuth maps to horizontal movement, polar angle to vertical. feels like
+          the surface is reacting to where you{"'"}re looking
         </Sent>
+
+        <Received>how does the mouse parallax actually work</Received>
+
+        <Sent pos="first">
+          ShaderGradient accepts <code>cAzimuthAngle</code> and{" "}
+          <code>cPolarAngle</code> as live React props — they control the camera
+          orbit around the gradient surface. update those props and the library
+          smoothly repositions the view
+        </Sent>
+        <Sent pos="middle">
+          <code>onMouseMove</code> fires on the hero section. the cursor{"'"}s
+          normalized position within the element maps to angle ranges: X to
+          azimuth 180–270, Y to polar 85–125. so moving left to right sweeps the
+          camera 90 degrees around the surface
+        </Sent>
+        <Sent pos="last">
+          updates are RAF-throttled — a <code>useRef</code> holds the target
+          angles and a <code>requestAnimationFrame</code> callback writes them to
+          state once per frame. <code>smoothTime={"{0.18}"}</code> on the
+          ShaderGradient handles the easing so it{"'"}s not jittery
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// RAF-throttled mouse handler — one setState per frame
+const handleMouseMove = useCallback((e) => {
+  const { left, top, width, height } =
+    e.currentTarget.getBoundingClientRect();
+  const nx = (e.clientX - left) / width;
+  const ny = (e.clientY - top) / height;
+  azimuthRef.current = 180 + nx * 90;
+  polarRef.current   = 85  + ny * 40;
+
+  if (rafRef.current === null) {
+    rafRef.current = requestAnimationFrame(() => {
+      setCameraAngles({ azimuth: azimuthRef.current,
+                        polar: polarRef.current });
+      rafRef.current = null;
+    });
+  }
+}, []);`}
+        </div>
 
         <Received>Three.js in a Next.js hero — how does that work without SSR exploding</Received>
 
         <Sent pos="first">
-          <code>next/dynamic</code> with <code>ssr: false</code>. Three.js needs
-          a canvas and a window — neither of those exist on the server. loading
-          it dynamically keeps it completely out of the server render, so the
-          page stays static and the HTML arrives fast
+          <code>next/dynamic</code> with <code>ssr: false</code>. ShaderGradient
+          needs a canvas and a window — neither exist on the server. the dynamic
+          import keeps WebGL completely out of the server render
         </Sent>
         <Sent pos="last">
-          the canvas component itself is a normal <code>useEffect</code> — sets
-          up the renderer, starts the animation loop, cleans everything up on
-          unmount. nothing unusual on the React side
+          the fallback is a plain <code>bg-black</code> div, so LCP fires on the
+          H1 text immediately — the gradient loads in behind it without blocking
+          the first paint
         </Sent>
-
-        <Timestamp>3:14 PM</Timestamp>
-
-        <Received pos="first">how does the particle network actually work</Received>
-        <Received pos="last">like what{"'"}s the motion model</Received>
-
-        <Sent pos="first">
-          every particle has a position and a velocity. each frame the position
-          advances by the velocity, and if a particle drifts past the scene
-          boundary it wraps to the opposite edge — same as pac-man
-        </Sent>
-        <Sent pos="middle">
-          on top of that, each particle gets a tiny tangential nudge every frame.
-          take the particle{"'"}s position vector, rotate it 90 degrees in the
-          XY plane, normalize it, add a small fraction of that to the velocity.
-          that{"'"}s the tangent to a circle centered at the origin — it pushes
-          the particle sideways, which naturally creates a swirling orbit without
-          any explicit orbit math
-        </Sent>
-        <Sent pos="last">
-          so without mouse interaction the whole field slowly rotates. with the
-          mouse pulling particles toward the cursor, you get these clusters that
-          form and break apart as things move
-        </Sent>
-
-        <div className={styles.codeBubble}>
-          {`// tangent to the XY radial, per frame
-const rx = p.pos.x;
-const ry = p.pos.y;
-const rLen = Math.sqrt(rx * rx + ry * ry);
-if (rLen > 0.1) {
-  p.vel.x += (-ry / rLen) * ORBIT_STRENGTH;
-  p.vel.y += (rx / rLen) * ORBIT_STRENGTH;
-}`}
-        </div>
-
-        <Received>how do the connection lines work</Received>
-
-        <Sent pos="first">
-          every frame, check all N*(N-1)/2 pairs. for 160 particles that{"'"}s
-          12,720 pairs — just squared distance checks, no sqrt needed. if two
-          particles are within range, draw a line between them
-        </Sent>
-        <Sent pos="middle">
-          the tricky part is doing it without creating garbage. if you build a
-          new geometry object every frame you{"'"}re hammering the GC. instead
-          the line buffer is pre-allocated at the worst-case pair count on
-          startup, and each frame you just write positions and colors directly
-          into the existing <code>Float32Array</code>
-        </Sent>
-        <Sent pos="last">
-          then set <code>drawRange.count</code> to however many lines actually
-          exist this tick and mark <code>needsUpdate = true</code> on the
-          attributes. no allocation, no GC, just writes into memory that{"'"}s
-          already there
-        </Sent>
-
-        <div className={styles.codeBubble}>
-          {`// pre-allocated, never reallocated
-const linePosArr = new Float32Array(MAX_PAIRS * 6);
-const lineColArr = new Float32Array(MAX_PAIRS * 6);
-
-// each frame — write in place, update draw range
-let lineCount = 0;
-for (let i = 0; i < PARTICLE_COUNT - 1; i++) {
-  for (let j = i + 1; j < PARTICLE_COUNT; j++) {
-    const dSq = /* ...distance squared... */;
-    if (dSq >= CONNECT_DIST_SQ) continue;
-    const b = lineCount * 6;
-    linePosArr[b] = pi.pos.x;
-    // ... write both endpoints
-    lineCount++;
-  }
-}
-lineGeo.setDrawRange(0, lineCount * 2);`}
-        </div>
 
         <Timestamp>3:22 PM</Timestamp>
 
-        <Received>why does the line color fade</Received>
+        <Received>what about the text being unreadable over the bright gradient</Received>
 
         <Sent pos="first">
-          each line{"'"}s color is the particle{"'"}s color multiplied by a
-          fade factor: <code>1 - distSq / CONNECT_DIST_SQ</code>. so when two
-          particles are almost touching the line is at full brightness, and as
-          they approach the connection threshold it fades to black
+          there{"'"}s a <code>bg-black/50</code> scrim between the gradient and
+          the text — <code>absolute inset-0 z-[1]</code>. the gradient shows
+          through at half opacity, the white text stays legible
         </Sent>
         <Sent pos="last">
-          no alpha blending needed — just dimming the RGB values gives you the
-          same visual result and is simpler with the vertex color buffer approach
-        </Sent>
-
-        <Received>how does the mouse attraction work</Received>
-
-        <Sent pos="first">
-          the mouse position gets unprojected from screen coordinates into 3D
-          world space by intersecting a ray from the camera against a plane at
-          z=0. that gives you the cursor{"'"}s position in the same coordinate
-          space as the particles
-        </Sent>
-        <Sent pos="middle">
-          each frame, any particle within the mouse radius gets a force added to
-          its velocity pointing toward the cursor. the force scales with
-          proximity — a particle right under the cursor gets pulled hard, one
-          near the edge of the radius barely feels it
-        </Sent>
-        <Sent pos="last">
-          there{"'"}s a speed cap so particles don{"'"}t rocket off into space
-          when the mouse moves fast. they cluster, then slowly drift back into
-          their orbits when the mouse leaves the area
-        </Sent>
-
-        <Timestamp>3:28 PM</Timestamp>
-
-        <Received>what about performance — canvas running at 60fps on top of a Next.js page</Received>
-
-        <Sent pos="first">
-          the main wins: shared geometry and materials. all 160 particles
-          reference the same two <code>PointsMaterial</code> instances and the
-          pre-allocated line geometry. no 160 individual objects, no 160
-          materials. draw calls per frame: 3 (stars, small, lines)
-        </Sent>
-        <Sent pos="middle">
-          pixel ratio is capped at 2, so on a 3x screen you{"'"}re not running
-          at 9x the pixel count. <code>antialias: true</code> on the renderer
-          because at this particle count MSAA is basically free
-        </Sent>
-        <Sent pos="last">
-          and cleanup. on unmount: <code>cancelAnimationFrame</code>, remove all
-          event listeners, dispose all three geometries, dispose all three
-          materials, dispose the renderer. no leaks if you navigate away and
-          come back
-        </Sent>
-
-        <Received>and the canvas sits behind the text</Received>
-
-        <Sent pos="first">
-          <code>pointer-events-none absolute inset-0</code> on the canvas. it
-          fills the hero section but doesn{"'"}t intercept any clicks — the
-          login button and everything else work normally
-        </Sent>
-        <Sent pos="last">
-          the hero text and button got <code>relative z-10</code> so they stack
-          above the canvas. the existing decorative blur blobs are still there,
-          sitting in between — they blend with the wireframe colors and add a
-          bit of depth without the two effects fighting each other
+          the text and button are <code>relative z-10</code>, above the scrim.
+          the scrim sits above the gradient at <code>z-[1]</code>. pointer events
+          on the canvas are disabled so clicks still reach the UI elements
         </Sent>
 
         <Received>would you add anything to it</Received>
 
         <Sent pos="first">
-          <code>prefers-reduced-motion</code> support. right now the animation
-          runs unconditionally. the right thing to do is check the media query
-          on mount and either skip the whole canvas or reduce the motion to just
-          slow drifting with no mouse interaction
+          could widen the angle sweep for more dramatic movement. right now it{"'"}s
+          90 degrees of azimuth — you could go 180 for a full half-orbit across
+          one mouse swipe
         </Sent>
         <Sent pos="last">
-          also curious about running the physics on a web worker and posting
-          particle positions back to the main thread — takes the per-frame loop
-          completely off the main thread so it can{"'"}t affect INP. overkill for
-          160 particles, but a legitimate pattern for 5000+
+          <code>prefers-reduced-motion</code> check would be good too — lock the
+          camera to the default angles and skip the mouse handler entirely when
+          the user has reduced motion on. the gradient animation itself should
+          also pause in that case
         </Sent>
 
         {/* Typing indicator */}

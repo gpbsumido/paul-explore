@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.5
+
+- tuned `ShaderGradientScene` colors to be visible: `color1: #000000`, `color2: #ffffff`, `color3: #555555`; `uStrength: 3.5`, `uDensity: 1.8`, `uFrequency: 3.0`, `brightness: 1.8`, `cDistance: 20` — previous colors (`#050505`, `#1a1a1a`, `#3a3a3a`) were indistinguishable from the black background
+- added dark scrim overlay in `HeroSection.tsx` between the gradient and text: `absolute inset-0 bg-black/50 z-[1]` so white text stays legible over the bright gradient
+- added mouse-driven camera parallax to `ShaderGradientScene`:
+  - component now accepts `cAzimuthAngle` and `cPolarAngle` as props with defaults `225` and `100`
+  - `enableTransition={true}` and `smoothTime={0.18}` on `ShaderGradient` so camera eases to the target angle instead of snapping
+- added mouse tracking to `HeroSection`:
+  - `onMouseMove` on the section maps cursor X to azimuth `180–270` and cursor Y to polar `85–125`
+  - RAF-throttled state update via `useRef` + `requestAnimationFrame` — one `setCameraAngles` call per frame maximum, no batching overhead
+  - separate `useEffect` for RAF cleanup on unmount (fixes ESLint `react-hooks/set-state-in-effect` by not mixing `setMounted` and cleanup in the same effect)
+
+## 2026-03-15 - version 0.5.4
+
+- installed `@shadergradient/react@2.4.20`, `@react-three/fiber@9.5.0`, `three-stdlib@2.36.1`
+- created `src/app/landing/ShaderGradientScene.tsx`: client component wrapping `ShaderGradientCanvas` + `ShaderGradient` with B&W/grey colors (`color1: #000000`, `color2: #111111`, `color3: #1c1c1c`), `type: waterPlane`, `animate: on`, `uSpeed: 0.15`, `grain: on`, `lightType: 3d`; positioned `absolute inset-0 pointer-events-none`
+- rewrote `src/app/landing/HeroSection.tsx`:
+  - removed `HeroScene` Three.js import and the two decorative blur blobs
+  - removed inline `<style>` block with `@keyframes hero-fade-in` and `@keyframes glow-pulse`; removed `heroReveal` CSS class constant
+  - loads `ShaderGradientScene` via `next/dynamic` (`ssr: false`); fallback is `<div className="absolute inset-0 bg-black" />` so LCP fires on the text before WebGL loads
+  - `mounted` state pattern: server renders H1 words visible (`initial={false}`) to preserve LCP; client triggers entrance animation on mount
+  - H1 split word-by-word into `motion.span` elements using `wordReveal` variant + `staggerContainer(0.08, 0.1)` from `src/lib/animations.ts`; each word has `spring.wordReveal` transition
+  - subtitle fades up after title (`spring.smooth`, `delay: 0.5`)
+  - CTA button wraps in `motion.div` with `scaleIn` variant + `spring.bounce` (`delay: 0.65`); button style updated from `bg-foreground text-background` to explicit `bg-white text-black` since hero is always dark
+  - `useReducedMotion()` check — passes `instantTransition` to all animations when true
+
 ## 2026-03-15 - version 0.5.3
 
 - wrapped `LandingContent` in `<div className="bg-black">` — landing page is now always dark regardless of the user's light/dark theme preference; app pages (`/protected`, `/calendar`, etc.) retain `bg-background` and are unaffected
