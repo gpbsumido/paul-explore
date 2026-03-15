@@ -133,6 +133,13 @@ const THOUGHTS: ThoughtItem[] = [
       "Why 'unsafe-inline' is the right call for Next.js static pages, and what actually prevents XSS",
     color: "#ec4899",
   },
+  {
+    title: "UI Redesign",
+    href: "/thoughts/ui-redesign",
+    preview:
+      "Why CSS keyframes gave way to Framer Motion, where Three.js went, and what's actually measurably better",
+    color: "#a7f3d0",
+  },
 ].reverse();
 
 // ---- Mini preview sub-components ----
