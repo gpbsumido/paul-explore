@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.1
+
+- installed `framer-motion@12.36.0`
+- created `src/lib/animations.ts`: shared spring presets (`snappy`, `smooth`, `bounce`, `gentle`, `wordReveal`), reusable Framer variants (`fadeInUp`, `fadeIn`, `scaleIn`, `slideInLeft`, `slideInRight`, `cardFlipIn`, `wordReveal`), `staggerContainer(staggerChildren, delayChildren)` factory, and `instantTransition` for reduced-motion fallback; single import source so spring tuning updates everywhere at once
+
 ## 2026-03-15 - version 0.5.0
 
 - UI redesign start — B&W base with pastel feature accents and glassmorphism throughout
