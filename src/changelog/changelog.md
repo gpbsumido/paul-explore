@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.8
+
+- replaced emoji icons in `FeaturesSection` with custom 24x24 stroke SVG icons: key (auth), ECG pulse line (vitals), three stacked layers (design system), ascending bar chart (NBA), two offset cards (TCG), calendar grid with dots (calendar), three connected graph nodes (GraphQL); `FeatureCard` prop changed from `icon: string` to `icon: React.ReactNode`
+- replaced `&#9654;` triangle bullets in `AuthSection` with per-item 16x16 stroke SVG icons: horizontal key (Auth0 SDK), shield outline (CSP Headers), arrow-through-node (Proxy Middleware), forked path with crossbar (Route Protection)
+
 ## 2026-03-15 - version 0.5.7
 
 - rewrote `src/app/landing/AuthSection.tsx`: replaced `useInView` hook + `reveal()` CSS classes with Framer Motion bilateral split
