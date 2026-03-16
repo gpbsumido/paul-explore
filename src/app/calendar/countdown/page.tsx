@@ -67,7 +67,6 @@ export default function CountdownPage() {
           { label: "Calendar", href: "/calendar" },
           { label: "Countdowns" },
         ]}
-        showLogout={false}
       />
 
       <Suspense

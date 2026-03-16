@@ -9,7 +9,6 @@
   - `BreadcrumbItem.onClick` prop threads a click handler through the back-chevron link for cases like `StatsContent` that cancel in-flight queries before navigating
   - `FeatureHub` header uses `as="header"`, `left` (app name), `right` (user info block), `showSettings`, and `overlay` (violet gradient) to match its original design
   - thoughts pages pass `showLogout={false}` and `maxWidth="max-w-3xl"` with `right={<ViewToggle />}`
-  - `calendar/countdown` passes `showLogout={false}` (logout was never shown on that page)
 
 ## 2026-03-16 - version 0.6.1
 
