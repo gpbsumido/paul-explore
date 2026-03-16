@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.17
+
+- unified glass treatment across all feature cards and nav headers
+  - `FeatureHub` card glass: updated base transparency from `var(--color-surface)` / `var(--color-border)` to `rgba(255,255,255,0.04)` / `rgba(255,255,255,0.08)` — matches the landing page `FeaturesSection` spec exactly
+  - `FeatureHub` sticky header: switched from Tailwind `bg-background/80 backdrop-blur-md` to inline `color-mix(in srgb, var(--color-background) 80%, transparent)` + `backdropFilter: blur(16px)`; added absolutely-positioned gradient overlay (`linear-gradient(to right, transparent, rgba(139,92,246,0.04), transparent)`) layered under the glass for a subtle violet shimmer
+  - `VitalsContent` sticky nav: switched to inline glass style with `blur(16px)` for consistency
+  - `calendar/page.tsx` sticky nav: same inline glass update
+  - `HeroSection` has no sticky nav — skipped
+
 ## 2026-03-15 - version 0.5.16
 
 - replaced RAF/`startTransition`/`setLoaded` entrance stagger in `FeatureHub` with Framer Motion `staggerContainer` + `cardFlipIn` variants

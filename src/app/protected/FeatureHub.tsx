@@ -478,10 +478,10 @@ function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
       whileHover={{ y: -4, transition: { ...spring.snappy } }}
       className="flex flex-col overflow-hidden rounded-2xl h-full"
       style={{
-        background: `color-mix(in srgb, var(${token}) 6%, var(--color-surface))`,
+        background: `color-mix(in srgb, var(${token}) 6%, rgba(255,255,255,0.04))`,
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
-        border: `1px solid color-mix(in srgb, var(${token}) 15%, var(--color-border))`,
+        border: `1px solid color-mix(in srgb, var(${token}) 15%, rgba(255,255,255,0.08))`,
       }}
     >
       <div
@@ -600,8 +600,20 @@ export default function FeatureHub() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+      <header
+        className="sticky top-0 z-30 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        {/* Subtle violet gradient baked under the glass */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "linear-gradient(to right, transparent, rgba(139,92,246,0.04), transparent)" }}
+        />
+        <div className="relative mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <span className="text-base font-bold tracking-tight text-foreground">
             paul-explore
           </span>

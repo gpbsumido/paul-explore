@@ -71,7 +71,14 @@ async function CalendarWithData() {
 export default function CalendarPage() {
   return (
     <div className="min-h-dvh bg-background font-sans">
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-md">
+      <nav
+        className="sticky top-0 z-20 h-14 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
           <Link
             href="/protected"
