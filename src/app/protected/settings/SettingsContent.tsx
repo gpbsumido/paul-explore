@@ -141,7 +141,7 @@ export default function SettingsContent() {
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <div className="mx-auto flex h-full max-w-[1400px] items-center gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4 sm:px-6">
           <Link
             href="/protected"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"

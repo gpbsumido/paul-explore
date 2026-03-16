@@ -70,14 +70,18 @@ export default function CountdownPage() {
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-full flex items-center gap-4">
           <Link
-            href="/calendar"
+            href="/protected"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
               <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+            Dashboard
+          </Link>
+          <div className="h-4 w-px bg-border" />
+          <Link href="/calendar" className="text-sm text-muted transition-colors hover:text-foreground shrink-0">
             Calendar
           </Link>
           <div className="h-4 w-px bg-border" />

@@ -78,7 +78,7 @@ export default async function PocketPage() {
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-full flex items-center gap-4">
           <Link
             href="/protected"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"

@@ -52,14 +52,18 @@ export default async function CardDetailPage({
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-full flex items-center gap-4">
           <Link
-            href={backHref}
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground max-w-[160px] truncate"
+            href="/protected"
+            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden className="shrink-0">
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
               <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+            Dashboard
+          </Link>
+          <div className="h-4 w-px bg-border" />
+          <Link href={backHref} className="text-sm text-muted transition-colors hover:text-foreground shrink-0 max-w-[120px] truncate">
             {backLabel}
           </Link>
           <div className="h-4 w-px bg-border" />

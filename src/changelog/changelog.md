@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.25
+
+- standardized all nav inner divs to `max-w-5xl` — matching the protected dashboard page width
+- added Dashboard back-link to all nested pages; pages with a parent now show a breadcrumb trail (Dashboard → Parent → Page):
+  - `tcg/pokemon/sets` — Dashboard → Browse → Sets
+  - `tcg/pokemon/sets/[setId]` — Dashboard → Sets → [Set Name]
+  - `tcg/pokemon/card/[cardId]` — Dashboard → [Set/Browse] → [Card Name]
+  - `calendar/events` — Dashboard → Calendar → Events
+  - `calendar/countdown` — Dashboard → Calendar → Countdowns
+
 ## 2026-03-15 - version 0.5.24
 
 - standardized all nav inner divs to `max-w-[1400px]` — previously mixed between `max-w-5xl`, `max-w-[1400px]`, and `max-w-[480px]`, causing visible width differences across pages
