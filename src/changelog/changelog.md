@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.14
+
+- rewrote `src/app/landing/VitalsSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion animated bars, stats, and badges
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - `AnimatedBar`: `useSpring(0, { stiffness: 80, damping: 18 })` drives a `useTransform` width percentage applied via `style={{ width: widthPct }}` on a `motion.div` inside a fixed-height track; added to each metric card and each by-page table row
+  - `AnimatedStat`: same pattern as NbaSection — `useSpring` + `useTransform`, preserves suffix (`s`, `ms`, etc.) by splitting the source string; applied to all metric values and by-page LCP values
+  - `RatingBadge`: rating dot wrapped in `motion.div`, scales in from `scale: 0` with `spring.bounce` at `delay: 0.6` after bars have settled; used in both metric cards and table rows
+  - added `pct` field to `MOCK_METRICS` and `MOCK_ROWS` to drive bar widths (82–92% for good metrics, 52% for needs-improvement)
+  - heading uses clipPath wipe; subtitle fades up at `delay: 0.1`; highlights fade up at `delay: 0.8`
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
 ## 2026-03-15 - version 0.5.13
 
 - rewrote `src/app/landing/GraphQLSection.tsx`: replaced `useInView` hook + `reveal()` with typewriter animation
