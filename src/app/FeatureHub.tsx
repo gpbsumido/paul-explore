@@ -4,11 +4,16 @@ import { type RefObject } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import { useInView } from "@/app/landing/useInView";
 import { reveal } from "@/app/landing/Section";
 import { queryKeys } from "@/lib/queryKeys";
-import { spring, staggerContainer, cardFlipIn, instantTransition } from "@/lib/animations";
+import {
+  spring,
+  staggerContainer,
+  cardFlipIn,
+  instantTransition,
+} from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 import type { FeatureItem, ThoughtItem } from "@/types/hub";
 
@@ -151,7 +156,8 @@ const THOUGHTS: ThoughtItem[] = [
   {
     title: "Route Restructure",
     href: "/thoughts/routing",
-    preview: "Why / replaced /protected, the force-static trade-off, and how auth is still enforced",
+    preview:
+      "Why / replaced /protected, the force-static trade-off, and how auth is still enforced",
     color: "#64748b",
   },
 ].reverse();
@@ -455,7 +461,14 @@ const PARTICLE_DOTS = [
   { x: 10, y: 60, r: 2, color: "#3b82f6" },
 ];
 const PARTICLE_LINES = [
-  [0, 1], [1, 2], [2, 5], [0, 3], [3, 4], [4, 5], [1, 4], [3, 6],
+  [0, 1],
+  [1, 2],
+  [2, 5],
+  [0, 3],
+  [3, 4],
+  [4, 5],
+  [1, 4],
+  [3, 6],
 ] as const;
 
 function ParticlesPreview() {
@@ -489,13 +502,13 @@ function ParticlesPreview() {
 
 // Maps feature.id to its design-token CSS variable name.
 const FEATURE_TOKEN: Record<string, string> = {
-  nba:       "--color-feature-nba",
-  league:    "--color-feature-sync",
-  tcg:       "--color-feature-tcg",
-  pocket:    "--color-feature-particles",
-  calendar:  "--color-feature-calendar",
-  graphql:   "--color-feature-graphql",
-  vitals:    "--color-feature-vitals",
+  nba: "--color-feature-nba",
+  league: "--color-feature-sync",
+  tcg: "--color-feature-tcg",
+  pocket: "--color-feature-particles",
+  calendar: "--color-feature-calendar",
+  graphql: "--color-feature-graphql",
+  vitals: "--color-feature-vitals",
   particles: "--color-feature-particles",
 };
 
@@ -659,62 +672,47 @@ export default function FeatureHub() {
 
   return (
     <div className="min-h-dvh bg-background">
-      {/* Sticky header */}
-      <header
-        className="sticky top-0 z-30 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        {/* Subtle violet gradient baked under the glass */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{ background: "linear-gradient(to right, transparent, rgba(139,92,246,0.04), transparent)" }}
-        />
-        <div className="relative mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+      <PageHeader
+        as="header"
+        zIndex="z-30"
+        left={
           <span className="text-base font-bold tracking-tight text-foreground">
             paul-explore
           </span>
-
-          <div className="flex items-center gap-3">
-            {/* User info — hidden on small screens where space is tight */}
-            <div className="hidden flex-col items-end sm:flex">
-              {userName === null ? (
-                <>
-                  <div className="h-[11px] w-[88px] rounded bg-surface animate-pulse" />
-                  <div className="mt-0.5 h-[10px] w-[120px] rounded bg-surface animate-pulse" />
-                </>
-              ) : (
-                <>
-                  <span className="text-[12px] font-medium leading-none text-foreground">
-                    {userName}
+        }
+        right={
+          /* User info — hidden on small screens where space is tight */
+          <div className="hidden flex-col items-end sm:flex">
+            {userName === null ? (
+              <>
+                <div className="h-[11px] w-[88px] rounded bg-surface animate-pulse" />
+                <div className="mt-0.5 h-[10px] w-[120px] rounded bg-surface animate-pulse" />
+              </>
+            ) : (
+              <>
+                <span className="text-[12px] font-medium leading-none text-foreground">
+                  {userName}
+                </span>
+                {userEmail && (
+                  <span className="mt-0.5 text-[11px] leading-none text-muted">
+                    {userEmail}
                   </span>
-                  {userEmail && (
-                    <span className="mt-0.5 text-[11px] leading-none text-muted">
-                      {userEmail}
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-            <ThemeToggle />
-            <Link
-              href="/settings"
-              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
-            >
-              Settings
-            </Link>
-            <a
-              href="/auth/logout"
-              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
-            >
-              Log out
-            </a>
+                )}
+              </>
+            )}
           </div>
-        </div>
-      </header>
+        }
+        showSettings
+        overlay={
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to right, transparent, rgba(139,92,246,0.04), transparent)",
+            }}
+          />
+        }
+      />
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:py-12">
         <div className="mb-8">

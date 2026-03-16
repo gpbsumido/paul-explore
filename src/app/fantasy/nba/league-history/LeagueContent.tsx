@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui";
 import { selectChevron } from "@/assets/icons";
 import { queryKeys } from "@/lib/queryKeys";
@@ -40,15 +39,24 @@ function RankBadge({ rank }: { rank: number }) {
   if (rank === 0) return null;
   let colors = "bg-surface-raised text-muted";
   if (rank === 1) colors = "bg-green-500/15 text-green-600 dark:text-green-400";
-  else if (rank <= 3) colors = "bg-blue-500/15 text-blue-600 dark:text-blue-400";
+  else if (rank <= 3)
+    colors = "bg-blue-500/15 text-blue-600 dark:text-blue-400";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${colors}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${colors}`}
+    >
       #{rank}
     </span>
   );
 }
 
-function TeamCard({ team, members }: { team: ESPNTeam; members: ESPNMember[] }) {
+function TeamCard({
+  team,
+  members,
+}: {
+  team: ESPNTeam;
+  members: ESPNMember[];
+}) {
   const [expanded, setExpanded] = useState(false);
   const { wins, losses } = team.record.overall;
 
@@ -157,40 +165,12 @@ export default function LeagueContent() {
 
   return (
     <div className="min-h-dvh bg-background font-sans">
-      {/* ---- Nav ---- */}
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4 sm:px-6">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Dashboard
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
-            League History
-          </span>
-          <div className="ml-auto flex items-center gap-4">
-            <ThemeToggle />
-            <a
-              href="/auth/logout"
-              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
-            >
-              Log out
-            </a>
-          </div>
-        </div>
-      </nav>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "League History" },
+        ]}
+      />
 
       {/* ---- Season selector ---- */}
       <div className="border-b border-border">
@@ -231,7 +211,11 @@ export default function LeagueContent() {
                 ? leagueQuery.error.message
                 : "Something went wrong"}
             </span>
-            <Button variant="outline" size="sm" onClick={() => leagueQuery.refetch()}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => leagueQuery.refetch()}
+            >
               Retry
             </Button>
           </div>
@@ -250,11 +234,13 @@ export default function LeagueContent() {
           </>
         )}
 
-        {!leagueQuery.isLoading && !leagueQuery.isError && teams.length === 0 && (
-          <div className="flex items-center justify-center text-muted text-[15px] py-20 text-center">
-            No league data available
-          </div>
-        )}
+        {!leagueQuery.isLoading &&
+          !leagueQuery.isError &&
+          teams.length === 0 && (
+            <div className="flex items-center justify-center text-muted text-[15px] py-20 text-center">
+              No league data available
+            </div>
+          )}
       </main>
     </div>
   );

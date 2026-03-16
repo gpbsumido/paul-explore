@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import { auth0 } from "@/lib/auth0";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import type { CountdownPage } from "@/types/calendar";
@@ -62,37 +61,13 @@ async function CountdownsWithData() {
 export default function CountdownPage() {
   return (
     <div className="min-h-dvh bg-background font-sans">
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-full flex items-center gap-4">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Dashboard
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <Link href="/calendar" className="text-sm text-muted transition-colors hover:text-foreground shrink-0">
-            Calendar
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
-            Countdowns
-          </span>
-          <div className="ml-auto flex items-center gap-4">
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Calendar", href: "/calendar" },
+          { label: "Countdowns" },
+        ]}
+      />
 
       <Suspense
         fallback={

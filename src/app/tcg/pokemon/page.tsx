@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import TCGdex, { Query } from "@tcgdex/sdk";
 import BrowseContent from "./BrowseContent";
 import { toPlain, type CardResume } from "@/lib/tcg";
@@ -62,29 +62,13 @@ async function BrowseWithData() {
 export default function PokemonTcgPage() {
   return (
     <div className="min-h-dvh bg-background font-sans">
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-full flex items-center gap-4">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Dashboard
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
-            Pokémon TCG
-          </span>
-          <div className="ml-auto flex items-center gap-5">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Pokémon TCG" },
+        ]}
+        right={
+          <>
             <Link
               href="/tcg/pokemon/sets"
               className="text-sm text-muted hover:text-foreground transition-colors"
@@ -97,16 +81,9 @@ export default function PokemonTcgPage() {
             >
               Pocket
             </Link>
-            <ThemeToggle />
-            <a
-              href="/auth/logout"
-              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
-            >
-              Log out
-            </a>
-          </div>
-        </div>
-      </nav>
+          </>
+        }
+      />
 
       <Suspense fallback={<BrowseSkeleton />}>
         <BrowseWithData />
@@ -132,7 +109,10 @@ function BrowseSkeleton() {
               key={i}
               className="rounded-lg overflow-hidden border border-border bg-surface animate-pulse"
             >
-              <div className="w-full bg-surface-raised" style={{ aspectRatio: "2.5/3.5" }} />
+              <div
+                className="w-full bg-surface-raised"
+                style={{ aspectRatio: "2.5/3.5" }}
+              />
               <div className="px-2 py-1.5">
                 <div className="h-2 w-2/3 rounded bg-surface-raised" />
               </div>
