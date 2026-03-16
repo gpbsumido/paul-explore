@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-03-16 - version 0.6.1
+
+- all 11 dev notes (thoughts) pages now have a Summary / Chat view toggle defaulting to the direct prose view:
+  - `src/app/thoughts/ViewToggle.tsx` — shared segmented pill toggle component
+  - each `*Content.tsx` gains `useState<"summary" | "chat">("summary")`, a persistent glassmorphism nav with the toggle, and a prose summary view covering the same material as the chat
+  - chat view preserves all existing iMessage bubble content verbatim; phone `.topBar` is replaced by the shared nav so there is no duplicate navigation
+  - `RoutingContent.tsx` gains a chat view to match the pattern (it previously had only prose)
+
 ## 2026-03-16 - version 0.6.0
 
 - migrated authenticated hub from `/protected` to root `/`:
