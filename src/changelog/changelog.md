@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.20
+
+- created `/lab/motion` route — interactive Framer Motion demo lab
+  - `page.tsx`: `"use client"` page with 6 interactive demo sections on `bg-neutral-950`; shared `GLASS` style constant (`rgba(255,255,255,0.04)` bg + `rgba(255,255,255,0.08)` border + `backdropFilter: blur(16px)`); `DemoSection` wrapper component with title, tag badge, description, and demo area
+  - **SpringPlayground**: draggable puck with `dragSnapToOrigin`; sliders for stiffness (10–800), damping (1–60), mass (0.1–4.0); crosshair marks origin in 176px arena
+  - **StaggerGrid**: 12 colored tiles in a 6-column grid with configurable stagger delay (0.01–0.3 s); Replay button increments `gridKey` to remount and re-run the stagger entrance
+  - **ReorderList**: 5 items using `Reorder.Group` / `Reorder.Item` from framer-motion; `touchAction: "none"` on each item; braille `⠿` drag handle
+  - **ScrollParallax**: 3 layered elements inside a 208px scrollable container; `useScroll({ container: containerRef })` drives `useTransform` offsets — back layer (-60px + opacity), mid layer (-120px + scale 1→1.5), front layer (180° rotate); scrollbar hidden
+  - **GestureCard**: drag + `dragSnapToOrigin` + `whileHover`/`whileTap`/`whileDrag`; live state panel shows idle/hover/tap/drag with color-coded labels; animated dot pulses on state change via keyed `animate={{ scale: [1, 1.5, 1] }}`
+  - **SharedLayout**: 3 cards with `layoutId` + `LayoutGroup`; click expands a card to an overlay using `AnimatePresence`; card title animates independently via its own `layoutId`
+  - `loading.tsx`: skeleton matching the page layout — header skeleton + 6 section card skeletons at heights matching each demo's actual rendered height
+
 ## 2026-03-15 - version 0.5.19
 
 - created `/lab` route group (`src/app/lab/`)
