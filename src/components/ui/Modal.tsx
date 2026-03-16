@@ -135,6 +135,9 @@ export default function Modal({
     };
   }, [open, handleKeyDown, getFocusableElements]);
 
+  // During SSR there is no document — bail out before createPortal touches it.
+  if (typeof document === "undefined") return null;
+
   return createPortal(
     <AnimatePresence>
       {open && (

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import dynamic from "next/dynamic";
+import { calendarSlide, spring } from "@/lib/animations";
 import {
   addDays,
   addWeeks,
@@ -64,6 +66,8 @@ export default function CalendarContent({
 }: CalendarContentProps) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [view, setView] = useState<CalendarView>("month");
+  // -1 = backward (slide from left), 0 = crossfade, 1 = forward (slide from right)
+  const [direction, setDirection] = useState<number>(0);
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [countdownModal, setCountdownModal] = useState<CountdownModalState>({
     open: false,
@@ -135,28 +139,36 @@ export default function CalendarContent({
     [calendarEvents.events],
   );
 
-  function handleNavigate(direction: -1 | 1) {
+  function handleNavigate(dir: -1 | 1) {
+    setDirection(dir);
     setCurrentDate((prev) => {
       switch (view) {
         case "day":
-          return addDays(prev, direction);
+          return addDays(prev, dir);
         case "week":
-          return addWeeks(prev, direction);
+          return addWeeks(prev, dir);
         case "month":
-          return addMonths(prev, direction);
+          return addMonths(prev, dir);
         case "year":
-          return addYears(prev, direction);
+          return addYears(prev, dir);
       }
     });
   }
 
   function handleToday() {
+    setDirection(0);
     setCurrentDate(new Date());
   }
+
+  const handleViewChange = useCallback((newView: CalendarView) => {
+    setDirection(0);
+    setView(newView);
+  }, []);
 
   // useCallback keeps these stable across re-renders so the memoized view
   // components don't see new prop references every time modal state changes
   const handleMonthClick = useCallback((date: Date) => {
+    setDirection(0);
     setCurrentDate(date);
     setView("month");
   }, []);
@@ -216,7 +228,7 @@ export default function CalendarContent({
         currentDate={currentDate}
         view={view}
         onNavigate={handleNavigate}
-        onViewChange={setView}
+        onViewChange={handleViewChange}
         onToday={handleToday}
         onNewCountdown={() => openNewCountdownModal()}
         selectedCalendarId={effectiveCalendarId}
@@ -230,48 +242,61 @@ export default function CalendarContent({
       )}
 
       <div
-        className={
-          calendarEvents.loading ? "opacity-60 pointer-events-none" : undefined
-        }
+        className={[
+          "overflow-hidden",
+          calendarEvents.loading ? "opacity-60 pointer-events-none" : "",
+        ].join(" ")}
       >
-        {view === "day" && (
-          <DayView
-            currentDate={currentDate}
-            events={visibleEvents}
-            countdowns={countdowns}
-            onSlotClick={openCreateModal}
-            onChipClick={openEditModal}
-            onCountdownClick={openCountdownModal}
-          />
-        )}
-        {view === "week" && (
-          <WeekView
-            currentDate={currentDate}
-            events={visibleEvents}
-            countdowns={countdowns}
-            onSlotClick={openCreateModal}
-            onChipClick={openEditModal}
-            onCountdownClick={openCountdownModal}
-          />
-        )}
-        {view === "month" && (
-          <CalendarGrid
-            currentDate={currentDate}
-            events={visibleEvents}
-            countdowns={countdowns}
-            onDayClick={openCreateModal}
-            onChipClick={openEditModal}
-            onCountdownClick={openCountdownModal}
-          />
-        )}
-        {view === "year" && (
-          <YearView
-            currentDate={currentDate}
-            events={visibleEvents}
-            countdowns={countdowns}
-            onMonthClick={handleMonthClick}
-          />
-        )}
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={`${view}-${currentDate.getTime()}`}
+            custom={direction}
+            variants={calendarSlide}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ ...spring.smooth }}
+          >
+            {view === "day" && (
+              <DayView
+                currentDate={currentDate}
+                events={visibleEvents}
+                countdowns={countdowns}
+                onSlotClick={openCreateModal}
+                onChipClick={openEditModal}
+                onCountdownClick={openCountdownModal}
+              />
+            )}
+            {view === "week" && (
+              <WeekView
+                currentDate={currentDate}
+                events={visibleEvents}
+                countdowns={countdowns}
+                onSlotClick={openCreateModal}
+                onChipClick={openEditModal}
+                onCountdownClick={openCountdownModal}
+              />
+            )}
+            {view === "month" && (
+              <CalendarGrid
+                currentDate={currentDate}
+                events={visibleEvents}
+                countdowns={countdowns}
+                onDayClick={openCreateModal}
+                onChipClick={openEditModal}
+                onCountdownClick={openCountdownModal}
+              />
+            )}
+            {view === "year" && (
+              <YearView
+                currentDate={currentDate}
+                events={visibleEvents}
+                countdowns={countdowns}
+                onMonthClick={handleMonthClick}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {modal.open && (

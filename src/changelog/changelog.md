@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.18
+
+- added direction-aware view transitions to the calendar (`src/app/calendar/CalendarContent.tsx`)
+  - added `calendarSlide` variant to `src/lib/animations.ts`: accepts a `custom` direction value (-1/0/1); `hidden` starts at `x: direction * 40`, `exit` leaves at `x: direction * -40`; direction 0 is a pure crossfade
+  - added `direction` state to `CalendarContent` (initial 0)
+  - `handleNavigate(dir)`: sets direction to `dir` before updating `currentDate` — forward (+1) slides new view in from the right, backward (-1) from the left
+  - `handleToday`: sets direction 0 (crossfade)
+  - `handleViewChange`: new `useCallback` wrapper around `setView` that sets direction 0 first; replaces bare `setView` on the `onViewChange` prop
+  - `handleMonthClick`: sets direction 0 (year→month is a view-mode change, not navigation)
+  - view content wrapped in `AnimatePresence mode="wait" custom={direction}` + `motion.div` with `variants={calendarSlide}`, `key={\`${view}-${currentDate.getTime()}\`}`, `transition={{ ...spring.smooth }}`
+  - outer loading wrapper gets `overflow-hidden` to clip the 40px slide offset
+
 ## 2026-03-15 - version 0.5.17
 
 - unified glass treatment across all feature cards and nav headers
