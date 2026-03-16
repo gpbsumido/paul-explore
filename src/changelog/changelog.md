@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.11
+
+- rewrote `src/app/landing/TcgSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion dealt-card animation
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - browser frame fades up at `delay: 0` to give the cards a surface before they land
+  - each mock card starts at `y: -60, rotate: (i%3-1)*18, scale: 0.5, opacity: 0` and springs to rest with `spring.bounce` at `delay: 0.2 + i*0.06` — the 0.2s head start ensures the frame is visible before the first card arrives
+  - heading uses clipPath left-to-right wipe; subtitle fades up at `delay: 0.1`; highlights fade up at `delay: 0.5` (after all 6 cards have dealt)
+  - reduced-motion falls back to plain opacity fade for both frame and cards
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
 ## 2026-03-15 - version 0.5.10
 
 - rewrote `src/app/landing/NbaSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion
