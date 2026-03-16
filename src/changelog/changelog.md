@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.16
+
+- replaced RAF/`startTransition`/`setLoaded` entrance stagger in `FeatureHub` with Framer Motion `staggerContainer` + `cardFlipIn` variants
+  - card grid is now a `motion.div` with `variants={staggerContainer(0.07)}`, `initial="hidden"`, `animate="visible"`, and `style={{ perspective: "1000px" }}`
+  - each `FeatureCard` declares `variants={cardFlipIn}` and inherits `initial`/`animate` from the parent; `transition` is `spring.smooth` or `instantTransition` based on context
+  - removed `loaded` state, `useEffect`, `useTransition`, and `STAGGER_MS` from `FeatureHub`
+- added `ReducedMotionProvider` to `src/app/providers.tsx`
+  - reads `useReducedMotion()` once at the app root and exposes it via `ReducedMotionContext`
+  - `useHubReducedMotion()` export lets any client component read the flag without calling the Framer hook directly
+  - `ReducedMotionProvider` wraps all children inside `Providers`
+- `FeatureCard` now reads `prefersReduced` from props (supplied by `FeatureHub` via `useHubReducedMotion()`) and passes `instantTransition` when true
+
 ## 2026-03-15 - version 0.5.15
 
 - applied glass treatment to all feature cards across landing page and protected hub

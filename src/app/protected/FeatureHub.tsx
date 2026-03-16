@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition, type RefObject } from "react";
+import { type RefObject } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -8,11 +8,9 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useInView } from "@/app/landing/useInView";
 import { reveal } from "@/app/landing/Section";
 import { queryKeys } from "@/lib/queryKeys";
-import { spring } from "@/lib/animations";
+import { spring, staggerContainer, cardFlipIn, instantTransition } from "@/lib/animations";
+import { useHubReducedMotion } from "@/app/providers";
 import type { FeatureItem, ThoughtItem } from "@/types/protected";
-
-// How long each card waits before its entrance animation kicks off.
-const STAGGER_MS = 75;
 
 // These are strictly UI data so they live here, not in a separate config file.
 const FEATURES: FeatureItem[] = [
@@ -458,24 +456,25 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
 
 interface FeatureCardProps {
   feature: FeatureItem;
-  delayMs: number;
-  visible: boolean;
+  prefersReduced: boolean;
 }
 
 /**
  * A single feature card. The top half is a themed preview area that reads like
  * a mini screenshot of the feature. The card uses a glass treatment tinted with
  * the feature's pastel design token.
+ *
+ * Entrance is driven by the parent staggerContainer variant; this component
+ * only declares `variants={cardFlipIn}` and lets Framer inherit initial/animate.
  */
-function FeatureCard({ feature, delayMs, visible }: FeatureCardProps) {
+function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
   const Preview = PREVIEW_MAP[feature.id];
   const token = FEATURE_TOKEN[feature.id] ?? "--color-feature-nba";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={visible ? { opacity: 1, y: 0 } : {}}
-      transition={{ ...spring.smooth, delay: delayMs / 1000 }}
+      variants={cardFlipIn}
+      transition={prefersReduced ? instantTransition : { ...spring.smooth }}
       whileHover={{ y: -4, transition: { ...spring.snappy } }}
       className="flex flex-col overflow-hidden rounded-2xl h-full"
       style={{
@@ -579,22 +578,11 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
  * The protected page hub. Shows a sticky header with user info, a staggered grid
  * of feature cards each with a themed mini-preview, and a dev-notes section below.
  *
- * Feature cards animate in on page load. Dev notes animate on scroll.
+ * Feature cards animate in via Framer staggerContainer + cardFlipIn variants.
  * User name/email are fetched client-side from /api/me so page.tsx can be static.
  */
 export default function FeatureHub() {
-  // Set visible on the first animation frame after mount so the CSS transition
-  // fires rather than snapping to the final state instantly.
-  // startTransition marks this as non-urgent so React handles any queued
-  // clicks before re-rendering the whole card grid.
-  const [loaded, setLoaded] = useState(false);
-  const [, startTransition] = useTransition();
-  useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      startTransition(() => setLoaded(true));
-    });
-    return () => cancelAnimationFrame(id);
-  }, []);
+  const prefersReduced = useHubReducedMotion();
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
@@ -667,17 +655,22 @@ export default function FeatureHub() {
           </p>
         </div>
 
-        {/* Feature grid — cards cascade in on load */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, i) => (
+        {/* Feature grid — cards stagger in with cardFlipIn via Framer variants */}
+        <motion.div
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          style={{ perspective: "1000px" }}
+          variants={staggerContainer(0.07)}
+          initial="hidden"
+          animate="visible"
+        >
+          {FEATURES.map((feature) => (
             <FeatureCard
               key={feature.id}
               feature={feature}
-              delayMs={i * STAGGER_MS}
-              visible={loaded}
+              prefersReduced={prefersReduced}
             />
           ))}
-        </div>
+        </motion.div>
 
         {/* Dev notes — scroll-triggered */}
         <div ref={thoughtsRef as RefObject<HTMLDivElement>} className="mt-14">
@@ -694,7 +687,7 @@ export default function FeatureHub() {
               <ThoughtCard
                 key={thought.href}
                 thought={thought}
-                delayMs={i * STAGGER_MS}
+                delayMs={i * 75}
                 visible={thoughtsVisible}
               />
             ))}
