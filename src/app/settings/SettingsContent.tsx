@@ -161,8 +161,14 @@ export default function SettingsContent() {
           <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
             Settings
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
             <ThemeToggle />
+            <a
+              href="/auth/logout"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Log out
+            </a>
           </div>
         </div>
       </nav>
