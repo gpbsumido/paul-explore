@@ -71,7 +71,7 @@ async function CalendarWithData() {
 export default function CalendarPage() {
   return (
     <div className="min-h-dvh bg-background font-sans">
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
+      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
           <Link
             href="/protected"

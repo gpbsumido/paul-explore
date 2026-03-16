@@ -106,20 +106,32 @@ function FeatureCard({
   title,
   description,
   transition,
+  featureToken,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   transition?: Transition;
+  featureToken: string;
 }) {
   return (
     <motion.div
       variants={cardFlipIn}
       transition={transition ?? { ...spring.bounce }}
-      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6"
+      whileHover={{ y: -4, transition: { ...spring.snappy } }}
+      className="group relative overflow-hidden rounded-2xl p-6"
+      style={{
+        background: `color-mix(in srgb, var(${featureToken}) 6%, rgba(255,255,255,0.04))`,
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: `1px solid color-mix(in srgb, var(${featureToken}) 15%, rgba(255,255,255,0.08))`,
+      }}
     >
-      {/* opacity + scale change on hover -- only watch those two properties */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary-500/10 to-secondary-500/10 opacity-0 transition-[opacity,transform] duration-500 group-hover:scale-100 group-hover:opacity-100" />
+      {/* pastel tint intensifies on hover */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ background: `color-mix(in srgb, var(${featureToken}) 10%, transparent)` }}
+      />
       <div className="relative z-10">
         <span className="text-white/70">{icon}</span>
         <h3 className="mt-3 text-lg font-semibold text-white">{title}</h3>
@@ -176,42 +188,49 @@ export default function FeaturesSection() {
             title="Auth & Security"
             description="Auth0 integration with CSP headers, proxy middleware, and protected routes."
             transition={transition}
+            featureToken="--color-feature-auth"
           />
           <FeatureCard
             icon={<IconPulse />}
             title="Web Vitals Dashboard"
             description="Real-user Core Web Vitals collected via sendBeacon, aggregated as P75 in Postgres, and displayed on a protected dashboard."
             transition={transition}
+            featureToken="--color-feature-vitals"
           />
           <FeatureCard
             icon={<IconLayers />}
             title="Design System"
             description="Token-driven palette, theme toggling, and reusable components."
             transition={transition}
+            featureToken="--color-feature-motion"
           />
           <FeatureCard
             icon={<IconBars />}
             title="NBA Stats"
             description="Live player stats via API proxy with batch loading and error handling."
             transition={transition}
+            featureToken="--color-feature-nba"
           />
           <FeatureCard
             icon={<IconCards />}
             title="Pokémon TCG"
             description="Card browser with infinite scroll, URL-synced filters, and per-set grids built on the TCGdex SDK."
             transition={transition}
+            featureToken="--color-feature-tcg"
           />
           <FeatureCard
             icon={<IconCalendar />}
             title="Personal Calendar"
             description="Four-view calendar with multi-day events, time-grid overlap layout, and Pokémon card attachments."
             transition={transition}
+            featureToken="--color-feature-calendar"
           />
           <FeatureCard
             icon={<IconGraph />}
             title="GraphQL Pokédex"
             description="Pokémon browser using the PokeAPI Hasura endpoint — typed queries, field selection, plain fetch over Apollo."
             transition={transition}
+            featureToken="--color-feature-graphql"
           />
         </motion.div>
       </div>

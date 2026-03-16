@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.15
+
+- applied glass treatment to all feature cards across landing page and protected hub
+  - `FeaturesSection`: added `featureToken` prop to `FeatureCard`; each card's background is `color-mix(in srgb, var(--color-feature-*) 6%, rgba(255,255,255,0.04))`, border `color-mix(...15%...)`, with `backdropFilter: blur(16px)`; hover overlay pastel tint at 10%; `whileHover={{ y: -4 }}` with `spring.snappy`; mapped all 7 cards to their tokens (`auth`, `vitals`, `motion`, `nba`, `tcg`, `calendar`, `graphql`)
+  - `FeatureHub`: added `FEATURE_TOKEN` map (`nba`, `league→sync`, `tcg`, `pocket→particles`, `calendar`, `graphql`, `vitals`); converted `FeatureCard` from CSS `reveal()` entrance to Framer `motion.div` with `spring.smooth` + stagger delay; applied same glass styles using `var(--color-surface)` and `var(--color-border)` for theme compatibility; preview area tinted at 8%; `whileHover={{ y: -4, transition: spring.snappy }}`
+  - updated `FeatureHub` sticky header: `bg-background` → `bg-background/80 backdrop-blur-md`
+  - updated `VitalsContent` nav: `bg-background/95 backdrop-blur-xl` → `bg-background/80 backdrop-blur-md`
+  - updated `calendar/page.tsx` nav: same update
+
 ## 2026-03-15 - version 0.5.14
 
 - rewrote `src/app/landing/VitalsSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion animated bars, stats, and badges

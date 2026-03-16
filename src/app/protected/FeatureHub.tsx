@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useTransition, type RefObject } from "react";
+import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useInView } from "@/app/landing/useInView";
 import { reveal } from "@/app/landing/Section";
 import { queryKeys } from "@/lib/queryKeys";
+import { spring } from "@/lib/animations";
 import type { FeatureItem, ThoughtItem } from "@/types/protected";
 
 // How long each card waits before its entrance animation kicks off.
@@ -430,6 +432,17 @@ function VitalsPreview() {
   );
 }
 
+// Maps feature.id to its design-token CSS variable name.
+const FEATURE_TOKEN: Record<string, string> = {
+  nba:      "--color-feature-nba",
+  league:   "--color-feature-sync",
+  tcg:      "--color-feature-tcg",
+  pocket:   "--color-feature-particles",
+  calendar: "--color-feature-calendar",
+  graphql:  "--color-feature-graphql",
+  vitals:   "--color-feature-vitals",
+};
+
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 const PREVIEW_MAP: Record<string, React.ComponentType> = {
   nba: NBAPreview,
@@ -451,66 +464,75 @@ interface FeatureCardProps {
 
 /**
  * A single feature card. The top half is a themed preview area that reads like
- * a mini screenshot of the feature (light gray in light mode, near-black in dark).
- * The bottom half has the title, description, and navigation links.
+ * a mini screenshot of the feature. The card uses a glass treatment tinted with
+ * the feature's pastel design token.
  */
 function FeatureCard({ feature, delayMs, visible }: FeatureCardProps) {
   const Preview = PREVIEW_MAP[feature.id];
+  const token = FEATURE_TOKEN[feature.id] ?? "--color-feature-nba";
 
-  // Outer div for entrance animations, inner div for hover
-  // (avoid transition conflicts)
   return (
-    <div
-      className={reveal(visible)}
-      style={{ transitionDelay: `${delayMs}ms` }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={visible ? { opacity: 1, y: 0 } : {}}
+      transition={{ ...spring.smooth, delay: delayMs / 1000 }}
+      whileHover={{ y: -4, transition: { ...spring.snappy } }}
+      className="flex flex-col overflow-hidden rounded-2xl h-full"
+      style={{
+        background: `color-mix(in srgb, var(${token}) 6%, var(--color-surface))`,
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: `1px solid color-mix(in srgb, var(${token}) 15%, var(--color-border))`,
+      }}
     >
-      <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface h-full transition-[border-color,box-shadow] hover:border-foreground/15 hover:shadow-md">
-        <div
-          className="bg-neutral-100 dark:bg-neutral-950 overflow-hidden"
-          style={{ height: 112 }}
-        >
-          <div className="p-3">{Preview && <Preview />}</div>
+      <div
+        className="overflow-hidden"
+        style={{
+          height: 112,
+          background: `color-mix(in srgb, var(${token}) 8%, transparent)`,
+        }}
+      >
+        <div className="p-3">{Preview && <Preview />}</div>
+      </div>
+
+      {/* Card body */}
+      <div className="flex flex-1 flex-col p-4">
+        <div className="mb-1 flex items-center gap-2">
+          <div
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: feature.color }}
+          />
+          <h3 className="text-[15px] font-semibold leading-snug text-foreground">
+            {feature.title}
+          </h3>
         </div>
 
-        {/* Card body */}
-        <div className="flex flex-1 flex-col p-4">
-          <div className="mb-1 flex items-center gap-2">
-            <div
-              className="h-2 w-2 shrink-0 rounded-full"
-              style={{ backgroundColor: feature.color }}
-            />
-            <h3 className="text-[15px] font-semibold leading-snug text-foreground">
-              {feature.title}
-            </h3>
-          </div>
+        <p className="flex-1 text-[13px] leading-relaxed text-muted">
+          {feature.description}
+        </p>
 
-          <p className="flex-1 text-[13px] leading-relaxed text-muted">
-            {feature.description}
-          </p>
-
-          {/* About on the left, Open on the right */}
-          <div className="mt-3 flex items-center justify-between">
-            {feature.thoughtsHref ? (
-              <Link
-                href={feature.thoughtsHref}
-                className="text-[13px] text-muted transition-colors hover:text-foreground"
-              >
-                About
-              </Link>
-            ) : (
-              <div />
-            )}
+        {/* About on the left, Open on the right */}
+        <div className="mt-3 flex items-center justify-between">
+          {feature.thoughtsHref ? (
             <Link
-              href={feature.href}
-              className="text-[13px] font-semibold transition-opacity hover:opacity-75"
-              style={{ color: feature.color }}
+              href={feature.thoughtsHref}
+              className="text-[13px] text-muted transition-colors hover:text-foreground"
             >
-              Open →
+              About
             </Link>
-          </div>
+          ) : (
+            <div />
+          )}
+          <Link
+            href={feature.href}
+            className="text-[13px] font-semibold transition-opacity hover:opacity-75"
+            style={{ color: feature.color }}
+          >
+            Open →
+          </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -590,7 +612,7 @@ export default function FeatureHub() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background">
+      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <span className="text-base font-bold tracking-tight text-foreground">
             paul-explore

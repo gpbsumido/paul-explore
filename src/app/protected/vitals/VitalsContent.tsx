@@ -181,7 +181,7 @@ export default function VitalsContent({
   return (
     <div className="min-h-dvh bg-background">
       {/* Sticky nav — mirrors the calendar events layout pattern */}
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
+      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4">
           <Link
             href="/protected"
