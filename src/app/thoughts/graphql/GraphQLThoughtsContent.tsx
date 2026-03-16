@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
 import ViewToggle from "@/app/thoughts/ViewToggle";
@@ -12,34 +11,12 @@ export default function GraphQLThoughtsContent() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto flex h-full max-w-3xl items-center gap-4 px-4 sm:px-6">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden="true">
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Hub
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
-            GraphQL
-          </span>
-          <div className="ml-auto flex items-center gap-3">
-            <ViewToggle view={view} setView={setView} />
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <PageHeader
+        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "GraphQL" }]}
+        right={<ViewToggle view={view} setView={setView} />}
+        showLogout={false}
+        maxWidth="max-w-3xl"
+      />
 
       {view === "summary" ? (
         <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
@@ -51,58 +28,169 @@ export default function GraphQLThoughtsContent() {
               GraphQL Pokédex
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A Pokémon browser on PokeAPI&apos;s public Hasura endpoint — plain fetch over Apollo, server-side initial data, and useInfiniteQuery pagination.
+              A Pokémon browser on PokeAPI&apos;s public Hasura endpoint — plain
+              fetch over Apollo, server-side initial data, and useInfiniteQuery
+              pagination.
             </p>
           </header>
 
           <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-
             <section>
               <h2 className="mb-3 text-lg font-bold">Why GraphQL over REST</h2>
               <p className="text-muted">
-                The PokeAPI REST endpoint returns a massive JSON blob per Pokémon — game versions, form descriptions, encounter data — most of which a card view ignores. GraphQL lets you ask for exactly what the card needs. The PokeAPI v2 endpoint is powered by Hasura, which introspects the Postgres database and auto-generates the entire schema. Every table and relationship becomes queryable with filtering, sorting, aggregates, and nested joins — no resolvers written by hand.
+                The PokeAPI REST endpoint returns a massive JSON blob per
+                Pokémon — game versions, form descriptions, encounter data —
+                most of which a card view ignores. GraphQL lets you ask for
+                exactly what the card needs. The PokeAPI v2 endpoint is powered
+                by Hasura, which introspects the Postgres database and
+                auto-generates the entire schema. Every table and relationship
+                becomes queryable with filtering, sorting, aggregates, and
+                nested joins — no resolvers written by hand.
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">Why plain fetch over Apollo Client</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                Why plain fetch over Apollo Client
+              </h2>
               <p className="text-muted">
-                Apollo Client adds around 60kb gzipped to the client bundle. GraphQL is just HTTP — a POST request with a JSON body containing <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">query</code> and <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">variables</code>. Plain fetch handles that in about 10 lines. A client library earns its cost when you need a normalized cache, optimistic mutations, or real-time subscriptions. None of those are needed here, so the library would just be weight.
+                Apollo Client adds around 60kb gzipped to the client bundle.
+                GraphQL is just HTTP — a POST request with a JSON body
+                containing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  query
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  variables
+                </code>
+                . Plain fetch handles that in about 10 lines. A client library
+                earns its cost when you need a normalized cache, optimistic
+                mutations, or real-time subscriptions. None of those are needed
+                here, so the library would just be weight.
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">Variables over interpolation</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                Variables over interpolation
+              </h2>
               <p className="text-muted">
-                The query string itself is a constant that never changes — only the variables object changes with user input. This means the network tab always shows the same query shape, which makes debugging easier and lets Hasura cache the parsed query on its side. Interpolation also opens the door to injection: someone passing <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">{"}) { id } query Anything {"}</code> as a search string could restructure the query entirely. Variables are always treated as scalars, never as query syntax.
+                The query string itself is a constant that never changes — only
+                the variables object changes with user input. This means the
+                network tab always shows the same query shape, which makes
+                debugging easier and lets Hasura cache the parsed query on its
+                side. Interpolation also opens the door to injection: someone
+                passing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"}) { id } query Anything {"}
+                </code>{" "}
+                as a search string could restructure the query entirely.
+                Variables are always treated as scalars, never as query syntax.
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">Server-side initial data</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                Server-side initial data
+              </h2>
               <p className="text-muted">
-                Page 1 is fetched server-side via a <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">fetchPokemonDirect</code> function that calls PokeAPI straight from the server — no proxy needed, since server code doesn&apos;t have CSP constraints. It passes <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">next: {"{"} revalidate: 3600 {"}"}</code> to the underlying fetch so repeated renders within an hour hit Next.js&apos;s data cache. The page wraps the server component in a Suspense boundary with a skeleton fallback — the skeleton streams immediately while the fetch resolves, then the real grid drops in.
+                Page 1 is fetched server-side via a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  fetchPokemonDirect
+                </code>{" "}
+                function that calls PokeAPI straight from the server — no proxy
+                needed, since server code doesn&apos;t have CSP constraints. It
+                passes{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  next: {"{"} revalidate: 3600 {"}"}
+                </code>{" "}
+                to the underlying fetch so repeated renders within an hour hit
+                Next.js&apos;s data cache. The page wraps the server component
+                in a Suspense boundary with a skeleton fallback — the skeleton
+                streams immediately while the fetch resolves, then the real grid
+                drops in.
               </p>
               <p className="mt-3 text-muted">
-                The <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">initialData</code> prop goes straight into the <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useInfiniteQuery</code> cache as the first page. TanStack treats it as fresh for 30 seconds and skips the initial fetch. The seed only applies to the no-filter key — passing it unconditionally caused a bug where filtered queries got seeded with unfiltered server data and the 30-second stale time prevented the filter fetch from firing.
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialData
+                </code>{" "}
+                prop goes straight into the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>{" "}
+                cache as the first page. TanStack treats it as fresh for 30
+                seconds and skips the initial fetch. The seed only applies to
+                the no-filter key — passing it unconditionally caused a bug
+                where filtered queries got seeded with unfiltered server data
+                and the 30-second stale time prevented the filter fetch from
+                firing.
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">useInfiniteQuery and the CSP proxy</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                useInfiniteQuery and the CSP proxy
+              </h2>
               <p className="text-muted">
-                The original implementation used manual <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">loadedKey</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">filterKey</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">hasServerData</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">abortRef</code>, and offset state. After converting to <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useInfiniteQuery</code> all of that is gone. The query key includes <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">debouncedName</code> and <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">activeType</code> — when either changes, TanStack cancels the in-flight request and fires a fresh fetch automatically.
+                The original implementation used manual{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  loadedKey
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  filterKey
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  hasServerData
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  abortRef
+                </code>
+                , and offset state. After converting to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>{" "}
+                all of that is gone. The query key includes{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  debouncedName
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  activeType
+                </code>{" "}
+                — when either changes, TanStack cancels the in-flight request
+                and fires a fresh fetch automatically.
               </p>
               <p className="mt-3 text-muted">
-                The <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">/api/graphql</code> proxy route forwards the POST body upstream to <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">beta.pokeapi.co/graphql/v1beta</code>. It exists because the app&apos;s CSP locks <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">connect-src</code> to same-origin, so the browser can&apos;t reach the upstream URL directly. Secondary benefit: the upstream URL stays out of the client bundle entirely.
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/graphql
+                </code>{" "}
+                proxy route forwards the POST body upstream to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  beta.pokeapi.co/graphql/v1beta
+                </code>
+                . It exists because the app&apos;s CSP locks{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  connect-src
+                </code>{" "}
+                to same-origin, so the browser can&apos;t reach the upstream URL
+                directly. Secondary benefit: the upstream URL stays out of the
+                client bundle entirely.
               </p>
             </section>
-
           </div>
         </main>
       ) : (
         <div className="flex justify-center">
-          <div className={styles.phone} style={{ minHeight: "calc(100dvh - 56px)" }}>
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
             <div className={styles.chat}>
               <Timestamp>Today 11:00 AM</Timestamp>
 
@@ -111,8 +199,8 @@ export default function GraphQLThoughtsContent() {
 
               <Sent pos="first">
                 a Pokédex browser built on the PokeAPI Hasura GraphQL endpoint —
-                search any Pokémon by name or filter by type, shows the sprite, type
-                badges, and base stat bars
+                search any Pokémon by name or filter by type, shows the sprite,
+                type badges, and base stat bars
               </Sent>
               <Sent pos="last">
                 and yes, more Pokémon. I&apos;m playing a lot of Pocket with my
@@ -123,19 +211,22 @@ export default function GraphQLThoughtsContent() {
 
               <Received>why GraphQL instead of a REST API</Received>
 
-              <Sent pos="first">two things — field selection and the schema</Sent>
+              <Sent pos="first">
+                two things — field selection and the schema
+              </Sent>
               <Sent pos="middle">
-                REST gives you whatever the server decided to return. if you call{" "}
-                <code>/api/pokemon/pikachu</code>, you get a massive JSON blob with
-                game versions, form descriptions, encounter data — most of which you
-                ignore. GraphQL lets you ask for exactly what you need
+                REST gives you whatever the server decided to return. if you
+                call <code>/api/pokemon/pikachu</code>, you get a massive JSON
+                blob with game versions, form descriptions, encounter data —
+                most of which you ignore. GraphQL lets you ask for exactly what
+                you need
               </Sent>
               <Sent pos="last">
-                the PokeAPI v2 endpoint is powered by Hasura, which introspects the
-                Postgres database and auto-generates the entire schema — every table
-                and relationship becomes queryable. you get filtering, sorting,
-                aggregates, and nested joins for free without a single resolver
-                written by hand
+                the PokeAPI v2 endpoint is powered by Hasura, which introspects
+                the Postgres database and auto-generates the entire schema —
+                every table and relationship becomes queryable. you get
+                filtering, sorting, aggregates, and nested joins for free
+                without a single resolver written by hand
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -160,20 +251,20 @@ query PokemonList($limit: Int!, $offset: Int!, $name: String!) {
               <Received>why no Apollo or urql</Received>
 
               <Sent pos="first">
-                bundle size, mostly. Apollo Client adds around 60kb gzipped to your
-                client. for what I&apos;m doing here — send a query, get data back —
-                that&apos;s a lot to pay
+                bundle size, mostly. Apollo Client adds around 60kb gzipped to
+                your client. for what I&apos;m doing here — send a query, get
+                data back — that&apos;s a lot to pay
               </Sent>
               <Sent pos="middle">
                 GraphQL is just HTTP. a POST request with a JSON body containing{" "}
-                <code>query</code> and <code>variables</code>. plain fetch handles
-                that in about 10 lines
+                <code>query</code> and <code>variables</code>. plain fetch
+                handles that in about 10 lines
               </Sent>
               <Sent pos="last">
                 a client library earns its cost when you need a normalized cache
-                (avoid re-fetching objects you already have), optimistic mutations, or
-                real-time subscriptions. I don&apos;t need any of that here, so the
-                library would just be weight
+                (avoid re-fetching objects you already have), optimistic
+                mutations, or real-time subscriptions. I don&apos;t need any of
+                that here, so the library would just be weight
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -193,39 +284,43 @@ async function gql(query, variables, signal) {
 
               <Timestamp>11:14 AM</Timestamp>
 
-              <Received>what about the proxy — same reason as the calendar?</Received>
+              <Received>
+                what about the proxy — same reason as the calendar?
+              </Received>
 
               <Sent pos="first">
                 exactly. the app&apos;s CSP locks <code>connect-src</code> to
                 same-origin, so the browser can&apos;t directly reach{" "}
                 <code>beta.pokeapi.co/graphql/v1beta</code>. the{" "}
-                <code>/api/graphql</code> route just forwards the POST body upstream
-                and returns the response
+                <code>/api/graphql</code> route just forwards the POST body
+                upstream and returns the response
               </Sent>
               <Sent pos="last">
-                secondary benefit: the upstream URL stays out of the client bundle
-                entirely. if it ever changes, you update one constant in one route
-                file
+                secondary benefit: the upstream URL stays out of the client
+                bundle entirely. if it ever changes, you update one constant in
+                one route file
               </Sent>
 
               <Received>
-                variables vs string interpolation — does it matter for a public API?
+                variables vs string interpolation — does it matter for a public
+                API?
               </Received>
 
               <Sent pos="first">
                 yes, always use variables — even against a public API
               </Sent>
               <Sent pos="middle">
-                the query string itself is a constant that never changes. only the
-                variables object changes with user input. this means the network tab
-                always shows the same query shape, which makes debugging easier and
-                lets Hasura cache the parsed query on its side
+                the query string itself is a constant that never changes. only
+                the variables object changes with user input. this means the
+                network tab always shows the same query shape, which makes
+                debugging easier and lets Hasura cache the parsed query on its
+                side
               </Sent>
               <Sent pos="last">
                 interpolation also opens the door to injection — someone passing{" "}
-                <code>{"}) { id } query Anything {"}</code> as a search string could
-                restructure the query entirely. variables are always treated as
-                scalars, never as query syntax
+                <code>{"}) { id } query Anything {"}</code> as a search string
+                could restructure the query entirely. variables are always
+                treated as scalars, never as query syntax
               </Sent>
 
               <Timestamp>11:22 AM</Timestamp>
@@ -237,17 +332,17 @@ async function gql(query, variables, signal) {
                 boolean
               </Sent>
               <Sent pos="middle">
-                there&apos;s a <code>loadedKey</code> string that tracks which filter
-                state the current results belong to, and a <code>filterKey</code>{" "}
-                derived from the debounced name + active type.{" "}
-                <code>loading = loadedKey !== filterKey</code>
+                there&apos;s a <code>loadedKey</code> string that tracks which
+                filter state the current results belong to, and a{" "}
+                <code>filterKey</code> derived from the debounced name + active
+                type. <code>loading = loadedKey !== filterKey</code>
               </Sent>
               <Sent pos="last">
-                that also handles the AbortController cleanly — when a new search
-                fires, the old controller is aborted, and the <code>loadedKey</code>{" "}
-                update in the new fetch&apos;s <code>.then()</code> never fires for
-                the aborted request, so loading stays true until the right results
-                land
+                that also handles the AbortController cleanly — when a new
+                search fires, the old controller is aborted, and the{" "}
+                <code>loadedKey</code> update in the new fetch&apos;s{" "}
+                <code>.then()</code> never fires for the aborted request, so
+                loading stays true until the right results land
               </Sent>
 
               <Timestamp>11:29 AM</Timestamp>
@@ -259,13 +354,15 @@ async function gql(query, variables, signal) {
                 does the user still see a skeleton flash on arrival?
               </Received>
 
-              <Sent pos="first">not anymore — page 1 is fetched server-side now</Sent>
+              <Sent pos="first">
+                not anymore — page 1 is fetched server-side now
+              </Sent>
               <Sent pos="middle">
-                there&apos;s a <code>fetchPokemonDirect</code> in the lib that calls
-                PokeAPI straight from the server, no proxy needed. the{" "}
-                <code>/api/graphql</code> proxy only exists for the browser (CSP +
-                endpoint hiding) — server code doesn&apos;t have those constraints. it
-                also passes{" "}
+                there&apos;s a <code>fetchPokemonDirect</code> in the lib that
+                calls PokeAPI straight from the server, no proxy needed. the{" "}
+                <code>/api/graphql</code> proxy only exists for the browser (CSP
+                + endpoint hiding) — server code doesn&apos;t have those
+                constraints. it also passes{" "}
                 <code>
                   next: {"{"} revalidate: 3600 {"}"}
                 </code>{" "}
@@ -273,11 +370,12 @@ async function gql(query, variables, signal) {
                 Next.js&apos;s data cache instead of PokeAPI every time
               </Sent>
               <Sent pos="last">
-                <code>page.tsx</code> has a <code>PokemonWithData</code> async server
-                component that calls it, wrapped in a <code>Suspense</code> boundary
-                with a skeleton fallback. the skeleton streams immediately while the
-                fetch resolves, then the real grid drops in. first paint shows actual
-                Pokémon, no loading spinner
+                <code>page.tsx</code> has a <code>PokemonWithData</code> async
+                server component that calls it, wrapped in a{" "}
+                <code>Suspense</code> boundary with a skeleton fallback. the
+                skeleton streams immediately while the fetch resolves, then the
+                real grid drops in. first paint shows actual Pokémon, no loading
+                spinner
               </Sent>
 
               <Received>
@@ -285,16 +383,16 @@ async function gql(query, variables, signal) {
               </Received>
 
               <Sent pos="first">
-                two things. <code>loadedKey</code> is pre-seeded to the default filter
-                key — <code>&quot;||&quot;</code>, empty search and no type — so{" "}
-                <code>loading</code> is already <code>false</code> before the
-                component even mounts
+                two things. <code>loadedKey</code> is pre-seeded to the default
+                filter key — <code>&quot;||&quot;</code>, empty search and no
+                type — so <code>loading</code> is already <code>false</code>{" "}
+                before the component even mounts
               </Sent>
               <Sent pos="last">
                 and there&apos;s a <code>hasServerData</code> ref initialised to{" "}
-                <code>!!initialData</code>. on the first effect run it returns early
-                and flips to false — after that, every filter change triggers a normal
-                fetch. one-time skip, nothing special after
+                <code>!!initialData</code>. on the first effect run it returns
+                early and flips to false — after that, every filter change
+                triggers a normal fetch. one-time skip, nothing special after
               </Sent>
 
               <Received>
@@ -302,11 +400,11 @@ async function gql(query, variables, signal) {
               </Received>
 
               <Sent>
-                the server fetch is in a try/catch that swallows the error and passes{" "}
-                <code>initialData={"{undefined}"}</code> to{" "}
-                <code>GraphQLContent</code>. it initialises with an empty array and
-                falls back to the client-side fetch on mount, same as before. not
-                great UX but it doesn&apos;t crash
+                the server fetch is in a try/catch that swallows the error and
+                passes <code>initialData={"{undefined}"}</code> to{" "}
+                <code>GraphQLContent</code>. it initialises with an empty array
+                and falls back to the client-side fetch on mount, same as
+                before. not great UX but it doesn&apos;t crash
               </Sent>
 
               <Timestamp>11:38 AM</Timestamp>
@@ -314,19 +412,21 @@ async function gql(query, variables, signal) {
               <Received>what would you improve</Received>
 
               <Sent pos="first">
-                caching is the obvious one — every type switch re-fetches even if
-                you&apos;ve already loaded that page. a simple{" "}
-                <code>Map&lt;filterKey, data&gt;</code> would make repeat filters
-                instant without needing a client library
+                caching is the obvious one — every type switch re-fetches even
+                if you&apos;ve already loaded that page. a simple{" "}
+                <code>Map&lt;filterKey, data&gt;</code> would make repeat
+                filters instant without needing a client library
               </Sent>
               <Sent pos="middle">
-                the live query panel is a nice demo but not something a real user
-                needs. in a production app that&apos;d be behind a dev-only flag
+                the live query panel is a nice demo but not something a real
+                user needs. in a production app that&apos;d be behind a dev-only
+                flag
               </Sent>
               <Sent pos="last">
-                and introspection queries would be cool — let the user browse the
-                schema itself, see what fields exist and what types they return.
-                Hasura exposes the full introspection endpoint, so the data is there
+                and introspection queries would be cool — let the user browse
+                the schema itself, see what fields exist and what types they
+                return. Hasura exposes the full introspection endpoint, so the
+                data is there
               </Sent>
 
               <Timestamp>11:45 AM</Timestamp>
@@ -334,7 +434,9 @@ async function gql(query, variables, signal) {
               <Received pos="first">
                 did the loadedKey and hasServerData stuff ever get cleaned up
               </Received>
-              <Received pos="last">that was a lot of manual state for one page</Received>
+              <Received pos="last">
+                that was a lot of manual state for one page
+              </Received>
 
               <Sent pos="first">
                 yes, this one got converted to <code>useInfiniteQuery</code> too
@@ -342,25 +444,29 @@ async function gql(query, variables, signal) {
               <Sent pos="middle">
                 <code>loadedKey</code>, <code>filterKey</code>,{" "}
                 <code>hasServerData</code>, <code>abortRef</code>,{" "}
-                <code>offset</code> state, and <code>handleLoadMore</code> are all
-                gone. the query key includes <code>debouncedName</code> and{" "}
-                <code>activeType</code> — when either changes TanStack cancels the
-                in-flight request and fires a fresh fetch on the new key
+                <code>offset</code> state, and <code>handleLoadMore</code> are
+                all gone. the query key includes <code>debouncedName</code> and{" "}
+                <code>activeType</code> — when either changes TanStack cancels
+                the in-flight request and fires a fresh fetch on the new key
                 automatically
               </Sent>
               <Sent pos="last">
-                <code>isFetchingNextPage</code> replaces the <code>loadingMore</code>{" "}
-                boolean and <code>isLoading</code> replaces the derived{" "}
-                <code>loading = loadedKey !== filterKey</code> expression — both come
-                straight from the hook, no manual state to keep in sync
+                <code>isFetchingNextPage</code> replaces the{" "}
+                <code>loadingMore</code> boolean and <code>isLoading</code>{" "}
+                replaces the derived{" "}
+                <code>loading = loadedKey !== filterKey</code> expression — both
+                come straight from the hook, no manual state to keep in sync
               </Sent>
 
-              <Received>how does it know not to re-fetch the server data on mount</Received>
+              <Received>
+                how does it know not to re-fetch the server data on mount
+              </Received>
 
               <Sent pos="first">
-                the <code>initialData</code> prop goes straight into the query cache
-                as the first page. TanStack treats it as fresh for 30 seconds and
-                skips the initial fetch — no <code>hasServerData</code> ref needed
+                the <code>initialData</code> prop goes straight into the query
+                cache as the first page. TanStack treats it as fresh for 30
+                seconds and skips the initial fetch — no{" "}
+                <code>hasServerData</code> ref needed
               </Sent>
               <Sent pos="last">
                 once the user types or picks a type the key changes and the new
@@ -372,66 +478,67 @@ async function gql(query, variables, signal) {
               <Received>what does this show as a dev</Received>
 
               <Sent pos="first">
-                that I understand GraphQL as a specification, not just as &quot;the
-                Apollo thing&quot;. knowing when to use it — typed schema, field
-                selection, nested relationships across tables — versus when a REST
-                endpoint is simpler and faster to build
+                that I understand GraphQL as a specification, not just as
+                &quot;the Apollo thing&quot;. knowing when to use it — typed
+                schema, field selection, nested relationships across tables —
+                versus when a REST endpoint is simpler and faster to build
               </Sent>
               <Sent pos="last">
-                and that I reach for the right tool, not the popular one. plain fetch
-                with a 10-line wrapper is the right call here. Apollo would have been
-                the cargo-cult choice
+                and that I reach for the right tool, not the popular one. plain
+                fetch with a 10-line wrapper is the right call here. Apollo
+                would have been the cargo-cult choice
               </Sent>
 
               <Received>makes sense</Received>
 
               <Sent>
-                yeah, it&apos;s one of those things that looks overcomplicated until
-                you work with a real nested schema and suddenly the self-documenting
-                query language pays for itself
+                yeah, it&apos;s one of those things that looks overcomplicated
+                until you work with a real nested schema and suddenly the
+                self-documenting query language pays for itself
               </Sent>
 
               <Received>
-                wait I thought you said the type filter worked because the query key
-                changes and a fresh fetch fires
+                wait I thought you said the type filter worked because the query
+                key changes and a fresh fetch fires
               </Received>
 
               <Sent pos="first">
-                that was wrong — I had a bug. the filter was silently not working
-                because <code>initialData</code> was provided unconditionally to{" "}
-                <code>useInfiniteQuery</code>
+                that was wrong — I had a bug. the filter was silently not
+                working because <code>initialData</code> was provided
+                unconditionally to <code>useInfiniteQuery</code>
               </Sent>
               <Sent pos="last">
-                TanStack evaluates <code>initialData</code> fresh on every render,
-                not just on mount. so when the user clicked a type pill, the new
-                query key found <code>initialData</code> truthy, seeded itself with
-                the unfiltered server data, and <code>staleTime: 30_000</code>{" "}
-                prevented the actual filter fetch from firing for 30 seconds
+                TanStack evaluates <code>initialData</code> fresh on every
+                render, not just on mount. so when the user clicked a type pill,
+                the new query key found <code>initialData</code> truthy, seeded
+                itself with the unfiltered server data, and{" "}
+                <code>staleTime: 30_000</code> prevented the actual filter fetch
+                from firing for 30 seconds
               </Sent>
 
               <Received>how did you catch it</Received>
 
               <Sent pos="first">
-                the grid was showing all Pokémon after clicking a type pill instead
-                of the filtered list. tracing the flow confirmed the fetch was never
-                made — TanStack thought the data was fresh
+                the grid was showing all Pokémon after clicking a type pill
+                instead of the filtered list. tracing the flow confirmed the
+                fetch was never made — TanStack thought the data was fresh
               </Sent>
               <Sent pos="last">
                 fix was to gate it:{" "}
                 <code>
-                  initialData: seedPage &amp;&amp; !name &amp;&amp; !type ? ... :
-                  undefined
+                  initialData: seedPage &amp;&amp; !name &amp;&amp; !type ? ...
+                  : undefined
                 </code>
-                . the seed only applies to the no-filter key. filtered queries start
-                empty and fetch normally
+                . the seed only applies to the no-filter key. filtered queries
+                start empty and fetch normally
               </Sent>
 
               <Received>subtle</Received>
 
               <Sent>
-                really subtle. the behavior looks correct at first — the unfiltered
-                grid loads fast — but the filter is completely broken. easy to miss
-                if you only test the happy path
+                really subtle. the behavior looks correct at first — the
+                unfiltered grid loads fast — but the filter is completely
+                broken. easy to miss if you only test the happy path
               </Sent>
 
               {/* Typing indicator */}

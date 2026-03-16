@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
 import ViewToggle from "@/app/thoughts/ViewToggle";
@@ -12,34 +11,12 @@ export default function TcgContent() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto flex h-full max-w-3xl items-center gap-4 px-4 sm:px-6">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden="true">
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Hub
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
-            Pokémon TCG
-          </span>
-          <div className="ml-auto flex items-center gap-3">
-            <ViewToggle view={view} setView={setView} />
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <PageHeader
+        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Pokémon TCG" }]}
+        right={<ViewToggle view={view} setView={setView} />}
+        showLogout={false}
+        maxWidth="max-w-3xl"
+      />
 
       {view === "summary" ? (
         <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
@@ -51,73 +28,213 @@ export default function TcgContent() {
               Pokémon TCG
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A card browser with debounced filtering, sets index, per-set grids, and full card detail pages — built on the TCGdex SDK behind a same-origin proxy.
+              A card browser with debounced filtering, sets index, per-set
+              grids, and full card detail pages — built on the TCGdex SDK behind
+              a same-origin proxy.
             </p>
           </header>
 
           <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-
             <section>
-              <h2 className="mb-3 text-lg font-bold">API proxy and ISR caching</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                API proxy and ISR caching
+              </h2>
               <p className="text-muted">
-                The app&apos;s CSP locks <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">connect-src</code> to same-origin, so the browser can&apos;t reach <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">api.tcgdex.net</code> directly. Every SDK call lives in a Next.js API route — the browser talks to <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">/api/tcg/cards</code>, the route calls the SDK, returns plain JSON. The SDK also carries a circular <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">sdk</code> property on model instances — a <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">toPlain()</code> helper strips those keys before serialization.
+                The app&apos;s CSP locks{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  connect-src
+                </code>{" "}
+                to same-origin, so the browser can&apos;t reach{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  api.tcgdex.net
+                </code>{" "}
+                directly. Every SDK call lives in a Next.js API route — the
+                browser talks to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/tcg/cards
+                </code>
+                , the route calls the SDK, returns plain JSON. The SDK also
+                carries a circular{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  sdk
+                </code>{" "}
+                property on model instances — a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  toPlain()
+                </code>{" "}
+                helper strips those keys before serialization.
               </p>
             </section>
 
             <section>
               <h2 className="mb-3 text-lg font-bold">Server / client split</h2>
               <p className="text-muted">
-                The set detail page is a server component — it calls the SDK at render time for metadata, logo, release year, and legality. The card grid needs pagination so it&apos;s a client component calling the API route. The set detail server component wraps the grid in a <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">Suspense</code> boundary, which is required by Next.js App Router for any client component that calls <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useSearchParams</code> during server rendering.
+                The set detail page is a server component — it calls the SDK at
+                render time for metadata, logo, release year, and legality. The
+                card grid needs pagination so it&apos;s a client component
+                calling the API route. The set detail server component wraps the
+                grid in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Suspense
+                </code>{" "}
+                boundary, which is required by Next.js App Router for any client
+                component that calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useSearchParams
+                </code>{" "}
+                during server rendering.
               </p>
               <p className="mt-3 text-muted">
-                The browse page fetches page 1 server-side — one module-level TCGdex SDK instance per server process, same as the API route. A <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">BrowseSkeleton</code> wraps it in a Suspense boundary so the skeleton streams immediately while the fetch resolves. <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">BrowseContent</code> gets <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">initialCards</code> as a prop and skips the page-1 fetch — but only when the URL has no active filters.
+                The browse page fetches page 1 server-side — one module-level
+                TCGdex SDK instance per server process, same as the API route. A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  BrowseSkeleton
+                </code>{" "}
+                wraps it in a Suspense boundary so the skeleton streams
+                immediately while the fetch resolves.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  BrowseContent
+                </code>{" "}
+                gets{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialCards
+                </code>{" "}
+                as a prop and skips the page-1 fetch — but only when the URL has
+                no active filters.
               </p>
             </section>
 
             <section>
               <h2 className="mb-3 text-lg font-bold">Infinite scroll</h2>
               <p className="text-muted">
-                A sentinel div at the bottom of the list is watched by an IntersectionObserver. The tricky part: observers only fire on intersection state changes. On a wide screen the sentinel might already be visible after the first load — the state never changes, so it never fires again. The fix: add <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">cards.length</code> to the observer effect&apos;s dependency array. That reconnects the observer after every fetch, which calls <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">observe()</code> fresh and immediately reports current intersection state.
+                A sentinel div at the bottom of the list is watched by an
+                IntersectionObserver. The tricky part: observers only fire on
+                intersection state changes. On a wide screen the sentinel might
+                already be visible after the first load — the state never
+                changes, so it never fires again. The fix: add{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  cards.length
+                </code>{" "}
+                to the observer effect&apos;s dependency array. That reconnects
+                the observer after every fetch, which calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  observe()
+                </code>{" "}
+                fresh and immediately reports current intersection state.
               </p>
               <p className="mt-3 text-muted">
-                After converting to <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useInfiniteQuery</code>, manual <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">AbortController</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">loadedPages</code> state, and the scroll restore loop are all gone. <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">initialPageParam</code> reads <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">?page=N</code> from the URL on mount, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">getNextPageParam</code> increments from there, and the sentinel observer calls <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">fetchNextPage()</code> guarded by <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">hasNextPage</code>.
+                After converting to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>
+                , manual{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AbortController
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  loadedPages
+                </code>{" "}
+                state, and the scroll restore loop are all gone.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialPageParam
+                </code>{" "}
+                reads{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?page=N
+                </code>{" "}
+                from the URL on mount,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  getNextPageParam
+                </code>{" "}
+                increments from there, and the sentinel observer calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  fetchNextPage()
+                </code>{" "}
+                guarded by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  hasNextPage
+                </code>
+                .
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">URL-driven filter state</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                URL-driven filter state
+              </h2>
               <p className="text-muted">
-                Search, type filter, and page number all live in the URL as query params. On mount the component reads the URL to initialize state. As the user types or scrolls, the URL updates with <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">router.replace(..., {"{"} scroll: false {"}"})</code>. Back and forward navigation changes the URL, which syncs back into state. Sharing <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">?q=pikachu&type=Psychic&page=4</code> restores exactly that view.
+                Search, type filter, and page number all live in the URL as
+                query params. On mount the component reads the URL to initialize
+                state. As the user types or scrolls, the URL updates with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  router.replace(..., {"{"} scroll: false {"}"})
+                </code>
+                . Back and forward navigation changes the URL, which syncs back
+                into state. Sharing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?q=pikachu&type=Psychic&page=4
+                </code>{" "}
+                restores exactly that view.
               </p>
             </section>
 
             <section>
               <h2 className="mb-3 text-lg font-bold">Race condition fix</h2>
               <p className="text-muted">
-                Rapid filter changes can cause a race — an old fetch resolving after the new one starts overwrites the results. The original fix was an <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">AbortController</code> pattern where each fetch aborts the previous one before starting, with <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">AbortError</code> caught and silently ignored. After converting to <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useInfiniteQuery</code>, TanStack handles this automatically — when the query key changes it cancels the in-flight request via its own abort signal. No more <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">abortRef</code> or <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">AbortError</code> catch needed.
+                Rapid filter changes can cause a race — an old fetch resolving
+                after the new one starts overwrites the results. The original
+                fix was an{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AbortController
+                </code>{" "}
+                pattern where each fetch aborts the previous one before
+                starting, with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AbortError
+                </code>{" "}
+                caught and silently ignored. After converting to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>
+                , TanStack handles this automatically — when the query key
+                changes it cancels the in-flight request via its own abort
+                signal. No more{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  abortRef
+                </code>{" "}
+                or{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AbortError
+                </code>{" "}
+                catch needed.
               </p>
             </section>
-
           </div>
         </main>
       ) : (
         <div className="flex justify-center">
-          <div className={styles.phone} style={{ minHeight: "calc(100dvh - 56px)" }}>
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
             <div className={styles.chat}>
               <Timestamp>Today 9:15 AM</Timestamp>
 
-              <Received pos="first">so what did you actually build here</Received>
+              <Received pos="first">
+                so what did you actually build here
+              </Received>
               <Received pos="last">just a card browser?</Received>
 
               <Sent pos="first">more than that</Sent>
               <Sent pos="middle">
                 browse + search with debounced filtering, sets index grouped by
-                series, per-set card grids, full card detail pages, and a TCG Pocket
-                page that groups sets by expansion family
+                series, per-set card grids, full card detail pages, and a TCG
+                Pocket page that groups sets by expansion family
               </Sent>
               <Sent pos="last">
-                all powered by the <code>@tcgdex/sdk</code> TypeScript SDK wrapping
-                the TCGdex REST API
+                all powered by the <code>@tcgdex/sdk</code> TypeScript SDK
+                wrapping the TCGdex REST API
               </Sent>
 
               <Received>why not just call the API from the browser</Received>
@@ -131,9 +248,9 @@ export default function TcgContent() {
                 <code>api.tcgdex.net</code> directly gets blocked
               </Sent>
               <Sent pos="last">
-                every SDK call lives in a Next.js API route. the browser talks to{" "}
-                <code>/api/tcg/cards</code>, the route calls the SDK, returns plain
-                JSON
+                every SDK call lives in a Next.js API route. the browser talks
+                to <code>/api/tcg/cards</code>, the route calls the SDK, returns
+                plain JSON
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -147,20 +264,20 @@ fetch("/api/tcg/cards?q=charizard")`}
               <Timestamp>9:19 AM</Timestamp>
 
               <Received pos="first">
-                what about server components — couldn&apos;t the server just call the
-                SDK directly
+                what about server components — couldn&apos;t the server just
+                call the SDK directly
               </Received>
 
               <Sent pos="first">yes, and some pages do exactly that</Sent>
               <Sent pos="middle">
-                the set detail page is a server component — it calls the SDK at render
-                time for metadata, logo, release year, legality. fast, no
+                the set detail page is a server component — it calls the SDK at
+                render time for metadata, logo, release year, legality. fast, no
                 interactivity needed
               </Sent>
               <Sent pos="last">
-                but the card grid needs pagination, so that&apos;s a client component
-                calling the API route. clear split: server owns the header, client
-                owns the scroll
+                but the card grid needs pagination, so that&apos;s a client
+                component calling the API route. clear split: server owns the
+                header, client owns the scroll
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -181,13 +298,14 @@ export default async function SetDetailPage({ params }) {
               <Received>why the Suspense wrapper</Received>
 
               <Sent pos="first">
-                <code>SetCardsGrid</code> uses <code>useSearchParams</code> to read
-                the page number from the URL
+                <code>SetCardsGrid</code> uses <code>useSearchParams</code> to
+                read the page number from the URL
               </Sent>
               <Sent pos="last">
-                Next.js App Router requires a <code>Suspense</code> boundary around
-                any client component that calls <code>useSearchParams</code> during
-                server rendering — otherwise you get a build error
+                Next.js App Router requires a <code>Suspense</code> boundary
+                around any client component that calls{" "}
+                <code>useSearchParams</code> during server rendering — otherwise
+                you get a build error
               </Sent>
 
               <Timestamp>9:24 AM</Timestamp>
@@ -198,49 +316,54 @@ export default async function SetDetailPage({ params }) {
                 the page number is <code>loadedPages</code> state — not a ref
               </Sent>
               <Sent pos="last">
-                it syncs to the URL as you scroll — <code>?page=3</code> — so sharing
-                or back-navigating restores exactly where you were
+                it syncs to the URL as you scroll — <code>?page=3</code> — so
+                sharing or back-navigating restores exactly where you were
               </Sent>
 
-              <Received pos="first">infinite scroll — how does that work</Received>
+              <Received pos="first">
+                infinite scroll — how does that work
+              </Received>
               <Received pos="last">
                 i always see IntersectionObserver break in weird ways
               </Received>
 
               <Sent pos="first">
                 there&apos;s a sentinel div at the bottom of the list. an
-                IntersectionObserver watches it — when it enters the viewport, load
-                the next page
+                IntersectionObserver watches it — when it enters the viewport,
+                load the next page
               </Sent>
               <Sent pos="middle">
                 the tricky part: observers only fire on intersection state{" "}
-                <em>changes</em>. on a wide screen, the sentinel might already be
-                visible after the first load — the state never changes, so it never
-                fires again
+                <em>changes</em>. on a wide screen, the sentinel might already
+                be visible after the first load — the state never changes, so it
+                never fires again
               </Sent>
               <Sent pos="last">
                 fix: add <code>cards.length</code> to the observer effect&apos;s
-                dependency array. that reconnects the observer after every fetch,
-                which calls <code>observe()</code> fresh and immediately reports
-                current intersection state
+                dependency array. that reconnects the observer after every
+                fetch, which calls <code>observe()</code> fresh and immediately
+                reports current intersection state
               </Sent>
 
               <Received>
-                but the observer callback goes stale — how does it read current state
+                but the observer callback goes stale — how does it read current
+                state
               </Received>
 
               <Sent pos="first">
-                event handler ref pattern. assign directly in the render body — no{" "}
-                <code>useEffect</code> wrapper. refs are mutable and don&apos;t need
-                to go through React&apos;s effect queue to stay current
+                event handler ref pattern. assign directly in the render body —
+                no <code>useEffect</code> wrapper. refs are mutable and
+                don&apos;t need to go through React&apos;s effect queue to stay
+                current
               </Sent>
               <Sent pos="last">
                 the observer reconnects on <code>cards.length</code> change —
-                that&apos;s intentional, not <code>[]</code>. reconnecting forces{" "}
-                <code>observe()</code> to immediately report current intersection
-                state, which fixes the case where the sentinel is already in the
-                viewport after load. the ref handles stale closures; the dep handles
-                the wide-screen edge case. both are needed
+                that&apos;s intentional, not <code>[]</code>. reconnecting
+                forces <code>observe()</code> to immediately report current
+                intersection state, which fixes the case where the sentinel is
+                already in the viewport after load. the ref handles stale
+                closures; the dep handles the wide-screen edge case. both are
+                needed
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -270,21 +393,22 @@ useEffect(() => {
               <Received pos="last">how does that work with filters</Received>
 
               <Sent pos="first">
-                search, type filter, and page number all live in the URL as query
-                params
+                search, type filter, and page number all live in the URL as
+                query params
               </Sent>
               <Sent pos="middle">
-                on mount, the component reads the URL to initialize state. as the user
-                types or scrolls, the URL updates with{" "}
+                on mount, the component reads the URL to initialize state. as
+                the user types or scrolls, the URL updates with{" "}
                 <code>
                   router.replace(..., {"{"} scroll: false {"}"}
                 </code>
                 ) — no scroll jump
               </Sent>
               <Sent pos="last">
-                back/forward navigation changes the URL, which syncs back into state.
-                and if you share <code>?q=pikachu&type=Psychic&page=4</code>, the
-                recipient sees exactly that
+                back/forward navigation changes the URL, which syncs back into
+                state. and if you share{" "}
+                <code>?q=pikachu&type=Psychic&page=4</code>, the recipient sees
+                exactly that
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -305,14 +429,14 @@ useEffect(() => {
               <Sent pos="first">two layers</Sent>
               <Sent pos="middle">
                 for server components that <code>await</code> data —{" "}
-                <code>loading.tsx</code> files next to the page. Next.js wraps them in
-                a Suspense boundary automatically and streams the skeleton HTML to the
-                browser while the server fetch runs
+                <code>loading.tsx</code> files next to the page. Next.js wraps
+                them in a Suspense boundary automatically and streams the
+                skeleton HTML to the browser while the server fetch runs
               </Sent>
               <Sent pos="last">
-                for the client-side infinite scroll append, skeleton card tiles are
-                injected into the grid while loading — same grid layout, same aspect
-                ratio, animate-pulse
+                for the client-side infinite scroll append, skeleton card tiles
+                are injected into the grid while loading — same grid layout,
+                same aspect ratio, animate-pulse
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -331,17 +455,18 @@ useEffect(() => {
               </Received>
 
               <Sent pos="first">
-                actually the opposite — it&apos;s most useful for server components
+                actually the opposite — it&apos;s most useful for server
+                components
               </Sent>
               <Sent pos="middle">
-                when a server component <code>await</code>s data, the page is blocked
-                until the fetch completes. without <code>loading.tsx</code>, the
-                browser stares at a blank page
+                when a server component <code>await</code>s data, the page is
+                blocked until the fetch completes. without{" "}
+                <code>loading.tsx</code>, the browser stares at a blank page
               </Sent>
               <Sent pos="last">
                 with it, Next.js streams the skeleton HTML immediately via React
-                streaming SSR, then streams the real content once the fetch is done.
-                the browser never waits on a blank screen
+                streaming SSR, then streams the real content once the fetch is
+                done. the browser never waits on a blank screen
               </Sent>
 
               <Timestamp>9:44 AM</Timestamp>
@@ -349,21 +474,21 @@ useEffect(() => {
               <Received>are you using a design system</Received>
 
               <Sent pos="first">
-                yes — the app has shared <code>Button</code>, <code>Input</code>, and{" "}
-                <code>Modal</code> primitives
+                yes — the app has shared <code>Button</code>, <code>Input</code>
+                , and <code>Modal</code> primitives
               </Sent>
               <Sent pos="middle">
                 the TCG pages use them throughout. retry buttons use{" "}
-                <code>{'<Button variant="outline" size="sm">'}</code>. the search bar
-                uses <code>Input</code> with <code>hideLabel</code> and{" "}
-                <code>size=&quot;sm&quot;</code> — visible label is hidden via{" "}
-                <code>sr-only</code> for accessibility but still there for screen
-                readers
+                <code>{'<Button variant="outline" size="sm">'}</code>. the
+                search bar uses <code>Input</code> with <code>hideLabel</code>{" "}
+                and <code>size=&quot;sm&quot;</code> — visible label is hidden
+                via <code>sr-only</code> for accessibility but still there for
+                screen readers
               </Sent>
               <Sent pos="last">
                 the type filter pills use a new <code>size=&quot;xs&quot;</code>{" "}
-                variant added to the Button primitive — no fixed height, padding-only
-                sizing for compact pill shapes
+                variant added to the Button primitive — no fixed height,
+                padding-only sizing for compact pill shapes
               </Sent>
 
               <Timestamp>9:49 AM</Timestamp>
@@ -374,8 +499,8 @@ useEffect(() => {
               </Received>
 
               <Sent pos="first">
-                attack costs, retreat cost, weakness, and resistance all show the
-                actual Pokémon TCG energy symbols instead of text
+                attack costs, retreat cost, weakness, and resistance all show
+                the actual Pokémon TCG energy symbols instead of text
               </Sent>
               <Sent pos="middle">
                 the icons are PNGs sourced from Bulbapedia, stored in{" "}
@@ -383,9 +508,10 @@ useEffect(() => {
                 dependency
               </Sent>
               <Sent pos="last">
-                effect text also gets parsed — <code>{"{P}"}</code> in &quot;Discard 2{" "}
-                {"{P}"} Energy&quot; is replaced with the Psychic icon inline, using a
-                regex split on the <code>{"{X}"}</code> token pattern
+                effect text also gets parsed — <code>{"{P}"}</code> in
+                &quot;Discard 2 {"{P}"} Energy&quot; is replaced with the
+                Psychic icon inline, using a regex split on the{" "}
+                <code>{"{X}"}</code> token pattern
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -400,22 +526,25 @@ useEffect(() => {
 }`}
               </div>
 
-              <Received>was there anything surprising about the API itself</Received>
+              <Received>
+                was there anything surprising about the API itself
+              </Received>
 
               <Sent pos="first">
                 a few things. TCGdex is 1-indexed for pagination but{" "}
-                <code>paginate(0, 20)</code> and <code>paginate(1, 20)</code> both
-                return the same first page silently
+                <code>paginate(0, 20)</code> and <code>paginate(1, 20)</code>{" "}
+                both return the same first page silently
               </Sent>
               <Sent pos="middle">
                 so the original code started at 0. first load-more jumped to 1 —
-                duplicate results, deduplication dropped them all, looked like nothing
-                happened
+                duplicate results, deduplication dropped them all, looked like
+                nothing happened
               </Sent>
               <Sent pos="last">
-                also: SDK model instances carry a circular <code>sdk</code> property.{" "}
-                <code>JSON.stringify</code> blows up on it. had to write a{" "}
-                <code>toPlain()</code> helper that strips those keys in a replacer
+                also: SDK model instances carry a circular <code>sdk</code>{" "}
+                property. <code>JSON.stringify</code> blows up on it. had to
+                write a <code>toPlain()</code> helper that strips those keys in
+                a replacer
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -431,37 +560,41 @@ useEffect(() => {
               <Timestamp>9:56 AM</Timestamp>
 
               <Received pos="first">SDK vs raw REST vs GraphQL</Received>
-              <Received pos="last">how do you feel about the SDK choice</Received>
+              <Received pos="last">
+                how do you feel about the SDK choice
+              </Received>
 
               <Sent pos="first">
-                SDK is worth it for the type safety and query builder. direct REST
-                means maintaining your own types and parsing
+                SDK is worth it for the type safety and query builder. direct
+                REST means maintaining your own types and parsing
               </Sent>
               <Sent pos="middle">
-                the <code>toPlain()</code> workaround is a one-time cost. card list
-                responses already return a <code>CardResume</code> shape — not the
-                full object — so the SDK handles the field scoping that GraphQL would
-                give you otherwise
+                the <code>toPlain()</code> workaround is a one-time cost. card
+                list responses already return a <code>CardResume</code> shape —
+                not the full object — so the SDK handles the field scoping that
+                GraphQL would give you otherwise
               </Sent>
               <Sent pos="last">
-                GraphQL makes more sense when you have multiple clients with very
-                different data needs, or when aggregating across multiple APIs. for a
-                single card browser, the SDK wins on DX
+                GraphQL makes more sense when you have multiple clients with
+                very different data needs, or when aggregating across multiple
+                APIs. for a single card browser, the SDK wins on DX
               </Sent>
 
               <Timestamp>9:52 AM</Timestamp>
 
               <Received pos="first">any robustness issues</Received>
-              <Received pos="last">typing fast or switching filters quickly</Received>
+              <Received pos="last">
+                typing fast or switching filters quickly
+              </Received>
 
               <Sent pos="first">
-                yes — rapid filter changes can cause a race. old fetch resolves after
-                the new one starts and overwrites the results
+                yes — rapid filter changes can cause a race. old fetch resolves
+                after the new one starts and overwrites the results
               </Sent>
               <Sent pos="last">
                 fixed with <code>AbortController</code>. each fetch aborts the
-                previous one before starting. <code>AbortError</code> is caught and
-                silently ignored — no error state, no loading flicker
+                previous one before starting. <code>AbortError</code> is caught
+                and silently ignored — no error state, no loading flicker
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -493,36 +626,40 @@ const fetchCards = async (...) => {
               </Received>
 
               <Sent pos="first">
-                no, that&apos;s fixed. the browse page fetches page 1 server-side now
-                — same streaming pattern as the GraphQL Pokédex
+                no, that&apos;s fixed. the browse page fetches page 1
+                server-side now — same streaming pattern as the GraphQL Pokédex
               </Sent>
               <Sent pos="middle">
-                <code>page.tsx</code> has a <code>BrowseWithData</code> async server
-                component that calls the TCGdex SDK directly — one module-level{" "}
-                <code>new TCGdex(&quot;en&quot;)</code> instance per server process,
-                same as the API route. a <code>BrowseSkeleton</code> mirrors the
-                filter bar and card grid and wraps it in a <code>Suspense</code>{" "}
-                boundary, so that streams immediately while the fetch resolves
+                <code>page.tsx</code> has a <code>BrowseWithData</code> async
+                server component that calls the TCGdex SDK directly — one
+                module-level <code>new TCGdex(&quot;en&quot;)</code> instance
+                per server process, same as the API route. a{" "}
+                <code>BrowseSkeleton</code> mirrors the filter bar and card grid
+                and wraps it in a <code>Suspense</code> boundary, so that
+                streams immediately while the fetch resolves
               </Sent>
               <Sent pos="last">
-                <code>BrowseContent</code> gets <code>initialCards</code> as a prop.
-                it initialises state from that and skips the page-1 fetch — but only
-                when the URL has no active filters. land on <code>?q=charizard</code>{" "}
-                and the server data is the wrong page, so it throws it away and
-                fetches with the right params client-side
+                <code>BrowseContent</code> gets <code>initialCards</code> as a
+                prop. it initialises state from that and skips the page-1 fetch
+                — but only when the URL has no active filters. land on{" "}
+                <code>?q=charizard</code> and the server data is the wrong page,
+                so it throws it away and fetches with the right params
+                client-side
               </Sent>
 
-              <Received>what about scroll restore — does ?page=N still work</Received>
+              <Received>
+                what about scroll restore — does ?page=N still work
+              </Received>
 
               <Sent pos="first">
-                yes. if there&apos;s server data and <code>?page=4</code> in the URL,
-                it loads pages 2–4, not 1–4 — saves one round trip since page 1
-                already came from the server
+                yes. if there&apos;s server data and <code>?page=4</code> in the
+                URL, it loads pages 2–4, not 1–4 — saves one round trip since
+                page 1 already came from the server
               </Sent>
               <Sent pos="last">
-                if the server fetch failed or the URL has filters, it falls back to
-                the original path: load pages 1–N sequentially. same behaviour as
-                before, just a different entry condition
+                if the server fetch failed or the URL has filters, it falls back
+                to the original path: load pages 1–N sequentially. same
+                behaviour as before, just a different entry condition
               </Sent>
 
               <Timestamp>10:17 AM</Timestamp>
@@ -531,18 +668,20 @@ const fetchCards = async (...) => {
 
               <Sent pos="first">
                 cache headers on the API routes. the <code>/api/tcg/cards</code>{" "}
-                endpoint hits TCGdex cold on every request — card and set data barely
-                ever changes. adding{" "}
+                endpoint hits TCGdex cold on every request — card and set data
+                barely ever changes. adding{" "}
                 <code>
-                  Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400
+                  Cache-Control: public, s-maxage=3600,
+                  stale-while-revalidate=86400
                 </code>{" "}
-                means Vercel&apos;s CDN (or any edge cache) serves repeat fetches
-                without touching the origin
+                means Vercel&apos;s CDN (or any edge cache) serves repeat
+                fetches without touching the origin
               </Sent>
               <Sent pos="last">
-                and the TCG Pocket page could get the same infinite scroll treatment.
-                it currently loads everything in one shot since the set count is
-                small, but it&apos;s inconsistent with the rest of the pages
+                and the TCG Pocket page could get the same infinite scroll
+                treatment. it currently loads everything in one shot since the
+                set count is small, but it&apos;s inconsistent with the rest of
+                the pages
               </Sent>
 
               <Timestamp>10:24 AM</Timestamp>
@@ -556,15 +695,16 @@ const fetchCards = async (...) => {
                 yes, both files got converted to <code>useInfiniteQuery</code>
               </Sent>
               <Sent pos="middle">
-                the query key changes when search or type changes — TanStack cancels
-                the in-flight fetch automatically via its own abort signal. no more{" "}
-                <code>abortRef</code>, no more <code>AbortError</code> catch
+                the query key changes when search or type changes — TanStack
+                cancels the in-flight fetch automatically via its own abort
+                signal. no more <code>abortRef</code>, no more{" "}
+                <code>AbortError</code> catch
               </Sent>
               <Sent pos="last">
                 <code>loadedPages</code> state is gone too.{" "}
-                <code>data.pages.flatMap(p ={">"} p.cards)</code> is the cards array
-                and <code>fetchNextPage()</code> appends the next page to it — no
-                dedup loop, no append flag
+                <code>data.pages.flatMap(p ={">"} p.cards)</code> is the cards
+                array and <code>fetchNextPage()</code> appends the next page to
+                it — no dedup loop, no append flag
               </Sent>
 
               <Received pos="first">
@@ -575,14 +715,16 @@ const fetchCards = async (...) => {
               </Received>
 
               <Sent pos="first">
-                dropped. <code>initialPageParam</code> reads <code>?page=N</code>{" "}
-                from the URL on mount and <code>getNextPageParam</code> returns{" "}
-                <code>lastPageParam + 1</code>, so pages continue from wherever the
-                session ended
+                dropped. <code>initialPageParam</code> reads{" "}
+                <code>?page=N</code> from the URL on mount and{" "}
+                <code>getNextPageParam</code> returns{" "}
+                <code>lastPageParam + 1</code>, so pages continue from wherever
+                the session ended
               </Sent>
               <Sent pos="last">
-                the sentinel observer still calls <code>fetchNextPage()</code> guarded
-                by <code>hasNextPage</code> — same pattern, half the wiring
+                the sentinel observer still calls <code>fetchNextPage()</code>{" "}
+                guarded by <code>hasNextPage</code> — same pattern, half the
+                wiring
               </Sent>
 
               <div className={styles.codeBubble}>
@@ -609,17 +751,18 @@ onScrollRef.current = () => {
               <Received>what does all this show as a frontend dev</Received>
 
               <Sent pos="first">
-                knowing when to split server vs client, not defaulting to all-client
+                knowing when to split server vs client, not defaulting to
+                all-client
               </Sent>
               <Sent pos="middle">
-                understanding platform constraints — CSP, streaming SSR, Suspense
-                boundaries, IntersectionObserver edge cases — and building the minimal
-                fix for each
+                understanding platform constraints — CSP, streaming SSR,
+                Suspense boundaries, IntersectionObserver edge cases — and
+                building the minimal fix for each
               </Sent>
               <Sent pos="last">
-                and keeping state in the right place: URL for shareable view state,
-                event handler refs for external callbacks, primitives for consistency
-                across the system
+                and keeping state in the right place: URL for shareable view
+                state, event handler refs for external callbacks, primitives for
+                consistency across the system
               </Sent>
 
               <Received>nice. thanks for walking me through it</Received>

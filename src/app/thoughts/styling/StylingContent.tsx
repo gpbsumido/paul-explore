@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Button, Input, Modal } from "@/components/ui";
+import PageHeader from "@/components/PageHeader";
 import ThemeToggle from "@/components/ThemeToggle";
+import { Button, Input, Modal } from "@/components/ui";
 import styles from "./styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
 import ViewToggle from "@/app/thoughts/ViewToggle";
@@ -30,34 +30,15 @@ export default function StylingContent() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto flex h-full max-w-3xl items-center gap-4 px-4 sm:px-6">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden="true">
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Hub
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
-            Styling Decisions
-          </span>
-          <div className="ml-auto flex items-center gap-3">
-            <ViewToggle view={view} setView={setView} />
-            <ThemeToggle />
-          </div>
-        </div>
-      </nav>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Hub", href: "/" },
+          { label: "Styling Decisions" },
+        ]}
+        right={<ViewToggle view={view} setView={setView} />}
+        showLogout={false}
+        maxWidth="max-w-3xl"
+      />
 
       {view === "summary" ? (
         <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
@@ -69,59 +50,205 @@ export default function StylingContent() {
               Styling Decisions
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Four layers built on top of each other — design tokens, Tailwind v4, a theme switcher, and accessible component primitives.
+              Four layers built on top of each other — design tokens, Tailwind
+              v4, a theme switcher, and accessible component primitives.
             </p>
           </header>
 
           <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-
             <section>
               <h2 className="mb-3 text-lg font-bold">Layer 1: Design tokens</h2>
               <p className="text-muted">
-                One <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">tokens.css</code> file with colors, spacing, and font sizes as CSS custom properties. The palette shades (50–950) are the same in both light and dark mode. The semantic aliases flip — <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">background</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">foreground</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">surface</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">border</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">muted</code>. Values are reusable everywhere and changing one token updates every consumer. The downside: lots of CSS variables, and once you name a token it&apos;s hard to rename.
+                One{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  tokens.css
+                </code>{" "}
+                file with colors, spacing, and font sizes as CSS custom
+                properties. The palette shades (50–950) are the same in both
+                light and dark mode. The semantic aliases flip —{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  background
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  foreground
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  surface
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  border
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  muted
+                </code>
+                . Values are reusable everywhere and changing one token updates
+                every consumer. The downside: lots of CSS variables, and once
+                you name a token it&apos;s hard to rename.
               </p>
             </section>
 
             <section>
               <h2 className="mb-3 text-lg font-bold">Layer 2: Tailwind v4</h2>
               <p className="text-muted">
-                A <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">@theme</code> block bridges the token CSS variables to Tailwind utility classes — <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">bg-primary-600</code> and <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">var(--color-primary-600)</code> resolve to the same value. The CSS Module files are legacy and kept for backwards compatibility. A <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">@custom-variant</code> tells Tailwind to match <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">[data-theme=&quot;dark&quot;]</code> instead of the media query, so <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">dark:hover:bg-neutral-800</code> works with the toggle.
+                A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @theme
+                </code>{" "}
+                block bridges the token CSS variables to Tailwind utility
+                classes —{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bg-primary-600
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  var(--color-primary-600)
+                </code>{" "}
+                resolve to the same value. The CSS Module files are legacy and
+                kept for backwards compatibility. A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @custom-variant
+                </code>{" "}
+                tells Tailwind to match{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  [data-theme=&quot;dark&quot;]
+                </code>{" "}
+                instead of the media query, so{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  dark:hover:bg-neutral-800
+                </code>{" "}
+                works with the toggle.
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">Layer 3: Theme switching</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                Layer 3: Theme switching
+              </h2>
               <p className="text-muted">
-                A <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">ThemeProvider</code> sets the <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">data-theme</code> attribute on the base <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">{"<html>"}</code> element. Instead of <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useState</code> with <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useEffect</code> (which triggers ESLint warnings about setState in effects), it uses <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useSyncExternalStore</code> — one subscription for localStorage, one for matchMedia. The theme is derived, never stored in state. Defaults to OS theme but allows manual override. <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">data-theme</code> is used over a class because data attributes describe state while classes describe styling, and it avoids collision with Tailwind utility classes.
+                A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ThemeProvider
+                </code>{" "}
+                sets the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data-theme
+                </code>{" "}
+                attribute on the base{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"<html>"}
+                </code>{" "}
+                element. Instead of{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useState
+                </code>{" "}
+                with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useEffect
+                </code>{" "}
+                (which triggers ESLint warnings about setState in effects), it
+                uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useSyncExternalStore
+                </code>{" "}
+                — one subscription for localStorage, one for matchMedia. The
+                theme is derived, never stored in state. Defaults to OS theme
+                but allows manual override.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data-theme
+                </code>{" "}
+                is used over a class because data attributes describe state
+                while classes describe styling, and it avoids collision with
+                Tailwind utility classes.
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">Layer 4: Component primitives</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                Layer 4: Component primitives
+              </h2>
               <p className="text-muted">
-                Reusable <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">Button</code>, <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">Input</code>, and <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">Modal</code> primitives built without Radix or Headless UI — for three components it&apos;s reasonable to build by hand for zero runtime deps, full DOM control, and hands-on focus management experience.
+                Reusable{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Button
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Input
+                </code>
+                , and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Modal
+                </code>{" "}
+                primitives built without Radix or Headless UI — for three
+                components it&apos;s reasonable to build by hand for zero
+                runtime deps, full DOM control, and hands-on focus management
+                experience.
               </p>
               <ul className="mt-3 space-y-2 text-muted">
                 <li className="flex gap-2">
                   <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span><strong className="text-foreground">Button</strong> — the <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">loading</code> prop sets <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">aria-busy</code>, shows a spinner, and disables clicks. Focus rings use <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">focus-visible</code> so they only appear for keyboard users.</span>
+                  <span>
+                    <strong className="text-foreground">Button</strong> — the{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      loading
+                    </code>{" "}
+                    prop sets{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      aria-busy
+                    </code>
+                    , shows a spinner, and disables clicks. Focus rings use{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      focus-visible
+                    </code>{" "}
+                    so they only appear for keyboard users.
+                  </span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span><strong className="text-foreground">Input</strong> — labels auto-associate via <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">useId()</code>. Errors use <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">role=&quot;alert&quot;</code> so screen readers announce them immediately. <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">aria-describedby</code> links the input to its error or helper text.</span>
+                  <span>
+                    <strong className="text-foreground">Input</strong> — labels
+                    auto-associate via{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      useId()
+                    </code>
+                    . Errors use{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      role=&quot;alert&quot;
+                    </code>{" "}
+                    so screen readers announce them immediately.{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      aria-describedby
+                    </code>{" "}
+                    links the input to its error or helper text.
+                  </span>
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span><strong className="text-foreground">Modal</strong> — built with <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">createPortal</code> to escape stacking contexts. Custom focus trap cycles Tab through focusable elements. On close, focus returns to whatever element opened it. No external dependencies.</span>
+                  <span>
+                    <strong className="text-foreground">Modal</strong> — built
+                    with{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      createPortal
+                    </code>{" "}
+                    to escape stacking contexts. Custom focus trap cycles Tab
+                    through focusable elements. On close, focus returns to
+                    whatever element opened it. No external dependencies.
+                  </span>
                 </li>
               </ul>
             </section>
-
           </div>
         </main>
       ) : (
         <div className="flex justify-center">
-          <div className={styles.phone} style={{ minHeight: "calc(100dvh - 56px)" }}>
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
             <div className={styles.chat}>
               <Timestamp>Today 2:41 PM</Timestamp>
 
@@ -136,27 +263,30 @@ export default function StylingContent() {
                 hardcoded hex colors
               </Sent>
               <Sent pos="middle">
-                dark mode was just a <code>prefers-color-scheme</code> media query. no
-                way to toggle it manually
+                dark mode was just a <code>prefers-color-scheme</code> media
+                query. no way to toggle it manually
               </Sent>
-              <Sent pos="last">I had to copy-paste values for every new page</Sent>
+              <Sent pos="last">
+                I had to copy-paste values for every new page
+              </Sent>
 
               <Received>what did you actually build then</Received>
 
               {/* ---- What was built ---- */}
               <Sent pos="first">four layers basically</Sent>
               <Sent pos="middle">
-                1. <strong>design tokens</strong> — one <code>tokens.css</code> file
-                with colors, spacing, font sizes, etc as custom properties
+                1. <strong>design tokens</strong> — one <code>tokens.css</code>{" "}
+                file with colors, spacing, font sizes, etc as custom properties
               </Sent>
               <Sent pos="middle">
-                2. <strong>tailwind v4</strong> — added tailwind. <code>@theme</code>
+                2. <strong>tailwind v4</strong> — added tailwind.{" "}
+                <code>@theme</code>
                 &apos; block bridges the above tokens to tailwind utilities
               </Sent>
               <Sent pos="middle">
                 3. <strong>theming</strong> — ThemeProvider using&apos;
-                <code>useSyncExternalStore</code> to subscribe to localStorage and
-                matchMedia. defaults to OS theme but allows changing it
+                <code>useSyncExternalStore</code> to subscribe to localStorage
+                and matchMedia. defaults to OS theme but allows changing it
               </Sent>
               <Sent pos="last">
                 4. <strong>primitives</strong> — reusable components with
@@ -170,8 +300,8 @@ export default function StylingContent() {
               <Received pos="last">why not just keep using hex values</Received>
 
               <Sent pos="first">
-                makes these values easily reusable so you&apos;re not typing it out
-                all the time
+                makes these values easily reusable so you&apos;re not typing it
+                out all the time
               </Sent>
               <Sent pos="last">
                 and if you want to change the value, you only do it once for
@@ -210,11 +340,12 @@ export default function StylingContent() {
               </div>
 
               <Sent pos="first">
-                the palette shades (50–950) are the same in both light and dark mode
+                the palette shades (50–950) are the same in both light and dark
+                mode
               </Sent>
               <Sent pos="last">
-                the semantic aliases flip — background, foreground, surface, border,
-                muted
+                the semantic aliases flip — background, foreground, surface,
+                border, muted
               </Sent>
 
               <Received>what{"'"}s the downside</Received>
@@ -233,8 +364,8 @@ export default function StylingContent() {
               <Received pos="last">isn{"'"}t that two styling systems</Received>
 
               <Sent pos="first">
-                it is. and in a bigger team i{"'"}d probably pick one, but this is a
-                demo so we&apos;ll keep both
+                it is. and in a bigger team i{"'"}d probably pick one, but this
+                is a demo so we&apos;ll keep both
               </Sent>
               <Sent pos="middle">
                 the CSS module files are legacy and kept there for backwards
@@ -247,9 +378,10 @@ export default function StylingContent() {
               </Sent>
 
               <Sent>
-                for dark mode a <code>@custom-variant</code> tells tailwind to match{" "}
-                <code>[data-theme=&quot;dark&quot;]</code> instead of the media query.
-                so <code>dark:hover:bg-neutral-800</code> works with the toggle
+                for dark mode a <code>@custom-variant</code> tells tailwind to
+                match <code>[data-theme=&quot;dark&quot;]</code> instead of the
+                media query. so <code>dark:hover:bg-neutral-800</code> works
+                with the toggle
               </Sent>
 
               <Received>what{"'"}s the cost of running both</Received>
@@ -271,18 +403,19 @@ export default function StylingContent() {
               <Received>tell me about the theming</Received>
 
               <Sent pos="first">
-                originally it was just <code>prefers-color-scheme</code>. just CSS no
-                way for users to override it
+                originally it was just <code>prefers-color-scheme</code>. just
+                CSS no way for users to override it
               </Sent>
               <Sent pos="middle">
-                i added a <code>ThemeProvider</code> that sets <code>data-theme</code>{" "}
-                attribute the the base <code>&lt;html&gt;</code> element
+                i added a <code>ThemeProvider</code> that sets{" "}
+                <code>data-theme</code> attribute the the base{" "}
+                <code>&lt;html&gt;</code> element
               </Sent>
               <Sent pos="last">
-                choice: instead of useState with useEffect (triggers eslint warnings
-                about setState in effects), it uses <code>useSyncExternalStore</code>{" "}
-                — one sub for localStorage, one for matchMedia. the theme is derived,
-                never stored in state
+                choice: instead of useState with useEffect (triggers eslint
+                warnings about setState in effects), it uses{" "}
+                <code>useSyncExternalStore</code> — one sub for localStorage,
+                one for matchMedia. the theme is derived, never stored in state
               </Sent>
 
               <Received>can i try it</Received>
@@ -320,9 +453,9 @@ export default function StylingContent() {
               <Received pos="last">you said button, input, modal?</Received>
 
               <Sent>
-                yeah. the goal was build them once with accessibility baked in so
-                every consumer gets correct ARIA, keyboard nav, and focus management
-                for free
+                yeah. the goal was build them once with accessibility baked in
+                so every consumer gets correct ARIA, keyboard nav, and focus
+                management for free
               </Sent>
 
               {/* Button demo */}
@@ -353,15 +486,19 @@ export default function StylingContent() {
                   <Button disabled size="sm">
                     Disabled
                   </Button>
-                  <Button loading={loading} size="sm" onClick={handleLoadingDemo}>
+                  <Button
+                    loading={loading}
+                    size="sm"
+                    onClick={handleLoadingDemo}
+                  >
                     {loading ? "Saving..." : "Click me"}
                   </Button>
                 </div>
               </div>
 
               <Sent pos="first">
-                the <code>loading</code> prop sets <code>aria-busy</code>, shows a
-                spinner, and disables clicks
+                the <code>loading</code> prop sets <code>aria-busy</code>, shows
+                a spinner, and disables clicks
               </Sent>
               <Sent pos="last">
                 focus rings use <code>focus-visible</code> so they only show for
@@ -384,7 +521,11 @@ export default function StylingContent() {
                     onChange={handleInputDemo}
                     error={inputError}
                   />
-                  <Input label="Disabled" disabled placeholder="Can't touch this" />
+                  <Input
+                    label="Disabled"
+                    disabled
+                    placeholder="Can't touch this"
+                  />
                 </div>
               </div>
 
@@ -393,8 +534,8 @@ export default function StylingContent() {
               </Sent>
               <Sent pos="last">
                 errors use <code>role=&quot;alert&quot;</code> so screen readers
-                announce them immediately. <code>aria-describedby</code> links the
-                input to its error or helper text
+                announce them immediately. <code>aria-describedby</code> links
+                the input to its error or helper text
               </Sent>
 
               <Received>what about the modal</Received>
@@ -445,9 +586,9 @@ export default function StylingContent() {
                       color: "var(--color-muted)",
                     }}
                   >
-                    Tab cycles through the buttons below. Escape or backdrop click
-                    closes it. Scroll is locked on the body. Focus returns to the
-                    trigger button on close.
+                    Tab cycles through the buttons below. Escape or backdrop
+                    click closes it. Scroll is locked on the body. Focus returns
+                    to the trigger button on close.
                   </p>
                   <div
                     style={{
@@ -465,11 +606,12 @@ export default function StylingContent() {
               </Modal>
 
               <Sent pos="first">
-                built with <code>createPortal</code> so it escapes stacking contexts
+                built with <code>createPortal</code> so it escapes stacking
+                contexts
               </Sent>
               <Sent pos="middle">
-                custom focus trap cycles Tab through focusable elements. no external
-                dependencies
+                custom focus trap cycles Tab through focusable elements. no
+                external dependencies
               </Sent>
               <Sent pos="last">
                 when it closes, focus returns to whatever element opened it
@@ -482,38 +624,39 @@ export default function StylingContent() {
               <Received pos="last">like what was the thought process</Received>
 
               <Sent pos="first">
-                <strong>start from what exists.</strong> the project already had CSS
-                Modules. so i picked a tool that layers on top instead of replacing
-                everything
+                <strong>start from what exists.</strong> the project already had
+                CSS Modules. so i picked a tool that layers on top instead of
+                replacing everything
               </Sent>
               <Sent pos="middle">
                 <strong>tokens before components.</strong> components are just
-                opinions about how to combine tokens. getting colors, spacing, and
-                typography right first means components naturally look consistent
+                opinions about how to combine tokens. getting colors, spacing,
+                and typography right first means components naturally look
+                consistent
               </Sent>
               <Sent pos="middle">
-                <strong>no external component library.</strong> radix and headless UI
-                are great but for three components it{"'"}s reasonable to build by
-                hand. zero runtime deps, full DOM control, and you actually learn
-                focus management
+                <strong>no external component library.</strong> radix and
+                headless UI are great but for three components it{"'"}s
+                reasonable to build by hand. zero runtime deps, full DOM
+                control, and you actually learn focus management
               </Sent>
               <Sent pos="last">
-                <strong>CSS vars over JS tokens.</strong> no runtime cost, cascade
-                naturally, work in both CSS Modules and tailwind without extra
-                bridging
+                <strong>CSS vars over JS tokens.</strong> no runtime cost,
+                cascade naturally, work in both CSS Modules and tailwind without
+                extra bridging
               </Sent>
 
               {/* ---- Trade-offs ---- */}
               <Received>anything you{"'"}d do differently</Received>
 
               <Sent pos="first">
-                probably look harder at native <code>&lt;dialog&gt;</code> for the
-                modal. it gives you backdrop, escape-to-close, and basic focus
-                management for free. browser support is solid now
+                probably look harder at native <code>&lt;dialog&gt;</code> for
+                the modal. it gives you backdrop, escape-to-close, and basic
+                focus management for free. browser support is solid now
               </Sent>
               <Sent pos="last">
-                the two-styling-systems thing is fine for exploring but i{"'"}d pick
-                one for a real team project
+                the two-styling-systems thing is fine for exploring but i{"'"}d
+                pick one for a real team project
               </Sent>
 
               <Received>nice. thanks for walking me through it</Received>
