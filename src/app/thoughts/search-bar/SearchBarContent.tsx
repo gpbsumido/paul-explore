@@ -9,7 +9,7 @@ export default function SearchBarContent() {
     <div className={styles.phone}>
       {/* ---- Top bar ---- */}
       <div className={styles.topBar}>
-        <Link href="/protected" className={styles.backLink}>
+        <Link href="/" className={styles.backLink}>
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
             <path
               d="M9 1L2 8l7 7"

@@ -8,7 +8,7 @@ export default function LandingPageContent() {
     <div className={styles.phone}>
       {/* ---- Top bar ---- */}
       <div className={styles.topBar}>
-        <Link href="/protected" className={styles.backLink}>
+        <Link href="/" className={styles.backLink}>
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
             <path
               d="M9 1L2 8l7 7"
@@ -61,14 +61,18 @@ export default function LandingPageContent() {
         <Received pos="last">the whole thing is one big component?</Received>
 
         <Sent pos="first">
-          no — that was a deliberate choice. <code>page.tsx</code> stays as a{" "}
-          <strong>server component</strong>. it checks the auth session and
-          redirects logged-in users to <code>/protected</code>
+          no — that was a deliberate choice. <code>page.tsx</code> is a{" "}
+          <strong>server component</strong>. it calls{" "}
+          <code>auth0.getSession()</code> — a local cookie decrypt, no network
+          call — and renders either the hub for logged-in users or{" "}
+          <code>&lt;LandingContent /&gt;</code> for everyone else. same URL,
+          different content
         </Sent>
         <Sent pos="middle">
-          if the user isn{"'"}t logged in, it renders a{" "}
-          <code>&lt;LandingContent /&gt;</code> client component. that{"'"}s the
-          boundary — server handles auth, client handles interactivity
+          that{"'"}s the boundary — server handles auth, client handles
+          interactivity. logged-in users never see the landing page, and the
+          URL stays clean: no redirect to <code>/protected</code> or anywhere
+          else
         </Sent>
         <Sent pos="last">
           then <code>LandingContent</code> itself is just a thin orchestrator.
@@ -77,10 +81,10 @@ export default function LandingPageContent() {
         </Sent>
 
         <div className={styles.codeBubble}>
-          {`// page.tsx (server)
+          {`// page.tsx (server) — renders hub or landing based on session
 export default async function Home() {
   const session = await auth0.getSession();
-  if (session) redirect("/protected");
+  if (session) return <FeatureHub />;
   return <LandingContent />;
 }
 

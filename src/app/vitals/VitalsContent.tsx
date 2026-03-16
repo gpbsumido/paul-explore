@@ -150,7 +150,7 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
   {
     metric: "TTFB",
     what: "Static landing page + CDN caching + connection pooling",
-    how: "The landing page is statically rendered at build time -- the logged-in redirect moved to middleware so the page component no longer calls getSession() and forces a dynamic render. NBA and TCG proxy routes set public, s-maxage=300/3600 for CDN caching. Railway Postgres uses a connection pool so there is no per-request handshake.",
+    how: "The landing page is statically rendered at build time. NBA and TCG proxy routes set public, s-maxage=300/3600 for CDN caching. Railway Postgres uses a connection pool so there is no per-request handshake.",
   },
 ];
 
@@ -191,7 +191,7 @@ export default function VitalsContent({
       >
         <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4 sm:px-6">
           <Link
-            href="/protected"
+            href="/"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none">

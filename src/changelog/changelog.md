@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-03-16 - version 0.6.0
+
+- migrated authenticated hub from `/protected` to root `/`:
+  - `src/app/page.tsx` converted from static export to async server component; calls `auth0.getSession()` (local cookie decrypt, no network call) and renders `FeatureHub` for authenticated users or `LandingContent` for unauthenticated visitors
+  - `src/app/FeatureHub.tsx`, `src/app/loading.tsx` promoted from `src/app/protected/` to root `src/app/`
+  - `src/app/vitals/` and `src/app/settings/` promoted from `src/app/protected/vitals/` and `src/app/protected/settings/`
+  - `src/proxy.ts` updated: removed `/` redirect block and `/protected` auth enforcement; added equivalent enforcement for `/vitals` and `/settings`
+  - `src/types/hub.ts` created (replacing `src/types/protected.ts`); `FeatureHub.tsx` import updated accordingly
+  - 21 back-to-hub links updated from `href="/protected"` to `href="/"` across feature pages (calendar, TCG, lab, fantasy, graphql) and thoughts pages
+  - `VitalsContent.tsx` TTFB improvement note updated to remove outdated middleware redirect reference
+  - `WebVitalsContent.tsx` updated: `/protected/vitals` reference changed to `/vitals`; TTFB landing page prose updated to reflect dynamic server component pattern
+  - `SecurityContent.tsx` prose updated: `/protected/*` enforcement references changed to `/vitals` and `/settings`
+  - `LandingPageContent.tsx` prose and code snippet updated to reflect auth0.getSession() branch pattern instead of redirect to `/protected`
+  - `VitalsSection.tsx` mock data row updated from `/protected/vitals` to `/vitals`
+  - `src/app/thoughts/routing/` created with new dev-notes write-up explaining the migration rationale, force-static trade-off, and security model
+  - `src/app/dev/skeletons/hub/` created; `src/app/dev/skeletons/page.tsx` updated to reference new hub skeleton route
+  - `src/app/protected/` deleted; `src/app/dev/skeletons/protected/` deleted; `src/types/protected.ts` deleted
+
 ## 2026-03-15 - version 0.5.32
 
 - fixed visible black line between hero and features sections in light mode: `LandingContent` wrapper was `bg-black` and the `Divider` gradient used `via-white/8`; transparent gradient edges resolved to the black parent background, creating a 1px dark line between two `bg-background` (white) sections; changed wrapper to `bg-background` and divider to `via-foreground/8` so both adapt to light and dark themes

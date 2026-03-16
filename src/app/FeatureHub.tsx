@@ -10,7 +10,7 @@ import { reveal } from "@/app/landing/Section";
 import { queryKeys } from "@/lib/queryKeys";
 import { spring, staggerContainer, cardFlipIn, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
-import type { FeatureItem, ThoughtItem } from "@/types/protected";
+import type { FeatureItem, ThoughtItem } from "@/types/hub";
 
 // These are strictly UI data so they live here, not in a separate config file.
 const FEATURES: FeatureItem[] = [
@@ -70,7 +70,7 @@ const FEATURES: FeatureItem[] = [
     title: "Web Vitals",
     description:
       "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
-    href: "/protected/vitals",
+    href: "/vitals",
     color: "#22c55e",
     thoughtsHref: "/thoughts/vitals",
   },
@@ -147,6 +147,12 @@ const THOUGHTS: ThoughtItem[] = [
     preview:
       "Why CSS keyframes gave way to Framer Motion, where Three.js went, and what's actually measurably better",
     color: "#a7f3d0",
+  },
+  {
+    title: "Route Restructure",
+    href: "/thoughts/routing",
+    preview: "Why / replaced /protected, the force-static trade-off, and how auth is still enforced",
+    color: "#64748b",
   },
 ].reverse();
 
@@ -629,7 +635,7 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
 // ---- FeatureHub ----
 
 /**
- * The protected page hub. Shows a sticky header with user info, a staggered grid
+ * The authenticated hub. Shows a sticky header with user info, a staggered grid
  * of feature cards each with a themed mini-preview, and a dev-notes section below.
  *
  * Feature cards animate in via Framer staggerContainer + cardFlipIn variants.
@@ -695,7 +701,7 @@ export default function FeatureHub() {
             </div>
             <ThemeToggle />
             <Link
-              href="/protected/settings"
+              href="/settings"
               className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
             >
               Settings

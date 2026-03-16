@@ -168,7 +168,7 @@ export default function LeagueContent() {
       >
         <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4 sm:px-6">
           <Link
-            href="/protected"
+            href="/"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>

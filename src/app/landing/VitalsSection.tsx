@@ -51,7 +51,7 @@ const MOCK_METRICS: { name: string; value: string; rating: Rating; pct: number }
 ];
 
 const MOCK_ROWS: { page: string; lcp: string; rating: Rating; pct: number }[] = [
-  { page: "/protected/vitals", lcp: "1.8s", rating: "good",             pct: 82 },
+  { page: "/vitals",           lcp: "1.8s", rating: "good",             pct: 82 },
   { page: "/calendar",         lcp: "2.1s", rating: "good",             pct: 74 },
   { page: "/tcg/browse",       lcp: "2.9s", rating: "needs-improvement", pct: 52 },
 ];

@@ -8,7 +8,7 @@ export default function SecurityContent() {
     <div className={styles.phone}>
       {/* ---- Top bar ---- */}
       <div className={styles.topBar}>
-        <Link href="/protected" className={styles.backLink}>
+        <Link href="/" className={styles.backLink}>
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
             <path
               d="M9 1L2 8l7 7"
@@ -237,12 +237,13 @@ export default function SecurityContent() {
           the broad matcher means the proxy runs on every request. but the key
           property from before is still preserved: <code>auth0.middleware()</code>{" "}
           — the one that makes a network call to Auth0 — is only invoked for{" "}
-          <code>/auth/*</code> and authenticated <code>/protected/*</code>{" "}
-          requests. everything else hits <code>NextResponse.next()</code> with
-          the CSP header attached and returns immediately. no network round-trip
+          <code>/auth/*</code> and authenticated <code>/vitals</code> or{" "}
+          <code>/settings</code> requests. everything else hits{" "}
+          <code>NextResponse.next()</code> with the CSP header attached and
+          returns immediately. no network round-trip
         </Sent>
         <Sent pos="middle">
-          for <code>/protected/*</code> the logic is the same as before:{" "}
+          for <code>/vitals</code> and <code>/settings</code> the logic is:{" "}
           <code>auth0.getSession(req)</code> runs first — that&apos;s the proxy-
           safe overload that reads from <code>req.cookies</code> directly, no
           network call, just a cookie decrypt. if there&apos;s no session it
@@ -251,12 +252,11 @@ export default function SecurityContent() {
           rolling session refresh
         </Sent>
         <Sent pos="last">
-          and <code>/protected/page.tsx</code> has{" "}
-          <code>export const dynamic = &quot;force-static&quot;</code>. the
-          proxy does the auth check at the edge before the cached static HTML is
-          ever returned, so the page can be fully pre-rendered without being
-          publicly accessible. if anything dynamic gets added to the page
-          component later the build fails rather than silently downgrading
+          the root <code>/</code> route is a dynamic server component now — it
+          calls <code>auth0.getSession()</code> directly and renders either the
+          landing page or the hub. no middleware redirect needed. the session
+          check is a local cookie decrypt, so there&apos;s no network cost and
+          the dynamic render penalty is negligible
         </Sent>
       </div>
     </div>

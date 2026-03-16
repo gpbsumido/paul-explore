@@ -8,7 +8,7 @@ export default function WebVitalsContent() {
     <div className={styles.phone}>
       {/* ---- Top bar ---- */}
       <div className={styles.topBar}>
-        <Link href="/protected" className={styles.backLink}>
+        <Link href="/" className={styles.backLink}>
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
             <path
               d="M9 1L2 8l7 7"
@@ -44,7 +44,7 @@ export default function WebVitalsContent() {
         <Sent pos="middle">
           there&apos;s a collector running on every page that reports the five
           Core Web Vitals back to my Postgres DB whenever someone visits. the
-          dashboard at <code>/protected/vitals</code> aggregates that into P75
+          dashboard at <code>/vitals</code> aggregates that into P75
           scores per metric and per page
         </Sent>
         <Sent pos="last">
@@ -360,23 +360,22 @@ const [summaryRes, byPageRes] = await Promise.all([
         <Received>what about TTFB for the landing page</Received>
 
         <Sent pos="first">
-          the landing page was calling <code>auth0.getSession()</code> on every
-          request — just to redirect logged-in users to the hub. that one line
-          makes Next.js treat the page as dynamic, which means a fresh server
-          render on every request instead of serving a cached static file
+          the root page now calls <code>auth0.getSession()</code> to branch on
+          auth state — logged-in users see the hub, everyone else sees the
+          landing page. that makes it dynamic, so it can&apos;t be statically
+          pre-rendered anymore
         </Sent>
         <Sent pos="middle">
-          the fix: move the redirect to the middleware. middleware already runs
-          on every request anyway, so the session check isn&apos;t extra work —
-          it just moved. with that call out of the page component, Next.js can
-          statically pre-render the landing page at build time and serve the
-          same HTML file to every visitor
+          the trade-off is acceptable because <code>auth0.getSession()</code>
+          is a local cookie decrypt — no network call, just CPU work. the cost
+          is microseconds. for a personal portfolio, clean URLs are worth more
+          than static generation on the root route
         </Sent>
         <Sent pos="last">
-          the page itself is pure static content — no per-request data, no user
-          state. it never needed to be dynamic. the pattern applies anywhere you
-          call <code>getSession()</code> only for a redirect: that belongs in
-          middleware, not in the page
+          previously the fix was to move the session check to middleware and
+          keep the page static. that worked well when the landing page and hub
+          were at separate URLs. once they share the same route, the page has
+          to decide which to render — so it has to read the session directly
         </Sent>
 
         <Timestamp>10:25 AM</Timestamp>
