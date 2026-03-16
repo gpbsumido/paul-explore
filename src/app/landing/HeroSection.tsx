@@ -71,18 +71,18 @@ export default function HeroSection() {
       </div>
 
       <section
-        className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black px-6 text-center"
+        className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6 text-center"
         onMouseMove={handleMouseMove}
       >
         <ShaderGradientScene cAzimuthAngle={cameraAngles.azimuth} cPolarAngle={cameraAngles.polar} />
-        {/* Dark scrim so white text stays legible over the bright gradient */}
-        <div className="absolute inset-0 bg-black/50 pointer-events-none z-[1]" />
+        {/* Scrim: white wash in light mode for text legibility, dark scrim in dark mode */}
+        <div className="absolute inset-0 bg-background/75 dark:bg-black/50 pointer-events-none z-[1]" />
 
         {/* Word-by-word H1 spring assembly. Server renders all words visible
             (initial={false}) so the H1 is in the LCP paint. On mount the
             client replays the entrance from hidden. */}
         <motion.h1
-          className="relative z-10 text-5xl font-bold tracking-tight text-white md:text-7xl"
+          className="relative z-10 text-5xl font-bold tracking-tight text-foreground md:text-7xl"
           style={{ perspective: 800 }}
           variants={staggerContainer(0.08, 0.1)}
           initial={mounted ? "hidden" : false}
@@ -102,7 +102,7 @@ export default function HeroSection() {
 
         {/* Subtitle fades up after the title stagger finishes */}
         <motion.p
-          className="relative z-10 mt-4 max-w-md text-lg text-white/70 md:text-xl"
+          className="relative z-10 mt-4 max-w-md text-lg text-muted md:text-xl"
           initial={mounted ? { opacity: 0, y: 16 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={transition ?? { ...spring.smooth, delay: 0.5 }}
@@ -121,7 +121,7 @@ export default function HeroSection() {
         >
           <AuthButton
             loggedIn={false}
-            className="inline-flex items-center rounded-full bg-white px-8 py-3 text-sm font-medium text-black hover:opacity-90 transition-opacity"
+            className="inline-flex items-center rounded-full bg-foreground px-8 py-3 text-sm font-medium text-background hover:opacity-90 transition-opacity"
           />
         </motion.div>
       </section>

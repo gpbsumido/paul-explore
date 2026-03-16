@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.32
+
+- fixed visible black line between hero and features sections in light mode: `LandingContent` wrapper was `bg-black` and the `Divider` gradient used `via-white/8`; transparent gradient edges resolved to the black parent background, creating a 1px dark line between two `bg-background` (white) sections; changed wrapper to `bg-background` and divider to `via-foreground/8` so both adapt to light and dark themes
+
+## 2026-03-15 - version 0.5.31
+
+- landing page hero and features sections now respond to theme:
+  - **HeroSection**: background changed from hardcoded `bg-black` to `bg-background`; scrim is `bg-background/75` in light mode (white wash keeps gradient as a tint while ensuring `text-foreground` is legible) and `bg-black/50` in dark mode; text uses `text-foreground` / `text-muted`; CTA button uses `bg-foreground text-background` so it inverts correctly in both modes
+  - **FeaturesSection**: section changed from `bg-neutral-950 text-neutral-50` to `bg-background text-foreground`; card glass backgrounds and borders now use `var(--glass-bg)` / `var(--glass-border)` tokens instead of hardcoded white rgba values; card text uses `text-foreground` / `text-muted`
+  - **`tokens.css`**: glass tokens split by mode — light uses dark-tinted glass (`rgba(0,0,0,0.03)` bg, `rgba(0,0,0,0.08)` border); dark mode overrides restore white-tinted glass
+
 ## 2026-03-15 - version 0.5.30
 
 - replaced paginated calendar navigation with infinite bidirectional scroll across all four views:

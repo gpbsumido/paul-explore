@@ -133,10 +133,10 @@ function FeatureCard({
       whileHover={{ y: -4, transition: { ...spring.snappy } }}
       className="group relative overflow-hidden rounded-2xl p-6"
       style={{
-        background: `color-mix(in srgb, var(${featureToken}) 6%, rgba(255,255,255,0.04))`,
+        background: `color-mix(in srgb, var(${featureToken}) 6%, var(--glass-bg))`,
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
-        border: `1px solid color-mix(in srgb, var(${featureToken}) 15%, rgba(255,255,255,0.08))`,
+        border: `1px solid color-mix(in srgb, var(${featureToken}) 15%, var(--glass-border))`,
       }}
     >
       {/* pastel tint intensifies on hover */}
@@ -145,9 +145,9 @@ function FeatureCard({
         style={{ background: `color-mix(in srgb, var(${featureToken}) 10%, transparent)` }}
       />
       <div className="relative z-10">
-        <span className="text-white/70">{icon}</span>
-        <h3 className="mt-3 text-lg font-semibold text-white">{title}</h3>
-        <p className="mt-1 text-sm leading-relaxed text-white/60">{description}</p>
+        <span className="text-foreground/60">{icon}</span>
+        <h3 className="mt-3 text-lg font-semibold text-foreground">{title}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>
       </div>
     </motion.div>
   );
@@ -164,7 +164,7 @@ export default function FeaturesSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section className="bg-neutral-950 text-neutral-50">
+    <Section className="bg-background text-foreground">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight md:text-4xl"
@@ -177,7 +177,7 @@ export default function FeaturesSection() {
         </motion.h2>
 
         <motion.p
-          className="mx-auto mt-3 max-w-lg text-center text-neutral-400"
+          className="mx-auto mt-3 max-w-lg text-center text-muted"
           variants={subtitleFade}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
