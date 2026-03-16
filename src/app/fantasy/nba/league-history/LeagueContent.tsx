@@ -172,32 +172,39 @@ export default function LeagueContent() {
   return (
     <div className="flex flex-col min-h-dvh max-w-[480px] mx-auto font-sans bg-background">
       {/* ---- Top bar ---- */}
-      <div className="sticky top-0 z-20 flex items-center justify-center px-4 py-3 bg-background border-b border-border backdrop-blur-xl">
-        <Link
-          href="/protected"
-          className="absolute left-4 text-[#007aff] text-sm flex items-center gap-0.5"
-        >
-          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
-            <path
-              d="M9 1L2 8l7 7"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          &nbsp;Back
-        </Link>
-        <div className="flex flex-col items-center gap-0.5">
-          <span className="text-base font-semibold text-foreground">
+      <nav
+        className="sticky top-0 z-20 h-14 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <div className="mx-auto flex h-full max-w-[1400px] items-center gap-4 px-4 sm:px-6">
+          <Link
+            href="/protected"
+            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
+          >
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
+              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Dashboard
+          </Link>
+          <div className="h-4 w-px bg-border" />
+          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
             League History
           </span>
-          <span className="text-[11px] text-muted">Fantasy</span>
+          <div className="ml-auto flex items-center gap-4">
+            <ThemeToggle />
+            <a
+              href="/auth/logout"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Log out
+            </a>
+          </div>
         </div>
-        <div className="absolute right-4">
-          <ThemeToggle />
-        </div>
-      </div>
+      </nav>
 
       {/* ---- Season selector ---- */}
       <div className="px-4 py-3 border-b border-border">

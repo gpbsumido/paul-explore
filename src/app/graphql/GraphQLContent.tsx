@@ -144,34 +144,39 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
   return (
     <div className="min-h-dvh bg-background font-sans">
       {/* ── header ── */}
-      <div className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
+      <nav
+        className="sticky top-0 z-20 h-14 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <div className="mx-auto flex h-full max-w-[1400px] items-center gap-4 px-4 sm:px-6">
           <Link
             href="/protected"
-            className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors shrink-0"
+            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
-            <svg width="7" height="12" viewBox="0 0 7 12" fill="none">
-              <path
-                d="M6 1L1 6l5 5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
+              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Back
+            Dashboard
           </Link>
-          <div className="flex-1">
-            <h1 className="text-sm font-semibold text-foreground leading-tight">
-              GraphQL Pokédex
-            </h1>
-            <p className="text-[11px] text-muted">
-              PokeAPI · Hasura · plain fetch
-            </p>
+          <div className="h-4 w-px bg-border" />
+          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
+            GraphQL Pokédex
+          </span>
+          <div className="ml-auto flex items-center gap-4">
+            <ThemeToggle />
+            <a
+              href="/auth/logout"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Log out
+            </a>
           </div>
-          <ThemeToggle />
         </div>
-      </div>
+      </nav>
 
       <div className="mx-auto max-w-5xl px-4 py-6 space-y-5">
         {/* ── search ── */}

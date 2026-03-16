@@ -133,8 +133,15 @@ export default function SettingsContent() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Nav — same pattern as VitalsContent */}
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4">
+      <nav
+        className="sticky top-0 z-20 h-14 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <div className="mx-auto flex h-full max-w-[1400px] items-center gap-4 px-4 sm:px-6">
           <Link
             href="/protected"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"

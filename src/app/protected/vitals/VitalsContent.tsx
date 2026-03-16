@@ -189,7 +189,7 @@ export default function VitalsContent({
           WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4">
+        <div className="mx-auto flex h-full max-w-[1400px] items-center gap-4 px-4 sm:px-6">
           <Link
             href="/protected"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
@@ -209,12 +209,18 @@ export default function VitalsContent({
           <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
             Web Vitals
           </span>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-4">
             <VersionSelector
               versions={versions}
               selectedVersion={selectedVersion}
             />
             <ThemeToggle />
+            <a
+              href="/auth/logout"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Log out
+            </a>
           </div>
         </div>
       </nav>

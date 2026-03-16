@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.24
+
+- standardized all nav inner divs to `max-w-[1400px]` — previously mixed between `max-w-5xl`, `max-w-[1400px]`, and `max-w-[480px]`, causing visible width differences across pages
+- also fixed remaining old-pattern navs: `settings/SettingsContent.tsx` and `calendar/countdown/page.tsx` migrated to inline glass background; `countdown/page.tsx` back-link changed from `text-red-400` to `text-muted`
+
+## 2026-03-15 - version 0.5.23
+
+- standardized nav headers across all protected pages — canonical pattern: `<nav>` with `sticky top-0 z-20 h-14 border-b border-border`, inline glass background (`color-mix` + `backdropFilter blur(16px)`), back-link in `text-muted hover:text-foreground` with 6×10 SVG chevron, divider pip, page title in `text-xs font-black uppercase tracking-[0.15em]`, `ThemeToggle` + logout on right with `gap-4`
+- migrated 9 pages from old patterns (`bg-background/95 backdrop-blur-xl`, `text-red-400`, `<div>` wrapper, centered iOS-style header):
+  - `src/app/graphql/GraphQLContent.tsx` — `<div>` → `<nav>`, inline glass, removed two-line title/subtitle, standardized back-link to "Dashboard"
+  - `src/app/tcg/pokemon/page.tsx` — inline glass, back-link muted, "Back" → "Dashboard"
+  - `src/app/tcg/pokemon/sets/page.tsx` — inline glass, back-link muted
+  - `src/app/tcg/pokemon/sets/[setId]/page.tsx` — inline glass, back-link muted
+  - `src/app/tcg/pocket/page.tsx` — inline glass, back-link muted, "Back" → "Dashboard"
+  - `src/app/tcg/pokemon/card/[cardId]/page.tsx` — inline glass, back-link muted
+  - `src/app/fantasy/nba/league-history/LeagueContent.tsx` — full restructure from centered iOS-style nav to standard left-right `<nav>`
+  - `src/app/fantasy/nba/player/stats/StatsContent.tsx` — same restructure as LeagueContent
+  - `src/app/protected/vitals/VitalsContent.tsx` — added `sm:px-6`, `gap-3` → `gap-4`
+
+## 2026-03-15 - version 0.5.22
+
+- added "Log out" link (`href="/auth/logout"`) to every protected page header — previously only the FeatureHub dashboard had it; now all 12 pages have it:
+  - `src/app/calendar/page.tsx`
+  - `src/app/calendar/events/layout.tsx`
+  - `src/app/lab/layout.tsx`
+  - `src/app/protected/vitals/VitalsContent.tsx`
+  - `src/app/graphql/GraphQLContent.tsx`
+  - `src/app/tcg/pokemon/page.tsx`
+  - `src/app/tcg/pokemon/sets/page.tsx`
+  - `src/app/tcg/pokemon/sets/[setId]/page.tsx`
+  - `src/app/tcg/pokemon/card/[cardId]/page.tsx`
+  - `src/app/tcg/pocket/page.tsx`
+  - `src/app/fantasy/nba/league-history/LeagueContent.tsx`
+  - `src/app/fantasy/nba/player/stats/StatsContent.tsx`
+
 ## 2026-03-15 - version 0.5.21
 
 - visual polish pass across landing sections

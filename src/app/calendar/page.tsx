@@ -82,18 +82,12 @@ export default function CalendarPage() {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
           <Link
             href="/protected"
-            className="flex items-center gap-1.5 text-sm text-red-400 hover:text-red-300 transition-colors shrink-0"
+            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
-              <path
-                d="M5 1L1 5l4 4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
+              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Back
+            Dashboard
           </Link>
           <div className="h-4 w-px bg-border" />
           <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
@@ -101,6 +95,12 @@ export default function CalendarPage() {
           </span>
           <div className="ml-auto flex items-center gap-5">
             <ThemeToggle />
+            <a
+              href="/auth/logout"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Log out
+            </a>
           </div>
         </div>
       </nav>
