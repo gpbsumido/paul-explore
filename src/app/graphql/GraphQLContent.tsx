@@ -82,11 +82,13 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
       lastPage.pokemon.length === PAGE_SIZE
         ? allPages.length * PAGE_SIZE
         : undefined,
-    initialData: seedPage
-      ? { pages: [seedPage], pageParams: [0] }
-      : undefined,
-    // SSR-seeded data is recent; background refetch after 30s. Without seed
-    // data, Pokémon rarely changes so cache for 10 minutes.
+    // Only seed the cache when filters are empty — the SSR data is for the
+    // unfiltered first page. Applying it to a filtered key would show the
+    // wrong data and suppress the actual filter fetch for 30 seconds.
+    initialData:
+      seedPage && !debouncedName && !activeType
+        ? { pages: [seedPage], pageParams: [0] }
+        : undefined,
     staleTime: seedPage ? 30_000 : 10 * 60_000,
   });
 
