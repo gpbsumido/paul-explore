@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.19
+
+- created `/lab` route group (`src/app/lab/`)
+  - `layout.tsx`: sticky nav with "← Dashboard" link, "Lab" badge, ThemeToggle; glass background using `color-mix(in srgb, var(--color-background) 80%, transparent)` + `backdropFilter: blur(16px)`
+  - `loading.tsx`: skeleton grid matching the layout structure
+  - `page.tsx`: redirects to `/lab/particles`
+- created `/lab/particles` route — interactive R3F particle network lab
+  - `ParticleScene.tsx`: R3F inner component (no Canvas); rewrites the original `HeroScene.tsx` imperatively-controlled loop as declarative R3F: `useMemo` owns all THREE.js geometry/material lifetime, `useFrame` drives the physics tick, `useEffect` disposes objects on unmount or particle count change; props: `particleCount`, `speedMult`, `connectDist`, `palette`, `mouseAttraction`, `mouseNDCRef`, `camTargetRef`
+  - `ParticlesCanvas.tsx`: thin R3F `<Canvas>` wrapper loaded with `ssr: false` via `dynamic`
+  - `page.tsx`: `"use client"` page managing all control state; glass panel with speed slider (0.2–3.0×), connection-distance slider (1.5–6.0), color theme picker (5 pastel presets: Cosmic/Ember/Forest/Twilight/Arctic), mouse attraction toggle, live particle count display; pointer-move updates `mouseNDCRef` and `camTargetRef` without triggering React re-renders
+  - `loading.tsx`: full-viewport black background with centered pulse orb
+- removed `src/app/landing/HeroScene.tsx` (no active importers; particle scene lives at `/lab/particles` now)
+- added `particles` feature to `FeatureHub.tsx`: `ParticlesPreview` SVG mockup, token `--color-feature-particles`, href `/lab/particles`
+- added `IconParticles` icon and `FeatureCard` entry to `FeaturesSection.tsx`
+
 ## 2026-03-15 - version 0.5.18
 
 - added direction-aware view transitions to the calendar (`src/app/calendar/CalendarContent.tsx`)

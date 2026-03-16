@@ -97,6 +97,18 @@ const IconGraph = () => (
   </svg>
 );
 
+/** Scatter of dots with faint connecting lines — particle network */
+const IconParticles = () => (
+  <svg {...iconProps}>
+    <circle cx="5" cy="8" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="4" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="19" cy="9" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="8" cy="17" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="16" cy="19" r="1.5" fill="currentColor" stroke="none" />
+    <path d="M5 8l7-4M12 4l7 5M5 8l3 9M19 9l-3 10M8 17l8 2" strokeOpacity="0.5" />
+  </svg>
+);
+
 // ---------------------------------------------------------------------------
 // Card
 // ---------------------------------------------------------------------------
@@ -231,6 +243,13 @@ export default function FeaturesSection() {
             description="Pokémon browser using the PokeAPI Hasura endpoint — typed queries, field selection, plain fetch over Apollo."
             transition={transition}
             featureToken="--color-feature-graphql"
+          />
+          <FeatureCard
+            icon={<IconParticles />}
+            title="Particle Lab"
+            description="Interactive R3F particle network with real-time controls — speed, connection distance, 5 pastel themes, and mouse attraction."
+            transition={transition}
+            featureToken="--color-feature-particles"
           />
         </motion.div>
       </div>

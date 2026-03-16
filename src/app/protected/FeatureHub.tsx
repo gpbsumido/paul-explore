@@ -74,6 +74,14 @@ const FEATURES: FeatureItem[] = [
     color: "#22c55e",
     thoughtsHref: "/thoughts/vitals",
   },
+  {
+    id: "particles",
+    title: "Particle Lab",
+    description:
+      "Interactive R3F particle network with real-time controls: speed, connection distance, 5 pastel color themes, mouse attraction toggle.",
+    href: "/lab/particles",
+    color: "#a5f3fc",
+  },
 ].reverse();
 
 const THOUGHTS: ThoughtItem[] = [
@@ -430,15 +438,59 @@ function VitalsPreview() {
   );
 }
 
+// Static particle network mockup — a handful of dots connected by faint lines.
+const PARTICLE_DOTS = [
+  { x: 18, y: 28, r: 3, color: "#6366f1" },
+  { x: 52, y: 15, r: 2, color: "#3b82f6" },
+  { x: 80, y: 35, r: 3, color: "#8b5cf6" },
+  { x: 35, y: 65, r: 2, color: "#06b6d4" },
+  { x: 68, y: 72, r: 3, color: "#6366f1" },
+  { x: 90, y: 55, r: 2, color: "#8b5cf6" },
+  { x: 10, y: 60, r: 2, color: "#3b82f6" },
+];
+const PARTICLE_LINES = [
+  [0, 1], [1, 2], [2, 5], [0, 3], [3, 4], [4, 5], [1, 4], [3, 6],
+] as const;
+
+function ParticlesPreview() {
+  return (
+    <svg viewBox="0 0 100 90" className="h-full w-full" aria-hidden>
+      {PARTICLE_LINES.map(([a, b], i) => (
+        <line
+          key={i}
+          x1={PARTICLE_DOTS[a].x}
+          y1={PARTICLE_DOTS[a].y}
+          x2={PARTICLE_DOTS[b].x}
+          y2={PARTICLE_DOTS[b].y}
+          stroke={PARTICLE_DOTS[a].color}
+          strokeWidth="0.6"
+          strokeOpacity="0.4"
+        />
+      ))}
+      {PARTICLE_DOTS.map((d, i) => (
+        <circle
+          key={i}
+          cx={d.x}
+          cy={d.y}
+          r={d.r}
+          fill={d.color}
+          fillOpacity="0.85"
+        />
+      ))}
+    </svg>
+  );
+}
+
 // Maps feature.id to its design-token CSS variable name.
 const FEATURE_TOKEN: Record<string, string> = {
-  nba:      "--color-feature-nba",
-  league:   "--color-feature-sync",
-  tcg:      "--color-feature-tcg",
-  pocket:   "--color-feature-particles",
-  calendar: "--color-feature-calendar",
-  graphql:  "--color-feature-graphql",
-  vitals:   "--color-feature-vitals",
+  nba:       "--color-feature-nba",
+  league:    "--color-feature-sync",
+  tcg:       "--color-feature-tcg",
+  pocket:    "--color-feature-particles",
+  calendar:  "--color-feature-calendar",
+  graphql:   "--color-feature-graphql",
+  vitals:    "--color-feature-vitals",
+  particles: "--color-feature-particles",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
@@ -450,6 +502,7 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
   calendar: CalendarPreview,
   graphql: GraphQLPreview,
   vitals: VitalsPreview,
+  particles: ParticlesPreview,
 };
 
 // ---- FeatureCard ----
