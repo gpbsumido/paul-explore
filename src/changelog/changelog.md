@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.10
+
+- rewrote `src/app/landing/NbaSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - added `AnimatedStat` component: uses `useSpring(0, { stiffness: 60, damping: 15 })` + `useTransform` to count from 0 to the stat value when `inView` flips true; preserves decimal places by parsing the source string; reduced-motion falls back to instant value display
+  - `StatRow` converted to `motion.tr` using `slideInRight` variant + `spring.smooth` staggered at `delay: index * 0.05`; all three numeric cells (PTS, REB, AST) use `AnimatedStat`
+  - heading uses clipPath left-to-right wipe; subtitle and table container fade up; highlights grid fades up at `delay: 0.35`
+  - row data and highlight copy extracted to `ROWS` and `HIGHLIGHTS` constants
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
 ## 2026-03-15 - version 0.5.9
 
 - rewrote `src/app/landing/DesignSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion
