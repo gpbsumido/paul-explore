@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import { auth0 } from "@/lib/auth0";
 import LandingContent from "./LandingContent";
+import FeatureHub from "./FeatureHub";
 
+// This page is now a server component rather than a static export. It calls
+// auth0.getSession() to check whether a session cookie is present and renders
+// either the landing page or the authenticated hub. auth0.getSession() is a
+// local cookie decrypt with no network call, so the dynamic render cost is
+// negligible compared to the benefit of clean URLs — no redirect to /protected
+// for logged-in users.
 const TITLE = "Paul Sumido";
 const DESCRIPTION =
   "Personal playground and portfolio — NBA stats, fantasy league history, Pokémon TCG browser, and write-ups on how it was built.";
@@ -24,6 +32,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth0.getSession();
+  if (session) return <FeatureHub />;
   return <LandingContent />;
 }

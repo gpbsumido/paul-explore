@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import SettingsContent from "./SettingsContent";
 
 export const metadata: Metadata = {
-  title: "Settings | Dashboard",
+  title: "Settings",
   description: "Manage your account connections and preferences.",
 };
 

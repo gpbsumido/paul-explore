@@ -44,23 +44,40 @@ export default async function CardDetailPage({
 
   return (
     <div className="min-h-dvh bg-background font-sans">
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-full flex items-center gap-4">
+      <nav
+        className="sticky top-0 z-20 h-14 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-full flex items-center gap-4">
           <Link
-            href={backHref}
-            className="flex items-center gap-1.5 text-sm text-red-400 hover:text-red-300 transition-colors shrink-0 max-w-[160px] truncate"
+            href="/"
+            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" className="shrink-0">
+            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
               <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+            Dashboard
+          </Link>
+          <div className="h-4 w-px bg-border" />
+          <Link href={backHref} className="text-sm text-muted transition-colors hover:text-foreground shrink-0 max-w-[120px] truncate">
             {backLabel}
           </Link>
           <div className="h-4 w-px bg-border" />
           <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground truncate">
             {card.name}
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
             <ThemeToggle />
+            <a
+              href="/auth/logout"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Log out
+            </a>
           </div>
         </div>
       </nav>

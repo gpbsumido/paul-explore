@@ -1,5 +1,361 @@
 # Changelog
 
+## 2026-03-16 - version 0.6.1
+
+- all 11 dev notes (thoughts) pages now have a Summary / Chat view toggle defaulting to the direct prose view:
+  - `src/app/thoughts/ViewToggle.tsx` — shared segmented pill toggle component
+  - each `*Content.tsx` gains `useState<"summary" | "chat">("summary")`, a persistent glassmorphism nav with the toggle, and a prose summary view covering the same material as the chat
+  - chat view preserves all existing iMessage bubble content verbatim; phone `.topBar` is replaced by the shared nav so there is no duplicate navigation
+  - `RoutingContent.tsx` gains a chat view to match the pattern (it previously had only prose)
+
+## 2026-03-16 - version 0.6.0
+
+- migrated authenticated hub from `/protected` to root `/`:
+  - `src/app/page.tsx` converted from static export to async server component; calls `auth0.getSession()` (local cookie decrypt, no network call) and renders `FeatureHub` for authenticated users or `LandingContent` for unauthenticated visitors
+  - `src/app/FeatureHub.tsx`, `src/app/loading.tsx` promoted from `src/app/protected/` to root `src/app/`
+  - `src/app/vitals/` and `src/app/settings/` promoted from `src/app/protected/vitals/` and `src/app/protected/settings/`
+  - `src/proxy.ts` updated: removed `/` redirect block and `/protected` auth enforcement; added equivalent enforcement for `/vitals` and `/settings`
+  - `src/types/hub.ts` created (replacing `src/types/protected.ts`); `FeatureHub.tsx` import updated accordingly
+  - 21 back-to-hub links updated from `href="/protected"` to `href="/"` across feature pages (calendar, TCG, lab, fantasy, graphql) and thoughts pages
+  - `VitalsContent.tsx` TTFB improvement note updated to remove outdated middleware redirect reference
+  - `WebVitalsContent.tsx` updated: `/protected/vitals` reference changed to `/vitals`; TTFB landing page prose updated to reflect dynamic server component pattern
+  - `SecurityContent.tsx` prose updated: `/protected/*` enforcement references changed to `/vitals` and `/settings`
+  - `LandingPageContent.tsx` prose and code snippet updated to reflect auth0.getSession() branch pattern instead of redirect to `/protected`
+  - `VitalsSection.tsx` mock data row updated from `/protected/vitals` to `/vitals`
+  - `src/app/thoughts/routing/` created with new dev-notes write-up explaining the migration rationale, force-static trade-off, and security model
+  - `src/app/dev/skeletons/hub/` created; `src/app/dev/skeletons/page.tsx` updated to reference new hub skeleton route
+  - `src/app/protected/` deleted; `src/app/dev/skeletons/protected/` deleted; `src/types/protected.ts` deleted
+
+## 2026-03-15 - version 0.5.32
+
+- fixed visible black line between hero and features sections in light mode: `LandingContent` wrapper was `bg-black` and the `Divider` gradient used `via-white/8`; transparent gradient edges resolved to the black parent background, creating a 1px dark line between two `bg-background` (white) sections; changed wrapper to `bg-background` and divider to `via-foreground/8` so both adapt to light and dark themes
+
+## 2026-03-15 - version 0.5.31
+
+- landing page hero and features sections now respond to theme:
+  - **HeroSection**: background changed from hardcoded `bg-black` to `bg-background`; scrim is `bg-background/75` in light mode (white wash keeps gradient as a tint while ensuring `text-foreground` is legible) and `bg-black/50` in dark mode; text uses `text-foreground` / `text-muted`; CTA button uses `bg-foreground text-background` so it inverts correctly in both modes
+  - **FeaturesSection**: section changed from `bg-neutral-950 text-neutral-50` to `bg-background text-foreground`; card glass backgrounds and borders now use `var(--glass-bg)` / `var(--glass-border)` tokens instead of hardcoded white rgba values; card text uses `text-foreground` / `text-muted`
+  - **`tokens.css`**: glass tokens split by mode — light uses dark-tinted glass (`rgba(0,0,0,0.03)` bg, `rgba(0,0,0,0.08)` border); dark mode overrides restore white-tinted glass
+
+## 2026-03-15 - version 0.5.30
+
+- replaced paginated calendar navigation with infinite bidirectional scroll across all four views:
+  - new `InfiniteCalendarScroll` component renders a continuous list of periods; IntersectionObserver sentinels at top and bottom prepend/append periods as the user scrolls; scroll-position preservation via `useLayoutEffect` prevents content jump when prepending
+  - day view: scroll continuously through days — each day's full 24-hour time grid stacks vertically; scrolling past midnight flows seamlessly into the next day
+  - week view: scroll continuously through weeks — each week's full 7-column time grid stacks vertically
+  - month view: scroll continuously through months — each month's grid stacks with a month/year label above it
+  - year view: scroll continuously through years — each year's mini-month grid stacks with a year label above it
+  - header prev/next buttons and "Today" button now call `scrollToDate` on the infinite scroll container instead of re-mounting the view
+  - `currentDate` in the CalendarHeader updates live as you scroll (tracks the topmost visible period)
+  - fetch range expands automatically as more periods render — covers earliest to latest period in the current list
+  - removed `AnimatePresence` slide animation (replaced by natural scroll motion)
+
+## 2026-03-15 - version 0.5.29
+
+- unified calendar view design and added Google Calendar-style scrollable time grid:
+  - **all 4 views** now share the same `rounded-xl border border-border overflow-hidden` outer container
+  - **Day/Week views**: time grid is now a fixed-height scrollable container (`clamp(400px, calc(100dvh - 380px), 720px)`); header and all-day row stay pinned above the scroll area; view auto-scrolls to current time on today or 8am on other days on mount/navigation
+  - **Month view**: added outer `rounded-xl border border-border` wrapper; replaced raw `bg-neutral-50/60 dark:bg-neutral-900/30` weekend and hover colors with `bg-surface-raised` design tokens
+  - **Year view**: wrapped grid in `rounded-xl border border-border` outer panel with consistent padding — matches the other three views
+  - standardized `ROW_HEIGHT` to `48px` across both Day and Week views (was 44px in Day)
+  - replaced `hover:bg-neutral-50 dark:hover:bg-neutral-900/60` slot hover states with `hover:bg-surface-raised/50` in Day and Week views
+  - updated all four skeletons to match the new scroll container structures and dimensions
+
+## 2026-03-15 - version 0.5.28
+
+- fixed calendar view-switch layout bug: `AnimatePresence` was missing `mode="popLayout"`, causing entering and exiting views to stack vertically in document flow — the new view rendered below the full height of the old one, leaving a blank reserved space at the top
+  - added `mode="popLayout"` so the exiting element is popped out of flow (absolute-positioned) while the entering element takes its place
+  - added `relative` to the wrapper div so the absolutely-positioned exiting element stays contained within the calendar area
+  - chose `popLayout` over `mode="wait"` because `mode="wait"` is incompatible with `next/dynamic` — Suspense cleanup fires while the exiting fiber is still mounted, producing console warnings
+
+## 2026-03-15 - version 0.5.27
+
+- fixed GraphQL Pokédex type/name filter not firing: `initialData` in `useInfiniteQuery` was provided unconditionally, so every query key change (including filtered ones) received the unfiltered server seed and `staleTime: 30_000` prevented the actual filter fetch from running
+  - gated `initialData` on `!debouncedName && !activeType` so it only seeds the no-filter query key; filtered queries start empty and fetch normally
+  - split `staleTime` into two values: `30_000` when seed data is present (short window since we just fetched server-side), `10 * 60_000` for subsequent client fetches
+
+## 2026-03-15 - version 0.5.26
+
+- redesigned League History and Player Stats pages to match dashboard width and glass system:
+  - removed `max-w-[480px]` narrow container — pages now use `min-h-dvh bg-background` full layout with `max-w-5xl` content (matching the nav and protected page)
+  - replaced gradient backgrounds (`bg-gradient-to-br from-secondary-600 to-primary-700`) with `bg-background`
+  - league history: TeamCard uses `bg-surface border-border` glass tokens; text uses `text-foreground`/`text-muted` instead of hardcoded `text-white`; `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+  - player stats: table wrapped in `bg-surface border-border rounded-xl`; `thBase`/`tdBase` updated to design tokens; sticky column backgrounds use `bg-surface`/`bg-surface-raised`
+  - season/team selectors moved to inline `border-b` bar aligned to `max-w-5xl`; replaced `rounded-[10px] focus:border-[#007aff]` with `rounded-lg border-border bg-surface`
+
+## 2026-03-15 - version 0.5.25
+
+- standardized all nav inner divs to `max-w-5xl` — matching the protected dashboard page width
+- added Dashboard back-link to all nested pages; pages with a parent now show a breadcrumb trail (Dashboard → Parent → Page):
+  - `tcg/pokemon/sets` — Dashboard → Browse → Sets
+  - `tcg/pokemon/sets/[setId]` — Dashboard → Sets → [Set Name]
+  - `tcg/pokemon/card/[cardId]` — Dashboard → [Set/Browse] → [Card Name]
+  - `calendar/events` — Dashboard → Calendar → Events
+  - `calendar/countdown` — Dashboard → Calendar → Countdowns
+
+## 2026-03-15 - version 0.5.24
+
+- standardized all nav inner divs to `max-w-[1400px]` — previously mixed between `max-w-5xl`, `max-w-[1400px]`, and `max-w-[480px]`, causing visible width differences across pages
+- also fixed remaining old-pattern navs: `settings/SettingsContent.tsx` and `calendar/countdown/page.tsx` migrated to inline glass background; `countdown/page.tsx` back-link changed from `text-red-400` to `text-muted`
+
+## 2026-03-15 - version 0.5.23
+
+- standardized nav headers across all protected pages — canonical pattern: `<nav>` with `sticky top-0 z-20 h-14 border-b border-border`, inline glass background (`color-mix` + `backdropFilter blur(16px)`), back-link in `text-muted hover:text-foreground` with 6×10 SVG chevron, divider pip, page title in `text-xs font-black uppercase tracking-[0.15em]`, `ThemeToggle` + logout on right with `gap-4`
+- migrated 9 pages from old patterns (`bg-background/95 backdrop-blur-xl`, `text-red-400`, `<div>` wrapper, centered iOS-style header):
+  - `src/app/graphql/GraphQLContent.tsx` — `<div>` → `<nav>`, inline glass, removed two-line title/subtitle, standardized back-link to "Dashboard"
+  - `src/app/tcg/pokemon/page.tsx` — inline glass, back-link muted, "Back" → "Dashboard"
+  - `src/app/tcg/pokemon/sets/page.tsx` — inline glass, back-link muted
+  - `src/app/tcg/pokemon/sets/[setId]/page.tsx` — inline glass, back-link muted
+  - `src/app/tcg/pocket/page.tsx` — inline glass, back-link muted, "Back" → "Dashboard"
+  - `src/app/tcg/pokemon/card/[cardId]/page.tsx` — inline glass, back-link muted
+  - `src/app/fantasy/nba/league-history/LeagueContent.tsx` — full restructure from centered iOS-style nav to standard left-right `<nav>`
+  - `src/app/fantasy/nba/player/stats/StatsContent.tsx` — same restructure as LeagueContent
+  - `src/app/protected/vitals/VitalsContent.tsx` — added `sm:px-6`, `gap-3` → `gap-4`
+
+## 2026-03-15 - version 0.5.22
+
+- added "Log out" link (`href="/auth/logout"`) to every protected page header — previously only the FeatureHub dashboard had it; now all 12 pages have it:
+  - `src/app/calendar/page.tsx`
+  - `src/app/calendar/events/layout.tsx`
+  - `src/app/lab/layout.tsx`
+  - `src/app/protected/vitals/VitalsContent.tsx`
+  - `src/app/graphql/GraphQLContent.tsx`
+  - `src/app/tcg/pokemon/page.tsx`
+  - `src/app/tcg/pokemon/sets/page.tsx`
+  - `src/app/tcg/pokemon/sets/[setId]/page.tsx`
+  - `src/app/tcg/pokemon/card/[cardId]/page.tsx`
+  - `src/app/tcg/pocket/page.tsx`
+  - `src/app/fantasy/nba/league-history/LeagueContent.tsx`
+  - `src/app/fantasy/nba/player/stats/StatsContent.tsx`
+
+## 2026-03-15 - version 0.5.21
+
+- visual polish pass across landing sections
+  - added faint pastel radial glow to `AuthSection`, `NbaSection`, `DesignSection`, `TcgSection`, `CalendarSection`, `GraphQLSection`, `VitalsSection` via new `glow` prop on `Section.tsx`; each glow uses `color-mix(in srgb, var(--color-feature-*) 5%, transparent)` as a full-bleed absolute overlay so the section's existing background gradient is unchanged
+  - added hairline gradient dividers (`h-px bg-gradient-to-r from-transparent via-white/8 to-transparent`) between all landing sections in `LandingContent.tsx`
+  - standardized highlight card typography in all landing sections: titles `text-[15px] font-semibold` (was `text-sm`), body `text-[13px]` (was `text-xs`)
+  - added `border-l-2` pastel accent to `ThoughtCard` in `FeatureHub.tsx`: `borderLeft: 2px solid ${thought.color}` via inline style overriding the `border-border` left edge
+- updated `context/concepts/ui-system.md` — added glassmorphism `color-mix` pattern, pastel feature palette table, Framer animation system (spring presets + variant factories), reduced-motion pattern
+- updated `context/features/calendar.md` — added "View transitions" section documenting `calendarSlide` variant, `direction` state, `AnimatePresence` mode choice
+- updated `context/INDEX.md` — added Particle Lab and Motion Lab rows to Features table
+- updated `README.md`:
+  - replaced outdated Three.js hero description with ShaderGradient description; added Lab section (Particle Lab + Motion Lab)
+  - added Lab entries to project structure tree
+  - updated tech stack table (added Framer Motion, React Three Fiber, ShaderGradient rows)
+  - added 8 new "Things I learned" entries covering ShaderGradient, R3F, glassmorphism `color-mix`, `AnimatePresence`/`next/dynamic` conflict, `perspective` on grid parent, and the `type: "spring"` TS error
+- updated `src/app/thoughts/ui-redesign/UIRedesignContent.tsx` — added section on the Motion Lab (spring physics feel, `LayoutGroup` coordination, the `mode="wait"` + `next/dynamic` conflict and fix)
+
+## 2026-03-15 - version 0.5.20
+
+- created `/lab/motion` route — interactive Framer Motion demo lab
+  - `page.tsx`: `"use client"` page with 6 interactive demo sections on `bg-neutral-950`; shared `GLASS` style constant (`rgba(255,255,255,0.04)` bg + `rgba(255,255,255,0.08)` border + `backdropFilter: blur(16px)`); `DemoSection` wrapper component with title, tag badge, description, and demo area
+  - **SpringPlayground**: draggable puck with `dragSnapToOrigin`; sliders for stiffness (10–800), damping (1–60), mass (0.1–4.0); crosshair marks origin in 176px arena
+  - **StaggerGrid**: 12 colored tiles in a 6-column grid with configurable stagger delay (0.01–0.3 s); Replay button increments `gridKey` to remount and re-run the stagger entrance
+  - **ReorderList**: 5 items using `Reorder.Group` / `Reorder.Item` from framer-motion; `touchAction: "none"` on each item; braille `⠿` drag handle
+  - **ScrollParallax**: 3 layered elements inside a 208px scrollable container; `useScroll({ container: containerRef })` drives `useTransform` offsets — back layer (-60px + opacity), mid layer (-120px + scale 1→1.5), front layer (180° rotate); scrollbar hidden
+  - **GestureCard**: drag + `dragSnapToOrigin` + `whileHover`/`whileTap`/`whileDrag`; live state panel shows idle/hover/tap/drag with color-coded labels; animated dot pulses on state change via keyed `animate={{ scale: [1, 1.5, 1] }}`
+  - **SharedLayout**: 3 cards with `layoutId` + `LayoutGroup`; click expands a card to an overlay using `AnimatePresence`; card title animates independently via its own `layoutId`
+  - `loading.tsx`: skeleton matching the page layout — header skeleton + 6 section card skeletons at heights matching each demo's actual rendered height
+
+## 2026-03-15 - version 0.5.19
+
+- created `/lab` route group (`src/app/lab/`)
+  - `layout.tsx`: sticky nav with "← Dashboard" link, "Lab" badge, ThemeToggle; glass background using `color-mix(in srgb, var(--color-background) 80%, transparent)` + `backdropFilter: blur(16px)`
+  - `loading.tsx`: skeleton grid matching the layout structure
+  - `page.tsx`: redirects to `/lab/particles`
+- created `/lab/particles` route — interactive R3F particle network lab
+  - `ParticleScene.tsx`: R3F inner component (no Canvas); rewrites the original `HeroScene.tsx` imperatively-controlled loop as declarative R3F: `useMemo` owns all THREE.js geometry/material lifetime, `useFrame` drives the physics tick, `useEffect` disposes objects on unmount or particle count change; props: `particleCount`, `speedMult`, `connectDist`, `palette`, `mouseAttraction`, `mouseNDCRef`, `camTargetRef`
+  - `ParticlesCanvas.tsx`: thin R3F `<Canvas>` wrapper loaded with `ssr: false` via `dynamic`
+  - `page.tsx`: `"use client"` page managing all control state; glass panel with speed slider (0.2–3.0×), connection-distance slider (1.5–6.0), color theme picker (5 pastel presets: Cosmic/Ember/Forest/Twilight/Arctic), mouse attraction toggle, live particle count display; pointer-move updates `mouseNDCRef` and `camTargetRef` without triggering React re-renders
+  - `loading.tsx`: full-viewport black background with centered pulse orb
+- removed `src/app/landing/HeroScene.tsx` (no active importers; particle scene lives at `/lab/particles` now)
+- added `particles` feature to `FeatureHub.tsx`: `ParticlesPreview` SVG mockup, token `--color-feature-particles`, href `/lab/particles`
+- added `IconParticles` icon and `FeatureCard` entry to `FeaturesSection.tsx`
+
+## 2026-03-15 - version 0.5.18
+
+- added direction-aware view transitions to the calendar (`src/app/calendar/CalendarContent.tsx`)
+  - added `calendarSlide` variant to `src/lib/animations.ts`: accepts a `custom` direction value (-1/0/1); `hidden` starts at `x: direction * 40`, `exit` leaves at `x: direction * -40`; direction 0 is a pure crossfade
+  - added `direction` state to `CalendarContent` (initial 0)
+  - `handleNavigate(dir)`: sets direction to `dir` before updating `currentDate` — forward (+1) slides new view in from the right, backward (-1) from the left
+  - `handleToday`: sets direction 0 (crossfade)
+  - `handleViewChange`: new `useCallback` wrapper around `setView` that sets direction 0 first; replaces bare `setView` on the `onViewChange` prop
+  - `handleMonthClick`: sets direction 0 (year→month is a view-mode change, not navigation)
+  - view content wrapped in `AnimatePresence mode="wait" custom={direction}` + `motion.div` with `variants={calendarSlide}`, `key={\`${view}-${currentDate.getTime()}\`}`, `transition={{ ...spring.smooth }}`
+  - outer loading wrapper gets `overflow-hidden` to clip the 40px slide offset
+
+## 2026-03-15 - version 0.5.17
+
+- unified glass treatment across all feature cards and nav headers
+  - `FeatureHub` card glass: updated base transparency from `var(--color-surface)` / `var(--color-border)` to `rgba(255,255,255,0.04)` / `rgba(255,255,255,0.08)` — matches the landing page `FeaturesSection` spec exactly
+  - `FeatureHub` sticky header: switched from Tailwind `bg-background/80 backdrop-blur-md` to inline `color-mix(in srgb, var(--color-background) 80%, transparent)` + `backdropFilter: blur(16px)`; added absolutely-positioned gradient overlay (`linear-gradient(to right, transparent, rgba(139,92,246,0.04), transparent)`) layered under the glass for a subtle violet shimmer
+  - `VitalsContent` sticky nav: switched to inline glass style with `blur(16px)` for consistency
+  - `calendar/page.tsx` sticky nav: same inline glass update
+  - `HeroSection` has no sticky nav — skipped
+
+## 2026-03-15 - version 0.5.16
+
+- replaced RAF/`startTransition`/`setLoaded` entrance stagger in `FeatureHub` with Framer Motion `staggerContainer` + `cardFlipIn` variants
+  - card grid is now a `motion.div` with `variants={staggerContainer(0.07)}`, `initial="hidden"`, `animate="visible"`, and `style={{ perspective: "1000px" }}`
+  - each `FeatureCard` declares `variants={cardFlipIn}` and inherits `initial`/`animate` from the parent; `transition` is `spring.smooth` or `instantTransition` based on context
+  - removed `loaded` state, `useEffect`, `useTransition`, and `STAGGER_MS` from `FeatureHub`
+- added `ReducedMotionProvider` to `src/app/providers.tsx`
+  - reads `useReducedMotion()` once at the app root and exposes it via `ReducedMotionContext`
+  - `useHubReducedMotion()` export lets any client component read the flag without calling the Framer hook directly
+  - `ReducedMotionProvider` wraps all children inside `Providers`
+- `FeatureCard` now reads `prefersReduced` from props (supplied by `FeatureHub` via `useHubReducedMotion()`) and passes `instantTransition` when true
+
+## 2026-03-15 - version 0.5.15
+
+- applied glass treatment to all feature cards across landing page and protected hub
+  - `FeaturesSection`: added `featureToken` prop to `FeatureCard`; each card's background is `color-mix(in srgb, var(--color-feature-*) 6%, rgba(255,255,255,0.04))`, border `color-mix(...15%...)`, with `backdropFilter: blur(16px)`; hover overlay pastel tint at 10%; `whileHover={{ y: -4 }}` with `spring.snappy`; mapped all 7 cards to their tokens (`auth`, `vitals`, `motion`, `nba`, `tcg`, `calendar`, `graphql`)
+  - `FeatureHub`: added `FEATURE_TOKEN` map (`nba`, `league→sync`, `tcg`, `pocket→particles`, `calendar`, `graphql`, `vitals`); converted `FeatureCard` from CSS `reveal()` entrance to Framer `motion.div` with `spring.smooth` + stagger delay; applied same glass styles using `var(--color-surface)` and `var(--color-border)` for theme compatibility; preview area tinted at 8%; `whileHover={{ y: -4, transition: spring.snappy }}`
+  - updated `FeatureHub` sticky header: `bg-background` → `bg-background/80 backdrop-blur-md`
+  - updated `VitalsContent` nav: `bg-background/95 backdrop-blur-xl` → `bg-background/80 backdrop-blur-md`
+  - updated `calendar/page.tsx` nav: same update
+
+## 2026-03-15 - version 0.5.14
+
+- rewrote `src/app/landing/VitalsSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion animated bars, stats, and badges
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - `AnimatedBar`: `useSpring(0, { stiffness: 80, damping: 18 })` drives a `useTransform` width percentage applied via `style={{ width: widthPct }}` on a `motion.div` inside a fixed-height track; added to each metric card and each by-page table row
+  - `AnimatedStat`: same pattern as NbaSection — `useSpring` + `useTransform`, preserves suffix (`s`, `ms`, etc.) by splitting the source string; applied to all metric values and by-page LCP values
+  - `RatingBadge`: rating dot wrapped in `motion.div`, scales in from `scale: 0` with `spring.bounce` at `delay: 0.6` after bars have settled; used in both metric cards and table rows
+  - added `pct` field to `MOCK_METRICS` and `MOCK_ROWS` to drive bar widths (82–92% for good metrics, 52% for needs-improvement)
+  - heading uses clipPath wipe; subtitle fades up at `delay: 0.1`; highlights fade up at `delay: 0.8`
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
+## 2026-03-15 - version 0.5.13
+
+- rewrote `src/app/landing/GraphQLSection.tsx`: replaced `useInView` hook + `reveal()` with typewriter animation
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - replaced mock card grid with a two-panel query inspector layout: left panel shows the typing query, right panel shows result rows
+  - `TypewriterQuery` component: `setInterval` at 18 ms/char advances a character count into the query string; blinking `|` cursor via Framer `motion.span` `opacity: [1, 0]` with `steps(1)` easing; cursor disappears when done; reduced-motion skips to full string immediately
+  - `RESULT_DELAY = query.length * 0.018 + 0.15` — result rows start fading in only after typing completes; each row staggers an additional `i * 0.05s` with a slight `x: 10` slide
+  - feature highlights appear after the last result row (`RESULT_DELAY + results.length * 0.05 + 0.1`)
+  - heading uses clipPath wipe; subtitle fades up at `delay: 0.1`; panel frame fades up at `delay: 0`
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
+## 2026-03-15 - version 0.5.12
+
+- rewrote `src/app/landing/CalendarSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion cell-by-cell grid build
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - `MockDay` converted to `motion.div`: each cell animates from `scale: 0, opacity: 0` with `stiffness: 350, damping: 22` and `delay: cellIndex * 0.015` (left-to-right, top-to-bottom across 14 cells)
+  - event chips inside each cell are separate `motion.div` elements: start at `opacity: 0`, fade in at `delay: CHIP_DELAY` (= `14 * 0.015 + 0.1 = 0.31s`) so they appear only after all cells are built
+  - feature highlights fade up at `CHIP_DELAY + 0.1s` — always after chips
+  - `MockDay` accepts `cellIndex`, `inView`, and `prefersReduced` props; row data extracted to `ROW1`/`ROW2` constants so `cellIndex` is derived cleanly (row 2 offset by 7)
+  - calendar frame fades up at `delay: 0` as a surface for the cells; heading uses clipPath wipe; subtitle fades up at `delay: 0.1`
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
+## 2026-03-15 - version 0.5.11
+
+- rewrote `src/app/landing/TcgSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion dealt-card animation
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - browser frame fades up at `delay: 0` to give the cards a surface before they land
+  - each mock card starts at `y: -60, rotate: (i%3-1)*18, scale: 0.5, opacity: 0` and springs to rest with `spring.bounce` at `delay: 0.2 + i*0.06` — the 0.2s head start ensures the frame is visible before the first card arrives
+  - heading uses clipPath left-to-right wipe; subtitle fades up at `delay: 0.1`; highlights fade up at `delay: 0.5` (after all 6 cards have dealt)
+  - reduced-motion falls back to plain opacity fade for both frame and cards
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
+## 2026-03-15 - version 0.5.10
+
+- rewrote `src/app/landing/NbaSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - added `AnimatedStat` component: uses `useSpring(0, { stiffness: 60, damping: 15 })` + `useTransform` to count from 0 to the stat value when `inView` flips true; preserves decimal places by parsing the source string; reduced-motion falls back to instant value display
+  - `StatRow` converted to `motion.tr` using `slideInRight` variant + `spring.smooth` staggered at `delay: index * 0.05`; all three numeric cells (PTS, REB, AST) use `AnimatedStat`
+  - heading uses clipPath left-to-right wipe; subtitle and table container fade up; highlights grid fades up at `delay: 0.35`
+  - row data and highlight copy extracted to `ROWS` and `HIGHLIGHTS` constants
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
+## 2026-03-15 - version 0.5.9
+
+- rewrote `src/app/landing/DesignSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - heading uses clipPath left-to-right wipe with `spring.smooth` (consistent with FeaturesSection)
+  - subtitle fades up with `spring.smooth` at `delay: 0.1`
+  - color swatches each animate individually from a deterministic scattered start: `x: ((i%3)-1)*30`, `y: Math.sin(i*1.7)*20`, `rotate: Math.cos(i*2.3)*12`, `scale: 0.7, opacity: 0` → resting position with `spring.bounce` and `delay: i*0.04`; reduced-motion falls back to a plain opacity fade
+  - button variants and radius demo rows fade up at `delay: 0.3` and `delay: 0.4` respectively
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
+## 2026-03-15 - version 0.5.8
+
+- replaced emoji icons in `FeaturesSection` with custom 24x24 stroke SVG icons: key (auth), ECG pulse line (vitals), three stacked layers (design system), ascending bar chart (NBA), two offset cards (TCG), calendar grid with dots (calendar), three connected graph nodes (GraphQL); `FeatureCard` prop changed from `icon: string` to `icon: React.ReactNode`
+- replaced `&#9654;` triangle bullets in `AuthSection` with per-item 16x16 stroke SVG icons: horizontal key (Auth0 SDK), shield outline (CSP Headers), arrow-through-node (Proxy Middleware), forked path with crossbar (Route Protection)
+
+## 2026-03-15 - version 0.5.7
+
+- rewrote `src/app/landing/AuthSection.tsx`: replaced `useInView` hook + `reveal()` CSS classes with Framer Motion bilateral split
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - left column (`motion.div`) slides in from left using `slideInLeft` variant + `spring.smooth`
+  - right column (`motion.div`) slides in from right using `slideInRight` variant + `spring.smooth` at `delay: 0.1`
+  - added animated SVG lock icon above the heading: shackle arc draws via `pathLength: 0 → 1` (0.45s tween), body outline draws after at `delay: 0.35`, keyhole dot fades in at `delay: 0.65` — fully sequenced before the slide-in reads as complete
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+  - `useReducedMotion()` check: passes `instantTransition` to all motion elements; SVG paths skip to `pathLength: 1` with `duration: 0`
+
+## 2026-03-15 - version 0.5.6
+
+- rewrote `src/app/landing/FeaturesSection.tsx`: replaced `useInView` hook + `reveal()` CSS class pattern with Framer Motion
+  - removed imports of `./useInView` and `reveal` from `./Section`; added `"use client"` directive
+  - section heading (`motion.h2`) wipes in left-to-right via `clipPath: "inset(0 100% 0 0)"` → `"inset(0 0% 0 0)"` with `spring.smooth`
+  - subtitle (`motion.p`) fades up with `spring.smooth` at `delay: 0.15`
+  - grid container is now `motion.div` with `style={{ perspective: "1000px" }}` and `staggerContainer(0.07, 0.1)` variants
+  - `FeatureCard` is now `motion.div` using `cardFlipIn` variant + `spring.bounce`; accepts `transition` prop for reduced-motion override
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })` instead of the custom hook
+  - `useReducedMotion()` check passes `instantTransition` to all animated elements when true; dropped `visible/delay` props from `FeatureCard`
+
+## 2026-03-15 - version 0.5.5
+
+- tuned `ShaderGradientScene` colors to be visible: `color1: #000000`, `color2: #ffffff`, `color3: #555555`; `uStrength: 3.5`, `uDensity: 1.8`, `uFrequency: 3.0`, `brightness: 1.8`, `cDistance: 20` — previous colors (`#050505`, `#1a1a1a`, `#3a3a3a`) were indistinguishable from the black background
+- added dark scrim overlay in `HeroSection.tsx` between the gradient and text: `absolute inset-0 bg-black/50 z-[1]` so white text stays legible over the bright gradient
+- added mouse-driven camera parallax to `ShaderGradientScene`:
+  - component now accepts `cAzimuthAngle` and `cPolarAngle` as props with defaults `225` and `100`
+  - `enableTransition={true}` and `smoothTime={0.18}` on `ShaderGradient` so camera eases to the target angle instead of snapping
+- added mouse tracking to `HeroSection`:
+  - `onMouseMove` on the section maps cursor X to azimuth `180–270` and cursor Y to polar `85–125`
+  - RAF-throttled state update via `useRef` + `requestAnimationFrame` — one `setCameraAngles` call per frame maximum, no batching overhead
+  - separate `useEffect` for RAF cleanup on unmount (fixes ESLint `react-hooks/set-state-in-effect` by not mixing `setMounted` and cleanup in the same effect)
+
+## 2026-03-15 - version 0.5.4
+
+- installed `@shadergradient/react@2.4.20`, `@react-three/fiber@9.5.0`, `three-stdlib@2.36.1`
+- created `src/app/landing/ShaderGradientScene.tsx`: client component wrapping `ShaderGradientCanvas` + `ShaderGradient` with B&W/grey colors (`color1: #000000`, `color2: #111111`, `color3: #1c1c1c`), `type: waterPlane`, `animate: on`, `uSpeed: 0.15`, `grain: on`, `lightType: 3d`; positioned `absolute inset-0 pointer-events-none`
+- rewrote `src/app/landing/HeroSection.tsx`:
+  - removed `HeroScene` Three.js import and the two decorative blur blobs
+  - removed inline `<style>` block with `@keyframes hero-fade-in` and `@keyframes glow-pulse`; removed `heroReveal` CSS class constant
+  - loads `ShaderGradientScene` via `next/dynamic` (`ssr: false`); fallback is `<div className="absolute inset-0 bg-black" />` so LCP fires on the text before WebGL loads
+  - `mounted` state pattern: server renders H1 words visible (`initial={false}`) to preserve LCP; client triggers entrance animation on mount
+  - H1 split word-by-word into `motion.span` elements using `wordReveal` variant + `staggerContainer(0.08, 0.1)` from `src/lib/animations.ts`; each word has `spring.wordReveal` transition
+  - subtitle fades up after title (`spring.smooth`, `delay: 0.5`)
+  - CTA button wraps in `motion.div` with `scaleIn` variant + `spring.bounce` (`delay: 0.65`); button style updated from `bg-foreground text-background` to explicit `bg-white text-black` since hero is always dark
+  - `useReducedMotion()` check — passes `instantTransition` to all animations when true
+
+## 2026-03-15 - version 0.5.3
+
+- wrapped `LandingContent` in `<div className="bg-black">` — landing page is now always dark regardless of the user's light/dark theme preference; app pages (`/protected`, `/calendar`, etc.) retain `bg-background` and are unaffected
+- **HeroSection**: `bg-background` → `bg-black`; `text-foreground` → `text-white`; `text-muted` → `text-white/70`
+- **FeaturesSection**: removed `dark:bg-neutral-100 dark:text-neutral-950` overrides (landing is always dark now); removed `dark:text-neutral-600` on subtitle; card `border-border bg-surface` → `border-white/10 bg-white/5`; card text `text-foreground` → `text-white`, `text-muted` → `text-white/60`
+- **AuthSection**: section gradient `from-primary-50 to-primary-100 dark:from-primary-950 dark:to-neutral-950` → `from-primary-950 to-neutral-950` (dark variant made permanent); `text-foreground` → `text-white`; `text-muted` → `text-white/70`; bullet icons `text-primary-500` → `text-primary-400` (more readable on dark)
+- **DesignSection**: `bg-background` → `bg-black`; heading and body text updated to `text-white`/`text-white/70`/`text-white/50`; secondary button `border-border bg-surface text-foreground` → `border-white/20 bg-white/5 text-white`; radius demo boxes `border-border bg-surface-raised text-muted` → `border-white/10 bg-white/5 text-white/50`
+- **NbaSection**: section gradient `from-secondary-600 to-primary-700 dark:from-secondary-900 dark:to-primary-950` → `from-secondary-900 to-primary-950`; `StatRow` — `bg-surface-raised/50` → `bg-white/5`; `text-foreground` → `text-white`; `text-muted` → `text-white/60`; pts column `text-primary-500` → `text-primary-400`
+- **TcgSection, CalendarSection, GraphQLSection, VitalsSection**: removed now-redundant `dark:` gradient overrides (all were identical to their light-mode values anyway on a dark page)
+- **FooterSection**: `bg-background` → `bg-black`; `text-foreground` → `text-white`; `text-muted` → `text-white/70`
+
+## 2026-03-15 - version 0.5.2
+
+- rewrote `src/components/ui/Modal.tsx`: replaced CSS `animate-modal-enter` with Framer Motion `AnimatePresence`; backdrop fades in/out (`opacity 0→1`, 180ms), modal panel springs in with `spring.smooth` (`opacity 0, scale 0.95, y 12` → resting); glass styling applied — `rgba(15,15,15,0.88)` background, `blur(24px)` backdrop-filter, `rgba(255,255,255,0.12)` border; removed `bg-surface` class so the panel is no longer overridden by the CSS surface token
+- removed `@keyframes modal-enter` from `src/styles/tokens.css` and `--animate-modal-enter` Tailwind alias from `src/app/globals.css` — both superseded by Framer Motion
+
+## 2026-03-15 - version 0.5.1
+
+- installed `framer-motion@12.36.0`
+- created `src/lib/animations.ts`: shared spring presets (`snappy`, `smooth`, `bounce`, `gentle`, `wordReveal`), reusable Framer variants (`fadeInUp`, `fadeIn`, `scaleIn`, `slideInLeft`, `slideInRight`, `cardFlipIn`, `wordReveal`), `staggerContainer(staggerChildren, delayChildren)` factory, and `instantTransition` for reduced-motion fallback; single import source so spring tuning updates everywhere at once
+
+## 2026-03-15 - version 0.5.0
+
+- UI redesign start — B&W base with pastel feature accents and glassmorphism throughout
+- added nine pastel feature color tokens to `src/styles/tokens.css`: `--color-feature-calendar` (#a7f3d0 mint), `--color-feature-tcg` (#fecdd3 rose), `--color-feature-nba` (#fde68a amber), `--color-feature-vitals` (#ddd6fe violet), `--color-feature-graphql` (#bfdbfe blue), `--color-feature-auth` (#fca5a5 salmon), `--color-feature-particles` (#a5f3fc cyan), `--color-feature-motion` (#d9f99d lime), `--color-feature-sync` (#bae6fd sky) — Tailwind-200-level pastels, readable on black, distinct per feature
+- added glass system tokens to `src/styles/tokens.css`: `--glass-bg`, `--glass-bg-hover`, `--glass-border`, `--glass-border-strong` — standard frosted-glass recipe used by cards, modals, and navbars going forward
+
 ## 2026-03-14 - version 0.4.19
 
 - added `queryKeys.calendar.eventCards(eventId)` to `src/lib/queryKeys.ts`: factory for the event card attachment query; fixes `EventModal` which was using a hard-coded `["calendar", "events", event?.id, "cards"]` key outside the factory

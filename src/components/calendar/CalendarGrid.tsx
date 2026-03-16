@@ -64,9 +64,9 @@ function CalendarGrid({
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
   return (
-    <div>
-      {/* Day-of-week labels — no background, open feel */}
-      <div className="grid grid-cols-7 border-b border-border">
+    <div className="rounded-xl border border-border overflow-hidden">
+      {/* Day-of-week labels */}
+      <div className="grid grid-cols-7 border-b border-border bg-surface">
         {DAY_LABELS.map((label) => (
           <div
             key={label}
@@ -117,10 +117,10 @@ function CalendarGrid({
                 today ? "border-t-2 border-t-red-500" : "",
                 // background: today > weekend > plain hover
                 today
-                  ? "bg-red-50/40 dark:bg-red-950/20 hover:bg-red-50/60 dark:hover:bg-red-950/30"
+                  ? "bg-red-500/5 dark:bg-red-950/20 hover:bg-red-500/[0.08] dark:hover:bg-red-950/30"
                   : weekend
-                    ? "bg-neutral-50/60 dark:bg-neutral-900/30 hover:bg-neutral-100/60 dark:hover:bg-neutral-900/50"
-                    : "hover:bg-neutral-50 dark:hover:bg-neutral-900/50",
+                    ? "bg-surface-raised/30 hover:bg-surface-raised/60"
+                    : "hover:bg-surface-raised/40",
               ]
                 .filter(Boolean)
                 .join(" ")}

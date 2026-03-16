@@ -136,17 +136,19 @@ function YearView({
   });
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-      {months.map((month) => (
-        <MiniMonth
-          key={month.toISOString()}
-          month={month}
-          events={events}
-          countdowns={countdowns}
-          isCurrent={isSameMonth(month, currentDate)}
-          onClick={() => onMonthClick(month)}
-        />
-      ))}
+    <div className="rounded-xl border border-border overflow-hidden p-3 sm:p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        {months.map((month) => (
+          <MiniMonth
+            key={month.toISOString()}
+            month={month}
+            events={events}
+            countdowns={countdowns}
+            isCurrent={isSameMonth(month, currentDate)}
+            onClick={() => onMonthClick(month)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

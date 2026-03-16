@@ -88,7 +88,7 @@ function ThoughtCardSkeleton() {
   );
 }
 
-export default function ProtectedLoading() {
+export default function HubLoading() {
   return (
     <div className="min-h-dvh bg-background">
       <style>{`

@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect, useTransition, type RefObject } from "react";
+import { type RefObject } from "react";
+import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useInView } from "@/app/landing/useInView";
 import { reveal } from "@/app/landing/Section";
 import { queryKeys } from "@/lib/queryKeys";
-import type { FeatureItem, ThoughtItem } from "@/types/protected";
-
-// How long each card waits before its entrance animation kicks off.
-const STAGGER_MS = 75;
+import { spring, staggerContainer, cardFlipIn, instantTransition } from "@/lib/animations";
+import { useHubReducedMotion } from "@/app/providers";
+import type { FeatureItem, ThoughtItem } from "@/types/hub";
 
 // These are strictly UI data so they live here, not in a separate config file.
 const FEATURES: FeatureItem[] = [
@@ -70,9 +70,17 @@ const FEATURES: FeatureItem[] = [
     title: "Web Vitals",
     description:
       "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
-    href: "/protected/vitals",
+    href: "/vitals",
     color: "#22c55e",
     thoughtsHref: "/thoughts/vitals",
+  },
+  {
+    id: "particles",
+    title: "Particle Lab",
+    description:
+      "Interactive R3F particle network with real-time controls: speed, connection distance, 5 pastel color themes, mouse attraction toggle.",
+    href: "/lab/particles",
+    color: "#a5f3fc",
   },
 ].reverse();
 
@@ -132,6 +140,19 @@ const THOUGHTS: ThoughtItem[] = [
     preview:
       "Why 'unsafe-inline' is the right call for Next.js static pages, and what actually prevents XSS",
     color: "#ec4899",
+  },
+  {
+    title: "UI Redesign",
+    href: "/thoughts/ui-redesign",
+    preview:
+      "Why CSS keyframes gave way to Framer Motion, where Three.js went, and what's actually measurably better",
+    color: "#a7f3d0",
+  },
+  {
+    title: "Route Restructure",
+    href: "/thoughts/routing",
+    preview: "Why / replaced /protected, the force-static trade-off, and how auth is still enforced",
+    color: "#64748b",
   },
 ].reverse();
 
@@ -423,6 +444,61 @@ function VitalsPreview() {
   );
 }
 
+// Static particle network mockup — a handful of dots connected by faint lines.
+const PARTICLE_DOTS = [
+  { x: 18, y: 28, r: 3, color: "#6366f1" },
+  { x: 52, y: 15, r: 2, color: "#3b82f6" },
+  { x: 80, y: 35, r: 3, color: "#8b5cf6" },
+  { x: 35, y: 65, r: 2, color: "#06b6d4" },
+  { x: 68, y: 72, r: 3, color: "#6366f1" },
+  { x: 90, y: 55, r: 2, color: "#8b5cf6" },
+  { x: 10, y: 60, r: 2, color: "#3b82f6" },
+];
+const PARTICLE_LINES = [
+  [0, 1], [1, 2], [2, 5], [0, 3], [3, 4], [4, 5], [1, 4], [3, 6],
+] as const;
+
+function ParticlesPreview() {
+  return (
+    <svg viewBox="0 0 100 90" className="h-full w-full" aria-hidden>
+      {PARTICLE_LINES.map(([a, b], i) => (
+        <line
+          key={i}
+          x1={PARTICLE_DOTS[a].x}
+          y1={PARTICLE_DOTS[a].y}
+          x2={PARTICLE_DOTS[b].x}
+          y2={PARTICLE_DOTS[b].y}
+          stroke={PARTICLE_DOTS[a].color}
+          strokeWidth="0.6"
+          strokeOpacity="0.4"
+        />
+      ))}
+      {PARTICLE_DOTS.map((d, i) => (
+        <circle
+          key={i}
+          cx={d.x}
+          cy={d.y}
+          r={d.r}
+          fill={d.color}
+          fillOpacity="0.85"
+        />
+      ))}
+    </svg>
+  );
+}
+
+// Maps feature.id to its design-token CSS variable name.
+const FEATURE_TOKEN: Record<string, string> = {
+  nba:       "--color-feature-nba",
+  league:    "--color-feature-sync",
+  tcg:       "--color-feature-tcg",
+  pocket:    "--color-feature-particles",
+  calendar:  "--color-feature-calendar",
+  graphql:   "--color-feature-graphql",
+  vitals:    "--color-feature-vitals",
+  particles: "--color-feature-particles",
+};
+
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 const PREVIEW_MAP: Record<string, React.ComponentType> = {
   nba: NBAPreview,
@@ -432,78 +508,89 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
   calendar: CalendarPreview,
   graphql: GraphQLPreview,
   vitals: VitalsPreview,
+  particles: ParticlesPreview,
 };
 
 // ---- FeatureCard ----
 
 interface FeatureCardProps {
   feature: FeatureItem;
-  delayMs: number;
-  visible: boolean;
+  prefersReduced: boolean;
 }
 
 /**
  * A single feature card. The top half is a themed preview area that reads like
- * a mini screenshot of the feature (light gray in light mode, near-black in dark).
- * The bottom half has the title, description, and navigation links.
+ * a mini screenshot of the feature. The card uses a glass treatment tinted with
+ * the feature's pastel design token.
+ *
+ * Entrance is driven by the parent staggerContainer variant; this component
+ * only declares `variants={cardFlipIn}` and lets Framer inherit initial/animate.
  */
-function FeatureCard({ feature, delayMs, visible }: FeatureCardProps) {
+function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
   const Preview = PREVIEW_MAP[feature.id];
+  const token = FEATURE_TOKEN[feature.id] ?? "--color-feature-nba";
 
-  // Outer div for entrance animations, inner div for hover
-  // (avoid transition conflicts)
   return (
-    <div
-      className={reveal(visible)}
-      style={{ transitionDelay: `${delayMs}ms` }}
+    <motion.div
+      variants={cardFlipIn}
+      transition={prefersReduced ? instantTransition : { ...spring.smooth }}
+      whileHover={{ y: -4, transition: { ...spring.snappy } }}
+      className="flex flex-col overflow-hidden rounded-2xl h-full"
+      style={{
+        background: `color-mix(in srgb, var(${token}) 6%, rgba(255,255,255,0.04))`,
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: `1px solid color-mix(in srgb, var(${token}) 15%, rgba(255,255,255,0.08))`,
+      }}
     >
-      <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface h-full transition-[border-color,box-shadow] hover:border-foreground/15 hover:shadow-md">
-        <div
-          className="bg-neutral-100 dark:bg-neutral-950 overflow-hidden"
-          style={{ height: 112 }}
-        >
-          <div className="p-3">{Preview && <Preview />}</div>
+      <div
+        className="overflow-hidden"
+        style={{
+          height: 112,
+          background: `color-mix(in srgb, var(${token}) 8%, transparent)`,
+        }}
+      >
+        <div className="p-3">{Preview && <Preview />}</div>
+      </div>
+
+      {/* Card body */}
+      <div className="flex flex-1 flex-col p-4">
+        <div className="mb-1 flex items-center gap-2">
+          <div
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: feature.color }}
+          />
+          <h3 className="text-[15px] font-semibold leading-snug text-foreground">
+            {feature.title}
+          </h3>
         </div>
 
-        {/* Card body */}
-        <div className="flex flex-1 flex-col p-4">
-          <div className="mb-1 flex items-center gap-2">
-            <div
-              className="h-2 w-2 shrink-0 rounded-full"
-              style={{ backgroundColor: feature.color }}
-            />
-            <h3 className="text-[15px] font-semibold leading-snug text-foreground">
-              {feature.title}
-            </h3>
-          </div>
+        <p className="flex-1 text-[13px] leading-relaxed text-muted">
+          {feature.description}
+        </p>
 
-          <p className="flex-1 text-[13px] leading-relaxed text-muted">
-            {feature.description}
-          </p>
-
-          {/* About on the left, Open on the right */}
-          <div className="mt-3 flex items-center justify-between">
-            {feature.thoughtsHref ? (
-              <Link
-                href={feature.thoughtsHref}
-                className="text-[13px] text-muted transition-colors hover:text-foreground"
-              >
-                About
-              </Link>
-            ) : (
-              <div />
-            )}
+        {/* About on the left, Open on the right */}
+        <div className="mt-3 flex items-center justify-between">
+          {feature.thoughtsHref ? (
             <Link
-              href={feature.href}
-              className="text-[13px] font-semibold transition-opacity hover:opacity-75"
-              style={{ color: feature.color }}
+              href={feature.thoughtsHref}
+              className="text-[13px] text-muted transition-colors hover:text-foreground"
             >
-              Open →
+              About
             </Link>
-          </div>
+          ) : (
+            <div />
+          )}
+          <Link
+            href={feature.href}
+            className="text-[13px] font-semibold transition-opacity hover:opacity-75"
+            style={{ color: feature.color }}
+          >
+            Open →
+          </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -528,6 +615,7 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
       <Link
         href={thought.href}
         className="flex h-full items-start gap-3 rounded-xl border border-border bg-surface p-3 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
+        style={{ borderLeft: `2px solid ${thought.color}` }}
       >
         <div
           className="mt-0.5 h-2 w-2 shrink-0 rounded-full"
@@ -547,25 +635,14 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
 // ---- FeatureHub ----
 
 /**
- * The protected page hub. Shows a sticky header with user info, a staggered grid
+ * The authenticated hub. Shows a sticky header with user info, a staggered grid
  * of feature cards each with a themed mini-preview, and a dev-notes section below.
  *
- * Feature cards animate in on page load. Dev notes animate on scroll.
+ * Feature cards animate in via Framer staggerContainer + cardFlipIn variants.
  * User name/email are fetched client-side from /api/me so page.tsx can be static.
  */
 export default function FeatureHub() {
-  // Set visible on the first animation frame after mount so the CSS transition
-  // fires rather than snapping to the final state instantly.
-  // startTransition marks this as non-urgent so React handles any queued
-  // clicks before re-rendering the whole card grid.
-  const [loaded, setLoaded] = useState(false);
-  const [, startTransition] = useTransition();
-  useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      startTransition(() => setLoaded(true));
-    });
-    return () => cancelAnimationFrame(id);
-  }, []);
+  const prefersReduced = useHubReducedMotion();
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
@@ -583,8 +660,20 @@ export default function FeatureHub() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Sticky header */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+      <header
+        className="sticky top-0 z-30 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        {/* Subtle violet gradient baked under the glass */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: "linear-gradient(to right, transparent, rgba(139,92,246,0.04), transparent)" }}
+        />
+        <div className="relative mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <span className="text-base font-bold tracking-tight text-foreground">
             paul-explore
           </span>
@@ -612,7 +701,7 @@ export default function FeatureHub() {
             </div>
             <ThemeToggle />
             <Link
-              href="/protected/settings"
+              href="/settings"
               className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
             >
               Settings
@@ -638,17 +727,22 @@ export default function FeatureHub() {
           </p>
         </div>
 
-        {/* Feature grid — cards cascade in on load */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, i) => (
+        {/* Feature grid — cards stagger in with cardFlipIn via Framer variants */}
+        <motion.div
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          style={{ perspective: "1000px" }}
+          variants={staggerContainer(0.07)}
+          initial="hidden"
+          animate="visible"
+        >
+          {FEATURES.map((feature) => (
             <FeatureCard
               key={feature.id}
               feature={feature}
-              delayMs={i * STAGGER_MS}
-              visible={loaded}
+              prefersReduced={prefersReduced}
             />
           ))}
-        </div>
+        </motion.div>
 
         {/* Dev notes — scroll-triggered */}
         <div ref={thoughtsRef as RefObject<HTMLDivElement>} className="mt-14">
@@ -665,7 +759,7 @@ export default function FeatureHub() {
               <ThoughtCard
                 key={thought.href}
                 thought={thought}
-                delayMs={i * STAGGER_MS}
+                delayMs={i * 75}
                 visible={thoughtsVisible}
               />
             ))}

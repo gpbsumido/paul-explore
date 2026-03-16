@@ -5,7 +5,7 @@ import type { VitalsResponse, VersionMetrics } from "@/types/vitals";
 import VitalsContent from "./VitalsContent";
 
 export const metadata: Metadata = {
-  title: "Web Vitals | Dashboard",
+  title: "Web Vitals",
   description:
     "Real-user Core Web Vitals collected from every page load, aggregated into P75 scores by metric and by page.",
 };
