@@ -10,12 +10,14 @@ import { auth0 } from "@/lib/auth0";
  *    which handles login, callback, logout, and silent token refresh.
  *    Note: @auth0/nextjs-auth0 v4 uses /auth/* not /api/auth/*.
  *
- * 2. Session enforcement — unauthenticated requests to /protected are
- *    redirected to /auth/login before auth0.middleware() ever runs.
+ * 2. Session enforcement — unauthenticated requests to /vitals or /settings
+ *    are redirected to /auth/login before auth0.middleware() ever runs.
  *    auth0.getSession(request) reads the encrypted cookie locally (no network
- *    call) so enforcement adds no measurable TTFB. Authenticated /protected
- *    requests go through auth0.middleware() for rolling session refresh.
- *    Logged-in users hitting / are bounced straight to the hub.
+ *    call) so enforcement adds no measurable TTFB. Authenticated requests go
+ *    through auth0.middleware() for rolling session refresh.
+ *    The root / route is now a server component that calls auth0.getSession()
+ *    itself and renders either the landing page or the hub depending on
+ *    whether a session exists.
  *
  * 3. CSP headers — applied on every pass-through response so every page load
  *    carries the policy. 'unsafe-inline' in script-src is required for Next.js
@@ -47,24 +49,11 @@ export async function proxy(request: NextRequest) {
     return auth0.middleware(request);
   }
 
-  // Logged-in users landing on / skip the marketing page and go straight to
-  // the hub. getSession(request) is the middleware-safe overload that reads
-  // from request.cookies directly — no next/headers dependency, no network
-  // call. This is what keeps the landing page statically pre-rendered at
-  // build time (page.tsx has no auth calls) while still redirecting sessions.
-  if (pathname === "/") {
-    const session = await auth0.getSession(request);
-    if (session) {
-      return NextResponse.redirect(new URL("/protected", request.url));
-    }
-  }
-
-  // Enforce auth on /protected routes before auth0.middleware runs.
-  // Unauthenticated requests redirect immediately — auth0.middleware is
-  // skipped entirely, which keeps the redirect path as cheap as possible.
-  // Authenticated requests go through auth0.middleware for rolling session
-  // refresh (updates the cookie maxAge so the session stays alive).
-  if (pathname.startsWith("/protected")) {
+  // Protect /vitals and /settings the same way /protected was protected.
+  // Unauthenticated requests redirect immediately to login with returnTo so
+  // the user lands back here after signing in. Authenticated requests go
+  // through auth0.middleware() for rolling session refresh.
+  if (pathname.startsWith("/vitals") || pathname.startsWith("/settings")) {
     const session = await auth0.getSession(request);
     if (!session) {
       const loginUrl = new URL("/auth/login", request.url);

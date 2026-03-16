@@ -18,9 +18,9 @@ export const metadata = { title: "Skeleton Preview" };
 // (they have min-h-dvh + their own sticky navs).
 const FULL_PAGE = [
   {
-    label: "ProtectedLoading",
-    href: "/dev/skeletons/protected",
-    note: "/protected hub — sticky header, feature card grid, dev-notes cards",
+    label: "HubLoading",
+    href: "/dev/skeletons/hub",
+    note: "Hub — sticky header, feature card grid, dev-notes cards",
   },
   {
     label: "SetsLoading",
@@ -138,7 +138,7 @@ export default function SkeletonHub() {
 
         <InlineSection
           label="FeatureHub header bones"
-          note="/protected sticky header (sm+) and greeting h1 while /api/me is in-flight"
+          note="Hub sticky header (sm+) and greeting h1 while /api/me is in-flight"
         >
           <div className="flex flex-col gap-6">
             <div>

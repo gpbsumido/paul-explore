@@ -150,7 +150,7 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
   {
     metric: "TTFB",
     what: "Static landing page + CDN caching + connection pooling",
-    how: "The landing page is statically rendered at build time -- the logged-in redirect moved to middleware so the page component no longer calls getSession() and forces a dynamic render. NBA and TCG proxy routes set public, s-maxage=300/3600 for CDN caching. Railway Postgres uses a connection pool so there is no per-request handshake.",
+    how: "The landing page is statically rendered at build time. NBA and TCG proxy routes set public, s-maxage=300/3600 for CDN caching. Railway Postgres uses a connection pool so there is no per-request handshake.",
   },
 ];
 
@@ -181,10 +181,17 @@ export default function VitalsContent({
   return (
     <div className="min-h-dvh bg-background">
       {/* Sticky nav — mirrors the calendar events layout pattern */}
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4">
+      <nav
+        className="sticky top-0 z-20 h-14 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4 sm:px-6">
           <Link
-            href="/protected"
+            href="/"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none">
@@ -202,12 +209,18 @@ export default function VitalsContent({
           <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
             Web Vitals
           </span>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-4">
             <VersionSelector
               versions={versions}
               selectedVersion={selectedVersion}
             />
             <ThemeToggle />
+            <a
+              href="/auth/logout"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Log out
+            </a>
           </div>
         </div>
       </nav>

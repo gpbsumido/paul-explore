@@ -22,7 +22,7 @@ import EventChip from "@/components/calendar/EventChip";
 import CountdownChip from "@/components/calendar/CountdownChip";
 
 /** Fixed px height per hour row — drives all the time-position math. */
-const ROW_HEIGHT = 44;
+export const DAY_ROW_HEIGHT = 48;
 
 /**
  * Width of the time-label gutter. Matches the left offset used for the
@@ -49,41 +49,39 @@ function DayView({
 }: DayViewProps) {
   const today = isToday(currentDate);
 
-  // only recompute when events or the displayed date actually change
   const allDaySectionEvents = useMemo(
     () => spanningEventsForDay(events, currentDate),
     [events, currentDate],
   );
 
-  // countdowns that land exactly on this day
   const dayCountdowns = useMemo(
     () =>
       countdowns.filter((c) => isSameDay(parseISO(c.targetDate), currentDate)),
     [countdowns, currentDate],
   );
+
   const dayTimedEvents = useMemo(
     () => singleDayTimedEventsForDay(events, currentDate),
     [events, currentDate],
   );
 
-  // layout is a separate memo so it doesn't rerun if only allDaySectionEvents changed
   const timedLayout = useMemo(
-    () => layoutDayEvents(dayTimedEvents, ROW_HEIGHT),
+    () => layoutDayEvents(dayTimedEvents, DAY_ROW_HEIGHT),
     [dayTimedEvents],
   );
 
   const now = new Date();
   const currentTimeTop = today
-    ? (getHours(now) + getMinutes(now) / 60) * ROW_HEIGHT
+    ? (getHours(now) + getMinutes(now) / 60) * DAY_ROW_HEIGHT
     : null;
 
   return (
     <div className="rounded-xl border border-border overflow-hidden">
-      {/* Newspaper-dateline heading — day name small + date big + year muted */}
+      {/* Newspaper-dateline heading */}
       <div
         className={[
           "px-4 pt-5 pb-4 border-b border-border",
-          today ? "bg-red-50/30 dark:bg-red-950/10" : "",
+          today ? "bg-red-500/5 dark:bg-red-950/10" : "",
         ].join(" ")}
       >
         <div
@@ -109,7 +107,7 @@ function DayView({
         </div>
       </div>
 
-      {/* All-day banner — allDay events, multi-day timed events, and countdowns */}
+      {/* All-day banner */}
       {(allDaySectionEvents.length > 0 || dayCountdowns.length > 0) && (
         <div className="flex items-start border-b border-border">
           <div
@@ -139,10 +137,7 @@ function DayView({
         </div>
       )}
 
-      {/*
-       * Time grid — flex layout so we can absolutely position event blocks
-       * that span their full duration rather than being crammed into one slot.
-       */}
+      {/* Time grid — renders at full natural height; the parent InfiniteCalendarScroll handles vertical scrolling */}
       <div className="relative flex">
         {/* Time labels */}
         <div
@@ -153,7 +148,7 @@ function DayView({
             <div
               key={hour}
               className="flex items-start justify-end pr-2 pt-1.5 border-b border-border last:border-b-0"
-              style={{ height: ROW_HEIGHT }}
+              style={{ height: DAY_ROW_HEIGHT }}
             >
               <span className="text-[10px] text-muted/30">
                 {formatHour(hour)}
@@ -162,24 +157,22 @@ function DayView({
           ))}
         </div>
 
-        {/* Day column — background slots + absolute event blocks on top */}
+        {/* Day column */}
         <div className="flex-1 relative">
-          {/* Clickable hour slots in the background */}
           {HOURS.map((hour) => (
             <div
               key={hour}
               onClick={() => onSlotClick(slotDate(currentDate, hour))}
-              style={{ height: ROW_HEIGHT }}
+              style={{ height: DAY_ROW_HEIGHT }}
               className={[
                 "border-b border-border last:border-b-0 cursor-pointer transition-colors",
                 today
                   ? "hover:bg-red-500/5"
-                  : "hover:bg-neutral-50 dark:hover:bg-neutral-900/60",
+                  : "hover:bg-surface-raised/50",
               ].join(" ")}
             />
           ))}
 
-          {/* Event blocks — side by side when they overlap, same as Google Calendar */}
           {timedLayout.map(({ ev, topPx, heightPx, column, totalColumns }) => (
             <div
               key={ev.id}
@@ -196,7 +189,7 @@ function DayView({
           ))}
         </div>
 
-        {/* Current time indicator — pulsing dot + line across the day column */}
+        {/* Current time indicator */}
         {currentTimeTop !== null && (
           <div
             className="absolute z-20 pointer-events-none flex items-center"
@@ -211,6 +204,4 @@ function DayView({
   );
 }
 
-// DayView only needs to re-render when the date changes or events update.
-// Modal state changes in CalendarContent shouldn't touch this at all.
 export default memo(DayView);

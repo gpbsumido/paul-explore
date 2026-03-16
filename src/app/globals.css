@@ -125,7 +125,6 @@
   --shadow-2xl: var(--shadow-2xl);
 
   /* Animation */
-  --animate-modal-enter: modal-enter var(--duration-slow) var(--ease-out);
   --animate-spin: spin 1s linear infinite;
 }
 

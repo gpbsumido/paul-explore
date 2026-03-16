@@ -50,7 +50,7 @@ function ConnectionRowSkeleton() {
 // ---- SettingsContent ----
 
 /**
- * Client component for /protected/settings. Fetches Google Calendar connection
+ * Client component for /settings. Fetches Google Calendar connection
  * status on mount and lets the user connect or disconnect. Reads the ?gcal query
  * param on load to show a banner when the OAuth callback redirects back here.
  */
@@ -133,10 +133,17 @@ export default function SettingsContent() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Nav — same pattern as VitalsContent */}
-      <nav className="sticky top-0 z-20 h-14 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4">
+      <nav
+        className="sticky top-0 z-20 h-14 border-b border-border"
+        style={{
+          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
+        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4 sm:px-6">
           <Link
-            href="/protected"
+            href="/"
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
             <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden="true">
@@ -154,8 +161,14 @@ export default function SettingsContent() {
           <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
             Settings
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
             <ThemeToggle />
+            <a
+              href="/auth/logout"
+              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
+            >
+              Log out
+            </a>
           </div>
         </div>
       </nav>

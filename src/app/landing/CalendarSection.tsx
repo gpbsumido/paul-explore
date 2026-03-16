@@ -1,33 +1,66 @@
-import { type RefObject } from "react";
-import { useInView } from "./useInView";
-import Section, { reveal } from "./Section";
+"use client";
 
-/** Days-of-week labels for the mock month grid header. */
+import { useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import Section from "./Section";
+import { spring, instantTransition } from "@/lib/animations";
+
+const headingWipe = {
+  hidden: { clipPath: "inset(0 100% 0 0)" },
+  visible: { clipPath: "inset(0 0% 0 0)" },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0 },
+};
+
 const DOW = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-/**
- * A single day cell in the mock calendar grid.
- * `today` gets the red circle treatment, chips are optional.
- */
+// 7 cols × 2 rows = 14 cells. Chips/highlights appear after the last cell + 0.1s.
+const CELL_COUNT = 14;
+const CHIP_DELAY = CELL_COUNT * 0.015 + 0.1; // 0.31s
+
+const CELL_SPRING = { type: "spring", stiffness: 350, damping: 22 } as const;
+
+// ---------------------------------------------------------------------------
+// MockDay — cell scales in, chips fade in after all cells are visible
+// ---------------------------------------------------------------------------
+
 function MockDay({
   day,
   today,
   chips = [],
   faded,
+  cellIndex,
+  inView,
+  prefersReduced,
 }: {
   day: number;
   today?: boolean;
-  chips?: { label: string; color: string; span?: number }[];
+  chips?: { label: string; color: string }[];
   faded?: boolean;
+  cellIndex: number;
+  inView: boolean;
+  prefersReduced: boolean;
 }) {
   return (
-    <div className="min-h-[52px] border-r border-b border-white/10 p-1 last:border-r-0">
-      <div className="flex justify-center mb-0.5">
+    <motion.div
+      className="min-h-[52px] border-r border-b border-white/10 p-1 last:border-r-0"
+      initial={prefersReduced ? { opacity: 0 } : { scale: 0, opacity: 0 }}
+      animate={inView ? { scale: 1, opacity: 1 } : undefined}
+      transition={
+        prefersReduced
+          ? { ...instantTransition }
+          : { ...CELL_SPRING, delay: cellIndex * 0.015 }
+      }
+    >
+      <div className="mb-0.5 flex justify-center">
         <span
           className={[
             "inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium",
             today
-              ? "bg-red-500 text-white font-semibold"
+              ? "bg-red-500 font-semibold text-white"
               : faded
                 ? "text-white/25"
                 : "text-white/70",
@@ -36,49 +69,114 @@ function MockDay({
           {day}
         </span>
       </div>
+
       {chips.map((chip, i) => (
-        <div
+        <motion.div
           key={i}
-          className="mb-0.5 rounded-sm px-1 py-px text-[8px] font-medium truncate"
+          className="mb-0.5 truncate rounded-sm px-1 py-px text-[8px] font-medium"
           style={{ backgroundColor: chip.color + "40", color: chip.color }}
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : undefined}
+          transition={
+            prefersReduced
+              ? { ...instantTransition }
+              : { duration: 0.25, delay: CHIP_DELAY }
+          }
         >
           {chip.label}
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
+// ---------------------------------------------------------------------------
+// Section
+// ---------------------------------------------------------------------------
+
+const HIGHLIGHTS = [
+  [
+    "4 Calendar Views",
+    "Day and week views use an absolute-positioned time grid — events span their real duration and sit side by side when they overlap.",
+  ],
+  [
+    "Pokémon Card Tracking",
+    "Attach cards pulled from Pocket to any event. Search the full TCGdex catalog and log what you got, when you got it.",
+  ],
+  [
+    "Multi-day Events",
+    "Events spanning multiple days show on every day they cover, with continuation bars in month view and all-day row promotion in week/day view.",
+  ],
+] as const;
+
+// Row data keeps cell definitions co-located so cellIndex is easy to derive.
+const ROW1 = [
+  { day: 26, faded: true,  chips: [] },
+  { day: 27, faded: true,  chips: [] },
+  { day: 28, faded: true,  chips: [] },
+  { day: 1,                chips: [{ label: "Pocket night", color: "#10b981" }] },
+  { day: 2,                chips: [{ label: "Pocket night", color: "#10b981" }] },
+  { day: 3,                chips: [] },
+  { day: 4,                chips: [] },
+] as const;
+
+const ROW2 = [
+  { day: 5,               chips: [] },
+  { day: 6,               chips: [{ label: "Trade meet", color: "#3b82f6" }] },
+  { day: 7,               chips: [{ label: "Trade meet", color: "#3b82f6" }, { label: "Pulled Mewtwo ✦", color: "#8b5cf6" }] },
+  { day: 8,               chips: [{ label: "Trade meet", color: "#3b82f6" }] },
+  { day: 9,               chips: [] },
+  { day: 10,              chips: [] },
+  { day: 11, today: true, chips: [] },
+] as const;
+
 export default function CalendarSection() {
-  const [ref, visible] = useInView();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-15% 0px" });
+  const prefersReduced = useReducedMotion() ?? false;
+  const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section className="bg-gradient-to-br from-teal-900 to-neutral-900 dark:from-teal-950 dark:to-neutral-950">
-      <div ref={ref as RefObject<HTMLDivElement>}>
-        <h2
-          className={`text-center text-3xl font-bold tracking-tight text-white md:text-4xl ${reveal(visible)}`}
+    <Section
+      className="bg-gradient-to-br from-teal-900 to-neutral-900"
+      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-calendar) 5%, transparent) 0%, transparent 60%)"
+    >
+      <div ref={ref}>
+        <motion.h2
+          className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
+          variants={headingWipe}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth }}
         >
           Personal Calendar
-        </h2>
-        <p
-          className={`mx-auto mt-3 max-w-lg text-center text-white/70 ${reveal(visible, "delay-100")}`}
+        </motion.h2>
+
+        <motion.p
+          className="mx-auto mt-3 max-w-lg text-center text-white/70"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: 0.1 }}
         >
           Day, week, month, and year views with multi-day events, an
           overlapping-event layout engine, and Pokémon card attachments — built
           to track what we pull playing Pokémon Pocket together.
-        </p>
+        </motion.p>
 
         {/* Mock calendar month grid */}
-        <div
-          className={`mt-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm ${reveal(visible, "delay-200")}`}
+        <motion.div
+          className="mt-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: 0 }}
         >
           {/* Mock toolbar */}
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
             <div className="flex items-center gap-3">
               <div className="h-4 w-4 rounded bg-white/20" />
-              <span className="text-sm font-semibold text-white">
-                February 2026
-              </span>
+              <span className="text-sm font-semibold text-white">February 2026</span>
               <div className="h-4 w-4 rounded bg-white/20" />
             </div>
             <div className="flex gap-1.5">
@@ -88,7 +186,7 @@ export default function CalendarSection() {
                   className={[
                     "rounded px-2 py-0.5 text-[10px] font-semibold",
                     i === 2
-                      ? "bg-teal-500/30 text-teal-300 border border-teal-500/30"
+                      ? "border border-teal-500/30 bg-teal-500/30 text-teal-300"
                       : "text-white/40",
                   ].join(" ")}
                 >
@@ -103,78 +201,60 @@ export default function CalendarSection() {
             {DOW.map((d) => (
               <div
                 key={d}
-                className="py-1.5 text-center text-[9px] font-bold uppercase tracking-wider text-white/40 border-r border-white/10 last:border-r-0"
+                className="border-r border-white/10 py-1.5 text-center text-[9px] font-bold uppercase tracking-wider text-white/40 last:border-r-0"
               >
                 {d}
               </div>
             ))}
           </div>
 
-          {/* Mock day cells — two rows is enough to read as a calendar */}
+          {/* Row 1 — cells 0–6 */}
           <div className="grid grid-cols-7">
-            {/* row 1 — overflow from prev month + start of month */}
-            <MockDay day={26} faded />
-            <MockDay day={27} faded />
-            <MockDay day={28} faded />
-            <MockDay
-              day={1}
-              chips={[{ label: "Pocket night", color: "#10b981" }]}
-            />
-            <MockDay day={2} chips={[{ label: "Pocket night", color: "#10b981" }]} />
-            <MockDay day={3} />
-            <MockDay day={4} />
+            {ROW1.map((cell, i) => (
+              <MockDay
+                key={cell.day + "-r1"}
+                {...cell}
+                chips={[...cell.chips]}
+                cellIndex={i}
+                inView={inView}
+                prefersReduced={prefersReduced}
+              />
+            ))}
           </div>
-          <div className="grid grid-cols-7">
-            {/* row 2 — today + some events */}
-            <MockDay day={5} />
-            <MockDay
-              day={6}
-              chips={[{ label: "Trade meet", color: "#3b82f6" }]}
-            />
-            <MockDay
-              day={7}
-              chips={[
-                { label: "Trade meet", color: "#3b82f6" },
-                { label: "Pulled Mewtwo ✦", color: "#8b5cf6" },
-              ]}
-            />
-            <MockDay
-              day={8}
-              chips={[{ label: "Trade meet", color: "#3b82f6" }]}
-            />
-            <MockDay day={9} />
-            <MockDay day={10} />
-            <MockDay day={11} today />
-          </div>
-        </div>
 
-        {/* Feature highlights */}
-        <div
-          className={`mt-8 grid gap-4 md:grid-cols-3 ${reveal(visible, "delay-300")}`}
+          {/* Row 2 — cells 7–13 */}
+          <div className="grid grid-cols-7">
+            {ROW2.map((cell, i) => (
+              <MockDay
+                key={cell.day + "-r2"}
+                {...cell}
+                chips={[...cell.chips]}
+                cellIndex={7 + i}
+                inView={inView}
+                prefersReduced={prefersReduced}
+              />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Feature highlights — appear after chips */}
+        <motion.div
+          className="mt-8 grid gap-4 md:grid-cols-3"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: CHIP_DELAY + 0.1 }}
         >
-          {[
-            [
-              "4 Calendar Views",
-              "Day and week views use an absolute-positioned time grid — events span their real duration and sit side by side when they overlap.",
-            ],
-            [
-              "Pokémon Card Tracking",
-              "Attach cards pulled from Pocket to any event. Search the full TCGdex catalog and log what you got, when you got it.",
-            ],
-            [
-              "Multi-day Events",
-              "Events spanning multiple days show on every day they cover, with continuation bars in month view and all-day row promotion in week/day view.",
-            ],
-          ].map(([t, d]) => (
+          {HIGHLIGHTS.map(([t, d]) => (
             <div
               key={t}
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
-              <h4 className="text-sm font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-xs leading-relaxed text-white/60">{d}</p>
+              <h4 className="text-[15px] font-semibold text-white">{t}</h4>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
             </div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </Section>
   );
