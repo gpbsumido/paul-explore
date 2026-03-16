@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery, useQueries } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui";
@@ -13,10 +13,12 @@ import ErrorRowModal from "./ErrorRowModal";
 import NoStats from "./NoStats";
 
 export default function StatsContent() {
-  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  // null = no explicit pick yet; once the user picks a team this holds their choice.
+  const [explicitTeamId, setExplicitTeamId] = useState<number | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("pts");
   const [sortAsc, setSortAsc] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   /** Full list of NBA teams, sorted alphabetically for the selector. */
   const teamsQuery = useQuery({
@@ -33,13 +35,9 @@ export default function StatsContent() {
 
   const teams = teamsQuery.data ?? [];
 
-  // Auto-select the first team once teams load. onSuccess was removed in
-  // TanStack Query v5 so we watch teamsQuery.data in an effect instead.
-  useEffect(() => {
-    if (teamsQuery.data && teamsQuery.data.length > 0 && selectedTeamId === null) {
-      setSelectedTeamId(teamsQuery.data[0].id);
-    }
-  }, [teamsQuery.data, selectedTeamId]);
+  // Derive active team: explicit user choice, falling back to the first team
+  // once loaded. No effect needed — this is just derived state.
+  const selectedTeamId = explicitTeamId ?? teamsQuery.data?.[0]?.id ?? null;
 
   /** Roster for the selected team. Stays disabled until a team is chosen. */
   const playersQuery = useQuery({
@@ -60,8 +58,12 @@ export default function StatsContent() {
   const statsQueries = useQueries({
     queries: players.map((p) => ({
       queryKey: queryKeys.nba.stats(p.id),
-      queryFn: async (): Promise<PlayerStats> => {
-        const res = await fetch(`/api/nba/stats/${p.id}`);
+      queryFn: async ({
+        signal,
+      }: {
+        signal: AbortSignal;
+      }): Promise<PlayerStats> => {
+        const res = await fetch(`/api/nba/stats/${p.id}`, { signal });
         if (!res.ok) throw new Error("Failed");
         const json = await res.json();
         const raw = json.data?.data ?? json.data;
@@ -73,6 +75,13 @@ export default function StatsContent() {
       enabled: players.length > 0,
     })),
   });
+
+  // Cancel all in-flight stats requests before navigating so they don't block
+  // the RSC fetch for the destination page. Without this the browser connection
+  // pool stays saturated and the navigation hangs until the requests drain.
+  function handleDashboardNav() {
+    queryClient.cancelQueries({ queryKey: ["nba", "stats"] });
+  }
 
   /** Number of stats queries still in-flight, drives the skeleton row count. */
   const remaining = statsQueries.filter((q) => q.isPending).length;
@@ -98,13 +107,17 @@ export default function StatsContent() {
   /** Whether teams or players failed to load, which blocks the whole page. */
   const topLevelError = teamsQuery.isError || playersQuery.isError;
   const topLevelErrorMessage = teamsQuery.isError
-    ? (teamsQuery.error instanceof Error ? teamsQuery.error.message : "Failed to load teams")
-    : (playersQuery.error instanceof Error ? playersQuery.error.message : "Failed to load players");
+    ? teamsQuery.error instanceof Error
+      ? teamsQuery.error.message
+      : "Failed to load teams"
+    : playersQuery.error instanceof Error
+      ? playersQuery.error.message
+      : "Failed to load players";
 
   function handleTeamChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const id = Number(e.target.value);
     if (!id) return;
-    setSelectedTeamId(id);
+    setExplicitTeamId(id);
   }
 
   function handleSort(key: SortKey) {
@@ -138,7 +151,8 @@ export default function StatsContent() {
       <nav
         className="sticky top-0 z-20 h-14 border-b border-border"
         style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
+          background:
+            "color-mix(in srgb, var(--color-background) 80%, transparent)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
         }}
@@ -146,10 +160,23 @@ export default function StatsContent() {
         <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4 sm:px-6">
           <Link
             href="/"
+            onClick={handleDashboardNav}
             className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
           >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              width="6"
+              height="10"
+              viewBox="0 0 6 10"
+              fill="none"
+              aria-hidden
+            >
+              <path
+                d="M5 1L1 5l4 4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
             Dashboard
           </Link>
@@ -203,7 +230,9 @@ export default function StatsContent() {
               variant="outline"
               size="sm"
               onClick={() =>
-                teamsQuery.isError ? teamsQuery.refetch() : playersQuery.refetch()
+                teamsQuery.isError
+                  ? teamsQuery.refetch()
+                  : playersQuery.refetch()
               }
             >
               Retry
@@ -243,14 +272,21 @@ export default function StatsContent() {
                   <tr
                     key={row.id}
                     className={`${row.error ? "cursor-pointer" : ""} ${rowIdx % 2 === 1 ? "bg-surface-raised/50" : ""}`}
-                    onClick={row.error ? () => setErrorModalOpen(true) : undefined}
+                    onClick={
+                      row.error ? () => setErrorModalOpen(true) : undefined
+                    }
                   >
                     {row.error ? (
                       <>
-                        <td className={`${tdBase} sticky left-0 z-[1] min-w-[130px] bg-red-500/10`}>
+                        <td
+                          className={`${tdBase} sticky left-0 z-[1] min-w-[130px] bg-red-500/10`}
+                        >
                           <span className="font-medium">{row.name}</span>
                         </td>
-                        <td colSpan={COLUMNS.length - 1} className={`${tdBase} bg-red-500/10`}>
+                        <td
+                          colSpan={COLUMNS.length - 1}
+                          className={`${tdBase} bg-red-500/10`}
+                        >
                           <span className="text-red-500 dark:text-red-400 text-xs italic">
                             Failed to load stats
                           </span>
@@ -264,7 +300,9 @@ export default function StatsContent() {
                           <span className="font-medium">{row.name}</span>
                         </td>
                         <td className={`${tdBase} text-right`}>
-                          <span className="text-muted text-[11px]">{row.pos}</span>
+                          <span className="text-muted text-[11px]">
+                            {row.pos}
+                          </span>
                         </td>
                         {[
                           row.stats!.games_played,
@@ -288,18 +326,22 @@ export default function StatsContent() {
                     return (
                       <tr
                         key={`skel-${i}`}
-                        className={rowIdx % 2 === 1 ? "bg-surface-raised/50" : ""}
+                        className={
+                          rowIdx % 2 === 1 ? "bg-surface-raised/50" : ""
+                        }
                       >
                         <td
                           className={`${tdBase} sticky left-0 z-[1] min-w-[130px] ${rowIdx % 2 === 1 ? "bg-surface-raised/50" : "bg-surface"}`}
                         >
                           <div className="h-3.5 w-[120px] rounded bg-surface-raised animate-pulse" />
                         </td>
-                        {Array.from({ length: COLUMNS.length - 1 }).map((_, j) => (
-                          <td key={j} className={`${tdBase} text-right`}>
-                            <div className="h-3.5 w-9 rounded bg-surface-raised animate-pulse ml-auto" />
-                          </td>
-                        ))}
+                        {Array.from({ length: COLUMNS.length - 1 }).map(
+                          (_, j) => (
+                            <td key={j} className={`${tdBase} text-right`}>
+                              <div className="h-3.5 w-9 rounded bg-surface-raised animate-pulse ml-auto" />
+                            </td>
+                          ),
+                        )}
                       </tr>
                     );
                   })}
@@ -308,9 +350,10 @@ export default function StatsContent() {
           </div>
         )}
 
-        {!topLevelError && !playersQuery.isFetching && selectedTeamId && players.length === 0 && (
-          <NoStats />
-        )}
+        {!topLevelError &&
+          !playersQuery.isFetching &&
+          selectedTeamId &&
+          players.length === 0 && <NoStats />}
       </main>
 
       <ErrorRowModal
