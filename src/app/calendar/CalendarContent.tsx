@@ -1,26 +1,28 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useState, useMemo, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
-import { calendarSlide, spring } from "@/lib/animations";
 import {
   addDays,
   addWeeks,
   addMonths,
   addYears,
   parseISO,
+  format,
   startOfDay,
-  endOfDay,
   startOfWeek,
-  endOfWeek,
   startOfMonth,
-  endOfMonth,
   startOfYear,
+  endOfDay,
+  endOfWeek,
+  endOfMonth,
   endOfYear,
 } from "date-fns";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarGrid from "@/components/calendar/CalendarGrid";
+import InfiniteCalendarScroll, {
+  type InfiniteCalendarScrollHandle,
+} from "@/components/calendar/InfiniteCalendarScroll";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { useCountdowns } from "@/hooks/useCountdowns";
 import { useCalendars } from "@/hooks/useCalendars";
@@ -33,11 +35,6 @@ import type {
 } from "@/types/calendar";
 import { DaySkeleton, WeekSkeleton, YearSkeleton } from "./CalendarSkeletons";
 
-// CalendarGrid is the LCP element so it stays as a static import.
-// Everything else only loads after the user switches views or opens a modal,
-// so lazily loading them keeps the initial bundle lean.
-// Each dynamic() gets a loading fallback whose dimensions match the real view
-// so there's no layout shift while the JS chunk downloads.
 const DayView = dynamic(() => import("@/components/calendar/DayView"), {
   loading: () => <DaySkeleton />,
 });
@@ -55,73 +52,109 @@ const CountdownModal = dynamic(
   { loading: () => null },
 );
 
+// ---------------------------------------------------------------------------
+// Period helpers — module-level so they never change identity between renders.
+// ---------------------------------------------------------------------------
+
+function normalizePeriod(view: CalendarView, date: Date): Date {
+  switch (view) {
+    case "day": return startOfDay(date);
+    case "week": return startOfWeek(date);
+    case "month": return startOfMonth(date);
+    case "year": return startOfYear(date);
+  }
+}
+
+/** Returns a "yyyy-MM-dd" key — parseISO-compatible, always unique per period. */
+function periodKey(view: CalendarView, date: Date): string {
+  switch (view) {
+    case "day": return format(startOfDay(date), "yyyy-MM-dd");
+    case "week": return format(startOfWeek(date), "yyyy-MM-dd");
+    case "month": return format(startOfMonth(date), "yyyy-MM-dd");
+    case "year": return format(startOfYear(date), "yyyy-MM-dd");
+  }
+}
+
+function nextPeriod(view: CalendarView, date: Date): Date {
+  switch (view) {
+    case "day": return startOfDay(addDays(date, 1));
+    case "week": return startOfWeek(addWeeks(date, 1));
+    case "month": return startOfMonth(addMonths(date, 1));
+    case "year": return startOfYear(addYears(date, 1));
+  }
+}
+
+function prevPeriod(view: CalendarView, date: Date): Date {
+  switch (view) {
+    case "day": return startOfDay(addDays(date, -1));
+    case "week": return startOfWeek(addWeeks(date, -1));
+    case "month": return startOfMonth(addMonths(date, -1));
+    case "year": return startOfYear(addYears(date, -1));
+  }
+}
+
+function periodFetchStart(view: CalendarView, date: Date): string {
+  switch (view) {
+    case "day": return startOfDay(date).toISOString();
+    case "week": return startOfWeek(date).toISOString();
+    case "month": return startOfWeek(startOfMonth(date)).toISOString();
+    case "year": return startOfYear(date).toISOString();
+  }
+}
+
+function periodFetchEnd(view: CalendarView, date: Date): string {
+  switch (view) {
+    case "day": return endOfDay(date).toISOString();
+    case "week": return endOfWeek(date).toISOString();
+    case "month": return endOfWeek(endOfMonth(date)).toISOString();
+    case "year": return endOfYear(date).toISOString();
+  }
+}
+
+// ---------------------------------------------------------------------------
+
 interface CalendarContentProps {
-  /** SSR seed data for the current month. Skips the initial client-side fetch
-   *  when provided, so the calendar grid renders without a loading state. */
   initialEvents?: CalendarEvent[];
 }
 
-export default function CalendarContent({
-  initialEvents,
-}: CalendarContentProps) {
-  const [currentDate, setCurrentDate] = useState(() => new Date());
+export default function CalendarContent({ initialEvents }: CalendarContentProps) {
   const [view, setView] = useState<CalendarView>("month");
-  // -1 = backward (slide from left), 0 = crossfade, 1 = forward (slide from right)
-  const [direction, setDirection] = useState<number>(0);
+
+  // currentDate is the period currently visible in the scroll area.
+  // Updated both by the header nav buttons (via scrollToDate) and by the
+  // InfiniteCalendarScroll's onVisibleDateChange callback.
+  const [currentDate, setCurrentDate] = useState(() => normalizePeriod("month", new Date()));
+
   const [modal, setModal] = useState<ModalState>({ open: false });
-  const [countdownModal, setCountdownModal] = useState<CountdownModalState>({
-    open: false,
-  });
-  // undefined = not yet initialized (auto-select first calendar once loaded)
-  // null      = user explicitly chose "All calendars"
-  // string    = user chose a specific calendar
+  const [countdownModal, setCountdownModal] = useState<CountdownModalState>({ open: false });
+
   const [selectedCalendarId, setSelectedCalendarId] = useState<
     string | null | undefined
   >(undefined);
 
   const { calendars } = useCalendars();
-
   const effectiveCalendarId =
     selectedCalendarId === undefined
       ? (calendars[0]?.id ?? null)
       : selectedCalendarId;
 
-  // calculate fetch window
-  const { start, end } = useMemo(() => {
-    switch (view) {
-      case "day":
-        return {
-          start: startOfDay(currentDate).toISOString(),
-          end: endOfDay(currentDate).toISOString(),
-        };
-      case "week":
-        return {
-          start: startOfWeek(currentDate).toISOString(),
-          end: endOfWeek(currentDate).toISOString(),
-        };
-      case "month":
-        return {
-          start: startOfWeek(startOfMonth(currentDate)).toISOString(),
-          end: endOfWeek(endOfMonth(currentDate)).toISOString(),
-        };
-      case "year":
-        return {
-          start: startOfYear(currentDate).toISOString(),
-          end: endOfYear(currentDate).toISOString(),
-        };
-    }
-  }, [currentDate, view]);
+  // Fetch range covers all periods currently rendered in the infinite scroll.
+  // Starts as the initial 3-period window, then expands as the user scrolls.
+  const [fetchRange, setFetchRange] = useState(() => {
+    const now = normalizePeriod("month", new Date());
+    return {
+      start: periodFetchStart("month", prevPeriod("month", now)),
+      end: periodFetchEnd("month", nextPeriod("month", now)),
+    };
+  });
 
   const calendarEvents = useCalendarEvents({
-    start,
-    end,
+    start: fetchRange.start,
+    end: fetchRange.end,
     calendarId: effectiveCalendarId,
     initialEvents,
   });
 
-  // Countdowns don't need a date window — they're all fetched at once and
-  // filtered client-side per day. No SSR seed needed here because the
-  // /calendar/countdown page handles the server-side data loading.
   const {
     countdowns,
     createCountdown,
@@ -132,46 +165,72 @@ export default function CalendarContent({
     isDeleting: isDeletingCountdown,
   } = useCountdowns();
 
-  // Stable reference for the events array so the memoized view components don't
-  // re-render just because calendarEvents returned a new object wrapper.
   const visibleEvents = useMemo(
     () => calendarEvents.events,
     [calendarEvents.events],
   );
 
+  // Ref to the InfiniteCalendarScroll for imperative scrollToDate calls.
+  const infiniteRef = useRef<InfiniteCalendarScrollHandle>(null);
+
+  // ---------------------------------------------------------------------------
+  // Period callbacks — stable per view (useCallback captures view in deps).
+  // ---------------------------------------------------------------------------
+
+  const getNextPeriod = useCallback(
+    (date: Date) => nextPeriod(view, date),
+    [view],
+  );
+  const getPrevPeriod = useCallback(
+    (date: Date) => prevPeriod(view, date),
+    [view],
+  );
+  const getPeriodKey = useCallback(
+    (date: Date) => periodKey(view, date),
+    [view],
+  );
+
+  const handlePeriodsChange = useCallback(
+    (periods: Date[]) => {
+      if (periods.length === 0) return;
+      setFetchRange({
+        start: periodFetchStart(view, periods[0]),
+        end: periodFetchEnd(view, periods[periods.length - 1]),
+      });
+    },
+    [view],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Navigation — scroll to the adjacent period instead of paginating.
+  // ---------------------------------------------------------------------------
+
   function handleNavigate(dir: -1 | 1) {
-    setDirection(dir);
-    setCurrentDate((prev) => {
-      switch (view) {
-        case "day":
-          return addDays(prev, dir);
-        case "week":
-          return addWeeks(prev, dir);
-        case "month":
-          return addMonths(prev, dir);
-        case "year":
-          return addYears(prev, dir);
-      }
-    });
+    const target = dir > 0
+      ? nextPeriod(view, currentDate)
+      : prevPeriod(view, currentDate);
+    infiniteRef.current?.scrollToDate(target);
   }
 
   function handleToday() {
-    setDirection(0);
-    setCurrentDate(new Date());
+    infiniteRef.current?.scrollToDate(normalizePeriod(view, new Date()));
   }
 
   const handleViewChange = useCallback((newView: CalendarView) => {
-    setDirection(0);
+    const normalized = normalizePeriod(newView, currentDate);
+    setCurrentDate(normalized);
     setView(newView);
-  }, []);
+    // The key={view} on InfiniteCalendarScroll causes it to remount with the new initialDate.
+  }, [currentDate]);
 
-  // useCallback keeps these stable across re-renders so the memoized view
-  // components don't see new prop references every time modal state changes
   const handleMonthClick = useCallback((date: Date) => {
-    setDirection(0);
-    setCurrentDate(date);
+    setCurrentDate(normalizePeriod("month", date));
     setView("month");
   }, []);
+
+  // ---------------------------------------------------------------------------
+  // Modal handlers
+  // ---------------------------------------------------------------------------
 
   const openCreateModal = useCallback((date: Date) => {
     setModal({ open: true, initialDate: date });
@@ -208,9 +267,7 @@ export default function CalendarContent({
     await calendarEvents.deleteEvent(id);
   }
 
-  async function handleCountdownSave(
-    data: Omit<Countdown, "id" | "createdAt">,
-  ) {
+  async function handleCountdownSave(data: Omit<Countdown, "id" | "createdAt">) {
     if (countdownModal.open && countdownModal.editingCountdown) {
       await updateCountdown(countdownModal.editingCountdown.id, data);
     } else {
@@ -222,8 +279,88 @@ export default function CalendarContent({
     await deleteCountdown(id);
   }
 
+  // ---------------------------------------------------------------------------
+  // Render period — the view-specific content for one period in the scroll list.
+  // ---------------------------------------------------------------------------
+
+  const renderPeriod = useCallback(
+    (date: Date) => {
+      switch (view) {
+        case "day":
+          return (
+            <DayView
+              currentDate={date}
+              events={visibleEvents}
+              countdowns={countdowns}
+              onSlotClick={openCreateModal}
+              onChipClick={openEditModal}
+              onCountdownClick={openCountdownModal}
+            />
+          );
+        case "week":
+          return (
+            <WeekView
+              currentDate={date}
+              events={visibleEvents}
+              countdowns={countdowns}
+              onSlotClick={openCreateModal}
+              onChipClick={openEditModal}
+              onCountdownClick={openCountdownModal}
+            />
+          );
+        case "month":
+          return (
+            <div>
+              <div className="text-xs font-semibold text-muted/60 uppercase tracking-widest pb-2">
+                {format(date, "MMMM yyyy")}
+              </div>
+              <CalendarGrid
+                currentDate={date}
+                events={visibleEvents}
+                countdowns={countdowns}
+                onDayClick={openCreateModal}
+                onChipClick={openEditModal}
+                onCountdownClick={openCountdownModal}
+              />
+            </div>
+          );
+        case "year":
+          return (
+            <div>
+              <div className="text-xs font-semibold text-muted/60 uppercase tracking-widest pb-2">
+                {format(date, "yyyy")}
+              </div>
+              <YearView
+                currentDate={date}
+                events={visibleEvents}
+                countdowns={countdowns}
+                onMonthClick={handleMonthClick}
+              />
+            </div>
+          );
+      }
+    },
+    [
+      view,
+      visibleEvents,
+      countdowns,
+      openCreateModal,
+      openEditModal,
+      openCountdownModal,
+      handleMonthClick,
+    ],
+  );
+
+  // Initial date for the scroll container — normalized to the period start for the current view.
+  const initialDate = useMemo(
+    () => normalizePeriod(view, currentDate),
+    // Only recompute when view changes (not on scroll-driven currentDate updates).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [view],
+  );
+
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-8">
       <CalendarHeader
         currentDate={currentDate}
         view={view}
@@ -241,62 +378,20 @@ export default function CalendarContent({
         </div>
       )}
 
-      <div
-        className={[
-          "relative overflow-hidden",
-          calendarEvents.loading ? "opacity-60 pointer-events-none" : "",
-        ].join(" ")}
-      >
-        <AnimatePresence mode="popLayout" custom={direction}>
-          <motion.div
-            key={`${view}-${currentDate.getTime()}`}
-            custom={direction}
-            variants={calendarSlide}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={{ ...spring.smooth }}
-          >
-            {view === "day" && (
-              <DayView
-                currentDate={currentDate}
-                events={visibleEvents}
-                countdowns={countdowns}
-                onSlotClick={openCreateModal}
-                onChipClick={openEditModal}
-                onCountdownClick={openCountdownModal}
-              />
-            )}
-            {view === "week" && (
-              <WeekView
-                currentDate={currentDate}
-                events={visibleEvents}
-                countdowns={countdowns}
-                onSlotClick={openCreateModal}
-                onChipClick={openEditModal}
-                onCountdownClick={openCountdownModal}
-              />
-            )}
-            {view === "month" && (
-              <CalendarGrid
-                currentDate={currentDate}
-                events={visibleEvents}
-                countdowns={countdowns}
-                onDayClick={openCreateModal}
-                onChipClick={openEditModal}
-                onCountdownClick={openCountdownModal}
-              />
-            )}
-            {view === "year" && (
-              <YearView
-                currentDate={currentDate}
-                events={visibleEvents}
-                countdowns={countdowns}
-                onMonthClick={handleMonthClick}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
+      <div className={calendarEvents.loading ? "opacity-60 pointer-events-none" : ""}>
+        <InfiniteCalendarScroll
+          // key forces a remount (and list reset) when the view changes.
+          key={view}
+          ref={infiniteRef}
+          initialDate={initialDate}
+          getNextPeriod={getNextPeriod}
+          getPrevPeriod={getPrevPeriod}
+          getPeriodKey={getPeriodKey}
+          renderPeriod={renderPeriod}
+          onVisibleDateChange={setCurrentDate}
+          onPeriodsChange={handlePeriodsChange}
+          containerHeight="calc(100dvh - 210px)"
+        />
       </div>
 
       {modal.open && (

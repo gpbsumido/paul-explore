@@ -1088,6 +1088,97 @@ differenceInCalendarDays(new Date("2026-03-28T00:00:00"), new Date())`}
 
         <Timestamp>12:11 PM</Timestamp>
 
+        <Received>did you end up redesigning the calendar UI at all</Received>
+
+        <Sent pos="first">
+          yeah, two things. first, design consistency — day and week views had a
+          card-like aesthetic with rounded borders, but month and year were more
+          flat and raw. unified everything under the same{" "}
+          <code>rounded-xl border border-border</code> wrapper and replaced
+          hardcoded neutral values with <code>bg-surface</code> and{" "}
+          <code>bg-surface-raised</code> tokens throughout
+        </Sent>
+        <Sent pos="last">
+          second, I replaced the paginated view switching with bidirectional
+          infinite scroll — you can now scroll continuously through days, weeks,
+          months, or years without hitting a next/prev button
+        </Sent>
+
+        <Received>how does the infinite scroll work</Received>
+
+        <Sent pos="first">
+          there&apos;s a new <code>InfiniteCalendarScroll</code> component that
+          manages a <code>periods: Date[]</code> array. two{" "}
+          <code>IntersectionObserver</code> sentinels sit at the top and bottom
+          of a scroll container — when the bottom one fires, a new period gets
+          appended; when the top one fires, one gets prepended
+        </Sent>
+        <Sent pos="middle">
+          appending is easy. prepending is the tricky part — when you insert
+          content above everything else, all the existing content shifts down by
+          the new element&apos;s height and it looks like the page jumped
+        </Sent>
+        <Sent pos="last">
+          fix is <code>useLayoutEffect</code> with no deps: before calling{" "}
+          <code>setState</code>, save the container&apos;s current{" "}
+          <code>scrollHeight</code>. after the DOM updates (but before the
+          browser paints), add the height delta to <code>scrollTop</code>. the
+          user never sees the shift because the correction happens synchronously
+          inside the same paint frame
+        </Sent>
+
+        <div className={styles.codeBubble}>
+          {`// save before prepend
+if (scrollRef.current)
+  prependHeightRef.current = scrollRef.current.scrollHeight;
+setPeriods(prev => [prevPeriod, ...prev]);
+
+// useLayoutEffect (no deps — runs after every render)
+if (prependHeightRef.current !== null && scrollRef.current) {
+  scrollRef.current.scrollTop +=
+    scrollRef.current.scrollHeight - prependHeightRef.current;
+  prependHeightRef.current = null;
+}`}
+        </div>
+
+        <Received>how does the header nav still work</Received>
+
+        <Sent pos="first">
+          <code>forwardRef</code> + <code>useImperativeHandle</code>.{" "}
+          <code>InfiniteCalendarScroll</code> exposes a{" "}
+          <code>scrollToDate(date)</code> method on its ref. the header calls it
+          directly — no prop threading, no extra state in the parent
+        </Sent>
+        <Sent pos="last">
+          if the target period is already in the rendered list it scrolls
+          instantly. if not, it resets the list to center on that date via{" "}
+          <code>requestAnimationFrame</code> to let the DOM flush first. same
+          thing happens on view change — <code>key={"{view}"}</code> on the
+          component forces a full remount and the new view initializes centered
+          on today
+        </Sent>
+
+        <Received>how does it know which month to show in the header</Received>
+
+        <Sent pos="first">
+          <code>data-period-key</code> attributes on each period wrapper store
+          the period&apos;s date string. a scroll listener queries{" "}
+          <code>[data-period-key]</code> and finds the last element whose top is
+          at or above the container edge
+        </Sent>
+        <Sent pos="last">
+          one thing to get right: the key is a <code>&quot;yyyy-MM-dd&quot;</code>{" "}
+          string, and you have to reconstruct it with{" "}
+          <code>parseISO</code>, not <code>new Date()</code>.{" "}
+          <code>new Date(&quot;2026-03-01&quot;)</code> parses as UTC midnight —
+          in UTC-8 that&apos;s 4pm on Feb 28 local time. <code>parseISO</code>{" "}
+          does the same thing, but treating a date-only string as local was the
+          actual intent — so the fix is{" "}
+          <code>new Date(`${"${key}"}T00:00:00`)</code> with no timezone suffix
+        </Sent>
+
+        <Timestamp>12:19 PM</Timestamp>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />

@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.30
+
+- replaced paginated calendar navigation with infinite bidirectional scroll across all four views:
+  - new `InfiniteCalendarScroll` component renders a continuous list of periods; IntersectionObserver sentinels at top and bottom prepend/append periods as the user scrolls; scroll-position preservation via `useLayoutEffect` prevents content jump when prepending
+  - day view: scroll continuously through days — each day's full 24-hour time grid stacks vertically; scrolling past midnight flows seamlessly into the next day
+  - week view: scroll continuously through weeks — each week's full 7-column time grid stacks vertically
+  - month view: scroll continuously through months — each month's grid stacks with a month/year label above it
+  - year view: scroll continuously through years — each year's mini-month grid stacks with a year label above it
+  - header prev/next buttons and "Today" button now call `scrollToDate` on the infinite scroll container instead of re-mounting the view
+  - `currentDate` in the CalendarHeader updates live as you scroll (tracks the topmost visible period)
+  - fetch range expands automatically as more periods render — covers earliest to latest period in the current list
+  - removed `AnimatePresence` slide animation (replaced by natural scroll motion)
+
+## 2026-03-15 - version 0.5.29
+
+- unified calendar view design and added Google Calendar-style scrollable time grid:
+  - **all 4 views** now share the same `rounded-xl border border-border overflow-hidden` outer container
+  - **Day/Week views**: time grid is now a fixed-height scrollable container (`clamp(400px, calc(100dvh - 380px), 720px)`); header and all-day row stay pinned above the scroll area; view auto-scrolls to current time on today or 8am on other days on mount/navigation
+  - **Month view**: added outer `rounded-xl border border-border` wrapper; replaced raw `bg-neutral-50/60 dark:bg-neutral-900/30` weekend and hover colors with `bg-surface-raised` design tokens
+  - **Year view**: wrapped grid in `rounded-xl border border-border` outer panel with consistent padding — matches the other three views
+  - standardized `ROW_HEIGHT` to `48px` across both Day and Week views (was 44px in Day)
+  - replaced `hover:bg-neutral-50 dark:hover:bg-neutral-900/60` slot hover states with `hover:bg-surface-raised/50` in Day and Week views
+  - updated all four skeletons to match the new scroll container structures and dimensions
+
 ## 2026-03-15 - version 0.5.28
 
 - fixed calendar view-switch layout bug: `AnimatePresence` was missing `mode="popLayout"`, causing entering and exiting views to stack vertically in document flow — the new view rendered below the full height of the old one, leaving a blank reserved space at the top
