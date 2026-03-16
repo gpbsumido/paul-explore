@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-16 - version 0.6.2
+
+- extracted all inline sticky nav bars into a single shared `PageHeader` component used across every page:
+  - `src/components/PageHeader.tsx` — glassmorphic sticky nav with a breadcrumb trail (`breadcrumbs` prop), optional custom `left` slot, optional `right` slot for extra controls, `showSettings`, `showLogout`, `maxWidth`, `zIndex`, `overlay`, and `as` (nav/header) props
+  - `src/components/HeaderMenu.tsx` — client-side dropdown that consolidates theme switching (system/light/dark picker), optional Settings link, and optional Log out link into one control; replaces the previous inline ThemeToggle + logout link pattern
+  - updated 21 files to use `PageHeader`: `calendar/page.tsx`, `calendar/events/layout.tsx`, `calendar/countdown/page.tsx`, `settings/SettingsContent.tsx`, `vitals/VitalsContent.tsx`, `graphql/GraphQLContent.tsx`, `lab/layout.tsx`, `tcg/pokemon/page.tsx`, `tcg/pokemon/sets/page.tsx`, `tcg/pokemon/sets/[setId]/page.tsx`, `tcg/pokemon/card/[cardId]/page.tsx`, `tcg/pocket/page.tsx`, `fantasy/nba/player/stats/StatsContent.tsx`, `fantasy/nba/league-history/LeagueContent.tsx`, `FeatureHub.tsx`, and all 11 thoughts `*Content.tsx` files
+  - `BreadcrumbItem.onClick` prop threads a click handler through the back-chevron link for cases like `StatsContent` that cancel in-flight queries before navigating
+  - `FeatureHub` header uses `as="header"`, `left` (app name), `right` (user info block), `showSettings`, and `overlay` (violet gradient) to match its original design
+  - thoughts pages pass `showLogout={false}` and `maxWidth="max-w-3xl"` with `right={<ViewToggle />}`
+  - `calendar/countdown` passes `showLogout={false}` (logout was never shown on that page)
+
 ## 2026-03-16 - version 0.6.1
 
 - all 11 dev notes (thoughts) pages now have a Summary / Chat view toggle defaulting to the direct prose view:

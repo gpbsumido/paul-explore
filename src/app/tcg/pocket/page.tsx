@@ -1,11 +1,12 @@
 import TCGdex from "@tcgdex/sdk";
 import type { Metadata } from "next";
 import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 
 const TITLE = "Pokémon TCG Pocket";
-const DESCRIPTION = "Browse Pokémon TCG Pocket sets grouped by expansion family.";
+const DESCRIPTION =
+  "Browse Pokémon TCG Pocket sets grouped by expansion family.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -70,29 +71,13 @@ export default async function PocketPage() {
 
   return (
     <div className="min-h-dvh bg-background font-sans">
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-full flex items-center gap-4">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Dashboard
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
-            TCG Pocket
-          </span>
-          <div className="ml-auto flex items-center gap-5">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "TCG Pocket" },
+        ]}
+        right={
+          <>
             <Link
               href="/tcg/pokemon"
               className="text-sm text-muted hover:text-foreground transition-colors"
@@ -105,16 +90,9 @@ export default async function PocketPage() {
             >
               Sets
             </Link>
-            <ThemeToggle />
-            <a
-              href="/auth/logout"
-              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
-            >
-              Log out
-            </a>
-          </div>
-        </div>
-      </nav>
+          </>
+        }
+      />
 
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-indigo-950/60 to-background">
@@ -177,12 +155,29 @@ export default async function PocketPage() {
                     <div className="ml-auto flex flex-col items-end gap-1 shrink-0">
                       <span className="text-sm font-black text-foreground">
                         {primary.cardCount.official}
-                        <span className="text-muted font-normal text-xs"> / {primary.cardCount.total}</span>
+                        <span className="text-muted font-normal text-xs">
+                          {" "}
+                          / {primary.cardCount.total}
+                        </span>
                       </span>
-                      <span className="text-[10px] text-muted uppercase tracking-widest">{primary.id}</span>
+                      <span className="text-[10px] text-muted uppercase tracking-widest">
+                        {primary.id}
+                      </span>
                     </div>
-                    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" className="text-muted group-hover:text-red-400 transition-colors shrink-0">
-                      <path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg
+                      width="8"
+                      height="14"
+                      viewBox="0 0 8 14"
+                      fill="none"
+                      className="text-muted group-hover:text-red-400 transition-colors shrink-0"
+                    >
+                      <path
+                        d="M1 1l6 6-6 6"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </div>
                 </Link>
@@ -209,7 +204,9 @@ export default async function PocketPage() {
                     )}
                     <div className="flex items-center justify-between mt-auto">
                       {set.logo && (
-                        <span className="text-xs text-muted truncate">{set.name}</span>
+                        <span className="text-xs text-muted truncate">
+                          {set.name}
+                        </span>
                       )}
                       <span className="text-xs font-semibold text-muted ml-auto shrink-0">
                         {set.cardCount.official} cards
@@ -230,7 +227,9 @@ function Stat({ value, label }: { value: string | number; label: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-2xl font-black text-white">{value}</span>
-      <span className="text-[10px] text-indigo-300/70 uppercase tracking-widest">{label}</span>
+      <span className="text-[10px] text-indigo-300/70 uppercase tracking-widest">
+        {label}
+      </span>
     </div>
   );
 }

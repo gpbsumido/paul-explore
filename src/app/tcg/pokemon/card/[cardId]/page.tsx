@@ -1,9 +1,8 @@
 import TCGdex from "@tcgdex/sdk";
 import type { Metadata } from "next";
-import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import { typeStyle } from "@/lib/tcg";
 import { Chip } from "@/components/ui";
 
@@ -44,43 +43,13 @@ export default async function CardDetailPage({
 
   return (
     <div className="min-h-dvh bg-background font-sans">
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 h-full flex items-center gap-4">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Dashboard
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <Link href={backHref} className="text-sm text-muted transition-colors hover:text-foreground shrink-0 max-w-[120px] truncate">
-            {backLabel}
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground truncate">
-            {card.name}
-          </span>
-          <div className="ml-auto flex items-center gap-4">
-            <ThemeToggle />
-            <a
-              href="/auth/logout"
-              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
-            >
-              Log out
-            </a>
-          </div>
-        </div>
-      </nav>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: backLabel, href: backHref },
+          { label: card.name },
+        ]}
+      />
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-10">
@@ -106,7 +75,8 @@ export default async function CardDetailPage({
                 </h1>
                 {card.hp && (
                   <span className="text-2xl font-black text-muted shrink-0">
-                    {card.hp} <span className="text-base font-semibold">HP</span>
+                    {card.hp}{" "}
+                    <span className="text-base font-semibold">HP</span>
                   </span>
                 )}
               </div>
@@ -129,12 +99,18 @@ export default async function CardDetailPage({
               {card.stage && <Stat label="Stage" value={card.stage} />}
               {card.rarity && <Stat label="Rarity" value={card.rarity} />}
               {card.set?.name && <Stat label="Set" value={card.set.name} />}
-              {card.illustrator && <Stat label="Illustrator" value={card.illustrator} />}
-              {card.evolveFrom && <Stat label="Evolves from" value={card.evolveFrom} />}
+              {card.illustrator && (
+                <Stat label="Illustrator" value={card.illustrator} />
+              )}
+              {card.evolveFrom && (
+                <Stat label="Evolves from" value={card.evolveFrom} />
+              )}
               {card.dexId && card.dexId.length > 0 && (
                 <Stat label="Pokédex" value={`#${card.dexId[0]}`} />
               )}
-              {card.regulationMark && <Stat label="Regulation" value={card.regulationMark} />}
+              {card.regulationMark && (
+                <Stat label="Regulation" value={card.regulationMark} />
+              )}
               {card.retreat !== undefined && (
                 <Stat
                   label="Retreat"
@@ -158,9 +134,13 @@ export default async function CardDetailPage({
                       <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-purple-500/15 text-purple-400">
                         {ability.type}
                       </span>
-                      <span className="text-sm font-bold text-foreground">{ability.name}</span>
+                      <span className="text-sm font-bold text-foreground">
+                        {ability.name}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted leading-relaxed">{parseEnergyText(ability.effect)}</p>
+                    <p className="text-sm text-muted leading-relaxed">
+                      {parseEnergyText(ability.effect)}
+                    </p>
                   </div>
                 ))}
               </Section>
@@ -180,14 +160,20 @@ export default async function CardDetailPage({
                             ))}
                           </div>
                         )}
-                        <span className="text-sm font-bold text-foreground truncate">{attack.name}</span>
+                        <span className="text-sm font-bold text-foreground truncate">
+                          {attack.name}
+                        </span>
                       </div>
                       {attack.damage && (
-                        <span className="text-lg font-black text-foreground shrink-0">{attack.damage}</span>
+                        <span className="text-lg font-black text-foreground shrink-0">
+                          {attack.damage}
+                        </span>
                       )}
                     </div>
                     {attack.effect && (
-                      <p className="text-sm text-muted leading-relaxed">{parseEnergyText(attack.effect)}</p>
+                      <p className="text-sm text-muted leading-relaxed">
+                        {parseEnergyText(attack.effect)}
+                      </p>
                     )}
                   </div>
                 ))}
@@ -204,7 +190,10 @@ export default async function CardDetailPage({
                       Weakness
                     </span>
                     {card.weaknesses.map((w) => (
-                      <span key={w.type} className="flex items-center gap-1 text-sm font-bold text-foreground">
+                      <span
+                        key={w.type}
+                        className="flex items-center gap-1 text-sm font-bold text-foreground"
+                      >
                         <EnergyIcon type={w.type} />
                         {w.value}
                       </span>
@@ -217,7 +206,10 @@ export default async function CardDetailPage({
                       Resistance
                     </span>
                     {card.resistances.map((r) => (
-                      <span key={r.type} className="flex items-center gap-1 text-sm font-bold text-foreground">
+                      <span
+                        key={r.type}
+                        className="flex items-center gap-1 text-sm font-bold text-foreground"
+                      >
                         <EnergyIcon type={r.type} />
                         {r.value}
                       </span>
@@ -230,7 +222,9 @@ export default async function CardDetailPage({
             {/* Trainer/Energy effect */}
             {card.effect && (
               <Section title={card.trainerType ?? card.energyType ?? "Effect"}>
-                <p className="text-sm text-muted leading-relaxed">{parseEnergyText(card.effect)}</p>
+                <p className="text-sm text-muted leading-relaxed">
+                  {parseEnergyText(card.effect)}
+                </p>
               </Section>
             )}
 
@@ -294,22 +288,40 @@ function parseEnergyText(text: string): React.ReactNode[] {
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[10px] uppercase tracking-widest text-muted font-bold">{label}</span>
-      <span className="text-sm text-foreground font-semibold flex items-center gap-0.5">{value}</span>
+      <span className="text-[10px] uppercase tracking-widest text-muted font-bold">
+        {label}
+      </span>
+      <span className="text-sm text-foreground font-semibold flex items-center gap-0.5">
+        {value}
+      </span>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="rounded-xl border border-border bg-surface p-5 flex flex-col gap-4">
-      <h2 className="text-[10px] uppercase tracking-widest font-bold text-muted">{title}</h2>
+      <h2 className="text-[10px] uppercase tracking-widest font-bold text-muted">
+        {title}
+      </h2>
       {children}
     </div>
   );
 }
 
-function LegalBadge({ label, legal }: { label: string; legal: boolean | undefined }) {
+function LegalBadge({
+  label,
+  legal,
+}: {
+  label: string;
+  legal: boolean | undefined;
+}) {
   return (
     <span
       className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide border ${

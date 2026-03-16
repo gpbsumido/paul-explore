@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import PageHeader from "@/components/PageHeader";
 import { Input } from "@/components/ui";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -69,7 +68,10 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
     isError,
     error: queryError,
   } = useInfiniteQuery<PokemonPage>({
-    queryKey: queryKeys.graphql.pokemon({ name: debouncedName, type: activeType }),
+    queryKey: queryKeys.graphql.pokemon({
+      name: debouncedName,
+      type: activeType,
+    }),
     queryFn: ({ pageParam, signal }) =>
       fetchPokemonPage({
         name: debouncedName,
@@ -145,40 +147,12 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
 
   return (
     <div className="min-h-dvh bg-background font-sans">
-      {/* ── header ── */}
-      <nav
-        className="sticky top-0 z-20 h-14 border-b border-border"
-        style={{
-          background: "color-mix(in srgb, var(--color-background) 80%, transparent)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
-        <div className="mx-auto flex h-full max-w-5xl items-center gap-4 px-4 sm:px-6">
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            <svg width="6" height="10" viewBox="0 0 6 10" fill="none" aria-hidden>
-              <path d="M5 1L1 5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Dashboard
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground">
-            GraphQL Pokédex
-          </span>
-          <div className="ml-auto flex items-center gap-4">
-            <ThemeToggle />
-            <a
-              href="/auth/logout"
-              className="text-[13px] font-medium text-muted transition-colors hover:text-foreground"
-            >
-              Log out
-            </a>
-          </div>
-        </div>
-      </nav>
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "GraphQL Pokédex" },
+        ]}
+      />
 
       <div className="mx-auto max-w-5xl px-4 py-6 space-y-5">
         {/* ── search ── */}
@@ -292,7 +266,8 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
           </div>
         ) : isError ? (
           <p className="text-center text-red-500 py-16 text-sm">
-            {queryError?.message ?? "Couldn't load Pokémon — check your connection and try again."}
+            {queryError?.message ??
+              "Couldn't load Pokémon — check your connection and try again."}
           </p>
         ) : pokemon.length === 0 ? (
           <p className="text-center text-muted py-16 text-sm">
