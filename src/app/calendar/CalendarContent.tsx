@@ -243,11 +243,11 @@ export default function CalendarContent({
 
       <div
         className={[
-          "overflow-hidden",
+          "relative overflow-hidden",
           calendarEvents.loading ? "opacity-60 pointer-events-none" : "",
         ].join(" ")}
       >
-        <AnimatePresence custom={direction}>
+        <AnimatePresence mode="popLayout" custom={direction}>
           <motion.div
             key={`${view}-${currentDate.getTime()}`}
             custom={direction}
