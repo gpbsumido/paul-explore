@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.13
+
+- rewrote `src/app/landing/GraphQLSection.tsx`: replaced `useInView` hook + `reveal()` with typewriter animation
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - replaced mock card grid with a two-panel query inspector layout: left panel shows the typing query, right panel shows result rows
+  - `TypewriterQuery` component: `setInterval` at 18 ms/char advances a character count into the query string; blinking `|` cursor via Framer `motion.span` `opacity: [1, 0]` with `steps(1)` easing; cursor disappears when done; reduced-motion skips to full string immediately
+  - `RESULT_DELAY = query.length * 0.018 + 0.15` — result rows start fading in only after typing completes; each row staggers an additional `i * 0.05s` with a slight `x: 10` slide
+  - feature highlights appear after the last result row (`RESULT_DELAY + results.length * 0.05 + 0.1`)
+  - heading uses clipPath wipe; subtitle fades up at `delay: 0.1`; panel frame fades up at `delay: 0`
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
 ## 2026-03-15 - version 0.5.12
 
 - rewrote `src/app/landing/CalendarSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion cell-by-cell grid build
