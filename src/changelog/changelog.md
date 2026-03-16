@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.26
+
+- redesigned League History and Player Stats pages to match dashboard width and glass system:
+  - removed `max-w-[480px]` narrow container — pages now use `min-h-dvh bg-background` full layout with `max-w-5xl` content (matching the nav and protected page)
+  - replaced gradient backgrounds (`bg-gradient-to-br from-secondary-600 to-primary-700`) with `bg-background`
+  - league history: TeamCard uses `bg-surface border-border` glass tokens; text uses `text-foreground`/`text-muted` instead of hardcoded `text-white`; `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+  - player stats: table wrapped in `bg-surface border-border rounded-xl`; `thBase`/`tdBase` updated to design tokens; sticky column backgrounds use `bg-surface`/`bg-surface-raised`
+  - season/team selectors moved to inline `border-b` bar aligned to `max-w-5xl`; replaced `rounded-[10px] focus:border-[#007aff]` with `rounded-lg border-border bg-surface`
+
 ## 2026-03-15 - version 0.5.25
 
 - standardized all nav inner divs to `max-w-5xl` — matching the protected dashboard page width
