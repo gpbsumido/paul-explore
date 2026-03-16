@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.28
+
+- fixed calendar view-switch layout bug: `AnimatePresence` was missing `mode="popLayout"`, causing entering and exiting views to stack vertically in document flow — the new view rendered below the full height of the old one, leaving a blank reserved space at the top
+  - added `mode="popLayout"` so the exiting element is popped out of flow (absolute-positioned) while the entering element takes its place
+  - added `relative` to the wrapper div so the absolutely-positioned exiting element stays contained within the calendar area
+  - chose `popLayout` over `mode="wait"` because `mode="wait"` is incompatible with `next/dynamic` — Suspense cleanup fires while the exiting fiber is still mounted, producing console warnings
+
+## 2026-03-15 - version 0.5.27
+
+- fixed GraphQL Pokédex type/name filter not firing: `initialData` in `useInfiniteQuery` was provided unconditionally, so every query key change (including filtered ones) received the unfiltered server seed and `staleTime: 30_000` prevented the actual filter fetch from running
+  - gated `initialData` on `!debouncedName && !activeType` so it only seeds the no-filter query key; filtered queries start empty and fetch normally
+  - split `staleTime` into two values: `30_000` when seed data is present (short window since we just fetched server-side), `10 * 60_000` for subsequent client fetches
+
 ## 2026-03-15 - version 0.5.26
 
 - redesigned League History and Player Stats pages to match dashboard width and glass system:

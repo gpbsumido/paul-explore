@@ -1045,6 +1045,49 @@ differenceInCalendarDays(new Date("2026-03-28T00:00:00"), new Date())`}
 
         <Timestamp>12:08 PM</Timestamp>
 
+        <Received>
+          did you run into any bugs while building the calendar views
+        </Received>
+
+        <Sent pos="first">
+          yeah — switching between month, week, and day views had a layout bug
+          where the new view would appear near the bottom of the screen with a
+          blank reserved block at the top
+        </Sent>
+        <Sent pos="last">
+          root cause was <code>AnimatePresence</code> missing its{" "}
+          <code>mode</code> prop. the default (<code>sync</code>) renders the
+          entering and exiting elements simultaneously in normal document flow,
+          so both views are in the DOM at the same time and the page doubles in
+          height mid-transition
+        </Sent>
+
+        <Received>how did you fix it</Received>
+
+        <Sent pos="first">
+          <code>mode=&quot;popLayout&quot;</code> — it pops the exiting element
+          out of flow immediately (absolute-positioned) so the entering element
+          takes its place in layout rather than stacking below it
+        </Sent>
+        <Sent pos="last">
+          I also needed <code>relative</code> on the wrapper div so the
+          absolute-positioned exiting view stays contained within the calendar
+          area instead of escaping to the document root
+        </Sent>
+
+        <Received>why not mode wait</Received>
+
+        <Sent>
+          <code>mode=&quot;wait&quot;</code> holds the exiting fiber in the
+          tree until its exit animation finishes. but the calendar views are
+          loaded with <code>next/dynamic</code>, and React&apos;s Suspense
+          cleanup fires while that fiber is still mounted — you get a console
+          warning every time you switch views. <code>popLayout</code> avoids
+          it because the exiting element leaves the tree immediately
+        </Sent>
+
+        <Timestamp>12:11 PM</Timestamp>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />

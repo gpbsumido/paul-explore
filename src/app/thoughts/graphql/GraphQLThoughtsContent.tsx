@@ -318,6 +318,49 @@ async function gql(query, variables, signal) {
           query language pays for itself
         </Sent>
 
+        <Received>
+          wait I thought you said the type filter worked because the query key
+          changes and a fresh fetch fires
+        </Received>
+
+        <Sent pos="first">
+          that was wrong — I had a bug. the filter was silently not working
+          because <code>initialData</code> was provided unconditionally to{" "}
+          <code>useInfiniteQuery</code>
+        </Sent>
+        <Sent pos="last">
+          TanStack evaluates <code>initialData</code> fresh on every render,
+          not just on mount. so when the user clicked a type pill, the new
+          query key found <code>initialData</code> truthy, seeded itself with
+          the unfiltered server data, and <code>staleTime: 30_000</code>{" "}
+          prevented the actual filter fetch from firing for 30 seconds
+        </Sent>
+
+        <Received>how did you catch it</Received>
+
+        <Sent pos="first">
+          the grid was showing all Pokémon after clicking a type pill instead
+          of the filtered list. tracing the flow confirmed the fetch was never
+          made — TanStack thought the data was fresh
+        </Sent>
+        <Sent pos="last">
+          fix was to gate it:{" "}
+          <code>
+            initialData: seedPage &amp;&amp; !name &amp;&amp; !type ? ... :
+            undefined
+          </code>
+          . the seed only applies to the no-filter key. filtered queries start
+          empty and fetch normally
+        </Sent>
+
+        <Received>subtle</Received>
+
+        <Sent>
+          really subtle. the behavior looks correct at first — the unfiltered
+          grid loads fast — but the filter is completely broken. easy to miss
+          if you only test the happy path
+        </Sent>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />
