@@ -609,6 +609,7 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
       <Link
         href={thought.href}
         className="flex h-full items-start gap-3 rounded-xl border border-border bg-surface p-3 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
+        style={{ borderLeft: `2px solid ${thought.color}` }}
       >
         <div
           className="mt-0.5 h-2 w-2 shrink-0 rounded-full"

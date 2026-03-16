@@ -293,6 +293,59 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
           changes
         </Sent>
 
+        <Timestamp>10:47 AM</Timestamp>
+
+        {/* ---- Motion Lab ---- */}
+        <Received pos="first">
+          you added a second lab page — the motion demo. what{"'"}s that for
+        </Received>
+        <Received pos="last">
+          it{"'"}s not a feature, it{"'"}s just demos
+        </Received>
+
+        <Sent pos="first">
+          it{"'"}s documentation that runs. six sections, each isolating one
+          Framer API: spring physics, stagger grids, drag-to-reorder,
+          scroll-driven parallax, gesture variants, shared layout transitions
+        </Sent>
+        <Sent pos="middle">
+          every one of those has a subtle configuration problem that only shows
+          up in practice. the spring playground was the first time I had sliders
+          that let you feel the difference between stiffness and damping rather
+          than just reading about it. mass is the one that surprised me — it
+          doesn{"'"}t change the spring rate, it changes inertia. a heavy puck
+          starts slow and overshoots more even at the same stiffness
+        </Sent>
+        <Sent pos="last">
+          the shared layout demo got interesting because of the{" "}
+          <code>LayoutGroup</code> wrapper. without it, each card{"'"}s{" "}
+          <code>layoutId</code> animates independently and the siblings snap
+          instead of yielding space. with it, Framer knows the whole group is
+          transitioning and coordinates the reflow
+        </Sent>
+
+        <Received>
+          and <code>AnimatePresence mode="wait"</code> breaking with{" "}
+          <code>next/dynamic</code> — you mentioned that earlier. what was the
+          actual issue
+        </Received>
+
+        <Sent pos="first">
+          <code>mode="wait"</code> holds the exiting component in the React
+          tree until its exit animation finishes. <code>next/dynamic</code>{" "}
+          suspends when a chunk hasn{"'"}t loaded yet. those two mechanisms both
+          try to control when a component is mounted and unmounted, and they
+          disagree
+        </Sent>
+        <Sent pos="last">
+          React{"'"}s Suspense cleanup fires while the exiting fiber is still
+          mounted, logs a warning about async info that{" "}
+          {"\""}was not on the parent Suspense boundary{"\""}. the fix is to
+          drop <code>mode="wait"</code> — exit and enter run concurrently
+          instead of sequentially, which is fine for a slide transition. the
+          overlap is barely visible and the warning disappears
+        </Sent>
+
         {/* Typing indicator */}
         <div className={styles.typingDots}>
           <span />

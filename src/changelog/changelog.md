@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.21
+
+- visual polish pass across landing sections
+  - added faint pastel radial glow to `AuthSection`, `NbaSection`, `DesignSection`, `TcgSection`, `CalendarSection`, `GraphQLSection`, `VitalsSection` via new `glow` prop on `Section.tsx`; each glow uses `color-mix(in srgb, var(--color-feature-*) 5%, transparent)` as a full-bleed absolute overlay so the section's existing background gradient is unchanged
+  - added hairline gradient dividers (`h-px bg-gradient-to-r from-transparent via-white/8 to-transparent`) between all landing sections in `LandingContent.tsx`
+  - standardized highlight card typography in all landing sections: titles `text-[15px] font-semibold` (was `text-sm`), body `text-[13px]` (was `text-xs`)
+  - added `border-l-2` pastel accent to `ThoughtCard` in `FeatureHub.tsx`: `borderLeft: 2px solid ${thought.color}` via inline style overriding the `border-border` left edge
+- updated `context/concepts/ui-system.md` — added glassmorphism `color-mix` pattern, pastel feature palette table, Framer animation system (spring presets + variant factories), reduced-motion pattern
+- updated `context/features/calendar.md` — added "View transitions" section documenting `calendarSlide` variant, `direction` state, `AnimatePresence` mode choice
+- updated `context/INDEX.md` — added Particle Lab and Motion Lab rows to Features table
+- updated `README.md`:
+  - replaced outdated Three.js hero description with ShaderGradient description; added Lab section (Particle Lab + Motion Lab)
+  - added Lab entries to project structure tree
+  - updated tech stack table (added Framer Motion, React Three Fiber, ShaderGradient rows)
+  - added 8 new "Things I learned" entries covering ShaderGradient, R3F, glassmorphism `color-mix`, `AnimatePresence`/`next/dynamic` conflict, `perspective` on grid parent, and the `type: "spring"` TS error
+- updated `src/app/thoughts/ui-redesign/UIRedesignContent.tsx` — added section on the Motion Lab (spring physics feel, `LayoutGroup` coordination, the `mode="wait"` + `next/dynamic` conflict and fix)
+
 ## 2026-03-15 - version 0.5.20
 
 - created `/lab/motion` route — interactive Framer Motion demo lab

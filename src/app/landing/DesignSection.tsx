@@ -37,7 +37,10 @@ export default function DesignSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section className="bg-black">
+    <Section
+      className="bg-black"
+      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-motion) 5%, transparent) 0%, transparent 60%)"
+    >
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"

@@ -17,7 +17,10 @@ export default function AuthSection() {
     : { duration: 0.45, ease: "easeInOut" as const };
 
   return (
-    <Section className="bg-gradient-to-br from-primary-950 to-neutral-950">
+    <Section
+      className="bg-gradient-to-br from-primary-950 to-neutral-950"
+      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-auth) 5%, transparent) 0%, transparent 60%)"
+    >
       <div
         ref={ref}
         className="grid items-center gap-8 md:gap-12 md:grid-cols-2"

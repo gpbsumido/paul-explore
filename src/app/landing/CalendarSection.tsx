@@ -137,7 +137,10 @@ export default function CalendarSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section className="bg-gradient-to-br from-teal-900 to-neutral-900">
+    <Section
+      className="bg-gradient-to-br from-teal-900 to-neutral-900"
+      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-calendar) 5%, transparent) 0%, transparent 60%)"
+    >
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -247,8 +250,8 @@ export default function CalendarSection() {
               key={t}
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
-              <h4 className="text-sm font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-xs leading-relaxed text-white/60">{d}</p>
+              <h4 className="text-[15px] font-semibold text-white">{t}</h4>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
             </div>
           ))}
         </motion.div>

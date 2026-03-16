@@ -16,11 +16,21 @@ After login, you land on the feature hub at `/protected` — a showcase grid of 
 
 ### ✨ Landing Page Hero
 
-The hero section has a live Three.js particle network running as a full-viewport canvas layer behind the text. 160 nodes split into two tiers: 22 larger "star" anchors and 138 smaller particles. Every particle gets a tangential velocity nudge on each frame, perpendicular to its radial direction from the center, so the whole field slowly swirls without needing an explicit orbit system. Moving the mouse pulls nearby particles toward the cursor, clustering them into a dense web of connections that forms and dissolves as particles drift in and out of range.
+The hero uses a ShaderGradient WebGL scene (`@shadergradient/react`) as a full-viewport background — a B&W waterplane gradient with camera angles driven by mouse position. The camera angles (`cAzimuthAngle`, `cPolarAngle`) are live props updated via RAF-throttled `onMouseMove` — the handler writes to refs and a `requestAnimationFrame` callback flushes them to React state once per frame, so there's no setState spam on every pixel of cursor movement. ShaderGradient's `smoothTime` prop eases the camera to the target. A `bg-black/50` scrim sits between the gradient and the text so legibility never breaks even when the gradient sweeps bright.
 
-Connection lines are drawn between any two particles within `CONNECT_DIST` world units. The line buffer is pre-allocated as a `Float32Array` at worst-case `MAX_PAIRS = N*(N-1)/2` and `drawRange` is updated each frame to only draw the live connections, so there are no per-frame allocations or GC pauses during the 12,720 pairwise checks per tick. Line color fades toward black as two particles drift toward the connection threshold, so clusters look bright and sparse edges look dim. Squared distances (`dx*dx + dy*dy + dz*dz`) skip the square root in the hot loop.
+A black CSS div is the fallback while WebGL loads, so LCP fires immediately on the H1 rather than waiting for the canvas. The H1 animates word-by-word via Framer Motion's `staggerContainer` + `wordReveal` variants using `initial={false}` in SSR so the words are visible in the HTML and only replay the entrance on the client — LCP isn't blocked by opacity-0.
 
-The canvas is split into two `Points` objects (star 3.5px, small 2px) sharing a color palette of blue, indigo, violet, and cyan from the design tokens. `alpha: true` + `setClearColor(0, 0)` lets the page background show through in both light and dark mode. The camera drifts with mouse/touch position via a lerp so it feels like parallax. Loaded with `next/dynamic` and `ssr: false` so Three.js never runs on the server. All three geometries, three materials, and the renderer are disposed on unmount.
+The Three.js particle network that used to live in the hero is now at `/lab/particles` as its own interactive page — loading it behind everything on the landing page cost ~40kb of canvas code on every visit even for users who scrolled past. As its own route it loads only when navigated to and becomes something you can actually interact with.
+
+### 🧪 Lab (`/lab`)
+
+A route group for interactive technical experiments. The sticky nav mirrors the hub with a "Lab" badge and a back link. Each lab page handles its own full-viewport layout.
+
+**Particle Lab** (`/lab/particles`) — the R3F rewrite of the original hero scene. 160 particles in two tiers (22 star anchors + 138 small), orbital swirl from tangential velocity bias, pairwise connection lines via a pre-allocated `Float32Array` buffer, and mouse attraction via world-space unprojection onto a z=0 plane. The glass control panel floats over the canvas with sliders for speed and connection distance, a color theme picker (5 palettes), and a mouse attraction toggle. Controls update React state; the R3F render loop reads the latest values from refs each frame with no re-render cost.
+
+The R3F split (`ParticleScene.tsx` vs `ParticlesCanvas.tsx`) keeps the physics logic separate from the `<Canvas>` setup. `useMemo` owns all THREE.js object lifetime; `useFrame` runs the physics tick; `useEffect` disposes geometry and materials on unmount or particle count change. `ParticlesCanvas` is loaded with `ssr: false` via `next/dynamic` because WebGL requires the browser.
+
+**Motion Lab** (`/lab/motion`) — six interactive Framer Motion demos on a single page: a spring physics playground with stiffness/damping/mass sliders and a drag-to-snap-back puck; a stagger grid of 12 colored tiles with a configurable interval and a Replay button; a reorderable list using `Reorder.Group`/`Reorder.Item`; a scroll-driven parallax scene with three layers at different scroll rates plus scale and rotation; a gesture card that tracks idle/hover/tap/drag state with a live state panel; and a shared layout demo where clicking a card expands it to an overlay via `layoutId` + `AnimatePresence`.
 
 ### 🎨 Design System
 
@@ -101,7 +111,9 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 | Styling       | Tailwind CSS v4 + custom CSS tokens         |
 | Auth          | Auth0 (`@auth0/nextjs-auth0`)               |
 | Runtime       | React 19                                    |
-| 3D Graphics   | Three.js (`three`, `@types/three`)          |
+| Animation     | Framer Motion (`framer-motion`)             |
+| 3D / WebGL    | Three.js + React Three Fiber (`@react-three/fiber`) |
+| WebGL hero    | ShaderGradient (`@shadergradient/react`)    |
 | Data fetching | TanStack Query v5                           |
 | Charts        | unovis (`@unovis/react`)                    |
 | Monitoring    | Vercel Speed Insights                       |
@@ -151,7 +163,10 @@ src/
 │   ├── calendar/         # Calendar page + CalendarContent
 │   │   └── events/       # Events list (/calendar/events) + detail (/calendar/events/[id])
 │   ├── fantasy/nba/      # Fantasy league history + player stats pages
-│   ├── landing/          # Landing page with preview
+│   ├── lab/              # Interactive technical experiments
+│   │   ├── particles/    # R3F particle network with real-time controls
+│   │   └── motion/       # Framer Motion interactive demo page
+│   ├── landing/          # Landing page section components
 │   ├── protected/        # Auth-gated hub page
 │   ├── tcg/              # Pokémon TCG browser (browse, sets, card detail, pocket)
 │   └── thoughts/         # Write-ups on design decisions (styling, search, TCG)
@@ -205,6 +220,13 @@ src/
 - when a server component needs to fetch data, call the upstream directly rather than going through your own API routes — a loopback HTTP call to the same server wastes time and adds latency that shows up in TTFB
 - `transition-all` is a quiet INP killer: the browser has to check every CSS property for changes on every animation frame, even if only opacity and transform are actually moving; replacing it with `transition-[opacity,transform]` or `transition-[border-color,box-shadow]` narrows the work to exactly what changes; on a page with 15+ simultaneously animating cards the difference is measurable
 - entrance animation and hover transition conflict silently in CSS: if both set `transition-property` on the same element, the last rule wins and the other is dropped entirely with no warning; the fix is to separate them — outer wrapper div owns the entrance animation, inner element owns the hover transition, and neither interferes with the other
+- ShaderGradient exposes `cAzimuthAngle` and `cPolarAngle` as live props — updating them on `onMouseMove` with RAF throttling gives you free camera parallax; the library's own animation loop handles the WebGL redraw so there's no extra draw call cost per mouse event
+- `@react-three/fiber` (R3F) separates scene setup from the render loop cleanly — `useMemo` owns geometry and material lifetime, `useFrame` owns the tick, `useEffect` disposes on unmount; the big win over imperative Three.js is that disposal is guaranteed even if a component hot-reloads mid-frame
+- R3F's `<Canvas>` can't be server-rendered because WebGL requires `window` — always load it with `next/dynamic` + `ssr: false`; the `loading: () => null` fallback prevents a skeleton flash since the canvas paints solid black immediately on mount anyway
+- `color-mix(in srgb, <token> 6%, rgba(255,255,255,0.04))` is a surprisingly clean way to tint glass cards per-feature: you get the pastel hue from the token plus a white-glass base, and the alpha works against any dark background without needing separate dark-mode overrides
+- `AnimatePresence mode="wait"` and `next/dynamic` are fundamentally incompatible: `mode="wait"` holds the exiting component in the tree until its exit animation finishes, but `next/dynamic` suspends on first load of a chunk and React's Suspense cleanup fires while the exiting fiber is still mounted, producing a console warning; the fix is to drop `mode="wait"` and let exit and enter run concurrently
+- glassmorphism cards need `perspective` set on the grid parent, not on individual cards — without a perspective origin the `rotateX` in `cardFlipIn` collapses to a flat scale and you lose the 3D flip effect; 1000px is far enough to be subtle, close enough to be visible
+- spreading a spring preset that already contains `type: "spring"` and also writing `type: "spring"` explicitly in the same object literal produces a TypeScript `2783` error ("specified more than once"); the fix is to just spread the preset without re-stating the type
 - `startTransition` is the right tool for state updates that trigger large re-renders: wrapping `setLoaded(true)` (which kicks off staggered animations across a grid of cards) or `router.push()` in a transition marks the work as non-urgent; React processes any pending input events first, which directly shortens INP
 - calling `auth0.getSession()` (or any cookie/header read) in a page server component makes Next.js treat that route as dynamic even if the only reason for the call is a redirect; moving redirect-only session checks to middleware keeps the page component free of dynamic APIs so Next.js can statically pre-render it at build time -- the redirect still fires, it just happens in the layer that already runs per-request
 - a page with no auth or per-request data that still has an async server component above a Suspense boundary will be dynamic by default; adding `export const revalidate = N` at the page level tells Next.js to cache the rendered RSC output and serve it from the CDN for N seconds -- no code change needed in the components themselves
