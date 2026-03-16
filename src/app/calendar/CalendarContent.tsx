@@ -247,7 +247,7 @@ export default function CalendarContent({
           calendarEvents.loading ? "opacity-60 pointer-events-none" : "",
         ].join(" ")}
       >
-        <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence custom={direction}>
           <motion.div
             key={`${view}-${currentDate.getTime()}`}
             custom={direction}
