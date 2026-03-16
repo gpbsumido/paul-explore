@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-15 - version 0.5.12
+
+- rewrote `src/app/landing/CalendarSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion cell-by-cell grid build
+  - added `"use client"` directive; removed `./useInView` and `reveal` imports
+  - `MockDay` converted to `motion.div`: each cell animates from `scale: 0, opacity: 0` with `stiffness: 350, damping: 22` and `delay: cellIndex * 0.015` (left-to-right, top-to-bottom across 14 cells)
+  - event chips inside each cell are separate `motion.div` elements: start at `opacity: 0`, fade in at `delay: CHIP_DELAY` (= `14 * 0.015 + 0.1 = 0.31s`) so they appear only after all cells are built
+  - feature highlights fade up at `CHIP_DELAY + 0.1s` — always after chips
+  - `MockDay` accepts `cellIndex`, `inView`, and `prefersReduced` props; row data extracted to `ROW1`/`ROW2` constants so `cellIndex` is derived cleanly (row 2 offset by 7)
+  - calendar frame fades up at `delay: 0` as a surface for the cells; heading uses clipPath wipe; subtitle fades up at `delay: 0.1`
+  - uses Framer's built-in `useInView(ref, { once: true, margin: "-15% 0px" })`
+
 ## 2026-03-15 - version 0.5.11
 
 - rewrote `src/app/landing/TcgSection.tsx`: replaced `useInView` hook + `reveal()` with Framer Motion dealt-card animation
