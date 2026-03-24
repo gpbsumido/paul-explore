@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
   // Unauthenticated requests redirect immediately to login with returnTo so
   // the user lands back here after signing in. Authenticated requests go
   // through auth0.middleware() for rolling session refresh.
-  if (pathname.startsWith("/vitals") || pathname.startsWith("/settings")) {
+  if (pathname.startsWith("/vitals") || pathname.startsWith("/settings") || pathname.startsWith("/calendar")) {
     const session = await auth0.getSession(request);
     if (!session) {
       const loginUrl = new URL("/auth/login", request.url);

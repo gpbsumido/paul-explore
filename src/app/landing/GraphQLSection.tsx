@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
 import { spring, instantTransition } from "@/lib/animations";
@@ -233,6 +234,21 @@ export default function GraphQLSection() {
               <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
             </div>
           ))}
+        </motion.div>
+
+        <motion.div
+          className="mt-8 flex justify-center"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.25 }}
+        >
+          <Link
+            href="/graphql"
+            className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-6 py-2.5 text-[14px] font-semibold text-teal-300 transition-colors hover:bg-teal-500/20 hover:text-teal-200"
+          >
+            Open GraphQL Pokédex →
+          </Link>
         </motion.div>
       </div>
     </Section>
