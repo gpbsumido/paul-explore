@@ -315,6 +315,21 @@ export default function VitalsSection() {
             </div>
           ))}
         </motion.div>
+
+        <motion.div
+          className="mt-8 flex justify-center"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: 1.0 }}
+        >
+          <a
+            href="/auth/login"
+            className="inline-flex items-center gap-2 rounded-full border border-green-400/30 bg-green-500/10 px-6 py-2.5 text-[14px] font-semibold text-green-300 transition-colors hover:bg-green-500/20 hover:text-green-200"
+          >
+            Log in to view →
+          </a>
+        </motion.div>
       </div>
     </Section>
   );

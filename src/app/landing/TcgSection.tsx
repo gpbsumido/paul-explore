@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
 import { spring, instantTransition } from "@/lib/animations";
@@ -156,6 +157,21 @@ export default function TcgSection() {
               <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
             </div>
           ))}
+        </motion.div>
+
+        <motion.div
+          className="mt-8 flex justify-center"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: 0.65 }}
+        >
+          <Link
+            href="/tcg/pokemon"
+            className="inline-flex items-center gap-2 rounded-full border border-rose-400/30 bg-rose-500/10 px-6 py-2.5 text-[14px] font-semibold text-rose-300 transition-colors hover:bg-rose-500/20 hover:text-rose-200"
+          >
+            Browse Pokémon TCG →
+          </Link>
         </motion.div>
       </div>
     </Section>

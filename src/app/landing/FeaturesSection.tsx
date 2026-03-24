@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Link from "next/link";
 import { motion, useInView, useReducedMotion, type Transition } from "framer-motion";
 import Section from "./Section";
 import {
@@ -97,6 +98,16 @@ const IconGraph = () => (
   </svg>
 );
 
+/** Two overlapping image frames with a text line — social posts */
+const IconSocial = () => (
+  <svg {...iconProps}>
+    <rect x="3" y="3" width="13" height="10" rx="1.5" />
+    <path d="M7 17h13M7 21h9" />
+    <circle cx="6.5" cy="8" r="1.5" fill="currentColor" stroke="none" />
+    <path d="M3 11l3-3 4 4" strokeOpacity="0.6" />
+  </svg>
+);
+
 /** Scatter of dots with faint connecting lines — particle network */
 const IconParticles = () => (
   <svg {...iconProps}>
@@ -119,19 +130,21 @@ function FeatureCard({
   description,
   transition,
   featureToken,
+  href,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   transition?: Transition;
   featureToken: string;
+  href?: string;
 }) {
-  return (
+  const card = (
     <motion.div
       variants={cardFlipIn}
       transition={transition ?? { ...spring.bounce }}
       whileHover={{ y: -4, transition: { ...spring.snappy } }}
-      className="group relative overflow-hidden rounded-2xl p-6"
+      className="group relative overflow-hidden rounded-2xl p-6 h-full"
       style={{
         background: `color-mix(in srgb, var(${featureToken}) 6%, var(--glass-bg))`,
         backdropFilter: "blur(16px)",
@@ -151,6 +164,23 @@ function FeatureCard({
       </div>
     </motion.div>
   );
+
+  if (href) {
+    const needsFullNav = href.startsWith("http") || href.startsWith("/auth/");
+    return needsFullNav ? (
+      <a
+        href={href}
+        {...(href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        className="block h-full"
+      >
+        {card}
+      </a>
+    ) : (
+      <Link href={href} className="block h-full">{card}</Link>
+    );
+  }
+
+  return card;
 }
 
 // ---------------------------------------------------------------------------
@@ -208,6 +238,7 @@ export default function FeaturesSection() {
             description="Real-user Core Web Vitals collected via sendBeacon, aggregated as P75 in Postgres, and displayed on a protected dashboard."
             transition={transition}
             featureToken="--color-feature-vitals"
+            href="/auth/login"
           />
           <FeatureCard
             icon={<IconLayers />}
@@ -222,6 +253,7 @@ export default function FeaturesSection() {
             description="Live player stats via API proxy with batch loading and error handling."
             transition={transition}
             featureToken="--color-feature-nba"
+            href="/fantasy/nba/player/stats"
           />
           <FeatureCard
             icon={<IconCards />}
@@ -229,6 +261,7 @@ export default function FeaturesSection() {
             description="Card browser with infinite scroll, URL-synced filters, and per-set grids built on the TCGdex SDK."
             transition={transition}
             featureToken="--color-feature-tcg"
+            href="/tcg/pokemon"
           />
           <FeatureCard
             icon={<IconCalendar />}
@@ -236,6 +269,7 @@ export default function FeaturesSection() {
             description="Four-view calendar with multi-day events, time-grid overlap layout, and Pokémon card attachments."
             transition={transition}
             featureToken="--color-feature-calendar"
+            href="/calendar"
           />
           <FeatureCard
             icon={<IconGraph />}
@@ -243,6 +277,7 @@ export default function FeaturesSection() {
             description="Pokémon browser using the PokeAPI Hasura endpoint — typed queries, field selection, plain fetch over Apollo."
             transition={transition}
             featureToken="--color-feature-graphql"
+            href="/graphql"
           />
           <FeatureCard
             icon={<IconParticles />}
@@ -250,6 +285,15 @@ export default function FeaturesSection() {
             description="Interactive R3F particle network with real-time controls — speed, connection distance, 5 pastel themes, and mouse attraction."
             transition={transition}
             featureToken="--color-feature-particles"
+            href="/lab/particles"
+          />
+          <FeatureCard
+            icon={<IconSocial />}
+            title="Ketsup"
+            description="A social app for image and text posts — think Instagram but simpler. Built and shipped at its own domain."
+            transition={transition}
+            featureToken="--color-feature-ketsup"
+            href="https://ketsup.paulsumido.com"
           />
         </motion.div>
       </div>

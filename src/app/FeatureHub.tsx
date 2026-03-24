@@ -87,6 +87,15 @@ const FEATURES: FeatureItem[] = [
     href: "/lab/particles",
     color: "#a5f3fc",
   },
+  {
+    id: "ketsup",
+    title: "Ketsup",
+    description:
+      "A social app for image and text posts — think Instagram but simpler. Built and deployed at its own domain.",
+    href: "https://ketsup.paulsumido.com",
+    color: "#f9a8d4",
+    thoughtsHref: "/thoughts/ketsup",
+  },
 ].reverse();
 
 const THOUGHTS: ThoughtItem[] = [
@@ -159,6 +168,12 @@ const THOUGHTS: ThoughtItem[] = [
     preview:
       "Why / replaced /protected, the force-static trade-off, and how auth is still enforced",
     color: "#64748b",
+  },
+  {
+    title: "Ketsup",
+    href: "/thoughts/ketsup",
+    preview: "A social app for image and text posts, built and shipped at its own domain",
+    color: "#f9a8d4",
   },
 ].reverse();
 
@@ -500,6 +515,41 @@ function ParticlesPreview() {
   );
 }
 
+const KETSUP_FEED = [
+  { user: "paulsum", avatar: "#f9a8d4", hasImage: true, gradient: "from-orange-400 to-pink-500" },
+  { user: "janedoe", avatar: "#a5f3fc", hasImage: false, gradient: "" },
+  { user: "markr", avatar: "#d9f99d", hasImage: true, gradient: "from-green-400 to-teal-500" },
+];
+
+function KetsupPreview() {
+  return (
+    <div className="space-y-1.5">
+      {KETSUP_FEED.map((post) => (
+        <div
+          key={post.user}
+          className="rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2 py-1.5"
+        >
+          <div className="flex items-center gap-1.5 mb-1">
+            <div
+              className="h-3 w-3 shrink-0 rounded-full"
+              style={{ backgroundColor: post.avatar }}
+            />
+            <span className="text-[8px] font-semibold text-black/60 dark:text-white/60">
+              {post.user}
+            </span>
+          </div>
+          {post.hasImage && (
+            <div
+              className={`mb-1 h-5 w-full rounded bg-gradient-to-r ${post.gradient} opacity-70`}
+            />
+          )}
+          <div className="h-1.5 w-3/4 rounded-full bg-black/10 dark:bg-white/10" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Maps feature.id to its design-token CSS variable name.
 const FEATURE_TOKEN: Record<string, string> = {
   nba: "--color-feature-nba",
@@ -510,6 +560,7 @@ const FEATURE_TOKEN: Record<string, string> = {
   graphql: "--color-feature-graphql",
   vitals: "--color-feature-vitals",
   particles: "--color-feature-particles",
+  ketsup: "--color-feature-ketsup",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
@@ -522,6 +573,7 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
   graphql: GraphQLPreview,
   vitals: VitalsPreview,
   particles: ParticlesPreview,
+  ketsup: KetsupPreview,
 };
 
 // ---- FeatureCard ----
@@ -594,13 +646,25 @@ function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
           ) : (
             <div />
           )}
-          <Link
-            href={feature.href}
-            className="text-[13px] font-semibold transition-opacity hover:opacity-75"
-            style={{ color: feature.color }}
-          >
-            Open →
-          </Link>
+          {feature.href.startsWith("http") ? (
+            <a
+              href={feature.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] font-semibold transition-opacity hover:opacity-75"
+              style={{ color: feature.color }}
+            >
+              Open →
+            </a>
+          ) : (
+            <Link
+              href={feature.href}
+              className="text-[13px] font-semibold transition-opacity hover:opacity-75"
+              style={{ color: feature.color }}
+            >
+              Open →
+            </Link>
+          )}
         </div>
       </div>
     </motion.div>

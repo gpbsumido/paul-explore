@@ -10,6 +10,7 @@ import CalendarSection from "./landing/CalendarSection";
 import GraphQLSection from "./landing/GraphQLSection";
 import VitalsSection from "./landing/VitalsSection";
 import FooterSection from "./landing/FooterSection";
+import KetsupSection from "./landing/KetsupSection";
 
 export default function LandingContent() {
   return (
@@ -23,6 +24,7 @@ export default function LandingContent() {
       <CalendarSection />
       <GraphQLSection />
       <VitalsSection />
+      <KetsupSection />
       <FooterSection />
     </div>
   );
