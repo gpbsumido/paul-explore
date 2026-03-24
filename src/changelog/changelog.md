@@ -2,6 +2,10 @@
 
 ## 2026-03-16 - version 0.6.2
 
+- update landing page to have the consistent menu button we have everywhere else
+
+## 2026-03-16 - version 0.6.2
+
 - extracted all inline sticky nav bars into a single shared `PageHeader` component used across every page:
   - `src/components/PageHeader.tsx` — glassmorphic sticky nav with a breadcrumb trail (`breadcrumbs` prop), optional custom `left` slot, optional `right` slot for extra controls, `showSettings`, `showLogout`, `maxWidth`, `zIndex`, `overlay`, and `as` (nav/header) props
   - `src/components/HeaderMenu.tsx` — client-side dropdown that consolidates theme switching (system/light/dark picker), optional Settings link, and optional Log out link into one control; replaces the previous inline ThemeToggle + logout link pattern
