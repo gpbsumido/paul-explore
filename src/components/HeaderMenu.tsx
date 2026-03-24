@@ -91,6 +91,8 @@ interface HeaderMenuProps {
   showSettings?: boolean;
   /** Show the Log out link. Defaults to true. */
   showLogout?: boolean;
+  /** Show the Log in link instead of logout. Defaults to false. */
+  showLogin?: boolean;
 }
 
 /**
@@ -100,6 +102,7 @@ interface HeaderMenuProps {
 export default function HeaderMenu({
   showSettings = false,
   showLogout = true,
+  showLogin = false,
 }: HeaderMenuProps) {
   const { preference, setPreference } = useTheme();
   const [open, setOpen] = useState(false);
@@ -184,7 +187,7 @@ export default function HeaderMenu({
             </div>
           </div>
 
-          {(showSettings || showLogout) && (
+          {(showSettings || showLogout || showLogin) && (
             <>
               <div className="mx-2 border-t border-border" />
               <div className="p-1.5">
@@ -232,6 +235,29 @@ export default function HeaderMenu({
                       <line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
                     Log out
+                  </a>
+                )}
+                {showLogin && (
+                  <a
+                    href="/auth/login"
+                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    Log in
                   </a>
                 )}
               </div>
