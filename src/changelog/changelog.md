@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-03-16 - version 0.6.2
+## 2026-03-16 - version 0.6.3
 
 - update landing page to have the consistent menu button we have everywhere else
 
