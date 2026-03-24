@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import Link from "next/link";
 import {
   motion,
   useInView,
@@ -208,6 +209,21 @@ export default function NbaSection() {
               <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
             </div>
           ))}
+        </motion.div>
+
+        <motion.div
+          className="mt-8 flex justify-center"
+          variants={fadeUp}
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          transition={transition ?? { ...spring.smooth, delay: 0.5 }}
+        >
+          <Link
+            href="/fantasy/nba/player/stats"
+            className="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-6 py-2.5 text-[14px] font-semibold text-yellow-300 transition-colors hover:bg-yellow-500/20 hover:text-yellow-200"
+          >
+            View NBA Stats →
+          </Link>
         </motion.div>
       </div>
     </Section>

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-24 - version 0.6.5
+
+- added CTAs to all public landing page sections linking to their respective routes (NBA Stats, Pokémon TCG, GraphQL Pokédex, Ketsup); auth-required sections (Calendar, Web Vitals) show "Log in to view →" instead
+- `FeaturesSection` cards are now clickable links for all public features; auth-required cards redirect to `/calendar` or `/auth/login` and the middleware handles the bounce
+- `/calendar` added to protected routes in `src/proxy.ts` — unauthenticated requests redirect to `/auth/login?returnTo=/calendar`
+- `FeaturesSection.FeatureCard` updated to handle `/auth/` paths with full-page `<a>` navigation instead of Next.js `<Link>`
+- all cards in the "What I Built" section are now equal height via `h-full` on the card and link wrappers
+- landing page `HeaderMenu` now uses `showLogin` prop instead of `ThemeToggle`
+
 ## 2026-03-24 - version 0.6.4
 
 - added Ketsup as a feature across the app:
