@@ -97,6 +97,16 @@ const IconGraph = () => (
   </svg>
 );
 
+/** Two overlapping image frames with a text line — social posts */
+const IconSocial = () => (
+  <svg {...iconProps}>
+    <rect x="3" y="3" width="13" height="10" rx="1.5" />
+    <path d="M7 17h13M7 21h9" />
+    <circle cx="6.5" cy="8" r="1.5" fill="currentColor" stroke="none" />
+    <path d="M3 11l3-3 4 4" strokeOpacity="0.6" />
+  </svg>
+);
+
 /** Scatter of dots with faint connecting lines — particle network */
 const IconParticles = () => (
   <svg {...iconProps}>
@@ -250,6 +260,13 @@ export default function FeaturesSection() {
             description="Interactive R3F particle network with real-time controls — speed, connection distance, 5 pastel themes, and mouse attraction."
             transition={transition}
             featureToken="--color-feature-particles"
+          />
+          <FeatureCard
+            icon={<IconSocial />}
+            title="Ketsup"
+            description="A social app for image and text posts — think Instagram but simpler. Built and shipped at its own domain."
+            transition={transition}
+            featureToken="--color-feature-ketsup"
           />
         </motion.div>
       </div>

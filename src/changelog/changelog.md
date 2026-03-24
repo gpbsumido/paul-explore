@@ -1,6 +1,16 @@
 # Changelog
 
-## 2026-03-16 - version 0.6.3
+## 2026-03-24 - version 0.6.4
+
+- added Ketsup as a feature across the app:
+  - `src/app/landing/KetsupSection.tsx` — new landing page section with mock UI and CTA linking to ketsup.paulsumido.com
+  - `src/app/FeatureHub.tsx` — added `ketsup` to `FEATURES` (external href, thoughtsHref), `KetsupPreview` mini-preview component, `FEATURE_TOKEN`, `PREVIEW_MAP`, and `THOUGHTS`
+  - `src/app/thoughts/ketsup/page.tsx` + `KetsupContent.tsx` — new thoughts page with summary and chat views
+  - `src/styles/tokens.css` — added `--color-feature-ketsup: #f9a8d4`
+  - `FeatureCard` in `FeatureHub.tsx` now opens external hrefs in a new tab via `<a target="_blank">` instead of Next.js `<Link>`
+- added `KetsupSection` to `LandingContent.tsx`
+
+## 2026-03-24 - version 0.6.3
 
 - update landing page to have the consistent menu button we have everywhere else
 
