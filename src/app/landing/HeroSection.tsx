@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "framer-motion";
 import AuthButton from "@/components/AuthButton";
-import ThemeToggle from "@/components/ThemeToggle";
+import HeaderMenu from "@/components/HeaderMenu";
 import {
   wordReveal,
   staggerContainer,
@@ -67,7 +67,7 @@ export default function HeroSection() {
   return (
     <>
       <div className="fixed right-4 top-4 z-50">
-        <ThemeToggle />
+        <HeaderMenu showLogout={false} showLogin />
       </div>
 
       <section
