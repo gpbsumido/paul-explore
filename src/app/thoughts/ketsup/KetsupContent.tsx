@@ -110,7 +110,7 @@ export default function KetsupContent() {
         </main>
       ) : (
         <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <div className={styles.thread}>
+          <div className={styles.chat}>
             <Timestamp>Earlier</Timestamp>
 
             <Received pos="first">so what is ketsup</Received>
