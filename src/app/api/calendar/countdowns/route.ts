@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { createCountdownBodySchema } from "@/lib/schemas";
 
 // GET /api/calendar/countdowns?cursor=<cursor>
 // returns one page of countdowns sorted by target date ascending.
@@ -52,7 +53,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const raw = await request.json();
+  const parsed = createCountdownBodySchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request body", details: parsed.error.issues }, { status: 400 });
+  }
+  const body = parsed.data;
 
   try {
     const res = await fetch(`${API_URL}/api/calendar/countdowns`, {

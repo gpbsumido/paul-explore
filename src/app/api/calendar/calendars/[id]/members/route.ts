@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { inviteMemberBodySchema } from "@/lib/schemas";
 
 /** GET /api/calendar/calendars/:id/members — returns { members: [...] } */
 export async function GET(
@@ -48,7 +49,12 @@ export async function POST(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const raw = await request.json();
+  const parsed = inviteMemberBodySchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request body", details: parsed.error.issues }, { status: 400 });
+  }
+  const body = parsed.data;
 
   try {
     const res = await fetch(`${API_URL}/api/calendar/calendars/${id}/members`, {

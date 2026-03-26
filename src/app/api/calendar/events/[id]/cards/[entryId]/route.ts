@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { updateCardBodySchema } from "@/lib/schemas";
 
 // PUT /api/calendar/events/:id/cards/:entryId
 export async function PUT(
@@ -17,7 +18,12 @@ export async function PUT(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const raw = await request.json();
+  const parsed = updateCardBodySchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request body", details: parsed.error.issues }, { status: 400 });
+  }
+  const body = parsed.data;
 
   try {
     const res = await fetch(

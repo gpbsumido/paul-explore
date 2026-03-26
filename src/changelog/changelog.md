@@ -2,6 +2,12 @@
 
 ## 2026-03-24 - version 0.6.5
 
+- validate api/graphql responses with response schemas
+- fetches api helpers now use Zod response schemas
+- invalid requests return more detailed error details, with backend responses validated at runtime
+
+## 2026-03-24 - version 0.6.5
+
 - added CTAs to all public landing page sections linking to their respective routes (NBA Stats, Pokémon TCG, GraphQL Pokédex, Ketsup); auth-required sections (Calendar, Web Vitals) show "Log in to view →" instead
 - `FeaturesSection` cards are now clickable links for all public features; auth-required cards redirect to `/calendar` or `/auth/login` and the middleware handles the bounce
 - `/calendar` added to protected routes in `src/proxy.ts` — unauthenticated requests redirect to `/auth/login?returnTo=/calendar`

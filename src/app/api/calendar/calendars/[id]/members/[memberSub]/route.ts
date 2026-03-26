@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { updateMemberRoleBodySchema } from "@/lib/schemas";
 
 /** PUT /api/calendar/calendars/:id/members/:memberSub — body: { role } → { member } */
 export async function PUT(
@@ -18,7 +19,12 @@ export async function PUT(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const raw = await request.json();
+  const parsed = updateMemberRoleBodySchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request body", details: parsed.error.issues }, { status: 400 });
+  }
+  const body = parsed.data;
 
   try {
     const res = await fetch(
