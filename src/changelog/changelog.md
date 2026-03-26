@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-26 - version 0.7.0
+
+- error shape is now consistent across all routes: `{ error: string }` with an appropriate HTTP status, never 200 with empty data masking a failure
+
 ## 2026-03-26 - version 0.6.9
 
 - validate `season` dynamic route param in `/api/nba/league/[season]`

@@ -28,10 +28,10 @@ export default function ImprovementsContent() {
               API Hardening
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Four P0/P1 gaps closed: runtime validation on every API route with
-              Zod, rate limiting on open endpoints, body size limits on every
-              route that reads a request body, and validation on dynamic route
-              params and query strings.
+              Five gaps closed: runtime validation on every API route with Zod,
+              rate limiting on open endpoints, body size limits on every route
+              that reads a request body, URL param validation, and consistent
+              error response shapes across all routes.
             </p>
           </header>
 
@@ -297,6 +297,60 @@ export default function ImprovementsContent() {
                 any real cursor token while ruling out injected content.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Consistent error shapes
+              </h2>
+              <p className="text-muted">
+                Several routes were returning 200 with empty data on failures
+                instead of a real error status. The vitals{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /by-version
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /versions
+                </code>{" "}
+                routes returned{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"{ byVersion: [] }"}
+                </code>{" "}
+                /{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"{ versions: [] }"}
+                </code>{" "}
+                on any backend error. The TCG{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  cards
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  series
+                </code>
+                , and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  sets
+                </code>{" "}
+                routes had no error handling at all — the SDK could throw or
+                return null and the response would be an empty list with a 200.
+              </p>
+              <p className="mt-3 text-muted">
+                Every route now returns{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"{ error: string }"}
+                </code>{" "}
+                with an appropriate HTTP status on any failure — 502 for backend
+                unavailability, forwarded status codes for backend errors. A 200
+                always means success with real data. The client-side React Query
+                hooks already checked{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  if (!res.ok) throw
+                </code>
+                , so they surface errors correctly now instead of rendering
+                empty state that looks like no results.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -502,6 +556,48 @@ export default function ImprovementsContent() {
                 without validating, you&apos;ve got an open redirect straight to
                 wherever the attacker wants. defense in depth — validate at
                 every layer you own
+              </Sent>
+
+              <Timestamp>2:31 PM</Timestamp>
+
+              <Received pos="first">what was the last one</Received>
+              <Received pos="last">you said five</Received>
+
+              <Sent pos="first">
+                inconsistent error shapes. some routes returned 200 with empty
+                arrays on backend failures — the vitals by-version and versions
+                routes both did this. the tcg cards, series, and sets routes had
+                no error handling at all, so a thrown exception or null from the
+                sdk silently became an empty list
+              </Sent>
+              <Sent pos="middle">
+                the client-side hooks were already checking{" "}
+                <code>if (!res.ok) throw</code>, so they would surface errors
+                correctly — but they never got the chance because the routes
+                kept returning 200
+              </Sent>
+              <Sent pos="last">
+                now every route returns <code>{"{ error: string }"}</code> with
+                a proper status on any failure. 200 always means real data
+              </Sent>
+
+              <Timestamp>2:34 PM</Timestamp>
+
+              <Received>
+                why were the vitals ones returning empty arrays to begin with
+              </Received>
+
+              <Sent pos="first">
+                the comment said &quot;backend doesn&apos;t have this endpoint
+                yet — return empty gracefully&quot;. the idea was the selector
+                and chart just stay hidden instead of showing an error
+              </Sent>
+              <Sent pos="last">
+                but that&apos;s the wrong layer for that decision. the page
+                component already has its own fallback — it calls the backend
+                directly and returns empty arrays if the fetch fails. the BFF
+                route masking the error on top of that just makes it harder to
+                know when something&apos;s actually broken
               </Sent>
             </div>
           </div>

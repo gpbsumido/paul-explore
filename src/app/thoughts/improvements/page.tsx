@@ -4,7 +4,7 @@ import ImprovementsContent from "./ImprovementsContent";
 
 const TITLE = "API Hardening | Thoughts";
 const DESCRIPTION =
-  "Closing four gaps: Zod runtime validation on every API route, a fixed-window rate limiter on open endpoints, body size limits on every route that reads a request body, and validation on dynamic route params and query strings.";
+  "Five gaps closed: Zod validation, rate limiting, body size limits, URL param validation, and consistent error response shapes across all API routes.";
 
 export const metadata: Metadata = {
   title: TITLE,
