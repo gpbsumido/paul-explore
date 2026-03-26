@@ -177,10 +177,10 @@ const THOUGHTS: ThoughtItem[] = [
     color: "#f9a8d4",
   },
   {
-    title: "Validation & Rate Limiting",
+    title: "API Hardening",
     href: "/thoughts/improvements",
     preview:
-      "Zod schemas on every API route and a fixed-window rate limiter on open endpoints",
+      "Zod validation, fixed-window rate limiting, and body size limits across every API route",
     color: "#34d399",
   },
 ].reverse();

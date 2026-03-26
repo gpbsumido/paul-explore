@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-26 - version 0.6.8
+
+- add helper that combines Content-Length header check, JSON parsing with error handling, post-parse byte check for chunked encoding, and Zod schema validation into one call
+- all 10 calendar POST/PUT routes now respond to oversized bodies get with 413 before auth work or backend calls happen
+- `/api/graphql` and `/api/vitals` routes get inline size guards, capping at at 4 KB (tiny metric payloads), graphql at 64 KB
+
 ## 2026-03-26 - version 0.6.7
 
 - added thoughts page for improvements

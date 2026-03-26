@@ -12,10 +12,7 @@ export default function ImprovementsContent() {
   return (
     <div className="min-h-dvh bg-background">
       <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "Validation & Rate Limiting" },
-        ]}
+        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "API Hardening" }]}
         right={<ViewToggle view={view} setView={setView} />}
         showLogout={false}
         maxWidth="max-w-3xl"
@@ -28,11 +25,12 @@ export default function ImprovementsContent() {
               Dev notes
             </p>
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Validation &amp; Rate Limiting
+              API Hardening
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Two P0 gaps closed: runtime validation on every API route with
-              Zod, and rate limiting on open endpoints via the proxy middleware.
+              Three P0 gaps closed: runtime validation on every API route with
+              Zod, rate limiting on open endpoints via the proxy middleware, and
+              body size limits on every route that reads a request body.
             </p>
           </header>
 
@@ -53,6 +51,16 @@ export default function ImprovementsContent() {
                 runtime. If the backend schema ever changed or a malformed
                 payload arrived, the app would either silently mishandle the
                 data or crash in a confusing way.
+              </p>
+              <p className="mt-3 text-muted">
+                Beyond the type safety issue, none of the routes enforced a body
+                size limit before calling{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  request.json()
+                </code>
+                . A client could send an arbitrarily large payload and the
+                server would buffer the entire thing before even looking at it —
+                a straightforward memory exhaustion vector.
               </p>
               <p className="mt-3 text-muted">
                 Separately, two routes had no authentication at all:{" "}
@@ -183,6 +191,46 @@ export default function ImprovementsContent() {
                   X-RateLimit-*
                 </code>{" "}
                 headers.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Body size limits</h2>
+              <p className="text-muted">
+                The fix is a unified helper:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  src/lib/parseBody.ts
+                </code>{" "}
+                wraps the read, size check, and Zod parse into one call. It runs
+                two size checks: first the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Content-Length
+                </code>{" "}
+                header (fast, before the body is buffered at all), then a byte
+                count on the parsed JSON string (catches chunked transfers that
+                skip the header). A failure at either point returns a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  413
+                </code>{" "}
+                immediately.
+              </p>
+              <p className="mt-3 text-muted">
+                All ten calendar routes now use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  parseBody()
+                </code>{" "}
+                instead of the old inline three-line pattern, so they get size
+                enforcement and Zod validation in one call. The two open routes
+                use inline guards with tighter limits:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/vitals
+                </code>{" "}
+                at 4 KB (it only needs five fields) and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/graphql
+                </code>{" "}
+                at 64 KB (GraphQL queries can be verbose). Authenticated routes
+                default to 64 KB.
               </p>
             </section>
 
@@ -333,6 +381,44 @@ export default function ImprovementsContent() {
                 swapping the Map for Vercel KV or Upstash Redis gives you
                 cross-instance coordination if traffic ever justifies it. the
                 interface is simple enough that it&apos;s a one-file change
+              </Sent>
+
+              <Timestamp>2:19 PM</Timestamp>
+
+              <Received>was there a third one</Received>
+
+              <Sent pos="first">
+                yeah — no body size limits anywhere. every route that called{" "}
+                <code>request.json()</code> would buffer the entire request
+                before looking at it. send a large enough payload and you can
+                exhaust memory
+              </Sent>
+              <Sent pos="last">
+                it&apos;s the kind of thing that&apos;s easy to overlook because
+                it doesn&apos;t break anything in normal use, but it&apos;s a
+                straightforward denial-of-service vector on open endpoints
+              </Sent>
+
+              <Timestamp>2:21 PM</Timestamp>
+
+              <Received>how did you fix it</Received>
+
+              <Sent pos="first">
+                added <code>src/lib/parseBody.ts</code> — a unified helper that
+                does the size check, body read, and zod parse in one call. two
+                layers: check the <code>Content-Length</code> header before
+                buffering anything, then check the actual byte count after
+                parsing to catch chunked transfers that skip the header
+              </Sent>
+              <Sent pos="middle">
+                all ten calendar routes now use it instead of the old inline
+                three-liner. the two open routes get inline guards with tighter
+                limits — vitals at 4 KB, graphql at 64 KB. authenticated routes
+                default to 64 KB
+              </Sent>
+              <Sent pos="last">
+                bad size returns a 413 before the body is ever forwarded to the
+                backend
               </Sent>
             </div>
           </div>

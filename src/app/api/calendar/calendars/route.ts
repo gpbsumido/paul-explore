@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { createCalendarBodySchema } from "@/lib/schemas";
+import { parseBody } from "@/lib/parseBody";
 
 // GET /api/calendar/calendars
 export async function GET() {
@@ -20,7 +21,10 @@ export async function GET() {
     if (!res.ok) {
       const body = await res.json().catch(() => null);
       console.error("[calendars BFF] GET — backend error:", body);
-      return NextResponse.json({ error: "Failed to fetch calendars" }, { status: res.status });
+      return NextResponse.json(
+        { error: "Failed to fetch calendars" },
+        { status: res.status },
+      );
     }
     const data = await res.json();
     return NextResponse.json(data);
@@ -41,21 +45,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const raw = await request.json();
-  const parsed = createCalendarBodySchema.safeParse(raw);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request body", details: parsed.error.issues }, { status: 400 });
-  }
-  const body = parsed.data;
+  const bodyResult = await parseBody(request, createCalendarBodySchema);
+  if (!bodyResult.ok) return bodyResult.response;
+  const body = bodyResult.data;
 
   try {
     const res = await fetch(`${API_URL}/api/calendar/calendars`, {
       method: "POST",
-      headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
+      headers: buildHeaders(token, email, {
+        "Content-Type": "application/json",
+      }),
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: "Failed to create calendar" }));
+      const err = await res
+        .json()
+        .catch(() => ({ error: "Failed to create calendar" }));
       console.error("[calendars BFF] POST — backend error:", err);
       return NextResponse.json(err, { status: res.status });
     }

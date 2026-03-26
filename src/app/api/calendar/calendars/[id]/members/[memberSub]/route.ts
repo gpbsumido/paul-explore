@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { updateMemberRoleBodySchema } from "@/lib/schemas";
+import { parseBody } from "@/lib/parseBody";
 
 /** PUT /api/calendar/calendars/:id/members/:memberSub — body: { role } → { member } */
 export async function PUT(
@@ -19,24 +20,25 @@ export async function PUT(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const raw = await request.json();
-  const parsed = updateMemberRoleBodySchema.safeParse(raw);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request body", details: parsed.error.issues }, { status: 400 });
-  }
-  const body = parsed.data;
+  const bodyResult = await parseBody(request, updateMemberRoleBodySchema);
+  if (!bodyResult.ok) return bodyResult.response;
+  const body = bodyResult.data;
 
   try {
     const res = await fetch(
       `${API_URL}/api/calendar/calendars/${id}/members/${encodeURIComponent(memberSub)}`,
       {
         method: "PUT",
-        headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
+        headers: buildHeaders(token, email, {
+          "Content-Type": "application/json",
+        }),
         body: JSON.stringify(body),
       },
     );
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: "Failed to update member role" }));
+      const err = await res
+        .json()
+        .catch(() => ({ error: "Failed to update member role" }));
       return NextResponse.json(err, { status: res.status });
     }
     return NextResponse.json(await res.json());
@@ -75,7 +77,9 @@ export async function DELETE(
       },
     );
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: "Failed to remove member" }));
+      const err = await res
+        .json()
+        .catch(() => ({ error: "Failed to remove member" }));
       return NextResponse.json(err, { status: res.status });
     }
     return NextResponse.json(await res.json());

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import ImprovementsContent from "./ImprovementsContent";
 
-const TITLE = "Validation & Rate Limiting | Thoughts";
+const TITLE = "API Hardening | Thoughts";
 const DESCRIPTION =
-  "Closing two P0 gaps: Zod runtime validation on every API route and request body, and a fixed-window rate limiter on open endpoints in the proxy middleware.";
+  "Closing three P0 gaps: Zod runtime validation on every API route, a fixed-window rate limiter on open endpoints, and body size limits on every route that reads a request body.";
 
 export const metadata: Metadata = {
   title: TITLE,
