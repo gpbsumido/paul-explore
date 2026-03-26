@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo, useEffect } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 // ---------------------------------------------------------------------------
@@ -110,7 +110,6 @@ export default function ParticleScene({
   mouseNDCRef,
   camTargetRef,
 }: ParticleSceneProps) {
-  const { camera } = useThree();
   const starCount = Math.max(1, Math.floor(particleCount * 0.14));
 
   // Refs updated synchronously each render so useFrame always reads fresh values
@@ -205,7 +204,7 @@ export default function ParticleScene({
     };
   }, [sceneObj]);
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
     const { particles, starPs, smallPs, lineGeo, linePosArr, lineColArr } = sceneObj;
     const cDistSq = connectDistRef.current * connectDistRef.current;
     const spd = speedRef.current;
@@ -251,6 +250,7 @@ export default function ParticleScene({
       const ry = p.pos.y;
       const rLen = Math.sqrt(rx * rx + ry * ry);
       if (rLen > 0.1) {
+        // eslint-disable-next-line react-hooks/immutability
         p.vel.x += (-ry / rLen) * ORBIT_STRENGTH * spd;
         p.vel.y += (rx / rLen) * ORBIT_STRENGTH * spd;
       }

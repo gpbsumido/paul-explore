@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "framer-motion";
 import AuthButton from "@/components/AuthButton";
@@ -28,7 +28,9 @@ const WORDS = "Paul Sumido Portfolio".split(" ");
 export default function HeroSection() {
   // mounted gates the entrance animation so the H1 is visible in SSR HTML
   // (initial={false} server-side preserves LCP) and only animates on the client.
-  const [mounted, setMounted] = useState(false);
+  // useSyncExternalStore gives false on the server and true on the client
+  // without needing an effect-based setState.
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const prefersReduced = useReducedMotion();
 
   // Camera angles for mouse-driven parallax on the shader gradient.
@@ -52,10 +54,6 @@ export default function HeroSection() {
         rafRef.current = null;
       });
     }
-  }, []);
-
-  useEffect(() => {
-    setMounted(true);
   }, []);
 
   useEffect(() => {
