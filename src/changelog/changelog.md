@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-03-26 - version 0.6.7
+
+- added thoughts page for improvements
+- added in-memory fixed-window rate limiter, mspped by route and IP, prunes stale entries every 60 seconds
+- add the rate limiting into `src/proxy.ts` before auth and session checks
+- blocked requests return 429 with `Retry-After` and `X-RateLimit-*` headers
+
+## 2026-03-26 - version 0.6.6
+
+- fixed 11 pre-existing lint errors
+
 ## 2026-03-24 - version 0.6.5
 
 - validate api/graphql responses with response schemas
