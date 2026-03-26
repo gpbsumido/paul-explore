@@ -18,6 +18,11 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const cursor = searchParams.get("cursor");
+
+  if (cursor !== null && !/^[\w+/=\-]{1,512}$/.test(cursor)) {
+    return NextResponse.json({ error: "Invalid cursor" }, { status: 400 });
+  }
+
   const backendUrl = cursor
     ? `${API_URL}/api/calendar/countdowns?cursor=${encodeURIComponent(cursor)}`
     : `${API_URL}/api/calendar/countdowns`;

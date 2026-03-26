@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-26 - version 0.6.9
+
+- validate `season` dynamic route param in `/api/nba/league/[season]`
+- validate `origin` query param in `/api/google/auth/url`, reject non-URLs and anything that isn't http/https so it can't be used for open redirect
+- validate `cursor` query param in `/api/calendar/countdowns` — rejects strings that don't look like a cursor token
+
 ## 2026-03-26 - version 0.6.8
 
 - add helper that combines Content-Length header check, JSON parsing with error handling, post-parse byte check for chunked encoding, and Zod schema validation into one call

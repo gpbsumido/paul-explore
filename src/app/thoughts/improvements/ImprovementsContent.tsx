@@ -28,9 +28,10 @@ export default function ImprovementsContent() {
               API Hardening
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Three P0 gaps closed: runtime validation on every API route with
-              Zod, rate limiting on open endpoints via the proxy middleware, and
-              body size limits on every route that reads a request body.
+              Four P0/P1 gaps closed: runtime validation on every API route with
+              Zod, rate limiting on open endpoints, body size limits on every
+              route that reads a request body, and validation on dynamic route
+              params and query strings.
             </p>
           </header>
 
@@ -253,6 +254,49 @@ export default function ImprovementsContent() {
                 interface is simple enough that the swap is a one-file change.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">URL param validation</h2>
+              <p className="text-muted">
+                Three routes were forwarding user-controlled strings into
+                backend URLs and fetch calls without any format check. Dynamic
+                route params and query strings are just as much of a trust
+                boundary as request bodies — they just happen to arrive in a
+                different part of the request.
+              </p>
+              <p className="mt-3 text-muted">
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  season
+                </code>{" "}
+                segment in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/nba/league/[season]
+                </code>{" "}
+                gets dropped directly into an ESPN API URL — a four-digit year
+                check with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"/^\\d{4}$/"}
+                </code>{" "}
+                covers the entire valid range and nothing else. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  origin
+                </code>{" "}
+                param in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/google/auth/url
+                </code>{" "}
+                gets embedded in the OAuth state and used as a redirect target
+                after the flow completes — it must be a valid URL with an
+                http(s) protocol to block open-redirect payloads. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  cursor
+                </code>{" "}
+                param in the countdowns list is capped at 512 characters and
+                restricted to base64/alphanumeric characters — enough to cover
+                any real cursor token while ruling out injected content.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -419,6 +463,45 @@ export default function ImprovementsContent() {
               <Sent pos="last">
                 bad size returns a 413 before the body is ever forwarded to the
                 backend
+              </Sent>
+
+              <Timestamp>2:25 PM</Timestamp>
+
+              <Received pos="first">any other gaps</Received>
+              <Received pos="last">not just the body stuff</Received>
+
+              <Sent pos="first">
+                yeah — three routes were forwarding user-controlled URL params
+                into backend calls without any format check. dynamic route
+                segments and query strings are just as much of a trust boundary
+                as request bodies
+              </Sent>
+              <Sent pos="last">
+                the <code>season</code> segment in the NBA route goes straight
+                into an ESPN URL — added a <code>{"/^\\d{4}$/"}</code> check so
+                only valid years get through. the <code>origin</code> param in
+                the Google auth route ends up as a redirect target after OAuth —
+                needs to be a real http(s) URL or you can use it for open
+                redirect. the <code>cursor</code> param in countdowns is capped
+                at 512 chars and restricted to base64/alphanumeric characters
+              </Sent>
+
+              <Timestamp>2:27 PM</Timestamp>
+
+              <Received>
+                why not just let the backend reject bad params
+              </Received>
+
+              <Sent pos="first">
+                you could, but for the season param you&apos;re making an
+                unauthenticated request to a third-party API — better to reject
+                it before that happens
+              </Sent>
+              <Sent pos="last">
+                and for the origin param, if the backend ever passes it through
+                without validating, you&apos;ve got an open redirect straight to
+                wherever the attacker wants. defense in depth — validate at
+                every layer you own
               </Sent>
             </div>
           </div>
