@@ -24,6 +24,21 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const origin = searchParams.get("origin");
 
+  if (origin !== null) {
+    let parsedOrigin: URL;
+    try {
+      parsedOrigin = new URL(origin);
+    } catch {
+      return NextResponse.json({ error: "Invalid origin" }, { status: 400 });
+    }
+    if (
+      parsedOrigin.protocol !== "http:" &&
+      parsedOrigin.protocol !== "https:"
+    ) {
+      return NextResponse.json({ error: "Invalid origin" }, { status: 400 });
+    }
+  }
+
   try {
     const backendUrl = new URL(`${API_URL}/api/google/auth/url`);
     if (origin) backendUrl.searchParams.set("origin", origin);
@@ -32,8 +47,14 @@ export async function GET(request: Request) {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
-      console.error("[google BFF] GET /auth/url — backend returned", res.status);
-      return NextResponse.json({ error: "Failed to generate URL" }, { status: res.status });
+      console.error(
+        "[google BFF] GET /auth/url — backend returned",
+        res.status,
+      );
+      return NextResponse.json(
+        { error: "Failed to generate URL" },
+        { status: res.status },
+      );
     }
     const data = await res.json();
     return NextResponse.json(data);

@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { inviteMemberBodySchema } from "@/lib/schemas";
+import { parseBody } from "@/lib/parseBody";
 
 /** GET /api/calendar/calendars/:id/members — returns { members: [...] } */
 export async function GET(
@@ -22,7 +24,9 @@ export async function GET(
       headers: buildHeaders(token, email),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: "Failed to fetch members" }));
+      const err = await res
+        .json()
+        .catch(() => ({ error: "Failed to fetch members" }));
       return NextResponse.json(err, { status: res.status });
     }
     return NextResponse.json(await res.json());
@@ -48,16 +52,22 @@ export async function POST(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const bodyResult = await parseBody(request, inviteMemberBodySchema);
+  if (!bodyResult.ok) return bodyResult.response;
+  const body = bodyResult.data;
 
   try {
     const res = await fetch(`${API_URL}/api/calendar/calendars/${id}/members`, {
       method: "POST",
-      headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
+      headers: buildHeaders(token, email, {
+        "Content-Type": "application/json",
+      }),
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: "Failed to invite member" }));
+      const err = await res
+        .json()
+        .catch(() => ({ error: "Failed to invite member" }));
       return NextResponse.json(err, { status: res.status });
     }
     const data = await res.json();

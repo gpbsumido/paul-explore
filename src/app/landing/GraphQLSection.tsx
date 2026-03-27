@@ -57,8 +57,8 @@ function TypewriterQuery({
   useEffect(() => {
     if (!inView) return;
     if (prefersReduced) {
-      setCount(query.length);
-      return;
+      const id = setTimeout(() => setCount(query.length), 0);
+      return () => clearTimeout(id);
     }
     intervalRef.current = setInterval(() => {
       setCount((prev) => {

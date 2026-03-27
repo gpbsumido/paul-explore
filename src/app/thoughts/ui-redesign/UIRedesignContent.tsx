@@ -508,13 +508,13 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
               </Sent>
 
               <Received>
-                and <code>AnimatePresence mode="wait"</code> breaking with{" "}
+                and <code>AnimatePresence mode=&quot;wait&quot;</code> breaking with{" "}
                 <code>next/dynamic</code> — you mentioned that earlier. what was
                 the actual issue
               </Received>
 
               <Sent pos="first">
-                <code>mode="wait"</code> holds the exiting component in the
+                <code>mode=&quot;wait&quot;</code> holds the exiting component in the
                 React tree until its exit animation finishes.{" "}
                 <code>next/dynamic</code> suspends when a chunk hasn{"'"}t
                 loaded yet. those two mechanisms both try to control when a
@@ -524,7 +524,7 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
                 React{"'"}s Suspense cleanup fires while the exiting fiber is
                 still mounted, logs a warning about async info that {'"'}was not
                 on the parent Suspense boundary{'"'}. the fix is to drop{" "}
-                <code>mode="wait"</code> — exit and enter run concurrently
+                <code>mode=&quot;wait&quot;</code> — exit and enter run concurrently
                 instead of sequentially, which is fine for a slide transition.
                 the overlap is barely visible and the warning disappears
               </Sent>

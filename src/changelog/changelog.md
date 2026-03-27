@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-03-26 - version 0.7.0
+
+- error shape is now consistent across all routes: `{ error: string }` with an appropriate HTTP status, never 200 with empty data masking a failure
+
+## 2026-03-26 - version 0.6.9
+
+- validate `season` dynamic route param in `/api/nba/league/[season]`
+- validate `origin` query param in `/api/google/auth/url`, reject non-URLs and anything that isn't http/https so it can't be used for open redirect
+- validate `cursor` query param in `/api/calendar/countdowns` — rejects strings that don't look like a cursor token
+
+## 2026-03-26 - version 0.6.8
+
+- add helper that combines Content-Length header check, JSON parsing with error handling, post-parse byte check for chunked encoding, and Zod schema validation into one call
+- all 10 calendar POST/PUT routes now respond to oversized bodies get with 413 before auth work or backend calls happen
+- `/api/graphql` and `/api/vitals` routes get inline size guards, capping at at 4 KB (tiny metric payloads), graphql at 64 KB
+
+## 2026-03-26 - version 0.6.7
+
+- added thoughts page for improvements
+- added in-memory fixed-window rate limiter, mspped by route and IP, prunes stale entries every 60 seconds
+- add the rate limiting into `src/proxy.ts` before auth and session checks
+- blocked requests return 429 with `Retry-After` and `X-RateLimit-*` headers
+
+## 2026-03-26 - version 0.6.6
+
+- fixed 11 pre-existing lint errors
+
+## 2026-03-24 - version 0.6.5
+
+- validate api/graphql responses with response schemas
+- fetches api helpers now use Zod response schemas
+- invalid requests return more detailed error details, with backend responses validated at runtime
+
 ## 2026-03-24 - version 0.6.5
 
 - added CTAs to all public landing page sections linking to their respective routes (NBA Stats, Pokémon TCG, GraphQL Pokédex, Ketsup); auth-required sections (Calendar, Web Vitals) show "Log in to view →" instead

@@ -3,14 +3,20 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Calendar, CalendarMember } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
+import {
+  calendarsResponseSchema,
+  calendarResponseSchema,
+  membersResponseSchema,
+  memberResponseSchema,
+} from "@/lib/schemas";
 
 // ---- API helpers -----------------------------------------------------------
 
 async function fetchCalendars(): Promise<Calendar[]> {
   const res = await fetch("/api/calendar/calendars");
   if (!res.ok) throw new Error("Failed to fetch calendars");
-  const json = await res.json();
-  return json.calendars as Calendar[];
+  const json = calendarsResponseSchema.parse(await res.json());
+  return json.calendars;
 }
 
 async function apiCreateCalendar(
@@ -22,8 +28,8 @@ async function apiCreateCalendar(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to create calendar");
-  const json = await res.json();
-  return json.calendar as Calendar;
+  const json = calendarResponseSchema.parse(await res.json());
+  return json.calendar;
 }
 
 async function apiUpdateCalendar(
@@ -36,8 +42,8 @@ async function apiUpdateCalendar(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to update calendar");
-  const json = await res.json();
-  return json.calendar as Calendar;
+  const json = calendarResponseSchema.parse(await res.json());
+  return json.calendar;
 }
 
 async function apiDeleteCalendar(id: string): Promise<void> {
@@ -50,8 +56,8 @@ async function apiDeleteCalendar(id: string): Promise<void> {
 async function apiFetchMembers(calendarId: string): Promise<CalendarMember[]> {
   const res = await fetch(`/api/calendar/calendars/${calendarId}/members`);
   if (!res.ok) throw new Error("Failed to fetch members");
-  const json = await res.json();
-  return json.members as CalendarMember[];
+  const json = membersResponseSchema.parse(await res.json());
+  return json.members;
 }
 
 async function apiInviteMember(
@@ -68,8 +74,8 @@ async function apiInviteMember(
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error ?? "Failed to invite member");
   }
-  const json = await res.json();
-  return json.member as CalendarMember;
+  const json = memberResponseSchema.parse(await res.json());
+  return json.member;
 }
 
 async function apiUpdateMemberRole(
@@ -86,8 +92,8 @@ async function apiUpdateMemberRole(
     },
   );
   if (!res.ok) throw new Error("Failed to update member role");
-  const json = await res.json();
-  return json.member as CalendarMember;
+  const json = memberResponseSchema.parse(await res.json());
+  return json.member;
 }
 
 async function apiRemoveMember(

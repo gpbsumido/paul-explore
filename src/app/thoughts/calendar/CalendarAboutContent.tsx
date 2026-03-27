@@ -1174,7 +1174,7 @@ differenceInCalendarDays(new Date("2026-03-28T00:00:00"), new Date())`}
               <Sent pos="first">
                 if the calendar is two_way and the owner has google connected,
                 yes. when you add a member we call the google calendar acl api
-                with the owner's token and grant them reader or writer access on
+                with the owner&apos;s token and grant them reader or writer access on
                 the google calendar. that makes it show up in their google
                 calendar app
               </Sent>

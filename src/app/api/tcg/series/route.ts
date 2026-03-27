@@ -8,8 +8,22 @@ const tcgdex = new TCGdex("en");
 const CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400";
 
 export async function GET() {
-  const resumes = await tcgdex.serie.list();
-  if (!resumes) return NextResponse.json([]);
+  let resumes;
+  try {
+    resumes = await tcgdex.serie.list();
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to fetch series" },
+      { status: 502 },
+    );
+  }
+
+  if (!resumes) {
+    return NextResponse.json(
+      { error: "Failed to fetch series" },
+      { status: 502 },
+    );
+  }
 
   // Fetch full series data (includes sets) in parallel
   const series = await Promise.all(resumes.map((s) => tcgdex.serie.get(s.id)));

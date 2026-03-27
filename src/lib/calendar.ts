@@ -20,6 +20,14 @@ import type {
   Countdown,
   CountdownPage,
 } from "@/types/calendar";
+import {
+  eventsResponseSchema,
+  eventResponseSchema,
+  cardsResponseSchema,
+  cardResponseSchema,
+  countdownPageResponseSchema,
+  countdownResponseSchema,
+} from "@/lib/schemas";
 
 export const DAY_LABELS = [
   "Sun",
@@ -250,8 +258,8 @@ export async function fetchEvents(
   const params = new URLSearchParams({ start, end });
   const res = await fetch(`/api/calendar/events?${params}`);
   if (!res.ok) throw new Error("Failed to fetch events");
-  const data = await res.json();
-  return data.events as CalendarEvent[];
+  const data = eventsResponseSchema.parse(await res.json());
+  return data.events;
 }
 
 // fetch a single event — returns null on 404, throws on other errors
@@ -259,8 +267,8 @@ export async function fetchEvent(id: string): Promise<CalendarEvent | null> {
   const res = await fetch(`/api/calendar/events/${id}`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to fetch event");
-  const data = await res.json();
-  return data.event as CalendarEvent;
+  const data = eventResponseSchema.parse(await res.json());
+  return data.event;
 }
 
 // search/list events with optional filters; omit all to get everything
@@ -274,8 +282,8 @@ export async function searchEvents(
   const qs = params.toString();
   const res = await fetch(`/api/calendar/events${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error("Failed to search events");
-  const data = await res.json();
-  return data.events as CalendarEvent[];
+  const data = eventsResponseSchema.parse(await res.json());
+  return data.events;
 }
 
 // create new event, id from backend
@@ -288,8 +296,8 @@ export async function createEvent(
     body: JSON.stringify(event),
   });
   if (!res.ok) throw new Error("Failed to create event");
-  const data = await res.json();
-  return data.event as CalendarEvent;
+  const data = eventResponseSchema.parse(await res.json());
+  return data.event;
 }
 
 // update exisitng event
@@ -303,8 +311,8 @@ export async function updateEvent(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to update event");
-  const data = await res.json();
-  return data.event as CalendarEvent;
+  const data = eventResponseSchema.parse(await res.json());
+  return data.event;
 }
 
 // delete event
@@ -317,8 +325,8 @@ export async function deleteEvent(id: string): Promise<void> {
 export async function fetchEventCards(eventId: string): Promise<EventCard[]> {
   const res = await fetch(`/api/calendar/events/${eventId}/cards`);
   if (!res.ok) throw new Error("Failed to fetch event cards");
-  const data = await res.json();
-  return data.cards as EventCard[];
+  const data = cardsResponseSchema.parse(await res.json());
+  return data.cards;
 }
 
 // attach card to event
@@ -340,8 +348,8 @@ export async function addCardToEvent(
     body: JSON.stringify(card),
   });
   if (!res.ok) throw new Error("Failed to add card to event");
-  const data = await res.json();
-  return data.card as EventCard;
+  const data = cardResponseSchema.parse(await res.json());
+  return data.card;
 }
 
 // update card info
@@ -356,8 +364,8 @@ export async function updateEventCard(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to update card");
-  const data = await res.json();
-  return data.card as EventCard;
+  const data = cardResponseSchema.parse(await res.json());
+  return data.card;
 }
 
 // remove card from event
@@ -386,7 +394,7 @@ export async function fetchCountdowns(cursor?: string): Promise<CountdownPage> {
     : `/api/calendar/countdowns`;
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch countdowns");
-  return res.json() as Promise<CountdownPage>;
+  return countdownPageResponseSchema.parse(await res.json());
 }
 
 /**
@@ -402,8 +410,8 @@ export async function createCountdown(
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to create countdown");
-  const body = await res.json();
-  return body.countdown as Countdown;
+  const result = countdownResponseSchema.parse(await res.json());
+  return result.countdown;
 }
 
 /**
@@ -420,8 +428,8 @@ export async function updateCountdown(
     body: JSON.stringify(fields),
   });
   if (!res.ok) throw new Error("Failed to update countdown");
-  const data = await res.json();
-  return data.countdown as Countdown;
+  const data = countdownResponseSchema.parse(await res.json());
+  return data.countdown;
 }
 
 /**

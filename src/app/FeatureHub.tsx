@@ -172,8 +172,16 @@ const THOUGHTS: ThoughtItem[] = [
   {
     title: "Ketsup",
     href: "/thoughts/ketsup",
-    preview: "A social app for image and text posts, built and shipped at its own domain",
+    preview:
+      "A social app for image and text posts, built and shipped at its own domain",
     color: "#f9a8d4",
+  },
+  {
+    title: "API Hardening",
+    href: "/thoughts/improvements",
+    preview:
+      "Zod validation, fixed-window rate limiting, and body size limits across every API route",
+    color: "#34d399",
   },
 ].reverse();
 
@@ -516,9 +524,19 @@ function ParticlesPreview() {
 }
 
 const KETSUP_FEED = [
-  { user: "paulsum", avatar: "#f9a8d4", hasImage: true, gradient: "from-orange-400 to-pink-500" },
+  {
+    user: "paulsum",
+    avatar: "#f9a8d4",
+    hasImage: true,
+    gradient: "from-orange-400 to-pink-500",
+  },
   { user: "janedoe", avatar: "#a5f3fc", hasImage: false, gradient: "" },
-  { user: "markr", avatar: "#d9f99d", hasImage: true, gradient: "from-green-400 to-teal-500" },
+  {
+    user: "markr",
+    avatar: "#d9f99d",
+    hasImage: true,
+    gradient: "from-green-400 to-teal-500",
+  },
 ];
 
 function KetsupPreview() {

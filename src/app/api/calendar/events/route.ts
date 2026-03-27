@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { createEventBodySchema } from "@/lib/schemas";
+import { parseBody } from "@/lib/parseBody";
 
 // GET /api/calendar/events?start=<ISO>&end=<ISO>
 export async function GET(request: NextRequest) {
@@ -54,12 +56,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const bodyResult = await parseBody(request, createEventBodySchema);
+  if (!bodyResult.ok) return bodyResult.response;
+  const body = bodyResult.data;
 
   try {
     const res = await fetch(`${API_URL}/api/calendar/events`, {
       method: "POST",
-      headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
+      headers: buildHeaders(token, email, {
+        "Content-Type": "application/json",
+      }),
       body: JSON.stringify(body),
     });
     if (!res.ok) {
