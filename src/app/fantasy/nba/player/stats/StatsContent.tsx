@@ -184,6 +184,11 @@ export default function StatsContent() {
           {rows.length >= 2 && (
             <button
               type="button"
+              aria-label={
+                compareOpen
+                  ? "Close player comparison"
+                  : "Open player comparison"
+              }
               onClick={() => setCompareOpen((prev) => !prev)}
               className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:border-foreground/30 hover:text-foreground"
             >
@@ -209,7 +214,7 @@ export default function StatsContent() {
       </div>
 
       {/* ---- Content ---- */}
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">
         {topLevelError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
             <span>{topLevelErrorMessage}</span>
@@ -302,6 +307,7 @@ export default function StatsContent() {
                           row.stats!.ast?.toFixed(1),
                           row.stats!.stl?.toFixed(1),
                           row.stats!.blk?.toFixed(1),
+                          row.stats!.fantasy_points?.toFixed(1) ?? "—",
                         ].map((val, j) => (
                           <td key={j} className={`${tdBase} text-right`}>
                             {val}

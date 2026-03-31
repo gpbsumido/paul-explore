@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-31 - version 0.7.7
+
+- add `useCountUp` hook with ease-out cubic easing via RAF, respects `prefers-reduced-motion`
+- matchup card scores now animate up from zero when data loads
+- add fantasy points column to the Player Stats table
+- rediction table scrolls horizontally on mobile, FantasyNav scrolls instead of wrapping, week arrows and nav links meet 44px touch targets
+- accessibility update so that theres `aria-live="polite"` on main content areas, `aria-label` on compare toggle and nav, `role` attributes on nav
+- add Fantasy Matchups and Court Vision cards to the feature hub with mini preview components
+
 ## 2026-03-31 - version 0.7.6
 
 - add Predictions Panel below the matchup grid with a team selector in the toolbar

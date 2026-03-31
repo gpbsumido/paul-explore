@@ -15,8 +15,11 @@ export default function FantasyNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b border-border">
-      <div className="mx-auto flex max-w-5xl gap-1 px-4 sm:px-6">
+    <nav
+      className="border-b border-border"
+      aria-label="Fantasy basketball pages"
+    >
+      <div className="mx-auto flex max-w-5xl gap-1 px-4 sm:px-6 overflow-x-auto">
         {LINKS.map(({ href, label }) => {
           const active = pathname === href;
           return (
@@ -24,7 +27,7 @@ export default function FantasyNav() {
               key={href}
               href={href}
               className={[
-                "relative px-3 py-2.5 text-[13px] font-medium transition-colors",
+                "relative px-3 py-3 sm:py-2.5 text-[13px] font-medium transition-colors",
                 active
                   ? "text-foreground"
                   : "text-muted hover:text-foreground/80",

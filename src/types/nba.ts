@@ -30,6 +30,7 @@ export interface PlayerStats {
   ft_pct: number;
   fg3_pct: number;
   turnover: number;
+  fantasy_points?: number;
 }
 
 // nba/player/stats page types
@@ -44,7 +45,8 @@ export type SortKey =
   | "reb"
   | "ast"
   | "stl"
-  | "blk";
+  | "blk"
+  | "fpt";
 
 // Player row in Player Stats page
 export interface PlayerRow {

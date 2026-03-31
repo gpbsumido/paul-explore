@@ -122,10 +122,13 @@ const ROWS = [
 const HIGHLIGHTS = [
   ["Live API Proxy", "Server-side proxy hides API keys from the client."],
   [
-    "Batch Loading",
-    "Multiple players fetched in parallel with loading states.",
+    "Fantasy Matchups",
+    "Head-to-head weekly view with category breakdowns and an AI-style prediction panel.",
   ],
-  ["Error Handling", "Granular error recovery per player, not per page."],
+  [
+    "Court Vision",
+    "SVG half-court shot chart with color-coded zones by FG% and hover tooltips.",
+  ],
 ] as const;
 
 export default function NbaSection() {
@@ -154,8 +157,8 @@ export default function NbaSection() {
           animate={inView ? "visible" : "hidden"}
           transition={transition ?? { ...spring.smooth, delay: 0.1 }}
         >
-          Live player statistics proxied through the API layer with batch
-          loading and error recovery.
+          Player stats, fantasy matchups, and shot charts built on the ESPN and
+          NBA APIs with server-side proxying.
         </motion.p>
 
         {/* mock table — container fades in, rows slide individually */}
@@ -221,10 +224,10 @@ export default function NbaSection() {
           transition={transition ?? { ...spring.smooth, delay: 0.5 }}
         >
           <Link
-            href="/fantasy/nba/player/stats"
+            href="/fantasy/nba/matchups"
             className="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-6 py-2.5 text-[14px] font-semibold text-yellow-300 transition-colors hover:bg-yellow-500/20 hover:text-yellow-200"
           >
-            View NBA Stats →
+            View Fantasy NBA →
           </Link>
         </motion.div>
       </div>

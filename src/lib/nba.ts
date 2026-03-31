@@ -9,6 +9,7 @@ export const COLUMNS: { key: SortKey; label: string }[] = [
   { key: "ast", label: "AST" },
   { key: "stl", label: "STL" },
   { key: "blk", label: "BLK" },
+  { key: "fpt", label: "FPT" },
 ];
 
 export function getSortValue(row: PlayerRow, key: SortKey): string | number {
@@ -29,5 +30,7 @@ export function getSortValue(row: PlayerRow, key: SortKey): string | number {
       return row.stats?.stl ?? -1;
     case "blk":
       return row.stats?.blk ?? -1;
+    case "fpt":
+      return row.stats?.fantasy_points ?? -1;
   }
 }

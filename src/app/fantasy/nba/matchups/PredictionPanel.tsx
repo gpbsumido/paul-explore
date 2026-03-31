@@ -468,8 +468,8 @@ export default function PredictionPanel({
           {/* 1. Start/Sit Recommendations */}
           <section className="space-y-3">
             <SectionHeading>Start / Sit Recommendations</SectionHeading>
-            <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-[12px]">
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full text-[12px] min-w-[640px]">
                 <thead>
                   <tr className="border-b border-border bg-surface-raised/30">
                     <th className="px-3 py-2 text-left font-semibold uppercase tracking-wider text-muted/60">

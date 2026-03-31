@@ -7,6 +7,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui";
 import { selectChevron } from "@/assets/icons";
 import { queryKeys } from "@/lib/queryKeys";
+import { useCountUp } from "@/hooks/useCountUp";
 import FantasyNav from "../FantasyNav";
 import PredictionPanel from "./PredictionPanel";
 import type {
@@ -56,6 +57,19 @@ function getOwnerName(team: ESPNTeam, members: ESPNMember[]): string {
 
 function getStatScore(side: ESPNScheduleEntry["away"], statId: string): number {
   return side.cumulativeScore.scoreByStat?.[statId]?.score ?? 0;
+}
+
+// ---- Animated score countup ----
+
+function CountUpScore({
+  value,
+  className,
+}: {
+  value: number;
+  className?: string;
+}) {
+  const displayed = useCountUp(value);
+  return <span className={className}>{Math.round(displayed)}</span>;
 }
 
 // ---- Animated win probability bar ----
@@ -172,15 +186,17 @@ function MatchupCard({
         {/* VS + score */}
         <div className="flex flex-col items-center gap-0.5 px-2">
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold font-mono tabular-nums text-[#FF6B35]">
-              {awayPts.toFixed(0)}
-            </span>
+            <CountUpScore
+              value={awayPts}
+              className="text-lg font-bold font-mono tabular-nums text-[#FF6B35]"
+            />
             <span className="text-[10px] font-semibold uppercase tracking-widest text-muted/40">
               vs
             </span>
-            <span className="text-lg font-bold font-mono tabular-nums text-[#00D4FF]">
-              {homePts.toFixed(0)}
-            </span>
+            <CountUpScore
+              value={homePts}
+              className="text-lg font-bold font-mono tabular-nums text-[#00D4FF]"
+            />
           </div>
           <span className="text-[10px] font-medium text-muted/50 tabular-nums">
             {awayCatWins}–{STAT_CATEGORIES.length - awayCatWins - homeCatWins}–
@@ -391,7 +407,10 @@ export default function MatchupContent() {
               if (id) {
                 // small delay so the panel renders before we scroll
                 setTimeout(() => {
-                  predictionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  predictionRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
                 }, 100);
               }
             }}
@@ -410,7 +429,7 @@ export default function MatchupContent() {
             <button
               type="button"
               aria-label="Previous week"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
+              className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
               disabled={activeWeek <= 1}
               onClick={() => setWeek(activeWeek - 1)}
             >
@@ -431,7 +450,7 @@ export default function MatchupContent() {
             <button
               type="button"
               aria-label="Next week"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
+              className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
               disabled={activeWeek >= totalWeeks}
               onClick={() => setWeek(activeWeek + 1)}
             >
@@ -454,7 +473,7 @@ export default function MatchupContent() {
       </div>
 
       {/* Content */}
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">
         {scoreboardQuery.isLoading && (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (

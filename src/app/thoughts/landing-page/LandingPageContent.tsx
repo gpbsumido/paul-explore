@@ -458,6 +458,34 @@ export default function LandingPageContent() {
                 player always gets the same projection, no external AI involved.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Polish and micro-interactions
+              </h2>
+              <p className="text-muted">
+                A quality pass across all fantasy pages. A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useCountUp
+                </code>{" "}
+                hook animates numbers from zero using{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  requestAnimationFrame
+                </code>{" "}
+                with ease-out cubic easing, and skips the animation entirely when
+                the user has{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  prefers-reduced-motion
+                </code>{" "}
+                enabled. The Player Stats table gained an FPT column for fantasy
+                points. Responsive fixes include a horizontally scrollable
+                prediction table, overflow-safe nav tabs, and 44px touch targets
+                on mobile. Accessibility additions: aria-live regions on all main
+                content areas, aria-labels on interactive controls, and a labeled
+                fantasy nav landmark. Matchups and Court Vision now have cards in
+                the feature hub with mini preview components.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
