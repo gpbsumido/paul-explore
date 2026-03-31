@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
@@ -264,6 +264,7 @@ export default function MatchupContent() {
   const [season, setSeason] = useState(CURRENT_YEAR);
   const [week, setWeek] = useState<number | null>(null);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
+  const predictionRef = useRef<HTMLDivElement>(null);
 
   const scoreboardQuery = useQuery({
     queryKey: queryKeys.nba.scoreboard(season),
@@ -384,7 +385,16 @@ export default function MatchupContent() {
               paddingRight: "28px",
             }}
             value={myTeamId ?? ""}
-            onChange={(e) => setMyTeamId(Number(e.target.value) || null)}
+            onChange={(e) => {
+              const id = Number(e.target.value) || null;
+              setMyTeamId(id);
+              if (id) {
+                // small delay so the panel renders before we scroll
+                setTimeout(() => {
+                  predictionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 100);
+              }
+            }}
             disabled={teams.length === 0}
           >
             <option value="">Select…</option>
@@ -510,17 +520,19 @@ export default function MatchupContent() {
           )}
 
         {/* Prediction panel, shown when a team is selected */}
-        {!scoreboardQuery.isLoading &&
-          !scoreboardQuery.isError &&
-          myTeamId &&
-          weekMatchups.length > 0 && (
-            <PredictionPanel
-              teams={teams}
-              userTeamId={myTeamId}
-              weekMatchups={weekMatchups}
-              season={season}
-            />
-          )}
+        <div ref={predictionRef}>
+          {!scoreboardQuery.isLoading &&
+            !scoreboardQuery.isError &&
+            myTeamId &&
+            weekMatchups.length > 0 && (
+              <PredictionPanel
+                teams={teams}
+                userTeamId={myTeamId}
+                weekMatchups={weekMatchups}
+                season={season}
+              />
+            )}
+        </div>
       </main>
     </div>
   );
