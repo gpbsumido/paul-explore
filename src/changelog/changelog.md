@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-03-30 - version 0.7.3
+
+- add ESPN fantasy matchup page at `/fantasy/nba/matchups` with head-to-head weekly view
+- playoff weeks are derived from `matchupPeriodCount` in ESPN schedule settings and labeled in the dropdown and as a badge above the grid
+- proxy route at `/api/nba/scoreboard/[season]` calls ESPN scoreboard API with 1hr CDN cache
+- add shared `FantasyNav` tab bar across all three ESPN fantasy pages (Matchups, League History, Player Stats)
+- replace plain text loading state in League History with a skeleton card grid matching the loaded layout
+
 ## 2026-03-30 - version 0.7.1
 
 - add live landing page weather background that detects location via IP and renders a canvas effects (rain, clear, storm, snow, partly cloudy, fog). geo lookups go through the backend and are cached per IP

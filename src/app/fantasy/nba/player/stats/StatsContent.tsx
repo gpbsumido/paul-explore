@@ -8,6 +8,7 @@ import type { Team, Player, PlayerStats, PlayerRow, SortKey } from "./types";
 import { queryKeys } from "@/lib/queryKeys";
 import { COLUMNS, getSortValue } from "@/lib/nba";
 import { selectChevron } from "@/assets/icons";
+import FantasyNav from "../../FantasyNav";
 import ErrorRowModal from "./ErrorRowModal";
 import NoStats from "./NoStats";
 
@@ -152,6 +153,7 @@ export default function StatsContent() {
           { label: "Player Stats" },
         ]}
       />
+      <FantasyNav />
 
       {/* ---- Team selector ---- */}
       <div className="border-b border-border">

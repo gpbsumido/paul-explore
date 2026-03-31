@@ -65,6 +65,9 @@ export const queryKeys = {
 
     /** Fantasy league history for a given season year. */
     league: (season: number) => ["nba", "league", season] as const,
+
+    /** Scoreboard matchups for a given season year. */
+    scoreboard: (season: number) => ["nba", "scoreboard", season] as const,
   },
 
   tcg: {

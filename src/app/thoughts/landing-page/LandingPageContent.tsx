@@ -357,6 +357,39 @@ export default function LandingPageContent() {
                 holdout.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">ESPN fantasy matchups</h2>
+              <p className="text-muted">
+                A new matchup page at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /fantasy/nba/matchups
+                </code>{" "}
+                shows head-to-head weekly matchups pulled from the ESPN fantasy
+                API. The schedule is a flat array where every{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  teamsCount / 2
+                </code>{" "}
+                entries make one week, so playoff weeks are derived by comparing
+                the week number against{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  matchupPeriodCount
+                </code>{" "}
+                from the schedule settings. Each matchup card shows total
+                points, a category breakdown across seven stat columns, and an
+                animated win probability bar using Framer Motion&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useSpring
+                </code>
+                . A shared{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  FantasyNav
+                </code>{" "}
+                tab bar now links Matchups, League History, and Player Stats so
+                you can move between the three ESPN pages without going back to
+                the hub.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
