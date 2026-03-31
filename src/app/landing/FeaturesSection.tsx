@@ -2,26 +2,21 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { motion, useInView, useReducedMotion, type Transition } from "framer-motion";
+import {
+  motion,
+  useInView,
+  useReducedMotion,
+  type Transition,
+} from "framer-motion";
 import Section from "./Section";
 import {
   cardFlipIn,
   staggerContainer,
   spring,
   instantTransition,
+  headingWipe,
+  fadeUp,
 } from "@/lib/animations";
-
-/** Left-to-right clip wipe for the section heading. */
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-/** Subtle fade-up for the subtitle. */
-const subtitleFade = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0 },
-};
 
 // ---------------------------------------------------------------------------
 // Per-feature stroke icons — 24x24 viewBox, strokeWidth 1.5, no fill
@@ -116,7 +111,10 @@ const IconParticles = () => (
     <circle cx="19" cy="9" r="1.5" fill="currentColor" stroke="none" />
     <circle cx="8" cy="17" r="1.5" fill="currentColor" stroke="none" />
     <circle cx="16" cy="19" r="1.5" fill="currentColor" stroke="none" />
-    <path d="M5 8l7-4M12 4l7 5M5 8l3 9M19 9l-3 10M8 17l8 2" strokeOpacity="0.5" />
+    <path
+      d="M5 8l7-4M12 4l7 5M5 8l3 9M19 9l-3 10M8 17l8 2"
+      strokeOpacity="0.5"
+    />
   </svg>
 );
 
@@ -155,7 +153,9 @@ function FeatureCard({
       {/* pastel tint intensifies on hover */}
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{ background: `color-mix(in srgb, var(${featureToken}) 10%, transparent)` }}
+        style={{
+          background: `color-mix(in srgb, var(${featureToken}) 10%, transparent)`,
+        }}
       />
       <div className="relative z-10">
         <span className="text-foreground/60">{icon}</span>
@@ -170,13 +170,17 @@ function FeatureCard({
     return needsFullNav ? (
       <a
         href={href}
-        {...(href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        {...(href.startsWith("http")
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
         className="block h-full"
       >
         {card}
       </a>
     ) : (
-      <Link href={href} className="block h-full">{card}</Link>
+      <Link href={href} className="block h-full">
+        {card}
+      </Link>
     );
   }
 
@@ -194,7 +198,7 @@ export default function FeaturesSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section className="bg-background text-foreground">
+    <Section>
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight md:text-4xl"
@@ -208,7 +212,7 @@ export default function FeaturesSection() {
 
         <motion.p
           className="mx-auto mt-3 max-w-lg text-center text-muted"
-          variants={subtitleFade}
+          variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
           transition={transition ?? { ...spring.smooth, delay: 0.15 }}

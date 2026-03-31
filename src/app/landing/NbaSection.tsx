@@ -10,17 +10,13 @@ import {
   useTransform,
 } from "framer-motion";
 import Section from "./Section";
-import { slideInRight, spring, instantTransition } from "@/lib/animations";
-
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0 },
-};
+import {
+  slideInRight,
+  spring,
+  instantTransition,
+  headingWipe,
+  fadeUp,
+} from "@/lib/animations";
 
 // ---------------------------------------------------------------------------
 // AnimatedStat — springs a number from 0 to its value when inView flips true.
@@ -96,7 +92,11 @@ function StatRow({
       <td className="px-3 py-2 text-sm font-medium text-white">{name}</td>
       <td className="px-3 py-2 text-sm text-white/60">{team}</td>
       <td className="px-3 py-2 text-right text-sm font-semibold">
-        <AnimatedStat value={pts} inView={inView} className="text-primary-400" />
+        <AnimatedStat
+          value={pts}
+          inView={inView}
+          className="text-primary-400"
+        />
       </td>
       <td className="px-3 py-2 text-right text-sm text-white">
         <AnimatedStat value={reb} inView={inView} />
@@ -113,16 +113,22 @@ function StatRow({
 // ---------------------------------------------------------------------------
 
 const ROWS = [
-  { name: "Luka Doncic",    team: "LAL", pts: "28.4", reb: "8.3",  ast: "8.1" },
-  { name: "Jayson Tatum",   team: "BOS", pts: "27.0", reb: "8.5",  ast: "4.6" },
-  { name: "Shai Gilgeous",  team: "OKC", pts: "31.2", reb: "5.5",  ast: "6.0" },
-  { name: "Nikola Jokic",   team: "DEN", pts: "26.3", reb: "12.4", ast: "9.0" },
+  { name: "Luka Doncic", team: "LAL", pts: "28.4", reb: "8.3", ast: "8.1" },
+  { name: "Jayson Tatum", team: "BOS", pts: "27.0", reb: "8.5", ast: "4.6" },
+  { name: "Shai Gilgeous", team: "OKC", pts: "31.2", reb: "5.5", ast: "6.0" },
+  { name: "Nikola Jokic", team: "DEN", pts: "26.3", reb: "12.4", ast: "9.0" },
 ] as const;
 
 const HIGHLIGHTS = [
-  ["Live API Proxy",  "Server-side proxy hides API keys from the client."],
-  ["Batch Loading",   "Multiple players fetched in parallel with loading states."],
-  ["Error Handling",  "Granular error recovery per player, not per page."],
+  ["Live API Proxy", "Server-side proxy hides API keys from the client."],
+  [
+    "Fantasy Matchups",
+    "Head-to-head weekly view with category breakdowns and an AI-style prediction panel.",
+  ],
+  [
+    "Court Vision",
+    "SVG half-court shot chart with color-coded zones by FG% and hover tooltips.",
+  ],
 ] as const;
 
 export default function NbaSection() {
@@ -132,10 +138,7 @@ export default function NbaSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section
-      className="bg-gradient-to-br from-secondary-900 to-primary-950"
-      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-nba) 5%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-nba) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -154,8 +157,8 @@ export default function NbaSection() {
           animate={inView ? "visible" : "hidden"}
           transition={transition ?? { ...spring.smooth, delay: 0.1 }}
         >
-          Live player statistics proxied through the API layer with batch
-          loading and error recovery.
+          Player stats, fantasy matchups, and shot charts built on the ESPN and
+          NBA APIs with server-side proxying.
         </motion.p>
 
         {/* mock table — container fades in, rows slide individually */}
@@ -206,7 +209,9 @@ export default function NbaSection() {
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
               <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                {d}
+              </p>
             </div>
           ))}
         </motion.div>
@@ -219,10 +224,10 @@ export default function NbaSection() {
           transition={transition ?? { ...spring.smooth, delay: 0.5 }}
         >
           <Link
-            href="/fantasy/nba/player/stats"
+            href="/fantasy/nba/matchups"
             className="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-6 py-2.5 text-[14px] font-semibold text-yellow-300 transition-colors hover:bg-yellow-500/20 hover:text-yellow-200"
           >
-            View NBA Stats →
+            View Fantasy NBA →
           </Link>
         </motion.div>
       </div>

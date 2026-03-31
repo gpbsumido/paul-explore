@@ -1,5 +1,83 @@
 # Changelog
 
+## 2026-03-31 - version 0.7.7
+
+- add `useCountUp` hook with ease-out cubic easing via RAF, respects `prefers-reduced-motion`
+- matchup card scores now animate up from zero when data loads
+- add fantasy points column to the Player Stats table
+- rediction table scrolls horizontally on mobile, FantasyNav scrolls instead of wrapping, week arrows and nav links meet 44px touch targets
+- accessibility update so that theres `aria-live="polite"` on main content areas, `aria-label` on compare toggle and nav, `role` attributes on nav
+- add Fantasy Matchups and Court Vision cards to the feature hub with mini preview components
+
+## 2026-03-31 - version 0.7.6
+
+- add Predictions Panel below the matchup grid with a team selector in the toolbar
+- Start/Sit recommendations show each player's real NBA games for the week with per-game and weekly projections derived from ESPN season averages
+- injury status (OUT, DTD, Questionable, Doubtful) discounts projections and shows inline badges, OUT players project to 0
+- Waiver Wire pulls actual free agents from ESPN (not rostered players), sorted by per-game average with games-this-week count
+- Weekly Outlook blends league rank and projected roster totals into a star rating, shows head-to-head projection comparison
+- new `/api/nba/schedule` route fetches the NBA game schedule for a date range, `/api/nba/freeagents` returns top unrostered players
+
+## 2026-03-30 - version 0.7.5
+
+- add Court Vision page at `/fantasy/nba/court-vision` with an SVG half-court and shooting zones
+- zone colors go cold-to-hot by FG%: blue (<35%), yellow (35-48%), red (>48%), with hover tooltips and a staggered fade-in via Framer Motion
+- zone stats table below the court with FG%, FGM, FGA, and attempts per game
+
+## 2026-03-30 - version 0.7.4
+
+- add player comparison radar chart on the Player Stats page. two-player selector with a recharts RadarChart, normalized to 0-100 against league averages and a raw stat comparison table
+
+## 2026-03-30 - version 0.7.3
+
+- add ESPN fantasy matchup page at `/fantasy/nba/matchups` with head-to-head weekly view
+- playoff weeks are derived from `matchupPeriodCount` in ESPN schedule settings and labeled in the dropdown and as a badge above the grid
+- proxy route at `/api/nba/scoreboard/[season]` calls ESPN scoreboard API with 1hr CDN cache
+- add shared `FantasyNav` tab bar across all three ESPN fantasy pages (Matchups, League History, Player Stats)
+- replace plain text loading state in League History with a skeleton card grid matching the loaded layout
+
+## 2026-03-30 - version 0.7.1
+
+- add live landing page weather background that detects location via IP and renders a canvas effects (rain, clear, storm, snow, partly cloudy, fog). geo lookups go through the backend and are cached per IP
+- menu shows current city and conditions, with a toggle to disable effects and a manual weather override
+- weather canvas pauses its RAF loop when off-screen via IntersectionObserver to save CPU
+- snow and cloud effects pre-render sprites at init instead of allocating gradients per frame
+- fixed localStorage hydration flash for weather toggle with lazy useState initializers
+- wave simulation in waveSim.ts used by both WaterRipple and rain effect
+
+## 2026-03-26 - version 0.7.0
+
+- error shape is now consistent across all routes: `{ error: string }` with an appropriate HTTP status, never 200 with empty data masking a failure
+
+## 2026-03-26 - version 0.6.9
+
+- validate `season` dynamic route param in `/api/nba/league/[season]`
+- validate `origin` query param in `/api/google/auth/url`, reject non-URLs and anything that isn't http/https so it can't be used for open redirect
+- validate `cursor` query param in `/api/calendar/countdowns` — rejects strings that don't look like a cursor token
+
+## 2026-03-26 - version 0.6.8
+
+- add helper that combines Content-Length header check, JSON parsing with error handling, post-parse byte check for chunked encoding, and Zod schema validation into one call
+- all 10 calendar POST/PUT routes now respond to oversized bodies get with 413 before auth work or backend calls happen
+- `/api/graphql` and `/api/vitals` routes get inline size guards, capping at at 4 KB (tiny metric payloads), graphql at 64 KB
+
+## 2026-03-26 - version 0.6.7
+
+- added thoughts page for improvements
+- added in-memory fixed-window rate limiter, mspped by route and IP, prunes stale entries every 60 seconds
+- add the rate limiting into `src/proxy.ts` before auth and session checks
+- blocked requests return 429 with `Retry-After` and `X-RateLimit-*` headers
+
+## 2026-03-26 - version 0.6.6
+
+- fixed 11 pre-existing lint errors
+
+## 2026-03-24 - version 0.6.5
+
+- validate api/graphql responses with response schemas
+- fetches api helpers now use Zod response schemas
+- invalid requests return more detailed error details, with backend responses validated at runtime
+
 ## 2026-03-24 - version 0.6.5
 
 - added CTAs to all public landing page sections linking to their respective routes (NBA Stats, Pokémon TCG, GraphQL Pokédex, Ketsup); auth-required sections (Calendar, Web Vitals) show "Log in to view →" instead

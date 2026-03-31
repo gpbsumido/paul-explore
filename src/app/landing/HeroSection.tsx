@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import dynamic from "next/dynamic";
+import { useSyncExternalStore } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import AuthButton from "@/components/AuthButton";
 import HeaderMenu from "@/components/HeaderMenu";
@@ -13,77 +12,48 @@ import {
   instantTransition,
 } from "@/lib/animations";
 
-// ShaderGradient needs a canvas + window — must stay client-only.
-// The black div fallback paints immediately so LCP fires on the H1
-// before WebGL finishes loading, not after.
-const ShaderGradientScene = dynamic(() => import("./ShaderGradientScene"), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 bg-black pointer-events-none" />
-  ),
-});
-
 const WORDS = "Paul Sumido Portfolio".split(" ");
 
 export default function HeroSection() {
   // mounted gates the entrance animation so the H1 is visible in SSR HTML
   // (initial={false} server-side preserves LCP) and only animates on the client.
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const prefersReduced = useReducedMotion();
-
-  // Camera angles for mouse-driven parallax on the shader gradient.
-  // Refs hold the live target; state is updated via RAF so React batches repaints.
-  const azimuthRef = useRef(225);
-  const polarRef = useRef(100);
-  const rafRef = useRef<number | null>(null);
-  const [cameraAngles, setCameraAngles] = useState({ azimuth: 225, polar: 100 });
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const nx = (e.clientX - left) / width;   // 0..1 left→right
-    const ny = (e.clientY - top) / height;   // 0..1 top→bottom
-    // Map mouse position to camera angle ranges
-    azimuthRef.current = 180 + nx * 90;      // 180..270
-    polarRef.current   = 85  + ny * 40;      // 85..125
-
-    if (rafRef.current === null) {
-      rafRef.current = requestAnimationFrame(() => {
-        setCameraAngles({ azimuth: azimuthRef.current, polar: polarRef.current });
-        rafRef.current = null;
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
-  }, []);
-
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
     <>
       <div className="fixed right-4 top-4 z-50">
-        <HeaderMenu showLogout={false} showLogin />
+        <HeaderMenu showLogout={false} showLogin showWeatherToggle />
       </div>
 
       <section
-        className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-6 text-center"
-        onMouseMove={handleMouseMove}
+        className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center"
+        data-theme="dark"
       >
-        <ShaderGradientScene cAzimuthAngle={cameraAngles.azimuth} cPolarAngle={cameraAngles.polar} />
-        {/* Scrim: white wash in light mode for text legibility, dark scrim in dark mode */}
-        <div className="absolute inset-0 bg-background/75 dark:bg-black/50 pointer-events-none z-[1]" />
+        {/* Radial vignette darkens the edges, centres readable text */}
+        <div
+          className="absolute inset-0 pointer-events-none z-[1]"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 55% at 50% 50%, transparent 0%, rgba(0,4,12,0.60) 100%)",
+          }}
+        />
 
         {/* Word-by-word H1 spring assembly. Server renders all words visible
             (initial={false}) so the H1 is in the LCP paint. On mount the
             client replays the entrance from hidden. */}
         <motion.h1
-          className="relative z-10 text-5xl font-bold tracking-tight text-foreground md:text-7xl"
-          style={{ perspective: 800 }}
+          className="relative z-10 text-5xl font-bold tracking-tight text-white md:text-7xl"
+          style={{
+            perspective: 800,
+            textShadow:
+              "0 0 40px rgba(92,206,245,0.5), 0 0 80px rgba(92,206,245,0.2), 0 2px 6px rgba(0,0,0,0.8)",
+          }}
           variants={staggerContainer(0.08, 0.1)}
           initial={mounted ? "hidden" : false}
           animate="visible"
@@ -102,7 +72,11 @@ export default function HeroSection() {
 
         {/* Subtitle fades up after the title stagger finishes */}
         <motion.p
-          className="relative z-10 mt-4 max-w-md text-lg text-muted md:text-xl"
+          className="relative z-10 mt-4 max-w-md text-lg md:text-xl"
+          style={{
+            color: "rgba(180,235,255,0.75)",
+            textShadow: "0 1px 8px rgba(0,0,0,0.6)",
+          }}
           initial={mounted ? { opacity: 0, y: 16 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={transition ?? { ...spring.smooth, delay: 0.5 }}
@@ -121,8 +95,54 @@ export default function HeroSection() {
         >
           <AuthButton
             loggedIn={false}
-            className="inline-flex items-center rounded-full bg-foreground px-8 py-3 text-sm font-medium text-background hover:opacity-90 transition-opacity"
+            className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-8 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:border-white/40 hover:bg-white/20"
           />
+        </motion.div>
+
+        {/* Scroll hint */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
+          initial={mounted ? { opacity: 0 } : false}
+          animate={{ opacity: 1 }}
+          transition={transition ?? { delay: 1.2, duration: 0.8 }}
+          aria-hidden
+        >
+          <div
+            className="flex flex-col items-center gap-1"
+            style={{ color: "rgba(130,210,240,0.45)" }}
+          >
+            <span
+              className="text-xs uppercase"
+              style={{ letterSpacing: "0.2em" }}
+            >
+              scroll
+            </span>
+            <svg width="14" height="20" viewBox="0 0 14 20" fill="none">
+              <rect
+                x="1"
+                y="1"
+                width="12"
+                height="18"
+                rx="6"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <motion.rect
+                x="6"
+                y="4"
+                width="2"
+                height="4"
+                rx="1"
+                fill="currentColor"
+                animate={{ y: [4, 8, 4] }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </svg>
+          </div>
         </motion.div>
       </section>
     </>

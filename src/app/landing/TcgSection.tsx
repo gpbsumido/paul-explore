@@ -4,25 +4,20 @@ import { useRef } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
-import { spring, instantTransition } from "@/lib/animations";
-
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0 },
-};
+import {
+  spring,
+  instantTransition,
+  headingWipe,
+  fadeUp,
+} from "@/lib/animations";
 
 const MOCK_CARDS = [
   { name: "Charizard", color: "from-orange-500 to-red-600" },
-  { name: "Pikachu",   color: "from-yellow-400 to-amber-500" },
-  { name: "Mewtwo",    color: "from-purple-500 to-violet-700" },
+  { name: "Pikachu", color: "from-yellow-400 to-amber-500" },
+  { name: "Mewtwo", color: "from-purple-500 to-violet-700" },
   { name: "Blastoise", color: "from-blue-500 to-cyan-600" },
-  { name: "Gengar",    color: "from-purple-700 to-indigo-800" },
-  { name: "Eevee",     color: "from-amber-400 to-orange-400" },
+  { name: "Gengar", color: "from-purple-700 to-indigo-800" },
+  { name: "Eevee", color: "from-amber-400 to-orange-400" },
 ];
 
 const TYPE_PILLS = ["Fire", "Water", "Grass", "Lightning", "Psychic"];
@@ -52,10 +47,7 @@ export default function TcgSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section
-      className="bg-gradient-to-br from-neutral-900 to-red-950"
-      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-tcg) 5%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-tcg) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -112,19 +104,23 @@ export default function TcgSection() {
               <motion.div
                 key={card.name}
                 className="overflow-hidden rounded-lg border border-white/10"
-                initial={prefersReduced ? { opacity: 0 } : {
-                  y: -60,
-                  rotate: (i % 3 - 1) * 18,
-                  scale: 0.5,
-                  opacity: 0,
-                }}
-                animate={inView
-                  ? { y: 0, rotate: 0, scale: 1, opacity: 1 }
-                  : undefined
+                initial={
+                  prefersReduced
+                    ? { opacity: 0 }
+                    : {
+                        y: -60,
+                        rotate: ((i % 3) - 1) * 18,
+                        scale: 0.5,
+                        opacity: 0,
+                      }
                 }
-                transition={prefersReduced
-                  ? { ...instantTransition }
-                  : { ...spring.bounce, delay: CARD_DEAL_OFFSET + i * 0.06 }
+                animate={
+                  inView ? { y: 0, rotate: 0, scale: 1, opacity: 1 } : undefined
+                }
+                transition={
+                  prefersReduced
+                    ? { ...instantTransition }
+                    : { ...spring.bounce, delay: CARD_DEAL_OFFSET + i * 0.06 }
                 }
               >
                 <div
@@ -154,7 +150,9 @@ export default function TcgSection() {
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
               <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                {d}
+              </p>
             </div>
           ))}
         </motion.div>

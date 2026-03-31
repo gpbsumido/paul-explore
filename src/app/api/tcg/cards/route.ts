@@ -21,8 +21,24 @@ export async function GET(request: NextRequest) {
   if (type) query.contains("types", type);
   if (setId) query.equal("set.id", setId);
 
-  const cards = await tcgdex.card.list(query);
-  return NextResponse.json(toPlain(cards ?? []), {
+  let cards;
+  try {
+    cards = await tcgdex.card.list(query);
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to fetch cards" },
+      { status: 502 },
+    );
+  }
+
+  if (!cards) {
+    return NextResponse.json(
+      { error: "Failed to fetch cards" },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json(toPlain(cards), {
     headers: { "Cache-Control": CACHE_CONTROL },
   });
 }

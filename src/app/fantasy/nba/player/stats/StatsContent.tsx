@@ -8,8 +8,10 @@ import type { Team, Player, PlayerStats, PlayerRow, SortKey } from "./types";
 import { queryKeys } from "@/lib/queryKeys";
 import { COLUMNS, getSortValue } from "@/lib/nba";
 import { selectChevron } from "@/assets/icons";
+import FantasyNav from "../../FantasyNav";
 import ErrorRowModal from "./ErrorRowModal";
 import NoStats from "./NoStats";
+import PlayerCompare from "./PlayerCompare";
 
 export default function StatsContent() {
   // null = no explicit pick yet; once the user picks a team this holds their choice.
@@ -17,6 +19,7 @@ export default function StatsContent() {
   const [sortKey, setSortKey] = useState<SortKey>("pts");
   const [sortAsc, setSortAsc] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
   const queryClient = useQueryClient();
 
   /** Full list of NBA teams, sorted alphabetically for the selector. */
@@ -117,6 +120,7 @@ export default function StatsContent() {
     const id = Number(e.target.value);
     if (!id) return;
     setExplicitTeamId(id);
+    setCompareOpen(false);
   }
 
   function handleSort(key: SortKey) {
@@ -152,6 +156,7 @@ export default function StatsContent() {
           { label: "Player Stats" },
         ]}
       />
+      <FantasyNav />
 
       {/* ---- Team selector ---- */}
       <div className="border-b border-border">
@@ -175,11 +180,41 @@ export default function StatsContent() {
               </option>
             ))}
           </select>
+
+          {rows.length >= 2 && (
+            <button
+              type="button"
+              aria-label={
+                compareOpen
+                  ? "Close player comparison"
+                  : "Open player comparison"
+              }
+              onClick={() => setCompareOpen((prev) => !prev)}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:border-foreground/30 hover:text-foreground"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+                aria-label="Toggle player comparison"
+                className={`transition-transform ${compareOpen ? "rotate-180" : ""}`}
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+              Compare
+            </button>
+          )}
         </div>
       </div>
 
       {/* ---- Content ---- */}
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">
         {topLevelError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
             <span>{topLevelErrorMessage}</span>
@@ -201,6 +236,10 @@ export default function StatsContent() {
           <div className="flex items-center justify-center text-muted text-[15px] py-20 text-center">
             Pick a team to view player stats
           </div>
+        )}
+
+        {!topLevelError && rows.length >= 2 && (
+          <PlayerCompare rows={rows} open={compareOpen} />
         )}
 
         {!topLevelError && (rows.length > 0 || remaining > 0) && (
@@ -268,6 +307,7 @@ export default function StatsContent() {
                           row.stats!.ast?.toFixed(1),
                           row.stats!.stl?.toFixed(1),
                           row.stats!.blk?.toFixed(1),
+                          row.stats!.fantasy_points?.toFixed(1) ?? "—",
                         ].map((val, j) => (
                           <td key={j} className={`${tdBase} text-right`}>
                             {val}

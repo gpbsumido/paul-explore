@@ -3,6 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useTheme } from "@/components/ThemeProvider";
+import {
+  useWeatherContext,
+  type EffectChoice,
+} from "@/contexts/WeatherContext";
 
 type ThemePreference = "light" | "dark" | "system";
 
@@ -86,6 +90,27 @@ function ActiveThemeIcon({ preference }: { preference: ThemePreference }) {
   return <>{opt?.icon}</>;
 }
 
+const CONDITION_LABELS: Record<string, { emoji: string; label: string }> = {
+  clear: { emoji: "☀️", label: "Clear" },
+  "partly-cloudy": { emoji: "⛅", label: "Partly Cloudy" },
+  fog: { emoji: "🌁", label: "Foggy" },
+  rain: { emoji: "🌧️", label: "Rain" },
+  snow: { emoji: "❄️", label: "Snow" },
+  storm: { emoji: "⛈️", label: "Storm" },
+  unknown: { emoji: "🌡️", label: "Weather" },
+};
+
+const EFFECT_OPTIONS: { value: EffectChoice; emoji: string; label: string }[] =
+  [
+    { value: "auto", emoji: "📍", label: "My location" },
+    { value: "clear", emoji: "☀️", label: "Clear" },
+    { value: "partly-cloudy", emoji: "⛅", label: "Cloudy" },
+    { value: "rain", emoji: "🌧️", label: "Rain" },
+    { value: "storm", emoji: "⛈️", label: "Storm" },
+    { value: "snow", emoji: "❄️", label: "Snow" },
+    { value: "fog", emoji: "🌁", label: "Fog" },
+  ];
+
 interface HeaderMenuProps {
   /** Show the Settings link. Defaults to false. */
   showSettings?: boolean;
@@ -93,6 +118,8 @@ interface HeaderMenuProps {
   showLogout?: boolean;
   /** Show the Log in link instead of logout. Defaults to false. */
   showLogin?: boolean;
+  /** Show the weather effects toggle section. Defaults to false. */
+  showWeatherToggle?: boolean;
 }
 
 /**
@@ -103,8 +130,11 @@ export default function HeaderMenu({
   showSettings = false,
   showLogout = true,
   showLogin = false,
+  showWeatherToggle = false,
 }: HeaderMenuProps) {
   const { preference, setPreference } = useTheme();
+  const weather = useWeatherContext();
+  const [effectOpen, setEffectOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -186,6 +216,131 @@ export default function HeaderMenu({
               ))}
             </div>
           </div>
+
+          {showWeatherToggle && (
+            <>
+              <div className="mx-2 border-t border-border" />
+              <div className="p-2 flex flex-col gap-1.5">
+                {/* Location + weather readout */}
+                <div className="rounded-lg bg-foreground/[0.04] px-3 py-2">
+                  {weather.loading ? (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="h-3 w-24 animate-pulse rounded bg-foreground/10" />
+                      <div className="h-2.5 w-16 animate-pulse rounded bg-foreground/10" />
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-[13px] font-semibold text-foreground leading-tight">
+                        {weather.city ?? "Unknown location"}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-muted leading-tight">
+                        {CONDITION_LABELS[weather.condition]?.emoji}{" "}
+                        {CONDITION_LABELS[weather.condition]?.label ??
+                          "Weather unavailable"}
+                        {weather.temperature !== null
+                          ? ` · ${weather.temperature}°C`
+                          : ""}
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* Effects toggle row */}
+                <div className="flex items-center justify-between px-1 py-0.5">
+                  <span className="text-[12px] text-muted">Visual effects</span>
+                  {/* Pill toggle — fixed geometry: w-8=32px, h-4=16px, thumb w-3 h-3=12px */}
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={weather.enabled}
+                    aria-label="Toggle weather effects"
+                    onClick={weather.toggle}
+                    className={`relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200
+                      ${weather.enabled ? "bg-foreground/70" : "bg-foreground/20"}`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-sm transition-transform duration-200
+                        ${weather.enabled ? "translate-x-4" : "translate-x-0"}`}
+                    />
+                  </button>
+                </div>
+
+                {/* Effect selector — only shown when effects are enabled */}
+                {weather.enabled && (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setEffectOpen((v) => !v)}
+                      className="flex w-full items-center justify-between rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12px] text-foreground transition-colors hover:bg-surface-raised"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <span>
+                          {
+                            EFFECT_OPTIONS.find(
+                              (o) => o.value === weather.selectedEffect,
+                            )?.emoji
+                          }
+                        </span>
+                        <span>
+                          {
+                            EFFECT_OPTIONS.find(
+                              (o) => o.value === weather.selectedEffect,
+                            )?.label
+                          }
+                        </span>
+                      </span>
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 10 10"
+                        fill="none"
+                        aria-hidden
+                        className={`transition-transform duration-150 ${effectOpen ? "rotate-180" : ""}`}
+                      >
+                        <path
+                          d="M2 3.5L5 6.5L8 3.5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+
+                    {effectOpen && (
+                      <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
+                        {EFFECT_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              weather.setSelectedEffect(opt.value);
+                              setEffectOpen(false);
+                            }}
+                            className={`flex w-full items-center gap-2 px-2.5 py-1.5 text-[12px] transition-colors
+                              ${
+                                weather.selectedEffect === opt.value
+                                  ? "bg-foreground/10 text-foreground font-medium"
+                                  : "text-muted hover:bg-foreground/5 hover:text-foreground"
+                              }`}
+                          >
+                            <span>{opt.emoji}</span>
+                            <span>{opt.label}</span>
+                            {opt.value === "auto" &&
+                              weather.condition !== "unknown" && (
+                                <span className="ml-auto text-[10px] text-muted/60">
+                                  {CONDITION_LABELS[weather.condition]?.emoji}
+                                </span>
+                              )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           {(showSettings || showLogout || showLogin) && (
             <>

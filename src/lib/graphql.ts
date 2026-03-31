@@ -1,5 +1,6 @@
-import type { Pokemon, PokemonListResult, PokemonPage, GraphQLResponse } from "@/types/graphql";
+import type { Pokemon, PokemonListResult, PokemonPage } from "@/types/graphql";
 import { PAGE_SIZE } from "@/types/graphql";
+import { pokemonGraphQLResponseSchema } from "@/lib/schemas";
 
 // ---------------------------------------------------------------------------
 // GraphQL queries
@@ -113,7 +114,7 @@ export async function fetchPokemon(
     signal,
   });
   if (!res.ok) throw new Error("GraphQL request failed");
-  const json = (await res.json()) as GraphQLResponse<PokemonListResult>;
+  const json = pokemonGraphQLResponseSchema.parse(await res.json());
   if (json.errors?.length) throw new Error(json.errors[0].message);
   return json.data;
 }
@@ -168,7 +169,7 @@ export async function fetchPokemonDirect(
     next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error(`PokeAPI returned ${res.status}`);
-  const json = (await res.json()) as GraphQLResponse<PokemonListResult>;
+  const json = pokemonGraphQLResponseSchema.parse(await res.json());
   if (json.errors?.length) throw new Error(json.errors[0].message);
   return json.data;
 }

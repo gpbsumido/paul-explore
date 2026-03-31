@@ -1,11 +1,10 @@
 "use client";
 
-import { type RefObject } from "react";
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import { useInView } from "@/app/landing/useInView";
 import { reveal } from "@/app/landing/Section";
 import { queryKeys } from "@/lib/queryKeys";
 import {
@@ -26,6 +25,22 @@ const FEATURES: FeatureItem[] = [
       "Live player stats via API proxy. Batch loading, per-player error states, and skeleton rows while the NBA API catches up.",
     href: "/fantasy/nba/player/stats",
     color: "#007aff",
+  },
+  {
+    id: "matchups",
+    title: "Fantasy Matchups",
+    description:
+      "Head-to-head weekly matchups with category breakdowns, animated win bars, and an AI-style prediction panel with start/sit recommendations.",
+    href: "/fantasy/nba/matchups",
+    color: "#FF6B35",
+  },
+  {
+    id: "court-vision",
+    title: "Court Vision",
+    description:
+      "SVG half-court shot chart with color-coded shooting zones. Hover for per-zone FG% and attempts per game.",
+    href: "/fantasy/nba/court-vision",
+    color: "#00D4FF",
   },
   {
     id: "league",
@@ -172,8 +187,16 @@ const THOUGHTS: ThoughtItem[] = [
   {
     title: "Ketsup",
     href: "/thoughts/ketsup",
-    preview: "A social app for image and text posts, built and shipped at its own domain",
+    preview:
+      "A social app for image and text posts, built and shipped at its own domain",
     color: "#f9a8d4",
+  },
+  {
+    title: "API Hardening",
+    href: "/thoughts/improvements",
+    preview:
+      "Zod validation, fixed-window rate limiting, and body size limits across every API route",
+    color: "#34d399",
   },
 ].reverse();
 
@@ -218,6 +241,86 @@ function NBAPreview() {
           </span>
           <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
             {p.ast}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const MATCHUP_DATA = [
+  { away: "Wemby's Team", home: "Stroke Bros", awayPts: 342, homePts: 318 },
+  { away: "Running Shoe", home: "LaMelo Arc", awayPts: 287, homePts: 301 },
+];
+
+function MatchupsPreview() {
+  return (
+    <div className="space-y-1.5">
+      {MATCHUP_DATA.map((m) => {
+        const total = m.awayPts + m.homePts || 1;
+        const leftPct = (m.awayPts / total) * 100;
+        return (
+          <div
+            key={m.away}
+            className="rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-2 space-y-1"
+          >
+            <div className="flex items-center justify-between">
+              <span className="truncate text-[8px] text-black/60 dark:text-white/60">
+                {m.away}
+              </span>
+              <span className="tabular-nums text-[9px] font-bold text-[#FF6B35]">
+                {m.awayPts}
+              </span>
+            </div>
+            <div className="flex h-1 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+              <div
+                className="rounded-l-full bg-[#FF6B35]"
+                style={{ width: `${leftPct}%` }}
+              />
+              <div
+                className="rounded-r-full bg-[#00D4FF]"
+                style={{ width: `${100 - leftPct}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="truncate text-[8px] text-black/60 dark:text-white/60">
+                {m.home}
+              </span>
+              <span className="tabular-nums text-[9px] font-bold text-[#00D4FF]">
+                {m.homePts}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const COURT_ZONES = [
+  { zone: "Paint", pct: 58.2, color: "#ef4444" },
+  { zone: "Mid-Range", pct: 42.1, color: "#eab308" },
+  { zone: "Corner 3", pct: 37.5, color: "#3b82f6" },
+  { zone: "Above Break", pct: 35.8, color: "#3b82f6" },
+];
+
+function CourtVisionPreview() {
+  return (
+    <div className="space-y-1">
+      {COURT_ZONES.map((z) => (
+        <div
+          key={z.zone}
+          className="flex items-center gap-2 rounded border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2 py-1"
+        >
+          <div
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: z.color }}
+          />
+          <span className="flex-1 text-[8px] text-black/60 dark:text-white/60">
+            {z.zone}
+          </span>
+          <span className="tabular-nums text-[9px] font-bold text-black/70 dark:text-white/70">
+            {z.pct}%
           </span>
         </div>
       ))}
@@ -516,9 +619,19 @@ function ParticlesPreview() {
 }
 
 const KETSUP_FEED = [
-  { user: "paulsum", avatar: "#f9a8d4", hasImage: true, gradient: "from-orange-400 to-pink-500" },
+  {
+    user: "paulsum",
+    avatar: "#f9a8d4",
+    hasImage: true,
+    gradient: "from-orange-400 to-pink-500",
+  },
   { user: "janedoe", avatar: "#a5f3fc", hasImage: false, gradient: "" },
-  { user: "markr", avatar: "#d9f99d", hasImage: true, gradient: "from-green-400 to-teal-500" },
+  {
+    user: "markr",
+    avatar: "#d9f99d",
+    hasImage: true,
+    gradient: "from-green-400 to-teal-500",
+  },
 ];
 
 function KetsupPreview() {
@@ -553,6 +666,8 @@ function KetsupPreview() {
 // Maps feature.id to its design-token CSS variable name.
 const FEATURE_TOKEN: Record<string, string> = {
   nba: "--color-feature-nba",
+  matchups: "--color-feature-sync",
+  "court-vision": "--color-feature-nba",
   league: "--color-feature-sync",
   tcg: "--color-feature-tcg",
   pocket: "--color-feature-particles",
@@ -566,6 +681,8 @@ const FEATURE_TOKEN: Record<string, string> = {
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 const PREVIEW_MAP: Record<string, React.ComponentType> = {
   nba: NBAPreview,
+  matchups: MatchupsPreview,
+  "court-vision": CourtVisionPreview,
   league: LeaguePreview,
   tcg: TcgPreview,
   pocket: PocketPreview,
@@ -730,7 +847,11 @@ export default function FeatureHub() {
   const userName = meQuery.isLoading ? null : (meQuery.data?.name ?? "there");
   const userEmail = meQuery.data?.email ?? undefined;
 
-  const [thoughtsRef, thoughtsVisible] = useInView(0.1);
+  const thoughtsRef = useRef(null);
+  const thoughtsVisible = useInView(thoughtsRef, {
+    once: true,
+    margin: "-10% 0px",
+  });
 
   const firstName = userName ? userName.split(" ")[0] : null;
 
@@ -807,7 +928,7 @@ export default function FeatureHub() {
         </motion.div>
 
         {/* Dev notes — scroll-triggered */}
-        <div ref={thoughtsRef as RefObject<HTMLDivElement>} className="mt-14">
+        <div ref={thoughtsRef} className="mt-14">
           <h2
             className={[
               "mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50",

@@ -49,11 +49,6 @@ export default function CardSearch({ onSelectCard }: Props) {
   const loading = searchQuery.isLoading && debouncedQuery.trim().length > 0;
   const showDropdown = open && !!debouncedQuery.trim() && results.length > 0;
 
-  // Open the dropdown automatically when results arrive
-  useEffect(() => {
-    if ((searchQuery.data?.length ?? 0) > 0) setOpen(true);
-  }, [searchQuery.data]);
-
   // Close dropdown when the user clicks outside this component
   useEffect(() => {
     function handlePointerDown(e: MouseEvent) {
@@ -83,7 +78,11 @@ export default function CardSearch({ onSelectCard }: Props) {
         type="search"
         autoComplete="off"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          if (e.target.value.trim()) setOpen(true);
+          else setOpen(false);
+        }}
         onFocus={() => {
           if (results.length > 0 && debouncedQuery.trim()) setOpen(true);
         }}

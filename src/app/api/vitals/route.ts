@@ -11,11 +11,20 @@ const VALID_METRICS = new Set(["LCP", "CLS", "FCP", "INP", "TTFB"]);
 // POST /api/vitals
 // open ingestion — no session check, just validate the shape and forward
 export async function POST(request: NextRequest) {
+  const cl = Number(request.headers.get("content-length") ?? 0);
+  if (cl > 4_096) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (new TextEncoder().encode(JSON.stringify(body)).length > 4_096) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
   }
 
   const { metric, value, rating, page } = body;

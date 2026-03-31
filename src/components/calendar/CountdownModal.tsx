@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { differenceInCalendarDays, format, parseISO } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 import { Modal, Input, Textarea, Button, IconButton } from "@/components/ui";
 import type { Countdown } from "@/types/calendar";
 import { EVENT_COLORS } from "@/lib/calendar";

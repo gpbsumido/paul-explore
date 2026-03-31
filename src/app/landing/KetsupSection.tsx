@@ -3,17 +3,12 @@
 import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
-import { spring, instantTransition } from "@/lib/animations";
-
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0 },
-};
+import {
+  spring,
+  instantTransition,
+  headingWipe,
+  fadeUp,
+} from "@/lib/animations";
 
 const MOCK_POSTS = [
   {
@@ -43,9 +38,18 @@ const MOCK_POSTS = [
 ];
 
 const HIGHLIGHTS = [
-  ["Image posts", "Upload photos with captions — the feed shows images inline, styled like a social timeline."],
-  ["Text posts", "Not everything needs a photo. Text-only posts sit cleanly in the same feed."],
-  ["Built separately", "Its own domain, codebase, and deployment — independent of this playground."],
+  [
+    "Image posts",
+    "Upload photos with captions — the feed shows images inline, styled like a social timeline.",
+  ],
+  [
+    "Text posts",
+    "Not everything needs a photo. Text-only posts sit cleanly in the same feed.",
+  ],
+  [
+    "Built separately",
+    "Its own domain, codebase, and deployment — independent of this playground.",
+  ],
 ] as const;
 
 export default function KetsupSection() {
@@ -55,10 +59,7 @@ export default function KetsupSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section
-      className="bg-gradient-to-br from-rose-950 to-neutral-900"
-      glow="radial-gradient(ellipse at 20% 50%, color-mix(in srgb, var(--color-feature-ketsup) 6%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 20% 50%, color-mix(in srgb, var(--color-feature-ketsup) 6%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -130,7 +131,9 @@ export default function KetsupSection() {
                 <p className="text-[11px] text-white/60">{post.text}</p>
                 <div className="mt-1.5 flex items-center gap-1">
                   <div className="h-3 w-3 rounded-sm bg-white/10" />
-                  <span className="text-[10px] text-white/30">{post.likes}</span>
+                  <span className="text-[10px] text-white/30">
+                    {post.likes}
+                  </span>
                 </div>
               </div>
             ))}
@@ -151,7 +154,9 @@ export default function KetsupSection() {
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
               <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                {d}
+              </p>
             </div>
           ))}
         </motion.div>
