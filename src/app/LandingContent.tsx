@@ -11,21 +11,27 @@ import GraphQLSection from "./landing/GraphQLSection";
 import VitalsSection from "./landing/VitalsSection";
 import FooterSection from "./landing/FooterSection";
 import KetsupSection from "./landing/KetsupSection";
+import WeatherCanvas from "./landing/WeatherCanvas";
+import { WeatherProvider } from "@/contexts/WeatherContext";
 
 export default function LandingContent() {
   return (
-    <div className="bg-background">
-      <HeroSection />
-      <FeaturesSection />
-      <AuthSection />
-      <DesignSection />
-      <NbaSection />
-      <TcgSection />
-      <CalendarSection />
-      <GraphQLSection />
-      <VitalsSection />
-      <KetsupSection />
-      <FooterSection />
-    </div>
+    <WeatherProvider>
+      <div className="bg-black">
+        {/* Fixed full-screen weather effect canvas — sits behind all sections */}
+        <WeatherCanvas className="fixed inset-0 z-0 pointer-events-none" />
+        <HeroSection />
+        <FeaturesSection />
+        <AuthSection />
+        <DesignSection />
+        <NbaSection />
+        <TcgSection />
+        <CalendarSection />
+        <GraphQLSection />
+        <VitalsSection />
+        <KetsupSection />
+        <FooterSection />
+      </div>
+    </WeatherProvider>
   );
 }

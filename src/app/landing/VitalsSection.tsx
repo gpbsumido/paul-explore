@@ -9,52 +9,53 @@ import {
   useTransform,
 } from "framer-motion";
 import Section from "./Section";
-import { spring, instantTransition } from "@/lib/animations";
-
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0 },
-};
+import {
+  spring,
+  instantTransition,
+  headingWipe,
+  fadeUp,
+} from "@/lib/animations";
 
 type Rating = "good" | "needs-improvement" | "poor";
 
 const RATING_DOT: Record<Rating, string> = {
-  "good":              "bg-green-400",
+  good: "bg-green-400",
   "needs-improvement": "bg-yellow-400",
-  "poor":              "bg-red-400",
+  poor: "bg-red-400",
 };
 
 const RATING_BAR: Record<Rating, string> = {
-  "good":              "bg-green-500",
+  good: "bg-green-500",
   "needs-improvement": "bg-yellow-500",
-  "poor":              "bg-red-500",
+  poor: "bg-red-500",
 };
 
 const RATING_TEXT: Record<Rating, string> = {
-  "good":              "text-green-300",
+  good: "text-green-300",
   "needs-improvement": "text-yellow-300",
-  "poor":              "text-red-300",
+  poor: "text-red-300",
 };
 
 // pct = visual score out of 100 (higher = better) based on metric thresholds
-const MOCK_METRICS: { name: string; value: string; rating: Rating; pct: number }[] = [
-  { name: "LCP",  value: "1.8s",  rating: "good", pct: 82 },
-  { name: "FCP",  value: "0.9s",  rating: "good", pct: 92 },
-  { name: "INP",  value: "145ms", rating: "good", pct: 78 },
-  { name: "CLS",  value: "0.041", rating: "good", pct: 88 },
+const MOCK_METRICS: {
+  name: string;
+  value: string;
+  rating: Rating;
+  pct: number;
+}[] = [
+  { name: "LCP", value: "1.8s", rating: "good", pct: 82 },
+  { name: "FCP", value: "0.9s", rating: "good", pct: 92 },
+  { name: "INP", value: "145ms", rating: "good", pct: 78 },
+  { name: "CLS", value: "0.041", rating: "good", pct: 88 },
   { name: "TTFB", value: "320ms", rating: "good", pct: 72 },
 ];
 
-const MOCK_ROWS: { page: string; lcp: string; rating: Rating; pct: number }[] = [
-  { page: "/vitals",           lcp: "1.8s", rating: "good",             pct: 82 },
-  { page: "/calendar",         lcp: "2.1s", rating: "good",             pct: 74 },
-  { page: "/tcg/browse",       lcp: "2.9s", rating: "needs-improvement", pct: 52 },
-];
+const MOCK_ROWS: { page: string; lcp: string; rating: Rating; pct: number }[] =
+  [
+    { page: "/vitals", lcp: "1.8s", rating: "good", pct: 82 },
+    { page: "/calendar", lcp: "2.1s", rating: "good", pct: 74 },
+    { page: "/tcg/browse", lcp: "2.9s", rating: "needs-improvement", pct: 52 },
+  ];
 
 const HIGHLIGHTS = [
   [
@@ -92,13 +93,13 @@ function AnimatedBar({
   const widthPct = useTransform(widthSpring, (v) => `${v}%`);
 
   useEffect(() => {
-    if (inView) widthSpring.set(prefersReduced ? pct : pct);
+    if (!inView) return;
+    if (prefersReduced) {
+      widthSpring.jump(pct);
+    } else {
+      widthSpring.set(pct);
+    }
   }, [inView, pct, widthSpring, prefersReduced]);
-
-  // Reduced motion: jump immediately by setting a fast spring
-  useEffect(() => {
-    if (prefersReduced && inView) widthSpring.jump(pct);
-  }, [inView, pct, prefersReduced, widthSpring]);
 
   return (
     <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
@@ -133,7 +134,10 @@ function AnimatedStat({
   const decimals = numStr.includes(".") ? numStr.split(".")[1].length : 0;
 
   const springVal = useSpring(0, { stiffness: 60, damping: 15 });
-  const displayed = useTransform(springVal, (v) => v.toFixed(decimals) + suffix);
+  const displayed = useTransform(
+    springVal,
+    (v) => v.toFixed(decimals) + suffix,
+  );
 
   useEffect(() => {
     if (inView) springVal.set(target);
@@ -184,10 +188,7 @@ export default function VitalsSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section
-      className="bg-gradient-to-br from-green-950 to-neutral-900"
-      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-vitals) 5%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-vitals) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -231,11 +232,18 @@ export default function VitalsSection() {
           {/* Mock metric cards — bar + rating badge + animated value */}
           <div className="grid grid-cols-5 divide-x divide-white/10 border-b border-white/10">
             {MOCK_METRICS.map(({ name, value, rating, pct }) => (
-              <div key={name} className="flex flex-col items-center gap-1 px-2 py-3">
+              <div
+                key={name}
+                className="flex flex-col items-center gap-1 px-2 py-3"
+              >
                 <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">
                   {name}
                 </span>
-                <RatingBadge rating={rating} inView={inView} prefersReduced={prefersReduced} />
+                <RatingBadge
+                  rating={rating}
+                  inView={inView}
+                  prefersReduced={prefersReduced}
+                />
                 <AnimatedStat
                   value={value}
                   inView={inView}
@@ -243,7 +251,12 @@ export default function VitalsSection() {
                   className={`text-[11px] font-bold tabular-nums ${RATING_TEXT[rating]}`}
                 />
                 <div className="mt-1 w-full px-1">
-                  <AnimatedBar pct={pct} rating={rating} inView={inView} prefersReduced={prefersReduced} />
+                  <AnimatedBar
+                    pct={pct}
+                    rating={rating}
+                    inView={inView}
+                    prefersReduced={prefersReduced}
+                  />
                 </div>
               </div>
             ))}
@@ -278,15 +291,30 @@ export default function VitalsSection() {
                       <td className="px-2.5 py-2 text-[10px] font-medium text-white/60">
                         {row.page}
                       </td>
-                      <td className={`px-2.5 py-2 text-center text-[10px] font-semibold tabular-nums ${RATING_TEXT[row.rating]}`}>
-                        <AnimatedStat value={row.lcp} inView={inView} prefersReduced={prefersReduced} />
+                      <td
+                        className={`px-2.5 py-2 text-center text-[10px] font-semibold tabular-nums ${RATING_TEXT[row.rating]}`}
+                      >
+                        <AnimatedStat
+                          value={row.lcp}
+                          inView={inView}
+                          prefersReduced={prefersReduced}
+                        />
                       </td>
                       <td className="px-2.5 py-2">
                         <div className="flex items-center justify-end gap-2">
                           <div className="w-16">
-                            <AnimatedBar pct={row.pct} rating={row.rating} inView={inView} prefersReduced={prefersReduced} />
+                            <AnimatedBar
+                              pct={row.pct}
+                              rating={row.rating}
+                              inView={inView}
+                              prefersReduced={prefersReduced}
+                            />
                           </div>
-                          <RatingBadge rating={row.rating} inView={inView} prefersReduced={prefersReduced} />
+                          <RatingBadge
+                            rating={row.rating}
+                            inView={inView}
+                            prefersReduced={prefersReduced}
+                          />
                         </div>
                       </td>
                     </tr>
@@ -311,7 +339,9 @@ export default function VitalsSection() {
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
               <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                {d}
+              </p>
             </div>
           ))}
         </motion.div>

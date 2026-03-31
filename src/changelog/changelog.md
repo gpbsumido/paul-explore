@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-30 - version 0.7.1
+
+- add live landing page weather background that detects location via IP and renders a canvas effects (rain, clear, storm, snow, partly cloudy, fog). geo lookups go through the backend and are cached per IP
+- menu shows current city and conditions, with a toggle to disable effects and a manual weather override
+- weather canvas pauses its RAF loop when off-screen via IntersectionObserver to save CPU
+- snow and cloud effects pre-render sprites at init instead of allocating gradients per frame
+- fixed localStorage hydration flash for weather toggle with lazy useState initializers
+- wave simulation in waveSim.ts used by both WaterRipple and rain effect
+
 ## 2026-03-26 - version 0.7.0
 
 - error shape is now consistent across all routes: `{ error: string }` with an appropriate HTTP status, never 200 with empty data masking a failure

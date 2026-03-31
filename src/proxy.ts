@@ -29,11 +29,11 @@ import { checkRateLimit } from "@/lib/rateLimit";
 
 const CSP = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline' https://vercel.live`,
+  `script-src 'self' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com`,
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
   `font-src 'self'`,
-  `connect-src 'self' https://vitals.vercel-insights.com https://vercel.live`,
+  `connect-src 'self' https://vitals.vercel-insights.com https://vercel.live https://api.open-meteo.com`,
   `frame-src https://vercel.live`,
   `object-src 'none'`,
   `base-uri 'self'`,
@@ -53,9 +53,23 @@ const RATE_LIMITS: Array<{
   limit: number;
 }> = [
   // Open ingestion — no auth, strict cap to block fake-metric spam
-  { match: (p, m) => p === "/api/vitals" && m === "POST", bucket: "vitals", limit: 20 },
+  {
+    match: (p, m) => p === "/api/vitals" && m === "POST",
+    bucket: "vitals",
+    limit: 20,
+  },
+  // Geo proxy — no auth, low cap (cached 60 s server-side anyway)
+  {
+    match: (p, m) => p === "/api/geo" && m === "GET",
+    bucket: "geo",
+    limit: 30,
+  },
   // Public PokeAPI proxy — no auth, moderate cap
-  { match: (p, m) => p === "/api/graphql" && m === "POST", bucket: "graphql", limit: 60 },
+  {
+    match: (p, m) => p === "/api/graphql" && m === "POST",
+    bucket: "graphql",
+    limit: 60,
+  },
   // Backstop for all other API routes (auth-gated, so mostly a sanity check)
   { match: (p) => p.startsWith("/api/"), bucket: "api", limit: 300 },
 ];
@@ -78,7 +92,12 @@ export async function proxy(request: NextRequest) {
   const ip = getIp(request);
   for (const rule of RATE_LIMITS) {
     if (!rule.match(pathname, request.method)) continue;
-    const { allowed, resetAt } = checkRateLimit(ip, rule.bucket, rule.limit, RATE_WINDOW_MS);
+    const { allowed, resetAt } = checkRateLimit(
+      ip,
+      rule.bucket,
+      rule.limit,
+      RATE_WINDOW_MS,
+    );
     if (!allowed) {
       return NextResponse.json(
         { error: "Too many requests" },
@@ -105,7 +124,11 @@ export async function proxy(request: NextRequest) {
   // Unauthenticated requests redirect immediately to login with returnTo so
   // the user lands back here after signing in. Authenticated requests go
   // through auth0.middleware() for rolling session refresh.
-  if (pathname.startsWith("/vitals") || pathname.startsWith("/settings") || pathname.startsWith("/calendar")) {
+  if (
+    pathname.startsWith("/vitals") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/calendar")
+  ) {
     const session = await auth0.getSession(request);
     if (!session) {
       const loginUrl = new URL("/auth/login", request.url);

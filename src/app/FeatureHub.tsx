@@ -1,11 +1,10 @@
 "use client";
 
-import { type RefObject } from "react";
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import { useInView } from "@/app/landing/useInView";
 import { reveal } from "@/app/landing/Section";
 import { queryKeys } from "@/lib/queryKeys";
 import {
@@ -748,7 +747,11 @@ export default function FeatureHub() {
   const userName = meQuery.isLoading ? null : (meQuery.data?.name ?? "there");
   const userEmail = meQuery.data?.email ?? undefined;
 
-  const [thoughtsRef, thoughtsVisible] = useInView(0.1);
+  const thoughtsRef = useRef(null);
+  const thoughtsVisible = useInView(thoughtsRef, {
+    once: true,
+    margin: "-10% 0px",
+  });
 
   const firstName = userName ? userName.split(" ")[0] : null;
 
@@ -825,7 +828,7 @@ export default function FeatureHub() {
         </motion.div>
 
         {/* Dev notes — scroll-triggered */}
-        <div ref={thoughtsRef as RefObject<HTMLDivElement>} className="mt-14">
+        <div ref={thoughtsRef} className="mt-14">
           <h2
             className={[
               "mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50",

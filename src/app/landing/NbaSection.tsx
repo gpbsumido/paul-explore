@@ -10,17 +10,13 @@ import {
   useTransform,
 } from "framer-motion";
 import Section from "./Section";
-import { slideInRight, spring, instantTransition } from "@/lib/animations";
-
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0 },
-};
+import {
+  slideInRight,
+  spring,
+  instantTransition,
+  headingWipe,
+  fadeUp,
+} from "@/lib/animations";
 
 // ---------------------------------------------------------------------------
 // AnimatedStat — springs a number from 0 to its value when inView flips true.
@@ -96,7 +92,11 @@ function StatRow({
       <td className="px-3 py-2 text-sm font-medium text-white">{name}</td>
       <td className="px-3 py-2 text-sm text-white/60">{team}</td>
       <td className="px-3 py-2 text-right text-sm font-semibold">
-        <AnimatedStat value={pts} inView={inView} className="text-primary-400" />
+        <AnimatedStat
+          value={pts}
+          inView={inView}
+          className="text-primary-400"
+        />
       </td>
       <td className="px-3 py-2 text-right text-sm text-white">
         <AnimatedStat value={reb} inView={inView} />
@@ -113,16 +113,19 @@ function StatRow({
 // ---------------------------------------------------------------------------
 
 const ROWS = [
-  { name: "Luka Doncic",    team: "LAL", pts: "28.4", reb: "8.3",  ast: "8.1" },
-  { name: "Jayson Tatum",   team: "BOS", pts: "27.0", reb: "8.5",  ast: "4.6" },
-  { name: "Shai Gilgeous",  team: "OKC", pts: "31.2", reb: "5.5",  ast: "6.0" },
-  { name: "Nikola Jokic",   team: "DEN", pts: "26.3", reb: "12.4", ast: "9.0" },
+  { name: "Luka Doncic", team: "LAL", pts: "28.4", reb: "8.3", ast: "8.1" },
+  { name: "Jayson Tatum", team: "BOS", pts: "27.0", reb: "8.5", ast: "4.6" },
+  { name: "Shai Gilgeous", team: "OKC", pts: "31.2", reb: "5.5", ast: "6.0" },
+  { name: "Nikola Jokic", team: "DEN", pts: "26.3", reb: "12.4", ast: "9.0" },
 ] as const;
 
 const HIGHLIGHTS = [
-  ["Live API Proxy",  "Server-side proxy hides API keys from the client."],
-  ["Batch Loading",   "Multiple players fetched in parallel with loading states."],
-  ["Error Handling",  "Granular error recovery per player, not per page."],
+  ["Live API Proxy", "Server-side proxy hides API keys from the client."],
+  [
+    "Batch Loading",
+    "Multiple players fetched in parallel with loading states.",
+  ],
+  ["Error Handling", "Granular error recovery per player, not per page."],
 ] as const;
 
 export default function NbaSection() {
@@ -132,10 +135,7 @@ export default function NbaSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section
-      className="bg-gradient-to-br from-secondary-900 to-primary-950"
-      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-nba) 5%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-nba) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -206,7 +206,9 @@ export default function NbaSection() {
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
               <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                {d}
+              </p>
             </div>
           ))}
         </motion.div>
