@@ -129,6 +129,11 @@ export default function CourtVisionContent() {
 
       {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
+        <div className="mb-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-[13px] text-amber-400/80">
+          This page is a work in progress. Shot data is currently mock data and
+          doesn&apos;t reflect real shooting numbers yet.
+        </div>
+
         {topLevelError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
             <span>
