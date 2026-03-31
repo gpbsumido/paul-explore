@@ -4,17 +4,12 @@ import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
-import { spring, instantTransition } from "@/lib/animations";
-
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0 },
-};
+import {
+  spring,
+  instantTransition,
+  headingWipe,
+  fadeUp,
+} from "@/lib/animations";
 
 // ---------------------------------------------------------------------------
 // Query string — keep it short so the typing feels snappy
@@ -57,8 +52,8 @@ function TypewriterQuery({
   useEffect(() => {
     if (!inView) return;
     if (prefersReduced) {
-      setCount(query.length);
-      return;
+      const id = setTimeout(() => setCount(query.length), 0);
+      return () => clearTimeout(id);
     }
     intervalRef.current = setInterval(() => {
       setCount((prev) => {
@@ -80,7 +75,12 @@ function TypewriterQuery({
       {!done && (
         <motion.span
           animate={{ opacity: [1, 1, 0, 0] }}
-          transition={{ duration: 0.8, repeat: Infinity, ease: "linear", times: [0, 0.49, 0.5, 1] }}
+          transition={{
+            duration: 0.8,
+            repeat: Infinity,
+            ease: "linear",
+            times: [0, 0.49, 0.5, 1],
+          }}
           aria-hidden
         >
           |
@@ -95,12 +95,12 @@ function TypewriterQuery({
 // ---------------------------------------------------------------------------
 
 const MOCK_RESULTS = [
-  { id: "001", name: "Bulbasaur",  type: "Grass",    color: "text-green-400"  },
-  { id: "004", name: "Charmander", type: "Fire",     color: "text-orange-400" },
-  { id: "007", name: "Squirtle",   type: "Water",    color: "text-blue-400"   },
-  { id: "025", name: "Pikachu",    type: "Electric", color: "text-yellow-300" },
-  { id: "039", name: "Jigglypuff", type: "Fairy",    color: "text-pink-400"   },
-  { id: "054", name: "Psyduck",    type: "Water",    color: "text-blue-400"   },
+  { id: "001", name: "Bulbasaur", type: "Grass", color: "text-green-400" },
+  { id: "004", name: "Charmander", type: "Fire", color: "text-orange-400" },
+  { id: "007", name: "Squirtle", type: "Water", color: "text-blue-400" },
+  { id: "025", name: "Pikachu", type: "Electric", color: "text-yellow-300" },
+  { id: "039", name: "Jigglypuff", type: "Fairy", color: "text-pink-400" },
+  { id: "054", name: "Psyduck", type: "Water", color: "text-blue-400" },
 ] as const;
 
 const HIGHLIGHTS = [
@@ -129,10 +129,7 @@ export default function GraphQLSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section
-      className="bg-gradient-to-br from-indigo-950 to-neutral-900"
-      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-graphql) 5%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-graphql) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -223,7 +220,12 @@ export default function GraphQLSection() {
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.1 }}
+          transition={
+            transition ?? {
+              ...spring.smooth,
+              delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.1,
+            }
+          }
         >
           {HIGHLIGHTS.map(([t, d]) => (
             <div
@@ -231,7 +233,9 @@ export default function GraphQLSection() {
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
               <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                {d}
+              </p>
             </div>
           ))}
         </motion.div>
@@ -241,7 +245,12 @@ export default function GraphQLSection() {
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.25 }}
+          transition={
+            transition ?? {
+              ...spring.smooth,
+              delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.25,
+            }
+          }
         >
           <Link
             href="/graphql"

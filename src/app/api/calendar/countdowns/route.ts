@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { createCountdownBodySchema } from "@/lib/schemas";
+import { parseBody } from "@/lib/parseBody";
 
 // GET /api/calendar/countdowns?cursor=<cursor>
 // returns one page of countdowns sorted by target date ascending.
@@ -16,6 +18,11 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const cursor = searchParams.get("cursor");
+
+  if (cursor !== null && !/^[\w+/=\-]{1,512}$/.test(cursor)) {
+    return NextResponse.json({ error: "Invalid cursor" }, { status: 400 });
+  }
+
   const backendUrl = cursor
     ? `${API_URL}/api/calendar/countdowns?cursor=${encodeURIComponent(cursor)}`
     : `${API_URL}/api/calendar/countdowns`;
@@ -52,12 +59,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const bodyResult = await parseBody(request, createCountdownBodySchema);
+  if (!bodyResult.ok) return bodyResult.response;
+  const body = bodyResult.data;
 
   try {
     const res = await fetch(`${API_URL}/api/calendar/countdowns`, {
       method: "POST",
-      headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
+      headers: buildHeaders(token, email, {
+        "Content-Type": "application/json",
+      }),
       body: JSON.stringify(body),
     });
     if (!res.ok) {

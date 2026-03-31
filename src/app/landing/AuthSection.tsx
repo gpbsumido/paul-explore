@@ -3,7 +3,12 @@
 import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
-import { slideInLeft, slideInRight, spring, instantTransition } from "@/lib/animations";
+import {
+  slideInLeft,
+  slideInRight,
+  spring,
+  instantTransition,
+} from "@/lib/animations";
 
 export default function AuthSection() {
   const ref = useRef(null);
@@ -17,10 +22,7 @@ export default function AuthSection() {
     : { duration: 0.45, ease: "easeInOut" as const };
 
   return (
-    <Section
-      className="bg-gradient-to-br from-primary-950 to-neutral-950"
-      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-auth) 5%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-auth) 5%, transparent) 0%, transparent 60%)">
       <div
         ref={ref}
         className="grid items-center gap-8 md:gap-12 md:grid-cols-2"
@@ -56,7 +58,10 @@ export default function AuthSection() {
               stroke="currentColor"
               initial={{ pathLength: 0 }}
               animate={inView ? { pathLength: 1 } : { pathLength: 0 }}
-              transition={{ ...drawTransition, delay: prefersReduced ? 0 : 0.35 }}
+              transition={{
+                ...drawTransition,
+                delay: prefersReduced ? 0 : 0.35,
+              }}
             />
             {/* keyhole dot fades in last */}
             <motion.circle
@@ -66,7 +71,11 @@ export default function AuthSection() {
               stroke="currentColor"
               initial={{ opacity: 0 }}
               animate={inView ? { opacity: 1 } : { opacity: 0 }}
-              transition={prefersReduced ? instantTransition : { duration: 0.25, delay: 0.65 }}
+              transition={
+                prefersReduced
+                  ? instantTransition
+                  : { duration: 0.25, delay: 0.65 }
+              }
             />
           </svg>
 
@@ -76,46 +85,77 @@ export default function AuthSection() {
           <ul className="mt-6 space-y-4 text-white/70">
             {/* Auth0 SDK — horizontal key */}
             <li className="flex items-start gap-3">
-              <svg viewBox="0 0 16 16" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-4 w-4 shrink-0 text-primary-400">
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mt-0.5 h-4 w-4 shrink-0 text-primary-400"
+              >
                 <circle cx="5" cy="10" r="3" stroke="currentColor" />
                 <path d="M8 10h6M12 8v4" stroke="currentColor" />
               </svg>
               <span>
-                <strong className="text-white">Auth0 SDK</strong> —
-                session management with server-side token handling
+                <strong className="text-white">Auth0 SDK</strong> — session
+                management with server-side token handling
               </span>
             </li>
             {/* CSP Headers — shield */}
             <li className="flex items-start gap-3">
-              <svg viewBox="0 0 16 16" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-4 w-4 shrink-0 text-primary-400">
-                <path d="M8 1.5L2 4.5v4c0 3 2.5 5.5 6 6.5 3.5-1 6-3.5 6-6.5v-4L8 1.5z" stroke="currentColor" />
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mt-0.5 h-4 w-4 shrink-0 text-primary-400"
+              >
+                <path
+                  d="M8 1.5L2 4.5v4c0 3 2.5 5.5 6 6.5 3.5-1 6-3.5 6-6.5v-4L8 1.5z"
+                  stroke="currentColor"
+                />
               </svg>
               <span>
-                <strong className="text-white">CSP Headers</strong> —
-                strict Content-Security-Policy via middleware
+                <strong className="text-white">CSP Headers</strong> — strict
+                Content-Security-Policy via middleware
               </span>
             </li>
             {/* Proxy Middleware — arrow through a node */}
             <li className="flex items-start gap-3">
-              <svg viewBox="0 0 16 16" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-4 w-4 shrink-0 text-primary-400">
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mt-0.5 h-4 w-4 shrink-0 text-primary-400"
+              >
                 <circle cx="8" cy="8" r="2" stroke="currentColor" />
                 <path d="M1 8h5M10 8h5M13 6l2 2-2 2" stroke="currentColor" />
               </svg>
               <span>
-                <strong className="text-white">Proxy Middleware</strong>{" "}
-                — API calls proxied server-side to hide secrets
+                <strong className="text-white">Proxy Middleware</strong> — API
+                calls proxied server-side to hide secrets
               </span>
             </li>
             {/* Route Protection — forked path with gate */}
             <li className="flex items-start gap-3">
-              <svg viewBox="0 0 16 16" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 h-4 w-4 shrink-0 text-primary-400">
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mt-0.5 h-4 w-4 shrink-0 text-primary-400"
+              >
                 <path d="M4 2v4l4 3 4-3V2" stroke="currentColor" />
                 <path d="M8 9v5" stroke="currentColor" />
                 <path d="M5 14h6" stroke="currentColor" />
               </svg>
               <span>
-                <strong className="text-white">Route Protection</strong>{" "}
-                — unauthenticated users redirected from private pages
+                <strong className="text-white">Route Protection</strong> —
+                unauthenticated users redirected from private pages
               </span>
             </li>
           </ul>

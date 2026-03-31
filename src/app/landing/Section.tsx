@@ -15,19 +15,26 @@ export default function Section({
 }: {
   children: React.ReactNode;
   className?: string;
-  /** Optional CSS gradient string rendered as a full-bleed overlay beneath the content.
-   *  Used for faint pastel radial glows that bleed through the section background. */
+  /** Optional CSS gradient string rendered as a full-bleed overlay beneath the content. */
   glow?: string;
 }) {
   return (
-    <section className={`relative w-full ${className}`}>
+    <section
+      className={`relative w-full ${className}`}
+      // Force dark-mode tokens so text stays white/light over the weather canvas.
+      data-theme="dark"
+    >
+      {/* Dark veil keeps section text readable over any weather effect */}
+      <div className="absolute inset-0 pointer-events-none bg-black/52 z-[1]" />
+
       {glow && (
         <div
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-0 z-[2]"
           style={{ background: glow }}
         />
       )}
-      <div className="relative mx-auto max-w-[1000px] px-6 py-24 md:py-32">
+
+      <div className="relative z-[3] mx-auto max-w-[1000px] px-6 py-24 md:py-32">
         {children}
       </div>
     </section>

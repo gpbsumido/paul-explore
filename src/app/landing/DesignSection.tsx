@@ -3,17 +3,12 @@
 import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
-import { spring, instantTransition } from "@/lib/animations";
-
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0 },
-};
+import {
+  spring,
+  instantTransition,
+  headingWipe,
+  fadeUp,
+} from "@/lib/animations";
 
 const SWATCHES = [
   ["bg-primary-400", "P400"],
@@ -37,10 +32,7 @@ export default function DesignSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section
-      className="bg-black"
-      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-motion) 5%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-motion) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -69,20 +61,26 @@ export default function DesignSection() {
             <motion.div
               key={label}
               className="flex flex-col items-center gap-1"
-              initial={prefersReduced ? { opacity: 0 } : {
-                x: ((i % 3) - 1) * 30,
-                y: Math.sin(i * 1.7) * 20,
-                rotate: Math.cos(i * 2.3) * 12,
-                scale: 0.7,
-                opacity: 0,
-              }}
-              animate={inView
-                ? { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }
-                : undefined
+              initial={
+                prefersReduced
+                  ? { opacity: 0 }
+                  : {
+                      x: ((i % 3) - 1) * 30,
+                      y: Math.sin(i * 1.7) * 20,
+                      rotate: Math.cos(i * 2.3) * 12,
+                      scale: 0.7,
+                      opacity: 0,
+                    }
               }
-              transition={prefersReduced
-                ? { ...instantTransition }
-                : { ...spring.bounce, delay: i * 0.04 }
+              animate={
+                inView
+                  ? { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1 }
+                  : undefined
+              }
+              transition={
+                prefersReduced
+                  ? { ...instantTransition }
+                  : { ...spring.bounce, delay: i * 0.04 }
               }
             >
               <div className={`h-10 w-10 rounded-lg ${bg} shadow-sm`} />

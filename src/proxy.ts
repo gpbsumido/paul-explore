@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 /**
  * Single proxy entry point for auth, session enforcement, and CSP headers.
@@ -28,11 +29,11 @@ import { auth0 } from "@/lib/auth0";
 
 const CSP = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline' https://vercel.live`,
+  `script-src 'self' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com`,
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
   `font-src 'self'`,
-  `connect-src 'self' https://vitals.vercel-insights.com https://vercel.live`,
+  `connect-src 'self' https://vitals.vercel-insights.com https://vercel.live https://api.open-meteo.com`,
   `frame-src https://vercel.live`,
   `object-src 'none'`,
   `base-uri 'self'`,
@@ -40,8 +41,78 @@ const CSP = [
   `frame-ancestors 'none'`,
 ].join("; ");
 
+/**
+ * Rate limit config for API routes.
+ * All windows are 60 seconds. Tighter limits on unauthenticated open routes;
+ * a generous fallback for auth-gated routes where the auth check itself acts
+ * as the primary protection.
+ */
+const RATE_LIMITS: Array<{
+  match: (pathname: string, method: string) => boolean;
+  bucket: string;
+  limit: number;
+}> = [
+  // Open ingestion — no auth, strict cap to block fake-metric spam
+  {
+    match: (p, m) => p === "/api/vitals" && m === "POST",
+    bucket: "vitals",
+    limit: 20,
+  },
+  // Geo proxy — no auth, low cap (cached 60 s server-side anyway)
+  {
+    match: (p, m) => p === "/api/geo" && m === "GET",
+    bucket: "geo",
+    limit: 30,
+  },
+  // Public PokeAPI proxy — no auth, moderate cap
+  {
+    match: (p, m) => p === "/api/graphql" && m === "POST",
+    bucket: "graphql",
+    limit: 60,
+  },
+  // Backstop for all other API routes (auth-gated, so mostly a sanity check)
+  { match: (p) => p.startsWith("/api/"), bucket: "api", limit: 300 },
+];
+
+const RATE_WINDOW_MS = 60_000;
+
+function getIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown"
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Rate limiting — checked before auth so we reject at the edge without
+  // doing any session work. First matching rule wins.
+  const ip = getIp(request);
+  for (const rule of RATE_LIMITS) {
+    if (!rule.match(pathname, request.method)) continue;
+    const { allowed, resetAt } = checkRateLimit(
+      ip,
+      rule.bucket,
+      rule.limit,
+      RATE_WINDOW_MS,
+    );
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((resetAt - Date.now()) / 1000)),
+            "X-RateLimit-Limit": String(rule.limit),
+            "X-RateLimit-Reset": String(Math.ceil(resetAt / 1000)),
+          },
+        },
+      );
+    }
+    break;
+  }
 
   // Auth0 OIDC routes — the SDK owns the full login / callback / logout flow.
   // v4 of @auth0/nextjs-auth0 uses /auth/* (not /api/auth/*).
@@ -53,7 +124,11 @@ export async function proxy(request: NextRequest) {
   // Unauthenticated requests redirect immediately to login with returnTo so
   // the user lands back here after signing in. Authenticated requests go
   // through auth0.middleware() for rolling session refresh.
-  if (pathname.startsWith("/vitals") || pathname.startsWith("/settings") || pathname.startsWith("/calendar")) {
+  if (
+    pathname.startsWith("/vitals") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/calendar")
+  ) {
     const session = await auth0.getSession(request);
     if (!session) {
       const loginUrl = new URL("/auth/login", request.url);

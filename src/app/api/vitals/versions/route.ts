@@ -20,15 +20,17 @@ export async function GET() {
     });
 
     if (!res.ok) {
-      // Backend doesn't have this endpoint yet — return empty gracefully
-      return NextResponse.json({ versions: [] });
+      console.error("[vitals BFF] GET /versions — backend error:", res.status);
+      return NextResponse.json(
+        { error: "Failed to fetch versions" },
+        { status: res.status },
+      );
     }
 
     const data = await res.json();
     return NextResponse.json({ versions: data.versions ?? [] });
   } catch (err) {
     console.error("[vitals BFF] GET /versions — fetch threw:", err);
-    // Graceful degradation: selector hidden if backend isn't ready
-    return NextResponse.json({ versions: [] });
+    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
   }
 }

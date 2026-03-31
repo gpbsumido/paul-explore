@@ -112,6 +112,18 @@ export const wordReveal: Variants = {
   visible: { opacity: 1, y: 0, rotateX: 0 },
 };
 
+/** Left-to-right clip wipe, used for landing section headings. */
+export const headingWipe: Variants = {
+  hidden: { clipPath: "inset(0 100% 0 0)" },
+  visible: { clipPath: "inset(0 0% 0 0)" },
+};
+
+/** Subtle fade up from 14px, used for landing section subtitles and blocks. */
+export const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0 },
+};
+
 // ---------------------------------------------------------------------------
 // Container factory
 // ---------------------------------------------------------------------------

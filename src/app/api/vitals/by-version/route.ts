@@ -19,12 +19,21 @@ export async function GET() {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!res.ok) return NextResponse.json({ byVersion: [] });
+    if (!res.ok) {
+      console.error(
+        "[vitals BFF] GET /by-version — backend error:",
+        res.status,
+      );
+      return NextResponse.json(
+        { error: "Failed to fetch version metrics" },
+        { status: res.status },
+      );
+    }
 
     const data = await res.json();
     return NextResponse.json({ byVersion: data.byVersion ?? [] });
   } catch (err) {
     console.error("[vitals BFF] GET /by-version — fetch threw:", err);
-    return NextResponse.json({ byVersion: [] });
+    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
   }
 }

@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui";
 import { selectChevron } from "@/assets/icons";
 import { queryKeys } from "@/lib/queryKeys";
+import FantasyNav from "../FantasyNav";
 import type { ESPNLeagueResponse, ESPNTeam, ESPNMember } from "@/types/espn";
 
 const POSITION_MAP: Record<number, string> = {
@@ -171,6 +172,7 @@ export default function LeagueContent() {
           { label: "League History" },
         ]}
       />
+      <FantasyNav />
 
       {/* ---- Season selector ---- */}
       <div className="border-b border-border">
@@ -199,9 +201,31 @@ export default function LeagueContent() {
       {/* ---- Content ---- */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6">
         {leagueQuery.isLoading && (
-          <div className="flex items-center justify-center text-muted text-[15px] py-20">
-            Loading league data…
-          </div>
+          <>
+            <div className="h-4 w-40 rounded bg-surface-raised animate-pulse mb-4" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-border bg-surface px-4 py-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-2">
+                      <div className="h-4 w-36 rounded bg-surface-raised animate-pulse" />
+                      <div className="h-3 w-24 rounded bg-surface-raised animate-pulse" />
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="h-4 w-12 rounded bg-surface-raised animate-pulse" />
+                      <div className="h-5 w-8 rounded-full bg-surface-raised animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-1">
+                    <div className="h-3 w-3 rounded bg-surface-raised animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {leagueQuery.isError && (

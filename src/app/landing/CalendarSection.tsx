@@ -4,17 +4,12 @@ import { useRef } from "react";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
-import { spring, instantTransition } from "@/lib/animations";
-
-const headingWipe = {
-  hidden: { clipPath: "inset(0 100% 0 0)" },
-  visible: { clipPath: "inset(0 0% 0 0)" },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0 },
-};
+import {
+  spring,
+  instantTransition,
+  headingWipe,
+  fadeUp,
+} from "@/lib/animations";
 
 const DOW = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
@@ -112,22 +107,28 @@ const HIGHLIGHTS = [
 
 // Row data keeps cell definitions co-located so cellIndex is easy to derive.
 const ROW1 = [
-  { day: 26, faded: true,  chips: [] },
-  { day: 27, faded: true,  chips: [] },
-  { day: 28, faded: true,  chips: [] },
-  { day: 1,                chips: [{ label: "Pocket night", color: "#10b981" }] },
-  { day: 2,                chips: [{ label: "Pocket night", color: "#10b981" }] },
-  { day: 3,                chips: [] },
-  { day: 4,                chips: [] },
+  { day: 26, faded: true, chips: [] },
+  { day: 27, faded: true, chips: [] },
+  { day: 28, faded: true, chips: [] },
+  { day: 1, chips: [{ label: "Pocket night", color: "#10b981" }] },
+  { day: 2, chips: [{ label: "Pocket night", color: "#10b981" }] },
+  { day: 3, chips: [] },
+  { day: 4, chips: [] },
 ] as const;
 
 const ROW2 = [
-  { day: 5,               chips: [] },
-  { day: 6,               chips: [{ label: "Trade meet", color: "#3b82f6" }] },
-  { day: 7,               chips: [{ label: "Trade meet", color: "#3b82f6" }, { label: "Pulled Mewtwo ✦", color: "#8b5cf6" }] },
-  { day: 8,               chips: [{ label: "Trade meet", color: "#3b82f6" }] },
-  { day: 9,               chips: [] },
-  { day: 10,              chips: [] },
+  { day: 5, chips: [] },
+  { day: 6, chips: [{ label: "Trade meet", color: "#3b82f6" }] },
+  {
+    day: 7,
+    chips: [
+      { label: "Trade meet", color: "#3b82f6" },
+      { label: "Pulled Mewtwo ✦", color: "#8b5cf6" },
+    ],
+  },
+  { day: 8, chips: [{ label: "Trade meet", color: "#3b82f6" }] },
+  { day: 9, chips: [] },
+  { day: 10, chips: [] },
   { day: 11, today: true, chips: [] },
 ] as const;
 
@@ -138,10 +139,7 @@ export default function CalendarSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section
-      className="bg-gradient-to-br from-teal-900 to-neutral-900"
-      glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-calendar) 5%, transparent) 0%, transparent 60%)"
-    >
+    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-calendar) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
           className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
@@ -177,7 +175,9 @@ export default function CalendarSection() {
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
             <div className="flex items-center gap-3">
               <div className="h-4 w-4 rounded bg-white/20" />
-              <span className="text-sm font-semibold text-white">February 2026</span>
+              <span className="text-sm font-semibold text-white">
+                February 2026
+              </span>
               <div className="h-4 w-4 rounded bg-white/20" />
             </div>
             <div className="flex gap-1.5">
@@ -244,7 +244,9 @@ export default function CalendarSection() {
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: CHIP_DELAY + 0.1 }}
+          transition={
+            transition ?? { ...spring.smooth, delay: CHIP_DELAY + 0.1 }
+          }
         >
           {HIGHLIGHTS.map(([t, d]) => (
             <div
@@ -252,7 +254,9 @@ export default function CalendarSection() {
               className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
             >
               <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">{d}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                {d}
+              </p>
             </div>
           ))}
         </motion.div>
@@ -262,7 +266,9 @@ export default function CalendarSection() {
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: CHIP_DELAY + 0.25 }}
+          transition={
+            transition ?? { ...spring.smooth, delay: CHIP_DELAY + 0.25 }
+          }
         >
           <Link
             href="/calendar"

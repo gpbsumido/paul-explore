@@ -30,6 +30,7 @@ export interface PlayerStats {
   ft_pct: number;
   fg3_pct: number;
   turnover: number;
+  fantasy_points?: number;
 }
 
 // nba/player/stats page types
@@ -44,7 +45,8 @@ export type SortKey =
   | "reb"
   | "ast"
   | "stl"
-  | "blk";
+  | "blk"
+  | "fpt";
 
 // Player row in Player Stats page
 export interface PlayerRow {
@@ -53,4 +55,21 @@ export interface PlayerRow {
   pos: string;
   stats: PlayerStats | null;
   error?: boolean;
+}
+
+// Court Vision shot chart types
+
+export interface ShotZone {
+  zone: string;
+  fgPct: number;
+  fgm: number;
+  fga: number;
+  attPerGame: number;
+  makesPerGame: number;
+}
+
+export interface ShotChartData {
+  playerId: number;
+  season: string;
+  zones: ShotZone[];
 }

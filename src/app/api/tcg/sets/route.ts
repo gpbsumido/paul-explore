@@ -8,8 +8,24 @@ const tcgdex = new TCGdex("en");
 const CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400";
 
 export async function GET() {
-  const sets = await tcgdex.set.list();
-  return NextResponse.json(toPlain(sets ?? []), {
+  let sets;
+  try {
+    sets = await tcgdex.set.list();
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to fetch sets" },
+      { status: 502 },
+    );
+  }
+
+  if (!sets) {
+    return NextResponse.json(
+      { error: "Failed to fetch sets" },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json(toPlain(sets), {
     headers: { "Cache-Control": CACHE_CONTROL },
   });
 }
