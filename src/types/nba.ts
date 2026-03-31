@@ -54,3 +54,20 @@ export interface PlayerRow {
   stats: PlayerStats | null;
   error?: boolean;
 }
+
+// Court Vision shot chart types
+
+export interface ShotZone {
+  zone: string;
+  fgPct: number;
+  fgm: number;
+  fga: number;
+  attPerGame: number;
+  makesPerGame: number;
+}
+
+export interface ShotChartData {
+  playerId: number;
+  season: string;
+  zones: ShotZone[];
+}

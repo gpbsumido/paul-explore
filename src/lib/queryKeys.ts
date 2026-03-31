@@ -68,6 +68,9 @@ export const queryKeys = {
 
     /** Scoreboard matchups for a given season year. */
     scoreboard: (season: number) => ["nba", "scoreboard", season] as const,
+
+    /** Shot chart zones for a single player. */
+    shots: (playerId: number) => ["nba", "shots", playerId] as const,
   },
 
   tcg: {

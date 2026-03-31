@@ -416,6 +416,30 @@ export default function LandingPageContent() {
                 by the matchup cards.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Court Vision heatmap</h2>
+              <p className="text-muted">
+                An SVG half-court at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /fantasy/nba/court-vision
+                </code>{" "}
+                renders six shooting zones whose fill color maps to FG%: blue
+                for cold, yellow for average, red for hot. Each zone is a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &lt;path&gt;
+                </code>{" "}
+                with Framer Motion staggered fade-in and a hover tooltip showing
+                the exact percentage and attempts per game. The backend endpoint
+                currently returns deterministic mock data seeded by player ID
+                because the NBA&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  shotchartdetail
+                </code>{" "}
+                endpoint times out from server environments. The response shape
+                is ready for a drop-in swap once access is sorted.
+              </p>
+            </section>
           </div>
         </main>
       ) : (

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-03-30 - version 0.7.5
+
+- add Court Vision page at `/fantasy/nba/court-vision` with an SVG half-court and shooting zones
+- zone colors go cold-to-hot by FG%: blue (<35%), yellow (35-48%), red (>48%), with hover tooltips and a staggered fade-in via Framer Motion
+- zone stats table below the court with FG%, FGM, FGA, and attempts per game
+
 ## 2026-03-30 - version 0.7.4
 
 - add player comparison radar chart on the Player Stats page. two-player selector with a recharts RadarChart, normalized to 0-100 against league averages and a raw stat comparison table

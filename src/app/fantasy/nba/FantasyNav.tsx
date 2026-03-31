@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/fantasy/nba/matchups", label: "Matchups" },
   { href: "/fantasy/nba/league-history", label: "League History" },
   { href: "/fantasy/nba/player/stats", label: "Player Stats" },
+  { href: "/fantasy/nba/court-vision", label: "Court Vision" },
 ] as const;
 
 /** Tab bar shared across ESPN fantasy basketball pages. */
