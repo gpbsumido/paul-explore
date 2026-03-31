@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-30 - version 0.7.4
+
+- add player comparison radar chart on the Player Stats page. two-player selector with a recharts RadarChart, normalized to 0-100 against league averages and a raw stat comparison table
+
 ## 2026-03-30 - version 0.7.3
 
 - add ESPN fantasy matchup page at `/fantasy/nba/matchups` with head-to-head weekly view

@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -25,6 +25,7 @@
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "recharts": "^3.8.1",
     "three": "^0.183.2",
     "three-stdlib": "^2.36.1",
     "web-vitals": "^5.1.0",

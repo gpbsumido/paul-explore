@@ -390,6 +390,32 @@ export default function LandingPageContent() {
                 the hub.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Player comparison radar chart
+              </h2>
+              <p className="text-muted">
+                The Player Stats page now has a comparison tool built with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  recharts
+                </code>
+                . Two dropdowns let you pick players from the loaded roster, and
+                a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  RadarChart
+                </code>{" "}
+                plots six dimensions (PTS, REB, AST, STL, BLK, FG%) normalized
+                to a 0-100 scale where 100 equals twice the league average. The
+                normalization lives in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  fantasyHelpers.ts
+                </code>{" "}
+                so it can be reused elsewhere. A raw stat table below the chart
+                highlights category winners in the same orange/cyan scheme used
+                by the matchup cards.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
