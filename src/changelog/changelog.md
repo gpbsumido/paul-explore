@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-03-31 - version 0.7.6
+
+- add Predictions Panel below the matchup grid with a team selector in the toolbar
+- Start/Sit recommendations show each player's real NBA games for the week with per-game and weekly projections derived from ESPN season averages
+- injury status (OUT, DTD, Questionable, Doubtful) discounts projections and shows inline badges, OUT players project to 0
+- Waiver Wire pulls actual free agents from ESPN (not rostered players), sorted by per-game average with games-this-week count
+- Weekly Outlook blends league rank and projected roster totals into a star rating, shows head-to-head projection comparison
+- new `/api/nba/schedule` route fetches the NBA game schedule for a date range, `/api/nba/freeagents` returns top unrostered players
+
 ## 2026-03-30 - version 0.7.5
 
 - add Court Vision page at `/fantasy/nba/court-vision` with an SVG half-court and shooting zones

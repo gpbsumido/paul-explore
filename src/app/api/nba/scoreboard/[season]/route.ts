@@ -17,7 +17,7 @@ export async function GET(
 
   try {
     const res = await fetch(
-      `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/449389534?view=mScoreboard&view=mTeam&view=mSettings`,
+      `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/449389534?view=mScoreboard&view=mTeam&view=mRoster&view=mSettings`,
     );
 
     if (!res.ok) {

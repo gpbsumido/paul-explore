@@ -440,6 +440,24 @@ export default function LandingPageContent() {
                 is ready for a drop-in swap once access is sorted.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Predictions panel</h2>
+              <p className="text-muted">
+                A &ldquo;Prediction for&rdquo; selector in the matchup toolbar
+                reveals a predictions widget below the matchup grid. It has four
+                sections, each with a left-border accent heading: Start/Sit
+                recommendations rank every rostered player by a projected-points
+                model that factors in opponent defensive ranking, with a
+                color-coded confidence bar per row. Waiver Wire surfaces bench
+                players from other teams that project higher than yours. Weekly
+                Outlook gives a 1-5 star rating and a short summary of matchup
+                difficulty. Injury Watch lists anyone on your roster with an
+                ESPN injury flag (DTD, OUT, Questionable, Doubtful). Everything
+                is algorithmic using a deterministic seeded random so the same
+                player always gets the same projection, no external AI involved.
+              </p>
+            </section>
           </div>
         </main>
       ) : (

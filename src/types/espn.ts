@@ -1,13 +1,33 @@
+export interface ESPNPlayerStats {
+  id: string;
+  stats: Record<string, number>;
+  appliedTotal: number;
+}
+
 export interface ESPNPlayer {
   id: number;
   fullName: string;
   defaultPositionId: number;
+  injuryStatus?: "ACTIVE" | "DAY_TO_DAY" | "OUT" | "QUESTIONABLE" | "DOUBTFUL";
+  proTeamId?: number;
+  stats?: ESPNPlayerStats[];
 }
+
+/** ESPN position ID to readable abbreviation. */
+export const ESPN_POSITION_MAP: Record<number, string> = {
+  1: "PG",
+  2: "SG",
+  3: "SF",
+  4: "PF",
+  5: "C",
+};
 
 export interface ESPNRosterEntry {
   playerPoolEntry: {
     player: ESPNPlayer;
+    ratings?: Record<string, { totalRating: number }>;
   };
+  lineupSlotId: number;
 }
 
 export interface ESPNRecord {
@@ -30,6 +50,7 @@ export interface ESPNTeam {
   roster: {
     entries: ESPNRosterEntry[];
   };
+  currentProjectedRank: number;
   rankCalculatedFinal: number;
 }
 

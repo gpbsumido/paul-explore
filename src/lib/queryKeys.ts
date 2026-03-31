@@ -71,6 +71,13 @@ export const queryKeys = {
 
     /** Shot chart zones for a single player. */
     shots: (playerId: number) => ["nba", "shots", playerId] as const,
+
+    /** NBA game schedule for a date range (YYYYMMDD). */
+    schedule: (start: string, end: string) =>
+      ["nba", "schedule", start, end] as const,
+
+    /** Top free agents for a given season. */
+    freeAgents: (season: number) => ["nba", "freeAgents", season] as const,
   },
 
   tcg: {

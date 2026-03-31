@@ -8,6 +8,7 @@ import { Button } from "@/components/ui";
 import { selectChevron } from "@/assets/icons";
 import { queryKeys } from "@/lib/queryKeys";
 import FantasyNav from "../FantasyNav";
+import PredictionPanel from "./PredictionPanel";
 import type {
   ESPNScoreboardResponse,
   ESPNScheduleEntry,
@@ -262,6 +263,7 @@ function SkeletonCard() {
 export default function MatchupContent() {
   const [season, setSeason] = useState(CURRENT_YEAR);
   const [week, setWeek] = useState<number | null>(null);
+  const [myTeamId, setMyTeamId] = useState<number | null>(null);
 
   const scoreboardQuery = useQuery({
     queryKey: queryKeys.nba.scoreboard(season),
@@ -369,8 +371,32 @@ export default function MatchupContent() {
             })}
           </select>
 
+          {/* Prediction for picker for predictions */}
+          <span className="text-[13px] text-muted shrink-0 ml-auto sm:ml-0">
+            Prediction for
+          </span>
+          <select
+            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
+            style={{
+              backgroundImage: selectChevron,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 10px center",
+              paddingRight: "28px",
+            }}
+            value={myTeamId ?? ""}
+            onChange={(e) => setMyTeamId(Number(e.target.value) || null)}
+            disabled={teams.length === 0}
+          >
+            <option value="">Select…</option>
+            {teams.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+
           {/* Week navigation arrows */}
-          <div className="flex items-center gap-1 ml-auto">
+          <div className="flex items-center gap-1 sm:ml-auto">
             <button
               type="button"
               aria-label="Previous week"
@@ -481,6 +507,19 @@ export default function MatchupContent() {
             <div className="flex items-center justify-center text-muted text-[15px] py-20 text-center">
               No matchups for this week
             </div>
+          )}
+
+        {/* Prediction panel, shown when a team is selected */}
+        {!scoreboardQuery.isLoading &&
+          !scoreboardQuery.isError &&
+          myTeamId &&
+          weekMatchups.length > 0 && (
+            <PredictionPanel
+              teams={teams}
+              userTeamId={myTeamId}
+              weekMatchups={weekMatchups}
+              season={season}
+            />
           )}
       </main>
     </div>
