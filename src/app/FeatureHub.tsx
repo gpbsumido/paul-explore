@@ -198,6 +198,13 @@ const THOUGHTS: ThoughtItem[] = [
       "Zod validation, fixed-window rate limiting, and body size limits across every API route",
     color: "#34d399",
   },
+  {
+    title: "Testing",
+    href: "/thoughts/testing",
+    preview:
+      "108 tests, Vitest + MSW, and the delay() trick for proving optimistic updates fire before the server responds",
+    color: "#818cf8",
+  },
 ].reverse();
 
 // ---- Mini preview sub-components ----

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-04-03 - version 0.8.0
+
+- added testing infrastructure (108 tests in 7 files)
+  - vitest, jsdom, Testing Library, MSW node server
+  - `npm test`, `npm run test:watch`, `npm run test:coverage`
+    - `src/lib/__tests__/rateLimit.test.ts` — fixed-window rate limiter: allow/block/reset, IP isolation, bucket isolation
+    - `src/lib/__tests__/calendar.test.ts` — calendar pure functions: `eventsForDay`, `allDayEventsForDay`, `spanningEventsForDay`, `singleDayTimedEventsForDay`, `layoutDayEvents` (overlap algorithm), `formatHeading`, `formatHour`
+    - `src/lib/__tests__/vitals.test.ts` — `formatValue` (ms/s/CLS decimal), `getRatingColor` (all three thresholds across all five metrics)
+    - `src/lib/__tests__/tcg.test.ts` — `typeStyle` (known/unknown/case-sensitive), `toPlain` (strips circular SDK refs)
+    - `src/lib/__tests__/proxy.test.ts` — rate-limit rule matching, first-match-wins ordering, fallback bucket
+    - `src/hooks/__tests__/useCalendarEvents.test.tsx` — fetch, SSR seed, error state, create/update/delete with optimistic updates and rollback
+    - `src/hooks/__tests__/useCountdowns.test.tsx` — pagination flattening, hasNextPage, fetchNextPage, create/update/delete with optimistic updates and rollback
+- optimistic update tests use MSW delay() on server response, then assert cache change appears before network responds, proving optimistic state
+
 ## 2026-03-31 - version 0.7.7
 
 - add `useCountUp` hook with ease-out cubic easing via RAF, respects `prefers-reduced-motion`
