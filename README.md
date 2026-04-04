@@ -8,6 +8,36 @@ A personal playground and portfolio — somewhere between a sandbox and a showca
 
 ---
 
+## Key technical decisions
+
+- **BFF auth pattern** — the browser never sees an access token. Next.js API routes call `auth0.getAccessToken()` server-side and forward the JWT to the Express backend, so credentials stay out of the network tab entirely.
+- **No Apollo / no GraphQL client library** — the Pokédex calls PokeAPI's Hasura endpoint with plain `fetch`. GraphQL is just HTTP; a 10-line wrapper covers everything needed here without the 60 kB bundle cost of a full client.
+- **Custom calendar grid, not FullCalendar** — FullCalendar's React support requires a paid license. The custom build keeps the bundle small, gives full control over the interaction model, and was the forcing function for writing the overlap layout algorithm (`layoutDayEvents`) that places simultaneous events side by side.
+- **Real-user monitoring pipeline** — `web-vitals` observers beacon LCP, FCP, INP, CLS, and TTFB to a Postgres table on every page load. The `/vitals` dashboard shows P75 by metric, by route, and by app version — so every deploy either moves the numbers or it doesn't.
+- **Optimistic updates with mid-flight assertions** — calendar mutations apply to the TanStack Query cache before the server responds (`onMutate`), roll back on error (`onError`), and invalidate all related ranges on settle (`onSettled`). Tests use MSW `delay()` to assert the cache state while the request is still in-flight — not just the end state.
+
+---
+
+## What works without logging in
+
+The following pages are fully public — no account needed:
+
+- **Landing page** (`/`) — hero, feature grid
+- **Particle Lab** (`/lab/particles`) — interactive R3F particle network
+- **Motion Lab** (`/lab/motion`) — Framer Motion demos
+- **Pokémon TCG Browser** (`/tcg`) — browse, search, set and card detail pages
+- **GraphQL Pokédex** (`/pokedex`) — search and filter all Pokémon
+- **Thoughts** (`/thoughts/*`) — write-ups on design decisions
+
+These pages require a login:
+
+- **Calendar** (`/calendar`) — personal calendar with Google Calendar sync
+- **Web Vitals** (`/vitals`) — real-user Core Web Vitals dashboard
+- **NBA Stats** (`/nba`) — live player stats
+- **Settings** (`/settings`)
+
+---
+
 ## What's inside
 
 ### 🔐 Auth & Security
@@ -113,25 +143,7 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 | Auth        | Auth0                  | (managed)                  |
 | Database    | PostgreSQL on Railway  | (internal)                 |
 
-CI runs on GitHub Actions — typecheck + full test suite on every push to `main`/`develop` and on PRs. A failing check blocks the Vercel deploy.
-
-### What works without logging in
-
-The following pages are fully public — no account needed:
-
-- **Landing page** (`/`) — hero, feature grid, dev notes
-- **Particle Lab** (`/lab/particles`) — interactive R3F particle network
-- **Motion Lab** (`/lab/motion`) — Framer Motion demos
-- **Pokémon TCG Browser** (`/tcg`) — browse, search, set and card detail pages
-- **GraphQL Pokédex** (`/pokedex`) — search and filter all Pokémon
-- **Thoughts** (`/thoughts/*`) — write-ups on design decisions
-
-These pages require a login:
-
-- **Calendar** (`/calendar`) — personal calendar with Google Calendar sync
-- **Web Vitals** (`/vitals`) — real-user Core Web Vitals dashboard
-- **NBA Stats** (`/nba`) — live player stats
-- **Settings** (`/settings`)
+CI runs on GitHub Actions — lint, typecheck, and full test suite on every push to `main`/`develop` and on PRs. A failing check blocks the Vercel deploy.
 
 ---
 
@@ -155,38 +167,41 @@ These pages require a login:
 
 ---
 
-## Getting started
+## Run locally
 
-You'll need Node.js 18+ and an Auth0 account (free tier works fine).
+Requires Node.js 18+ and an Auth0 account (free tier works).
 
+**1. Clone and install**
 ```bash
-# Clone and install
-git clone https://github.com/paulsumido/paul-explore.git
+git clone https://github.com/gpbsumido/paul-explore.git
 cd paul-explore
 npm install
 ```
 
-Copy `.env.example` to `.env.local` and fill in your values:
-
+**2. Set up environment variables**
 ```bash
 cp .env.example .env.local
 ```
 
+**3. Fill in `.env.local`**
 ```env
-AUTH0_SECRET=            # run: openssl rand -hex 32
+AUTH0_SECRET=            # openssl rand -hex 32
 AUTH0_DOMAIN=your-tenant.us.auth0.com
-AUTH0_CLIENT_ID=
-AUTH0_CLIENT_SECRET=
+AUTH0_CLIENT_ID=         # from Auth0 application settings
+AUTH0_CLIENT_SECRET=     # from Auth0 application settings
 AUTH0_AUDIENCE=https://portfolio-api
 APP_BASE_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
+**4. Start the dev server**
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+**5. Open [http://localhost:3000](http://localhost:3000)**
+
+TCG browser, Pokédex, and the lab pages work immediately. Calendar and Vitals require a valid Auth0 session.
 
 ---
 

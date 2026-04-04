@@ -3,7 +3,12 @@
 ## 2026-04-04 - version 0.8.2
 
 - moved changelog from ~/changelog/changelog.md to ~/CHANGELOG.md
-- update CI test flow
+- updated CI workflow: added lint step, PR trigger now covers `develop`, job renamed to `quality`
+- added CI badge to README
+- update readme
+  - added "Key Technical Decisions" section (BFF auth, no-Apollo GraphQL, custom calendar, RUM pipeline, optimistic update testing)
+  - added section for whats public vs what needs auth
+  - replaced "Getting started" with a "Run locally" section
 
 ## 2026-04-04 - version 0.8.1
 
