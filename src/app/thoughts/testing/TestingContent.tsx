@@ -429,10 +429,10 @@ await waitFor(() =>
                 runs correctly
               </Sent>
               <Sent pos="last">
-                and a GitHub Actions workflow that runs the suite on every push.
-                the tests exist but there&apos;s no CI gate yet — nothing stops
-                a broken commit from reaching main if you forget to run npm test
-                locally
+                there&apos;s also a GitHub Actions workflow now that runs the suite
+                on every push to main and develop. if tests fail the Vercel
+                deploy is blocked — you can&apos;t merge a broken commit without
+                explicitly overriding the branch protection rule
               </Sent>
 
               <div className={styles.typingDots}>

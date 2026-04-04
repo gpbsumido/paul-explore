@@ -13,6 +13,7 @@
     - `src/hooks/__tests__/useCalendarEvents.test.tsx` — fetch, SSR seed, error state, create/update/delete with optimistic updates and rollback
     - `src/hooks/__tests__/useCountdowns.test.tsx` — pagination flattening, hasNextPage, fetchNextPage, create/update/delete with optimistic updates and rollback
 - optimistic update tests use MSW delay() on server response, then assert cache change appears before network responds, proving optimistic state
+- CI workflow `.github/workflows/ci.yml` that runs typecheck and full test suite on every push to `main` or `develop` branches. Fails block Vercel deployment
 
 ## 2026-03-31 - version 0.7.7
 
