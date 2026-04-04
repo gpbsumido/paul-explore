@@ -2,7 +2,7 @@
 
 A personal playground and portfolio — somewhere between a sandbox and a showcase. Built to explore ideas, try patterns I find interesting, and have something real to point at when talking to people about how I work.
 
-**[Live demo →](http://localhost:3000)** _(spin it up locally — instructions below)_
+**[Live demo → paulsumido.com](https://paulsumido.com)**
 
 ---
 
@@ -102,6 +102,37 @@ ESPN fantasy league data by season. Teams sort by final standings, expand to sho
 
 ---
 
+## Deployment
+
+| Layer       | Platform               | URL                        |
+| ----------- | ---------------------- | -------------------------- |
+| Frontend    | Vercel + Cloudflare CDN | paulsumido.com            |
+| Backend API | Railway                | api.paulsumido.com         |
+| Auth        | Auth0                  | (managed)                  |
+| Database    | PostgreSQL on Railway  | (internal)                 |
+
+CI runs on GitHub Actions — typecheck + full test suite on every push to `main`/`develop` and on PRs. A failing check blocks the Vercel deploy.
+
+### What works without logging in
+
+The following pages are fully public — no account needed:
+
+- **Landing page** (`/`) — hero, feature grid, dev notes
+- **Particle Lab** (`/lab/particles`) — interactive R3F particle network
+- **Motion Lab** (`/lab/motion`) — Framer Motion demos
+- **Pokémon TCG Browser** (`/tcg`) — browse, search, set and card detail pages
+- **GraphQL Pokédex** (`/pokedex`) — search and filter all Pokémon
+- **Thoughts** (`/thoughts/*`) — write-ups on design decisions
+
+These pages require a login:
+
+- **Calendar** (`/calendar`) — personal calendar with Google Calendar sync
+- **Web Vitals** (`/vitals`) — real-user Core Web Vitals dashboard
+- **NBA Stats** (`/nba`) — live player stats
+- **Settings** (`/settings`)
+
+---
+
 ## Tech stack
 
 | Layer         | Choice                                      |
@@ -133,14 +164,20 @@ cd paul-explore
 npm install
 ```
 
-Create a `.env.local` file:
+Copy `.env.example` to `.env.local` and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
 
 ```env
-AUTH0_SECRET=<a long random string — run: openssl rand -hex 32>
-AUTH0_BASE_URL=http://localhost:3000
-AUTH0_ISSUER_BASE_URL=https://<your-auth0-domain>
-AUTH0_CLIENT_ID=<your-client-id>
-AUTH0_CLIENT_SECRET=<your-client-secret>
+AUTH0_SECRET=            # run: openssl rand -hex 32
+AUTH0_DOMAIN=your-tenant.us.auth0.com
+AUTH0_CLIENT_ID=
+AUTH0_CLIENT_SECRET=
+AUTH0_AUDIENCE=https://portfolio-api
+APP_BASE_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ```bash
@@ -268,4 +305,4 @@ src/
 
 ## Changelog
 
-See [`src/changelog/changelog.md`](src/changelog/changelog.md) for a running log of changes/additions.
+See [`CHANGELOG.md`](CHANGELOG.md) for a running log of changes/additions.

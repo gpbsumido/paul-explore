@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-04-04 - version 0.8.1
+
+- added `vercel.json`
+- update readme to indicate our live demo
+
 ## 2026-04-03 - version 0.8.0
 
 - added testing infrastructure (108 tests in 7 files)
