@@ -207,6 +207,28 @@ export default function TestingContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">CI and deploy gates</h2>
+              <p className="text-muted">
+                Tests only matter if they run automatically. A GitHub Actions
+                workflow runs typecheck and the full suite on every push to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  main
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  develop
+                </code>
+                , and on every PR targeting{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  main
+                </code>
+                . Vercel deploys are gated on the check passing via GitHub
+                branch protection — a failing test blocks the deploy without
+                any extra configuration on the Vercel side.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">Factory functions</h2>
               <p className="text-muted">
                 Every test uses factory functions instead of shared fixtures.{" "}
@@ -414,6 +436,22 @@ await waitFor(() =>
 
               <Timestamp>10:31 AM</Timestamp>
 
+              <Received>how do the tests run automatically</Received>
+
+              <Sent pos="first">
+                GitHub Actions. there&apos;s a workflow that triggers on every push
+                to main and develop, and on any PR targeting main. it runs
+                typecheck first, then the full test suite
+              </Sent>
+              <Sent pos="last">
+                Vercel watches the GitHub check status. if the workflow fails,
+                the deploy is blocked — you can&apos;t push a broken commit to
+                production without explicitly overriding the branch protection
+                rule in GitHub settings
+              </Sent>
+
+              <Timestamp>10:36 AM</Timestamp>
+
               <Received>what would you add next</Received>
 
               <Sent pos="first">
@@ -422,17 +460,11 @@ await waitFor(() =>
                 in week view. the calendar sharing model is complex enough that
                 a full browser test would catch things unit tests miss
               </Sent>
-              <Sent pos="middle">
+              <Sent pos="last">
                 mutation testing with Stryker to verify the tests actually kill
                 the mutations they should. running it would tell you which
                 assertions are just checking that the code runs, not that it
                 runs correctly
-              </Sent>
-              <Sent pos="last">
-                there&apos;s also a GitHub Actions workflow now that runs the suite
-                on every push to main and develop. if tests fail the Vercel
-                deploy is blocked — you can&apos;t merge a broken commit without
-                explicitly overriding the branch protection rule
               </Sent>
 
               <div className={styles.typingDots}>
