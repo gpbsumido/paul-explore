@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-04-04 - version 0.8.2
+
+- moved changelog from ~/changelog/changelog.md to ~/CHANGELOG.md
+- update CI test flow
+
 ## 2026-04-04 - version 0.8.1
 
 - added `vercel.json`

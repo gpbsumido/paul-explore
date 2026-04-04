@@ -1,5 +1,7 @@
 # paul-explore
 
+[![CI](https://github.com/gpbsumido/paul-explore/actions/workflows/ci.yml/badge.svg)](https://github.com/gpbsumido/paul-explore/actions/workflows/ci.yml)
+
 A personal playground and portfolio — somewhere between a sandbox and a showcase. Built to explore ideas, try patterns I find interesting, and have something real to point at when talking to people about how I work.
 
 **[Live demo → paulsumido.com](https://paulsumido.com)**
