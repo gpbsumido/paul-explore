@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-04-07 - version 0.8.3
+
+- added Playwright E2E test suite
+  - `playwright.config.ts` with two projects: `public` (no auth) and `authenticated` (session cookie)
+  - `e2e/global-setup.ts` — logs into Auth0 once via real browser, saves `storageState`, creates `[E2E] Test Calendar` via API
+  - `e2e/global-teardown.ts` — deletes the test calendar after the suite finishes
+  - `e2e/public/smoke.spec.ts` — root page loads
+  - `e2e/public/auth.spec.ts` — `/calendar`, `/vitals`, `/settings` redirect unauthenticated users
+  - `e2e/public/tcg.spec.ts` — search filters card grid, scroll-to-sentinel loads next page, clicking a card opens its detail page
+  - `e2e/authenticated/calendar.spec.ts` — create event via UI and verify in grid, delete via UI; create via API and verify in week view
+  - calendar tests self-skip when `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` are absent
+  - added `test:e2e`, `test:e2e:ui`, `test:e2e:report` scripts to `package.json`
+- added `/thoughts/e2e` page with summary and chat views covering the why, how, and tradeoffs
+
 ## 2026-04-04 - version 0.8.2
 
 - moved changelog from ~/changelog/changelog.md to ~/CHANGELOG.md

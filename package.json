@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "analyze": "ANALYZE=true next build --webpack"
+    "analyze": "ANALYZE=true next build --webpack",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.15.0",
@@ -36,6 +39,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
