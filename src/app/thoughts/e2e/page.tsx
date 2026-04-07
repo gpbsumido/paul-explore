@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import ImprovementsContent from "./ImprovementsContent";
+import E2eContent from "./E2eContent";
 
-const TITLE = "API Hardening | Thoughts";
+const TITLE = "End-to-End Testing | Thoughts";
 const DESCRIPTION =
-  "Five gaps closed: Zod validation, rate limiting, body size limits, URL param validation, and consistent error response shapes across all API routes.";
+  "Why unit tests alone miss the flows that matter most, and how Playwright fills that gap — globalSetup auth, a dedicated test calendar, and three test suites for auth redirects, TCG browsing, and calendar CRUD.";
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   openGraph: {
     type: "article",
-    url: `${SITE_URL}/thoughts/improvements`,
+    url: `${SITE_URL}/thoughts/e2e`,
     title: TITLE,
     description: DESCRIPTION,
     images: [OG_IMAGE],
@@ -24,9 +24,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Static write-up -- cache at CDN for 24h
 export const revalidate = 86400;
 
-export default function ImprovementsPage() {
-  return <ImprovementsContent />;
+export default function E2eThoughtsPage() {
+  return <E2eContent />;
 }

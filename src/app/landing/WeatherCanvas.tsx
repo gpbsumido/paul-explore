@@ -740,6 +740,16 @@ function createEffect(
 // Component
 // ---------------------------------------------------------------------------
 
+// scheduler.isInputPending is a non-standard API that returns true when there
+// are queued pointer/keyboard events waiting to be dispatched. Yielding on
+// those frames keeps INP low by giving the browser a chance to flush input
+// before our canvas work claims the frame budget.
+type SchedulingAPI = {
+  isInputPending(options?: { includeContinuous?: boolean }): boolean;
+};
+
+const FRAME_BUDGET_MS = 1000 / 30; // throttle canvas to 30fps — halves main-thread load
+
 export default function WeatherCanvas({ className }: { className?: string }) {
   const { activeCondition, enabled, loading, selectedEffect } =
     useWeatherContext();
@@ -768,6 +778,10 @@ export default function WeatherCanvas({ className }: { className?: string }) {
     const effect = createEffect(activeCondition, canvas.width, canvas.height);
     let frame = 0;
     let animId: number;
+    let lastFrameTime = 0;
+
+    const scheduling = (navigator as Navigator & { scheduling?: SchedulingAPI })
+      .scheduling;
 
     const onResize = () => {
       setSize();
@@ -789,9 +803,19 @@ export default function WeatherCanvas({ className }: { className?: string }) {
     window.addEventListener("mousemove", onMouse, { passive: true });
     document.addEventListener("mouseleave", onLeave);
 
-    const loop = () => {
+    const loop = (timestamp: number) => {
       animId = requestAnimationFrame(loop);
       if (document.hidden || !isVisibleRef.current) return;
+
+      // Throttle to 30fps so the main thread has headroom for user interactions.
+      if (timestamp - lastFrameTime < FRAME_BUDGET_MS) return;
+      lastFrameTime = timestamp;
+
+      // Yield the frame entirely when pointer or keyboard input is pending —
+      // this is the key INP win: the browser dispatches the event immediately
+      // instead of queuing it behind canvas work.
+      if (scheduling?.isInputPending({ includeContinuous: false })) return;
+
       frame++;
       const { width: w, height: h } = canvas;
       effect.update(frame, w, h);

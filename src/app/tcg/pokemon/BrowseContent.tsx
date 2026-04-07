@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { POKEMON_TYPES, typeStyle, type CardResume, type CardPage } from "@/lib/tcg";
+import {
+  POKEMON_TYPES,
+  typeStyle,
+  type CardResume,
+  type CardPage,
+} from "@/lib/tcg";
 import { useDebounce } from "@/hooks/useDebounce";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -25,6 +30,7 @@ interface BrowseContentProps {
 export default function BrowseContent({ initialCards }: BrowseContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const urlQ = searchParams.get("q") ?? "";
   const urlType = searchParams.get("type") ?? "";
 
@@ -32,14 +38,22 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
   const [type, setType] = useState(urlType);
   const debouncedSearch = useDebounce(search, 350);
 
-  useEffect(() => { setSearch(urlQ); }, [urlQ]);
-  useEffect(() => { setType(urlType); }, [urlType]);
+  useEffect(() => {
+    setSearch(urlQ);
+  }, [urlQ]);
+  useEffect(() => {
+    setType(urlType);
+  }, [urlType]);
 
   // When server data is available start from page 1 so initialData and
   // initialPageParam agree. Otherwise read ?page=N from the URL to resume
   // approximately where the previous session left off.
   const rawPage = parseInt(searchParams.get("page") ?? "1", 10);
-  const initialPageParam = initialCards ? 1 : (Number.isNaN(rawPage) ? 1 : rawPage);
+  const initialPageParam = initialCards
+    ? 1
+    : Number.isNaN(rawPage)
+      ? 1
+      : rawPage;
 
   const {
     data,
@@ -65,7 +79,9 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
       lastPage.hasMore ? (lastPageParam as number) + 1 : undefined,
     initialData: initialCards
       ? {
-          pages: [{ cards: initialCards, hasMore: initialCards.length >= PER_PAGE }],
+          pages: [
+            { cards: initialCards, hasMore: initialCards.length >= PER_PAGE },
+          ],
           pageParams: [1],
         }
       : undefined,
@@ -85,14 +101,17 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
 
   // Sync filters and current page depth to the URL for shareability and
   // back-navigation. router.replace with scroll:false keeps the viewport still.
+  // Guard against running during navigation away from this page -- router.replace
+  // would cancel the in-progress Link navigation otherwise.
   useEffect(() => {
+    if (pathname !== "/tcg/pokemon") return;
     const params = new URLSearchParams();
     if (debouncedSearch) params.set("q", debouncedSearch);
     if (type) params.set("type", type);
     if (latestPage > 1) params.set("page", String(latestPage));
     const qs = params.toString();
     router.replace(`/tcg/pokemon${qs ? `?${qs}` : ""}`, { scroll: false });
-  }, [debouncedSearch, type, latestPage, router]);
+  }, [debouncedSearch, type, latestPage, router, pathname]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const onScrollRef = useRef<() => void>(() => {});
@@ -113,7 +132,9 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) onScrollRef.current(); },
+      ([entry]) => {
+        if (entry.isIntersecting) onScrollRef.current();
+      },
       { rootMargin: "200px" },
     );
     observer.observe(el);
@@ -128,9 +149,7 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
     <>
       {/* Sticky filter bar — sits directly below the nav (top-14 = 56px) */}
       <div className="sticky top-14 z-10 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div
-          className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 flex items-center gap-3"
-        >
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <Input
             type="search"
             label="Search cards"
@@ -146,7 +165,11 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
             className="flex gap-2 overflow-x-auto"
             style={{ scrollbarWidth: "none" }}
           >
-            <TypePill label="All" active={type === ""} onClick={() => setType("")} />
+            <TypePill
+              label="All"
+              active={type === ""}
+              onClick={() => setType("")}
+            />
             {POKEMON_TYPES.map((t) => (
               <TypePill
                 key={t}
@@ -160,39 +183,36 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
         </div>
       </div>
 
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
-      {/* Results */}
-      {isLoading && cards.length === 0 ? (
-        <SkeletonGrid />
-      ) : isError ? (
-        <div className="flex flex-col items-center gap-3 py-20 text-center text-muted text-sm">
-          <span>Failed to load cards. Try again.</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-          >
-            Retry
-          </Button>
-        </div>
-      ) : cards.length === 0 ? (
-        <div className="flex items-center justify-center py-20 text-muted text-sm">
-          No cards found
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-          {cards.map((card) => (
-            <CardTile key={card.id} card={card} />
-          ))}
-          {isFetchingNextPage && Array.from({ length: PER_PAGE }).map((_, i) => (
-            <SkeletonCard key={`sk-${i}`} />
-          ))}
-        </div>
-      )}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4">
+        {/* Results */}
+        {isLoading && cards.length === 0 ? (
+          <SkeletonGrid />
+        ) : isError ? (
+          <div className="flex flex-col items-center gap-3 py-20 text-center text-muted text-sm">
+            <span>Failed to load cards. Try again.</span>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
+          </div>
+        ) : cards.length === 0 ? (
+          <div className="flex items-center justify-center py-20 text-muted text-sm">
+            No cards found
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+            {cards.map((card) => (
+              <CardTile key={card.id} card={card} />
+            ))}
+            {isFetchingNextPage &&
+              Array.from({ length: PER_PAGE }).map((_, i) => (
+                <SkeletonCard key={`sk-${i}`} />
+              ))}
+          </div>
+        )}
 
-      {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
-      <div ref={sentinelRef} className="h-8" />
-    </div>
+        {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
+        <div ref={sentinelRef} className="h-8" />
+      </div>
     </>
   );
 }
@@ -212,10 +232,15 @@ function CardTile({ card }: { card: CardResume }) {
           loading="lazy"
         />
       ) : (
-        <div className="w-full bg-surface-raised" style={{ aspectRatio: "2.5/3.5" }} />
+        <div
+          className="w-full bg-surface-raised"
+          style={{ aspectRatio: "2.5/3.5" }}
+        />
       )}
       <div className="px-2 py-1.5">
-        <p className="text-[11px] font-semibold text-muted truncate">{card.name}</p>
+        <p className="text-[11px] font-semibold text-muted truncate">
+          {card.name}
+        </p>
       </div>
     </Link>
   );
@@ -251,7 +276,10 @@ function TypePill({
 function SkeletonCard() {
   return (
     <div className="rounded-lg overflow-hidden border border-border bg-surface animate-pulse">
-      <div className="w-full bg-surface-raised" style={{ aspectRatio: "2.5/3.5" }} />
+      <div
+        className="w-full bg-surface-raised"
+        style={{ aspectRatio: "2.5/3.5" }}
+      />
       <div className="px-2 py-1.5">
         <div className="h-2 w-2/3 rounded bg-surface-raised" />
       </div>

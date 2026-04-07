@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-04-07 - version 0.8.4
+
+- eliminated dark-mode flash (FOUC) — inline `<script>` in `layout.tsx` reads `theme-preference` from localStorage and sets `data-theme` on `<html>` synchronously before any CSS or hydration
+- lazy-loaded all below-fold landing page sections via `next/dynamic` — `HeroSection` (the LCP element) stays eager; everything else ships in async chunks to reduce initial JS bundle size
+- seeded `FeatureHub` user data from the Auth0 session in `page.tsx` so the user name renders on first paint without a client-side `/api/me` round-trip; query still runs in background and refreshes after 5 minutes
+- throttled `WeatherCanvas` animation loop to 30fps (halves main-thread load) and added `scheduler.isInputPending` yield so the browser flushes pointer/keyboard events before canvas work claims the frame — key INP win
+- added `Cache-Control: private, max-age=300` to the `/api/geo` route so geo lookups are cached client-side for a session without sharing between users via CDN
+- fixed a `BrowseContent` bug where the URL-sync `useEffect` would call `router.replace` during navigation away from `/tcg/pokemon`, canceling the in-progress Link transition — now guarded by `usePathname`
+- added `/thoughts/perf` page documenting the above changes with reasoning and tradeoffs
+- added "Performance Improvements" card to the FeatureHub thoughts grid
+
 ## 2026-04-07 - version 0.8.3
 
 - added Playwright E2E test suite
