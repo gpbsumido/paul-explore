@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Historical data rarely changes — cache the shell for an hour
+export const revalidate = 3600;
+
 export default function LeagueHistoryPage() {
   return <LeagueContent />;
 }

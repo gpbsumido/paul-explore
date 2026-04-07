@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Static write-up -- cache at CDN for 24h
+export const revalidate = 86400;
+
 export default function WebVitalsThoughtsPage() {
   return <WebVitalsContent />;
 }
