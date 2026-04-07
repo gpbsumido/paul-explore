@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   },
 };
 
+// SVG shot chart data is static — cache the shell for an hour
+export const revalidate = 3600;
+
 export default function CourtVisionPage() {
   return <CourtVisionContent />;
 }

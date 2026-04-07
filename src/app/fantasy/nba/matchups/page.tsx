@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Page shell is static — client fetches live ESPN data on mount
+export const revalidate = 3600;
+
 export default function MatchupsPage() {
   return <MatchupContent />;
 }

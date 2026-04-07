@@ -35,6 +35,10 @@ export const metadata: Metadata = {
   },
 };
 
+// Runs synchronously before any CSS or React hydration so dark-mode users
+// never see a light flash. Must be a self-contained IIFE — no imports allowed.
+const ANTI_FOUC_SCRIPT = `(function(){try{var p=localStorage.getItem('theme-preference')||'system';var t=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,6 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Providers>
           <ThemeProvider>{children}</ThemeProvider>

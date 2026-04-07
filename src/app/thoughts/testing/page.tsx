@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import ImprovementsContent from "./ImprovementsContent";
+import TestingContent from "./TestingContent";
 
-const TITLE = "API Hardening | Thoughts";
+const TITLE = "Testing | Thoughts";
 const DESCRIPTION =
-  "Five gaps closed: Zod validation, rate limiting, body size limits, URL param validation, and consistent error response shapes across all API routes.";
+  "How 108 tests got added to a codebase with zero — the setup, what got tested and why, and the MSW delay() trick for proving optimistic updates actually work.";
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   openGraph: {
     type: "article",
-    url: `${SITE_URL}/thoughts/improvements`,
+    url: `${SITE_URL}/thoughts/testing`,
     title: TITLE,
     description: DESCRIPTION,
     images: [OG_IMAGE],
@@ -27,6 +27,6 @@ export const metadata: Metadata = {
 // Static write-up -- cache at CDN for 24h
 export const revalidate = 86400;
 
-export default function ImprovementsPage() {
-  return <ImprovementsContent />;
+export default function TestingThoughtsPage() {
+  return <TestingContent />;
 }

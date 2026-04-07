@@ -46,5 +46,8 @@ export async function GET(req: NextRequest) {
   }
 
   const data: unknown = await res.json();
-  return NextResponse.json(data);
+  // Geo results are stable for a session — private so CDNs don't share between users
+  return NextResponse.json(data, {
+    headers: { "Cache-Control": "private, max-age=300" },
+  });
 }

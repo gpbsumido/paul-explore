@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import ImprovementsContent from "./ImprovementsContent";
+import PerfContent from "./PerfContent";
 
-const TITLE = "API Hardening | Thoughts";
+const TITLE = "Performance Improvements | Thoughts";
 const DESCRIPTION =
-  "Five gaps closed: Zod validation, rate limiting, body size limits, URL param validation, and consistent error response shapes across all API routes.";
+  "Eliminating the dark-mode flash, adding ISR to static pages, lazy-loading below-fold landing sections, and caching public API routes -- a systematic pass through each Core Web Vital.";
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   openGraph: {
     type: "article",
-    url: `${SITE_URL}/thoughts/improvements`,
+    url: `${SITE_URL}/thoughts/perf`,
     title: TITLE,
     description: DESCRIPTION,
     images: [OG_IMAGE],
@@ -27,6 +27,6 @@ export const metadata: Metadata = {
 // Static write-up -- cache at CDN for 24h
 export const revalidate = 86400;
 
-export default function ImprovementsPage() {
-  return <ImprovementsContent />;
+export default function PerfThoughtsPage() {
+  return <PerfContent />;
 }

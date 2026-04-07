@@ -1,5 +1,60 @@
 # Changelog
 
+## 2026-04-07 - version 0.8.4
+
+- eliminated dark-mode flash (FOUC) — inline `<script>` in `layout.tsx` reads `theme-preference` from localStorage and sets `data-theme` on `<html>` synchronously before any CSS or hydration
+- lazy-loaded all below-fold landing page sections via `next/dynamic` — `HeroSection` (the LCP element) stays eager; everything else ships in async chunks to reduce initial JS bundle size
+- seeded `FeatureHub` user data from the Auth0 session in `page.tsx` so the user name renders on first paint without a client-side `/api/me` round-trip; query still runs in background and refreshes after 5 minutes
+- throttled `WeatherCanvas` animation loop to 30fps (halves main-thread load) and added `scheduler.isInputPending` yield so the browser flushes pointer/keyboard events before canvas work claims the frame — key INP win
+- added `Cache-Control: private, max-age=300` to the `/api/geo` route so geo lookups are cached client-side for a session without sharing between users via CDN
+- fixed a `BrowseContent` bug where the URL-sync `useEffect` would call `router.replace` during navigation away from `/tcg/pokemon`, canceling the in-progress Link transition — now guarded by `usePathname`
+- added `/thoughts/perf` page documenting the above changes with reasoning and tradeoffs
+- added "Performance Improvements" card to the FeatureHub thoughts grid
+
+## 2026-04-07 - version 0.8.3
+
+- added Playwright E2E test suite
+  - `playwright.config.ts` with two projects: `public` (no auth) and `authenticated` (session cookie)
+  - `e2e/global-setup.ts` — logs into Auth0 once via real browser, saves `storageState`, creates `[E2E] Test Calendar` via API
+  - `e2e/global-teardown.ts` — deletes the test calendar after the suite finishes
+  - `e2e/public/smoke.spec.ts` — root page loads
+  - `e2e/public/auth.spec.ts` — `/calendar`, `/vitals`, `/settings` redirect unauthenticated users
+  - `e2e/public/tcg.spec.ts` — search filters card grid, scroll-to-sentinel loads next page, clicking a card opens its detail page
+  - `e2e/authenticated/calendar.spec.ts` — create event via UI and verify in grid, delete via UI; create via API and verify in week view
+  - calendar tests self-skip when `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` are absent
+  - added `test:e2e`, `test:e2e:ui`, `test:e2e:report` scripts to `package.json`
+- added `/thoughts/e2e` page with summary and chat views covering the why, how, and tradeoffs
+
+## 2026-04-04 - version 0.8.2
+
+- moved changelog from ~/changelog/changelog.md to ~/CHANGELOG.md
+- updated CI workflow: added lint step, PR trigger now covers `develop`, job renamed to `quality`
+- added CI badge to README
+- update readme
+  - added "Key Technical Decisions" section (BFF auth, no-Apollo GraphQL, custom calendar, RUM pipeline, optimistic update testing)
+  - added section for whats public vs what needs auth
+  - replaced "Getting started" with a "Run locally" section
+
+## 2026-04-04 - version 0.8.1
+
+- added `vercel.json`
+- update readme to indicate our live demo
+
+## 2026-04-03 - version 0.8.0
+
+- added testing infrastructure (108 tests in 7 files)
+  - vitest, jsdom, Testing Library, MSW node server
+  - `npm test`, `npm run test:watch`, `npm run test:coverage`
+    - `src/lib/__tests__/rateLimit.test.ts` — fixed-window rate limiter: allow/block/reset, IP isolation, bucket isolation
+    - `src/lib/__tests__/calendar.test.ts` — calendar pure functions: `eventsForDay`, `allDayEventsForDay`, `spanningEventsForDay`, `singleDayTimedEventsForDay`, `layoutDayEvents` (overlap algorithm), `formatHeading`, `formatHour`
+    - `src/lib/__tests__/vitals.test.ts` — `formatValue` (ms/s/CLS decimal), `getRatingColor` (all three thresholds across all five metrics)
+    - `src/lib/__tests__/tcg.test.ts` — `typeStyle` (known/unknown/case-sensitive), `toPlain` (strips circular SDK refs)
+    - `src/lib/__tests__/proxy.test.ts` — rate-limit rule matching, first-match-wins ordering, fallback bucket
+    - `src/hooks/__tests__/useCalendarEvents.test.tsx` — fetch, SSR seed, error state, create/update/delete with optimistic updates and rollback
+    - `src/hooks/__tests__/useCountdowns.test.tsx` — pagination flattening, hasNextPage, fetchNextPage, create/update/delete with optimistic updates and rollback
+- optimistic update tests use MSW delay() on server response, then assert cache change appears before network responds, proving optimistic state
+- CI workflow `.github/workflows/ci.yml` that runs typecheck and full test suite on every push to `main` or `develop` branches. Fails block Vercel deployment
+
 ## 2026-03-31 - version 0.7.7
 
 - add `useCountUp` hook with ease-out cubic easing via RAF, respects `prefers-reduced-motion`

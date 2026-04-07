@@ -34,6 +34,14 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const session = await auth0.getSession();
-  if (session) return <FeatureHub />;
+  if (session) {
+    // Pass user info from the session so FeatureHub's header renders immediately
+    // without a client-side /api/me round-trip on first paint.
+    const initialMe = {
+      name: session.user.name ?? null,
+      email: session.user.email ?? null,
+    };
+    return <FeatureHub initialMe={initialMe} />;
+  }
   return <LandingContent />;
 }

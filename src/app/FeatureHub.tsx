@@ -198,6 +198,20 @@ const THOUGHTS: ThoughtItem[] = [
       "Zod validation, fixed-window rate limiting, and body size limits across every API route",
     color: "#34d399",
   },
+  {
+    title: "Testing",
+    href: "/thoughts/testing",
+    preview:
+      "108 tests, Vitest + MSW, and the delay() trick for proving optimistic updates fire before the server responds",
+    color: "#818cf8",
+  },
+  {
+    title: "Performance Improvements",
+    href: "/thoughts/perf",
+    preview:
+      "Eliminating the dark-mode flash, ISR on static pages, lazy-loading below-fold sections, and caching public API routes",
+    color: "#f97316",
+  },
 ].reverse();
 
 // ---- Mini preview sub-components ----
@@ -828,20 +842,24 @@ function ThoughtCard({ thought, delayMs, visible }: ThoughtCardProps) {
 
 // ---- FeatureHub ----
 
+type MeData = { name: string | null; email: string | null };
+
 /**
  * The authenticated hub. Shows a sticky header with user info, a staggered grid
  * of feature cards each with a themed mini-preview, and a dev-notes section below.
  *
  * Feature cards animate in via Framer staggerContainer + cardFlipIn variants.
- * User name/email are fetched client-side from /api/me so page.tsx can be static.
+ * initialMe is seeded from the Auth0 session in page.tsx so the user name renders
+ * on first paint without a client-side /api/me fetch — the query still runs in the
+ * background and refreshes after 5 minutes.
  */
-export default function FeatureHub() {
+export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
   const prefersReduced = useHubReducedMotion();
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ name: string | null; email: string | null }> =>
-      fetch("/api/me").then((r) => r.json()),
+    queryFn: (): Promise<MeData> => fetch("/api/me").then((r) => r.json()),
+    initialData: initialMe,
     staleTime: 5 * 60_000,
   });
   const userName = meQuery.isLoading ? null : (meQuery.data?.name ?? "there");
