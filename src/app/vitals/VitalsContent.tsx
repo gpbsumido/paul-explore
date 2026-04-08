@@ -202,6 +202,12 @@ export default function VitalsContent({
             P75 scores from real users. Pages need at least 5 samples to appear
             in the table.
           </p>
+          {/* Screen-reader announcement when version filter changes via soft navigation */}
+          <p className="sr-only" aria-live="polite" aria-atomic="true">
+            {selectedVersion
+              ? `Showing Web Vitals for version ${selectedVersion}`
+              : "Showing Web Vitals for all versions"}
+          </p>
         </div>
 
         {/* Metric summary cards */}
@@ -233,21 +239,31 @@ export default function VitalsContent({
 
           {hasData ? (
             <div className="overflow-x-auto rounded-xl border border-border">
-              <table className="w-full text-left">
+              <table
+                className="w-full text-left"
+                aria-label="Web Vitals P75 scores by page"
+              >
                 <thead>
                   <tr className="border-b border-border bg-surface">
-                    <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted">
+                    <th
+                      scope="col"
+                      className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted"
+                    >
                       Page
                     </th>
                     {METRIC_ORDER.map((name) => (
                       <th
                         key={name}
+                        scope="col"
                         className="px-3 py-2.5 text-center text-[11px] font-bold uppercase tracking-wider text-muted"
                       >
                         {name}
                       </th>
                     ))}
-                    <th className="px-3 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-muted">
+                    <th
+                      scope="col"
+                      className="px-3 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-muted"
+                    >
                       Samples
                     </th>
                   </tr>
@@ -260,9 +276,12 @@ export default function VitalsContent({
                         i % 2 === 0 ? "bg-background" : "bg-surface"
                       }`}
                     >
-                      <td className="px-3 py-3 text-[12px] font-medium text-foreground">
+                      <th
+                        scope="row"
+                        className="px-3 py-3 text-[12px] font-medium text-foreground"
+                      >
                         {row.page}
-                      </td>
+                      </th>
                       {METRIC_ORDER.map((name) => (
                         <TableCell
                           key={name}

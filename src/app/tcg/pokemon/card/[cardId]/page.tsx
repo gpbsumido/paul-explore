@@ -131,7 +131,7 @@ export default async function CardDetailPage({
                 {card.abilities.map((ability, i) => (
                   <div key={i} className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-purple-500/15 text-purple-400">
+                      <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-200">
                         {ability.type}
                       </span>
                       <span className="text-sm font-bold text-foreground">

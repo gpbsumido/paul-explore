@@ -264,7 +264,7 @@ function TypePill({
       onClick={onClick}
       className={`shrink-0 font-bold uppercase tracking-wide border ${
         active
-          ? `${typeColor ?? "bg-red-500/20 text-red-300"} border-transparent`
+          ? `${typeColor ?? "bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200"} border-transparent`
           : "text-muted border-border hover:border-foreground/40"
       }`}
     >

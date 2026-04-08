@@ -2,6 +2,7 @@ import { test, expect, request } from "@playwright/test";
 import fs from "fs";
 
 import { AUTH_FILE, STATE_FILE } from "../global-setup";
+import { checkA11y } from "../helpers/axe";
 
 /**
  * Calendar CRUD end-to-end flows.
@@ -51,6 +52,8 @@ test.describe("Calendar", () => {
     await page.waitForSelector('[class*="border-b"][class*="border-r"]', {
       timeout: 15_000,
     });
+
+    await checkA11y(page, "/calendar (month view)");
 
     // Select the test calendar in the header dropdown so the new event lands
     // in the isolated test calendar and not the user's real default calendar.
