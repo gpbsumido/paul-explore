@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-04-07 - version 0.8.5
+
+- slight CLS fix for `/fantasy/nba/player/stats`, improved skeleton
+
 ## 2026-04-07 - version 0.8.4
 
 - eliminated dark-mode flash (FOUC) — inline `<script>` in `layout.tsx` reads `theme-preference` from localStorage and sets `data-theme` on `<html>` synchronously before any CSS or hydration
