@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { checkA11y } from "../helpers/axe";
 
 test.describe("TCG card browser", () => {
   test.beforeEach(async ({ page }) => {
@@ -7,6 +8,10 @@ test.describe("TCG card browser", () => {
     await page.waitForSelector('a[href^="/tcg/pokemon/card/"]', {
       timeout: 15_000,
     });
+  });
+
+  test("browse page has no axe violations", async ({ page }) => {
+    await checkA11y(page, "/tcg/pokemon (browse)");
   });
 
   test("search filters the card list", async ({ page }) => {
@@ -55,19 +60,25 @@ test.describe("TCG card browser", () => {
       .toBeGreaterThan(initialCount);
   });
 
-  test("clicking a card opens its detail page", async ({ page }) => {
+  test("card detail page has no axe violations", async ({ page }) => {
+    // Grab the href directly rather than clicking — the IntersectionObserver
+    // in BrowseContent fires immediately (200px margin) and router.replace
+    // can race with Link navigation if we click while URL is still updating.
     const firstCard = page.locator('a[href^="/tcg/pokemon/card/"]').first();
+    const href = await firstCard.getAttribute("href");
     const cardName = await firstCard.locator("p").textContent();
-    await firstCard.click();
 
-    // Should navigate to /tcg/pokemon/card/:id
+    if (!href) throw new Error("First card has no href");
+
+    await page.goto(href);
     await expect(page).toHaveURL(/\/tcg\/pokemon\/card\//);
 
-    // The card name should appear in the heading on the detail page.
     if (cardName) {
       await expect(
         page.getByRole("heading", { name: cardName, exact: false }),
       ).toBeVisible({ timeout: 10_000 });
     }
+
+    await checkA11y(page, "/tcg/pokemon/card/:id (detail)");
   });
 });

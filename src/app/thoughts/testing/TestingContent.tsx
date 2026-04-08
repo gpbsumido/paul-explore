@@ -210,7 +210,7 @@ export default function TestingContent() {
               <h2 className="mb-3 text-lg font-bold">CI and deploy gates</h2>
               <p className="text-muted">
                 Tests only matter if they run automatically. A GitHub Actions
-                workflow runs typecheck and the full suite on every push to{" "}
+                workflow runs typecheck and the full unit suite on every push to{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   main
                 </code>{" "}
@@ -222,9 +222,12 @@ export default function TestingContent() {
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   main
                 </code>
-                . Vercel deploys are gated on the check passing via GitHub
-                branch protection — a failing test blocks the deploy without
-                any extra configuration on the Vercel side.
+                . A second job runs after the first passes: it installs
+                Chromium, boots the dev server, and runs the public Playwright
+                suite — which includes axe-core accessibility scans on the
+                landing page, TCG browser, and card detail page. A WCAG 2.1 AA
+                violation blocks the merge just like a failing unit test. Vercel
+                deploys are gated on both checks passing.
               </p>
             </section>
 
@@ -439,8 +442,8 @@ await waitFor(() =>
               <Received>how do the tests run automatically</Received>
 
               <Sent pos="first">
-                GitHub Actions. there&apos;s a workflow that triggers on every push
-                to main and develop, and on any PR targeting main. it runs
+                GitHub Actions. there&apos;s a workflow that triggers on every
+                push to main and develop, and on any PR targeting main. it runs
                 typecheck first, then the full test suite
               </Sent>
               <Sent pos="last">
@@ -455,16 +458,22 @@ await waitFor(() =>
               <Received>what would you add next</Received>
 
               <Sent pos="first">
-                Playwright end-to-end tests for the flows that matter most:
-                create an event, share the calendar, verify the event shows up
-                in week view. the calendar sharing model is complex enough that
-                a full browser test would catch things unit tests miss
+                Playwright is already in — auth redirects, TCG browsing,
+                calendar CRUD, and axe-core accessibility scans on every public
+                route. that covers the integration layer
+              </Sent>
+              <Sent pos="middle">
+                what&apos;s still missing is component tests. the hooks are
+                tested, the pure functions are tested, but the UI components
+                aren&apos;t. Modal focus trap behavior, Button aria-busy state,
+                Input aria-invalid wiring — those belong in Vitest with Testing
+                Library, not in Playwright
               </Sent>
               <Sent pos="last">
-                mutation testing with Stryker to verify the tests actually kill
-                the mutations they should. running it would tell you which
-                assertions are just checking that the code runs, not that it
-                runs correctly
+                after that, mutation testing with Stryker on the calendar layout
+                algorithm and the vitals formatting. running it would tell you
+                which assertions are just checking that the code runs, not that
+                it runs correctly
               </Sent>
 
               <div className={styles.typingDots}>

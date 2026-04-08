@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-04-08 - version 0.8.6
+
+- WCAG 2.1 AA accessibility compliance + axe-core enforcement in CI
+  - installed `@axe-core/playwright`; added `e2e/helpers/axe.ts` with shared `checkA11y()` helper — runs axe with `wcag2a/wcag2aa/wcag21aa` tags and fails the test with a structured diff of every violation
+  - added visually-hidden skip link to root layout (`Skip to content` → `#main-content`); wrapped `{children}` in `<div id="main-content" tabIndex={-1}>`
+  - added `suppressHydrationWarning` to `<html>` — the anti-FOUC script writes `data-theme` to the element before React hydrates, which was producing a hydration mismatch warning; this tells React the element is intentionally owned by the inline script
+  - fixed four contrast/accessibility violations surfaced by axe:
+    - `FeaturesSection` animated `<h2>` was missing `text-white` — axe traced the foreground token up through the DOM past the dark section overlay (a sibling, not a parent) to the white page background and flagged the mismatch
+    - `NbaSection` `overflow-x-auto` table wrapper was missing `tabIndex={0}` (`scrollable-region-focusable` violation)
+    - TCG type badge colors across `BrowseContent`, `card/[cardId]/page`, and `src/lib/tcg.ts` used translucent `/20` or `/15` backgrounds with light `/300` text — borderline on white; replaced with solid `-100` backgrounds and `-900` text, with `dark:` counterparts using `-950`/`-200`
+    - card detail ability type badge hardcoded `text-purple-400 bg-purple-500/15` — same fix: `bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-200`
+  - vitals dashboard: added `aria-label` to the by-page `<table>`, `scope="col"` to all column headers, `scope="row"` on page-name cells, and an `aria-live="polite" aria-atomic="true"` status paragraph that announces the selected version to screen readers on soft navigation
+  - added axe scans to all Playwright specs: landing page (smoke), TCG browse page, TCG card detail page, calendar month view (authenticated)
+  - fixed pre-existing race condition in TCG card detail test — card detail spec now navigates directly via `page.goto(href)` instead of clicking the link, avoiding a race between `router.replace` (URL sync effect) and the `Link` navigation
+  - added `e2e-accessibility` CI job: runs after `quality` passes, installs Chromium, runs `playwright test --project=public` — a WCAG violation blocks the merge
+- updated `/thoughts/e2e`: description, "The three suites" section, new "Accessibility scanning in CI" section, "What this improves" paragraph, and chat view covering axe rationale and the four violations found
+- updated `/thoughts/testing`: CI section updated to mention the e2e-accessibility job; "what would you add next" answer updated (Playwright is done; component tests and mutation testing are next)
+
 ## 2026-04-07 - version 0.8.5
 
 - slight CLS fix for `/fantasy/nba/player/stats`, improved skeleton

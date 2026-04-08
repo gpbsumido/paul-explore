@@ -169,7 +169,7 @@ export default function NbaSection() {
           animate={inView ? "visible" : "hidden"}
           transition={transition ?? { ...spring.smooth, delay: 0.15 }}
         >
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0}>
             <table className="w-full text-left text-white">
               <thead>
                 <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/60">
