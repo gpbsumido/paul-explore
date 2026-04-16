@@ -51,6 +51,15 @@ const FEATURES: FeatureItem[] = [
     color: "#ff9500",
   },
   {
+    id: "playoffs",
+    title: "NBA Playoffs Bracket",
+    description:
+      "Pick every series winner, length, and MVP before the playoffs start. Debounced auto-save, cascade clears, TBD resolution, and a public leaderboard with per-round scoring.",
+    href: "/fantasy/nba/playoffs",
+    color: "#f43f5e",
+    thoughtsHref: "/thoughts/playoffs",
+  },
+  {
     id: "tcg",
     title: "Pokémon TCG",
     description:
@@ -211,6 +220,13 @@ const THOUGHTS: ThoughtItem[] = [
     preview:
       "Eliminating the dark-mode flash, ISR on static pages, lazy-loading below-fold sections, and caching public API routes",
     color: "#f97316",
+  },
+  {
+    title: "CI E2E Reliability",
+    href: "/thoughts/ci-e2e",
+    preview:
+      "Auth0 crashing all middleware from a module-level throw, and a search test that needed page.route to stop depending on an external API",
+    color: "#06b6d4",
   },
 ].reverse();
 
@@ -648,6 +664,53 @@ const KETSUP_FEED = [
   },
 ];
 
+const PLAYOFF_ROWS = [
+  { conf: "E", s1: 1, t1: "BOS", s2: 8, t2: "MIA", pick: 1 },
+  { conf: "W", s1: 1, t1: "OKC", s2: 8, t2: "MEM", pick: 1 },
+  { conf: "E", s1: 2, t1: "CLE", s2: 7, t2: "ORL", pick: 2 },
+  { conf: "W", s1: 2, t1: "GSW", s2: 7, t2: "LAL", pick: 2 },
+];
+
+function PlayoffsPreview() {
+  return (
+    <div className="space-y-1">
+      {PLAYOFF_ROWS.map((m, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-1.5 rounded border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2 py-1"
+        >
+          <span className="w-3 shrink-0 text-[7px] font-bold text-black/25 dark:text-white/25">
+            {m.conf}
+          </span>
+          <span
+            className={[
+              "flex-1 text-[8px] font-semibold",
+              m.pick === 1
+                ? "text-[#f43f5e]"
+                : "text-black/35 dark:text-white/35",
+            ].join(" ")}
+          >
+            {m.s1} {m.t1}
+          </span>
+          <span className="text-[7px] text-black/20 dark:text-white/20">
+            vs
+          </span>
+          <span
+            className={[
+              "flex-1 text-right text-[8px] font-semibold",
+              m.pick === 2
+                ? "text-[#f43f5e]"
+                : "text-black/35 dark:text-white/35",
+            ].join(" ")}
+          >
+            {m.t2} {m.s2}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function KetsupPreview() {
   return (
     <div className="space-y-1.5">
@@ -683,6 +746,7 @@ const FEATURE_TOKEN: Record<string, string> = {
   matchups: "--color-feature-sync",
   "court-vision": "--color-feature-nba",
   league: "--color-feature-sync",
+  playoffs: "--color-feature-nba",
   tcg: "--color-feature-tcg",
   pocket: "--color-feature-particles",
   calendar: "--color-feature-calendar",
@@ -698,6 +762,7 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
   matchups: MatchupsPreview,
   "court-vision": CourtVisionPreview,
   league: LeaguePreview,
+  playoffs: PlayoffsPreview,
   tcg: TcgPreview,
   pocket: PocketPreview,
   calendar: CalendarPreview,

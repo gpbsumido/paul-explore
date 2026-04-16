@@ -17,10 +17,28 @@ test.describe("TCG card browser", () => {
   test("search filters the card list", async ({ page }) => {
     const cardLocator = page.locator('a[href^="/tcg/pokemon/card/"]');
 
-    // Capture the card IDs shown on the unfiltered page.
-    const initialHrefs = await cardLocator.evaluateAll((els) =>
-      els.map((el) => el.getAttribute("href")),
-    );
+    // Mock the internal cards API so this test doesn't depend on TCGdex being
+    // reachable in CI. The mock only kicks in for requests that include q=
+    // (i.e. the search fetch) and returns a fixed set of Pikachu cards whose
+    // hrefs are guaranteed to differ from the unfiltered initial set.
+    await page.route(/\/api\/tcg\/cards/, async (route) => {
+      const url = new URL(route.request().url());
+      const q = url.searchParams.get("q") ?? "";
+
+      if (q.toLowerCase().includes("pikachu")) {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify([
+            { id: "base1-58", name: "Pikachu", localId: "58" },
+            { id: "base2-28", name: "Pikachu", localId: "28" },
+            { id: "jungle-60", name: "Pikachu", localId: "60" },
+          ]),
+        });
+      } else {
+        await route.continue();
+      }
+    });
 
     const searchInput = page.getByPlaceholder("Search cards…");
     await searchInput.fill("Pikachu");
@@ -29,19 +47,18 @@ test.describe("TCG card browser", () => {
     // This is the most reliable signal that a new fetch was issued.
     await expect(page).toHaveURL(/[?&]q=Pikachu/, { timeout: 5_000 });
 
-    // Wait for the grid to repopulate with filtered results.
-    await page.waitForSelector('a[href^="/tcg/pokemon/card/"]', {
-      timeout: 10_000,
-    });
-
-    // At least one card should be visible and the returned card IDs should
-    // differ from the unfiltered set. Comparing IDs (not counts) is robust
-    // when both result sets happen to be the same size (e.g. a full page).
-    const filteredHrefs = await cardLocator.evaluateAll((els) =>
-      els.map((el) => el.getAttribute("href")),
-    );
-    expect(filteredHrefs.length).toBeGreaterThan(0);
-    expect(filteredHrefs).not.toEqual(initialHrefs);
+    // Poll until the mock Pikachu cards appear in the DOM. Using a known card
+    // href (from the mock payload) avoids a false-positive on the brief empty
+    // state that can occur while React Query replaces the previous page.
+    await expect
+      .poll(
+        () =>
+          cardLocator.evaluateAll((els) =>
+            els.map((el) => el.getAttribute("href")),
+          ),
+        { timeout: 10_000 },
+      )
+      .toContainEqual("/tcg/pokemon/card/base1-58");
   });
 
   test("scrolling to the sentinel loads additional cards", async ({ page }) => {

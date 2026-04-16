@@ -278,6 +278,79 @@ export default function PlayoffsContent() {
                 three retries.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Submit vs. auto-save</h2>
+              <p className="text-muted">
+                The initial build had a single debounced PUT that fired
+                automatically as you picked. That works, but it creates an
+                ambiguous UX: users don&apos;t know whether their picks are
+                &quot;tentative&quot; or &quot;submitted.&quot; An explicit
+                submit button makes the contract clear and mirrors how most
+                bracket contests work — you fill it out, then commit.
+              </p>
+              <p className="mt-3 text-muted">
+                Auto-save is kept as an opt-in checkbox (default off). The two
+                modes are mutually exclusive: when auto-save is on, the Submit
+                button is disabled. This avoids double-writing and removes the
+                ambiguity of having both active at once. On a successful
+                explicit submit, the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  saveStatus
+                </code>{" "}
+                is cleared to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  idle
+                </code>{" "}
+                so any lingering &quot;Saving...&quot; from a pending debounce
+                doesn&apos;t persist after the request settles.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Leaderboard before results
+              </h2>
+              <p className="text-muted">
+                The first version showed a placeholder message until at least
+                one official result existed. The problem: the leaderboard is
+                part of the social contract of a bracket contest. People want to
+                see who else has submitted even before the first series
+                concludes — it confirms participation and creates anticipation.
+              </p>
+              <p className="mt-3 text-muted">
+                The backend was changed to always fetch submitted brackets,
+                scoring them as 0 when no results exist yet. Ties at 0 are
+                broken by submission date ascending — earlier submissions rank
+                higher, which is a mild incentive to lock in picks before the
+                first game tips off. The BFF adds a transformation layer since
+                the portfolio API field names (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  userSub
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  maxPossible
+                </code>
+                , flat{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  breakdown
+                </code>
+                ) differ from the frontend types (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  sub
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  maxScore
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  roundBreakdown
+                </code>{" "}
+                array).
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -466,6 +539,50 @@ export default function PlayoffsContent() {
                 each test gets a fresh QueryClient with retry: false so errors
                 surface immediately instead of TanStack retrying three times and
                 making the test wait
+              </Sent>
+
+              <Timestamp>11:36 AM</Timestamp>
+
+              <Received>why is there a submit button AND auto-save</Received>
+
+              <Sent pos="first">
+                the debounced auto-save is opt-in and off by default. submit is
+                the primary way to commit your bracket — it matches how most
+                pick contests work. you fill it out, then lock it in
+              </Sent>
+              <Sent pos="middle">
+                the two modes are mutually exclusive. when auto-save is on,
+                submit is disabled. no double-writing, no ambiguity about which
+                one is in charge
+              </Sent>
+              <Sent pos="last">
+                on a successful submit, any lingering &quot;Saving...&quot; from
+                a pending debounce gets cleared immediately. the save indicator
+                resets to idle so the UI doesn&apos;t show stale state after the
+                request settles
+              </Sent>
+
+              <Timestamp>11:41 AM</Timestamp>
+
+              <Received>
+                why does the leaderboard show before any results are in
+              </Received>
+
+              <Sent pos="first">
+                the leaderboard is part of the social contract. people want to
+                see who else submitted even before game one tips off — it
+                confirms participation and creates anticipation
+              </Sent>
+              <Sent pos="middle">
+                0-score entries are shown and sorted by submission date
+                ascending. earlier submissions rank higher, which is a mild
+                incentive to lock in picks before the season starts
+              </Sent>
+              <Sent pos="last">
+                the backend change was straightforward — remove the early return
+                that checked for results and add updatedAt as a tiebreaker. the
+                BFF needed a transform layer because the portfolio API field
+                names don&apos;t match the frontend types
               </Sent>
 
               <div className={styles.typingDots}>

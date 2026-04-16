@@ -77,18 +77,22 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
     initialPageParam,
     getNextPageParam: (lastPage, _allPages, lastPageParam) =>
       lastPage.hasMore ? (lastPageParam as number) + 1 : undefined,
-    initialData: initialCards
-      ? {
-          pages: [
-            { cards: initialCards, hasMore: initialCards.length >= PER_PAGE },
-          ],
-          pageParams: [1],
-        }
-      : undefined,
+    // Only seed the cache for the unfiltered view. If filters are active the
+    // server data is the wrong result set — seeding it would make React Query
+    // treat the filtered key as fresh and skip the actual fetch.
+    initialData:
+      initialCards && !debouncedSearch && !type
+        ? {
+            pages: [
+              { cards: initialCards, hasMore: initialCards.length >= PER_PAGE },
+            ],
+            pageParams: [1],
+          }
+        : undefined,
     // SSR-seeded data is recent but may go stale quickly; background refetch
     // after 30s. Without initialData, card catalogs rarely change so cache
     // them for 10 minutes.
-    staleTime: initialCards ? 30_000 : 10 * 60_000,
+    staleTime: initialCards && !debouncedSearch && !type ? 30_000 : 10 * 60_000,
   });
 
   const cards = useMemo(
