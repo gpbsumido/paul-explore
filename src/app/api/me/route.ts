@@ -10,7 +10,12 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   const session = await auth0.getSession();
-  if (!session) return NextResponse.json({ name: null, email: null });
-  const { name, email } = session.user;
-  return NextResponse.json({ name: name ?? null, email: email ?? null });
+  if (!session)
+    return NextResponse.json({ name: null, email: null, sub: null });
+  const { name, email, sub } = session.user;
+  return NextResponse.json({
+    name: name ?? null,
+    email: email ?? null,
+    sub: sub ?? null,
+  });
 }

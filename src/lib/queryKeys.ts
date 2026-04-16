@@ -78,6 +78,15 @@ export const queryKeys = {
 
     /** Top free agents for a given season. */
     freeAgents: (season: number) => ["nba", "freeAgents", season] as const,
+
+    /** Playoffs bracket data including series, picks, and Finals MVP. */
+    playoffBracket: () => ["nba", "playoffs", "bracket"] as const,
+
+    /** Authenticated user's bracket picks for the current season. */
+    playoffPicks: () => ["nba", "playoffs", "picks"] as const,
+
+    /** Public playoff pick leaderboard. */
+    playoffLeaderboard: () => ["nba", "playoffs", "leaderboard"] as const,
   },
 
   tcg: {

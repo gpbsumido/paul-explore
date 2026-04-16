@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-04-15 - version 0.8.8
+
+- fix case where a change in picks in lower round cascades to later rounds
+
+## 2026-04-15 - version 0.8.7
+
+- added NBA Playoffs bracket picker at `/fantasy/nba/playoffs`
+  - `PlayoffBracketContent.tsx` — client component; fetches bracket structure (ESPN via BFF proxy) and saved picks in parallel via TanStack Query; merges server picks with local edits using `useMemo` to avoid effect-based state initialization and satisfy `react-hooks/set-state-in-effect`
+  - `SeriesPickCard.tsx` — pick a winner (two `aria-pressed` team buttons) and a series length (4-0 through 4-3 select); disabled when either team slot is still TBD
+  - `FinalsCard.tsx` — extends SeriesPickCard with combined last-game score (number input) and Finals MVP (text input); both use local state for accumulating keystrokes
+  - TBD resolution: a static `PRECEDING` map + `resolveTeam` function walks pick history to display the live team abbreviation in later-round slots rather than "TBD"; unresolved slots are disabled
+  - debounced PUT saves (800ms); `userHasPickedRef` guards against spurious saves on initial server data load; `SaveIndicator` shows Saving/Saved state
+  - responsive layout: three-column CSS grid at `lg:` (East | Finals | West); horizontal-scroll rows with negative-margin bleed on mobile; `lg:flex-row-reverse` on West column to mirror round order at wide viewports
+  - `GET /api/nba/playoffs/bracket` — ESPN bracket proxy (already existed)
+  - `GET /api/nba/playoffs/picks`, `PUT /api/nba/playoffs/picks` — authenticated BFF to portfolio API (already existed)
+  - `GET /api/nba/playoffs/leaderboard` — public BFF; `Cache-Control: public, s-maxage=300`; proxies to portfolio API scoring endpoint
+  - `PlayoffLeaderboard.tsx` — rank medals for top 3, score chip + progress bar, per-round breakdown badges, current user row highlight (orange), empty state, skeleton; receives `currentUserSub` from `/api/me` query
+  - added `sub` to `/api/me` response
+  - added `playoffBracket`, `playoffPicks`, `playoffLeaderboard` keys to `queryKeys.ts`
+  - added `LeaderboardRoundBreakdown`, `LeaderboardEntry`, `PlayoffLeaderboardResponse` to `src/types/nba.ts`
+  - 15 Vitest tests across SeriesPickCard (5), FinalsCard (6), PlayoffLeaderboard (4)
+- added `/thoughts/playoffs` write-up page (summary + chat views) covering derived state pattern, TBD resolution, debounced save guard, responsive layout, and testing approach
+- added Playoffs tab to fantasy nav
+- updated `context/architecture-map.md` with new route and API endpoints
+- bumped version from 0.8.6 to 0.8.7
+
 ## 2026-04-08 - version 0.8.6
 
 - WCAG 2.1 AA accessibility compliance + axe-core enforcement in CI
