@@ -84,6 +84,9 @@ export const queryKeys = {
 
     /** Authenticated user's bracket picks for the current season. */
     playoffPicks: () => ["nba", "playoffs", "picks"] as const,
+
+    /** Public playoff pick leaderboard. */
+    playoffLeaderboard: () => ["nba", "playoffs", "leaderboard"] as const,
   },
 
   tcg: {

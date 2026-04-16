@@ -69,7 +69,10 @@ export type FinalsPick = PlayoffSeriesPick & {
   mvp: string;
 };
 
-export type PlayoffBracketPicks = Record<string, PlayoffSeriesPick | FinalsPick>;
+export type PlayoffBracketPicks = Record<
+  string,
+  PlayoffSeriesPick | FinalsPick
+>;
 
 export type PlayoffTeam = {
   seed: number;
@@ -90,6 +93,27 @@ export type PlayoffMatchup = {
 export type PlayoffBracket = {
   season: number;
   matchups: PlayoffMatchup[];
+};
+
+// Playoff leaderboard types
+
+export type LeaderboardRoundBreakdown = {
+  label: string;
+  earned: number;
+  max: number;
+};
+
+export type LeaderboardEntry = {
+  rank: number;
+  sub: string;
+  displayName: string;
+  score: number;
+  maxScore: number;
+  roundBreakdown: LeaderboardRoundBreakdown[];
+};
+
+export type PlayoffLeaderboardResponse = {
+  entries: LeaderboardEntry[];
 };
 
 // Court Vision shot chart types

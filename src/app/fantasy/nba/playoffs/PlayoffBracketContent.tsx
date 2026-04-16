@@ -16,6 +16,7 @@ import type {
 import FantasyNav from "../FantasyNav";
 import SeriesPickCard from "./SeriesPickCard";
 import FinalsCard from "./FinalsCard";
+import PlayoffLeaderboard from "./PlayoffLeaderboard";
 
 // ---- TBD resolution ----
 
@@ -259,6 +260,15 @@ export default function PlayoffBracketContent() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const userHasPickedRef = useRef(false);
 
+  const meQuery = useQuery({
+    queryKey: queryKeys.me(),
+    queryFn: (): Promise<{ sub: string | null }> =>
+      fetch("/api/me").then((r) => r.json()),
+    staleTime: 5 * 60_000,
+  });
+
+  const currentUserSub = meQuery.data?.sub ?? null;
+
   const bracketQuery = useQuery({
     queryKey: queryKeys.nba.playoffBracket(),
     queryFn: async (): Promise<PlayoffBracket> => {
@@ -412,6 +422,14 @@ export default function PlayoffBracketContent() {
             </div>
           </div>
         )}
+
+        {/* ── Leaderboard ── */}
+        <section className="mt-10">
+          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-widest text-muted/60">
+            Leaderboard
+          </h2>
+          <PlayoffLeaderboard currentUserSub={currentUserSub} />
+        </section>
       </main>
     </div>
   );
