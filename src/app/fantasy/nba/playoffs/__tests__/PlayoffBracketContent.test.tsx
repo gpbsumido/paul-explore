@@ -62,15 +62,11 @@ function setupDefaultHandlers() {
     http.get("/api/nba/playoffs/bracket", () =>
       HttpResponse.json(makeBracket()),
     ),
-    http.get("/api/nba/playoffs/picks", () =>
-      HttpResponse.json({ picks: {} }),
-    ),
+    http.get("/api/nba/playoffs/picks", () => HttpResponse.json({ picks: {} })),
     http.get("/api/nba/playoffs/leaderboard", () =>
       HttpResponse.json({ entries: [] }),
     ),
-    http.put("/api/nba/playoffs/picks", () =>
-      HttpResponse.json({ ok: true }),
-    ),
+    http.put("/api/nba/playoffs/picks", () => HttpResponse.json({ ok: true })),
   );
 }
 
@@ -134,8 +130,8 @@ describe("PlayoffBracketContent — submit button", () => {
     await user.click(screen.getByRole("button", { name: /submit bracket/i }));
 
     expect(
-  await screen.findByRole("button", { name: /submitted!/i }),
-).toBeInTheDocument();
+      await screen.findByRole("button", { name: /submitted!/i }),
+    ).toBeInTheDocument();
   });
 
   it("clears the saving indicator when submit succeeds", async () => {

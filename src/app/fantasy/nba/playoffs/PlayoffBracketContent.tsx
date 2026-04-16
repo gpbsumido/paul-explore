@@ -567,6 +567,79 @@ export default function PlayoffBracketContent() {
           </h2>
           <PlayoffLeaderboard currentUserSub={currentUserSub} />
         </section>
+
+        {/* ── Rules & Scoring ── */}
+        <section className="mt-10 mb-6">
+          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-widest text-muted/60">
+            Rules &amp; Scoring
+          </h2>
+          <div className="rounded-xl border border-border bg-surface p-5 space-y-5 text-[13px] text-foreground">
+            <p className="text-muted leading-relaxed">
+              Pick the winner and series length for every matchup. Points double
+              each round. The Finals has two bonus questions worth extra points.
+              Max possible score is{" "}
+              <span className="font-semibold text-foreground">52 pts</span>.
+            </p>
+
+            {/* Point table */}
+            <div className="overflow-hidden rounded-lg border border-border">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border bg-surface-raised/40">
+                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+                      Round
+                    </th>
+                    <th className="px-4 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+                      Correct winner
+                    </th>
+                    <th className="px-4 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+                      Correct series length
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { round: "Round 1", winner: 1, series: 1 },
+                    { round: "Round 2", winner: 2, series: 1 },
+                    { round: "Conf. Finals", winner: 4, series: 1 },
+                    { round: "NBA Finals", winner: 8, series: 1 },
+                  ].map(({ round, winner, series }) => (
+                    <tr
+                      key={round}
+                      className="border-b border-border/50 last:border-b-0"
+                    >
+                      <td className="px-4 py-2.5 text-foreground">{round}</td>
+                      <td className="px-4 py-2.5 text-right font-mono text-orange-400">
+                        +{winner} pt{winner !== 1 ? "s" : ""}
+                      </td>
+                      <td className="px-4 py-2.5 text-right font-mono text-muted">
+                        +{series} pt
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Bonus rows */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5">
+                <span className="text-foreground">
+                  Finals MVP (correct name)
+                </span>
+                <span className="font-mono text-orange-400">+5 pts</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5">
+                <span className="text-foreground">
+                  Combined score, last Finals game
+                </span>
+                <span className="text-[12px] text-muted">
+                  Tiebreaker — closest wins
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
