@@ -22,6 +22,29 @@ test.describe("TCG card browser", () => {
       els.map((el) => el.getAttribute("href")),
     );
 
+    // Mock the internal cards API so this test doesn't depend on TCGdex being
+    // reachable in CI. The mock only kicks in for requests that include q=
+    // (i.e. the search fetch) and returns a fixed set of Pikachu cards whose
+    // hrefs are guaranteed to differ from the unfiltered initial set.
+    await page.route("**/api/tcg/cards**", async (route) => {
+      const url = new URL(route.request().url());
+      const q = url.searchParams.get("q") ?? "";
+
+      if (q.toLowerCase().includes("pikachu")) {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify([
+            { id: "base1-58", name: "Pikachu", localId: "58" },
+            { id: "base2-28", name: "Pikachu", localId: "28" },
+            { id: "jungle-60", name: "Pikachu", localId: "60" },
+          ]),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
     const searchInput = page.getByPlaceholder("Search cards…");
     await searchInput.fill("Pikachu");
 
@@ -29,10 +52,9 @@ test.describe("TCG card browser", () => {
     // This is the most reliable signal that a new fetch was issued.
     await expect(page).toHaveURL(/[?&]q=Pikachu/, { timeout: 5_000 });
 
-    // Poll until the visible card hrefs differ from the initial unfiltered set.
-    // waitForSelector / waitForResponse both have timing issues here — either
-    // resolving too early (cards already in DOM) or too late (listener set up
-    // after the response already landed). Polling the DOM directly avoids both.
+    // Poll until the mock Pikachu cards appear in the DOM. Using a known card
+    // href (from the mock payload) avoids a false-positive on the brief empty
+    // state that can occur while React Query replaces the previous page.
     await expect
       .poll(
         () =>
@@ -41,12 +63,7 @@ test.describe("TCG card browser", () => {
           ),
         { timeout: 10_000 },
       )
-      .not.toEqual(initialHrefs);
-
-    const filteredHrefs = await cardLocator.evaluateAll((els) =>
-      els.map((el) => el.getAttribute("href")),
-    );
-    expect(filteredHrefs.length).toBeGreaterThan(0);
+      .toContainEqual("/tcg/pokemon/card/base1-58");
   });
 
   test("scrolling to the sentinel loads additional cards", async ({ page }) => {
