@@ -88,6 +88,10 @@ export default function StatsContent() {
   /** Number of stats queries still in-flight, drives the skeleton row count. */
   const remaining = statsQueries.filter((q) => q.isPending).length;
 
+  const ROSTER_PLACEHOLDER = 15;
+  const skeletonCount =
+    selectedTeamId && playersQuery.isPending ? ROSTER_PLACEHOLDER : remaining;
+
   /**
    * Resolved player rows only. Pending players are not included here so they
    * render as skeleton rows below the resolved ones instead of blank data cells.
@@ -181,7 +185,7 @@ export default function StatsContent() {
             ))}
           </select>
 
-          {rows.length >= 2 && (
+          {selectedTeamId && (
             <button
               type="button"
               aria-label={
@@ -190,7 +194,8 @@ export default function StatsContent() {
                   : "Open player comparison"
               }
               onClick={() => setCompareOpen((prev) => !prev)}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:border-foreground/30 hover:text-foreground"
+              disabled={rows.length < 2}
+              className={`ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:border-foreground/30 hover:text-foreground ${rows.length < 2 ? "invisible" : ""}`}
             >
               <svg
                 width="14"
@@ -242,7 +247,7 @@ export default function StatsContent() {
           <PlayerCompare rows={rows} open={compareOpen} />
         )}
 
-        {!topLevelError && (rows.length > 0 || remaining > 0) && (
+        {!topLevelError && (rows.length > 0 || skeletonCount > 0) && (
           <div className="overflow-x-auto rounded-xl border border-border bg-surface">
             <table className="w-full min-w-[480px] border-collapse text-[13px]">
               <thead className="sticky top-0 z-[1]">
@@ -317,8 +322,8 @@ export default function StatsContent() {
                     )}
                   </tr>
                 ))}
-                {remaining > 0 &&
-                  Array.from({ length: remaining }).map((_, i) => {
+                {skeletonCount > 0 &&
+                  Array.from({ length: skeletonCount }).map((_, i) => {
                     const rowIdx = sortedRows.length + i;
                     return (
                       <tr

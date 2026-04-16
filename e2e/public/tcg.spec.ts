@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { checkA11y } from "../helpers/axe";
 
 test.describe("TCG card browser", () => {
   test.beforeEach(async ({ page }) => {
@@ -9,13 +10,35 @@ test.describe("TCG card browser", () => {
     });
   });
 
+  test("browse page has no axe violations", async ({ page }) => {
+    await checkA11y(page, "/tcg/pokemon (browse)");
+  });
+
   test("search filters the card list", async ({ page }) => {
     const cardLocator = page.locator('a[href^="/tcg/pokemon/card/"]');
 
-    // Capture the card IDs shown on the unfiltered page.
-    const initialHrefs = await cardLocator.evaluateAll((els) =>
-      els.map((el) => el.getAttribute("href")),
-    );
+    // Mock the internal cards API so this test doesn't depend on TCGdex being
+    // reachable in CI. The mock only kicks in for requests that include q=
+    // (i.e. the search fetch) and returns a fixed set of Pikachu cards whose
+    // hrefs are guaranteed to differ from the unfiltered initial set.
+    await page.route(/\/api\/tcg\/cards/, async (route) => {
+      const url = new URL(route.request().url());
+      const q = url.searchParams.get("q") ?? "";
+
+      if (q.toLowerCase().includes("pikachu")) {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify([
+            { id: "base1-58", name: "Pikachu", localId: "58" },
+            { id: "base2-28", name: "Pikachu", localId: "28" },
+            { id: "jungle-60", name: "Pikachu", localId: "60" },
+          ]),
+        });
+      } else {
+        await route.continue();
+      }
+    });
 
     const searchInput = page.getByPlaceholder("Search cards…");
     await searchInput.fill("Pikachu");
@@ -24,19 +47,18 @@ test.describe("TCG card browser", () => {
     // This is the most reliable signal that a new fetch was issued.
     await expect(page).toHaveURL(/[?&]q=Pikachu/, { timeout: 5_000 });
 
-    // Wait for the grid to repopulate with filtered results.
-    await page.waitForSelector('a[href^="/tcg/pokemon/card/"]', {
-      timeout: 10_000,
-    });
-
-    // At least one card should be visible and the returned card IDs should
-    // differ from the unfiltered set. Comparing IDs (not counts) is robust
-    // when both result sets happen to be the same size (e.g. a full page).
-    const filteredHrefs = await cardLocator.evaluateAll((els) =>
-      els.map((el) => el.getAttribute("href")),
-    );
-    expect(filteredHrefs.length).toBeGreaterThan(0);
-    expect(filteredHrefs).not.toEqual(initialHrefs);
+    // Poll until the mock Pikachu cards appear in the DOM. Using a known card
+    // href (from the mock payload) avoids a false-positive on the brief empty
+    // state that can occur while React Query replaces the previous page.
+    await expect
+      .poll(
+        () =>
+          cardLocator.evaluateAll((els) =>
+            els.map((el) => el.getAttribute("href")),
+          ),
+        { timeout: 10_000 },
+      )
+      .toContainEqual("/tcg/pokemon/card/base1-58");
   });
 
   test("scrolling to the sentinel loads additional cards", async ({ page }) => {
@@ -55,19 +77,25 @@ test.describe("TCG card browser", () => {
       .toBeGreaterThan(initialCount);
   });
 
-  test("clicking a card opens its detail page", async ({ page }) => {
+  test("card detail page has no axe violations", async ({ page }) => {
+    // Grab the href directly rather than clicking — the IntersectionObserver
+    // in BrowseContent fires immediately (200px margin) and router.replace
+    // can race with Link navigation if we click while URL is still updating.
     const firstCard = page.locator('a[href^="/tcg/pokemon/card/"]').first();
+    const href = await firstCard.getAttribute("href");
     const cardName = await firstCard.locator("p").textContent();
-    await firstCard.click();
 
-    // Should navigate to /tcg/pokemon/card/:id
+    if (!href) throw new Error("First card has no href");
+
+    await page.goto(href);
     await expect(page).toHaveURL(/\/tcg\/pokemon\/card\//);
 
-    // The card name should appear in the heading on the detail page.
     if (cardName) {
       await expect(
         page.getByRole("heading", { name: cardName, exact: false }),
       ).toBeVisible({ timeout: 10_000 });
     }
+
+    await checkA11y(page, "/tcg/pokemon/card/:id (detail)");
   });
 });

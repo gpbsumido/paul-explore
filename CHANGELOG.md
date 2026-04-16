@@ -1,5 +1,81 @@
 # Changelog
 
+## 2026-04-16 - version 0.8.10
+
+- fixed TCG search E2E test still failing after page.route mock was added
+  - root cause: `BrowseContent` passed `initialData` (unfiltered server cards) to all React Query keys, including filtered ones like `{ q: "Pikachu" }`; React Query seeded the "Pikachu" cache entry with the wrong data and considered it fresh within the 30s `staleTime`, so no fetch was issued and the mock never fired
+  - fix: `initialData` and matching `staleTime` are now only applied when `!debouncedSearch && !type` — i.e., the unfiltered key that matches what the server actually rendered
+- removed unused `initialHrefs` variable from `e2e/public/tcg.spec.ts` (leftover from Attempt 2 — no longer needed after the assertion changed to `toContainEqual`)
+- updated `/thoughts/ci-e2e` with Attempt 4 section covering the React Query initialData root cause
+
+## 2026-04-16 - version 0.8.9
+
+- added explicit Submit Bracket button to `PlayoffBracketContent`
+  - `submitStatus` state (`idle | submitting | submitted`) drives button label and disabled state
+  - on success, clears any pending `saveStatus` to `idle` so "Saving..." doesn't persist after the request settles
+- added auto-save checkbox (default off); submit button is disabled while auto-save is on — the two modes are mutually exclusive
+- leaderboard now always renders even before official results exist
+  - backend returns 0-score entries for all submitted brackets when no results are in
+  - entries tied at 0 are ordered by submission date ascending (earlier = higher rank)
+  - BFF route adds a `toLeaderboardEntry` transform to map portfolio API field names (`userSub`, `maxPossible`, flat `breakdown`) to frontend types (`sub`, `maxScore`, `roundBreakdown` array)
+- added Rules & Scoring section at the bottom of the bracket page (point table + bonus rows)
+- fixed CI E2E job (`e2e-accessibility`)
+  - Auth0 `Auth0Client` is constructed at module load time; unset GitHub Actions secrets resolve to empty strings and caused the SDK to throw during init, crashing all middleware routes with 500; fixed with `|| 'placeholder'` fallbacks in `ci.yml` and a try-catch around `auth0.middleware()` in `proxy.ts` so `/auth/*` errors fall through instead of crashing
+  - TCG search E2E test now mocks `GET /api/tcg/cards*` via `page.route` — eliminates the dependency on TCGdex external API speed in CI; poll assertion changed from `not.toEqual(initialHrefs)` (false-positive on transient empty state) to `toContainEqual` on a specific known href from the mock payload
+- updated `PlayoffBracketContent` Vitest tests to cover submit button, auto-save toggle, and submit-clears-saving behavior
+- updated `/thoughts/playoffs` with new sections: Submit vs. auto-save, Leaderboard before results
+- added `/thoughts/ci-e2e` page covering the Auth0 module-level initialization problem, the three TCG search test attempts (waitForResponse race, expect.poll false-positive on empty state, page.route mock), and the general rule about mocking at your own API boundary
+- added NBA Playoffs Bracket feature card to the FeatureHub grid (with `thoughtsHref` linking to `/thoughts/playoffs`)
+- added CI E2E Reliability card to the FeatureHub thoughts grid
+
+## 2026-04-15 - version 0.8.8
+
+- fix case where a change in picks in lower round cascades to later rounds
+
+## 2026-04-15 - version 0.8.7
+
+- added NBA Playoffs bracket picker at `/fantasy/nba/playoffs`
+  - `PlayoffBracketContent.tsx` — client component; fetches bracket structure (ESPN via BFF proxy) and saved picks in parallel via TanStack Query; merges server picks with local edits using `useMemo` to avoid effect-based state initialization and satisfy `react-hooks/set-state-in-effect`
+  - `SeriesPickCard.tsx` — pick a winner (two `aria-pressed` team buttons) and a series length (4-0 through 4-3 select); disabled when either team slot is still TBD
+  - `FinalsCard.tsx` — extends SeriesPickCard with combined last-game score (number input) and Finals MVP (text input); both use local state for accumulating keystrokes
+  - TBD resolution: a static `PRECEDING` map + `resolveTeam` function walks pick history to display the live team abbreviation in later-round slots rather than "TBD"; unresolved slots are disabled
+  - debounced PUT saves (800ms); `userHasPickedRef` guards against spurious saves on initial server data load; `SaveIndicator` shows Saving/Saved state
+  - responsive layout: three-column CSS grid at `lg:` (East | Finals | West); horizontal-scroll rows with negative-margin bleed on mobile; `lg:flex-row-reverse` on West column to mirror round order at wide viewports
+  - `GET /api/nba/playoffs/bracket` — ESPN bracket proxy (already existed)
+  - `GET /api/nba/playoffs/picks`, `PUT /api/nba/playoffs/picks` — authenticated BFF to portfolio API (already existed)
+  - `GET /api/nba/playoffs/leaderboard` — public BFF; `Cache-Control: public, s-maxage=300`; proxies to portfolio API scoring endpoint
+  - `PlayoffLeaderboard.tsx` — rank medals for top 3, score chip + progress bar, per-round breakdown badges, current user row highlight (orange), empty state, skeleton; receives `currentUserSub` from `/api/me` query
+  - added `sub` to `/api/me` response
+  - added `playoffBracket`, `playoffPicks`, `playoffLeaderboard` keys to `queryKeys.ts`
+  - added `LeaderboardRoundBreakdown`, `LeaderboardEntry`, `PlayoffLeaderboardResponse` to `src/types/nba.ts`
+  - 15 Vitest tests across SeriesPickCard (5), FinalsCard (6), PlayoffLeaderboard (4)
+- added `/thoughts/playoffs` write-up page (summary + chat views) covering derived state pattern, TBD resolution, debounced save guard, responsive layout, and testing approach
+- added Playoffs tab to fantasy nav
+- updated `context/architecture-map.md` with new route and API endpoints
+- bumped version from 0.8.6 to 0.8.7
+
+## 2026-04-08 - version 0.8.6
+
+- WCAG 2.1 AA accessibility compliance + axe-core enforcement in CI
+  - installed `@axe-core/playwright`; added `e2e/helpers/axe.ts` with shared `checkA11y()` helper — runs axe with `wcag2a/wcag2aa/wcag21aa` tags and fails the test with a structured diff of every violation
+  - added visually-hidden skip link to root layout (`Skip to content` → `#main-content`); wrapped `{children}` in `<div id="main-content" tabIndex={-1}>`
+  - added `suppressHydrationWarning` to `<html>` — the anti-FOUC script writes `data-theme` to the element before React hydrates, which was producing a hydration mismatch warning; this tells React the element is intentionally owned by the inline script
+  - fixed four contrast/accessibility violations surfaced by axe:
+    - `FeaturesSection` animated `<h2>` was missing `text-white` — axe traced the foreground token up through the DOM past the dark section overlay (a sibling, not a parent) to the white page background and flagged the mismatch
+    - `NbaSection` `overflow-x-auto` table wrapper was missing `tabIndex={0}` (`scrollable-region-focusable` violation)
+    - TCG type badge colors across `BrowseContent`, `card/[cardId]/page`, and `src/lib/tcg.ts` used translucent `/20` or `/15` backgrounds with light `/300` text — borderline on white; replaced with solid `-100` backgrounds and `-900` text, with `dark:` counterparts using `-950`/`-200`
+    - card detail ability type badge hardcoded `text-purple-400 bg-purple-500/15` — same fix: `bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-200`
+  - vitals dashboard: added `aria-label` to the by-page `<table>`, `scope="col"` to all column headers, `scope="row"` on page-name cells, and an `aria-live="polite" aria-atomic="true"` status paragraph that announces the selected version to screen readers on soft navigation
+  - added axe scans to all Playwright specs: landing page (smoke), TCG browse page, TCG card detail page, calendar month view (authenticated)
+  - fixed pre-existing race condition in TCG card detail test — card detail spec now navigates directly via `page.goto(href)` instead of clicking the link, avoiding a race between `router.replace` (URL sync effect) and the `Link` navigation
+  - added `e2e-accessibility` CI job: runs after `quality` passes, installs Chromium, runs `playwright test --project=public` — a WCAG violation blocks the merge
+- updated `/thoughts/e2e`: description, "The three suites" section, new "Accessibility scanning in CI" section, "What this improves" paragraph, and chat view covering axe rationale and the four violations found
+- updated `/thoughts/testing`: CI section updated to mention the e2e-accessibility job; "what would you add next" answer updated (Playwright is done; component tests and mutation testing are next)
+
+## 2026-04-07 - version 0.8.5
+
+- slight CLS fix for `/fantasy/nba/player/stats`, improved skeleton
+
 ## 2026-04-07 - version 0.8.4
 
 - eliminated dark-mode flash (FOUC) — inline `<script>` in `layout.tsx` reads `theme-preference` from localStorage and sets `data-theme` on `<html>` synchronously before any CSS or hydration

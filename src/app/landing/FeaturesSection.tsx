@@ -201,7 +201,7 @@ export default function FeaturesSection() {
     <Section>
       <div ref={ref}>
         <motion.h2
-          className="text-center text-3xl font-bold tracking-tight md:text-4xl"
+          className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
           variants={headingWipe}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}

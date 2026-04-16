@@ -45,13 +45,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        {/* Skip link — visually hidden until focused. Keyboard users Tab to it
+            and activate it to jump past repeated navigation to the page content. */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:ring-2 focus:ring-primary-600 focus:outline-none"
+        >
+          Skip to content
+        </a>
         <Providers>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {/* id="main-content" is the skip link target. tabIndex={-1} allows
+                programmatic focus from the skip link without making the div
+                keyboard-reachable through normal Tab order. */}
+            <div id="main-content" tabIndex={-1}>
+              {children}
+            </div>
+          </ThemeProvider>
         </Providers>
         <SpeedInsights />
         <WebVitalsReporter />

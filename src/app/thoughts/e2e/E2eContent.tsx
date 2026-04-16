@@ -29,8 +29,9 @@ export default function E2eContent() {
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
               Playwright covering three user flows — auth redirects, TCG card
-              browsing, and calendar CRUD — with a dedicated test calendar that
-              gets created and deleted automatically around every run.
+              browsing, and calendar CRUD — with axe-core accessibility scans
+              wired into every public route test and a dedicated test calendar
+              that gets created and deleted automatically around every run.
             </p>
           </header>
 
@@ -206,15 +207,14 @@ export default function E2eContent() {
                   <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
                   <span>
                     <strong className="text-foreground">TCG browsing</strong> —
-                    three tests on the public{" "}
+                    four tests on the public{" "}
                     <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                       /tcg/pokemon
                     </code>{" "}
-                    page: searching for a card name filters the grid, scrolling
-                    the sentinel element to the viewport triggers the
-                    IntersectionObserver and loads the next page, and clicking a
-                    card tile navigates to its detail page with the card name
-                    visible
+                    page: an axe scan of the browse page itself, searching for a
+                    card name filters the grid, scrolling the sentinel triggers
+                    the next page, and a separate test navigates to the first
+                    card&apos;s detail URL and runs a second axe scan there
                   </span>
                 </li>
                 <li className="flex gap-2">
@@ -225,13 +225,118 @@ export default function E2eContent() {
                     today&apos;s cell to open the event modal, fills in a title,
                     saves, verifies the chip appears in the grid, then clicks
                     the chip to open the edit modal, clicks Delete, confirms,
-                    and verifies the chip is gone. The second creates an event
-                    via the API directly (keeping the test focused on the read
-                    path), switches to week view, and asserts the event renders
-                    there
+                    and verifies the chip is gone — with an axe scan of the
+                    month view after the grid loads. The second creates an event
+                    via the API directly, switches to week view, and asserts the
+                    event renders there
                   </span>
                 </li>
               </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Accessibility scanning in CI
+              </h2>
+              <p className="text-muted">
+                Each public-route test runs an axe-core scan after the page
+                settles. The shared{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  checkA11y()
+                </code>{" "}
+                helper in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  e2e/helpers/axe.ts
+                </code>{" "}
+                runs{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AxeBuilder
+                </code>{" "}
+                with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  wcag2a
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  wcag2aa
+                </code>
+                , and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  wcag21aa
+                </code>{" "}
+                tags, then fails the test with a diff of every violation —
+                impact level, rule ID, and the first 120 characters of the
+                offending element&apos;s HTML. The test output tells you exactly
+                what to fix without having to reproduce the scan locally.
+              </p>
+              <p className="mt-3 text-muted">
+                Running axe revealed four real violations. A landing page
+                heading was missing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  text-white
+                </code>{" "}
+                that every other section heading has — axe computed the dark
+                theme foreground color against the page&apos;s root white
+                background (not the dark section overlay, which is a sibling
+                div, not an ancestor) and flagged the mismatch. A scrollable
+                table in the NBA section was missing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  tabIndex=0
+                </code>{" "}
+                so keyboard users couldn&apos;t reach its content. The type
+                badge colors across the TCG browser and card detail page used
+                light{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /300
+                </code>{" "}
+                palette text on semi-transparent backgrounds — borderline
+                against a pure white page. Switching to solid{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  -100
+                </code>{" "}
+                backgrounds with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  -900
+                </code>{" "}
+                text (and dark mode counterparts) makes them definitively
+                compliant and looks cleaner than the translucent approach
+                anyway.
+              </p>
+              <p className="mt-3 text-muted">
+                One fix was in the root layout itself:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  suppressHydrationWarning
+                </code>{" "}
+                on the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"<html>"}
+                </code>{" "}
+                element. The anti-FOUC script runs in the browser and writes{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data-theme=&quot;dark&quot;
+                </code>{" "}
+                to the element before React hydrates. React sees a mismatch
+                between the server-rendered HTML (no attribute) and the DOM
+                (attribute set by the script) and logs a warning.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  suppressHydrationWarning
+                </code>{" "}
+                tells React the element intentionally differs — the right fix
+                for any element touched by an inline script.
+              </p>
+              <p className="mt-3 text-muted">
+                A dedicated{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  e2e-accessibility
+                </code>{" "}
+                job in CI runs after the quality checks pass, installs Chromium,
+                and runs{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  playwright test --project=public
+                </code>
+                . A PR that introduces a missing label, a contrast failure, or
+                any other WCAG 2.1 AA violation blocks the merge.
+              </p>
             </section>
 
             <section>
@@ -265,6 +370,16 @@ export default function E2eContent() {
                 living documentation — reading the calendar spec tells you
                 exactly what the create and delete flows look like step by step,
                 in a way that no README can stay in sync with.
+              </p>
+              <p className="mt-3 text-muted">
+                The accessibility layer catches a different class of bug
+                entirely — the kind that passes every functional test but breaks
+                the experience for keyboard users or screen reader users.
+                Contrast failures, missing landmark roles, inaccessible
+                scrollable regions: none of those would ever surface in a unit
+                test. Running axe in the same Playwright pass means
+                accessibility is automatically re-checked on every public-route
+                test run, not just when someone manually audits the page.
               </p>
               <p className="mt-3 text-muted">
                 The public suite runs without credentials, so it can run in CI
@@ -401,6 +516,69 @@ export default function E2eContent() {
               <Sent pos="last">
                 it also gives you a place to put regression tests when a bug
                 shows up. reproduce it in a spec, fix it, watch the spec pass
+              </Sent>
+
+              <Timestamp>2:30 PM</Timestamp>
+
+              <Received pos="first">you added axe to the tests</Received>
+              <Received pos="last">why not a separate audit tool</Received>
+
+              <Sent pos="first">
+                because a separate audit is a one-time check. axe in playwright
+                runs on every PR, against the real rendered DOM, with actual
+                computed styles. it catches regressions, not just the starting
+                state
+              </Sent>
+              <Sent pos="last">
+                unit tests can&apos;t evaluate contrast ratios because they
+                don&apos;t compute CSS. lighthouse can check contrast but
+                it&apos;s not part of a failing test — it&apos;s a score. axe in
+                playwright is a hard gate
+              </Sent>
+
+              <Timestamp>2:33 PM</Timestamp>
+
+              <Received>what did it actually catch</Received>
+
+              <Sent pos="first">
+                four things. a landing page heading was missing text-white —
+                every other section heading has it, this one didn&apos;t. axe
+                traced the text color up through the DOM and hit the white page
+                background, not the dark section overlay, because the overlay is
+                a sibling div not a parent. easy to miss visually because the
+                overlay is there, but the CSS cascade doesn&apos;t see it
+              </Sent>
+              <Sent pos="middle">
+                a scrollable table in the NBA section was missing tabIndex=0 so
+                keyboard users couldn&apos;t reach it. the type badge colors
+                across the TCG pages used light /300 palette text on
+                semi-transparent backgrounds — borderline against white, and
+                axe&apos;s implementation calculated them as failing
+              </Sent>
+              <Sent pos="last">
+                the fix for the badges was to switch from translucent to solid
+                -100 backgrounds with -900 text and dark: counterparts. more
+                readable and definitively compliant
+              </Sent>
+
+              <Timestamp>2:38 PM</Timestamp>
+
+              <Received pos="first">
+                there was also a hydration warning
+              </Received>
+              <Received pos="last">different issue?</Received>
+
+              <Sent pos="first">
+                yeah, separate. the anti-FOUC script sets data-theme on the html
+                element in the browser before react hydrates. react sees the
+                server HTML (no attribute) and the DOM (attribute set by the
+                script) and logs a mismatch
+              </Sent>
+              <Sent pos="last">
+                suppressHydrationWarning on the html element tells react the
+                element is intentionally touched by an inline script. standard
+                pattern for any element the script layer owns before the
+                framework boots
               </Sent>
 
               <div className={styles.typingDots}>

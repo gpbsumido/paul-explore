@@ -27,6 +27,7 @@ The following pages are fully public — no account needed:
 - **Motion Lab** (`/lab/motion`) — Framer Motion demos
 - **Pokémon TCG Browser** (`/tcg`) — browse, search, set and card detail pages
 - **GraphQL Pokédex** (`/pokedex`) — search and filter all Pokémon
+- **NBA Playoffs Bracket** (`/fantasy/nba/playoffs`) — bracket picker, debounced saves, public leaderboard
 - **Thoughts** (`/thoughts/*`) — write-ups on design decisions
 
 These pages require a login:
@@ -131,6 +132,22 @@ The root `/` is now a dynamic server component that calls `auth0.getSession()` d
 ### 🏆 Fantasy League History
 
 ESPN fantasy league data by season. Teams sort by final standings, expand to show their full roster with positions. Season selector spans back to the league's first year. Glassmorphism card design because I wanted to try it and the gradient background made it work.
+
+### 🏀 NBA Playoffs Bracket Picker
+
+An interactive bracket picker at `/fantasy/nba/playoffs`. Pick the winner and series length of every first-round matchup, and the selections propagate forward: later-round slots show the abbreviation of whoever you picked to advance rather than "TBD". A `PRECEDING` map encodes which earlier matchup feeds each TBD slot, and a `resolveTeam` function walks it to surface the live abbreviation. Buttons for unresolved TBD slots are disabled so you can't pick a winner before picking who they play.
+
+User edits are tracked separately from server picks. A `useMemo` merges them — `{ ...(serverPicks ?? {}), ...userEdits }` — so the component always sees the latest combined view without any effect-based initialization. The first version used `useEffect` + `setState` to seed picks from the server response; ESLint's `react-hooks/set-state-in-effect` flagged it correctly, and the `useMemo` pattern is both cleaner and avoids the cascading render.
+
+Picks save automatically via a debounced PUT. A `userHasPickedRef` starts false and flips on first interaction — the save effect bails early until that flag is set, so loading server data on mount never triggers a spurious write. A `SaveIndicator` component shows "Saving..." and "Saved" states.
+
+The Finals card extends the series card with two extra inputs: combined score of the last game (used as a tiebreaker in the leaderboard scoring) and Finals MVP. Both use local component state rather than controlled inputs tied to the parent, so keystrokes accumulate correctly in tests where the mock `onPick` doesn't update the prop.
+
+A public leaderboard sits below the bracket. It proxies to the portfolio API which scores all submitted picks against actual results and returns ranked entries with a per-round breakdown. The current user's row highlights in orange — `currentUserSub` comes from the `/api/me` query and is matched against `entry.sub`. The leaderboard response is cached at `s-maxage=300`.
+
+The bracket is a three-column grid at `lg:` — East rounds, Finals, West rounds. Below that breakpoint, each conference is an independently scrollable row with `overflow-x-auto` and negative-margin bleed to extend edge-to-edge. The West column uses `lg:flex-row-reverse` to mirror its round order so WCF sits visually closest to the Finals column at wide viewports while still scrolling left-to-right on mobile.
+
+There's a write-up at `/thoughts/playoffs` covering the derived-state pattern, TBD resolution, the debounced save guard, and the responsive layout decisions.
 
 ---
 
