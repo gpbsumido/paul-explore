@@ -57,6 +57,41 @@ export interface PlayerRow {
   error?: boolean;
 }
 
+// Playoff bracket types
+
+export type PlayoffSeriesPick = {
+  winner: string;
+  seriesScore: string;
+};
+
+export type FinalsPick = PlayoffSeriesPick & {
+  lastGameCombinedScore: number | null;
+  mvp: string;
+};
+
+export type PlayoffBracketPicks = Record<string, PlayoffSeriesPick | FinalsPick>;
+
+export type PlayoffTeam = {
+  seed: number;
+  teamId: string;
+  abbreviation: string;
+  name: string;
+  conference: "East" | "West";
+};
+
+export type PlayoffMatchup = {
+  id: string;
+  topTeam: PlayoffTeam;
+  bottomTeam: PlayoffTeam;
+  round: number;
+  conference: "East" | "West" | "Finals";
+};
+
+export type PlayoffBracket = {
+  season: number;
+  matchups: PlayoffMatchup[];
+};
+
 // Court Vision shot chart types
 
 export interface ShotZone {
