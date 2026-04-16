@@ -29,10 +29,15 @@ test.describe("TCG card browser", () => {
     // This is the most reliable signal that a new fetch was issued.
     await expect(page).toHaveURL(/[?&]q=Pikachu/, { timeout: 5_000 });
 
-    // Wait for the grid to repopulate with filtered results.
-    await page.waitForSelector('a[href^="/tcg/pokemon/card/"]', {
-      timeout: 10_000,
-    });
+    // Wait for the filtered API response to land before reading the DOM.
+    // waitForSelector is not enough — initial cards are already in the DOM so
+    // it resolves immediately before the filtered results replace them.
+    await page.waitForResponse(
+      (res) =>
+        res.url().includes("/api/tcg/cards") &&
+        res.url().includes("q=Pikachu"),
+      { timeout: 10_000 },
+    );
 
     // At least one card should be visible and the returned card IDs should
     // differ from the unfiltered set. Comparing IDs (not counts) is robust
