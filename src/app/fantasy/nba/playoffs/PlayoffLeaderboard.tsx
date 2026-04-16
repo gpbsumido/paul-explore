@@ -138,7 +138,7 @@ export default function PlayoffLeaderboard({ currentUserSub }: Props) {
   if (entries.length === 0) {
     return (
       <p className="py-8 text-center text-[13px] text-muted">
-        Leaderboard unlocks when the first results are in.
+        No brackets submitted yet.
       </p>
     );
   }
@@ -165,7 +165,7 @@ export default function PlayoffLeaderboard({ currentUserSub }: Props) {
         <tbody>
           {entries.map((entry) => (
             <EntryRow
-              key={entry.sub}
+              key={entry.sub || String(entry.rank)}
               entry={entry}
               isCurrentUser={entry.sub === currentUserSub}
             />

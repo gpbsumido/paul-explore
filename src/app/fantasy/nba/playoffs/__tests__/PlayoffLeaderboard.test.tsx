@@ -142,9 +142,7 @@ describe("PlayoffLeaderboard", () => {
     });
 
     expect(
-      await screen.findByText(
-        "Leaderboard unlocks when the first results are in.",
-      ),
+      await screen.findByText("No brackets submitted yet."),
     ).toBeInTheDocument();
   });
 

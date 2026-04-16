@@ -210,6 +210,43 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   );
 }
 
+// ---- Submit button ----
+
+type SubmitStatus = "idle" | "submitting" | "submitted";
+
+function SubmitButton({
+  status,
+  onClick,
+  disabled = false,
+}: {
+  status: SubmitStatus;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const isDisabled = disabled || status === "submitting";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={isDisabled}
+      className={[
+        "rounded-lg px-4 py-1.5 text-[12px] font-semibold transition-colors",
+        status === "submitted"
+          ? "bg-green-500/20 text-green-400 cursor-default"
+          : isDisabled
+            ? "bg-orange-500/10 text-orange-400/40 cursor-not-allowed"
+            : "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30",
+      ].join(" ")}
+    >
+      {status === "submitting"
+        ? "Submitting…"
+        : status === "submitted"
+          ? "Submitted!"
+          : "Submit Bracket"}
+    </button>
+  );
+}
+
 // ---- Round column ----
 
 function RoundColumn({
@@ -298,6 +335,8 @@ export default function PlayoffBracketContent() {
   // picks is the merged result of server data + local edits — no effect needed.
   const [userEdits, setUserEdits] = useState<PlayoffBracketPicks>({});
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
+  const [autoSave, setAutoSave] = useState(false);
   const userHasPickedRef = useRef(false);
 
   const meQuery = useQuery({
@@ -340,9 +379,9 @@ export default function PlayoffBracketContent() {
 
   const debouncedPicks = useDebounce(picks, 1000);
 
-  // Debounced save — only fires after a user interaction
+  // Debounced auto-save — only fires when auto-save is enabled and after a user interaction
   useEffect(() => {
-    if (!userHasPickedRef.current) return;
+    if (!autoSave || !userHasPickedRef.current) return;
 
     fetch("/api/nba/playoffs/picks", {
       method: "PUT",
@@ -356,11 +395,11 @@ export default function PlayoffBracketContent() {
         }
       })
       .catch(() => setSaveStatus("idle"));
-  }, [debouncedPicks]);
+  }, [autoSave, debouncedPicks]);
 
   function handlePick(matchupId: string, pick: PlayoffSeriesPick | FinalsPick) {
     userHasPickedRef.current = true;
-    setSaveStatus("saving");
+    if (autoSave) setSaveStatus("saving");
     setUserEdits((prevEdits) => {
       const merged = { ...(serverPicks ?? {}), ...prevEdits };
       const oldWinner = merged[matchupId]?.winner;
@@ -369,11 +408,33 @@ export default function PlayoffBracketContent() {
       // When the winner changes, cascade-clear any downstream picks that had
       // advanced the now-invalid team further through the bracket.
       if (oldWinner && oldWinner !== pick.winner) {
-        return { ...newEdits, ...buildCascadeClears(matchupId, oldWinner, merged) };
+        return {
+          ...newEdits,
+          ...buildCascadeClears(matchupId, oldWinner, merged),
+        };
       }
 
       return newEdits;
     });
+  }
+
+  async function handleSubmit() {
+    setSubmitStatus("submitting");
+    try {
+      const res = await fetch("/api/nba/playoffs/picks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ picks }),
+      });
+      if (res.ok) {
+        setSubmitStatus("submitted");
+        setSaveStatus("idle");
+      } else {
+        setSubmitStatus("idle");
+      }
+    } catch {
+      setSubmitStatus("idle");
+    }
   }
 
   const bracket = bracketQuery.data;
@@ -409,9 +470,23 @@ export default function PlayoffBracketContent() {
       <FantasyNav />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-        {/* Save indicator */}
-        <div className="mb-4 flex items-center justify-end gap-2 min-h-5">
+        {/* Toolbar: auto-save toggle + save indicator + submit */}
+        <div className="mb-4 flex items-center justify-end gap-3 min-h-8">
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={autoSave}
+              onChange={(e) => setAutoSave(e.target.checked)}
+              className="h-3.5 w-3.5 accent-orange-400"
+            />
+            <span className="text-[12px] text-muted">Auto-save</span>
+          </label>
           <SaveIndicator status={saveStatus} />
+          <SubmitButton
+            status={submitStatus}
+            onClick={handleSubmit}
+            disabled={autoSave}
+          />
         </div>
 
         {bracketQuery.isLoading && <BracketSkeleton />}
