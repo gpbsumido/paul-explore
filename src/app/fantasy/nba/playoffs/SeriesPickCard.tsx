@@ -14,6 +14,8 @@ export type SeriesPickCardProps = {
   bottomTeam: PlayoffTeam;
   pick: PlayoffSeriesPick | undefined;
   onPick: (matchupId: string, pick: PlayoffSeriesPick) => void;
+  /** Disable all interaction — used when both teams are still unresolved TBDs. */
+  disabled?: boolean;
 };
 
 // ---- Sub-components ----
@@ -22,10 +24,12 @@ function TeamButton({
   team,
   isWinner,
   onClick,
+  disabled = false,
 }: {
   team: PlayoffTeam;
   isWinner: boolean;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   const isTbd = team.abbreviation === "?" || team.abbreviation === "TBD";
 
@@ -33,14 +37,16 @@ function TeamButton({
     <button
       type="button"
       aria-pressed={isWinner}
-      disabled={isTbd}
+      disabled={disabled}
       onClick={onClick}
       className={[
         "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors",
+        disabled ? "" : "cursor-pointer",
         isWinner
           ? "bg-orange-500/20 font-semibold text-orange-400"
-          : "text-foreground hover:bg-surface-raised",
-        isTbd ? "cursor-default opacity-40" : "cursor-pointer",
+          : isTbd
+            ? "text-muted/60 hover:bg-surface-raised"
+            : "text-foreground hover:bg-surface-raised",
       ].join(" ")}
     >
       <span className="w-4 shrink-0 text-[11px] text-muted/60">
@@ -74,6 +80,7 @@ export default function SeriesPickCard({
   bottomTeam,
   pick,
   onPick,
+  disabled = false,
 }: SeriesPickCardProps) {
   function handleTeamClick(team: PlayoffTeam) {
     onPick(matchupId, {
@@ -90,16 +97,23 @@ export default function SeriesPickCard({
   }
 
   return (
-    <div className="space-y-1 rounded-xl border border-border bg-surface p-2">
+    <div
+      className={[
+        "space-y-1 rounded-xl border border-border bg-surface p-2",
+        disabled ? "opacity-40" : "",
+      ].join(" ")}
+    >
       <TeamButton
         team={topTeam}
         isWinner={pick?.winner === topTeam.abbreviation}
         onClick={() => handleTeamClick(topTeam)}
+        disabled={disabled}
       />
       <TeamButton
         team={bottomTeam}
         isWinner={pick?.winner === bottomTeam.abbreviation}
         onClick={() => handleTeamClick(bottomTeam)}
+        disabled={disabled}
       />
 
       <div className="border-t border-border pt-1.5">
@@ -111,6 +125,7 @@ export default function SeriesPickCard({
           aria-label="Series score"
           value={pick?.seriesScore ?? ""}
           onChange={handleScoreChange}
+          disabled={disabled}
           className="h-8 w-full rounded-lg border border-border bg-surface px-2 text-[12px] text-foreground outline-none"
         >
           <option value="">Score</option>

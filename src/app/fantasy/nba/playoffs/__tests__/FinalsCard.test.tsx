@@ -159,6 +159,35 @@ describe("FinalsCard", () => {
     );
   });
 
+  it("disables all inputs and prevents picks when both teams are unresolved", async () => {
+    const onPick = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <FinalsCard
+        matchupId="NBA_FINALS"
+        topTeam={eastChamp}
+        bottomTeam={westChamp}
+        pick={undefined}
+        onPick={onPick}
+        disabled
+      />,
+    );
+
+    const buttons = screen.getAllByRole("button");
+    for (const btn of buttons) {
+      expect(btn).toBeDisabled();
+    }
+    expect(
+      screen.getByRole("combobox", { name: /series score/i }),
+    ).toBeDisabled();
+    expect(screen.getByLabelText(/combined score, last game/i)).toBeDisabled();
+    expect(screen.getByLabelText(/finals mvp/i)).toBeDisabled();
+
+    await user.click(buttons[0]);
+    expect(onPick).not.toHaveBeenCalled();
+  });
+
   it("calls onPick with updated seriesScore when dropdown changes", async () => {
     const onPick = vi.fn();
     const user = userEvent.setup();

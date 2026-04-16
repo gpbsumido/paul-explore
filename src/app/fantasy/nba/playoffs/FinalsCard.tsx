@@ -15,6 +15,8 @@ export type FinalsCardProps = {
   bottomTeam: PlayoffTeam;
   pick: FinalsPick | undefined;
   onPick: (matchupId: string, pick: FinalsPick) => void;
+  /** Disable all interaction — used when both conference champions are still unresolved. */
+  disabled?: boolean;
 };
 
 // ---- Sub-components ----
@@ -23,10 +25,12 @@ function TeamButton({
   team,
   isWinner,
   onClick,
+  disabled = false,
 }: {
   team: PlayoffTeam;
   isWinner: boolean;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   const isTbd = team.abbreviation === "?" || team.abbreviation === "TBD";
 
@@ -34,14 +38,16 @@ function TeamButton({
     <button
       type="button"
       aria-pressed={isWinner}
-      disabled={isTbd}
+      disabled={disabled}
       onClick={onClick}
       className={[
         "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors",
+        disabled ? "" : "cursor-pointer",
         isWinner
           ? "bg-orange-500/20 font-semibold text-orange-400"
-          : "text-foreground hover:bg-surface-raised",
-        isTbd ? "cursor-default opacity-40" : "cursor-pointer",
+          : isTbd
+            ? "text-muted/60 hover:bg-surface-raised"
+            : "text-foreground hover:bg-surface-raised",
       ].join(" ")}
     >
       <span className="w-4 shrink-0 text-[11px] text-muted/60">
@@ -87,6 +93,7 @@ export default function FinalsCard({
   bottomTeam,
   pick,
   onPick,
+  disabled = false,
 }: FinalsCardProps) {
   const current = pick ?? emptyFinalsPick();
 
@@ -123,16 +130,23 @@ export default function FinalsCard({
   }
 
   return (
-    <div className="space-y-1 rounded-xl border border-border bg-surface p-2">
+    <div
+      className={[
+        "space-y-1 rounded-xl border border-border bg-surface p-2",
+        disabled ? "opacity-40" : "",
+      ].join(" ")}
+    >
       <TeamButton
         team={topTeam}
         isWinner={current.winner === topTeam.abbreviation}
         onClick={() => handleTeamClick(topTeam)}
+        disabled={disabled}
       />
       <TeamButton
         team={bottomTeam}
         isWinner={current.winner === bottomTeam.abbreviation}
         onClick={() => handleTeamClick(bottomTeam)}
+        disabled={disabled}
       />
 
       {/* Series score */}
@@ -145,6 +159,7 @@ export default function FinalsCard({
           aria-label="Series score"
           value={current.seriesScore}
           onChange={handleScoreChange}
+          disabled={disabled}
           className="h-8 w-full rounded-lg border border-border bg-surface px-2 text-[12px] text-foreground outline-none"
         >
           <option value="">Score</option>
@@ -171,6 +186,7 @@ export default function FinalsCard({
           placeholder="e.g. 215"
           value={localCombinedScore}
           onChange={handleCombinedScoreChange}
+          disabled={disabled}
           className="h-8 w-full rounded-lg border border-border bg-surface px-2 text-[12px] text-foreground placeholder:text-muted/40 outline-none"
         />
       </div>
@@ -189,6 +205,7 @@ export default function FinalsCard({
           placeholder="e.g. SGA"
           value={localMvp}
           onChange={handleMvpChange}
+          disabled={disabled}
           className="h-8 w-full rounded-lg border border-border bg-surface px-2 text-[12px] text-foreground placeholder:text-muted/40 outline-none"
         />
       </div>

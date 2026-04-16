@@ -199,6 +199,9 @@ function RoundColumn({
       <div className="flex flex-1 flex-col gap-2">
         {matchups.map((m) => {
           const resolved = resolveMatchup(m, allMatchups, picks);
+          const bothTbd =
+            resolved.topTeam.abbreviation === "?" &&
+            resolved.bottomTeam.abbreviation === "?";
           return (
             <SeriesPickCard
               key={m.id}
@@ -207,6 +210,7 @@ function RoundColumn({
               bottomTeam={resolved.bottomTeam}
               pick={picks[m.id] as PlayoffSeriesPick | undefined}
               onPick={onPick}
+              disabled={bothTbd}
             />
           );
         })}
@@ -392,20 +396,30 @@ export default function PlayoffBracketContent() {
               <h2 className="mb-3 text-center text-[12px] font-semibold uppercase tracking-widest text-muted/60">
                 NBA Finals
               </h2>
-              {finals && (
-                <div className="flex flex-col items-stretch gap-2">
-                  <FinalsCard
-                    matchupId={finals.id}
-                    topTeam={resolveMatchup(finals, matchups, picks).topTeam}
-                    bottomTeam={
-                      resolveMatchup(finals, matchups, picks).bottomTeam
-                    }
-                    pick={picks[finals.id] as FinalsPick | undefined}
-                    onPick={handlePick}
-                  />
-                  <ChampionDisplay picks={picks} bracket={bracket} />
-                </div>
-              )}
+              {finals &&
+                (() => {
+                  const resolvedFinals = resolveMatchup(
+                    finals,
+                    matchups,
+                    picks,
+                  );
+                  const bothTbd =
+                    resolvedFinals.topTeam.abbreviation === "?" &&
+                    resolvedFinals.bottomTeam.abbreviation === "?";
+                  return (
+                    <div className="flex flex-col items-stretch gap-2">
+                      <FinalsCard
+                        matchupId={finals.id}
+                        topTeam={resolvedFinals.topTeam}
+                        bottomTeam={resolvedFinals.bottomTeam}
+                        pick={picks[finals.id] as FinalsPick | undefined}
+                        onPick={handlePick}
+                        disabled={bothTbd}
+                      />
+                      <ChampionDisplay picks={picks} bracket={bracket} />
+                    </div>
+                  );
+                })()}
             </div>
 
             {/* ── West ── */}

@@ -61,6 +61,39 @@ describe("SeriesPickCard", () => {
     expect(questionMarks.length).toBeGreaterThanOrEqual(2);
   });
 
+  it("allows picking a TBD team (play-in slot is selectable before it resolves)", async () => {
+    const onPick = vi.fn();
+    const user = userEvent.setup();
+
+    const tbdTeam: PlayoffTeam = {
+      seed: 0,
+      teamId: "",
+      abbreviation: "?",
+      name: "TBD",
+      conference: "East",
+    };
+
+    render(
+      <SeriesPickCard
+        matchupId="E_R1_M1"
+        topTeam={topTeam}
+        bottomTeam={tbdTeam}
+        pick={undefined}
+        onPick={onPick}
+      />,
+    );
+
+    const [, tbdButton] = screen.getAllByRole("button");
+    expect(tbdButton).not.toBeDisabled();
+
+    await user.click(tbdButton);
+
+    expect(onPick).toHaveBeenCalledWith(
+      "E_R1_M1",
+      expect.objectContaining({ winner: "?" }),
+    );
+  });
+
   it("calls onPick with clicked team abbreviation as winner", async () => {
     const onPick = vi.fn();
     const user = userEvent.setup();
@@ -130,6 +163,33 @@ describe("SeriesPickCard", () => {
       "E_R1_M1",
       expect.objectContaining({ winner: "CLE", seriesScore: "4-2" }),
     );
+  });
+
+  it("disables all inputs and prevents picks when both teams are unresolved", async () => {
+    const onPick = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <SeriesPickCard
+        matchupId="E_R2_M1"
+        topTeam={topTeam}
+        bottomTeam={bottomTeam}
+        pick={undefined}
+        onPick={onPick}
+        disabled
+      />,
+    );
+
+    const buttons = screen.getAllByRole("button");
+    for (const btn of buttons) {
+      expect(btn).toBeDisabled();
+    }
+    expect(
+      screen.getByRole("combobox", { name: /series score/i }),
+    ).toBeDisabled();
+
+    await user.click(buttons[0]);
+    expect(onPick).not.toHaveBeenCalled();
   });
 
   it("preserves the existing winner when only the series score changes", async () => {
