@@ -17,16 +17,11 @@ test.describe("TCG card browser", () => {
   test("search filters the card list", async ({ page }) => {
     const cardLocator = page.locator('a[href^="/tcg/pokemon/card/"]');
 
-    // Capture the card IDs shown on the unfiltered page.
-    const initialHrefs = await cardLocator.evaluateAll((els) =>
-      els.map((el) => el.getAttribute("href")),
-    );
-
     // Mock the internal cards API so this test doesn't depend on TCGdex being
     // reachable in CI. The mock only kicks in for requests that include q=
     // (i.e. the search fetch) and returns a fixed set of Pikachu cards whose
     // hrefs are guaranteed to differ from the unfiltered initial set.
-    await page.route("**/api/tcg/cards**", async (route) => {
+    await page.route(/\/api\/tcg\/cards/, async (route) => {
       const url = new URL(route.request().url());
       const q = url.searchParams.get("q") ?? "";
 

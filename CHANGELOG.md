@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-04-16 - version 0.8.9
+
+- added explicit Submit Bracket button to `PlayoffBracketContent`
+  - `submitStatus` state (`idle | submitting | submitted`) drives button label and disabled state
+  - on success, clears any pending `saveStatus` to `idle` so "Saving..." doesn't persist after the request settles
+- added auto-save checkbox (default off); submit button is disabled while auto-save is on — the two modes are mutually exclusive
+- leaderboard now always renders even before official results exist
+  - backend returns 0-score entries for all submitted brackets when no results are in
+  - entries tied at 0 are ordered by submission date ascending (earlier = higher rank)
+  - BFF route adds a `toLeaderboardEntry` transform to map portfolio API field names (`userSub`, `maxPossible`, flat `breakdown`) to frontend types (`sub`, `maxScore`, `roundBreakdown` array)
+- added Rules & Scoring section at the bottom of the bracket page (point table + bonus rows)
+- fixed CI E2E job (`e2e-accessibility`)
+  - Auth0 `Auth0Client` is constructed at module load time; unset GitHub Actions secrets resolve to empty strings and caused the SDK to throw during init, crashing all middleware routes with 500; fixed with `|| 'placeholder'` fallbacks in `ci.yml` and a try-catch around `auth0.middleware()` in `proxy.ts` so `/auth/*` errors fall through instead of crashing
+  - TCG search E2E test now mocks `GET /api/tcg/cards*` via `page.route` — eliminates the dependency on TCGdex external API speed in CI; poll assertion changed from `not.toEqual(initialHrefs)` (false-positive on transient empty state) to `toContainEqual` on a specific known href from the mock payload
+- updated `PlayoffBracketContent` Vitest tests to cover submit button, auto-save toggle, and submit-clears-saving behavior
+- updated `/thoughts/playoffs` with new sections: Submit vs. auto-save, Leaderboard before results
+- added `/thoughts/ci-e2e` page covering the Auth0 module-level initialization problem, the three TCG search test attempts (waitForResponse race, expect.poll false-positive on empty state, page.route mock), and the general rule about mocking at your own API boundary
+- added NBA Playoffs Bracket feature card to the FeatureHub grid (with `thoughtsHref` linking to `/thoughts/playoffs`)
+- added CI E2E Reliability card to the FeatureHub thoughts grid
+
 ## 2026-04-15 - version 0.8.8
 
 - fix case where a change in picks in lower round cascades to later rounds
