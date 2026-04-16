@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const LINKS = [
   { href: "/fantasy/nba/matchups", label: "Matchups" },
+  { href: "/fantasy/nba/playoffs", label: "Playoffs" },
   { href: "/fantasy/nba/league-history", label: "League History" },
   { href: "/fantasy/nba/player/stats", label: "Player Stats" },
   { href: "/fantasy/nba/court-vision", label: "Court Vision" },
