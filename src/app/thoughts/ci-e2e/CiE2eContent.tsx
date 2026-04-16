@@ -178,6 +178,73 @@ AUTH0_DOMAIN: \${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}`}
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                Attempt 4 — React Query initialData poisoning the cache
+              </h2>
+              <p className="text-muted">
+                The mock was in place but the test still failed. The DOM still
+                showed the unfiltered cards after searching for Pikachu. Adding
+                request logging revealed the real problem: the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/tcg/cards?q=Pikachu
+                </code>{" "}
+                request was never made at all. The mock never had a chance to
+                fire.
+              </p>
+              <p className="mt-3 text-muted">
+                The culprit was in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  BrowseContent.tsx
+                </code>
+                . The page is server-rendered, so it arrives with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialCards
+                </code>{" "}
+                — the unfiltered first page. That prop was passed directly to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>{" "}
+                as{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialData
+                </code>
+                , unconditionally. React Query applies{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialData
+                </code>{" "}
+                to whatever the current query key is — including{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"{ q: 'Pikachu', type: '' }"}
+                </code>
+                . When the search term changed, React Query created a new cache
+                entry for the Pikachu key, immediately seeded it with the
+                unfiltered server data, and then checked{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  staleTime
+                </code>
+                . The data had just been set — well within the 30-second window
+                — so no fetch was triggered.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: guard{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialData
+                </code>{" "}
+                behind{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  !debouncedSearch && !type
+                </code>
+                . The server data is only valid for the unfiltered view — the
+                exact key it was fetched for. Any filtered key gets{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  undefined
+                </code>
+                , React Query finds nothing in the cache, and fetches
+                immediately.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 Why not mock everything
               </h2>
               <p className="text-muted">
@@ -292,6 +359,30 @@ AUTH0_DOMAIN: \${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}`}
               </Sent>
 
               <Timestamp>3:14 PM</Timestamp>
+
+              <Received>
+                mock is in but it still fails. still showing unfiltered cards
+              </Received>
+
+              <Sent pos="first">
+                added request logging — the search fetch never fires at all.
+                mock never had a chance
+              </Sent>
+              <Sent pos="middle">
+                root cause: BrowseContent passes initialCards to
+                useInfiniteQuery as initialData, unconditionally. React Query
+                applies that to whatever the current key is. when you type
+                Pikachu, the new key gets seeded with the unfiltered server data
+                — staleTime says it&apos;s fresh — no fetch
+              </Sent>
+              <Sent pos="last">
+                fix: guard initialData behind !debouncedSearch && !type. server
+                data is only valid for the key it was actually fetched for.
+                filtered keys get undefined, React Query finds nothing, fetches
+                immediately
+              </Sent>
+
+              <Timestamp>3:19 PM</Timestamp>
 
               <Received>why not mock the initial page load too</Received>
 

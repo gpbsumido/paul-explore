@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-04-16 - version 0.8.10
+
+- fixed TCG search E2E test still failing after page.route mock was added
+  - root cause: `BrowseContent` passed `initialData` (unfiltered server cards) to all React Query keys, including filtered ones like `{ q: "Pikachu" }`; React Query seeded the "Pikachu" cache entry with the wrong data and considered it fresh within the 30s `staleTime`, so no fetch was issued and the mock never fired
+  - fix: `initialData` and matching `staleTime` are now only applied when `!debouncedSearch && !type` — i.e., the unfiltered key that matches what the server actually rendered
+- removed unused `initialHrefs` variable from `e2e/public/tcg.spec.ts` (leftover from Attempt 2 — no longer needed after the assertion changed to `toContainEqual`)
+- updated `/thoughts/ci-e2e` with Attempt 4 section covering the React Query initialData root cause
+
 ## 2026-04-16 - version 0.8.9
 
 - added explicit Submit Bracket button to `PlayoffBracketContent`
