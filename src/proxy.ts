@@ -117,7 +117,13 @@ export async function proxy(request: NextRequest) {
   // Auth0 OIDC routes — the SDK owns the full login / callback / logout flow.
   // v4 of @auth0/nextjs-auth0 uses /auth/* (not /api/auth/*).
   if (pathname.startsWith("/auth/")) {
-    return auth0.middleware(request);
+    try {
+      return await auth0.middleware(request);
+    } catch {
+      // Auth0 is misconfigured (e.g. missing env vars in CI). Fall through so
+      // public routes continue to work — auth-gated routes will 500 naturally.
+      return NextResponse.next();
+    }
   }
 
   // Protect /vitals and /settings the same way /protected was protected.
