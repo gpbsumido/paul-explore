@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-04-16 - version 0.9.0
+
+- added `src/app/landing/models/` — shared R3F infrastructure for section 3D scenes
+  - `SectionModelScene.tsx` — Canvas with `frameloop="demand"`, `dpr=[1,1.5]`, Environment "city" HDR, OrbitControls with autoRotate
+  - `HotspotDot.tsx` — R3F `Html` overlay: pulsing dot + glassmorphism tooltip on hover
+  - `ModelFallback.tsx` — pulsing sphere mesh shown via Suspense while a model loads
+  - `ModelLazyMount.tsx` — IntersectionObserver-based canvas mount deferral (200px rootMargin, accepts `style` prop)
+  - `NbaSectionCanvas.tsx` — NBA-specific canvas: rotating basketball placeholder (sphere mesh) with two HotspotDots
+- updated `NbaSection.tsx` — bleed layout: content constrained to left ~52%, R3F canvas right-aligned with `style={{ left: "52%", right: "-20vw" }}` so the ball bleeds off the right viewport edge; dynamically imports `NbaSectionCanvas` with `ssr: false`
+- added hotspot CSS utility classes to `globals.css` (`.hotspot-root`, `.hotspot-dot`, `.hotspot-ring`, `.hotspot-tooltip`, `.hotspot-tooltip-label`, `.hotspot-tooltip-desc`, `@keyframes hotspot-pulse`)
+- revised `NbaSection.tsx` — replaced static highlights grid with a feature carousel: three slides (Live API Proxy, Fantasy Matchups, Court Vision) driven by pill-style dot indicators; active card transitions via `AnimatePresence`; dots are plain HTML (not R3F `Html`) so they stay fixed on screen
+- revised `NbaSectionCanvas.tsx` — removed `HotspotDot` usage; R3F `Html` overlays orbit with the camera and conflict with the carousel interaction model
+
 ## 2026-04-16 - version 0.8.10
 
 - fixed TCG search E2E test still failing after page.route mock was added

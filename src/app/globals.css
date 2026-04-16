@@ -132,6 +132,79 @@
    5. Global resets (in @layer base so Tailwind
       utilities can override them)
    ============================================= */
+/* =============================================
+   6. Hotspot dots for 3D model scenes
+   ============================================= */
+
+/* Restore pointer events so hotspots work inside pointer-events-none canvases. */
+.hotspot-root {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  pointer-events: auto;
+}
+
+.hotspot-dot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgb(253 230 138 / 0.9);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.hotspot-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgb(253 230 138 / 0.55);
+  pointer-events: none;
+  animation: hotspot-pulse 2s ease-out infinite;
+}
+
+.hotspot-tooltip {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 160px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgb(0 0 0 / 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 50;
+}
+
+.hotspot-tooltip-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.hotspot-tooltip-desc {
+  font-size: 11px;
+  color: rgb(255 255 255 / 0.6);
+  margin: 2px 0 0;
+}
+
+@keyframes hotspot-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
 @layer base {
   html,
   body {
