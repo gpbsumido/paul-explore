@@ -29,24 +29,24 @@ test.describe("TCG card browser", () => {
     // This is the most reliable signal that a new fetch was issued.
     await expect(page).toHaveURL(/[?&]q=Pikachu/, { timeout: 5_000 });
 
-    // Wait for the filtered API response to land before reading the DOM.
-    // waitForSelector is not enough — initial cards are already in the DOM so
-    // it resolves immediately before the filtered results replace them.
-    await page.waitForResponse(
-      (res) =>
-        res.url().includes("/api/tcg/cards") &&
-        res.url().includes("q=Pikachu"),
-      { timeout: 10_000 },
-    );
+    // Poll until the visible card hrefs differ from the initial unfiltered set.
+    // waitForSelector / waitForResponse both have timing issues here — either
+    // resolving too early (cards already in DOM) or too late (listener set up
+    // after the response already landed). Polling the DOM directly avoids both.
+    await expect
+      .poll(
+        () =>
+          cardLocator.evaluateAll((els) =>
+            els.map((el) => el.getAttribute("href")),
+          ),
+        { timeout: 10_000 },
+      )
+      .not.toEqual(initialHrefs);
 
-    // At least one card should be visible and the returned card IDs should
-    // differ from the unfiltered set. Comparing IDs (not counts) is robust
-    // when both result sets happen to be the same size (e.g. a full page).
     const filteredHrefs = await cardLocator.evaluateAll((els) =>
       els.map((el) => el.getAttribute("href")),
     );
     expect(filteredHrefs.length).toBeGreaterThan(0);
-    expect(filteredHrefs).not.toEqual(initialHrefs);
   });
 
   test("scrolling to the sentinel loads additional cards", async ({ page }) => {
