@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-04-15 - version 0.8.8
+
+- fix case where a change in picks in lower round cascades to later rounds
+
 ## 2026-04-15 - version 0.8.7
 
 - added NBA Playoffs bracket picker at `/fantasy/nba/playoffs`

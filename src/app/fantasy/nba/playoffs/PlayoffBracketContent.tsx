@@ -22,7 +22,7 @@ import PlayoffLeaderboard from "./PlayoffLeaderboard";
 
 // Maps each TBD slot (matchupId_top / matchupId_bottom) to the preceding matchup
 // whose pick winner fills that slot.
-const PRECEDING: Record<string, string> = {
+export const PRECEDING: Record<string, string> = {
   E_R2_M1_top: "E_R1_M1",
   E_R2_M1_bottom: "E_R1_M2",
   E_R2_M2_top: "E_R1_M3",
@@ -38,6 +38,42 @@ const PRECEDING: Record<string, string> = {
   NBA_FINALS_top: "E_CF",
   NBA_FINALS_bottom: "W_CF",
 };
+
+// Inverted PRECEDING: given a matchup ID, which downstream matchup IDs list it
+// as a feeder? Computed once at module load from PRECEDING.
+const DOWNSTREAM: Record<string, string[]> = Object.entries(PRECEDING).reduce<
+  Record<string, string[]>
+>((acc, [slot, precedingId]) => {
+  const matchupId = slot.replace(/_(?:top|bottom)$/, "");
+  return { ...acc, [precedingId]: [...(acc[precedingId] ?? []), matchupId] };
+}, {});
+
+/**
+ * Builds a partial picks update that clears the `winner` field on every
+ * downstream matchup whose current winner was `removedWinner`. Cascades
+ * recursively so the full advancement chain is cleaned up in one pass.
+ *
+ * Exported for unit testing.
+ */
+export function buildCascadeClears(
+  changedMatchupId: string,
+  removedWinner: string,
+  picks: PlayoffBracketPicks,
+): PlayoffBracketPicks {
+  const clears: PlayoffBracketPicks = {};
+
+  function walk(matchupId: string): void {
+    for (const downstreamId of DOWNSTREAM[matchupId] ?? []) {
+      if (picks[downstreamId]?.winner === removedWinner) {
+        clears[downstreamId] = { ...picks[downstreamId]!, winner: "" };
+        walk(downstreamId);
+      }
+    }
+  }
+
+  walk(changedMatchupId);
+  return clears;
+}
 
 const TBD_FALLBACK: PlayoffTeam = {
   seed: 0,
@@ -325,7 +361,19 @@ export default function PlayoffBracketContent() {
   function handlePick(matchupId: string, pick: PlayoffSeriesPick | FinalsPick) {
     userHasPickedRef.current = true;
     setSaveStatus("saving");
-    setUserEdits((prev) => ({ ...prev, [matchupId]: pick }));
+    setUserEdits((prevEdits) => {
+      const merged = { ...(serverPicks ?? {}), ...prevEdits };
+      const oldWinner = merged[matchupId]?.winner;
+      const newEdits = { ...prevEdits, [matchupId]: pick };
+
+      // When the winner changes, cascade-clear any downstream picks that had
+      // advanced the now-invalid team further through the bracket.
+      if (oldWinner && oldWinner !== pick.winner) {
+        return { ...newEdits, ...buildCascadeClears(matchupId, oldWinner, merged) };
+      }
+
+      return newEdits;
+    });
   }
 
   const bracket = bracketQuery.data;
