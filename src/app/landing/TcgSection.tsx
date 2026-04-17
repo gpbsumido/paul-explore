@@ -2,8 +2,10 @@
 
 import { useRef } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
+import ModelLazyMount from "./models/ModelLazyMount";
 import {
   spring,
   instantTransition,
@@ -11,16 +13,9 @@ import {
   fadeUp,
 } from "@/lib/animations";
 
-const MOCK_CARDS = [
-  { name: "Charizard", color: "from-orange-500 to-red-600" },
-  { name: "Pikachu", color: "from-yellow-400 to-amber-500" },
-  { name: "Mewtwo", color: "from-purple-500 to-violet-700" },
-  { name: "Blastoise", color: "from-blue-500 to-cyan-600" },
-  { name: "Gengar", color: "from-purple-700 to-indigo-800" },
-  { name: "Eevee", color: "from-amber-400 to-orange-400" },
-];
-
-const TYPE_PILLS = ["Fire", "Water", "Grass", "Lightning", "Psychic"];
+const TcgSectionCanvas = dynamic(() => import("./models/TcgSectionCanvas"), {
+  ssr: false,
+});
 
 const HIGHLIGHTS = [
   [
@@ -36,9 +31,6 @@ const HIGHLIGHTS = [
     "Set metadata fetched server-side via TCGdex SDK. Paginated card grids are client components with Suspense boundaries.",
   ],
 ] as const;
-
-// The 0.2s head start: browser frame fades in at delay 0, cards start at delay 0.2.
-const CARD_DEAL_OFFSET = 0.2;
 
 export default function TcgSection() {
   const ref = useRef(null);
@@ -70,70 +62,21 @@ export default function TcgSection() {
           grids, and deep card detail — built on the TCGdex SDK.
         </motion.p>
 
-        {/* Mock browser UI — fades in first to give cards a surface to land on */}
+        {/* 3D card fan — hover a featured card to lift it and reveal the tooltip */}
         <motion.div
-          className="mt-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm"
+          className="mt-10"
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 0 }}
+          transition={transition ?? { ...spring.smooth, delay: 0.15 }}
         >
-          {/* Mock filter bar */}
-          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
-            <div className="h-7 w-36 shrink-0 rounded-md bg-white/10" />
-            <div className="h-4 w-px shrink-0 bg-white/20" />
-            <div className="flex gap-2 overflow-hidden">
-              {TYPE_PILLS.map((t) => (
-                <span
-                  key={t}
-                  className={`shrink-0 rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${
-                    t === "Fire"
-                      ? "border border-red-500/30 bg-red-500/30 text-red-300"
-                      : "border border-white/10 text-white/40"
-                  }`}
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Mock card grid — each card deals from the same point above */}
-          <div className="grid grid-cols-3 gap-2 p-4 sm:grid-cols-6">
-            {MOCK_CARDS.map((card, i) => (
-              <motion.div
-                key={card.name}
-                className="overflow-hidden rounded-lg border border-white/10"
-                initial={
-                  prefersReduced
-                    ? { opacity: 0 }
-                    : {
-                        y: -60,
-                        rotate: ((i % 3) - 1) * 18,
-                        scale: 0.5,
-                        opacity: 0,
-                      }
-                }
-                animate={
-                  inView ? { y: 0, rotate: 0, scale: 1, opacity: 1 } : undefined
-                }
-                transition={
-                  prefersReduced
-                    ? { ...instantTransition }
-                    : { ...spring.bounce, delay: CARD_DEAL_OFFSET + i * 0.06 }
-                }
-              >
-                <div
-                  className={`bg-gradient-to-br ${card.color} flex items-end justify-start p-2`}
-                  style={{ aspectRatio: "2.5/3.5" }}
-                >
-                  <span className="rounded bg-black/30 px-1 text-[9px] font-bold text-white">
-                    {card.name}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {/* Max-width constrains the canvas so the fan isn't tiny inside
+              a 1000px-wide ultra-widescreen canvas. */}
+          <ModelLazyMount
+            style={{ height: "320px", maxWidth: "580px", margin: "0 auto" }}
+          >
+            <TcgSectionCanvas />
+          </ModelLazyMount>
         </motion.div>
 
         {/* Feature highlights */}
@@ -142,7 +85,7 @@ export default function TcgSection() {
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 0.5 }}
+          transition={transition ?? { ...spring.smooth, delay: 0.35 }}
         >
           {HIGHLIGHTS.map(([t, d]) => (
             <div
@@ -162,7 +105,7 @@ export default function TcgSection() {
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 0.65 }}
+          transition={transition ?? { ...spring.smooth, delay: 0.5 }}
         >
           <Link
             href="/tcg/pokemon"

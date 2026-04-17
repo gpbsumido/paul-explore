@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-04-17 - version 0.9.9
+
+- fixed `CalendarSection.tsx` clock canvas — switched from `height: 400px` to `aspect-square` with `height: 100%` so the container is always square; clock no longer appears octagonal from asymmetric clipping
+- fixed `CalendarSection.tsx` clock canvas — added `zIndex: 10` to the absolute wrapper so `Html` tooltips from the clock face render above section highlight cards that follow in DOM order
+- fixed `CalendarSectionCanvas.tsx` — removed `<group scale={1.2}>` wrapper; square canvas no longer needs compensating scale, clock fits naturally
+- fixed `CardModel.tsx` — added `label` and `description` to cards at indices 1 (`URL-Synced State`) and 3 (`Server / Client Split`) so all five cards show a tooltip on hover
+- fixed `CardModel.tsx` — adjacent cards at `|i - hoveredIndex| === 1` now duck down by 0.18 units when a neighbor is hovered, preventing overlap with the lifted card
+
+## 2026-04-17 - version 0.9.8
+
+- fixed `CalendarModel.tsx` — replaced `circleGeometry`/`ringGeometry` (single-sided, invisible from behind) with `cylinderGeometry` (body), `torusGeometry` (rim), and `sphereGeometry` (hour markers, center pin); model now renders correctly from all viewing angles when OrbitControls rotates past 90°
+- fixed `CalendarSection.tsx` canvas — changed canvas from `inset-y-0` (tall portrait aspect that clipped clock heavily from sides) to `top-1/2 -translate-y-1/2 h-[400px]` (near-square canvas where clock fits and only the rim bleeds past the edges)
+- fixed `CardModel.tsx` — added `Z_STACK = [-0.12, -0.06, 0, -0.06, -0.12]` z-depth offsets per card on the rotation group; center card renders in front, prevents z-fighting at overlap regions
+- fixed `CardModel.tsx` — added `e.stopPropagation()` to `onPointerEnter`/`onPointerLeave` so raycaster does not fire on cards behind the frontmost hit
+- updated `CardModel.tsx` — card geometry from 0.55×0.82 to 0.68×0.98, `FAN_RADIUS` 1.4→1.5 for wider spread, `LIFT` 0.38→0.42
+- updated `TcgSectionCanvas.tsx` — camera position `[0, 0.4, 3.5]` → `[0, 0.2, 2.4]` to bring cards closer and fill the canvas
+- updated `TcgSection.tsx` — canvas `maxWidth: 580px, margin: 0 auto` so the fan isn't tiny inside the full-width 1000px section
+
+## 2026-04-17 - version 0.9.7
+
+- added `src/app/landing/models/sections/CalendarModel.tsx` — procedural clock face: `circleGeometry` face, `ringGeometry` rim with teal emissive, 12 hour markers (major ticks at 0/3/6/9 in teal, minor in gray), hour and minute hand groups rotated via `useFrame` driven by `Date.now()`, center amber pin, 3 `HotspotDot` components on the face (Custom Calendar Engine, Google Calendar Sync, Optimistic Updates); wrapped in `<Float speed={0.9}>` for gentle idle bob
+- added `src/app/landing/models/CalendarSectionCanvas.tsx` — wraps `SectionModelScene` with `autoRotate={false}` and `camera={{ position: [0,0,2.5], fov: 50 }}`; clock group scaled 1.2× so the rim bleeds slightly past the canvas edges for the cropped effect
+- updated `src/app/landing/CalendarSection.tsx` — left-crop layout: outer `div ref={ref}` gains `relative md:pl-[45%]`; clock canvas is `position: absolute left-0 inset-y-0` at 43% width, hidden on mobile; heading and description switch to `md:text-left` and `md:mx-0`; dynamically imports `CalendarSectionCanvas` with `ssr: false`
+- added `src/app/landing/models/sections/CardModel.tsx` — 5 playing cards in a fanned arc: fan rotations `[0.45, 0.22, 0, -0.22, -0.45]` rad around Z, pivot group at `[0, -FAN_RADIUS, 0]`, per-card lift group lerped via `useFrame` on hover (LIFT=0.38 units, speed delta×12); 3 featured cards (indices 0, 2, 4) show `Html` tooltip above card on hover using existing `.hotspot-tooltip` CSS; cursor set to pointer on hover, cleaned up on unmount
+- added `src/app/landing/models/TcgSectionCanvas.tsx` — wraps `SectionModelScene` with `autoRotate={false}` and `camera={{ position: [0,0.4,3.5], fov: 50 }}`
+- updated `src/app/landing/TcgSection.tsx` — replaced mock browser UI (filter bar + dealing card grid) with the 3D card fan canvas in a 300px `ModelLazyMount`; removed `MOCK_CARDS`, `TYPE_PILLS`, and `CARD_DEAL_OFFSET` constants; adjusted highlight and link animation delays
+
 ## 2026-04-17 - version 0.9.6
 
 - added `?v=2` cache-bust suffix to both GLB URLs in `BasketballModel.tsx` and `LockModel.tsx` — Three.js loader cache retained stale failed entries (from earlier Draco-decode attempts) under the plain URL; versioned URL forces a fresh cache key
