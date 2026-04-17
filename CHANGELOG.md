@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-04-17 - version 0.9.10
+
+- added `src/app/landing/models/sections/GlobeModel.tsx` — procedural wireframe icosahedron (`icosahedronGeometry` radius 2, detail 4), slow Y-axis rotation via `useFrame` at 0.12 rad/s; no GLB, no hotspots
+- added `src/app/landing/models/HeroGlobeCanvas.tsx` — bare R3F Canvas (`frameloop="always"`, `alpha: true`, camera `[0,0,2.5]` fov 60) wrapping `GlobeModel`; sits absolute inset-0 with `pointer-events: none`; dynamically imported with `ssr: false`
+- updated `src/app/landing/HeroSection.tsx` — inserted `HeroGlobeCanvas` behind the vignette as hero ambient depth layer; bumped vignette from `z-[1]` to `z-[2]` to maintain correct stack order (background → globe → vignette → text)
+- updated `context/architecture-map.md` — added `HeroGlobeCanvas` and `GlobeModel` to component tables; added decision #14 documenting always-on hero canvas pattern
+
 ## 2026-04-17 - version 0.9.9
 
 - fixed `CalendarSection.tsx` clock canvas — switched from `height: 400px` to `aspect-square` with `height: 100%` so the container is always square; clock no longer appears octagonal from asymmetric clipping
