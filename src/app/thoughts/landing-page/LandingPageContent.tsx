@@ -658,6 +658,134 @@ export default function LandingPageContent() {
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                GraphQL and Vitals 3D models
+              </h2>
+              <p className="text-muted">
+                Two more sections got R3F models in Phase 5. The GraphQL section
+                uses a procedural model: the official GraphQL logo — a regular
+                hexagon outer ring plus an equilateral triangle connecting every
+                other vertex (12, 4, and 8 o&apos;clock). Six sphere nodes sit
+                at each hex vertex, all in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  #e535ab
+                </code>{" "}
+                — the GraphQL brand pink. The canvas renders full-bleed at 30%
+                CSS opacity so it acts as a depth layer behind the query
+                inspector and text rather than competing with it. Because the
+                cluster rotates continuously,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  frameloop=&quot;always&quot;
+                </code>{" "}
+                is required (demand mode would never re-render). The canvas is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  pointer-events: none
+                </code>{" "}
+                — no hotspot interactivity; the three feature cards in the
+                section cover the same information.
+              </p>
+              <p className="mt-3 text-muted">
+                The Vitals section loads a speedometer GLB with an animated
+                needle that lerps from a resting angle to the &ldquo;good&rdquo;
+                zone on scroll entry via{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useFrame
+                </code>
+                . The layout was restructured: speedometer canvas centered at
+                the top (360px tall, max-width 520px), three primary stat cards
+                (LCP, INP, CLS) in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  grid-cols-3
+                </code>{" "}
+                row below, then the existing feature highlights and CTA.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Box3 auto-fit for extreme coordinate models
+              </h2>
+              <p className="text-muted">
+                The speedometer GLB loaded (Suspense resolved, no more orange
+                sphere) but was invisible — only the hotspot dots were visible.
+                Inspecting the GLB revealed bounding box coordinates like
+                X:&nbsp;&#8722;30000 to 8000, Z:&nbsp;&#8722;63000 to
+                &#8722;24000. The model existed miles from the camera at any
+                fixed scale value.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix is a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Box3
+                </code>{" "}
+                auto-fit run in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useEffect
+                </code>{" "}
+                after the cloned scene is available. Compute the bounding box,
+                extract size and center, then set{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  group.scale = TARGET_SIZE / maxDimension
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  group.position = -center * scale
+                </code>
+                . The model now centers at the world origin regardless of its
+                native coordinate system — a general-purpose pattern for any GLB
+                with unknown units.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Speedometer Draco issue and ?v=3
+              </h2>
+              <p className="text-muted">
+                The speedometer GLB initially showed the orange Suspense
+                fallback sphere. Same symptom as the basketball and lock models
+                — but a different root cause. The file had previously been
+                optimized with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  gltf-transform optimize
+                </code>{" "}
+                which applies Draco compression by default, compressing the 55KB
+                raw file down to 5.5KB. The project intentionally avoids Draco
+                to keep the CSP clean (no{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  wasm-unsafe-eval
+                </code>
+                , no{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  blob:
+                </code>
+                ), so{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GLTFLoader
+                </code>{" "}
+                had no decoder and silently fell back to the Suspense fallback.
+                Fix:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  gltf-transform optimize --compress false
+                </code>
+                , producing a 45KB plain GLB. Bumping the URL from{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?v=2
+                </code>{" "}
+                to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?v=3
+                </code>{" "}
+                cleared the stale entry from{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  THREE.Cache
+                </code>{" "}
+                and the browser HTTP cache — same cache-bust pattern as the
+                earlier models.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 Polish and micro-interactions
               </h2>
               <p className="text-muted">
@@ -1312,6 +1440,79 @@ for (let y = 1; y < simH - 1; y++) {
                 the lesson: when a loader fails and you fix the asset, change
                 the URL. don&apos;t trust in-memory caches to pick up on-disk
                 changes mid-session
+              </Sent>
+
+              <Timestamp>4:00 PM</Timestamp>
+
+              <Received pos="first">what are the Phase 5 models</Received>
+              <Received pos="last">GraphQL and Vitals?</Received>
+
+              <Sent pos="first">
+                GraphQL gets a procedural model — the actual GraphQL logo. a
+                regular hexagon ring with an inner equilateral triangle
+                connecting every other vertex (12, 4, 8 o&apos;clock). six
+                sphere nodes at the hex vertices. no GLB, pure Three.js geometry
+              </Sent>
+              <Sent pos="middle">
+                it renders as a full-bleed canvas behind the section text at 30%
+                opacity. the whole canvas has <code>opacity: 0.3</code> in CSS
+                so it reads as depth without competing with the query inspector.{" "}
+                <code>pointer-events: none</code> — purely decorative
+              </Sent>
+              <Sent pos="last">
+                one constraint: the cluster rotates continuously so it needs{" "}
+                <code>frameloop=&quot;always&quot;</code>. demand mode would
+                never trigger a new frame once the initial render settled
+              </Sent>
+
+              <Received>and Vitals</Received>
+
+              <Sent pos="first">
+                Vitals gets the speedometer GLB with an animated needle. on
+                scroll entry the needle lerps from a resting angle to the
+                &ldquo;good&rdquo; zone via <code>useFrame</code>. the section
+                layout is now speedometer on top, three stat cards (LCP, INP,
+                CLS) in a row below
+              </Sent>
+              <Sent pos="last">
+                the needle traverses the scene children for names containing
+                &ldquo;needle&rdquo;, &ldquo;pointer&rdquo;, etc., then falls
+                back to the second child if nothing matches. then just sets{" "}
+                <code>rotation.z</code> on it each frame
+              </Sent>
+
+              <Received pos="first">
+                what happened with the speedometer — it showed the orange sphere
+              </Received>
+              <Received pos="last">same Draco issue?</Received>
+
+              <Sent pos="first">
+                same symptom, different cause. this one had been through{" "}
+                <code>gltf-transform optimize</code> which applies Draco by
+                default — compressed the 55KB raw down to 5.5KB. looked fine but
+                was completely unloadable without a decoder
+              </Sent>
+              <Sent pos="middle">
+                reprocessed with <code>--compress false</code>. back to 45KB, no
+                extensions required, default loader works. then the model loaded
+                but was invisible — only the hotspot dots appeared
+              </Sent>
+              <Sent pos="last">
+                the raw GLB has bounding box coords in the tens of thousands.
+                the model was miles from the camera. fixed with a{" "}
+                <code>Box3</code> auto-fit in <code>useEffect</code>: compute
+                bounding box, scale by <code>TARGET_SIZE / maxDimension</code>,
+                translate by <code>-center * scale</code>. lands it at the
+                origin regardless of native units
+              </Sent>
+
+              <Received>and ?v=3</Received>
+
+              <Sent>
+                same cache-bust pattern — bumped from <code>?v=2</code> to{" "}
+                <code>?v=3</code> to evict the Draco-compressed version from{" "}
+                <code>THREE.Cache</code> and the browser HTTP cache. same lesson
+                as before: fix the asset, change the URL
               </Sent>
 
               {/* Typing indicator */}

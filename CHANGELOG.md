@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-04-17 - version 0.9.11
+
+- added `src/app/landing/models/sections/NodeClusterModel.tsx` — procedural GraphQL logo: regular hexagon outer ring (6 tube edges, radius 0.038) + equilateral inner triangle connecting alternating vertices at 12/4/8 o'clock + 6 sphere nodes in GraphQL brand pink (`#e535ab`); slow Y-axis rotation via `useFrame` at 0.22 rad/s; no hotspots (decorative background canvas)
+- added `src/app/landing/models/sections/SpeedometerModel.tsx` — loads `speedometer.glb?v=3`; `Box3` auto-fit in `useEffect` computes bounding box of cloned scene and sets `scale = TARGET_SIZE / maxDimension` + `position = -center * scale` so the model centers at the origin regardless of native coordinate values; needle traversal tries common name keywords (`needle`, `pointer`, etc.), falls back to second scene child; needle lerps from `NEEDLE_REST` to `NEEDLE_GOOD` on `inView` via `useFrame`; 3 `HotspotDot` components
+- added `src/app/landing/models/GraphQLSectionCanvas.tsx` — bare R3F Canvas (`frameloop="always"`, `alpha: true`, `opacity: 0.3`, `pointer-events: none`) wrapping `NodeClusterModel`; full-bleed at z-[2] between the dark veil and glow so the cluster reads as atmospheric depth behind section text
+- added `src/app/landing/models/VitalsSectionCanvas.tsx` — bare R3F Canvas (`frameloop="always"`) with `OrbitControls` (no zoom/pan) + `SpeedometerModel`; accepts `inView: boolean` and `prefersReduced: boolean` props to drive needle animation
+- updated `src/app/landing/GraphQLSection.tsx` — replaced `<Section>` with a raw `<section>` element; canvas at z-[2], dark veil at z-[1], glow at z-[3], content at z-[4]; `ModelLazyMount` wraps canvas as `absolute inset-0 pointer-events-none`; removed `Section` import, added `dynamic` + `ModelLazyMount` imports
+- updated `src/app/landing/VitalsSection.tsx` — replaced mock dashboard (5-metric cards + by-page table) with speedometer `ModelLazyMount` (360px, max-width 520px, centered) followed by 3 stat cards (LCP/INP/CLS) in a `grid-cols-3` row; removed `MOCK_METRICS` and `MOCK_ROWS` constants; adjusted highlight and CTA animation delays; added `VitalsSectionCanvas` dynamic import
+- fixed `public/models/speedometer.glb` — reprocessed from raw with `gltf-transform optimize --compress false`; previous optimize run applied Draco by default (55KB → 5.5KB), which the default `GLTFLoader` cannot decode without a WASM decoder; new file is 45KB with no extensions required
+- updated `SpeedometerModel.tsx` — bumped GLB URL from `?v=2` to `?v=3` to bust `THREE.Cache` and browser HTTP cache of the Draco-compressed file
+- updated `context/architecture-map.md` — added `GraphQLSectionCanvas`, `VitalsSectionCanvas`, `NodeClusterModel`, `SpeedometerModel` to component tables
+- bumped `package.json` version 0.9.10 → 0.9.11
+
 ## 2026-04-17 - version 0.9.10
 
 - added `src/app/landing/models/sections/GlobeModel.tsx` — procedural wireframe icosahedron (`icosahedronGeometry` radius 2, detail 4), slow Y-axis rotation via `useFrame` at 0.12 rad/s; no GLB, no hotspots

@@ -2,14 +2,20 @@
 
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import Section from "./Section";
+import ModelLazyMount from "./models/ModelLazyMount";
 import {
   spring,
   instantTransition,
   headingWipe,
   fadeUp,
 } from "@/lib/animations";
+
+const GraphQLSectionCanvas = dynamic(
+  () => import("./models/GraphQLSectionCanvas"),
+  { ssr: false },
+);
 
 // ---------------------------------------------------------------------------
 // Query string — keep it short so the typing feels snappy
@@ -129,137 +135,159 @@ export default function GraphQLSection() {
   const transition = prefersReduced ? instantTransition : undefined;
 
   return (
-    <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-graphql) 5%, transparent) 0%, transparent 60%)">
-      <div ref={ref}>
-        <motion.h2
-          className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
-          variants={headingWipe}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth }}
-        >
-          GraphQL Pokédex
-        </motion.h2>
+    // Full-bleed layout: canvas sits at z-[2] between the dark veil and glow,
+    // so the cluster is visible at 30% opacity behind the text content.
+    <section className="relative w-full" data-theme="dark">
+      {/* Dark veil keeps section text readable over any weather effect */}
+      <div className="absolute inset-0 pointer-events-none bg-black/52 z-[1]" />
 
-        <motion.p
-          className="mx-auto mt-3 max-w-lg text-center text-white/70"
-          variants={fadeUp}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 0.1 }}
-        >
-          Browse 1,000+ Pokémon via a Hasura GraphQL endpoint — typed queries,
-          field selection, and a live query inspector. Plain fetch, no Apollo.
-        </motion.p>
+      {/* Node cluster canvas — between veil and glow, decorative only */}
+      <ModelLazyMount className="absolute inset-0 z-[2] pointer-events-none">
+        <GraphQLSectionCanvas />
+      </ModelLazyMount>
 
-        {/* Mock query inspector — two-panel layout */}
-        <motion.div
-          className="mt-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm"
-          variants={fadeUp}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 0 }}
-        >
-          {/* Toolbar */}
-          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-indigo-400">
-              Query
-            </span>
-            <div className="h-3.5 w-px bg-white/20" />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
-              Variables
-            </span>
-            <div className="ml-auto flex gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-error-500/70" />
-              <span className="h-2.5 w-2.5 rounded-full bg-warning-500/70" />
-              <span className="h-2.5 w-2.5 rounded-full bg-success-500/70" />
-            </div>
-          </div>
+      {/* Feature color glow */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[3]"
+        style={{
+          background:
+            "radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-graphql) 5%, transparent) 0%, transparent 60%)",
+        }}
+      />
 
-          <div className="grid md:grid-cols-2">
-            {/* Left: query editor */}
-            <div className="border-b border-white/10 bg-black/30 p-4 md:border-b-0 md:border-r">
-              <TypewriterQuery
-                query={MOCK_QUERY}
-                inView={inView}
-                prefersReduced={prefersReduced}
-              />
-            </div>
-
-            {/* Right: results — fade in after typing finishes */}
-            <div className="p-4">
-              <p className="mb-3 text-[9px] font-bold uppercase tracking-widest text-white/30">
-                Results
-              </p>
-              <ul className="space-y-1.5">
-                {MOCK_RESULTS.map((p, i) => (
-                  <motion.li
-                    key={p.id}
-                    className="flex items-center gap-2 font-mono text-[11px] sm:text-xs"
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={inView ? { opacity: 1, x: 0 } : undefined}
-                    transition={
-                      prefersReduced
-                        ? { ...instantTransition }
-                        : { ...spring.smooth, delay: RESULT_DELAY + i * 0.05 }
-                    }
-                  >
-                    <span className="text-white/30">#{p.id}</span>
-                    <span className="text-white/80">{p.name}</span>
-                    <span className={`ml-auto ${p.color}`}>{p.type}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Feature highlights */}
-        <motion.div
-          className="mt-8 grid gap-4 md:grid-cols-3"
-          variants={fadeUp}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          transition={
-            transition ?? {
-              ...spring.smooth,
-              delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.1,
-            }
-          }
-        >
-          {HIGHLIGHTS.map(([t, d]) => (
-            <div
-              key={t}
-              className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
-            >
-              <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
-                {d}
-              </p>
-            </div>
-          ))}
-        </motion.div>
-
-        <motion.div
-          className="mt-8 flex justify-center"
-          variants={fadeUp}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          transition={
-            transition ?? {
-              ...spring.smooth,
-              delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.25,
-            }
-          }
-        >
-          <Link
-            href="/graphql"
-            className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-6 py-2.5 text-[14px] font-semibold text-teal-300 transition-colors hover:bg-teal-500/20 hover:text-teal-200"
+      {/* Content — sits above canvas and glow */}
+      <div className="relative z-[4] mx-auto max-w-[1000px] px-6 py-24 md:py-32">
+        <div ref={ref}>
+          <motion.h2
+            className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
+            variants={headingWipe}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            transition={transition ?? { ...spring.smooth }}
           >
-            Open GraphQL Pokédex →
-          </Link>
-        </motion.div>
+            GraphQL Pokédex
+          </motion.h2>
+
+          <motion.p
+            className="mx-auto mt-3 max-w-lg text-center text-white/70"
+            variants={fadeUp}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            transition={transition ?? { ...spring.smooth, delay: 0.1 }}
+          >
+            Browse 1,000+ Pokémon via a Hasura GraphQL endpoint — typed queries,
+            field selection, and a live query inspector. Plain fetch, no Apollo.
+          </motion.p>
+
+          {/* Mock query inspector — two-panel layout */}
+          <motion.div
+            className="mt-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm"
+            variants={fadeUp}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            transition={transition ?? { ...spring.smooth, delay: 0 }}
+          >
+            {/* Toolbar */}
+            <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-indigo-400">
+                Query
+              </span>
+              <div className="h-3.5 w-px bg-white/20" />
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                Variables
+              </span>
+              <div className="ml-auto flex gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-error-500/70" />
+                <span className="h-2.5 w-2.5 rounded-full bg-warning-500/70" />
+                <span className="h-2.5 w-2.5 rounded-full bg-success-500/70" />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2">
+              {/* Left: query editor */}
+              <div className="border-b border-white/10 bg-black/30 p-4 md:border-b-0 md:border-r">
+                <TypewriterQuery
+                  query={MOCK_QUERY}
+                  inView={inView}
+                  prefersReduced={prefersReduced}
+                />
+              </div>
+
+              {/* Right: results — fade in after typing finishes */}
+              <div className="p-4">
+                <p className="mb-3 text-[9px] font-bold uppercase tracking-widest text-white/30">
+                  Results
+                </p>
+                <ul className="space-y-1.5">
+                  {MOCK_RESULTS.map((p, i) => (
+                    <motion.li
+                      key={p.id}
+                      className="flex items-center gap-2 font-mono text-[11px] sm:text-xs"
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={inView ? { opacity: 1, x: 0 } : undefined}
+                      transition={
+                        prefersReduced
+                          ? { ...instantTransition }
+                          : { ...spring.smooth, delay: RESULT_DELAY + i * 0.05 }
+                      }
+                    >
+                      <span className="text-white/30">#{p.id}</span>
+                      <span className="text-white/80">{p.name}</span>
+                      <span className={`ml-auto ${p.color}`}>{p.type}</span>
+                    </motion.li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Feature highlights */}
+          <motion.div
+            className="mt-8 grid gap-4 md:grid-cols-3"
+            variants={fadeUp}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            transition={
+              transition ?? {
+                ...spring.smooth,
+                delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.1,
+              }
+            }
+          >
+            {HIGHLIGHTS.map(([t, d]) => (
+              <div
+                key={t}
+                className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+              >
+                <h4 className="text-[15px] font-semibold text-white">{t}</h4>
+                <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                  {d}
+                </p>
+              </div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            className="mt-8 flex justify-center"
+            variants={fadeUp}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            transition={
+              transition ?? {
+                ...spring.smooth,
+                delay: RESULT_DELAY + MOCK_RESULTS.length * 0.05 + 0.25,
+              }
+            }
+          >
+            <Link
+              href="/graphql"
+              className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-6 py-2.5 text-[14px] font-semibold text-teal-300 transition-colors hover:bg-teal-500/20 hover:text-teal-200"
+            >
+              Open GraphQL Pokédex →
+            </Link>
+          </motion.div>
+        </div>
       </div>
-    </Section>
+    </section>
   );
 }
