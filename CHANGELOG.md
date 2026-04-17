@@ -1,17 +1,57 @@
 # Changelog
 
+## 2026-04-17 - version 0.9.6
+
+- added `?v=2` cache-bust suffix to both GLB URLs in `BasketballModel.tsx` and `LockModel.tsx` — Three.js loader cache retained stale failed entries (from earlier Draco-decode attempts) under the plain URL; versioned URL forces a fresh cache key
+- fixed `LockModel.tsx` orientation — `lock.glb` is only 0.09 units wide along X (camera-facing axis); added `rotation={[0, Math.PI/2, 0]}` and `position={[0, 0.05, 0]}` to the inner group to show the wider Z face and center the bounding box vertically
+
+## 2026-04-16 - version 0.9.5
+
+- stripped Draco compression from `basketball.glb` and `lock.glb` using `@gltf-transform/core` + `draco3d`; Draco WASM requires `'wasm-unsafe-eval'` in CSP, blob: URL access, and a runtime decoder — eliminated the entire dependency by keeping GLBs uncompressed
+- removed `/draco/` decoder path arguments from `useGLTF` and `useGLTF.preload` calls in both model components (no longer needed)
+- removed `public/draco/` Draco decoder files (no longer needed)
+- added `@gltf-transform/core`, `@gltf-transform/extensions`, `@gltf-transform/cli` as devDependencies (asset prep tooling)
+
+## 2026-04-16 - version 0.9.4
+
+- fixed GLB texture loading — added `blob:` to `img-src` and `connect-src` in `src/proxy.ts`; Three.js GLTFLoader creates blob: URLs for embedded textures and loads them via `<img>` / ImageBitmap fetch, both of which are blocked without `blob:` in the CSP
+- fixed scene sharing — added `useMemo(() => scene.clone(), [scene])` in both `BasketballModel.tsx` and `LockModel.tsx`; `useGLTF` returns a cached singleton and `<primitive object={scene} />` without cloning can corrupt the scene graph on remount
+
+## 2026-04-16 - version 0.9.3
+
+- fixed CSP blocking Draco WASM — added `'wasm-unsafe-eval'` to `script-src` in `src/proxy.ts`; `WebAssembly.instantiate()` requires this directive when instantiating the Draco mesh decoder
+- fixed `BasketballModel.tsx` — `basketball.glb` is also Draco-compressed; updated `useGLTF.preload` and `useGLTF` calls to pass `"/draco/"` as the `useDraco` argument
+
+## 2026-04-16 - version 0.9.2
+
+- fixed `LockModel.tsx` — `lock.glb` is Draco-compressed (`KHR_draco_mesh_compression`); `useGLTF` without a decoder config silently fell back to `ModelFallback` (pulsing sphere), making the auth section appear identical to the NBA section
+- copied Draco WASM decoder files from `three/examples/jsm/libs/draco/gltf/` to `public/draco/` so no external CDN is needed
+- updated `useGLTF` and `useGLTF.preload` calls in `LockModel.tsx` to pass `"/draco/"` as the `useDraco` argument — required to activate DRACOLoader; passing `false`/undefined disables it regardless of `setDecoderPath`
+- added architecture-map decision #13 documenting the Draco decoder pattern
+
+## 2026-04-16 - version 0.9.1
+
+- added `src/app/landing/models/sections/BasketballModel.tsx` — loads `basketball.glb`, wraps in `<Float speed={1.5} rotationIntensity={0.4} floatIntensity={0.6}>`, 3 hotspot dots anchored inside Float (Live Player Stats, Fantasy Scoring, Zero-latency UI); `useGLTF.preload` called at module scope
+- added `src/app/landing/models/sections/LockModel.tsx` — loads `lock.glb`, pendulum oscillation via `useFrame` (`±0.45rad` around Y axis at 0.35 Hz), gentle vertical float with `rotationIntensity={0}`, 3 hotspot dots inside Float (BFF Pattern, Rate Limiting, CSP Headers)
+- added `src/app/landing/models/AuthSectionCanvas.tsx` — wraps `SectionModelScene` with `autoRotate={false}` + `LockModel`; OrbitControls stays active for manual drag
+- updated `src/app/landing/models/SectionModelScene.tsx` — added `autoRotate` (default `true`) and `autoRotateSpeed` (default `0.8`) props so each section can opt out of continuous camera rotation
+- updated `src/app/landing/models/NbaSectionCanvas.tsx` — replaced placeholder sphere with `BasketballModel`
+- updated `src/app/landing/AuthSection.tsx` — added centered-bottom padlock canvas below existing 2-col layout; `mt-14 flex justify-center` wrapper, `ModelLazyMount` at `maxWidth: 560px, height: 420px`, dynamically imports `AuthSectionCanvas` with `ssr: false`
+
 ## 2026-04-16 - version 0.9.0
 
 - added `src/app/landing/models/` — shared R3F infrastructure for section 3D scenes
-  - `SectionModelScene.tsx` — Canvas with `frameloop="demand"`, `dpr=[1,1.5]`, Environment "city" HDR, OrbitControls with autoRotate
-  - `HotspotDot.tsx` — R3F `Html` overlay: pulsing dot + glassmorphism tooltip on hover
+  - `SectionModelScene.tsx` — Canvas with `frameloop="demand"`, `dpr=[1,1.5]`, explicit lights (ambient + two directionals), OrbitControls with autoRotate; `pointerEvents: "auto"` on Canvas so OrbitControls gets events despite the wrapper being `pointer-events-none`
+  - `HotspotDot.tsx` — R3F `Html` overlay (retained for potential future use; not wired up in current sections)
   - `ModelFallback.tsx` — pulsing sphere mesh shown via Suspense while a model loads
   - `ModelLazyMount.tsx` — IntersectionObserver-based canvas mount deferral (200px rootMargin, accepts `style` prop)
-  - `NbaSectionCanvas.tsx` — NBA-specific canvas: rotating basketball placeholder (sphere mesh) with two HotspotDots
-- updated `NbaSection.tsx` — bleed layout: content constrained to left ~52%, R3F canvas right-aligned with `style={{ left: "52%", right: "-20vw" }}` so the ball bleeds off the right viewport edge; dynamically imports `NbaSectionCanvas` with `ssr: false`
+  - `NbaSectionCanvas.tsx` — NBA-specific canvas: rotating basketball placeholder sphere
+- updated `NbaSection.tsx` — bleed layout: content div uses `md:w-[52%]` (not padding) so it doesn't extend into the canvas hit area; R3F canvas right-aligned with `style={{ left: "52%", right: "-20vw" }}` so the ball bleeds off the right viewport edge; dynamically imports `NbaSectionCanvas` with `ssr: false`
 - added hotspot CSS utility classes to `globals.css` (`.hotspot-root`, `.hotspot-dot`, `.hotspot-ring`, `.hotspot-tooltip`, `.hotspot-tooltip-label`, `.hotspot-tooltip-desc`, `@keyframes hotspot-pulse`)
 - revised `NbaSection.tsx` — replaced static highlights grid with a feature carousel: three slides (Live API Proxy, Fantasy Matchups, Court Vision) driven by pill-style dot indicators; active card transitions via `AnimatePresence`; dots are plain HTML (not R3F `Html`) so they stay fixed on screen
 - revised `NbaSectionCanvas.tsx` — removed `HotspotDot` usage; R3F `Html` overlays orbit with the camera and conflict with the carousel interaction model
+- fixed `SectionModelScene.tsx` — removed `Environment preset="city"` (fetched a remote HDR file, failing in dev/offline); replaced with `ambientLight` + two `directionalLight` primitives
+- fixed `NbaSection.tsx` pointer-events — changed left content from `md:pr-[48%]` to `md:w-[52%]`; padding-based layout left a full-width element over the canvas area, causing text selection when starting a drag on the ball's left side; `md:w-[52%]` ends the element at the canvas boundary
 
 ## 2026-04-16 - version 0.8.10
 

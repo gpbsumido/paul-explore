@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.9.0",
+  "version": "0.9.6",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -40,6 +40,9 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
+    "@gltf-transform/cli": "^4.3.0",
+    "@gltf-transform/core": "^4.3.0",
+    "@gltf-transform/extensions": "^4.3.0",
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.1.18",

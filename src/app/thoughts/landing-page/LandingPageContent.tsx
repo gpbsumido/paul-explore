@@ -460,6 +460,203 @@ export default function LandingPageContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">R3F section models</h2>
+              <p className="text-muted">
+                Two landing sections now have interactive 3D models: the NBA
+                section has a rotating basketball and the auth section has an
+                oscillating padlock. Both use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @react-three/fiber
+                </code>{" "}
+                with a shared{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  SectionModelScene
+                </code>{" "}
+                canvas that sets{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  frameloop=&quot;demand&quot;
+                </code>{" "}
+                so the GPU only works when OrbitControls or a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useFrame
+                </code>{" "}
+                animation is active. Each canvas is dynamically imported with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ssr: false
+                </code>{" "}
+                and wrapped in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ModelLazyMount
+                </code>{" "}
+                IntersectionObserver that defers WebGL context creation until
+                the section is 200px from the viewport. Remote HDR environment
+                maps were replaced with explicit{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ambientLight
+                </code>{" "}
+                +{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  directionalLight
+                </code>{" "}
+                primitives to eliminate the network dependency.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                NBA bleed layout and carousel
+              </h2>
+              <p className="text-muted">
+                The basketball canvas is positioned absolutely with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  left: &quot;52%&quot;; right: &quot;-20vw&quot;
+                </code>{" "}
+                so the ball bleeds off the right edge of the viewport, clipped
+                by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  overflow-x: clip
+                </code>{" "}
+                on the body. Two non-obvious constraints had to be solved. The
+                text content div uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  md:w-[52%]
+                </code>{" "}
+                rather than padding — padding would extend the element&apos;s
+                hit area over the canvas, causing text selection on drag. The
+                canvas wrapper is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  pointer-events-none
+                </code>{" "}
+                but the R3F{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Canvas
+                </code>{" "}
+                sets{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  pointerEvents: &quot;auto&quot;
+                </code>{" "}
+                explicitly to override the inherited value and give
+                OrbitControls a clean event surface.
+              </p>
+              <p className="mt-3 text-muted">
+                Feature highlights are a plain-HTML carousel — not R3F{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Html
+                </code>{" "}
+                overlays. Three.js{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Html
+                </code>{" "}
+                positions elements in world space, so they orbit with the camera
+                rather than staying fixed on screen. The carousel uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AnimatePresence
+                </code>{" "}
+                for slide transitions and pill-shaped{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"<button>"}
+                </code>{" "}
+                dot indicators — active dot is wider ({" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  w-5
+                </code>
+                ) via a CSS transition, no JS animation needed.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Auth section padlock</h2>
+              <p className="text-muted">
+                The lock model sits centered at the bottom of the auth section —
+                below the text and code snippet. It uses a pendulum animation: a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useFrame
+                </code>{" "}
+                callback drives{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  rotation.y = Math.sin(elapsed * 0.35) * 0.45
+                </code>{" "}
+                on an outer group (±26° at 0.35 Hz), while a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"<Float>"}
+                </code>{" "}
+                inside adds a slow vertical bob with no additional rotation.
+                OrbitControls remains active so users can drag to inspect the
+                model; autoRotate is off to avoid conflicting with the pendulum.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Draco, CSP, and the loader cache
+              </h2>
+              <p className="text-muted">
+                Both GLBs were exported with Draco mesh compression (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  KHR_draco_mesh_compression
+                </code>
+                ), which requires a WASM decoder at runtime. That decoder needs{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &apos;wasm-unsafe-eval&apos;
+                </code>{" "}
+                in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  script-src
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  blob:
+                </code>{" "}
+                in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  img-src
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  connect-src
+                </code>{" "}
+                (Three.js creates blob URLs for embedded textures). Rather than
+                carry that CSP surface area, the GLBs were stripped of
+                compression using{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @gltf-transform/core
+                </code>{" "}
+                +{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  draco3d
+                </code>{" "}
+                as a one-time offline step. The uncompressed files load with the
+                default{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GLTFLoader
+                </code>{" "}
+                and no runtime decoder.
+              </p>
+              <p className="mt-3 text-muted">
+                One last catch: Three.js&apos;s loader cache (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  THREE.Cache
+                </code>
+                ) keys entries by URL. Earlier failed decode attempts left stale
+                error entries under{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /models/basketball.glb
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /models/lock.glb
+                </code>
+                . Even after the files were fixed, the cache returned the old
+                failure. Adding{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?v=2
+                </code>{" "}
+                to both URLs gave each a fresh cache key without touching the
+                files on disk.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">
                 Polish and micro-interactions
               </h2>
@@ -472,18 +669,18 @@ export default function LandingPageContent() {
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   requestAnimationFrame
                 </code>{" "}
-                with ease-out cubic easing, and skips the animation entirely when
-                the user has{" "}
+                with ease-out cubic easing, and skips the animation entirely
+                when the user has{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   prefers-reduced-motion
                 </code>{" "}
                 enabled. The Player Stats table gained an FPT column for fantasy
                 points. Responsive fixes include a horizontally scrollable
                 prediction table, overflow-safe nav tabs, and 44px touch targets
-                on mobile. Accessibility additions: aria-live regions on all main
-                content areas, aria-labels on interactive controls, and a labeled
-                fantasy nav landmark. Matchups and Court Vision now have cards in
-                the feature hub with mini preview components.
+                on mobile. Accessibility additions: aria-live regions on all
+                main content areas, aria-labels on interactive controls, and a
+                labeled fantasy nav landmark. Matchups and Court Vision now have
+                cards in the feature hub with mini preview components.
               </p>
             </section>
           </div>
@@ -979,6 +1176,142 @@ for (let y = 1; y < simH - 1; y++) {
                 <code>text-muted</code> reads <code>#a3a3a3</code>. zero changes
                 to any individual section file, all the existing color classes
                 just work
+              </Sent>
+
+              <Timestamp>3:35 PM</Timestamp>
+
+              {/* ---- 3D models ---- */}
+              <Received pos="first">
+                you added 3D models to the sections
+              </Received>
+              <Received pos="last">
+                how does that fit with the rest of the page
+              </Received>
+
+              <Sent pos="first">
+                two sections now have interactive WebGL canvases — the NBA
+                section has a basketball and the auth section has a padlock.
+                both use React Three Fiber with a shared{" "}
+                <code>SectionModelScene</code> canvas
+              </Sent>
+              <Sent pos="middle">
+                the canvas is dynamically imported with <code>ssr: false</code>{" "}
+                and only mounts when the section gets within 200px of the
+                viewport via IntersectionObserver. no WebGL context until the
+                user is about to see it
+              </Sent>
+              <Sent pos="last">
+                <code>frameloop=&quot;demand&quot;</code> means the GPU only
+                does work when OrbitControls or a <code>useFrame</code>{" "}
+                animation is actually running — idle sections cost nothing
+              </Sent>
+
+              <Received>how does the basketball bleed off the edge</Received>
+
+              <Sent pos="first">
+                the canvas is absolutely positioned with{" "}
+                <code>left: &quot;52%&quot;; right: &quot;-20vw&quot;</code>.
+                the body has <code>overflow-x: clip</code> which clips it
+                without creating a scroll axis
+              </Sent>
+              <Sent pos="middle">
+                two things had to be right for it to work cleanly. the text
+                content div uses <code>md:w-[52%]</code> — not padding. padding
+                would extend the element&apos;s hit area over the canvas and
+                cause text selection when you drag the ball from the left side
+              </Sent>
+              <Sent pos="last">
+                and the canvas wrapper is <code>pointer-events-none</code> but
+                the R3F Canvas overrides that with{" "}
+                <code>pointerEvents: &quot;auto&quot;</code> in its style prop —
+                without that, OrbitControls gets no events and the model
+                can&apos;t be dragged
+              </Sent>
+
+              <Received>
+                what about the feature highlights — are those in 3D too
+              </Received>
+
+              <Sent pos="first">
+                no, and that was a deliberate reversal. first attempt used R3F{" "}
+                <code>Html</code> overlays as hotspot dots on the ball surface.
+                the problem: <code>Html</code> positions elements in world
+                space, so they orbit with the camera when you drag
+              </Sent>
+              <Sent pos="last">
+                switched to a plain HTML carousel. three slides with{" "}
+                <code>AnimatePresence</code> transitions and pill-dot indicators
+                — active dot goes from <code>w-2</code> to <code>w-5</code> with
+                a CSS transition. completely fixed on screen, completely
+                decoupled from the canvas
+              </Sent>
+
+              <Timestamp>3:41 PM</Timestamp>
+
+              <Received pos="first">what does the padlock do</Received>
+              <Received pos="last">is it just sitting there</Received>
+
+              <Sent pos="first">
+                it swings. a <code>useFrame</code> callback does{" "}
+                <code>rotation.y = Math.sin(elapsed * 0.35) * 0.45</code> on an
+                outer group — that&apos;s ±26° at 0.35 Hz, roughly a pendulum
+                frequency
+              </Sent>
+              <Sent pos="middle">
+                inside that group there&apos;s a <code>{"<Float>"}</code> for a
+                slow vertical bob, with <code>rotationIntensity={"{0}"}</code>{" "}
+                so Float doesn&apos;t add its own spin on top of the pendulum
+              </Sent>
+              <Sent pos="last">
+                OrbitControls is still active so you can grab and inspect it.
+                autoRotate is off — letting the canvas auto-rotate while the
+                pendulum is running creates a visual conflict
+              </Sent>
+
+              <Received pos="first">walk me through the Draco issue</Received>
+              <Received pos="last">that was a long debug</Received>
+
+              <Sent pos="first">
+                both GLBs were exported with{" "}
+                <code>KHR_draco_mesh_compression</code>. that extension requires
+                a WASM decoder at runtime. <code>useGLTF</code> without a
+                decoder config silently falls back to the Suspense fallback — a
+                pulsing yellow sphere — so both sections looked identical
+              </Sent>
+              <Sent pos="middle">
+                configured the DRACOLoader with local decoder files, but then
+                the CSP blocked WebAssembly instantiation. fixed that with{" "}
+                <code>&apos;wasm-unsafe-eval&apos;</code>. then Three.js was
+                creating <code>blob:</code> URLs for the embedded textures and
+                those were blocked too — needed <code>blob:</code> in both{" "}
+                <code>img-src</code> and <code>connect-src</code>
+              </Sent>
+              <Sent pos="last">
+                the cleanest fix was to strip Draco entirely — one offline
+                Node.js script using <code>@gltf-transform/core</code> +{" "}
+                <code>draco3d</code>. uncompressed GLBs load with the default
+                loader, no decoder, no CSP additions needed
+              </Sent>
+
+              <Received>and then it still didn&apos;t work</Received>
+
+              <Sent pos="first">
+                right — Three.js caches loader results by URL in{" "}
+                <code>THREE.Cache</code>. the earlier failed decode attempts
+                left stale error entries under the plain paths
+              </Sent>
+              <Sent pos="last">
+                adding <code>?v=2</code> to both GLB URLs gave each a fresh
+                cache key. the browser and Three.js both treated it as a new
+                resource, fetched the fixed files, and the models loaded
+              </Sent>
+
+              <Received>clean</Received>
+
+              <Sent>
+                the lesson: when a loader fails and you fix the asset, change
+                the URL. don&apos;t trust in-memory caches to pick up on-disk
+                changes mid-session
               </Sent>
 
               {/* Typing indicator */}

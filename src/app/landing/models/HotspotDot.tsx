@@ -10,13 +10,20 @@ type Props = {
   label: string;
   /** Supporting description shown below the label. */
   description: string;
+  /** Which side of the dot the tooltip opens toward. Defaults to "up". */
+  direction?: "up" | "down";
 };
 
 /**
  * R3F Html overlay that renders a pulsing dot with a glassmorphism
  * tooltip on hover. CSS lives in globals.css under the .hotspot-* classes.
  */
-export default function HotspotDot({ position, label, description }: Props) {
+export default function HotspotDot({
+  position,
+  label,
+  description,
+  direction = "up",
+}: Props) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -30,7 +37,10 @@ export default function HotspotDot({ position, label, description }: Props) {
           aria-label={label}
         />
         {hovered && (
-          <div className="hotspot-tooltip" role="tooltip">
+          <div
+            className={`hotspot-tooltip hotspot-tooltip--${direction}`}
+            role="tooltip"
+          >
             <p className="hotspot-tooltip-label">{label}</p>
             <p className="hotspot-tooltip-desc">{description}</p>
           </div>
