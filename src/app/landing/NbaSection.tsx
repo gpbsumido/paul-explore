@@ -85,7 +85,7 @@ function StatRow({
 
   return (
     <motion.tr
-      className={odd ? "bg-white/5" : ""}
+      className={odd ? "bg-foreground/5" : ""}
       variants={slideInRight}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
@@ -95,8 +95,8 @@ function StatRow({
           : { ...spring.smooth, delay: index * 0.05 }
       }
     >
-      <td className="px-3 py-2 text-sm font-medium text-white">{name}</td>
-      <td className="px-3 py-2 text-sm text-white/60">{team}</td>
+      <td className="px-3 py-2 text-sm font-medium text-foreground">{name}</td>
+      <td className="px-3 py-2 text-sm text-foreground/60">{team}</td>
       <td className="px-3 py-2 text-right text-sm font-semibold">
         <AnimatedStat
           value={pts}
@@ -104,10 +104,10 @@ function StatRow({
           className="text-primary-400"
         />
       </td>
-      <td className="px-3 py-2 text-right text-sm text-white">
+      <td className="px-3 py-2 text-right text-sm text-foreground">
         <AnimatedStat value={reb} inView={inView} />
       </td>
-      <td className="px-3 py-2 text-right text-sm text-white">
+      <td className="px-3 py-2 text-right text-sm text-foreground">
         <AnimatedStat value={ast} inView={inView} />
       </td>
     </motion.tr>
@@ -166,7 +166,7 @@ export default function NbaSection() {
             Width (not padding) keeps the element out of the canvas hit area. */}
         <div className="relative z-10 md:w-[52%]">
           <motion.h2
-            className="text-3xl font-bold tracking-tight text-white md:text-4xl"
+            className="text-3xl font-bold tracking-tight text-foreground md:text-4xl"
             variants={headingWipe}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
@@ -176,7 +176,7 @@ export default function NbaSection() {
           </motion.h2>
 
           <motion.p
-            className="mt-3 max-w-sm text-white/70"
+            className="mt-3 max-w-sm text-foreground/70"
             variants={fadeUp}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
@@ -188,7 +188,7 @@ export default function NbaSection() {
 
           {/* mock table */}
           <motion.div
-            className="mt-8 overflow-hidden rounded-xl border border-white/10 bg-white/10 shadow-xl backdrop-blur-sm"
+            className="mt-8 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5 shadow-xl backdrop-blur-sm"
             variants={fadeUp}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
@@ -197,7 +197,7 @@ export default function NbaSection() {
             <div className="overflow-x-auto" tabIndex={0}>
               <table className="w-full text-left text-white">
                 <thead>
-                  <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/60">
+                  <tr className="border-b border-foreground/10 text-xs uppercase tracking-wider text-foreground/60">
                     <th className="px-3 py-3">Player</th>
                     <th className="px-3 py-3">Team</th>
                     <th className="px-3 py-3 text-right">PTS</th>
@@ -205,7 +205,7 @@ export default function NbaSection() {
                     <th className="px-3 py-3 text-right">AST</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-foreground/5">
                   {ROWS.map((row, i) => (
                     <StatRow
                       key={row.name}
@@ -237,12 +237,12 @@ export default function NbaSection() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.18 }}
-                  className="rounded-xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-sm"
+                  className="rounded-xl border border-foreground/10 bg-foreground/5 px-5 py-4 backdrop-blur-sm"
                 >
-                  <h4 className="text-[15px] font-semibold text-white">
+                  <h4 className="text-[15px] font-semibold text-foreground">
                     {SLIDES[activeSlide].title}
                   </h4>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/65">
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/65">
                     {SLIDES[activeSlide].body}
                   </p>
                 </motion.div>
@@ -261,7 +261,7 @@ export default function NbaSection() {
                     "h-2 rounded-full transition-all duration-300",
                     i === activeSlide
                       ? "w-5 bg-yellow-300"
-                      : "w-2 bg-white/30 hover:bg-white/50",
+                      : "w-2 bg-foreground/30 hover:bg-foreground/50",
                   ].join(" ")}
                 />
               ))}
@@ -277,7 +277,7 @@ export default function NbaSection() {
           >
             <Link
               href="/fantasy/nba/matchups"
-              className="inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-500/10 px-6 py-2.5 text-[14px] font-semibold text-yellow-300 transition-colors hover:bg-yellow-500/20 hover:text-yellow-200"
+              className="inline-flex items-center gap-2 rounded-full border dark:border-yellow-400/30 border-yellow-600/40 bg-yellow-500/10 px-6 py-2.5 text-[14px] font-semibold dark:text-yellow-300 text-yellow-700 transition-colors hover:bg-yellow-500/20 dark:hover:text-yellow-200 hover:text-yellow-800"
             >
               View Fantasy NBA →
             </Link>

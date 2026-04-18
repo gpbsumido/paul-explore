@@ -42,7 +42,7 @@ export default function TcgSection() {
     <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-tcg) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
-          className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
+          className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -52,7 +52,7 @@ export default function TcgSection() {
         </motion.h2>
 
         <motion.p
-          className="mx-auto mt-3 max-w-lg text-center text-white/70"
+          className="mx-auto mt-3 max-w-lg text-center text-foreground/70"
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -90,10 +90,10 @@ export default function TcgSection() {
           {HIGHLIGHTS.map(([t, d]) => (
             <div
               key={t}
-              className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+              className="rounded-lg border border-foreground/10 bg-foreground/5 p-4 backdrop-blur-sm"
             >
-              <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+              <h4 className="text-[15px] font-semibold text-foreground">{t}</h4>
+              <p className="mt-1 text-[13px] leading-relaxed text-foreground/60">
                 {d}
               </p>
             </div>
@@ -109,7 +109,7 @@ export default function TcgSection() {
         >
           <Link
             href="/tcg/pokemon"
-            className="inline-flex items-center gap-2 rounded-full border border-rose-400/30 bg-rose-500/10 px-6 py-2.5 text-[14px] font-semibold text-rose-300 transition-colors hover:bg-rose-500/20 hover:text-rose-200"
+            className="inline-flex items-center gap-2 rounded-full border dark:border-rose-400/30 border-rose-600/40 bg-rose-500/10 px-6 py-2.5 text-[14px] font-semibold dark:text-rose-300 text-rose-700 transition-colors hover:bg-rose-500/20 dark:hover:text-rose-200 hover:text-rose-800"
           >
             Browse Pokémon TCG →
           </Link>

@@ -35,7 +35,7 @@ export default function DesignSection() {
     <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-motion) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
-          className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
+          className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -84,7 +84,7 @@ export default function DesignSection() {
               }
             >
               <div className={`h-10 w-10 rounded-lg ${bg} shadow-sm`} />
-              <span className="text-[10px] text-white/50">{label}</span>
+              <span className="text-[10px] text-foreground/50">{label}</span>
             </motion.div>
           ))}
         </div>
@@ -100,7 +100,7 @@ export default function DesignSection() {
           <span className="inline-flex items-center rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background">
             Primary
           </span>
-          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/5 px-5 py-2 text-sm font-medium text-white">
+          <span className="inline-flex items-center rounded-full border border-foreground/20 bg-foreground/5 px-5 py-2 text-sm font-medium text-foreground">
             Secondary
           </span>
           <span className="inline-flex items-center rounded-full bg-primary-500 px-5 py-2 text-sm font-medium text-white">
@@ -122,7 +122,7 @@ export default function DesignSection() {
           {RADII.map((r) => (
             <div
               key={r}
-              className={`flex h-14 w-14 items-center justify-center border border-white/10 bg-white/5 text-[10px] text-white/50 shadow-sm rounded-${r}`}
+              className={`flex h-14 w-14 items-center justify-center border border-foreground/10 bg-foreground/5 text-[10px] text-foreground/50 shadow-sm rounded-${r}`}
             >
               {r}
             </div>

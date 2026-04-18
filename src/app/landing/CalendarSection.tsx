@@ -49,7 +49,7 @@ function MockDay({
 }) {
   return (
     <motion.div
-      className="min-h-[52px] border-r border-b border-white/10 p-1 last:border-r-0"
+      className="min-h-[52px] border-r border-b border-foreground/10 p-1 last:border-r-0"
       initial={prefersReduced ? { opacity: 0 } : { scale: 0, opacity: 0 }}
       animate={inView ? { scale: 1, opacity: 1 } : undefined}
       transition={
@@ -65,8 +65,8 @@ function MockDay({
             today
               ? "bg-red-500 font-semibold text-white"
               : faded
-                ? "text-white/25"
-                : "text-white/70",
+                ? "text-foreground/25"
+                : "text-foreground/70",
           ].join(" ")}
         >
           {day}
@@ -162,7 +162,7 @@ export default function CalendarSection() {
         </div>
 
         <motion.h2
-          className="text-center text-3xl font-bold tracking-tight text-white md:text-left md:text-4xl"
+          className="text-center text-3xl font-bold tracking-tight text-foreground md:text-left md:text-4xl"
           variants={headingWipe}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -172,7 +172,7 @@ export default function CalendarSection() {
         </motion.h2>
 
         <motion.p
-          className="mx-auto mt-3 max-w-lg text-center text-white/70 md:mx-0 md:text-left"
+          className="mx-auto mt-3 max-w-lg text-center text-foreground/70 md:mx-0 md:text-left"
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -185,20 +185,20 @@ export default function CalendarSection() {
 
         {/* Mock calendar month grid */}
         <motion.div
-          className="mt-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm"
+          className="mt-10 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5 shadow-xl backdrop-blur-sm"
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
           transition={transition ?? { ...spring.smooth, delay: 0 }}
         >
           {/* Mock toolbar */}
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
+          <div className="flex items-center justify-between border-b border-foreground/10 px-4 py-2.5">
             <div className="flex items-center gap-3">
-              <div className="h-4 w-4 rounded bg-white/20" />
-              <span className="text-sm font-semibold text-white">
+              <div className="h-4 w-4 rounded bg-foreground/20" />
+              <span className="text-sm font-semibold text-foreground">
                 February 2026
               </span>
-              <div className="h-4 w-4 rounded bg-white/20" />
+              <div className="h-4 w-4 rounded bg-foreground/20" />
             </div>
             <div className="flex gap-1.5">
               {["Day", "Week", "Month", "Year"].map((v, i) => (
@@ -207,8 +207,8 @@ export default function CalendarSection() {
                   className={[
                     "rounded px-2 py-0.5 text-[10px] font-semibold",
                     i === 2
-                      ? "border border-teal-500/30 bg-teal-500/30 text-teal-300"
-                      : "text-white/40",
+                      ? "border dark:border-teal-500/30 border-teal-600/40 bg-teal-500/20 dark:text-teal-300 text-teal-700"
+                      : "text-foreground/40",
                   ].join(" ")}
                 >
                   {v}
@@ -218,11 +218,11 @@ export default function CalendarSection() {
           </div>
 
           {/* Day-of-week header */}
-          <div className="grid grid-cols-7 border-b border-white/10">
+          <div className="grid grid-cols-7 border-b border-foreground/10">
             {DOW.map((d) => (
               <div
                 key={d}
-                className="border-r border-white/10 py-1.5 text-center text-[9px] font-bold uppercase tracking-wider text-white/40 last:border-r-0"
+                className="border-r border-foreground/10 py-1.5 text-center text-[9px] font-bold uppercase tracking-wider text-foreground/40 last:border-r-0"
               >
                 {d}
               </div>
@@ -271,10 +271,10 @@ export default function CalendarSection() {
           {HIGHLIGHTS.map(([t, d]) => (
             <div
               key={t}
-              className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+              className="rounded-lg border border-foreground/10 bg-foreground/5 p-4 backdrop-blur-sm"
             >
-              <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+              <h4 className="text-[15px] font-semibold text-foreground">{t}</h4>
+              <p className="mt-1 text-[13px] leading-relaxed text-foreground/60">
                 {d}
               </p>
             </div>
@@ -292,7 +292,7 @@ export default function CalendarSection() {
         >
           <Link
             href="/calendar"
-            className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-500/10 px-6 py-2.5 text-[14px] font-semibold text-amber-300 transition-colors hover:bg-amber-500/20 hover:text-amber-200"
+            className="inline-flex items-center gap-2 rounded-full border dark:border-amber-400/30 border-amber-600/40 bg-amber-500/10 px-6 py-2.5 text-[14px] font-semibold dark:text-amber-300 text-amber-700 transition-colors hover:bg-amber-500/20 dark:hover:text-amber-200 hover:text-amber-800"
           >
             Log in to view →
           </Link>

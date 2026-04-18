@@ -87,10 +87,10 @@ export default function AuthSection() {
               />
             </svg>
 
-            <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               Auth & Security
             </h2>
-            <ul className="mt-6 space-y-4 text-white/70">
+            <ul className="mt-6 space-y-4 text-foreground/70">
               {/* Auth0 SDK — horizontal key */}
               <li className="flex items-start gap-3">
                 <svg
@@ -105,8 +105,8 @@ export default function AuthSection() {
                   <path d="M8 10h6M12 8v4" stroke="currentColor" />
                 </svg>
                 <span className="min-w-0">
-                  <strong className="text-white">Auth0 SDK</strong> — session
-                  management with server-side token handling
+                  <strong className="text-foreground">Auth0 SDK</strong> —
+                  session management with server-side token handling
                 </span>
               </li>
               {/* Route Protection — forked path with gate */}
@@ -124,8 +124,8 @@ export default function AuthSection() {
                   <path d="M5 14h6" stroke="currentColor" />
                 </svg>
                 <span className="min-w-0">
-                  <strong className="text-white">Route Protection</strong> —
-                  unauthenticated users redirected from private pages
+                  <strong className="text-foreground">Route Protection</strong>{" "}
+                  — unauthenticated users redirected from private pages
                 </span>
               </li>
             </ul>
