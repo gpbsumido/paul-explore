@@ -198,27 +198,31 @@ export default function VitalsSection() {
           data, not lab simulations.
         </motion.p>
 
-        {/* Speedometer — top 60% of the visual area */}
-        <motion.div
-          className="mt-10"
-          variants={fadeUp}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 0.15 }}
-        >
-          <ModelLazyMount
-            style={{ height: "360px", maxWidth: "520px", margin: "0 auto" }}
+        {/* Speedometer — hidden on mobile: the portrait aspect ratio causes the
+            model to clip outside the view frustum, leaving only the Html
+            hotspot dots floating in empty space. */}
+        <div className="hidden md:block">
+          <motion.div
+            className="mt-10"
+            variants={fadeUp}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            transition={transition ?? { ...spring.smooth, delay: 0.15 }}
           >
-            <VitalsSectionCanvas
-              inView={inView}
-              prefersReduced={prefersReduced}
-            />
-          </ModelLazyMount>
-        </motion.div>
+            <ModelLazyMount
+              style={{ height: "360px", maxWidth: "520px", margin: "0 auto" }}
+            >
+              <VitalsSectionCanvas
+                inView={inView}
+                prefersReduced={prefersReduced}
+              />
+            </ModelLazyMount>
+          </motion.div>
+        </div>
 
         {/* Three primary stat cards — LCP, INP, CLS */}
         <motion.div
-          className="mt-6 grid grid-cols-3 gap-4"
+          className="mt-6 grid grid-cols-3 gap-2 sm:gap-4"
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -243,7 +247,7 @@ export default function VitalsSection() {
           ).map(({ name, value, rating, pct }) => (
             <div
               key={name}
-              className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm"
+              className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-3 backdrop-blur-sm sm:px-4 sm:py-4"
             >
               <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
                 {name}
@@ -257,7 +261,7 @@ export default function VitalsSection() {
                 value={value}
                 inView={inView}
                 prefersReduced={prefersReduced}
-                className={`text-lg font-bold tabular-nums ${RATING_TEXT[rating]}`}
+                className={`text-base font-bold tabular-nums sm:text-lg ${RATING_TEXT[rating]}`}
               />
               <div className="mt-1 w-full">
                 <AnimatedBar

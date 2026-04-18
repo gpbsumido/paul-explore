@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { Html } from "@react-three/drei";
 
 type Props = {
@@ -14,9 +14,57 @@ type Props = {
   direction?: "up" | "down";
 };
 
+const CLAMP_MARGIN = 8;
+
+/**
+ * Tooltip content. Extracted so useLayoutEffect([], []) fires on mount
+ * rather than on a parent state toggle — the <Html> container is always
+ * mounted in HotspotDot, so Drei has already positioned it before this
+ * component appears, making getBoundingClientRect() reliable.
+ */
+function TooltipContent({
+  label,
+  description,
+  direction,
+}: {
+  label: string;
+  description: string;
+  direction: "up" | "down";
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.transform = "translateX(-50%)";
+    const rect = el.getBoundingClientRect();
+    const vw = window.innerWidth;
+    if (rect.left < CLAMP_MARGIN) {
+      el.style.transform = `translateX(calc(-50% + ${CLAMP_MARGIN - rect.left}px))`;
+    } else if (rect.right > vw - CLAMP_MARGIN) {
+      el.style.transform = `translateX(calc(-50% - ${rect.right - (vw - CLAMP_MARGIN)}px))`;
+    }
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`hotspot-tooltip hotspot-tooltip--${direction}`}
+      role="tooltip"
+    >
+      <p className="hotspot-tooltip-label">{label}</p>
+      <p className="hotspot-tooltip-desc">{description}</p>
+    </div>
+  );
+}
+
 /**
  * R3F Html overlay that renders a pulsing dot with a glassmorphism
  * tooltip on hover. CSS lives in globals.css under the .hotspot-* classes.
+ *
+ * The <Html> wrapper is always mounted so Drei positions its container before
+ * TooltipContent appears — this makes the viewport-clamping measurement
+ * in TooltipContent's useLayoutEffect reliable.
  */
 export default function HotspotDot({
   position,
@@ -37,13 +85,11 @@ export default function HotspotDot({
           aria-label={label}
         />
         {hovered && (
-          <div
-            className={`hotspot-tooltip hotspot-tooltip--${direction}`}
-            role="tooltip"
-          >
-            <p className="hotspot-tooltip-label">{label}</p>
-            <p className="hotspot-tooltip-desc">{description}</p>
-          </div>
+          <TooltipContent
+            label={label}
+            description={description}
+            direction={direction}
+          />
         )}
       </div>
     </Html>

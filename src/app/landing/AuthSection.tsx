@@ -31,10 +31,10 @@ export default function AuthSection() {
     <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-auth) 5%, transparent) 0%, transparent 60%)">
       <div
         ref={ref}
-        className="grid items-center gap-8 md:gap-12 md:grid-cols-2"
+        className="grid items-center gap-8 overflow-x-hidden md:gap-12 md:grid-cols-2"
       >
         {/* left half: text + model stacked vertically */}
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           {/* text — slides in from the left */}
           <motion.div
             variants={slideInLeft}
@@ -104,7 +104,7 @@ export default function AuthSection() {
                   <circle cx="5" cy="10" r="3" stroke="currentColor" />
                   <path d="M8 10h6M12 8v4" stroke="currentColor" />
                 </svg>
-                <span>
+                <span className="min-w-0">
                   <strong className="text-white">Auth0 SDK</strong> — session
                   management with server-side token handling
                 </span>
@@ -123,7 +123,7 @@ export default function AuthSection() {
                   <path d="M8 9v5" stroke="currentColor" />
                   <path d="M5 14h6" stroke="currentColor" />
                 </svg>
-                <span>
+                <span className="min-w-0">
                   <strong className="text-white">Route Protection</strong> —
                   unauthenticated users redirected from private pages
                 </span>
@@ -153,13 +153,13 @@ export default function AuthSection() {
           animate={inView ? "visible" : "hidden"}
           transition={transition ?? { ...spring.smooth, delay: 0.1 }}
         >
-          <div className="overflow-x-auto rounded-xl border border-border bg-neutral-950 p-4 font-mono text-xs leading-relaxed text-neutral-300 shadow-lg sm:p-5 sm:text-sm dark:bg-neutral-900">
+          <div className="overflow-x-auto rounded-xl border border-border bg-neutral-950 p-4 font-mono text-[10px] leading-relaxed text-neutral-300 shadow-lg sm:p-5 sm:text-xs md:text-sm dark:bg-neutral-900">
             <div className="mb-3 flex gap-1.5">
               <span className="h-3 w-3 rounded-full bg-error-500/80" />
               <span className="h-3 w-3 rounded-full bg-warning-500/80" />
               <span className="h-3 w-3 rounded-full bg-success-500/80" />
             </div>
-            <pre className="overflow-x-auto">
+            <pre>
               <code>{`// middleware.ts
 export async function middleware(req) {
   const session = await auth0.getSession();

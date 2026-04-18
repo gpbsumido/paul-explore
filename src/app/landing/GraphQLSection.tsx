@@ -141,8 +141,10 @@ export default function GraphQLSection() {
       {/* Dark veil keeps section text readable over any weather effect */}
       <div className="absolute inset-0 pointer-events-none bg-black/52 z-[1]" />
 
-      {/* Node cluster canvas — between veil and glow, decorative only */}
-      <ModelLazyMount className="absolute inset-0 z-[2] pointer-events-none">
+      {/* Node cluster canvas — between veil and glow, decorative only. Hidden on
+          mobile: the full-bleed canvas at portrait aspect ratios distorts the
+          cluster and bleeds into the content in a visually distracting way. */}
+      <ModelLazyMount className="absolute inset-0 z-[2] pointer-events-none hidden md:block">
         <GraphQLSectionCanvas />
       </ModelLazyMount>
 

@@ -1,10 +1,52 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import type { Group } from "three";
+
+const CLAMP_MARGIN = 8;
+
+/**
+ * Tooltip content component. Rendered inside an always-mounted <Html> so
+ * Drei has already positioned the container before this mounts. The
+ * useLayoutEffect fires on mount (empty deps), measures the rendered rect,
+ * and nudges the transform so the tooltip stays inside the viewport.
+ */
+function CardTooltip({
+  label,
+  description,
+}: {
+  label: string;
+  description: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.transform = "translateX(-50%)";
+    const rect = el.getBoundingClientRect();
+    const vw = window.innerWidth;
+    if (rect.left < CLAMP_MARGIN) {
+      el.style.transform = `translateX(calc(-50% + ${CLAMP_MARGIN - rect.left}px))`;
+    } else if (rect.right > vw - CLAMP_MARGIN) {
+      el.style.transform = `translateX(calc(-50% - ${rect.right - (vw - CLAMP_MARGIN)}px))`;
+    }
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className="hotspot-tooltip hotspot-tooltip--up"
+      style={{ pointerEvents: "none" }}
+    >
+      <p className="hotspot-tooltip-label">{label}</p>
+      <p className="hotspot-tooltip-desc">{description}</p>
+    </div>
+  );
+}
 
 // Fan rotations in radians — positive = counterclockwise = screen-left.
 const FAN_ROTATIONS = [0.64, 0.32, 0, -0.32, -0.64] as const;
@@ -151,26 +193,21 @@ export default function CardModel() {
                 />
               </mesh>
 
-              {isHovered && hasTip && (
-                <Html
-                  position={[0, 0.58, 0.03]}
-                  center
-                  style={{ pointerEvents: "none" }}
-                >
-                  <div
-                    className="hotspot-tooltip hotspot-tooltip--up"
-                    style={{ pointerEvents: "none" }}
-                  >
-                    <p className="hotspot-tooltip-label">{card.label}</p>
-                    <p
-                      className="hotspot-tooltip-desc"
-                      style={{ maxWidth: "160px", whiteSpace: "normal" }}
-                    >
-                      {card.description}
-                    </p>
-                  </div>
-                </Html>
-              )}
+              {/* Html is always mounted so Drei positions the container before
+                  CardTooltip appears — this ensures getBoundingClientRect()
+                  returns the correct screen position for viewport clamping. */}
+              <Html
+                position={[0, 0.58, 0.03]}
+                center
+                style={{ pointerEvents: "none" }}
+              >
+                {isHovered && hasTip && (
+                  <CardTooltip
+                    label={card.label!}
+                    description={card.description!}
+                  />
+                )}
+              </Html>
             </group>
           </group>
         );
