@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { useGLTF, Float } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -9,9 +9,8 @@ import HotspotDot from "../HotspotDot";
 
 useGLTF.preload("/models/speedometer.glb?v=3");
 
-// Needle rotation around Z: negative = left (poor), positive = right (good)
-const NEEDLE_REST = -1.1; // bottom-left, "slow" zone
-const NEEDLE_GOOD = 0.65; // right of center, "fast/good" zone
+const NEEDLE_REST = -1.1;
+const NEEDLE_GOOD = 0.65;
 
 const NEEDLE_KEYWORDS = [
   "needle",
@@ -24,8 +23,11 @@ const NEEDLE_KEYWORDS = [
   "arm",
 ];
 
-// Target display size in world units (fits the camera at z=3.5, fov=50)
 const TARGET_SIZE = 2.2;
+
+const getIsMobile = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(max-width: 767px)").matches;
 
 type Props = {
   inView: boolean;
@@ -35,11 +37,9 @@ type Props = {
 /**
  * Speedometer GLB with animated needle.
  *
- * The raw GLB has extreme coordinate values (bounding box in the tens of
- * thousands), so we compute its Box3 after cloning and auto-fit it to
- * TARGET_SIZE world units, centered at the origin.
- *
  * On scroll entry (`inView`) the needle lerps from NEEDLE_REST to NEEDLE_GOOD.
+ * With `prefersReduced` the needle snaps instead of lerping.
+ * Float idle animation is disabled when prefersReduced or on mobile.
  */
 export default function SpeedometerModel({
   inView,
@@ -51,11 +51,19 @@ export default function SpeedometerModel({
   const needleRef = useRef<Object3D | null>(null);
   const currentAngle = useRef(NEEDLE_REST);
 
+  const [isMobile, setIsMobile] = useState(getIsMobile);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   useEffect(() => {
     const group = groupRef.current;
     if (!group) return;
 
-    // Auto-fit: compute bounding box of the raw scene, then scale + center.
     const box = new THREE.Box3().setFromObject(cloned);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
@@ -66,10 +74,8 @@ export default function SpeedometerModel({
     const scale = TARGET_SIZE / maxDim;
 
     group.scale.setScalar(scale);
-    // Translate so the bounding-box center lands at the world origin
     group.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
 
-    // Needle detection — traverse after transforms are applied
     let found: Object3D | null = null;
     cloned.traverse((obj) => {
       if (found) return;
@@ -101,8 +107,10 @@ export default function SpeedometerModel({
     }
   });
 
-  return (
-    <Float speed={0.7} rotationIntensity={0.04} floatIntensity={0.14}>
+  const disableFloat = prefersReduced || isMobile;
+
+  const content = (
+    <>
       {/* scale and position set imperatively in useEffect after Box3 fit */}
       <group ref={groupRef}>
         <primitive object={cloned} />
@@ -123,6 +131,14 @@ export default function SpeedometerModel({
         label="Semver filtering"
         description="Compare metrics across deploys to catch regressions introduced by a specific release."
       />
+    </>
+  );
+
+  if (disableFloat) return content;
+
+  return (
+    <Float speed={0.7} rotationIntensity={0.04} floatIntensity={0.14}>
+      {content}
     </Float>
   );
 }

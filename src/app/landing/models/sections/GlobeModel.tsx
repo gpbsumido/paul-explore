@@ -1,16 +1,30 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
+const getPrefersReduced = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 /** Slow-rotating wireframe icosahedron used as the hero ambient background model.
- *  Fully procedural — no GLB. Oversized to bleed off all viewport edges. */
+ *  Fully procedural — no GLB. Oversized to bleed off all viewport edges.
+ *  Rotation stops when the user prefers reduced motion. */
 export function GlobeModel() {
   const ref = useRef<THREE.Mesh>(null);
+  const [prefersReduced, setPrefersReduced] = useState(getPrefersReduced);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   useFrame((_, delta) => {
-    if (ref.current) ref.current.rotation.y += delta * 0.12;
+    if (prefersReduced || !ref.current) return;
+    ref.current.rotation.y += delta * 0.12;
   });
 
   return (

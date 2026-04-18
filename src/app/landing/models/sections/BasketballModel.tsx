@@ -1,26 +1,51 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useGLTF, Float } from "@react-three/drei";
 import HotspotDot from "../HotspotDot";
 
 useGLTF.preload("/models/basketball.glb?v=2");
+
+const getPrefersReduced = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const getIsMobile = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(max-width: 767px)").matches;
 
 /**
  * Basketball GLB with Float idle animation and 3 hotspot dots anchored
  * to the model surface. Scale targets an "oversized" appearance so the
  * ball bleeds off the right viewport edge in the NBA bleed layout.
  *
- * Hotspot positions are hand-tuned for the left-facing hemisphere
- * (dots on the off-screen right side are naturally hidden by overflow clip).
+ * Float and hotspot animation are disabled when the user prefers reduced
+ * motion or is on a mobile-width viewport.
  */
 export default function BasketballModel() {
   const { scene } = useGLTF("/models/basketball.glb?v=2");
-  // Clone so the cached singleton isn't mutated or shared across remounts.
   const cloned = useMemo(() => scene.clone(), [scene]);
 
-  return (
-    <Float speed={1.5} rotationIntensity={0.4} floatIntensity={0.6}>
+  const [prefersReduced, setPrefersReduced] = useState(getPrefersReduced);
+  const [isMobile, setIsMobile] = useState(getIsMobile);
+
+  useEffect(() => {
+    const mqMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mqMobile = window.matchMedia("(max-width: 767px)");
+    const onMotion = (e: MediaQueryListEvent) => setPrefersReduced(e.matches);
+    const onMobile = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mqMotion.addEventListener("change", onMotion);
+    mqMobile.addEventListener("change", onMobile);
+    return () => {
+      mqMotion.removeEventListener("change", onMotion);
+      mqMobile.removeEventListener("change", onMobile);
+    };
+  }, []);
+
+  const disableFloat = prefersReduced || isMobile;
+
+  const content = (
+    <>
       <group scale={2.5}>
         <primitive object={cloned} />
       </group>
@@ -41,6 +66,14 @@ export default function BasketballModel() {
         label="Zero-latency UI"
         description="Optimistic updates with instant feedback — no loading spinners on interactions."
       />
+    </>
+  );
+
+  if (disableFloat) return content;
+
+  return (
+    <Float speed={1.5} rotationIntensity={0.4} floatIntensity={0.6}>
+      {content}
     </Float>
   );
 }

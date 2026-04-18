@@ -1,16 +1,21 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { PauseWhenOffscreen } from "./PauseWhenOffscreen";
 import { GlobeModel } from "./sections/GlobeModel";
 
 /** Full-bleed ambient canvas for the hero section. Sits behind H1 text.
- *  Uses frameloop="always" because GlobeModel drives rotation via useFrame.
- *  alpha:true so the black page background shows through the wireframe mesh. */
+ *  alpha:true so the black page background shows through the wireframe mesh.
+ *  GlobeModel drives rotation via useFrame and honours prefers-reduced-motion
+ *  internally. PauseWhenOffscreen stops the RAF once the hero scrolls away. */
 export default function HeroGlobeCanvas() {
+  const isMobile = useIsMobile();
+
   return (
     <Canvas
       frameloop="always"
-      dpr={[1, 1.5]}
+      dpr={isMobile ? 1 : [1, 1.5]}
       camera={{ position: [0, 0, 2.5], fov: 60 }}
       gl={{ antialias: false, alpha: true }}
       style={{
@@ -21,6 +26,7 @@ export default function HeroGlobeCanvas() {
         pointerEvents: "none",
       }}
     >
+      <PauseWhenOffscreen activeFrameloop="always" />
       <ambientLight intensity={0.4} />
       <GlobeModel />
     </Canvas>
