@@ -440,18 +440,25 @@ export default function PlayoffBracketContent() {
   const bracket = bracketQuery.data;
   const matchups = bracket?.matchups ?? [];
 
-  const eastR1 = matchups.filter(
-    (m) => m.conference === "East" && m.round === 1,
-  );
+  // R1 bracket display order: 1v8 and 4v5 are visually adjacent (both feed R2 M1),
+  // 2v7 and 3v6 are visually adjacent (both feed R2 M2). Order by top seed: 1, 4, 2, 3.
+  const R1_BRACKET_POS: Record<number, number> = { 1: 0, 4: 1, 2: 2, 3: 3 };
+  const byBracketOrder = (a: PlayoffMatchup, b: PlayoffMatchup) =>
+    (R1_BRACKET_POS[a.topTeam.seed] ?? 99) -
+    (R1_BRACKET_POS[b.topTeam.seed] ?? 99);
+
+  const eastR1 = matchups
+    .filter((m) => m.conference === "East" && m.round === 1)
+    .toSorted(byBracketOrder);
   const eastR2 = matchups.filter(
     (m) => m.conference === "East" && m.round === 2,
   );
   const eastCF = matchups.filter(
     (m) => m.conference === "East" && m.round === 3,
   );
-  const westR1 = matchups.filter(
-    (m) => m.conference === "West" && m.round === 1,
-  );
+  const westR1 = matchups
+    .filter((m) => m.conference === "West" && m.round === 1)
+    .toSorted(byBracketOrder);
   const westR2 = matchups.filter(
     (m) => m.conference === "West" && m.round === 2,
   );
