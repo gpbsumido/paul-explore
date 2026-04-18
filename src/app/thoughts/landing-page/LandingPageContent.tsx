@@ -811,6 +811,279 @@ export default function LandingPageContent() {
                 cards in the feature hub with mini preview components.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Phase 6 — performance hardening
+              </h2>
+              <p className="text-muted">
+                With all seven section models working, the final phase locked
+                down idle behavior and accessibility. Three problems needed
+                solving: the always-on canvases burning GPU while scrolled away,
+                Float and auto-rotation running regardless of motion
+                preferences, and touch users triggering model rotation when they
+                meant to scroll the page.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Pause on scroll-out</h2>
+              <p className="text-muted">
+                The existing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ModelLazyMount
+                </code>{" "}
+                component defers canvas mount until the user is 200px from the
+                section — a one-shot observer that disconnects after first
+                intersection. But once mounted, the canvases continued rendering
+                even when scrolled far away. The hero globe and GraphQL cluster
+                both run{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  frameloop=&quot;always&quot;
+                </code>
+                , which means a continuous{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  requestAnimationFrame
+                </code>{" "}
+                loop even when nothing is visible.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix is a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  PauseWhenOffscreen
+                </code>{" "}
+                R3F scene component that attaches an{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  IntersectionObserver
+                </code>{" "}
+                directly to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  gl.domElement
+                </code>{" "}
+                — the actual{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"<canvas>"}
+                </code>{" "}
+                element. When the canvas exits the viewport it calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  set({"{ frameloop: 'never' }"})
+                </code>{" "}
+                on the R3F store, which stops the animation loop entirely. When
+                the canvas comes back into view, it restores the original
+                frameloop. R3F subscribes to store state changes and adjusts the
+                underlying{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  gl.setAnimationLoop
+                </code>{" "}
+                call accordingly.
+              </p>
+              <p className="mt-3 text-muted">
+                The observer uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  rootMargin: &quot;0px&quot;
+                </code>{" "}
+                so it fires exactly when the canvas element exits the viewport —
+                not 200px before, which is what{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ModelLazyMount
+                </code>{" "}
+                uses for its lookahead. Two observers, two jobs, one each.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Reduced motion and mobile guards
+              </h2>
+              <p className="text-muted">
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Float
+                </code>{" "}
+                component from Drei gives models a gentle idle bob. Four models
+                use it: basketball, padlock, clock, and speedometer. The
+                straightforward thing is to pass{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  speed={"{0}"}
+                </code>{" "}
+                when reduced motion is requested — Float still runs its useFrame
+                loop, just with zero time advancement. Better to skip the Float
+                wrapper entirely so the useFrame callback is never registered at
+                all.
+              </p>
+              <p className="mt-3 text-muted">
+                Each model that uses Float now computes a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  disableFloat
+                </code>{" "}
+                boolean and conditionally renders either the Float-wrapped
+                content or the raw content. Same JSX tree inside, different
+                outer wrapper. The check covers both{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  prefers-reduced-motion
+                </code>{" "}
+                and a mobile breakpoint — Float at 1x DPR on a small screen is
+                wasted work since the motion is barely perceptible anyway.
+              </p>
+              <p className="mt-3 text-muted">
+                A note on framer-motion inside R3F: R3F uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  react-reconciler
+                </code>{" "}
+                to create a separate fiber tree for the canvas. Framer
+                Motion&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useReducedMotion
+                </code>{" "}
+                reads from its internal{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  MotionConfigContext
+                </code>
+                , which isn&apos;t propagated into R3F&apos;s fiber. Models read{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  window.matchMedia(&quot;(prefers-reduced-motion:
+                  reduce)&quot;)
+                </code>{" "}
+                directly — same underlying browser API, no context dependency.
+                Standard React hooks (useState, useEffect) work fine inside R3F
+                components since those operate through React&apos;s dispatcher,
+                not the host element type system.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Touch controls</h2>
+              <p className="text-muted">
+                OrbitControls defaults to one-finger rotate on touch. A user
+                scrolling the page with a single finger would accidentally spin
+                whichever model their finger crossed. The fix: map the
+                ONE-finger touch action to PAN (which is disabled via{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  enablePan={"{false}"}
+                </code>
+                ) so single-touch does nothing. TWO-finger gestures use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  DOLLY_ROTATE
+                </code>{" "}
+                — with zoom disabled that reduces to pure rotation, letting
+                users deliberately spin a model with two fingers without
+                triggering page pinch-zoom.
+              </p>
+              <p className="mt-3 text-muted">
+                The Drei OrbitControls component exposes the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  touches
+                </code>{" "}
+                property from THREE&apos;s OrbitControls, but JSX prop types can
+                vary across drei versions. Setting it imperatively via ref in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useEffect
+                </code>{" "}
+                is the safe fallback that works regardless.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Why weather + 3D models together
+              </h2>
+              <p className="text-muted">
+                The weather canvas started as the sole atmospheric layer — a
+                single full-bleed 2D canvas filling the page background with
+                rain, snow, or sun based on the visitor&apos;s location. It does
+                its job, but weather alone is passive. You watch it; it
+                doesn&apos;t know you&apos;re there.
+              </p>
+              <p className="mt-3 text-muted">
+                The 3D models invert that. They respond to cursor drag, show
+                hotspot tooltips on hover, animate on scroll entry. They&apos;re
+                foreground interactive content, not background decoration. The
+                basketball feels like you can pick it up and inspect it.
+              </p>
+              <p className="mt-3 text-muted">
+                Both together is better than either alone because they occupy
+                different perceptual layers. The weather canvas provides ambient
+                depth — your eye reads it as &quot;the environment the content
+                lives in.&quot; The 3D models live in that environment as
+                objects you interact with. The visual hierarchy is atmospheric
+                layer → section card → 3D model → hotspot, each at a different
+                Z-depth in both the literal stacking context and the user&apos;s
+                attention.
+              </p>
+              <p className="mt-3 text-muted">
+                One concern was performance: two graphics systems running
+                simultaneously. The answer is that they don&apos;t actually
+                overlap in time. The weather canvas is a 2D{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"<canvas>"}
+                </code>{" "}
+                painted by a wave-propagation loop in software; the 3D models
+                are WebGL rendered through R3F. They run on separate contexts
+                with separate paint cycles. The 2D canvas is CPU-bound; the
+                WebGL canvases hand off to the GPU. Neither waits for the other.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                frameloop=&quot;demand&quot; + IntersectionObserver — the full
+                picture
+              </h2>
+              <p className="text-muted">
+                The landing page now has eight WebGL contexts: one hero globe,
+                one GraphQL cluster, one vitals speedometer, and five section
+                canvases (NBA, auth, calendar, TCG, and vitals again). Without
+                lifecycle management this would be expensive. The actual cost
+                per idle canvas is zero because of two compounding guards.
+              </p>
+              <p className="mt-3 text-muted">
+                Guard one:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ModelLazyMount
+                </code>
+                . The WebGL context doesn&apos;t even exist until the section is
+                200px from the viewport. Every section below the fold has no
+                canvas, no context, no memory until the user scrolls near it.
+              </p>
+              <p className="mt-3 text-muted">
+                Guard two:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  frameloop=&quot;demand&quot;
+                </code>{" "}
+                on the five section canvases. R3F only renders a frame when{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  invalidate()
+                </code>{" "}
+                is called — which happens when the user drags OrbitControls or
+                when a Float animation emits. A section that&apos;s mounted but
+                not interacted with does not paint.
+              </p>
+              <p className="mt-3 text-muted">
+                Guard three:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  PauseWhenOffscreen
+                </code>{" "}
+                on all eight canvases. When the user scrolls past a section, the
+                observer fires, frameloop switches to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &quot;never&quot;
+                </code>
+                , and the animation loop stops completely. The WebGL context is
+                still alive (no allocation/deallocation churn), but the RAF
+                stops. The always-on canvases (hero, GraphQL, vitals) are the
+                ones that actually needed this: they have no demand trigger, so
+                without the pause they&apos;d spin forever at 60fps even while
+                five other sections are in view.
+              </p>
+              <p className="mt-3 text-muted">
+                In practice: at any scroll position, at most two or three
+                canvases are active. The section currently centered on screen
+                has its canvas rendering. Sections 200px above or below have
+                their canvas mounted but paused. Everything else has no canvas
+                at all. The page feels alive everywhere you look, but the
+                hardware work is proportional to what&apos;s actually visible.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -1513,6 +1786,194 @@ for (let y = 1; y < simH - 1; y++) {
                 <code>?v=3</code> to evict the Draco-compressed version from{" "}
                 <code>THREE.Cache</code> and the browser HTTP cache. same lesson
                 as before: fix the asset, change the URL
+              </Sent>
+
+              <Timestamp>4:22 PM</Timestamp>
+
+              {/* ---- Phase 6 ---- */}
+              <Received pos="first">phase 6 — what was left</Received>
+              <Received pos="last">
+                the models were working, what needed hardening
+              </Received>
+
+              <Sent pos="first">
+                three things: the always-on canvases burning GPU while scrolled
+                away, Float and auto-rotation running regardless of motion
+                preferences, and touch users spinning models when they meant to
+                scroll
+              </Sent>
+              <Sent pos="last">
+                plus two-finger touch remap, mobile DPR reduction, and CC-BY
+                attribution for the GLB assets
+              </Sent>
+
+              <Received>start with the GPU problem</Received>
+
+              <Sent pos="first">
+                <code>ModelLazyMount</code> is a one-shot observer — it mounts
+                the canvas when the section comes near, disconnects, and never
+                fires again. so once mounted, always-on canvases like the hero
+                globe and GraphQL cluster spin at 60fps forever
+              </Sent>
+              <Sent pos="middle">
+                the fix is a second observer that stays alive:{" "}
+                <code>PauseWhenOffscreen</code> is an R3F scene component that
+                attaches to <code>gl.domElement</code> — the actual canvas
+                element. when the canvas exits the viewport it calls{" "}
+                <code>set{"({ frameloop: 'never' })"}</code> on the R3F store.
+                animation loop stops. canvas is still alive, no context churn
+              </Sent>
+              <Sent pos="last">
+                R3F listens to store state changes and calls{" "}
+                <code>gl.setAnimationLoop(null)</code> internally. when the
+                canvas scrolls back into view, the observer restores the
+                original frameloop and the loop restarts
+              </Sent>
+
+              <div className={styles.codeBubble}>
+                {`export function PauseWhenOffscreen({ activeFrameloop = "always" }) {
+  const { gl, set } = useThree();
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        set({ frameloop: entry.isIntersecting ? activeFrameloop : "never" });
+      },
+      { rootMargin: "0px" },
+    );
+    observer.observe(gl.domElement);
+    return () => observer.disconnect();
+  }, [gl, set, activeFrameloop]);
+  return null;
+}`}
+              </div>
+
+              <Received>why gl.domElement and not the wrapper div</Received>
+
+              <Sent pos="first">
+                the spec said {'"'}IntersectionObserver on the canvas element
+                itself, not just the mount guard{'"'}. the mount guard wrapper
+                might be larger or offset — the canvas element is exactly what
+                the user is looking at
+              </Sent>
+              <Sent pos="last">
+                and it makes the component self-contained. no ref drilling, no
+                prop coordination — the component finds its own canvas from the
+                R3F store
+              </Sent>
+
+              <Timestamp>4:29 PM</Timestamp>
+
+              <Received pos="first">the reduced motion stuff</Received>
+              <Received pos="last">
+                framer-motion{"'"}s useReducedMotion doesn{"'"}t work inside
+                R3F?
+              </Received>
+
+              <Sent pos="first">
+                it depends. framer-motion{"'"}s <code>useReducedMotion</code>{" "}
+                reads from <code>MotionConfigContext</code> first, then falls
+                back to <code>window.matchMedia</code>. R3F uses{" "}
+                <code>react-reconciler</code> to create a separate fiber tree
+                for the canvas — framer-motion{"'"}s context isn{"'"}t
+                propagated into it
+              </Sent>
+              <Sent pos="middle">
+                so inside R3F components, <code>MotionConfigContext</code> is
+                the default empty value. the fallback to matchMedia still works,
+                but any <code>{"<MotionConfig reducedMotion='always'>"}</code>{" "}
+                wrapper you add outside the canvas has no effect inside it
+              </Sent>
+              <Sent pos="last">
+                models call <code>window.matchMedia</code> directly. same
+                browser API, no context dependency. standard React hooks like{" "}
+                <code>useState</code> and <code>useEffect</code> work fine in
+                R3F because those go through React{"'"}s dispatcher, not the
+                host element type system
+              </Sent>
+
+              <Received>how did you disable Float without speed=0</Received>
+
+              <Sent pos="first">
+                conditional rendering. each model computes a{" "}
+                <code>disableFloat</code> boolean. if true, render the content
+                directly. if false, wrap it in Float
+              </Sent>
+              <Sent pos="middle">
+                <code>speed=0</code> would work visually but Float still
+                registers a <code>useFrame</code> callback — it just advances
+                time by zero. skipping the wrapper means the callback is never
+                registered at all
+              </Sent>
+              <Sent pos="last">
+                same logic for the pendulum on the lock: the{" "}
+                <code>useFrame</code> callback still runs but returns early when{" "}
+                <code>disableAnimation</code> is true. cost is a single boolean
+                check per frame, negligible
+              </Sent>
+
+              <Timestamp>4:36 PM</Timestamp>
+
+              <Received>the touch remap</Received>
+
+              <Sent pos="first">
+                OrbitControls default: one finger rotates the model. a user
+                scrolling with a single finger crosses the canvas and the model
+                spins. not what they wanted
+              </Sent>
+              <Sent pos="middle">
+                fix: map ONE-finger touch to PAN (disabled by{" "}
+                <code>enablePan=false</code>), so single-finger touch on the
+                canvas is a no-op. the page scroll event propagates normally.
+                TWO-finger maps to DOLLY_ROTATE — with zoom disabled it becomes
+                pure rotation, so deliberate two-finger interaction still works
+              </Sent>
+              <Sent pos="last">
+                set imperatively via ref in a <code>useEffect</code> rather than
+                as a JSX prop — drei{"'"}s prop forwarding for{" "}
+                <code>touches</code> varies across versions and the imperative
+                approach is always safe
+              </Sent>
+
+              <Received pos="first">
+                why weather canvas + 3D models together
+              </Received>
+              <Received pos="last">
+                wouldn{"'"}t one or the other be enough
+              </Received>
+
+              <Sent pos="first">
+                the weather canvas is passive atmosphere — you watch it, it
+                doesn{"'"}t notice you. it tells you something about the
+                environment (your weather, right now) but it doesn{"'"}t invite
+                interaction
+              </Sent>
+              <Sent pos="middle">
+                the 3D models are active foreground content. you can drag them,
+                hover hotspots, see the model respond. the basketball feels like
+                an object; the padlock has weight. they create a different
+                register of attention
+              </Sent>
+              <Sent pos="last">
+                together they occupy different perceptual layers — environment
+                behind, objects in front. neither replaces the other. weather
+                alone and the page is atmospheric but flat. models alone and
+                there{"'"}s no depth beyond the section card. both together and
+                you get a scene instead of a layout
+              </Sent>
+
+              <Received>performance with both running</Received>
+
+              <Sent pos="first">
+                they don{"'"}t actually compete. the weather canvas is a 2D
+                canvas painted by a wave-propagation loop in software — CPU
+                work, no GPU. the 3D models are WebGL rendered through R3F — GPU
+                work, minimal CPU. separate contexts, separate paint cycles
+              </Sent>
+              <Sent pos="last">
+                and with the three-guard system — lazy mount, demand frameloop,
+                pause on scroll-out — at any scroll position at most two or
+                three canvases are active. the rest are either unmounted or
+                paused. the hardware work is proportional to what{"'"}s visible
               </Sent>
 
               {/* Typing indicator */}

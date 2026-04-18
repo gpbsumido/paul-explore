@@ -4,7 +4,7 @@ import LandingPageContent from "./LandingPageContent";
 
 const TITLE = "Landing Page | Thoughts";
 const DESCRIPTION =
-  "Scroll animations with no dependencies, CSS keyframes for the hero entrance, design tokens across every section, and a Three.js particle network in the background.";
+  "Scroll animations, weather canvas, R3F section models, frameloop demand rendering, IntersectionObserver pause-on-scroll, reduced motion guards, and touch controls.";
 
 export const metadata: Metadata = {
   title: TITLE,
