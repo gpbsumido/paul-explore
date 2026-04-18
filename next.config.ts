@@ -15,6 +15,20 @@ const nextConfig: NextConfig = {
   // parent directory that has its own lockfile. Without this, the build warns
   // about multiple lockfiles and may trace the wrong workspace root.
   outputFileTracingRoot: path.resolve(__dirname),
+
+  async headers() {
+    return [
+      {
+        source: "/models/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);

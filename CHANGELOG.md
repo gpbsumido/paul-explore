@@ -1,5 +1,105 @@
 # Changelog
 
+## 2026-04-17 - version 0.9.11
+
+- added `src/app/landing/models/sections/NodeClusterModel.tsx` — procedural GraphQL logo: regular hexagon outer ring (6 tube edges, radius 0.038) + equilateral inner triangle connecting alternating vertices at 12/4/8 o'clock + 6 sphere nodes in GraphQL brand pink (`#e535ab`); slow Y-axis rotation via `useFrame` at 0.22 rad/s; no hotspots (decorative background canvas)
+- added `src/app/landing/models/sections/SpeedometerModel.tsx` — loads `speedometer.glb?v=3`; `Box3` auto-fit in `useEffect` computes bounding box of cloned scene and sets `scale = TARGET_SIZE / maxDimension` + `position = -center * scale` so the model centers at the origin regardless of native coordinate values; needle traversal tries common name keywords (`needle`, `pointer`, etc.), falls back to second scene child; needle lerps from `NEEDLE_REST` to `NEEDLE_GOOD` on `inView` via `useFrame`; 3 `HotspotDot` components
+- added `src/app/landing/models/GraphQLSectionCanvas.tsx` — bare R3F Canvas (`frameloop="always"`, `alpha: true`, `opacity: 0.3`, `pointer-events: none`) wrapping `NodeClusterModel`; full-bleed at z-[2] between the dark veil and glow so the cluster reads as atmospheric depth behind section text
+- added `src/app/landing/models/VitalsSectionCanvas.tsx` — bare R3F Canvas (`frameloop="always"`) with `OrbitControls` (no zoom/pan) + `SpeedometerModel`; accepts `inView: boolean` and `prefersReduced: boolean` props to drive needle animation
+- updated `src/app/landing/GraphQLSection.tsx` — replaced `<Section>` with a raw `<section>` element; canvas at z-[2], dark veil at z-[1], glow at z-[3], content at z-[4]; `ModelLazyMount` wraps canvas as `absolute inset-0 pointer-events-none`; removed `Section` import, added `dynamic` + `ModelLazyMount` imports
+- updated `src/app/landing/VitalsSection.tsx` — replaced mock dashboard (5-metric cards + by-page table) with speedometer `ModelLazyMount` (360px, max-width 520px, centered) followed by 3 stat cards (LCP/INP/CLS) in a `grid-cols-3` row; removed `MOCK_METRICS` and `MOCK_ROWS` constants; adjusted highlight and CTA animation delays; added `VitalsSectionCanvas` dynamic import
+- fixed `public/models/speedometer.glb` — reprocessed from raw with `gltf-transform optimize --compress false`; previous optimize run applied Draco by default (55KB → 5.5KB), which the default `GLTFLoader` cannot decode without a WASM decoder; new file is 45KB with no extensions required
+- updated `SpeedometerModel.tsx` — bumped GLB URL from `?v=2` to `?v=3` to bust `THREE.Cache` and browser HTTP cache of the Draco-compressed file
+- updated `context/architecture-map.md` — added `GraphQLSectionCanvas`, `VitalsSectionCanvas`, `NodeClusterModel`, `SpeedometerModel` to component tables
+- bumped `package.json` version 0.9.10 → 0.9.11
+
+## 2026-04-17 - version 0.9.10
+
+- added `src/app/landing/models/sections/GlobeModel.tsx` — procedural wireframe icosahedron (`icosahedronGeometry` radius 2, detail 4), slow Y-axis rotation via `useFrame` at 0.12 rad/s; no GLB, no hotspots
+- added `src/app/landing/models/HeroGlobeCanvas.tsx` — bare R3F Canvas (`frameloop="always"`, `alpha: true`, camera `[0,0,2.5]` fov 60) wrapping `GlobeModel`; sits absolute inset-0 with `pointer-events: none`; dynamically imported with `ssr: false`
+- updated `src/app/landing/HeroSection.tsx` — inserted `HeroGlobeCanvas` behind the vignette as hero ambient depth layer; bumped vignette from `z-[1]` to `z-[2]` to maintain correct stack order (background → globe → vignette → text)
+- updated `context/architecture-map.md` — added `HeroGlobeCanvas` and `GlobeModel` to component tables; added decision #14 documenting always-on hero canvas pattern
+
+## 2026-04-17 - version 0.9.9
+
+- fixed `CalendarSection.tsx` clock canvas — switched from `height: 400px` to `aspect-square` with `height: 100%` so the container is always square; clock no longer appears octagonal from asymmetric clipping
+- fixed `CalendarSection.tsx` clock canvas — added `zIndex: 10` to the absolute wrapper so `Html` tooltips from the clock face render above section highlight cards that follow in DOM order
+- fixed `CalendarSectionCanvas.tsx` — removed `<group scale={1.2}>` wrapper; square canvas no longer needs compensating scale, clock fits naturally
+- fixed `CardModel.tsx` — added `label` and `description` to cards at indices 1 (`URL-Synced State`) and 3 (`Server / Client Split`) so all five cards show a tooltip on hover
+- fixed `CardModel.tsx` — adjacent cards at `|i - hoveredIndex| === 1` now duck down by 0.18 units when a neighbor is hovered, preventing overlap with the lifted card
+
+## 2026-04-17 - version 0.9.8
+
+- fixed `CalendarModel.tsx` — replaced `circleGeometry`/`ringGeometry` (single-sided, invisible from behind) with `cylinderGeometry` (body), `torusGeometry` (rim), and `sphereGeometry` (hour markers, center pin); model now renders correctly from all viewing angles when OrbitControls rotates past 90°
+- fixed `CalendarSection.tsx` canvas — changed canvas from `inset-y-0` (tall portrait aspect that clipped clock heavily from sides) to `top-1/2 -translate-y-1/2 h-[400px]` (near-square canvas where clock fits and only the rim bleeds past the edges)
+- fixed `CardModel.tsx` — added `Z_STACK = [-0.12, -0.06, 0, -0.06, -0.12]` z-depth offsets per card on the rotation group; center card renders in front, prevents z-fighting at overlap regions
+- fixed `CardModel.tsx` — added `e.stopPropagation()` to `onPointerEnter`/`onPointerLeave` so raycaster does not fire on cards behind the frontmost hit
+- updated `CardModel.tsx` — card geometry from 0.55×0.82 to 0.68×0.98, `FAN_RADIUS` 1.4→1.5 for wider spread, `LIFT` 0.38→0.42
+- updated `TcgSectionCanvas.tsx` — camera position `[0, 0.4, 3.5]` → `[0, 0.2, 2.4]` to bring cards closer and fill the canvas
+- updated `TcgSection.tsx` — canvas `maxWidth: 580px, margin: 0 auto` so the fan isn't tiny inside the full-width 1000px section
+
+## 2026-04-17 - version 0.9.7
+
+- added `src/app/landing/models/sections/CalendarModel.tsx` — procedural clock face: `circleGeometry` face, `ringGeometry` rim with teal emissive, 12 hour markers (major ticks at 0/3/6/9 in teal, minor in gray), hour and minute hand groups rotated via `useFrame` driven by `Date.now()`, center amber pin, 3 `HotspotDot` components on the face (Custom Calendar Engine, Google Calendar Sync, Optimistic Updates); wrapped in `<Float speed={0.9}>` for gentle idle bob
+- added `src/app/landing/models/CalendarSectionCanvas.tsx` — wraps `SectionModelScene` with `autoRotate={false}` and `camera={{ position: [0,0,2.5], fov: 50 }}`; clock group scaled 1.2× so the rim bleeds slightly past the canvas edges for the cropped effect
+- updated `src/app/landing/CalendarSection.tsx` — left-crop layout: outer `div ref={ref}` gains `relative md:pl-[45%]`; clock canvas is `position: absolute left-0 inset-y-0` at 43% width, hidden on mobile; heading and description switch to `md:text-left` and `md:mx-0`; dynamically imports `CalendarSectionCanvas` with `ssr: false`
+- added `src/app/landing/models/sections/CardModel.tsx` — 5 playing cards in a fanned arc: fan rotations `[0.45, 0.22, 0, -0.22, -0.45]` rad around Z, pivot group at `[0, -FAN_RADIUS, 0]`, per-card lift group lerped via `useFrame` on hover (LIFT=0.38 units, speed delta×12); 3 featured cards (indices 0, 2, 4) show `Html` tooltip above card on hover using existing `.hotspot-tooltip` CSS; cursor set to pointer on hover, cleaned up on unmount
+- added `src/app/landing/models/TcgSectionCanvas.tsx` — wraps `SectionModelScene` with `autoRotate={false}` and `camera={{ position: [0,0.4,3.5], fov: 50 }}`
+- updated `src/app/landing/TcgSection.tsx` — replaced mock browser UI (filter bar + dealing card grid) with the 3D card fan canvas in a 300px `ModelLazyMount`; removed `MOCK_CARDS`, `TYPE_PILLS`, and `CARD_DEAL_OFFSET` constants; adjusted highlight and link animation delays
+
+## 2026-04-17 - version 0.9.6
+
+- added `?v=2` cache-bust suffix to both GLB URLs in `BasketballModel.tsx` and `LockModel.tsx` — Three.js loader cache retained stale failed entries (from earlier Draco-decode attempts) under the plain URL; versioned URL forces a fresh cache key
+- fixed `LockModel.tsx` orientation — `lock.glb` is only 0.09 units wide along X (camera-facing axis); added `rotation={[0, Math.PI/2, 0]}` and `position={[0, 0.05, 0]}` to the inner group to show the wider Z face and center the bounding box vertically
+
+## 2026-04-16 - version 0.9.5
+
+- stripped Draco compression from `basketball.glb` and `lock.glb` using `@gltf-transform/core` + `draco3d`; Draco WASM requires `'wasm-unsafe-eval'` in CSP, blob: URL access, and a runtime decoder — eliminated the entire dependency by keeping GLBs uncompressed
+- removed `/draco/` decoder path arguments from `useGLTF` and `useGLTF.preload` calls in both model components (no longer needed)
+- removed `public/draco/` Draco decoder files (no longer needed)
+- added `@gltf-transform/core`, `@gltf-transform/extensions`, `@gltf-transform/cli` as devDependencies (asset prep tooling)
+
+## 2026-04-16 - version 0.9.4
+
+- fixed GLB texture loading — added `blob:` to `img-src` and `connect-src` in `src/proxy.ts`; Three.js GLTFLoader creates blob: URLs for embedded textures and loads them via `<img>` / ImageBitmap fetch, both of which are blocked without `blob:` in the CSP
+- fixed scene sharing — added `useMemo(() => scene.clone(), [scene])` in both `BasketballModel.tsx` and `LockModel.tsx`; `useGLTF` returns a cached singleton and `<primitive object={scene} />` without cloning can corrupt the scene graph on remount
+
+## 2026-04-16 - version 0.9.3
+
+- fixed CSP blocking Draco WASM — added `'wasm-unsafe-eval'` to `script-src` in `src/proxy.ts`; `WebAssembly.instantiate()` requires this directive when instantiating the Draco mesh decoder
+- fixed `BasketballModel.tsx` — `basketball.glb` is also Draco-compressed; updated `useGLTF.preload` and `useGLTF` calls to pass `"/draco/"` as the `useDraco` argument
+
+## 2026-04-16 - version 0.9.2
+
+- fixed `LockModel.tsx` — `lock.glb` is Draco-compressed (`KHR_draco_mesh_compression`); `useGLTF` without a decoder config silently fell back to `ModelFallback` (pulsing sphere), making the auth section appear identical to the NBA section
+- copied Draco WASM decoder files from `three/examples/jsm/libs/draco/gltf/` to `public/draco/` so no external CDN is needed
+- updated `useGLTF` and `useGLTF.preload` calls in `LockModel.tsx` to pass `"/draco/"` as the `useDraco` argument — required to activate DRACOLoader; passing `false`/undefined disables it regardless of `setDecoderPath`
+- added architecture-map decision #13 documenting the Draco decoder pattern
+
+## 2026-04-16 - version 0.9.1
+
+- added `src/app/landing/models/sections/BasketballModel.tsx` — loads `basketball.glb`, wraps in `<Float speed={1.5} rotationIntensity={0.4} floatIntensity={0.6}>`, 3 hotspot dots anchored inside Float (Live Player Stats, Fantasy Scoring, Zero-latency UI); `useGLTF.preload` called at module scope
+- added `src/app/landing/models/sections/LockModel.tsx` — loads `lock.glb`, pendulum oscillation via `useFrame` (`±0.45rad` around Y axis at 0.35 Hz), gentle vertical float with `rotationIntensity={0}`, 3 hotspot dots inside Float (BFF Pattern, Rate Limiting, CSP Headers)
+- added `src/app/landing/models/AuthSectionCanvas.tsx` — wraps `SectionModelScene` with `autoRotate={false}` + `LockModel`; OrbitControls stays active for manual drag
+- updated `src/app/landing/models/SectionModelScene.tsx` — added `autoRotate` (default `true`) and `autoRotateSpeed` (default `0.8`) props so each section can opt out of continuous camera rotation
+- updated `src/app/landing/models/NbaSectionCanvas.tsx` — replaced placeholder sphere with `BasketballModel`
+- updated `src/app/landing/AuthSection.tsx` — added centered-bottom padlock canvas below existing 2-col layout; `mt-14 flex justify-center` wrapper, `ModelLazyMount` at `maxWidth: 560px, height: 420px`, dynamically imports `AuthSectionCanvas` with `ssr: false`
+
+## 2026-04-16 - version 0.9.0
+
+- added `src/app/landing/models/` — shared R3F infrastructure for section 3D scenes
+  - `SectionModelScene.tsx` — Canvas with `frameloop="demand"`, `dpr=[1,1.5]`, explicit lights (ambient + two directionals), OrbitControls with autoRotate; `pointerEvents: "auto"` on Canvas so OrbitControls gets events despite the wrapper being `pointer-events-none`
+  - `HotspotDot.tsx` — R3F `Html` overlay (retained for potential future use; not wired up in current sections)
+  - `ModelFallback.tsx` — pulsing sphere mesh shown via Suspense while a model loads
+  - `ModelLazyMount.tsx` — IntersectionObserver-based canvas mount deferral (200px rootMargin, accepts `style` prop)
+  - `NbaSectionCanvas.tsx` — NBA-specific canvas: rotating basketball placeholder sphere
+- updated `NbaSection.tsx` — bleed layout: content div uses `md:w-[52%]` (not padding) so it doesn't extend into the canvas hit area; R3F canvas right-aligned with `style={{ left: "52%", right: "-20vw" }}` so the ball bleeds off the right viewport edge; dynamically imports `NbaSectionCanvas` with `ssr: false`
+- added hotspot CSS utility classes to `globals.css` (`.hotspot-root`, `.hotspot-dot`, `.hotspot-ring`, `.hotspot-tooltip`, `.hotspot-tooltip-label`, `.hotspot-tooltip-desc`, `@keyframes hotspot-pulse`)
+- revised `NbaSection.tsx` — replaced static highlights grid with a feature carousel: three slides (Live API Proxy, Fantasy Matchups, Court Vision) driven by pill-style dot indicators; active card transitions via `AnimatePresence`; dots are plain HTML (not R3F `Html`) so they stay fixed on screen
+- revised `NbaSectionCanvas.tsx` — removed `HotspotDot` usage; R3F `Html` overlays orbit with the camera and conflict with the carousel interaction model
+- fixed `SectionModelScene.tsx` — removed `Environment preset="city"` (fetched a remote HDR file, failing in dev/offline); replaced with `ambientLight` + two `directionalLight` primitives
+- fixed `NbaSection.tsx` pointer-events — changed left content from `md:pr-[48%]` to `md:w-[52%]`; padding-based layout left a full-width element over the canvas area, causing text selection when starting a drag on the ball's left side; `md:w-[52%]` ends the element at the canvas boundary
+
 ## 2026-04-16 - version 0.8.10
 
 - fixed TCG search E2E test still failing after page.route mock was added

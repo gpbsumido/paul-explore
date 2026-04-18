@@ -28,6 +28,9 @@ logs
 .DS_Store
 *.pem
 CLAUDE.md
+.claude
+old_resumes
+resumes
 
 # debug
 npm-debug.log*
@@ -190,3 +193,8 @@ dist
 # plans
 /plans
 /context
+
+# Playwright
+/test-results/
+/playwright-report/
+/e2e/.auth/

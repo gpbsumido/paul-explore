@@ -23,17 +23,18 @@ import { checkRateLimit } from "@/lib/rateLimit";
  * 3. CSP headers — applied on every pass-through response so every page load
  *    carries the policy. 'unsafe-inline' in script-src is required for Next.js
  *    App Router RSC payload scripts (self.__next_f.push(...)) that are inlined
- *    into the HTML at build time with no nonce attribute. See README for the
- *    full reasoning.
+ *    into the HTML at build time with no nonce attribute. 'wasm-unsafe-eval'
+ *    is required for the Draco WASM decoder used by the landing 3D models.
+ *    See README for the full reasoning.
  */
 
 const CSP = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://vercel.live https://va.vercel-scripts.com`,
   `style-src 'self' 'unsafe-inline'`,
-  `img-src 'self' data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
+  `img-src 'self' blob: data: https://assets.tcgdex.net https://raw.githubusercontent.com`,
   `font-src 'self'`,
-  `connect-src 'self' https://vitals.vercel-insights.com https://vercel.live https://api.open-meteo.com`,
+  `connect-src 'self' blob: https://vitals.vercel-insights.com https://vercel.live https://api.open-meteo.com`,
   `frame-src https://vercel.live`,
   `object-src 'none'`,
   `base-uri 'self'`,

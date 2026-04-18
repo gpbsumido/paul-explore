@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "framer-motion";
 import AuthButton from "@/components/AuthButton";
 import HeaderMenu from "@/components/HeaderMenu";
@@ -11,6 +12,10 @@ import {
   spring,
   instantTransition,
 } from "@/lib/animations";
+
+const HeroGlobeCanvas = dynamic(() => import("./models/HeroGlobeCanvas"), {
+  ssr: false,
+});
 
 const WORDS = "Paul Sumido Portfolio".split(" ");
 
@@ -35,9 +40,12 @@ export default function HeroSection() {
         className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center"
         data-theme="dark"
       >
+        {/* Wireframe icosahedron — ambient depth layer, bleeds off all edges */}
+        <HeroGlobeCanvas />
+
         {/* Radial vignette darkens the edges, centres readable text */}
         <div
-          className="absolute inset-0 pointer-events-none z-[1]"
+          className="absolute inset-0 pointer-events-none z-[2]"
           style={{
             background:
               "radial-gradient(ellipse 70% 55% at 50% 50%, transparent 0%, rgba(0,4,12,0.60) 100%)",

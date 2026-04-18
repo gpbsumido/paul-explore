@@ -2,14 +2,21 @@
 
 import { useRef } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
+import ModelLazyMount from "./models/ModelLazyMount";
 import {
   spring,
   instantTransition,
   headingWipe,
   fadeUp,
 } from "@/lib/animations";
+
+const CalendarSectionCanvas = dynamic(
+  () => import("./models/CalendarSectionCanvas"),
+  { ssr: false },
+);
 
 const DOW = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
@@ -140,9 +147,22 @@ export default function CalendarSection() {
 
   return (
     <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-calendar) 5%, transparent) 0%, transparent 60%)">
-      <div ref={ref}>
+      {/* relative so the canvas can be absolutely positioned within */}
+      <div ref={ref} className="relative md:pl-[45%]">
+        {/* Clock canvas — fixed height so the canvas is nearly square and the
+            clock isn't clipped to a narrow vertical strip. Vertically centered
+            so it sits in the middle of the content column. */}
+        <div
+          className="pointer-events-none absolute left-0 top-1/2 hidden aspect-square -translate-y-1/2 md:block"
+          style={{ width: "43%", zIndex: 10 }}
+        >
+          <ModelLazyMount style={{ width: "100%", height: "100%" }}>
+            <CalendarSectionCanvas />
+          </ModelLazyMount>
+        </div>
+
         <motion.h2
-          className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
+          className="text-center text-3xl font-bold tracking-tight text-white md:text-left md:text-4xl"
           variants={headingWipe}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -152,7 +172,7 @@ export default function CalendarSection() {
         </motion.h2>
 
         <motion.p
-          className="mx-auto mt-3 max-w-lg text-center text-white/70"
+          className="mx-auto mt-3 max-w-lg text-center text-white/70 md:mx-0 md:text-left"
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
