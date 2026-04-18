@@ -148,11 +148,15 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgb(253 230 138 / 0.9);
+  background: rgb(253 230 138 / 0.95);
   border: none;
   cursor: pointer;
   padding: 0;
   pointer-events: auto;
+  /* Dark outline makes the dot legible on both dark and light backgrounds */
+  box-shadow:
+    0 0 0 1.5px rgba(0, 0, 0, 0.35),
+    0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 .hotspot-ring {
@@ -162,6 +166,10 @@
   border: 1.5px solid rgb(253 230 138 / 0.55);
   pointer-events: none;
   animation: hotspot-pulse 2s ease-out infinite;
+}
+
+[data-theme="light"] .hotspot-ring {
+  border-color: rgb(161 114 0 / 0.5);
 }
 
 .hotspot-tooltip {

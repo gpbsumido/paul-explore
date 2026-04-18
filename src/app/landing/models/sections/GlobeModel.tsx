@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useTheme } from "@/components/ThemeProvider";
 
 const getPrefersReduced = () =>
   typeof window !== "undefined" &&
@@ -14,6 +15,7 @@ const getPrefersReduced = () =>
 export function GlobeModel() {
   const ref = useRef<THREE.Mesh>(null);
   const [prefersReduced, setPrefersReduced] = useState(getPrefersReduced);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -30,7 +32,10 @@ export function GlobeModel() {
   return (
     <mesh ref={ref}>
       <icosahedronGeometry args={[2, 4]} />
-      <meshStandardMaterial color="#1a1a2e" wireframe />
+      <meshStandardMaterial
+        color={theme === "dark" ? "#1a1a2e" : "#3b82f6"}
+        wireframe
+      />
     </mesh>
   );
 }
