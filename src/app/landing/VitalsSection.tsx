@@ -38,9 +38,9 @@ const RATING_BAR: Record<Rating, string> = {
 };
 
 const RATING_TEXT: Record<Rating, string> = {
-  good: "text-green-300",
-  "needs-improvement": "text-yellow-300",
-  poor: "text-red-300",
+  good: "dark:text-green-300 text-green-700",
+  "needs-improvement": "dark:text-yellow-300 text-yellow-700",
+  poor: "dark:text-red-300 text-red-600",
 };
 
 const HIGHLIGHTS = [
@@ -88,7 +88,7 @@ function AnimatedBar({
   }, [inView, pct, widthSpring, prefersReduced]);
 
   return (
-    <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+    <div className="h-1 w-full overflow-hidden rounded-full bg-foreground/10">
       <motion.div
         className={`h-full rounded-full ${RATING_BAR[rating]}`}
         style={{ width: widthPct }}
@@ -177,7 +177,7 @@ export default function VitalsSection() {
     <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-vitals) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
         <motion.h2
-          className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
+          className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -187,7 +187,7 @@ export default function VitalsSection() {
         </motion.h2>
 
         <motion.p
-          className="mx-auto mt-3 max-w-lg text-center text-white/70"
+          className="mx-auto mt-3 max-w-lg text-center text-foreground/70"
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -247,9 +247,9 @@ export default function VitalsSection() {
           ).map(({ name, value, rating, pct }) => (
             <div
               key={name}
-              className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-3 backdrop-blur-sm sm:px-4 sm:py-4"
+              className="flex flex-col items-center gap-2 rounded-xl border border-foreground/10 bg-foreground/5 px-2 py-3 backdrop-blur-sm sm:px-4 sm:py-4"
             >
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">
                 {name}
               </span>
               <RatingBadge
@@ -286,10 +286,10 @@ export default function VitalsSection() {
           {HIGHLIGHTS.map(([t, d]) => (
             <div
               key={t}
-              className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+              className="rounded-lg border border-foreground/10 bg-foreground/5 p-4 backdrop-blur-sm"
             >
-              <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-              <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+              <h4 className="text-[15px] font-semibold text-foreground">{t}</h4>
+              <p className="mt-1 text-[13px] leading-relaxed text-foreground/60">
                 {d}
               </p>
             </div>
@@ -305,7 +305,7 @@ export default function VitalsSection() {
         >
           <a
             href="/auth/login"
-            className="inline-flex items-center gap-2 rounded-full border border-green-400/30 bg-green-500/10 px-6 py-2.5 text-[14px] font-semibold text-green-300 transition-colors hover:bg-green-500/20 hover:text-green-200"
+            className="inline-flex items-center gap-2 rounded-full border dark:border-green-400/30 border-green-600/40 bg-green-500/10 px-6 py-2.5 text-[14px] font-semibold dark:text-green-300 text-green-700 transition-colors hover:bg-green-500/20 dark:hover:text-green-200 hover:text-green-800"
           >
             Log in to view →
           </a>

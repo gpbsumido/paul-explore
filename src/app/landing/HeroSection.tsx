@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { motion, useReducedMotion } from "framer-motion";
 import AuthButton from "@/components/AuthButton";
 import HeaderMenu from "@/components/HeaderMenu";
+import { useTheme } from "@/components/ThemeProvider";
 import {
   wordReveal,
   staggerContainer,
@@ -29,6 +30,8 @@ export default function HeroSection() {
   );
   const prefersReduced = useReducedMotion();
   const transition = prefersReduced ? instantTransition : undefined;
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <>
@@ -36,19 +39,19 @@ export default function HeroSection() {
         <HeaderMenu showLogout={false} showLogin showWeatherToggle />
       </div>
 
-      <section
-        className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center"
-        data-theme="dark"
-      >
+      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center dark:bg-transparent bg-background">
         {/* Wireframe icosahedron — ambient depth layer, bleeds off all edges */}
         <HeroGlobeCanvas />
 
-        {/* Radial vignette darkens the edges, centres readable text */}
+        {/* Radial vignette — darkens edges in dark mode, barely-there in light
+            (light mode uses section bg-background to block the weather canvas,
+            so the vignette only needs to soften the globe at the edges) */}
         <div
           className="absolute inset-0 pointer-events-none z-[2]"
           style={{
-            background:
-              "radial-gradient(ellipse 70% 55% at 50% 50%, transparent 0%, rgba(0,4,12,0.60) 100%)",
+            background: isDark
+              ? "radial-gradient(ellipse 70% 55% at 50% 50%, transparent 0%, rgba(0,4,12,0.60) 100%)"
+              : "radial-gradient(ellipse 60% 50% at 50% 50%, transparent 0%, rgba(255,255,255,0.55) 100%)",
           }}
         />
 
@@ -56,11 +59,12 @@ export default function HeroSection() {
             (initial={false}) so the H1 is in the LCP paint. On mount the
             client replays the entrance from hidden. */}
         <motion.h1
-          className="relative z-10 text-5xl font-bold tracking-tight text-white md:text-7xl"
+          className="relative z-10 text-5xl font-bold tracking-tight text-foreground md:text-7xl"
           style={{
             perspective: 800,
-            textShadow:
-              "0 0 40px rgba(92,206,245,0.5), 0 0 80px rgba(92,206,245,0.2), 0 2px 6px rgba(0,0,0,0.8)",
+            textShadow: isDark
+              ? "0 0 40px rgba(92,206,245,0.5), 0 0 80px rgba(92,206,245,0.2), 0 2px 6px rgba(0,0,0,0.8)"
+              : "0 1px 6px rgba(0,0,0,0.12)",
           }}
           variants={staggerContainer(0.08, 0.1)}
           initial={mounted ? "hidden" : false}
@@ -80,10 +84,9 @@ export default function HeroSection() {
 
         {/* Subtitle fades up after the title stagger finishes */}
         <motion.p
-          className="relative z-10 mt-4 max-w-md text-lg md:text-xl"
+          className="relative z-10 mt-4 max-w-md text-lg text-foreground/70 md:text-xl"
           style={{
-            color: "rgba(180,235,255,0.75)",
-            textShadow: "0 1px 8px rgba(0,0,0,0.6)",
+            textShadow: isDark ? "0 1px 8px rgba(0,0,0,0.6)" : "none",
           }}
           initial={mounted ? { opacity: 0, y: 16 } : false}
           animate={{ opacity: 1, y: 0 }}
@@ -103,7 +106,7 @@ export default function HeroSection() {
         >
           <AuthButton
             loggedIn={false}
-            className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-8 py-3 text-sm font-medium text-white backdrop-blur-sm transition-all hover:border-white/40 hover:bg-white/20"
+            className="inline-flex items-center rounded-full border border-foreground/25 bg-foreground/10 px-8 py-3 text-sm font-medium text-foreground backdrop-blur-sm transition-all hover:border-foreground/40 hover:bg-foreground/20"
           />
         </motion.div>
 
@@ -115,10 +118,7 @@ export default function HeroSection() {
           transition={transition ?? { delay: 1.2, duration: 0.8 }}
           aria-hidden
         >
-          <div
-            className="flex flex-col items-center gap-1"
-            style={{ color: "rgba(130,210,240,0.45)" }}
-          >
+          <div className="flex flex-col items-center gap-1 text-foreground/40">
             <span
               className="text-xs uppercase"
               style={{ letterSpacing: "0.2em" }}

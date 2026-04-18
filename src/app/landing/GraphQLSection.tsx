@@ -137,9 +137,9 @@ export default function GraphQLSection() {
   return (
     // Full-bleed layout: canvas sits at z-[2] between the dark veil and glow,
     // so the cluster is visible at 30% opacity behind the text content.
-    <section className="relative w-full" data-theme="dark">
-      {/* Dark veil keeps section text readable over any weather effect */}
-      <div className="absolute inset-0 pointer-events-none bg-black/52 z-[1]" />
+    <section className="relative w-full">
+      {/* Veil keeps section content readable over the weather canvas */}
+      <div className="absolute inset-0 pointer-events-none dark:bg-black/52 bg-background/95 z-[1]" />
 
       {/* Node cluster canvas — between veil and glow, decorative only. Hidden on
           mobile: the full-bleed canvas at portrait aspect ratios distorts the
@@ -161,7 +161,7 @@ export default function GraphQLSection() {
       <div className="relative z-[4] mx-auto max-w-[1000px] px-6 py-24 md:py-32">
         <div ref={ref}>
           <motion.h2
-            className="text-center text-3xl font-bold tracking-tight text-white md:text-4xl"
+            className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
             variants={headingWipe}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
@@ -171,7 +171,7 @@ export default function GraphQLSection() {
           </motion.h2>
 
           <motion.p
-            className="mx-auto mt-3 max-w-lg text-center text-white/70"
+            className="mx-auto mt-3 max-w-lg text-center text-foreground/70"
             variants={fadeUp}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
@@ -183,19 +183,19 @@ export default function GraphQLSection() {
 
           {/* Mock query inspector — two-panel layout */}
           <motion.div
-            className="mt-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm"
+            className="mt-10 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5 shadow-xl backdrop-blur-sm"
             variants={fadeUp}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
             transition={transition ?? { ...spring.smooth, delay: 0 }}
           >
             {/* Toolbar */}
-            <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5">
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-indigo-400">
+            <div className="flex items-center gap-3 border-b border-foreground/10 px-4 py-2.5">
+              <span className="text-[10px] font-semibold uppercase tracking-widest dark:text-indigo-400 text-indigo-600">
                 Query
               </span>
-              <div className="h-3.5 w-px bg-white/20" />
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+              <div className="h-3.5 w-px bg-foreground/20" />
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-foreground/30">
                 Variables
               </span>
               <div className="ml-auto flex gap-1.5">
@@ -207,7 +207,7 @@ export default function GraphQLSection() {
 
             <div className="grid md:grid-cols-2">
               {/* Left: query editor */}
-              <div className="border-b border-white/10 bg-black/30 p-4 md:border-b-0 md:border-r">
+              <div className="border-b border-foreground/10 bg-neutral-900/80 p-4 md:border-b-0 md:border-r">
                 <TypewriterQuery
                   query={MOCK_QUERY}
                   inView={inView}
@@ -217,7 +217,7 @@ export default function GraphQLSection() {
 
               {/* Right: results — fade in after typing finishes */}
               <div className="p-4">
-                <p className="mb-3 text-[9px] font-bold uppercase tracking-widest text-white/30">
+                <p className="mb-3 text-[9px] font-bold uppercase tracking-widest text-foreground/30">
                   Results
                 </p>
                 <ul className="space-y-1.5">
@@ -233,8 +233,8 @@ export default function GraphQLSection() {
                           : { ...spring.smooth, delay: RESULT_DELAY + i * 0.05 }
                       }
                     >
-                      <span className="text-white/30">#{p.id}</span>
-                      <span className="text-white/80">{p.name}</span>
+                      <span className="text-foreground/30">#{p.id}</span>
+                      <span className="text-foreground/80">{p.name}</span>
                       <span className={`ml-auto ${p.color}`}>{p.type}</span>
                     </motion.li>
                   ))}
@@ -259,10 +259,12 @@ export default function GraphQLSection() {
             {HIGHLIGHTS.map(([t, d]) => (
               <div
                 key={t}
-                className="rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+                className="rounded-lg border border-foreground/10 bg-foreground/5 p-4 backdrop-blur-sm"
               >
-                <h4 className="text-[15px] font-semibold text-white">{t}</h4>
-                <p className="mt-1 text-[13px] leading-relaxed text-white/60">
+                <h4 className="text-[15px] font-semibold text-foreground">
+                  {t}
+                </h4>
+                <p className="mt-1 text-[13px] leading-relaxed text-foreground/60">
                   {d}
                 </p>
               </div>
@@ -283,7 +285,7 @@ export default function GraphQLSection() {
           >
             <Link
               href="/graphql"
-              className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-500/10 px-6 py-2.5 text-[14px] font-semibold text-teal-300 transition-colors hover:bg-teal-500/20 hover:text-teal-200"
+              className="inline-flex items-center gap-2 rounded-full border dark:border-teal-400/30 border-teal-600/40 bg-teal-500/10 px-6 py-2.5 text-[14px] font-semibold dark:text-teal-300 text-teal-700 transition-colors hover:bg-teal-500/20 dark:hover:text-teal-200 hover:text-teal-800"
             >
               Open GraphQL Pokédex →
             </Link>

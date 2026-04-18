@@ -19,13 +19,11 @@ export default function Section({
   glow?: string;
 }) {
   return (
-    <section
-      className={`relative w-full ${className}`}
-      // Force dark-mode tokens so text stays white/light over the weather canvas.
-      data-theme="dark"
-    >
-      {/* Dark veil keeps section text readable over any weather effect */}
-      <div className="absolute inset-0 pointer-events-none bg-black/52 z-[1]" />
+    <section className={`relative w-full ${className}`}>
+      {/* Veil keeps section content readable over the weather canvas.
+          Dark mode: semi-transparent black lets weather show through subtly.
+          Light mode: near-opaque background covers the dark canvas entirely. */}
+      <div className="absolute inset-0 pointer-events-none dark:bg-black/52 bg-background/95 z-[1]" />
 
       {glow && (
         <div

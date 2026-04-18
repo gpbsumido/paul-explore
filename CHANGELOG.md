@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-04-18 - version 0.9.12
+
+- updated landing page to fully respect light/dark theme — removed all hard-coded `data-theme="dark"` overrides from `Section.tsx`, `GraphQLSection.tsx`, `FooterSection.tsx`; `HeroSection.tsx` now uses `useTheme()` to conditionally apply dark vignette vs. light veil, theme-aware text shadow, and globe wireframe color (`#1a1a2e` dark → `#c8d8f0` light blue-gray)
+- updated `LandingContent.tsx` — `bg-black` → `bg-background` so wrapper adapts to theme
+- updated `Section.tsx` — veil changed from `bg-black/52` to `dark:bg-black/52 bg-background/95` so light mode covers the dark weather canvas
+- updated all landing section components (`AuthSection`, `CalendarSection`, `DesignSection`, `FeaturesSection`, `GraphQLSection`, `KetsupSection`, `NbaSection`, `TcgSection`, `VitalsSection`, `FooterSection`) — replaced `text-white` with `text-foreground`, `bg-white/N` with `bg-foreground/N`, `border-white/N` with `border-foreground/N`; CTA buttons get `dark:text-X-300 text-X-700` for accessible contrast on light backgrounds
+- updated `src/app/globals.css` — hotspot dots gain `box-shadow: 0 0 0 1.5px rgba(0,0,0,0.35)` outline for legibility on light backgrounds; pulse ring gets a darker amber tint in light mode via `[data-theme="light"] .hotspot-ring`
+- updated `VitalsSection.tsx` — `RATING_TEXT` uses `dark:text-X-300 text-X-700` so green/yellow/red values pass contrast on white
+- updated `GlobeModel.tsx` — wireframe color adapts to theme via `useTheme()`
+
 ## 2026-04-17 - version 0.9.11
 
 - added `src/app/landing/models/sections/NodeClusterModel.tsx` — procedural GraphQL logo: regular hexagon outer ring (6 tube edges, radius 0.038) + equilateral inner triangle connecting alternating vertices at 12/4/8 o'clock + 6 sphere nodes in GraphQL brand pink (`#e535ab`); slow Y-axis rotation via `useFrame` at 0.22 rad/s; no hotspots (decorative background canvas)

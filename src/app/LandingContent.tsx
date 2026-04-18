@@ -39,7 +39,7 @@ const FooterSection = dynamic(() => import("./landing/FooterSection"), {
 export default function LandingContent() {
   return (
     <WeatherProvider>
-      <div className="bg-black">
+      <div className="bg-background">
         {/* Fixed full-screen weather effect canvas — sits behind all sections */}
         <WeatherCanvas className="fixed inset-0 z-0 pointer-events-none" />
         <HeroSection />
