@@ -23,16 +23,16 @@ import PlayoffLeaderboard from "./PlayoffLeaderboard";
 // Maps each TBD slot (matchupId_top / matchupId_bottom) to the preceding matchup
 // whose pick winner fills that slot.
 export const PRECEDING: Record<string, string> = {
-  E_R2_M1_top: "E_R1_M1",
-  E_R2_M1_bottom: "E_R1_M2",
-  E_R2_M2_top: "E_R1_M3",
-  E_R2_M2_bottom: "E_R1_M4",
+  E_R2_M1_top: "E_R1_M1", // 1 seed (DET)
+  E_R2_M1_bottom: "E_R1_M4", // 4/5 winner (CLE/TOR)
+  E_R2_M2_top: "E_R1_M2", // 2/7 winner (BOS/PHI)
+  E_R2_M2_bottom: "E_R1_M3", // 3/6 winner (NY/ATL)
   E_CF_top: "E_R2_M1",
   E_CF_bottom: "E_R2_M2",
-  W_R2_M1_top: "W_R1_M1",
-  W_R2_M1_bottom: "W_R1_M2",
-  W_R2_M2_top: "W_R1_M3",
-  W_R2_M2_bottom: "W_R1_M4",
+  W_R2_M1_top: "W_R1_M1", // 1 seed (OKC)
+  W_R2_M1_bottom: "W_R1_M4", // 4/5 winner (LAL/HOU)
+  W_R2_M2_top: "W_R1_M2", // 2/7 winner (SA/POR)
+  W_R2_M2_bottom: "W_R1_M3", // 3/6 winner (DEN/MIN)
   W_CF_top: "W_R2_M1",
   W_CF_bottom: "W_R2_M2",
   NBA_FINALS_top: "E_CF",
@@ -440,18 +440,25 @@ export default function PlayoffBracketContent() {
   const bracket = bracketQuery.data;
   const matchups = bracket?.matchups ?? [];
 
-  const eastR1 = matchups.filter(
-    (m) => m.conference === "East" && m.round === 1,
-  );
+  // R1 bracket display order: 1v8 and 4v5 are visually adjacent (both feed R2 M1),
+  // 2v7 and 3v6 are visually adjacent (both feed R2 M2). Order by top seed: 1, 4, 2, 3.
+  const R1_BRACKET_POS: Record<number, number> = { 1: 0, 4: 1, 2: 2, 3: 3 };
+  const byBracketOrder = (a: PlayoffMatchup, b: PlayoffMatchup) =>
+    (R1_BRACKET_POS[a.topTeam.seed] ?? 99) -
+    (R1_BRACKET_POS[b.topTeam.seed] ?? 99);
+
+  const eastR1 = matchups
+    .filter((m) => m.conference === "East" && m.round === 1)
+    .toSorted(byBracketOrder);
   const eastR2 = matchups.filter(
     (m) => m.conference === "East" && m.round === 2,
   );
   const eastCF = matchups.filter(
     (m) => m.conference === "East" && m.round === 3,
   );
-  const westR1 = matchups.filter(
-    (m) => m.conference === "West" && m.round === 1,
-  );
+  const westR1 = matchups
+    .filter((m) => m.conference === "West" && m.round === 1)
+    .toSorted(byBracketOrder);
   const westR2 = matchups.filter(
     (m) => m.conference === "West" && m.round === 2,
   );

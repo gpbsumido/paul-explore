@@ -172,6 +172,34 @@ export default function WebVitalsContent() {
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                Speedometer model on the landing section
+              </h2>
+              <p className="text-muted">
+                The Vitals landing section now has an interactive speedometer
+                GLB. The needle animates from a resting &ldquo;slow&rdquo;
+                position to the &ldquo;good&rdquo; zone when the section enters
+                the viewport, using a frame-by-frame lerp in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useFrame
+                </code>
+                . The three primary metrics — LCP, INP, and CLS — are displayed
+                as animated stat cards below the speedometer with spring-driven
+                value counters and score bars. The raw GLB had bounding-box
+                coordinates spanning tens of thousands of units, so a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Box3
+                </code>{" "}
+                auto-fit runs in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useEffect
+                </code>{" "}
+                after load to scale and center the model dynamically — a
+                general-purpose pattern for any GLB with unknown native units.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 What improved each metric
               </h2>
               <p className="text-muted">

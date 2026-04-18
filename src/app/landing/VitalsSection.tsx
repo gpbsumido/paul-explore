@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   motion,
   useInView,
@@ -9,12 +10,18 @@ import {
   useTransform,
 } from "framer-motion";
 import Section from "./Section";
+import ModelLazyMount from "./models/ModelLazyMount";
 import {
   spring,
   instantTransition,
   headingWipe,
   fadeUp,
 } from "@/lib/animations";
+
+const VitalsSectionCanvas = dynamic(
+  () => import("./models/VitalsSectionCanvas"),
+  { ssr: false },
+);
 
 type Rating = "good" | "needs-improvement" | "poor";
 
@@ -35,27 +42,6 @@ const RATING_TEXT: Record<Rating, string> = {
   "needs-improvement": "text-yellow-300",
   poor: "text-red-300",
 };
-
-// pct = visual score out of 100 (higher = better) based on metric thresholds
-const MOCK_METRICS: {
-  name: string;
-  value: string;
-  rating: Rating;
-  pct: number;
-}[] = [
-  { name: "LCP", value: "1.8s", rating: "good", pct: 82 },
-  { name: "FCP", value: "0.9s", rating: "good", pct: 92 },
-  { name: "INP", value: "145ms", rating: "good", pct: 78 },
-  { name: "CLS", value: "0.041", rating: "good", pct: 88 },
-  { name: "TTFB", value: "320ms", rating: "good", pct: 72 },
-];
-
-const MOCK_ROWS: { page: string; lcp: string; rating: Rating; pct: number }[] =
-  [
-    { page: "/vitals", lcp: "1.8s", rating: "good", pct: 82 },
-    { page: "/calendar", lcp: "2.1s", rating: "good", pct: 74 },
-    { page: "/tcg/browse", lcp: "2.9s", rating: "needs-improvement", pct: 52 },
-  ];
 
 const HIGHLIGHTS = [
   [
@@ -212,117 +198,81 @@ export default function VitalsSection() {
           data, not lab simulations.
         </motion.p>
 
-        {/* Mock dashboard UI */}
+        {/* Speedometer — hidden on mobile: the portrait aspect ratio causes the
+            model to clip outside the view frustum, leaving only the Html
+            hotspot dots floating in empty space. */}
+        <div className="hidden md:block">
+          <motion.div
+            className="mt-10"
+            variants={fadeUp}
+            initial="hidden"
+            animate={inView ? "visible" : "hidden"}
+            transition={transition ?? { ...spring.smooth, delay: 0.15 }}
+          >
+            <ModelLazyMount
+              style={{ height: "360px", maxWidth: "520px", margin: "0 auto" }}
+            >
+              <VitalsSectionCanvas
+                inView={inView}
+                prefersReduced={prefersReduced}
+              />
+            </ModelLazyMount>
+          </motion.div>
+        </div>
+
+        {/* Three primary stat cards — LCP, INP, CLS */}
         <motion.div
-          className="mt-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm"
+          className="mt-6 grid grid-cols-3 gap-2 sm:gap-4"
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 0 }}
+          transition={transition ?? { ...spring.smooth, delay: 0.3 }}
         >
-          {/* Mock nav bar */}
-          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5">
-            <div className="h-4 w-4 rounded bg-white/20" />
-            <span className="text-[11px] font-black uppercase tracking-[0.15em] text-white/80">
-              Web Vitals
-            </span>
-            <div className="ml-auto h-5 w-5 rounded-full bg-white/15" />
-          </div>
-
-          {/* Mock metric cards — bar + rating badge + animated value */}
-          <div className="grid grid-cols-5 divide-x divide-white/10 border-b border-white/10">
-            {MOCK_METRICS.map(({ name, value, rating, pct }) => (
-              <div
-                key={name}
-                className="flex flex-col items-center gap-1 px-2 py-3"
-              >
-                <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">
-                  {name}
-                </span>
-                <RatingBadge
+          {(
+            [
+              { name: "LCP", value: "1.8s", rating: "good" as Rating, pct: 82 },
+              {
+                name: "INP",
+                value: "145ms",
+                rating: "good" as Rating,
+                pct: 78,
+              },
+              {
+                name: "CLS",
+                value: "0.041",
+                rating: "good" as Rating,
+                pct: 88,
+              },
+            ] as const
+          ).map(({ name, value, rating, pct }) => (
+            <div
+              key={name}
+              className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-3 backdrop-blur-sm sm:px-4 sm:py-4"
+            >
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+                {name}
+              </span>
+              <RatingBadge
+                rating={rating}
+                inView={inView}
+                prefersReduced={prefersReduced}
+              />
+              <AnimatedStat
+                value={value}
+                inView={inView}
+                prefersReduced={prefersReduced}
+                className={`text-base font-bold tabular-nums sm:text-lg ${RATING_TEXT[rating]}`}
+              />
+              <div className="mt-1 w-full">
+                <AnimatedBar
+                  pct={pct}
                   rating={rating}
                   inView={inView}
                   prefersReduced={prefersReduced}
                 />
-                <AnimatedStat
-                  value={value}
-                  inView={inView}
-                  prefersReduced={prefersReduced}
-                  className={`text-[11px] font-bold tabular-nums ${RATING_TEXT[rating]}`}
-                />
-                <div className="mt-1 w-full px-1">
-                  <AnimatedBar
-                    pct={pct}
-                    rating={rating}
-                    inView={inView}
-                    prefersReduced={prefersReduced}
-                  />
-                </div>
               </div>
-            ))}
-          </div>
-
-          {/* Mock by-page table */}
-          <div className="p-3">
-            <div className="mb-1.5 text-[9px] font-bold uppercase tracking-widest text-white/30">
-              By page
             </div>
-            <div className="overflow-hidden rounded-lg border border-white/10">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/10 bg-white/5">
-                    <th className="px-2.5 py-1.5 text-left text-[9px] font-bold uppercase tracking-wider text-white/30">
-                      Page
-                    </th>
-                    <th className="px-2.5 py-1.5 text-center text-[9px] font-bold uppercase tracking-wider text-white/30">
-                      LCP
-                    </th>
-                    <th className="px-2.5 py-1.5 text-right text-[9px] font-bold uppercase tracking-wider text-white/30">
-                      Score
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {MOCK_ROWS.map((row, i) => (
-                    <tr
-                      key={row.page}
-                      className={`border-b border-white/5 last:border-b-0 ${i % 2 !== 0 ? "bg-white/[0.02]" : ""}`}
-                    >
-                      <td className="px-2.5 py-2 text-[10px] font-medium text-white/60">
-                        {row.page}
-                      </td>
-                      <td
-                        className={`px-2.5 py-2 text-center text-[10px] font-semibold tabular-nums ${RATING_TEXT[row.rating]}`}
-                      >
-                        <AnimatedStat
-                          value={row.lcp}
-                          inView={inView}
-                          prefersReduced={prefersReduced}
-                        />
-                      </td>
-                      <td className="px-2.5 py-2">
-                        <div className="flex items-center justify-end gap-2">
-                          <div className="w-16">
-                            <AnimatedBar
-                              pct={row.pct}
-                              rating={row.rating}
-                              inView={inView}
-                              prefersReduced={prefersReduced}
-                            />
-                          </div>
-                          <RatingBadge
-                            rating={row.rating}
-                            inView={inView}
-                            prefersReduced={prefersReduced}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          ))}
         </motion.div>
 
         {/* Feature highlights */}
@@ -331,7 +281,7 @@ export default function VitalsSection() {
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 0.8 }}
+          transition={transition ?? { ...spring.smooth, delay: 0.5 }}
         >
           {HIGHLIGHTS.map(([t, d]) => (
             <div
@@ -351,7 +301,7 @@ export default function VitalsSection() {
           variants={fadeUp}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          transition={transition ?? { ...spring.smooth, delay: 1.0 }}
+          transition={transition ?? { ...spring.smooth, delay: 0.65 }}
         >
           <a
             href="/auth/login"
