@@ -51,12 +51,12 @@ function laterRound(
 function buildFallbackBracket(season: number): PlayoffBracket {
   const matchups: PlayoffMatchup[] = [
     // East — Round 1 (2025-26 season, verified from ESPN April 2026)
-    // DET (1) opponent TBD — play-in game ORL vs CHA on Apr 17 determines 8 seed
+    // ORL won East play-in (vs CHA) on Apr 17 to claim 8 seed
     r1(
       "E_R1_M1",
       "East",
       { seed: 1, teamId: "8", abbreviation: "DET", name: "Detroit Pistons" },
-      { seed: 8, teamId: "", abbreviation: "TBD", name: "TBD" },
+      { seed: 8, teamId: "19", abbreviation: "ORL", name: "Orlando Magic" },
     ),
     r1(
       "E_R1_M2",
@@ -89,7 +89,7 @@ function buildFallbackBracket(season: number): PlayoffBracket {
     ),
 
     // West — Round 1 (2025-26 season, verified from ESPN April 2026)
-    // OKC (1) opponent TBD — play-in game PHX vs LAC on Apr 17 determines 8 seed
+    // PHX won West play-in (vs GSW) on Apr 17 to claim 8 seed
     r1(
       "W_R1_M1",
       "West",
@@ -99,7 +99,7 @@ function buildFallbackBracket(season: number): PlayoffBracket {
         abbreviation: "OKC",
         name: "Oklahoma City Thunder",
       },
-      { seed: 8, teamId: "", abbreviation: "TBD", name: "TBD" },
+      { seed: 8, teamId: "21", abbreviation: "PHX", name: "Phoenix Suns" },
     ),
     r1(
       "W_R1_M2",
