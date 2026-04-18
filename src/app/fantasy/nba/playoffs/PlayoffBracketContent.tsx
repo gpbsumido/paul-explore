@@ -23,16 +23,16 @@ import PlayoffLeaderboard from "./PlayoffLeaderboard";
 // Maps each TBD slot (matchupId_top / matchupId_bottom) to the preceding matchup
 // whose pick winner fills that slot.
 export const PRECEDING: Record<string, string> = {
-  E_R2_M1_top: "E_R1_M1",
-  E_R2_M1_bottom: "E_R1_M2",
-  E_R2_M2_top: "E_R1_M3",
-  E_R2_M2_bottom: "E_R1_M4",
+  E_R2_M1_top: "E_R1_M1", // 1 seed (DET)
+  E_R2_M1_bottom: "E_R1_M4", // 4/5 winner (CLE/TOR)
+  E_R2_M2_top: "E_R1_M2", // 2/7 winner (BOS/PHI)
+  E_R2_M2_bottom: "E_R1_M3", // 3/6 winner (NY/ATL)
   E_CF_top: "E_R2_M1",
   E_CF_bottom: "E_R2_M2",
-  W_R2_M1_top: "W_R1_M1",
-  W_R2_M1_bottom: "W_R1_M2",
-  W_R2_M2_top: "W_R1_M3",
-  W_R2_M2_bottom: "W_R1_M4",
+  W_R2_M1_top: "W_R1_M1", // 1 seed (OKC)
+  W_R2_M1_bottom: "W_R1_M4", // 4/5 winner (LAL/HOU)
+  W_R2_M2_top: "W_R1_M2", // 2/7 winner (SA/POR)
+  W_R2_M2_bottom: "W_R1_M3", // 3/6 winner (DEN/MIN)
   W_CF_top: "W_R2_M1",
   W_CF_bottom: "W_R2_M2",
   NBA_FINALS_top: "E_CF",
