@@ -228,6 +228,13 @@ const THOUGHTS: ThoughtItem[] = [
       "Auth0 crashing all middleware from a module-level throw, and a search test that needed page.route to stop depending on an external API",
     color: "#06b6d4",
   },
+  {
+    title: "Messenger Auth Bug",
+    href: "/thoughts/messenger-auth",
+    preview:
+      "Why links opened in Facebook Messenger showed a logged-in hub for unauthenticated users, and the two-line fix",
+    color: "#3b82f6",
+  },
 ].reverse();
 
 // ---- Mini preview sub-components ----
@@ -961,11 +968,9 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
                 <span className="text-[12px] font-medium leading-none text-foreground">
                   {userName}
                 </span>
-                {userEmail && (
-                  <span className="mt-0.5 text-[11px] leading-none text-muted">
-                    {userEmail}
-                  </span>
-                )}
+                <span className="mt-0.5 text-[11px] leading-none text-muted">
+                  {userEmail ?? "no email on file"}
+                </span>
               </>
             )}
           </div>
