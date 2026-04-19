@@ -147,6 +147,20 @@ export async function proxy(request: NextRequest) {
     return res;
   }
 
+  // Root route — run auth0.middleware() when a session cookie is present so
+  // that expired/invalid tokens are refreshed or cleared before page.tsx reads
+  // the session. Without this, getSession() trusts the cookie without hitting
+  // Auth0, so a stale session renders FeatureHub even though the user's actual
+  // token is expired (looks logged-in but isn't).
+  if (pathname === "/") {
+    const session = await auth0.getSession(request);
+    if (session) {
+      const res = await auth0.middleware(request);
+      res.headers.set("Content-Security-Policy", CSP);
+      return res;
+    }
+  }
+
   // All other routes: pass through with CSP headers.
   const response = NextResponse.next();
   response.headers.set("Content-Security-Policy", CSP);
