@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-04-19 - version 0.9.13
+
+- fixed `src/app/page.tsx` — added `export const dynamic = "force-dynamic"` so Next.js never serves a cached HTML response at the edge; without this, a logged-in user's FeatureHub render could be cached and served to unauthenticated visitors opening the site from Facebook Messenger's in-app browser
+- fixed `src/proxy.ts` — root `/` route now calls `auth0.middleware(request)` when a session cookie is present; previously the route skipped middleware entirely, meaning `auth0.getSession()` in `page.tsx` read the session cookie without validating the underlying Auth0 token — expired sessions appeared valid and FeatureHub rendered for users whose actual token was revoked or expired
+- fixed `src/app/FeatureHub.tsx` — email line in the hub header is now always rendered; previously it was hidden when `userEmail` was null/undefined, which meant users who authenticated via a provider that didn't supply an email (Facebook, Apple, etc.) saw the hub with no identity information at all; now renders "no email on file" as a fallback so the header always shows something
+- added `/thoughts/messenger-auth` — write-up covering the two root causes and the diagnosis
+
 ## 2026-04-18 - version 0.9.12
 
 - updated landing page to fully respect light/dark theme — removed all hard-coded `data-theme="dark"` overrides from `Section.tsx`, `GraphQLSection.tsx`, `FooterSection.tsx`; `HeroSection.tsx` now uses `useTheme()` to conditionally apply dark vignette vs. light veil, theme-aware text shadow, and globe wireframe color (`#1a1a2e` dark → `#c8d8f0` light blue-gray)
