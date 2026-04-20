@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   useWeatherContext,
   type EffectChoice,
 } from "@/contexts/WeatherContext";
+import { queryKeys } from "@/lib/queryKeys";
 
 type ThemePreference = "light" | "dark" | "system";
 
@@ -114,10 +116,13 @@ const EFFECT_OPTIONS: { value: EffectChoice; emoji: string; label: string }[] =
 interface HeaderMenuProps {
   /** Show the Settings link. Defaults to false. */
   showSettings?: boolean;
-  /** Show the Log out link. Defaults to true. */
+  /**
+   * Show the auth button. Defaults to true.
+   * When true, auto-detects login state via /api/me and shows "Log out" or
+   * "Log in" accordingly. Set to false on pages where auth is irrelevant
+   * (e.g. thoughts/dev-notes pages).
+   */
   showLogout?: boolean;
-  /** Show the Log in link instead of logout. Defaults to false. */
-  showLogin?: boolean;
   /** Show the weather effects toggle section. Defaults to false. */
   showWeatherToggle?: boolean;
 }
@@ -129,13 +134,25 @@ interface HeaderMenuProps {
 export default function HeaderMenu({
   showSettings = false,
   showLogout = true,
-  showLogin = false,
   showWeatherToggle = false,
 }: HeaderMenuProps) {
   const { preference, setPreference } = useTheme();
   const weather = useWeatherContext();
   const [effectOpen, setEffectOpen] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // Detect actual auth state so the menu shows the correct button on every
+  // page — not just the hub. Without this, showLogout={true} (the default)
+  // shows "Log out" to unauthenticated users, making them think they're
+  // logged in. Only fetch when the auth section will be rendered.
+  const meQuery = useQuery({
+    queryKey: queryKeys.me(),
+    queryFn: (): Promise<{ sub: string | null }> =>
+      fetch("/api/me").then((r) => r.json()),
+    staleTime: 5 * 60_000,
+    enabled: showLogout,
+  });
+  const isLoggedIn = meQuery.data?.sub != null;
   const ref = useRef<HTMLDivElement>(null);
 
   // Close on outside click or Escape
@@ -342,7 +359,7 @@ export default function HeaderMenu({
             </>
           )}
 
-          {(showSettings || showLogout || showLogin) && (
+          {(showSettings || showLogout) && (
             <>
               <div className="mx-2 border-t border-border" />
               <div className="p-1.5">
@@ -369,52 +386,53 @@ export default function HeaderMenu({
                     Settings
                   </Link>
                 )}
-                {showLogout && (
-                  <a
-                    href="/auth/logout"
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
+                {showLogout &&
+                  !meQuery.isLoading &&
+                  (isLoggedIn ? (
+                    <a
+                      href="/auth/logout"
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
                     >
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                    Log out
-                  </a>
-                )}
-                {showLogin && (
-                  <a
-                    href="/auth/login"
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      Log out
+                    </a>
+                  ) : (
+                    <a
+                      href="/auth/login"
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
                     >
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                      <polyline points="10 17 15 12 10 7" />
-                      <line x1="15" y1="12" x2="3" y2="12" />
-                    </svg>
-                    Log in
-                  </a>
-                )}
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
+                      </svg>
+                      Log in
+                    </a>
+                  ))}
               </div>
             </>
           )}

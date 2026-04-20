@@ -36,7 +36,7 @@ export default function HeroSection() {
   return (
     <>
       <div className="fixed right-4 top-4 z-50">
-        <HeaderMenu showLogout={false} showLogin showWeatherToggle />
+        <HeaderMenu showWeatherToggle />
       </div>
 
       <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center dark:bg-transparent bg-background">
