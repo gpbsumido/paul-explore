@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-04-20 - version 0.9.14
+
+- fixed `src/components/HeaderMenu.tsx` — auth button now auto-detects login state via `/api/me` instead of always rendering "Log out"; unauthenticated users on public pages (e.g. `/fantasy/nba/playoffs` opened from Facebook Messenger) now correctly see "Log in" rather than "Log out", which was making them think they were logged in; button is hidden while the fetch is in flight to prevent any flash of the wrong state
+- removed `showLogin` prop from `HeaderMenu` — replaced by auto-detect; `showLogout={false}` still hides the auth button entirely for pages where it is irrelevant (thoughts pages)
+- updated `src/app/landing/HeroSection.tsx` — removed explicit `showLogout={false} showLogin` now that `HeaderMenu` handles auth state automatically
+
 ## 2026-04-19 - version 0.9.13
 
 - fixed `src/app/page.tsx` — added `export const dynamic = "force-dynamic"` so Next.js never serves a cached HTML response at the edge; without this, a logged-in user's FeatureHub render could be cached and served to unauthenticated visitors opening the site from Facebook Messenger's in-app browser
