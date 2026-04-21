@@ -2,9 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { queryKeys } from "@/lib/queryKeys";
 import { useDebounce } from "@/hooks/useDebounce";
+import { getTeamInfo, getTeamLogoUrl } from "@/lib/nbaTeamColors";
+import {
+  staggerContainer,
+  fadeInUp,
+  slideInLeft,
+  slideInRight,
+} from "@/lib/animations";
 import type {
   PlayoffBracket,
   PlayoffBracketPicks,
@@ -143,12 +151,12 @@ function resolveMatchup(
 
 function SkeletonRoundCard() {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-surface p-4 space-y-3">
-      <div className="h-3 w-20 rounded bg-surface-raised animate-pulse" />
+    <div className="overflow-hidden rounded-xl border border-border bg-surface p-3 space-y-2">
+      <div className="h-2.5 w-16 rounded bg-surface-raised animate-pulse" />
       {Array.from({ length: 4 }).map((_, i) => (
         <div
           key={i}
-          className="h-10 w-full rounded-lg bg-surface-raised animate-pulse"
+          className="h-8 w-full rounded-lg bg-surface-raised animate-pulse"
         />
       ))}
     </div>
@@ -158,9 +166,8 @@ function SkeletonRoundCard() {
 function BracketSkeleton() {
   return (
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_180px_1fr] lg:items-start">
-      {/* East */}
       <div className="space-y-2">
-        <div className="h-4 w-32 rounded bg-surface-raised animate-pulse" />
+        <div className="h-3.5 w-32 rounded bg-surface-raised animate-pulse" />
         <div className="flex gap-2 overflow-x-auto pb-2 lg:overflow-visible lg:pb-0">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="min-w-[130px] flex-1">
@@ -169,16 +176,12 @@ function BracketSkeleton() {
           ))}
         </div>
       </div>
-
-      {/* Finals */}
-      <div className="space-y-2 lg:space-y-2">
-        <div className="h-4 w-20 rounded bg-surface-raised animate-pulse" />
+      <div className="space-y-2">
+        <div className="h-3.5 w-20 rounded bg-surface-raised animate-pulse" />
         <SkeletonRoundCard />
       </div>
-
-      {/* West */}
       <div className="space-y-2">
-        <div className="h-4 w-32 rounded bg-surface-raised animate-pulse" />
+        <div className="h-3.5 w-32 rounded bg-surface-raised animate-pulse" />
         <div className="flex gap-2 overflow-x-auto pb-2 lg:overflow-visible lg:pb-0">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="min-w-[130px] flex-1">
@@ -199,14 +202,20 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === "idle") return null;
 
   return (
-    <span
-      className={[
-        "text-[12px] font-medium transition-opacity",
-        status === "saving" ? "text-muted animate-pulse" : "text-green-400",
-      ].join(" ")}
-    >
-      {status === "saving" ? "Saving…" : "Saved"}
-    </span>
+    <AnimatePresence mode="wait">
+      <motion.span
+        key={status}
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 4 }}
+        className={[
+          "text-[12px] font-medium",
+          status === "saving" ? "text-muted animate-pulse" : "text-green-400",
+        ].join(" ")}
+      >
+        {status === "saving" ? "Saving…" : "Saved"}
+      </motion.span>
+    </AnimatePresence>
   );
 }
 
@@ -247,6 +256,251 @@ function SubmitButton({
   );
 }
 
+// ---- Share button ----
+
+function ShareButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {});
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium text-muted hover:text-foreground hover:bg-surface-raised transition-colors"
+      title="Copy bracket link"
+    >
+      <svg
+        className="h-3.5 w-3.5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </svg>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={copied ? "copied" : "share"}
+          initial={{ opacity: 0, y: -3 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 3 }}
+          transition={{ duration: 0.15 }}
+        >
+          {copied ? "Copied!" : "Share"}
+        </motion.span>
+      </AnimatePresence>
+    </button>
+  );
+}
+
+// ---- Progress indicator ----
+
+function PickProgress({
+  picks,
+  matchups,
+}: {
+  picks: PlayoffBracketPicks;
+  matchups: PlayoffMatchup[];
+}) {
+  const picked = matchups.filter((m) => picks[m.id]?.winner).length;
+  const total = matchups.length;
+  const pct = total > 0 ? (picked / total) * 100 : 0;
+
+  if (total === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[11px] text-muted tabular-nums">
+        {picked}/{total}
+      </span>
+      <div className="h-1 w-16 overflow-hidden rounded-full bg-white/10">
+        <motion.div
+          className="h-full rounded-full bg-orange-400/70"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ type: "spring", stiffness: 80, damping: 20 }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ---- Champion display ----
+
+function ChampionDisplay({
+  picks,
+  bracket,
+}: {
+  picks: PlayoffBracketPicks;
+  bracket: PlayoffBracket;
+}) {
+  const finalsPick = picks["NBA_FINALS"];
+  if (!finalsPick?.winner) return null;
+
+  const champion = bracket.matchups
+    .flatMap((m) => [m.topTeam, m.bottomTeam])
+    .find((t) => t.abbreviation === finalsPick.winner);
+
+  const teamInfo = getTeamInfo(finalsPick.winner);
+  const logoUrl = champion?.teamId ? getTeamLogoUrl(champion.teamId) : null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        key={finalsPick.winner}
+        initial={{ opacity: 0, scale: 0.85, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.85, y: -16 }}
+        transition={{ type: "spring", stiffness: 180, damping: 20 }}
+        className="mt-4 flex flex-col items-center gap-2 rounded-2xl p-5"
+        style={
+          teamInfo
+            ? {
+                background: `linear-gradient(135deg, ${teamInfo.primary}20, ${teamInfo.secondary}12)`,
+                border: `1px solid ${teamInfo.primary}35`,
+                boxShadow: `0 4px 24px ${teamInfo.primary}18`,
+              }
+            : {
+                background: "rgba(234, 179, 8, 0.08)",
+                border: "1px solid rgba(234, 179, 8, 0.25)",
+              }
+        }
+      >
+        {/* Trophy with wiggle */}
+        <motion.div
+          animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
+          transition={{ duration: 1.6, ease: "easeInOut", delay: 0.4 }}
+        >
+          <svg
+            className="h-8 w-8 text-yellow-400 drop-shadow"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden
+          >
+            <path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z" />
+          </svg>
+        </motion.div>
+
+        {/* Logo */}
+        {logoUrl && (
+          <motion.img
+            initial={{ scale: 0, rotate: -10 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 280,
+              damping: 16,
+              delay: 0.15,
+            }}
+            src={logoUrl}
+            alt={champion?.name ?? finalsPick.winner}
+            width={56}
+            height={56}
+            className="object-contain drop-shadow-lg"
+          />
+        )}
+
+        {/* Team name + label */}
+        <div className="text-center">
+          <p
+            className="text-[15px] font-bold tracking-tight"
+            style={
+              teamInfo ? { color: teamInfo.primary } : { color: "#eab308" }
+            }
+          >
+            {champion?.name ?? finalsPick.winner}
+          </p>
+          <p className="mt-0.5 text-[10px] uppercase tracking-widest text-muted/50">
+            Your Champion
+          </p>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// ---- View mode banner ----
+
+function ViewModeBanner({
+  viewName,
+  currentUserSub,
+}: {
+  viewName: string;
+  currentUserSub: string | null;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopyLink() {
+    navigator.clipboard
+      .writeText(window.location.href)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {});
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 200, damping: 24 }}
+      data-testid="view-mode-banner"
+      className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/8 px-4 py-3"
+    >
+      <svg
+        className="h-4 w-4 shrink-0 text-blue-400"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      <span className="text-[13px] font-medium text-blue-300">
+        Viewing <span className="text-blue-200">{viewName}&rsquo;s</span>{" "}
+        Bracket
+      </span>
+
+      <div className="ml-auto flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleCopyLink}
+          className="rounded-md px-2.5 py-1 text-[11px] font-medium text-blue-400/80 hover:text-blue-300 hover:bg-blue-500/15 transition-colors"
+        >
+          {copied ? "Copied!" : "Copy Link"}
+        </button>
+
+        {currentUserSub && (
+          <a
+            href="/fantasy/nba/playoffs"
+            className="rounded-md px-2.5 py-1 text-[11px] font-medium text-muted hover:text-foreground hover:bg-surface-raised transition-colors"
+          >
+            My Bracket →
+          </a>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 // ---- Round column ----
 
 function RoundColumn({
@@ -255,17 +509,28 @@ function RoundColumn({
   allMatchups,
   picks,
   onPick,
+  animVariant,
 }: {
   label?: string;
   matchups: PlayoffMatchup[];
   allMatchups: PlayoffMatchup[];
   picks: PlayoffBracketPicks;
   onPick: (matchupId: string, pick: PlayoffSeriesPick | FinalsPick) => void;
+  animVariant?: "left" | "right";
 }) {
   return (
-    <div className="flex min-w-[130px] flex-1 flex-col gap-2">
+    <motion.div
+      variants={
+        animVariant === "left"
+          ? slideInLeft
+          : animVariant === "right"
+            ? slideInRight
+            : fadeInUp
+      }
+      className="flex min-w-[130px] flex-1 flex-col gap-2"
+    >
       {label && (
-        <span className="text-center text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+        <span className="text-center text-[10px] font-bold uppercase tracking-wider text-muted/50">
           {label}
         </span>
       )}
@@ -288,49 +553,20 @@ function RoundColumn({
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ---- Champion display ----
-
-function ChampionDisplay({
-  picks,
-  bracket,
-}: {
-  picks: PlayoffBracketPicks;
-  bracket: PlayoffBracket;
-}) {
-  const finalsPick = picks["NBA_FINALS"];
-  if (!finalsPick?.winner) return null;
-
-  const champion = bracket.matchups
-    .flatMap((m) => [m.topTeam, m.bottomTeam])
-    .find((t) => t.abbreviation === finalsPick.winner);
-
-  return (
-    <div className="mt-3 flex flex-col items-center gap-1">
-      <svg
-        className="h-5 w-5 text-yellow-400"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        aria-hidden
-      >
-        <path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z" />
-      </svg>
-      <span className="text-[13px] font-semibold text-yellow-400">
-        {champion?.name ?? finalsPick.winner}
-      </span>
-      <span className="text-[10px] text-muted/60 uppercase tracking-wide">
-        Champion
-      </span>
-    </div>
+    </motion.div>
   );
 }
 
 // ---- Main content ----
 
-export default function PlayoffBracketContent() {
+type Props = {
+  /** Auth0 sub of the user whose bracket to view (read-only mode). Null = edit own bracket. */
+  viewSub?: string | null;
+};
+
+export default function PlayoffBracketContent({ viewSub = null }: Props) {
+  const isViewMode = !!viewSub;
+
   // userEdits holds only what the user has changed this session.
   // picks is the merged result of server data + local edits — no effect needed.
   const [userEdits, setUserEdits] = useState<PlayoffBracketPicks>({});
@@ -366,22 +602,56 @@ export default function PlayoffBracketContent() {
       return res.json();
     },
     staleTime: 5 * 60_000,
+    enabled: !isViewMode,
   });
+
+  // Public picks for view mode
+  const viewPicksQuery = useQuery({
+    queryKey: queryKeys.nba.playoffPicksByUser(viewSub ?? ""),
+    queryFn: async (): Promise<{ picks: PlayoffBracketPicks }> => {
+      const res = await fetch(
+        `/api/nba/playoffs/picks/${encodeURIComponent(viewSub!)}`,
+      );
+      if (!res.ok) throw new Error("Bracket not available");
+      return res.json();
+    },
+    enabled: isViewMode,
+    staleTime: 5 * 60_000,
+  });
+
+  // Leaderboard — always loaded so we can resolve viewName
+  const leaderboardQuery = useQuery({
+    queryKey: queryKeys.nba.playoffLeaderboard(),
+    queryFn: async () => {
+      const res = await fetch("/api/nba/playoffs/leaderboard");
+      if (!res.ok) throw new Error("Failed to load leaderboard");
+      return res.json();
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  const viewEntry = leaderboardQuery.data?.entries?.find(
+    (e: { sub: string; displayName: string }) => e.sub === viewSub,
+  );
+  const viewName = viewEntry?.displayName ?? "User";
 
   // Stable reference: undefined when query hasn't resolved yet, otherwise the
   // same object TanStack Query cached — safe to use as a useMemo dependency.
   const serverPicks = picksQuery.data?.picks;
 
-  const picks = useMemo(
+  const ownPicks = useMemo(
     () => ({ ...(serverPicks ?? {}), ...userEdits }),
     [serverPicks, userEdits],
   );
 
-  const debouncedPicks = useDebounce(picks, 1000);
+  // Active picks: viewed user's picks in view mode, own picks in edit mode
+  const picks = isViewMode ? (viewPicksQuery.data?.picks ?? {}) : ownPicks;
+
+  const debouncedPicks = useDebounce(ownPicks, 1000);
 
   // Debounced auto-save — only fires when auto-save is enabled and after a user interaction
   useEffect(() => {
-    if (!autoSave || !userHasPickedRef.current) return;
+    if (!autoSave || !userHasPickedRef.current || isViewMode) return;
 
     fetch("/api/nba/playoffs/picks", {
       method: "PUT",
@@ -395,9 +665,10 @@ export default function PlayoffBracketContent() {
         }
       })
       .catch(() => setSaveStatus("idle"));
-  }, [autoSave, debouncedPicks]);
+  }, [autoSave, debouncedPicks, isViewMode]);
 
   function handlePick(matchupId: string, pick: PlayoffSeriesPick | FinalsPick) {
+    if (isViewMode) return;
     userHasPickedRef.current = true;
     if (autoSave) setSaveStatus("saving");
     setUserEdits((prevEdits) => {
@@ -424,7 +695,7 @@ export default function PlayoffBracketContent() {
       const res = await fetch("/api/nba/playoffs/picks", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ picks }),
+        body: JSON.stringify({ picks: ownPicks }),
       });
       if (res.ok) {
         setSubmitStatus("submitted");
@@ -467,6 +738,12 @@ export default function PlayoffBracketContent() {
   );
   const finals = matchups.find((m) => m.conference === "Finals");
 
+  // Share URL for the current user's bracket
+  const shareUrl =
+    typeof window !== "undefined" && currentUserSub
+      ? `${window.location.origin}/fantasy/nba/playoffs?view=${encodeURIComponent(currentUserSub)}`
+      : null;
+
   const columnProps = { allMatchups: matchups, picks, onPick: handlePick };
 
   return (
@@ -477,24 +754,43 @@ export default function PlayoffBracketContent() {
       <FantasyNav />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
-        {/* Toolbar: auto-save toggle + save indicator + submit */}
-        <div className="mb-4 flex items-center justify-end gap-3 min-h-8">
-          <label className="flex items-center gap-1.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={autoSave}
-              onChange={(e) => setAutoSave(e.target.checked)}
-              className="h-3.5 w-3.5 accent-orange-400"
+        {/* View mode banner */}
+        <AnimatePresence>
+          {isViewMode && (
+            <ViewModeBanner
+              viewName={viewName}
+              currentUserSub={currentUserSub}
             />
-            <span className="text-[12px] text-muted">Auto-save</span>
-          </label>
-          <SaveIndicator status={saveStatus} />
-          <SubmitButton
-            status={submitStatus}
-            onClick={handleSubmit}
-            disabled={autoSave}
-          />
-        </div>
+          )}
+        </AnimatePresence>
+
+        {/* Toolbar: only in edit mode */}
+        {!isViewMode && (
+          <div className="mb-4 flex items-center justify-end gap-3 min-h-8">
+            {/* Progress */}
+            {bracket && <PickProgress picks={picks} matchups={matchups} />}
+
+            {/* Share */}
+            {shareUrl && <ShareButton url={shareUrl} />}
+
+            {/* Auto-save */}
+            <label className="flex items-center gap-1.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={autoSave}
+                onChange={(e) => setAutoSave(e.target.checked)}
+                className="h-3.5 w-3.5 accent-orange-400"
+              />
+              <span className="text-[12px] text-muted">Auto-save</span>
+            </label>
+            <SaveIndicator status={saveStatus} />
+            <SubmitButton
+              status={submitStatus}
+              onClick={handleSubmit}
+              disabled={autoSave}
+            />
+          </div>
+        )}
 
         {bracketQuery.isLoading && <BracketSkeleton />}
 
@@ -506,24 +802,50 @@ export default function PlayoffBracketContent() {
           </div>
         )}
 
-        {bracket && (
-          <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_180px_1fr] lg:items-start lg:gap-4">
+        {/* View mode: unavailable state */}
+        {isViewMode && viewPicksQuery.isError && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center gap-2 py-12 text-center"
+          >
+            <p className="text-[14px] text-muted">
+              This bracket isn&rsquo;t publicly available yet.
+            </p>
+            <a
+              href="/fantasy/nba/playoffs"
+              className="text-[12px] text-orange-400 hover:underline"
+            >
+              Go back to the bracket →
+            </a>
+          </motion.div>
+        )}
+
+        {bracket && (!isViewMode || !viewPicksQuery.isError) && (
+          <motion.div
+            variants={staggerContainer(0.08)}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_180px_1fr] lg:items-start lg:gap-4"
+          >
             {/* ── East ── */}
-            <div>
-              <h2 className="mb-3 text-center text-[12px] font-semibold uppercase tracking-widest text-muted/60">
+            <motion.div variants={slideInLeft}>
+              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted/50">
                 Eastern Conference
               </h2>
-              {/* Horizontal scroll on mobile; plain flex on desktop */}
               <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:overflow-visible lg:px-0 lg:pb-0">
                 <RoundColumn label="R1" matchups={eastR1} {...columnProps} />
                 <RoundColumn label="R2" matchups={eastR2} {...columnProps} />
                 <RoundColumn label="ECF" matchups={eastCF} {...columnProps} />
               </div>
-            </div>
+            </motion.div>
 
             {/* ── Finals ── */}
-            <div className="mx-auto w-full max-w-[260px] lg:mx-0 lg:max-w-none">
-              <h2 className="mb-3 text-center text-[12px] font-semibold uppercase tracking-widest text-muted/60">
+            <motion.div
+              variants={fadeInUp}
+              className="mx-auto w-full max-w-[260px] lg:mx-0 lg:max-w-none"
+            >
+              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted/50">
                 NBA Finals
               </h2>
               {finals &&
@@ -550,11 +872,11 @@ export default function PlayoffBracketContent() {
                     </div>
                   );
                 })()}
-            </div>
+            </motion.div>
 
             {/* ── West ── */}
-            <div>
-              <h2 className="mb-3 text-center text-[12px] font-semibold uppercase tracking-widest text-muted/60">
+            <motion.div variants={slideInRight}>
+              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted/50">
                 Western Conference
               </h2>
               {/* Mobile: normal L→R order (R1, R2, WCF). Desktop: mirrored so WCF is closest to center. */}
@@ -563,21 +885,24 @@ export default function PlayoffBracketContent() {
                 <RoundColumn label="R2" matchups={westR2} {...columnProps} />
                 <RoundColumn label="WCF" matchups={westCF} {...columnProps} />
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
 
         {/* ── Leaderboard ── */}
         <section className="mt-10">
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-widest text-muted/60">
+          <h2 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-muted/50">
             Leaderboard
           </h2>
-          <PlayoffLeaderboard currentUserSub={currentUserSub} />
+          <PlayoffLeaderboard
+            currentUserSub={currentUserSub}
+            viewSub={viewSub}
+          />
         </section>
 
         {/* ── Rules & Scoring ── */}
         <section className="mt-10 mb-6">
-          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-widest text-muted/60">
+          <h2 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-muted/50">
             Rules &amp; Scoring
           </h2>
           <div className="rounded-xl border border-border bg-surface p-5 space-y-5 text-[13px] text-foreground">
