@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-04-20 - version 0.9.17
+
+- anonymous bracket users now display their Auth0 name instead of "Anonymous" — the frontend sends `displayName: meQuery.data?.name` on every save (auto-save and submit); the backend stores it in the new `nba_playoff_brackets.display_name` column and uses it as a fallback in the leaderboard (chain: profile display_name → profile username → bracket display_name → "Anonymous")
+- public bracket viewing now works for users without a profile — leaderboard rows for non-profiled users link via bracket UUID (`?view=<uuid>`); the picks API route detects UUID vs username and forwards the correct query param to the backend
+- added `portfolio_api/migrations/007_bracket_display_name.sql` — `ALTER TABLE nba_playoff_brackets ADD COLUMN IF NOT EXISTS display_name TEXT`; needs to be run on Railway DB via dashboard Query tab or CLI
+- fixed share URL security — bracket share links for profiled users now use username instead of Auth0 sub (which exposed the OAuth provider); anonymous users share via bracket UUID
+- updated `src/app/api/nba/playoffs/picks/[sub]/route.ts` — identifier is now treated as UUID or username, not Auth0 sub; UUID pattern detected via regex, username forwarded as `?username=` query param
+
 ## 2026-04-20 - version 0.9.16
 
 - added public bracket viewing — leaderboard rows link to `?view=<sub>` so any user's bracket can be opened in read-only mode; viewed user's row highlights in blue, own row stays orange; hover arrow reveals a direct link

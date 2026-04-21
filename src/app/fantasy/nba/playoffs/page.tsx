@@ -32,5 +32,5 @@ type Props = {
 
 export default async function PlayoffsPage({ searchParams }: Props) {
   const { view } = await searchParams;
-  return <PlayoffBracketContent viewSub={view ?? null} />;
+  return <PlayoffBracketContent viewUsername={view ?? null} />;
 }

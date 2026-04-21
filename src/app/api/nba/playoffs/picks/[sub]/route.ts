@@ -6,22 +6,27 @@ function currentSeasonYear(): number {
   return now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * GET /api/nba/playoffs/picks/[sub]
- * Public endpoint to view any user's submitted bracket picks by Auth0 sub.
- * Requires the backend to expose a public picks-by-sub endpoint.
- * Returns 404 if picks are unavailable.
+ * Public endpoint — accepts either a username (profiled users) or a bracket UUID
+ * (anonymous users). Forwards the right query param to the backend.
  */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ sub: string }> },
 ) {
-  const { sub } = await params;
+  const { sub: identifier } = await params;
   const season = currentSeasonYear();
+  const param = UUID_RE.test(identifier)
+    ? `bracketId=${encodeURIComponent(identifier)}`
+    : `username=${encodeURIComponent(identifier)}`;
 
   try {
     const res = await fetch(
-      `${API_URL}/api/nba/playoffs/picks/${season}/public?sub=${encodeURIComponent(sub)}`,
+      `${API_URL}/api/nba/playoffs/picks/${season}/public?${param}`,
       { next: { revalidate: 60 } },
     );
 

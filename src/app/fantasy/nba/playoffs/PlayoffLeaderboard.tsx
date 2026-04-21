@@ -18,7 +18,7 @@ const RANK_MEDALS: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 type Props = {
   currentUserSub: string | null;
-  /** Sub of the user whose bracket is currently being viewed (view mode). */
+  /** Username of the user whose bracket is currently being viewed (view mode). */
   viewSub?: string | null;
 };
 
@@ -57,22 +57,28 @@ function EntryRow({
   const scorePct =
     entry.maxScore > 0 ? (entry.score / entry.maxScore) * 100 : 0;
 
-  const viewHref = `/fantasy/nba/playoffs?view=${encodeURIComponent(entry.sub)}`;
+  const viewId = entry.username ?? entry.bracketId;
+  const viewHref = viewId
+    ? `/fantasy/nba/playoffs?view=${encodeURIComponent(viewId)}`
+    : null;
 
   return (
     <motion.tr
       variants={fadeInUp}
       data-current-user={isCurrentUser ? "true" : undefined}
       onClick={() => {
-        window.location.href = viewHref;
+        if (viewHref) window.location.href = viewHref;
       }}
       className={[
-        "border-b border-border/50 last:border-b-0 cursor-pointer transition-colors group",
+        "border-b border-border/50 last:border-b-0 transition-colors",
+        viewHref ? "cursor-pointer group" : "cursor-default opacity-60",
         isCurrentUser
           ? "bg-orange-500/10 hover:bg-orange-500/15"
           : isViewedUser
             ? "bg-blue-500/8 hover:bg-blue-500/12"
-            : "hover:bg-surface-raised/50",
+            : viewHref
+              ? "hover:bg-surface-raised/50"
+              : "",
       ].join(" ")}
     >
       {/* Rank */}
@@ -129,13 +135,16 @@ function EntryRow({
         </div>
       </td>
 
-      {/* View bracket arrow */}
+      {/* View bracket arrow — only shown for users with a public bracket */}
       <td className="w-8 px-2 py-3 text-right">
         <a
-          href={viewHref}
+          href={viewHref ?? undefined}
           onClick={(e) => e.stopPropagation()}
           aria-label={`View ${entry.displayName}'s bracket`}
-          className="inline-flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-muted hover:text-foreground"
+          className={[
+            "inline-flex items-center justify-center transition-opacity text-muted hover:text-foreground",
+            viewHref ? "opacity-0 group-hover:opacity-100" : "hidden",
+          ].join(" ")}
         >
           <svg
             className="h-3.5 w-3.5"
@@ -226,7 +235,7 @@ export default function PlayoffLeaderboard({
               key={entry.sub || String(entry.rank)}
               entry={entry}
               isCurrentUser={entry.sub === currentUserSub}
-              isViewedUser={entry.sub === viewSub}
+              isViewedUser={entry.username === viewSub}
             />
           ))}
         </motion.tbody>

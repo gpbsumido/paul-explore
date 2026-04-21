@@ -560,12 +560,12 @@ function RoundColumn({
 // ---- Main content ----
 
 type Props = {
-  /** Auth0 sub of the user whose bracket to view (read-only mode). Null = edit own bracket. */
-  viewSub?: string | null;
+  /** Username of the user whose bracket to view (read-only mode). Null = edit own bracket. */
+  viewUsername?: string | null;
 };
 
-export default function PlayoffBracketContent({ viewSub = null }: Props) {
-  const isViewMode = !!viewSub;
+export default function PlayoffBracketContent({ viewUsername = null }: Props) {
+  const isViewMode = !!viewUsername;
 
   // userEdits holds only what the user has changed this session.
   // picks is the merged result of server data + local edits — no effect needed.
@@ -577,7 +577,7 @@ export default function PlayoffBracketContent({ viewSub = null }: Props) {
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null }> =>
+    queryFn: (): Promise<{ sub: string | null; name: string | null }> =>
       fetch("/api/me").then((r) => r.json()),
     staleTime: 5 * 60_000,
   });
@@ -607,10 +607,10 @@ export default function PlayoffBracketContent({ viewSub = null }: Props) {
 
   // Public picks for view mode
   const viewPicksQuery = useQuery({
-    queryKey: queryKeys.nba.playoffPicksByUser(viewSub ?? ""),
+    queryKey: queryKeys.nba.playoffPicksByUser(viewUsername ?? ""),
     queryFn: async (): Promise<{ picks: PlayoffBracketPicks }> => {
       const res = await fetch(
-        `/api/nba/playoffs/picks/${encodeURIComponent(viewSub!)}`,
+        `/api/nba/playoffs/picks/${encodeURIComponent(viewUsername!)}`,
       );
       if (!res.ok) throw new Error("Bracket not available");
       return res.json();
@@ -631,7 +631,8 @@ export default function PlayoffBracketContent({ viewSub = null }: Props) {
   });
 
   const viewEntry = leaderboardQuery.data?.entries?.find(
-    (e: { sub: string; displayName: string }) => e.sub === viewSub,
+    (e: { username: string | null; bracketId: string; displayName: string }) =>
+      e.username === viewUsername || e.bracketId === viewUsername,
   );
   const viewName = viewEntry?.displayName ?? "User";
 
@@ -656,7 +657,10 @@ export default function PlayoffBracketContent({ viewSub = null }: Props) {
     fetch("/api/nba/playoffs/picks", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ picks: debouncedPicks }),
+      body: JSON.stringify({
+        picks: debouncedPicks,
+        displayName: meQuery.data?.name,
+      }),
     })
       .then((res) => {
         if (res.ok) {
@@ -695,7 +699,10 @@ export default function PlayoffBracketContent({ viewSub = null }: Props) {
       const res = await fetch("/api/nba/playoffs/picks", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ picks: ownPicks }),
+        body: JSON.stringify({
+          picks: ownPicks,
+          displayName: meQuery.data?.name,
+        }),
       });
       if (res.ok) {
         setSubmitStatus("submitted");
@@ -738,10 +745,14 @@ export default function PlayoffBracketContent({ viewSub = null }: Props) {
   );
   const finals = matchups.find((m) => m.conference === "Finals");
 
-  // Share URL for the current user's bracket
+  // Share URL — use username so the URL doesn't expose the Auth0 sub/provider
+  const currentUserUsername =
+    leaderboardQuery.data?.entries?.find(
+      (e: { sub: string; username: string | null }) => e.sub === currentUserSub,
+    )?.username ?? null;
   const shareUrl =
-    typeof window !== "undefined" && currentUserSub
-      ? `${window.location.origin}/fantasy/nba/playoffs?view=${encodeURIComponent(currentUserSub)}`
+    typeof window !== "undefined" && currentUserUsername
+      ? `${window.location.origin}/fantasy/nba/playoffs?view=${encodeURIComponent(currentUserUsername)}`
       : null;
 
   const columnProps = { allMatchups: matchups, picks, onPick: handlePick };
@@ -896,7 +907,7 @@ export default function PlayoffBracketContent({ viewSub = null }: Props) {
           </h2>
           <PlayoffLeaderboard
             currentUserSub={currentUserSub}
-            viewSub={viewSub}
+            viewSub={viewUsername}
           />
         </section>
 
