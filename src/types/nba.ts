@@ -106,6 +106,8 @@ export type LeaderboardRoundBreakdown = {
 export type LeaderboardEntry = {
   rank: number;
   sub: string;
+  bracketId: string;
+  username: string | null;
   displayName: string;
   score: number;
   maxScore: number;

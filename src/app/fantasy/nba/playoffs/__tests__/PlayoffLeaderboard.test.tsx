@@ -15,6 +15,8 @@ function makeEntry(
   return {
     rank: 1,
     sub: "auth0|user1",
+    bracketId: "00000000-0000-0000-0000-000000000001",
+    username: "paul",
     displayName: "Paul",
     score: 24,
     maxScore: 52,

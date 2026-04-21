@@ -87,6 +87,10 @@ export const queryKeys = {
 
     /** Public playoff pick leaderboard. */
     playoffLeaderboard: () => ["nba", "playoffs", "leaderboard"] as const,
+
+    /** Public bracket picks for any user by their Auth0 sub. */
+    playoffPicksByUser: (sub: string) =>
+      ["nba", "playoffs", "picks", sub] as const,
   },
 
   tcg: {

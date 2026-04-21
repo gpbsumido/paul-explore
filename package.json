@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.9.14",
+  "version": "0.9.17",
   "private": true,
   "scripts": {
     "dev": "next dev",
