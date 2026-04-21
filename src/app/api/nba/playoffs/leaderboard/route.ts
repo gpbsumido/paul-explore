@@ -14,6 +14,8 @@ function currentSeasonYear(): number {
 type BackendEntry = {
   rank: number;
   userSub: string;
+  bracketId: string;
+  username: string | null;
   displayName: string;
   score: number;
   maxPossible: number;
@@ -32,6 +34,8 @@ function toLeaderboardEntry(e: BackendEntry): LeaderboardEntry {
   return {
     rank: e.rank,
     sub: e.userSub,
+    bracketId: e.bracketId,
+    username: e.username ?? null,
     displayName: e.displayName,
     score: e.score,
     maxScore: e.maxPossible,

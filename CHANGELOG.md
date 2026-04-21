@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-04-20 - version 0.9.17
+
+- anonymous bracket users now display their Auth0 name instead of "Anonymous" — the frontend sends `displayName: meQuery.data?.name` on every save (auto-save and submit); the backend stores it in the new `nba_playoff_brackets.display_name` column and uses it as a fallback in the leaderboard (chain: profile display_name → profile username → bracket display_name → "Anonymous")
+- public bracket viewing now works for users without a profile — leaderboard rows for non-profiled users link via bracket UUID (`?view=<uuid>`); the picks API route detects UUID vs username and forwards the correct query param to the backend
+- added `portfolio_api/migrations/007_bracket_display_name.sql` — `ALTER TABLE nba_playoff_brackets ADD COLUMN IF NOT EXISTS display_name TEXT`; needs to be run on Railway DB via dashboard Query tab or CLI
+- fixed share URL security — bracket share links for profiled users now use username instead of Auth0 sub (which exposed the OAuth provider); anonymous users share via bracket UUID
+- updated `src/app/api/nba/playoffs/picks/[sub]/route.ts` — identifier is now treated as UUID or username, not Auth0 sub; UUID pattern detected via regex, username forwarded as `?username=` query param
+
+## 2026-04-20 - version 0.9.16
+
+- added public bracket viewing — leaderboard rows link to `?view=<sub>` so any user's bracket can be opened in read-only mode; viewed user's row highlights in blue, own row stays orange; hover arrow reveals a direct link
+- added `src/app/api/nba/playoffs/picks/[sub]/route.ts` — fetches picks for any user by Auth0 sub, used by the public view mode
+- added `src/lib/nbaTeamColors.ts` — team color and logo URL lookup; series and Finals cards now render team logos alongside abbreviations
+- added share button to the bracket header — copies a direct bracket link to the clipboard with a "Copied!" confirmation
+- added animations throughout the bracket page — stagger enter on bracket cards and leaderboard rows, spring-physics score bars, animated save indicator with enter/exit transitions (framer-motion)
+- fixed `src/components/HeaderMenu.tsx` — menu now invalidates the `/api/me` query on every route change via `usePathname` + `invalidateQueries`; the root layout never remounts in Next.js App Router so the QueryClient persisted stale `{ sub: null }` data across navigations, including the return from Auth0's login redirect which stays in the same tab and never fires a window focus event; also added `refetchOnWindowFocus: "always"` as a secondary guard for session expiry
+- updated `.env.example` — added `NEXT_PUBLIC_SITE_URL` (used for OG image URLs in `src/lib/site.ts`); removed stale `APP_BASE_URL` which was not referenced anywhere in source
+
 ## 2026-04-20 - version 0.9.14
 
 - fixed `src/components/HeaderMenu.tsx` — auth button now auto-detects login state via `/api/me` instead of always rendering "Log out"; unauthenticated users on public pages (e.g. `/fantasy/nba/playoffs` opened from Facebook Messenger) now correctly see "Log in" rather than "Log out", which was making them think they were logged in; button is hidden while the fetch is in flight to prevent any flash of the wrong state

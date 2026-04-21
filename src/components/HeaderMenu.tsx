@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import {
   useWeatherContext,
@@ -140,6 +141,17 @@ export default function HeaderMenu({
   const weather = useWeatherContext();
   const [effectOpen, setEffectOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const pathname = usePathname();
+
+  // Re-check auth state on every route change. The root layout never remounts
+  // in Next.js App Router, so the QueryClient persists across navigations —
+  // including the return from Auth0's login redirect, which stays in the same
+  // tab and never triggers a window focus event. Invalidating on pathname
+  // change ensures the menu reflects the current session after login/logout.
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.me() });
+  }, [pathname, queryClient]);
 
   // Detect actual auth state so the menu shows the correct button on every
   // page — not just the hub. Without this, showLogout={true} (the default)
@@ -150,6 +162,7 @@ export default function HeaderMenu({
     queryFn: (): Promise<{ sub: string | null }> =>
       fetch("/api/me").then((r) => r.json()),
     staleTime: 5 * 60_000,
+    refetchOnWindowFocus: "always",
     enabled: showLogout,
   });
   const isLoggedIn = meQuery.data?.sub != null;

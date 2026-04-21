@@ -31,11 +31,16 @@ const tcgdex = new TCGdex("en");
 export const revalidate = 86400;
 
 export default async function SetsPage() {
-  const resumes = await tcgdex.serie.list();
-  const series = resumes
-    ? await Promise.all(resumes.map((s) => tcgdex.serie.get(s.id)))
-    : [];
-  const validSeries = series.filter(Boolean);
+  let validSeries: Awaited<ReturnType<typeof tcgdex.serie.get>>[] = [];
+  try {
+    const resumes = await tcgdex.serie.list();
+    const series = resumes
+      ? await Promise.all(resumes.map((s) => tcgdex.serie.get(s.id)))
+      : [];
+    validSeries = series.filter(Boolean);
+  } catch {
+    // TCGdex unreachable at build time — ISR will repopulate on first request
+  }
 
   return (
     <div className="min-h-dvh bg-background font-sans">

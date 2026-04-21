@@ -1,7 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { queryKeys } from "@/lib/queryKeys";
+import { staggerContainer, fadeInUp } from "@/lib/animations";
 import type {
   LeaderboardEntry,
   LeaderboardRoundBreakdown,
@@ -16,6 +18,8 @@ const RANK_MEDALS: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 type Props = {
   currentUserSub: string | null;
+  /** Username of the user whose bracket is currently being viewed (view mode). */
+  viewSub?: string | null;
 };
 
 // ---- Sub-components ----
@@ -44,19 +48,37 @@ function RoundBadge({ label, earned, max }: LeaderboardRoundBreakdown) {
 function EntryRow({
   entry,
   isCurrentUser,
+  isViewedUser,
 }: {
   entry: LeaderboardEntry;
   isCurrentUser: boolean;
+  isViewedUser: boolean;
 }) {
   const scorePct =
     entry.maxScore > 0 ? (entry.score / entry.maxScore) * 100 : 0;
 
+  const viewId = entry.username ?? entry.bracketId;
+  const viewHref = viewId
+    ? `/fantasy/nba/playoffs?view=${encodeURIComponent(viewId)}`
+    : null;
+
   return (
-    <tr
+    <motion.tr
+      variants={fadeInUp}
       data-current-user={isCurrentUser ? "true" : undefined}
+      onClick={() => {
+        if (viewHref) window.location.href = viewHref;
+      }}
       className={[
         "border-b border-border/50 last:border-b-0 transition-colors",
-        isCurrentUser ? "bg-orange-500/10" : "hover:bg-surface-raised/40",
+        viewHref ? "cursor-pointer group" : "cursor-default opacity-60",
+        isCurrentUser
+          ? "bg-orange-500/10 hover:bg-orange-500/15"
+          : isViewedUser
+            ? "bg-blue-500/8 hover:bg-blue-500/12"
+            : viewHref
+              ? "hover:bg-surface-raised/50"
+              : "",
       ].join(" ")}
     >
       {/* Rank */}
@@ -71,7 +93,11 @@ function EntryRow({
         <span
           className={[
             "text-[13px] font-medium",
-            isCurrentUser ? "text-orange-400" : "text-foreground",
+            isCurrentUser
+              ? "text-orange-400"
+              : isViewedUser
+                ? "text-blue-400"
+                : "text-foreground",
           ].join(" ")}
         >
           {entry.displayName}
@@ -85,9 +111,16 @@ function EntryRow({
             {entry.score} / {entry.maxScore} pts
           </span>
           <div className="h-1 w-20 overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full bg-orange-500/60 transition-all"
-              style={{ width: `${scorePct}%` }}
+            <motion.div
+              className="h-full rounded-full bg-orange-500/60"
+              initial={{ width: 0 }}
+              animate={{ width: `${scorePct}%` }}
+              transition={{
+                type: "spring",
+                stiffness: 80,
+                damping: 20,
+                delay: 0.2,
+              }}
             />
           </div>
         </div>
@@ -101,14 +134,43 @@ function EntryRow({
           ))}
         </div>
       </td>
-    </tr>
+
+      {/* View bracket arrow — only shown for users with a public bracket */}
+      <td className="w-8 px-2 py-3 text-right">
+        <a
+          href={viewHref ?? undefined}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`View ${entry.displayName}'s bracket`}
+          className={[
+            "inline-flex items-center justify-center transition-opacity text-muted hover:text-foreground",
+            viewHref ? "opacity-0 group-hover:opacity-100" : "hidden",
+          ].join(" ")}
+        >
+          <svg
+            className="h-3.5 w-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </a>
+      </td>
+    </motion.tr>
   );
 }
 
 // ---- Main component ----
 
 /** Public leaderboard for the current season's playoff bracket picks. */
-export default function PlayoffLeaderboard({ currentUserSub }: Props) {
+export default function PlayoffLeaderboard({
+  currentUserSub,
+  viewSub = null,
+}: Props) {
   const query = useQuery({
     queryKey: queryKeys.nba.playoffLeaderboard(),
     queryFn: async (): Promise<PlayoffLeaderboardResponse> => {
@@ -160,17 +222,23 @@ export default function PlayoffLeaderboard({ currentUserSub }: Props) {
             <th className="hidden px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted/60 sm:table-cell">
               Breakdown
             </th>
+            <th className="w-8 px-2 py-2" />
           </tr>
         </thead>
-        <tbody>
+        <motion.tbody
+          variants={staggerContainer(0.04)}
+          initial="hidden"
+          animate="visible"
+        >
           {entries.map((entry) => (
             <EntryRow
               key={entry.sub || String(entry.rank)}
               entry={entry}
               isCurrentUser={entry.sub === currentUserSub}
+              isViewedUser={entry.username === viewSub}
             />
           ))}
-        </tbody>
+        </motion.tbody>
       </table>
     </div>
   );

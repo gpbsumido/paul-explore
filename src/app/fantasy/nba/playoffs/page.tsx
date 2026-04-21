@@ -26,6 +26,11 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
-export default function PlayoffsPage() {
-  return <PlayoffBracketContent />;
+type Props = {
+  searchParams: Promise<{ view?: string }>;
+};
+
+export default async function PlayoffsPage({ searchParams }: Props) {
+  const { view } = await searchParams;
+  return <PlayoffBracketContent viewUsername={view ?? null} />;
 }
