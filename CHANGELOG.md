@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-04-30 - version 0.9.18
+
+- fixed bug where not correctly settting calendar event height. Tooltip wrapper was not taking the full height it should.
+
 ## 2026-04-20 - version 0.9.17
 
 - anonymous bracket users now display their Auth0 name instead of "Anonymous" — the frontend sends `displayName: meQuery.data?.name` on every save (auto-save and submit); the backend stores it in the new `nba_playoff_brackets.display_name` column and uses it as a fallback in the leaderboard (chain: profile display_name → profile username → bracket display_name → "Anonymous")

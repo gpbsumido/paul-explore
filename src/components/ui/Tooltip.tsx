@@ -62,7 +62,7 @@ export default function Tooltip({
   };
 
   return (
-    <span className="inline-flex w-full" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <span className="inline-flex w-full h-full" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
       {children}
       {visible && pos && (
         <div
