@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-05-01 - version 0.9.19
+
+- fixed dark theme mode for some surfaces
+
 ## 2026-04-30 - version 0.9.18
 
 - fixed bug where not correctly settting calendar event height. Tooltip wrapper was not taking the full height it should.

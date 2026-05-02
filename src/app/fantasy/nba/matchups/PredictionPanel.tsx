@@ -302,7 +302,7 @@ function ConfidenceBar({ value }: { value: number }) {
   const color = value >= 70 ? "#22c55e" : value >= 45 ? "#eab308" : "#ef4444";
 
   return (
-    <div className="h-1 w-full max-w-[80px] rounded-full bg-white/10 overflow-hidden">
+    <div className="h-1 w-full max-w-[80px] rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
       <div
         className="h-full rounded-full transition-all"
         style={{ width: `${value}%`, backgroundColor: color }}
