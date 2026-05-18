@@ -25,13 +25,15 @@ interface MiniMonthProps {
   countdowns: Countdown[];
   /** Whether this month is the currently viewed month — gets flag-tape treatment. */
   isCurrent: boolean;
+  /** Whether this month contains today — used as an initial scroll anchor. */
+  containsToday: boolean;
   onClick: () => void;
 }
 
 // MiniMonth renders a full mini-grid per month. There are 12 of them on screen
 // and they're cheap individually, but 12x the work still adds up on each keystroke
 // or modal toggle in the parent.
-const MiniMonth = memo(function MiniMonth({ month, events, countdowns, isCurrent, onClick }: MiniMonthProps) {
+const MiniMonth = memo(function MiniMonth({ month, events, countdowns, isCurrent, containsToday, onClick }: MiniMonthProps) {
   const days = eachDayOfInterval({
     start: startOfWeek(startOfMonth(month)),
     end: endOfWeek(endOfMonth(month)),
@@ -40,6 +42,7 @@ const MiniMonth = memo(function MiniMonth({ month, events, countdowns, isCurrent
   return (
     <button
       onClick={onClick}
+      data-scroll-target={containsToday || undefined}
       className={[
         "rounded-xl border bg-surface p-3 text-left w-full transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-md",
         // flag tape on the current month — same red stripe as the month grid today cell
@@ -145,6 +148,7 @@ function YearView({
             events={events}
             countdowns={countdowns}
             isCurrent={isSameMonth(month, currentDate)}
+            containsToday={isSameMonth(month, new Date())}
             onClick={() => onMonthClick(month)}
           />
         ))}

@@ -326,7 +326,7 @@ function PickProgress({
       <span className="text-[11px] text-muted tabular-nums">
         {picked}/{total}
       </span>
-      <div className="h-1 w-16 overflow-hidden rounded-full bg-white/10">
+      <div className="h-1 w-16 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
         <motion.div
           className="h-full rounded-full bg-orange-400/70"
           initial={{ width: 0 }}

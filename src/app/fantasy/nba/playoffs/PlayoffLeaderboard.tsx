@@ -110,7 +110,7 @@ function EntryRow({
           <span className="font-mono text-[12px] text-foreground tabular-nums">
             {entry.score} / {entry.maxScore} pts
           </span>
-          <div className="h-1 w-20 overflow-hidden rounded-full bg-white/10">
+          <div className="h-1 w-20 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
             <motion.div
               className="h-full rounded-full bg-orange-500/60"
               initial={{ width: 0 }}

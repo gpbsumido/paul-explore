@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef } from "react";
+import { flushSync } from "react-dom";
 import dynamic from "next/dynamic";
 import {
   addDays,
@@ -58,56 +59,80 @@ const CountdownModal = dynamic(
 
 function normalizePeriod(view: CalendarView, date: Date): Date {
   switch (view) {
-    case "day": return startOfDay(date);
-    case "week": return startOfWeek(date);
-    case "month": return startOfMonth(date);
-    case "year": return startOfYear(date);
+    case "day":
+      return startOfDay(date);
+    case "week":
+      return startOfWeek(date);
+    case "month":
+      return startOfMonth(date);
+    case "year":
+      return startOfYear(date);
   }
 }
 
 /** Returns a "yyyy-MM-dd" key — parseISO-compatible, always unique per period. */
 function periodKey(view: CalendarView, date: Date): string {
   switch (view) {
-    case "day": return format(startOfDay(date), "yyyy-MM-dd");
-    case "week": return format(startOfWeek(date), "yyyy-MM-dd");
-    case "month": return format(startOfMonth(date), "yyyy-MM-dd");
-    case "year": return format(startOfYear(date), "yyyy-MM-dd");
+    case "day":
+      return format(startOfDay(date), "yyyy-MM-dd");
+    case "week":
+      return format(startOfWeek(date), "yyyy-MM-dd");
+    case "month":
+      return format(startOfMonth(date), "yyyy-MM-dd");
+    case "year":
+      return format(startOfYear(date), "yyyy-MM-dd");
   }
 }
 
 function nextPeriod(view: CalendarView, date: Date): Date {
   switch (view) {
-    case "day": return startOfDay(addDays(date, 1));
-    case "week": return startOfWeek(addWeeks(date, 1));
-    case "month": return startOfMonth(addMonths(date, 1));
-    case "year": return startOfYear(addYears(date, 1));
+    case "day":
+      return startOfDay(addDays(date, 1));
+    case "week":
+      return startOfWeek(addWeeks(date, 1));
+    case "month":
+      return startOfMonth(addMonths(date, 1));
+    case "year":
+      return startOfYear(addYears(date, 1));
   }
 }
 
 function prevPeriod(view: CalendarView, date: Date): Date {
   switch (view) {
-    case "day": return startOfDay(addDays(date, -1));
-    case "week": return startOfWeek(addWeeks(date, -1));
-    case "month": return startOfMonth(addMonths(date, -1));
-    case "year": return startOfYear(addYears(date, -1));
+    case "day":
+      return startOfDay(addDays(date, -1));
+    case "week":
+      return startOfWeek(addWeeks(date, -1));
+    case "month":
+      return startOfMonth(addMonths(date, -1));
+    case "year":
+      return startOfYear(addYears(date, -1));
   }
 }
 
 function periodFetchStart(view: CalendarView, date: Date): string {
   switch (view) {
-    case "day": return startOfDay(date).toISOString();
-    case "week": return startOfWeek(date).toISOString();
-    case "month": return startOfWeek(startOfMonth(date)).toISOString();
-    case "year": return startOfYear(date).toISOString();
+    case "day":
+      return startOfDay(date).toISOString();
+    case "week":
+      return startOfWeek(date).toISOString();
+    case "month":
+      return startOfWeek(startOfMonth(date)).toISOString();
+    case "year":
+      return startOfYear(date).toISOString();
   }
 }
 
 function periodFetchEnd(view: CalendarView, date: Date): string {
   switch (view) {
-    case "day": return endOfDay(date).toISOString();
-    case "week": return endOfWeek(date).toISOString();
-    case "month": return endOfWeek(endOfMonth(date)).toISOString();
-    case "year": return endOfYear(date).toISOString();
+    case "day":
+      return endOfDay(date).toISOString();
+    case "week":
+      return endOfWeek(date).toISOString();
+    case "month":
+      return endOfWeek(endOfMonth(date)).toISOString();
+    case "year":
+      return endOfYear(date).toISOString();
   }
 }
 
@@ -117,16 +142,22 @@ interface CalendarContentProps {
   initialEvents?: CalendarEvent[];
 }
 
-export default function CalendarContent({ initialEvents }: CalendarContentProps) {
+export default function CalendarContent({
+  initialEvents,
+}: CalendarContentProps) {
   const [view, setView] = useState<CalendarView>("month");
 
   // currentDate is the period currently visible in the scroll area.
   // Updated both by the header nav buttons (via scrollToDate) and by the
   // InfiniteCalendarScroll's onVisibleDateChange callback.
-  const [currentDate, setCurrentDate] = useState(() => normalizePeriod("month", new Date()));
+  const [currentDate, setCurrentDate] = useState(() =>
+    normalizePeriod("month", new Date()),
+  );
 
   const [modal, setModal] = useState<ModalState>({ open: false });
-  const [countdownModal, setCountdownModal] = useState<CountdownModalState>({ open: false });
+  const [countdownModal, setCountdownModal] = useState<CountdownModalState>({
+    open: false,
+  });
 
   const [selectedCalendarId, setSelectedCalendarId] = useState<
     string | null | undefined
@@ -206,22 +237,29 @@ export default function CalendarContent({ initialEvents }: CalendarContentProps)
   // ---------------------------------------------------------------------------
 
   function handleNavigate(dir: -1 | 1) {
-    const target = dir > 0
-      ? nextPeriod(view, currentDate)
-      : prevPeriod(view, currentDate);
+    const target =
+      dir > 0 ? nextPeriod(view, currentDate) : prevPeriod(view, currentDate);
+    // flushSync commits the state update synchronously so rapid clicks
+    // always compute from the latest target, not stale React state.
+    flushSync(() => setCurrentDate(target));
     infiniteRef.current?.scrollToDate(target);
   }
 
   function handleToday() {
-    infiniteRef.current?.scrollToDate(normalizePeriod(view, new Date()));
+    const target = normalizePeriod(view, new Date());
+    flushSync(() => setCurrentDate(target));
+    infiniteRef.current?.scrollToToday(target);
   }
 
-  const handleViewChange = useCallback((newView: CalendarView) => {
-    const normalized = normalizePeriod(newView, currentDate);
-    setCurrentDate(normalized);
-    setView(newView);
-    // The key={view} on InfiniteCalendarScroll causes it to remount with the new initialDate.
-  }, [currentDate]);
+  const handleViewChange = useCallback(
+    (newView: CalendarView) => {
+      const normalized = normalizePeriod(newView, currentDate);
+      setCurrentDate(normalized);
+      setView(newView);
+      // The key={view} on InfiniteCalendarScroll causes it to remount with the new initialDate.
+    },
+    [currentDate],
+  );
 
   const handleMonthClick = useCallback((date: Date) => {
     setCurrentDate(normalizePeriod("month", date));
@@ -267,7 +305,9 @@ export default function CalendarContent({ initialEvents }: CalendarContentProps)
     await calendarEvents.deleteEvent(id);
   }
 
-  async function handleCountdownSave(data: Omit<Countdown, "id" | "createdAt">) {
+  async function handleCountdownSave(
+    data: Omit<Countdown, "id" | "createdAt">,
+  ) {
     if (countdownModal.open && countdownModal.editingCountdown) {
       await updateCountdown(countdownModal.editingCountdown.id, data);
     } else {
@@ -378,7 +418,11 @@ export default function CalendarContent({ initialEvents }: CalendarContentProps)
         </div>
       )}
 
-      <div className={calendarEvents.loading ? "opacity-60 pointer-events-none" : ""}>
+      <div
+        className={
+          calendarEvents.loading ? "opacity-60 pointer-events-none" : ""
+        }
+      >
         <InfiniteCalendarScroll
           // key forces a remount (and list reset) when the view changes.
           key={view}
