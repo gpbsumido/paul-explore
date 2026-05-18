@@ -110,6 +110,7 @@ function CalendarGrid({
             <div
               key={day.toISOString()}
               onClick={() => onDayClick(day)}
+              data-scroll-target={today || undefined}
               className={[
                 "h-[128px] sm:h-[132px] p-1.5 sm:p-2 overflow-hidden text-left border-b border-r border-border cursor-pointer transition-colors",
                 isLastCol ? "border-r-0" : "",

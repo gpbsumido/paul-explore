@@ -87,7 +87,7 @@ function WinBar({ leftPct, animate }: { leftPct: number; animate: boolean }) {
   }, [animate, leftPct, spring]);
 
   return (
-    <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-white/5">
+    <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-black/5 dark:bg-white/5">
       <motion.div
         className="rounded-l-full bg-[#FF6B35]"
         style={{ width: leftWidth }}

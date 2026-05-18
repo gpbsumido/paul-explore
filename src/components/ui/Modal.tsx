@@ -48,7 +48,7 @@ export default function Modal({
   const getFocusableElements = useCallback((): HTMLElement[] => {
     if (!dialogRef.current) return [];
     return Array.from(
-      dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
     );
   }, []);
 
@@ -77,7 +77,7 @@ export default function Modal({
         }
       }
     },
-    [getFocusableElements]
+    [getFocusableElements],
   );
 
   const handleKeyDown = useCallback(
@@ -88,7 +88,7 @@ export default function Modal({
       }
       trapFocus(e);
     },
-    [onClose, trapFocus]
+    [onClose, trapFocus],
   );
 
   const handleBackdropClick = useCallback(
@@ -97,7 +97,7 @@ export default function Modal({
         onClose();
       }
     },
-    [onClose]
+    [onClose],
   );
 
   useEffect(() => {
@@ -146,7 +146,7 @@ export default function Modal({
           className="fixed inset-0 flex items-center justify-center"
           style={{
             zIndex: "var(--z-modal)",
-            background: "rgba(0,0,0,0.6)",
+            background: "var(--modal-backdrop)",
             backdropFilter: "blur(4px)",
             WebkitBackdropFilter: "blur(4px)",
           }}
@@ -173,10 +173,10 @@ export default function Modal({
               .filter(Boolean)
               .join(" ")}
             style={{
-              background: "rgba(15,15,15,0.88)",
+              background: "var(--modal-bg)",
               backdropFilter: "blur(24px)",
               WebkitBackdropFilter: "blur(24px)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              border: "1px solid var(--modal-border)",
             }}
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -188,6 +188,6 @@ export default function Modal({
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
