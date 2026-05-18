@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-05-17 - version 0.9.20
+
+- fixed calendar weekly view arrow navigation bug — clicking backward (and sometimes forward) would flash the correct header then revert, or show the wrong week grid; root cause was stale scroll events from accumulated periods, IntersectionObserver prepends, and layout compensation overriding `currentDate` after programmatic scroll; replaced the unreliable boolean scroll-suppression flag with a nav-target guard that rejects stale scroll handler updates within a settling window, and changed `scrollToPeriod` to always reset to a clean 3-period window so scroll state is predictable regardless of navigation history
+
 ## 2026-05-01 - version 0.9.19
 
 - fixed dark theme mode for some surfaces

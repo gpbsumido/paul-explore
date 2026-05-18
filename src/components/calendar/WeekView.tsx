@@ -268,6 +268,7 @@ function WeekView({
           {/* Current time indicator */}
           {currentTimeTop !== null && (
             <div
+              data-scroll-target
               className="absolute z-20 pointer-events-none flex items-center"
               style={{ top: currentTimeTop, left: GUTTER_WIDTH, right: 0 }}
             >
