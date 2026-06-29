@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-29 - version 0.10.0
+
+- added smart mini-retail operator dashboard domain layer — Zod schemas (`src/lib/operator-schemas.ts`) for stores, inventory items, alerts, and activity events; TypeScript types derived from schemas via `z.infer` (`src/types/operator.ts`); factory functions (`src/test/factories/operator.ts`) that generate realistic mock data with store names, product catalogs, and contextual alert messages; 38 schema validation and factory integration tests
+
 ## 2026-05-17 - version 0.9.20
 
 - fixed calendar weekly view arrow navigation bug — clicking backward (and sometimes forward) would flash the correct header then revert, or show the wrong week grid; root cause was stale scroll events from accumulated periods, IntersectionObserver prepends, and layout compensation overriding `currentDate` after programmatic scroll; replaced the unreliable boolean scroll-suppression flag with a nav-target guard that rejects stale scroll handler updates within a settling window, and changed `scrollToPeriod` to always reset to a clean 3-period window so scroll state is predictable regardless of navigation history
