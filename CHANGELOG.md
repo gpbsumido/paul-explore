@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-29 - version 0.10.1
+
+- added MSW mock API handlers for operator dashboard (`src/test/handlers/operator.ts`) — 6 endpoints: fleet list, store detail, inventory, alerts, alert dismiss, and restock; handlers use factory functions to seed realistic data, include 100-300ms simulated latency, and one store is always seeded as degraded with elevated temperature and reduced uptime; registered handlers as defaults in MSW server (`src/test/server.ts`); 17 handler response tests validate schema compliance, 404s, mutation side-effects, and degraded store presence
+
 ## 2026-06-29 - version 0.10.0
 
 - added smart mini-retail operator dashboard domain layer — Zod schemas (`src/lib/operator-schemas.ts`) for stores, inventory items, alerts, and activity events; TypeScript types derived from schemas via `z.infer` (`src/types/operator.ts`); factory functions (`src/test/factories/operator.ts`) that generate realistic mock data with store names, product catalogs, and contextual alert messages; 38 schema validation and factory integration tests
