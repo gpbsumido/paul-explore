@@ -80,3 +80,11 @@ export const activityEventSchema = z.object({
   timestamp: z.string().datetime(),
   actor: z.string().optional(),
 });
+
+// ---------------------------------------------------------------------------
+// Request bodies
+// ---------------------------------------------------------------------------
+
+export const restockBodySchema = z.object({
+  itemIds: z.array(z.string()).min(1),
+});

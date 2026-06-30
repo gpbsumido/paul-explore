@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-30 - version 0.10.2
+
+- added Next.js API routes for operator dashboard following the BFF pattern (`src/app/api/operator/`) — 6 endpoints: `GET /stores` (fleet list), `GET /stores/:id` (detail), `GET /stores/:id/inventory`, `GET /stores/:id/alerts`, `PATCH /alerts/:id/dismiss`, `POST /stores/:id/restock`; routes use shared in-memory data store (`src/lib/operator-data.ts`) seeded from factory functions for demo mode (no real backend needed); restock route validates request body via `parseBody` + new `restockBodySchema`; 12 route handler tests call exported functions directly with mock `NextRequest` objects
+
 ## 2026-06-29 - version 0.10.1
 
 - added MSW mock API handlers for operator dashboard (`src/test/handlers/operator.ts`) — 6 endpoints: fleet list, store detail, inventory, alerts, alert dismiss, and restock; handlers use factory functions to seed realistic data, include 100-300ms simulated latency, and one store is always seeded as degraded with elevated temperature and reduced uptime; registered handlers as defaults in MSW server (`src/test/server.ts`); 17 handler response tests validate schema compliance, 404s, mutation side-effects, and degraded store presence
