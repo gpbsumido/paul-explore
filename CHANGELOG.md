@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-30 - version 0.10.3
+
+- added TanStack Query hooks for operator dashboard data layer — `useOperatorStores` (fleet list, polls every 30s), `useOperatorStore` (single store detail), `useOperatorInventory` (store inventory, polls every 60s), `useOperatorAlerts` (store alerts, polls every 15s); all hooks use `staleTime: 0` and `refetchOnWindowFocus: true`; added `useDismissAlert` and `useRestockStore` mutations with optimistic updates (cache updated immediately, rolled back on server error, invalidated on settle); added operator keys to the centralized query key factory (`src/lib/queryKeys.ts`); 15 hook tests covering data fetching, error handling, optimistic update verification, and rollback on failure
+
 ## 2026-06-30 - version 0.10.2
 
 - added Next.js API routes for operator dashboard following the BFF pattern (`src/app/api/operator/`) — 6 endpoints: `GET /stores` (fleet list), `GET /stores/:id` (detail), `GET /stores/:id/inventory`, `GET /stores/:id/alerts`, `PATCH /alerts/:id/dismiss`, `POST /stores/:id/restock`; routes use shared in-memory data store (`src/lib/operator-data.ts`) seeded from factory functions for demo mode (no real backend needed); restock route validates request body via `parseBody` + new `restockBodySchema`; 12 route handler tests call exported functions directly with mock `NextRequest` objects

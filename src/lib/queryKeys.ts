@@ -127,4 +127,20 @@ export const queryKeys = {
      */
     authStatus: () => ["google", "auth", "status"] as const,
   },
+
+  operator: {
+    /** All stores in the fleet. Polled every 30s on the dashboard. */
+    stores: () => ["operator", "stores"] as const,
+
+    /** Single store detail, keyed by store id. */
+    store: (storeId: string) => ["operator", "stores", storeId] as const,
+
+    /** Inventory for a specific store. Polled every 60s. */
+    inventory: (storeId: string) =>
+      ["operator", "stores", storeId, "inventory"] as const,
+
+    /** Alerts for a specific store. Polled every 15s. */
+    alerts: (storeId: string) =>
+      ["operator", "stores", storeId, "alerts"] as const,
+  },
 } as const;
