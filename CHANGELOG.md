@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-30 - version 0.10.5
+
+- added store detail page at `/operator/stores/[storeId]` — header showing store name, address, status badge (online/degraded/offline), uptime percentage, sensor connection quality indicator (strong/weak/offline with signal bars icon), and "last reading X ago" freshness timestamp; tab bar with Inventory, Alerts, Activity, and Planogram tabs synced to `?tab=` URL search param via `router.replace` so the active tab survives page refresh and back/forward navigation (defaults to Inventory when param is missing or invalid); tab panels render placeholders for now; loading skeleton matching the real layout for both the Next.js route `loading.tsx` and the client-side fetch state; pure helper functions in `src/lib/operator-detail.ts` (`parseTab`, `getConnectionQuality`, `TABS` constant) with 13 TDD tests including boundary conditions at the 2-minute and 5-minute thresholds
+
 ## 2026-06-30 - version 0.10.4
 
 - added operator fleet overview page at `/operator` — alert summary banner with fleet-wide critical/warning counts (clickable to filter), stats bar showing total stores, stores needing attention, low-stock items, and average inventory health %; responsive grid of store cards sorted worst-first (offline > degraded with alerts > degraded > online) with status badges, alert counts, inventory health bars, and freshness timestamps via `formatDistanceToNow`; status filter pills and name search box; loading skeleton matching page layout; page metadata for SEO/OG; pure utility functions (`sortStores`, `filterStores`, `computeFleetStats`) in `src/lib/operator-utils.ts` with 20 TDD tests covering sorting priority, filtering, stats computation, and edge cases; store cards link to `/operator/stores/[storeId]`; dashboard fans out parallel `useQueries` for alerts (15s poll) and inventory (60s poll) per store to power sorting, stats, and card data without waterfall requests
