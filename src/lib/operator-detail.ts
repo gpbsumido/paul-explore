@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
-// Store detail page helpers: tab routing, connection quality, inventory
+// Store detail page helpers: tab routing, connection quality, inventory, alerts
 // ---------------------------------------------------------------------------
 
-import type { InventoryItem } from "@/types/operator";
+import type { InventoryItem, Alert, AlertSeverity } from "@/types/operator";
 
 export type TabId = "inventory" | "alerts" | "activity" | "planogram";
 
@@ -132,4 +132,48 @@ export function generateSparklineData(
   }
 
   return points;
+}
+
+// ---------------------------------------------------------------------------
+// Alert helpers
+// ---------------------------------------------------------------------------
+
+const SEVERITY_PRIORITY: Record<AlertSeverity, number> = {
+  critical: 0,
+  warning: 1,
+  info: 2,
+};
+
+export type AlertSeverityFilter = AlertSeverity | "all";
+
+/**
+ * Sorts alerts by severity (critical first, then warning, then info).
+ * Stable sort preserves relative order within the same severity tier.
+ */
+export function sortAlertsBySeverity(
+  alerts: readonly Alert[],
+): readonly Alert[] {
+  return [...alerts].sort(
+    (a, b) => SEVERITY_PRIORITY[a.severity] - SEVERITY_PRIORITY[b.severity],
+  );
+}
+
+/**
+ * Filters alerts to only unacknowledged ones, optionally narrowed by severity.
+ * Pass "all" to get every unacknowledged alert regardless of severity.
+ */
+export function filterAlertsBySeverity(
+  alerts: readonly Alert[],
+  severity: AlertSeverityFilter,
+): readonly Alert[] {
+  return alerts.filter(
+    (a) => !a.acknowledged && (severity === "all" || a.severity === severity),
+  );
+}
+
+/**
+ * Counts unacknowledged (active) alerts in a list.
+ */
+export function countActiveAlerts(alerts: readonly Alert[]): number {
+  return alerts.filter((a) => !a.acknowledged).length;
 }

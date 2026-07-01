@@ -2,8 +2,15 @@
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCallback } from "react";
-import { parseTab, TABS, type TabId } from "@/lib/operator-detail";
+import {
+  parseTab,
+  TABS,
+  countActiveAlerts,
+  type TabId,
+} from "@/lib/operator-detail";
+import { useOperatorAlerts } from "@/hooks/useOperatorAlerts";
 import InventoryTab from "./InventoryTab";
+import AlertsTab from "./AlertsTab";
 
 interface StoreTabsProps {
   storeId: string;
@@ -19,6 +26,9 @@ export default function StoreTabs({ storeId }: StoreTabsProps) {
   const pathname = usePathname();
 
   const activeTab = parseTab(searchParams.get("tab"));
+
+  const { alerts } = useOperatorAlerts(storeId);
+  const activeAlertCount = countActiveAlerts(alerts);
 
   const setTab = useCallback(
     (tab: TabId) => {
@@ -58,6 +68,11 @@ export default function StoreTabs({ storeId }: StoreTabsProps) {
               }`}
             >
               {tab.label}
+              {tab.id === "alerts" && activeAlertCount > 0 && (
+                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-error-500 px-1 text-[10px] font-bold text-white">
+                  {activeAlertCount}
+                </span>
+              )}
               {isActive && (
                 <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary-600 rounded-full" />
               )}
@@ -82,6 +97,9 @@ export default function StoreTabs({ storeId }: StoreTabsProps) {
 function TabContent({ tab, storeId }: { tab: TabId; storeId: string }) {
   if (tab === "inventory") {
     return <InventoryTab storeId={storeId} />;
+  }
+  if (tab === "alerts") {
+    return <AlertsTab storeId={storeId} />;
   }
 
   return (
