@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-30 - version 0.10.4
+
+- added operator fleet overview page at `/operator` — alert summary banner with fleet-wide critical/warning counts (clickable to filter), stats bar showing total stores, stores needing attention, low-stock items, and average inventory health %; responsive grid of store cards sorted worst-first (offline > degraded with alerts > degraded > online) with status badges, alert counts, inventory health bars, and freshness timestamps via `formatDistanceToNow`; status filter pills and name search box; loading skeleton matching page layout; page metadata for SEO/OG; pure utility functions (`sortStores`, `filterStores`, `computeFleetStats`) in `src/lib/operator-utils.ts` with 20 TDD tests covering sorting priority, filtering, stats computation, and edge cases; store cards link to `/operator/stores/[storeId]`; dashboard fans out parallel `useQueries` for alerts (15s poll) and inventory (60s poll) per store to power sorting, stats, and card data without waterfall requests
+
 ## 2026-06-30 - version 0.10.3
 
 - added TanStack Query hooks for operator dashboard data layer — `useOperatorStores` (fleet list, polls every 30s), `useOperatorStore` (single store detail), `useOperatorInventory` (store inventory, polls every 60s), `useOperatorAlerts` (store alerts, polls every 15s); all hooks use `staleTime: 0` and `refetchOnWindowFocus: true`; added `useDismissAlert` and `useRestockStore` mutations with optimistic updates (cache updated immediately, rolled back on server error, invalidated on settle); added operator keys to the centralized query key factory (`src/lib/queryKeys.ts`); 15 hook tests covering data fetching, error handling, optimistic update verification, and rollback on failure
