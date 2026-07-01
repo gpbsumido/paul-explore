@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-30 - version 0.10.6
+
+- added Inventory tab to the store detail page at `/operator/stores/[storeId]` — summary bar showing total items, items needing restock, and average fill percentage; inventory rows with product name, category, stock bar (color-coded green/amber/red by fill ratio), status badge (Healthy/Low/Critical/Out of Stock), 7-day simulated stock trend sparkline via Recharts, "last restocked" timestamp, and per-item "Mark Restocked" button; critical and out-of-stock items highlighted with red left border accent; restock button uses `useRestockStore` mutation with optimistic update (stock jumps to capacity immediately, rolls back on failure); restock disabled for healthy items; loading skeleton matching real layout; pure helper functions (`categorizeStock`, `computeInventorySummary`, `generateSparklineData`) added to `src/lib/operator-detail.ts` with 34 TDD tests covering categorization thresholds, boundary conditions, summary aggregation, sparkline determinism, restock eligibility, and urgent border treatment
+
 ## 2026-06-30 - version 0.10.5
 
 - added store detail page at `/operator/stores/[storeId]` — header showing store name, address, status badge (online/degraded/offline), uptime percentage, sensor connection quality indicator (strong/weak/offline with signal bars icon), and "last reading X ago" freshness timestamp; tab bar with Inventory, Alerts, Activity, and Planogram tabs synced to `?tab=` URL search param via `router.replace` so the active tab survives page refresh and back/forward navigation (defaults to Inventory when param is missing or invalid); tab panels render placeholders for now; loading skeleton matching the real layout for both the Next.js route `loading.tsx` and the client-side fetch state; pure helper functions in `src/lib/operator-detail.ts` (`parseTab`, `getConnectionQuality`, `TABS` constant) with 13 TDD tests including boundary conditions at the 2-minute and 5-minute thresholds

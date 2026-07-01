@@ -1,10 +1,22 @@
 // ---------------------------------------------------------------------------
-// Store detail page helpers: tab routing + connection quality
+// Store detail page helpers: tab routing, connection quality, inventory
 // ---------------------------------------------------------------------------
+
+import type { InventoryItem } from "@/types/operator";
 
 export type TabId = "inventory" | "alerts" | "activity" | "planogram";
 
 export type ConnectionQuality = "strong" | "weak" | "offline";
+
+export type StockStatus = "healthy" | "low" | "critical" | "out-of-stock";
+
+export type SparklinePoint = { day: string; stock: number };
+
+export type InventorySummary = {
+  totalItems: number;
+  needsRestock: number;
+  fillPercentage: number;
+};
 
 export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "inventory", label: "Inventory" },
@@ -17,6 +29,10 @@ const VALID_TAB_IDS = new Set<string>(TABS.map((t) => t.id));
 
 const WEAK_THRESHOLD_MS = 2 * 60 * 1000;
 const OFFLINE_THRESHOLD_MS = 5 * 60 * 1000;
+const CRITICAL_THRESHOLD = 0.2;
+const LOW_THRESHOLD = 0.5;
+
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 /**
  * Resolves a URL search param value into a valid tab ID.
@@ -39,4 +55,81 @@ export function getConnectionQuality(lastPing: string): ConnectionQuality {
   if (elapsed < WEAK_THRESHOLD_MS) return "strong";
   if (elapsed < OFFLINE_THRESHOLD_MS) return "weak";
   return "offline";
+}
+
+/**
+ * Categorizes stock level into a status label based on fill ratio.
+ * Out-of-stock = 0, Critical = below 20%, Low = below 50%, Healthy = 50%+.
+ */
+export function categorizeStock(
+  currentStock: number,
+  capacity: number,
+): StockStatus {
+  if (currentStock === 0) return "out-of-stock";
+  const ratio = currentStock / capacity;
+  if (ratio < CRITICAL_THRESHOLD) return "critical";
+  if (ratio < LOW_THRESHOLD) return "low";
+  return "healthy";
+}
+
+/**
+ * Aggregates inventory stats: total items, count needing restock (critical or
+ * out-of-stock), and average fill percentage across all items.
+ */
+export function computeInventorySummary(
+  items: readonly InventoryItem[],
+): InventorySummary {
+  if (items.length === 0) {
+    return { totalItems: 0, needsRestock: 0, fillPercentage: 0 };
+  }
+
+  let needsRestock = 0;
+  let totalRatio = 0;
+
+  for (const item of items) {
+    const status = categorizeStock(item.currentStock, item.capacity);
+    if (status === "critical" || status === "out-of-stock") {
+      needsRestock += 1;
+    }
+    totalRatio += item.capacity > 0 ? item.currentStock / item.capacity : 0;
+  }
+
+  return {
+    totalItems: items.length,
+    needsRestock,
+    fillPercentage: Math.round((totalRatio / items.length) * 100),
+  };
+}
+
+/**
+ * Generates a deterministic 7-day simulated stock trend for sparkline display.
+ * Uses a simple seeded hash from the item ID so the same item always produces
+ * the same chart. The last data point always matches the current stock.
+ */
+export function generateSparklineData(
+  currentStock: number,
+  capacity: number,
+  seed: string,
+): readonly SparklinePoint[] {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  }
+
+  const points: SparklinePoint[] = [];
+  for (let i = 0; i < 7; i++) {
+    if (i === 6) {
+      points.push({ day: DAY_LABELS[i], stock: currentStock });
+    } else {
+      hash = (hash * 16807 + 1) | 0;
+      const noise = (Math.abs(hash) % 100) / 100;
+      const stock = Math.round(noise * capacity);
+      points.push({
+        day: DAY_LABELS[i],
+        stock: Math.max(0, Math.min(capacity, stock)),
+      });
+    }
+  }
+
+  return points;
 }

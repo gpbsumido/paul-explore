@@ -3,13 +3,17 @@
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCallback } from "react";
 import { parseTab, TABS, type TabId } from "@/lib/operator-detail";
+import InventoryTab from "./InventoryTab";
+
+interface StoreTabsProps {
+  storeId: string;
+}
 
 /**
  * Tab bar for the store detail page. Active tab is synced to the ?tab= search
- * param so it survives refresh and back/forward navigation. Each tab renders
- * a placeholder panel until the content is wired up in later steps.
+ * param so it survives refresh and back/forward navigation.
  */
-export default function StoreTabs() {
+export default function StoreTabs({ storeId }: StoreTabsProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -69,12 +73,22 @@ export default function StoreTabs() {
         aria-labelledby={activeTab}
         className="py-6"
       >
-        <div className="flex items-center justify-center rounded-xl border border-dashed border-border bg-surface p-12">
-          <p className="text-sm text-muted">
-            {TABS.find((t) => t.id === activeTab)?.label} content coming soon
-          </p>
-        </div>
+        <TabContent tab={activeTab} storeId={storeId} />
       </div>
+    </div>
+  );
+}
+
+function TabContent({ tab, storeId }: { tab: TabId; storeId: string }) {
+  if (tab === "inventory") {
+    return <InventoryTab storeId={storeId} />;
+  }
+
+  return (
+    <div className="flex items-center justify-center rounded-xl border border-dashed border-border bg-surface p-12">
+      <p className="text-sm text-muted">
+        {TABS.find((t) => t.id === tab)?.label} content coming soon
+      </p>
     </div>
   );
 }

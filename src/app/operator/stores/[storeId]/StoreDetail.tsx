@@ -41,7 +41,7 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
     <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6">
       <StoreHeader store={store} />
       <Suspense>
-        <StoreTabs />
+        <StoreTabs storeId={storeId} />
       </Suspense>
     </main>
   );
