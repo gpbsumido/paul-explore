@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { Store } from "@/types/operator";
+import { isStaleData } from "@/lib/operator-freshness";
 import FreshnessLabel from "./FreshnessLabel";
 
 interface StoreCardProps {
@@ -34,11 +35,15 @@ export default function StoreCard({
   inventoryHealth,
 }: StoreCardProps) {
   const cfg = STATUS_CONFIG[store.status];
+  const stale = isStaleData(store.lastPing);
+  const borderClass = stale
+    ? "border-warning-400/60 border-2"
+    : cfg.border || "border-border";
 
   return (
     <Link
       href={`/operator/stores/${store.id}`}
-      className={`group flex flex-col gap-3 rounded-xl border bg-surface p-4 transition-colors hover:bg-surface-raised ${cfg.border || "border-border"}`}
+      className={`group flex flex-col gap-3 rounded-xl border bg-surface p-4 transition-colors hover:bg-surface-raised ${borderClass}`}
     >
       {/* Header row: name + status badge */}
       <div className="flex items-start justify-between gap-2">

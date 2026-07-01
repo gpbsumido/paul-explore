@@ -11,7 +11,7 @@ import type {
 
 export type TabId = "inventory" | "alerts" | "activity" | "planogram";
 
-export type ConnectionQuality = "strong" | "weak" | "offline";
+export type ConnectionQuality = "strong" | "weak" | "poor" | "offline";
 
 export type StockStatus = "healthy" | "low" | "critical" | "out-of-stock";
 
@@ -33,7 +33,8 @@ export const TABS: readonly { id: TabId; label: string }[] = [
 const VALID_TAB_IDS = new Set<string>(TABS.map((t) => t.id));
 
 const WEAK_THRESHOLD_MS = 2 * 60 * 1000;
-const OFFLINE_THRESHOLD_MS = 5 * 60 * 1000;
+const POOR_THRESHOLD_MS = 5 * 60 * 1000;
+const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000;
 const CRITICAL_THRESHOLD = 0.2;
 const LOW_THRESHOLD = 0.5;
 
@@ -52,13 +53,14 @@ export function parseTab(param: string | null): TabId {
 
 /**
  * Derives sensor connection quality from the lastPing ISO timestamp.
- * Strong = within 2 minutes, Weak = 2-5 minutes, Offline = over 5 minutes.
+ * Strong = within 2 min, Weak = 2-5 min, Poor = 5-10 min, Offline = over 10 min.
  */
 export function getConnectionQuality(lastPing: string): ConnectionQuality {
   const elapsed = Date.now() - new Date(lastPing).getTime();
 
   if (elapsed < WEAK_THRESHOLD_MS) return "strong";
-  if (elapsed < OFFLINE_THRESHOLD_MS) return "weak";
+  if (elapsed < POOR_THRESHOLD_MS) return "weak";
+  if (elapsed < OFFLINE_THRESHOLD_MS) return "poor";
   return "offline";
 }
 

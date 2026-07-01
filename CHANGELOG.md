@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-01 - version 0.10.9
+
+- added data freshness visual system across the operator dashboard — `FreshnessLabel` now shows green text with pulsing dot for data under 2 minutes old, amber for 2-10 minutes, red for over 10 minutes; `RefreshBar` component at the top of the fleet overview shows "last refreshed X ago" (derived from TanStack Query cache timestamps) with a manual refresh button that invalidates all operator queries; `StoreCard` gains an amber border-2 treatment when sensor data is older than 10 minutes; `ConnectionQuality` expanded from 3 tiers to 4 — strong (3 bars), weak (2 bars), poor (1 bar), offline (X icon) — with thresholds at 2, 5, and 10 minutes; `SensorOfflineCallout` warning banner appears on the inventory tab when sensors haven't reported in 30+ minutes, showing offline duration and last reading timestamp; pure threshold functions (`getFreshnessLevel`, `isStaleData`, `isSensorOffline`) in new `src/lib/operator-freshness.ts` with deterministic `now` parameter for testing; 26 TDD tests covering all freshness and connection quality threshold boundaries
+
 ## 2026-07-01 - version 0.10.8
 
 - added Activity tab to the store detail page — chronological feed of recent events (restocks, maintenance, alert dismissals, status changes, price updates) sorted newest-first with alternating row backgrounds, color-coded type icons and labels, actor email, and relative timestamps; shows 50 events at a time with "Load more" button; full data pipeline: `getActivity` accessor in `operator-data.ts`, `GET /api/operator/stores/[storeId]/activity` API route, `useOperatorActivity` hook with refetch-on-focus, `activity` query key, and MSW handler seeding 15 events per store

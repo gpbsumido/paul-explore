@@ -54,9 +54,9 @@ describe("getConnectionQuality", () => {
     expect(getConnectionQuality(threeMinutesAgo)).toBe("weak");
   });
 
-  it("returns 'offline' when lastPing is older than 5 minutes", () => {
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60_000).toISOString();
-    expect(getConnectionQuality(tenMinutesAgo)).toBe("offline");
+  it("returns 'offline' when lastPing is older than 10 minutes", () => {
+    const fifteenMinAgo = new Date(Date.now() - 15 * 60_000).toISOString();
+    expect(getConnectionQuality(fifteenMinAgo)).toBe("offline");
   });
 
   it("returns 'strong' for a ping that just happened", () => {
@@ -74,8 +74,8 @@ describe("getConnectionQuality", () => {
     expect(getConnectionQuality(exactlyTwoMin)).toBe("weak");
   });
 
-  it("returns 'offline' right at 5 minutes (not weak)", () => {
+  it("returns 'poor' right at 5 minutes (not weak)", () => {
     const exactlyFiveMin = new Date(Date.now() - 5 * 60_000).toISOString();
-    expect(getConnectionQuality(exactlyFiveMin)).toBe("offline");
+    expect(getConnectionQuality(exactlyFiveMin)).toBe("poor");
   });
 });

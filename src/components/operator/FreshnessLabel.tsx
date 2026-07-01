@@ -1,32 +1,41 @@
 "use client";
 
-import { addMilliseconds, isPast, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
+import {
+  getFreshnessLevel,
+  type FreshnessLevel,
+} from "@/lib/operator-freshness";
 
 interface FreshnessLabelProps {
   lastPing: string;
 }
 
-const STALE_THRESHOLD_MS = 5 * 60 * 1000;
+const LEVEL_CONFIG: Record<FreshnessLevel, { text: string; dot: string }> = {
+  fresh: { text: "text-success-500", dot: "bg-success-500" },
+  aging: { text: "text-warning-500 font-medium", dot: "bg-warning-500" },
+  stale: { text: "text-error-500 font-medium", dot: "bg-error-500" },
+};
 
 /**
- * Shows "last seen X ago" from an ISO timestamp. Text turns amber when the
- * ping is older than 5 minutes — a visual nudge that the store may be losing
- * connectivity.
- *
- * Uses date-fns isPast(addMilliseconds(...)) rather than Date.now() directly
- * so the impure clock read happens inside the library, satisfying React's
- * render purity lint rule.
+ * Shows "last seen X ago" from an ISO timestamp with color-coded freshness.
+ * Green for under 2 minutes, amber for 2-10 minutes, red for over 10 minutes.
+ * A pulsing dot appears when data is fresh (under 2 minutes old).
  */
 export default function FreshnessLabel({ lastPing }: FreshnessLabelProps) {
   const date = new Date(lastPing);
-  const staleAt = addMilliseconds(date, STALE_THRESHOLD_MS);
-  const isStale = isPast(staleAt);
+  const level = getFreshnessLevel(lastPing);
+  const { text, dot } = LEVEL_CONFIG[level];
+  const isFresh = level === "fresh";
 
   return (
     <span
-      className={`text-xs ${isStale ? "text-warning-500 font-medium" : "text-muted"}`}
+      className={`inline-flex items-center gap-1.5 text-xs ${text}`}
       title={date.toLocaleString()}
     >
+      <span
+        className={`inline-block h-1.5 w-1.5 rounded-full ${dot} ${isFresh ? "animate-pulse" : ""}`}
+        aria-hidden
+      />
       {formatDistanceToNow(date, { addSuffix: true })}
     </span>
   );

@@ -2,10 +2,12 @@
 
 import { useMemo } from "react";
 import { useOperatorInventory } from "@/hooks/useOperatorInventory";
+import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { useRestockStore } from "@/hooks/useOperatorMutations";
 import { computeInventorySummary } from "@/lib/operator-detail";
 import InventorySummary from "./InventorySummary";
 import InventoryRow from "./InventoryRow";
+import SensorOfflineCallout from "./SensorOfflineCallout";
 
 interface InventoryTabProps {
   storeId: string;
@@ -18,6 +20,7 @@ interface InventoryTabProps {
  */
 export default function InventoryTab({ storeId }: InventoryTabProps) {
   const { items, loading, error } = useOperatorInventory(storeId);
+  const { store } = useOperatorStore(storeId);
   const { restockStore, isRestocking } = useRestockStore();
 
   const summary = useMemo(() => computeInventorySummary(items), [items]);
@@ -44,6 +47,7 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
 
   return (
     <div className="space-y-4">
+      {store && <SensorOfflineCallout lastPing={store.lastPing} />}
       <InventorySummary summary={summary} />
       <div className="space-y-2">
         {items.map((item) => (

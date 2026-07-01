@@ -12,6 +12,7 @@ import {
 import type { Alert, InventoryItem, StoreStatus } from "@/types/operator";
 import AlertSummaryBanner from "@/components/operator/AlertSummaryBanner";
 import FleetStatsBar from "@/components/operator/FleetStatsBar";
+import RefreshBar from "@/components/operator/RefreshBar";
 import StoreCard from "@/components/operator/StoreCard";
 import StoreFilters from "@/components/operator/StoreFilters";
 
@@ -128,6 +129,9 @@ export default function OperatorDashboard() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
+      {/* Global refresh bar */}
+      <RefreshBar />
+
       {/* Alert summary banner */}
       <AlertSummaryBanner
         criticalCount={fleetStats.criticalAlerts}
