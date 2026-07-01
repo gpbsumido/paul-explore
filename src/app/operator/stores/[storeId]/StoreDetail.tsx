@@ -2,8 +2,11 @@
 
 import { Suspense } from "react";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
+import { ToastProvider } from "@/contexts/ToastContext";
 import StoreHeader from "@/components/operator/StoreHeader";
+import QuickActions from "@/components/operator/QuickActions";
 import StoreTabs from "@/components/operator/StoreTabs";
+import ToastNotification from "@/components/operator/ToastNotification";
 
 interface StoreDetailProps {
   storeId: string;
@@ -38,12 +41,16 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6">
-      <StoreHeader store={store} />
-      <Suspense>
-        <StoreTabs storeId={storeId} />
-      </Suspense>
-    </main>
+    <ToastProvider>
+      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6">
+        <StoreHeader store={store} />
+        <QuickActions storeId={storeId} />
+        <Suspense>
+          <StoreTabs storeId={storeId} />
+        </Suspense>
+      </main>
+      <ToastNotification />
+    </ToastProvider>
   );
 }
 

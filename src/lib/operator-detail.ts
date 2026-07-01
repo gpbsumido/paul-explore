@@ -256,3 +256,32 @@ export function generatePlanogramGrid(
 
   return shelves;
 }
+
+// ---------------------------------------------------------------------------
+// Quick action helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns IDs of inventory items below the healthy threshold (50% fill).
+ * These are the items that "Mark All Restocked" would restock.
+ */
+export function getLowStockItemIds(
+  items: readonly InventoryItem[],
+): readonly string[] {
+  return items
+    .filter((item) => {
+      const status = categorizeStock(item.currentStock, item.capacity);
+      return status !== "healthy";
+    })
+    .map((item) => item.id);
+}
+
+/**
+ * Returns non-critical, unacknowledged alerts that can be bulk-dismissed.
+ * Critical alerts are excluded because they require individual attention.
+ */
+export function getDismissableAlerts(
+  alerts: readonly Alert[],
+): readonly Alert[] {
+  return alerts.filter((a) => !a.acknowledged && a.severity !== "critical");
+}
