@@ -9,6 +9,7 @@ import {
   buildStoreList,
   buildInventoryList,
   buildAlertList,
+  buildActivityList,
   buildActivityEvent,
   resetFactoryCounter,
 } from "@/test/factories/operator";
@@ -39,6 +40,10 @@ const inventoryByStore = new Map<string, InventoryItem[]>(
 
 const alertsByStore = new Map<string, Alert[]>(
   stores.map((s) => [s.id, [...buildAlertList(s.id, 4)]]),
+);
+
+const activityByStore = new Map<string, ActivityEvent[]>(
+  stores.map((s) => [s.id, [...buildActivityList(s.id, 15)]]),
 );
 
 const allAlerts = new Map<string, Alert>();
@@ -95,6 +100,16 @@ export const operatorHandlers = [
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
     }
     return HttpResponse.json({ alerts });
+  }),
+
+  // GET /api/operator/stores/:id/activity — activity events
+  http.get("/api/operator/stores/:id/activity", async ({ params }) => {
+    await randomDelay();
+    const events = activityByStore.get(params.id as string);
+    if (!events) {
+      return HttpResponse.json({ error: "Store not found" }, { status: 404 });
+    }
+    return HttpResponse.json({ events });
   }),
 
   // PATCH /api/operator/alerts/:id/dismiss — dismiss an alert

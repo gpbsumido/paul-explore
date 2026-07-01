@@ -142,5 +142,9 @@ export const queryKeys = {
     /** Alerts for a specific store. Polled every 15s. */
     alerts: (storeId: string) =>
       ["operator", "stores", storeId, "alerts"] as const,
+
+    /** Activity events for a specific store. */
+    activity: (storeId: string) =>
+      ["operator", "stores", storeId, "activity"] as const,
   },
 } as const;

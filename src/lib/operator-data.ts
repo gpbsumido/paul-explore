@@ -8,6 +8,7 @@ import {
   buildStoreList,
   buildInventoryList,
   buildAlertList,
+  buildActivityList,
   buildActivityEvent,
   resetFactoryCounter,
 } from "@/test/factories/operator";
@@ -40,6 +41,10 @@ const alertsByStore = new Map<string, Alert[]>(
   stores.map((s) => [s.id, [...buildAlertList(s.id, 4)]]),
 );
 
+const activityByStore = new Map<string, ActivityEvent[]>(
+  stores.map((s) => [s.id, [...buildActivityList(s.id, 15)]]),
+);
+
 const allAlerts = new Map<string, Alert>();
 for (const alerts of alertsByStore.values()) {
   for (const a of alerts) {
@@ -65,6 +70,10 @@ export function getInventory(storeId: string): InventoryItem[] | undefined {
 
 export function getAlerts(storeId: string): Alert[] | undefined {
   return alertsByStore.get(storeId);
+}
+
+export function getActivity(storeId: string): ActivityEvent[] | undefined {
+  return activityByStore.get(storeId);
 }
 
 export function getAlert(alertId: string): Alert | undefined {

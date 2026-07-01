@@ -11,6 +11,8 @@ import {
 import { useOperatorAlerts } from "@/hooks/useOperatorAlerts";
 import InventoryTab from "./InventoryTab";
 import AlertsTab from "./AlertsTab";
+import ActivityTab from "./ActivityTab";
+import PlanogramTab from "./PlanogramTab";
 
 interface StoreTabsProps {
   storeId: string;
@@ -101,12 +103,12 @@ function TabContent({ tab, storeId }: { tab: TabId; storeId: string }) {
   if (tab === "alerts") {
     return <AlertsTab storeId={storeId} />;
   }
+  if (tab === "activity") {
+    return <ActivityTab storeId={storeId} />;
+  }
+  if (tab === "planogram") {
+    return <PlanogramTab storeId={storeId} />;
+  }
 
-  return (
-    <div className="flex items-center justify-center rounded-xl border border-dashed border-border bg-surface p-12">
-      <p className="text-sm text-muted">
-        {TABS.find((t) => t.id === tab)?.label} content coming soon
-      </p>
-    </div>
-  );
+  return null;
 }

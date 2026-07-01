@@ -2,7 +2,12 @@
 // Store detail page helpers: tab routing, connection quality, inventory, alerts
 // ---------------------------------------------------------------------------
 
-import type { InventoryItem, Alert, AlertSeverity } from "@/types/operator";
+import type {
+  InventoryItem,
+  Alert,
+  AlertSeverity,
+  ActivityType,
+} from "@/types/operator";
 
 export type TabId = "inventory" | "alerts" | "activity" | "planogram";
 
@@ -176,4 +181,76 @@ export function filterAlertsBySeverity(
  */
 export function countActiveAlerts(alerts: readonly Alert[]): number {
   return alerts.filter((a) => !a.acknowledged).length;
+}
+
+// ---------------------------------------------------------------------------
+// Activity helpers
+// ---------------------------------------------------------------------------
+
+export type ActivityTypeConfig = {
+  label: string;
+  color: string;
+};
+
+export const ACTIVITY_TYPE_CONFIGS: Record<ActivityType, ActivityTypeConfig> = {
+  restock: { label: "Restock", color: "text-success-500" },
+  maintenance: { label: "Maintenance", color: "text-primary-500" },
+  "alert-acknowledged": { label: "Alert Dismissed", color: "text-warning-500" },
+  "status-change": { label: "Status Change", color: "text-muted" },
+  "price-update": { label: "Price Update", color: "text-violet-500" },
+};
+
+/**
+ * Returns display config (label + color class) for an activity event type.
+ */
+export function getActivityTypeConfig(type: ActivityType): ActivityTypeConfig {
+  return ACTIVITY_TYPE_CONFIGS[type];
+}
+
+// ---------------------------------------------------------------------------
+// Planogram helpers
+// ---------------------------------------------------------------------------
+
+export type PlanogramSlot = {
+  productName: string;
+  category: string;
+  currentStock: number;
+  capacity: number;
+  sensorMatch: boolean;
+};
+
+/**
+ * Generates a simplified planogram grid from inventory items. Items are laid
+ * out left-to-right across shelves of the given width. Each slot includes a
+ * deterministic sensorMatch flag derived from the item ID so the visual is
+ * stable across renders.
+ */
+export function generatePlanogramGrid(
+  items: readonly InventoryItem[],
+  shelfWidth: number = 4,
+): readonly (readonly PlanogramSlot[])[] {
+  if (items.length === 0) return [];
+
+  const slots: PlanogramSlot[] = items.map((item) => {
+    let hash = 0;
+    for (let i = 0; i < item.id.length; i++) {
+      hash = (hash * 31 + item.id.charCodeAt(i)) | 0;
+    }
+    const sensorMatch = Math.abs(hash) % 5 !== 0;
+
+    return {
+      productName: item.productName,
+      category: item.category,
+      currentStock: item.currentStock,
+      capacity: item.capacity,
+      sensorMatch,
+    };
+  });
+
+  const shelves: PlanogramSlot[][] = [];
+  for (let i = 0; i < slots.length; i += shelfWidth) {
+    shelves.push(slots.slice(i, i + shelfWidth));
+  }
+
+  return shelves;
 }
