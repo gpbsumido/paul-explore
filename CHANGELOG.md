@@ -1,10 +1,13 @@
 # Changelog
 
-## 2026-07-02 - version 0.10.15
+## 2026-07-02 - version 0.10.16
 
 - fixed direct object mutation in `operator-data.ts` — `dismissAlert()` and `restockItems()` were mutating in-memory objects directly (`alert.acknowledged = true`, `item.currentStock = item.capacity`), which violates immutability and can cause stale reference bugs with React's diffing; both now return new objects via spread and replace entries in their respective maps/arrays
 - fixed shared `isDismissing` state in `AlertsTab` — previously a single boolean from `useDismissAlert()` was passed to every `AlertRow`, so dismissing one alert disabled all dismiss buttons; now tracks in-flight alert IDs via a `Set<string>` so only the specific row being dismissed shows "Dismissing..." and disables its button
-- bumped version to 0.10.15
+- fixed ARIA tab pattern in `StoreTabs` — tab buttons now have `id="tab-{id}"` and the tab panel's `aria-labelledby` references it, completing the `aria-controls`/`aria-labelledby` relationship
+- made `toAlertTrendData` deterministic — added optional `now: Date` parameter (defaults to `new Date()`) so tests can pass a fixed date instead of depending on wall-clock time
+- made `getConnectionQuality` deterministic — added optional `now: number` parameter (defaults to `Date.now()`) matching the pattern in `operator-freshness.ts`
+- bumped version to 0.10.16
 
 ## 2026-07-01 - version 0.10.14
 
