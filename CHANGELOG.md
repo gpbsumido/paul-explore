@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.20
+
+- wrapped chart transform calls in `useMemo` inside `FleetHealthChart`, `AlertTrendChart`, and `InventoryComparisonChart` — `toFleetHealthData`, `toAlertTrendData`, and `toInventoryComparisonData` were called inline on every render; now memoized on their respective props so they only recompute when the underlying data changes
+- bumped version to 0.10.20
+
 ## 2026-07-02 - version 0.10.19
 
 - fixed unstable `useMemo` deps in `OperatorDashboard` caused by `useQueries` returning a new array reference on every render — added `combine` callbacks that select just the `.data` arrays from each query result, so TanStack Query's `replaceEqualDeep` structural sharing keeps the reference stable between renders when no query data has actually changed; this stops the cascade where `alertsByStore` → `alertCounts` → `fleetStats` → `inventoryHealthByStore` → `visibleStores` all recalculated on every render
