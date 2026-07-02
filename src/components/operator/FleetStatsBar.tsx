@@ -36,7 +36,7 @@ function StatItem({ label, value, accent = "default" }: StatItemProps) {
  */
 export default function FleetStatsBar({ stats }: FleetStatsBarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-px rounded-xl border border-border bg-surface divide-x divide-border">
+    <div className="grid grid-cols-2 sm:grid-cols-4 rounded-xl border border-border bg-surface divide-x divide-border">
       <StatItem label="Total Stores" value={stats.totalStores} />
       <StatItem
         label="Needs Attention"

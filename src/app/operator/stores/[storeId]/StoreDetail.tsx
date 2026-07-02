@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense } from "react";
+import { motion } from "framer-motion";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
+import { fadeInUp, spring } from "@/lib/animations";
 import { ToastProvider } from "@/contexts/ToastContext";
 import StoreHeader from "@/components/operator/StoreHeader";
 import QuickActions from "@/components/operator/QuickActions";
@@ -42,13 +44,19 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
 
   return (
     <ToastProvider>
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6">
+      <motion.main
+        className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6"
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        transition={spring.smooth}
+      >
         <StoreHeader store={store} />
         <QuickActions storeId={storeId} />
         <Suspense>
           <StoreTabs storeId={storeId} />
         </Suspense>
-      </main>
+      </motion.main>
       <ToastNotification />
     </ToastProvider>
   );

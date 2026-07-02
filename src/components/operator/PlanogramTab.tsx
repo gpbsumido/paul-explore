@@ -74,12 +74,7 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
             <p className="text-[10px] font-medium uppercase tracking-wider text-muted mb-1.5">
               Shelf {shelfIndex + 1}
             </p>
-            <div
-              className="grid gap-2"
-              style={{
-                gridTemplateColumns: `repeat(${SHELF_WIDTH}, minmax(0, 1fr))`,
-              }}
-            >
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {shelf.map((slot, slotIndex) => (
                 <PlanogramSlot key={`${shelfIndex}-${slotIndex}`} slot={slot} />
               ))}
@@ -119,12 +114,7 @@ function PlanogramTabSkeleton() {
       {Array.from({ length: 2 }).map((_, row) => (
         <div key={row} className="space-y-1.5">
           <Bone style={{ height: 10, width: 48 }} />
-          <div
-            className="grid gap-2"
-            style={{
-              gridTemplateColumns: `repeat(${SHELF_WIDTH}, minmax(0, 1fr))`,
-            }}
-          >
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {Array.from({ length: SHELF_WIDTH }).map((_, col) => (
               <Bone
                 key={col}

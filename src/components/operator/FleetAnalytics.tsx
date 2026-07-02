@@ -65,7 +65,7 @@ export default function FleetAnalytics({
       <button
         type="button"
         onClick={toggle}
-        className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-surface-raised"
+        className="flex w-full items-center justify-between rounded-t-xl px-4 py-3 text-left transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-500"
         aria-expanded={!collapsed}
       >
         <span className="text-sm font-semibold">Fleet Analytics</span>
@@ -86,7 +86,7 @@ export default function FleetAnalytics({
 
       {!collapsed && (
         <div className="border-t border-border px-4 py-5">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
             <FleetHealthChart stores={stores} />
             <AlertTrendChart alerts={allAlerts} />
             <InventoryComparisonChart

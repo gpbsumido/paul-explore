@@ -59,7 +59,7 @@ export default function ActivityTab({ storeId }: ActivityTabProps) {
         <div className="flex justify-center pt-2">
           <button
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="rounded-md border border-border bg-surface-raised px-4 py-2 text-xs font-medium text-muted transition-colors hover:text-foreground"
+            className="rounded-md border border-border bg-surface-raised px-4 py-2 text-xs font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
             Load more
           </button>

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-01 - version 0.10.13
+
+- polished operator dashboard for accessibility, responsive design, and motion — added `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500` to all interactive elements across 13 operator components (AlertSummaryBanner filter buttons, StoreCard links, StoreFilters status pills, RefreshBar button, FleetAnalytics toggle, StoreTabs tab buttons, InventoryRow restock button, AlertsTab severity filters, AlertRow dismiss button, ActivityTab load-more button, QuickActions action buttons, ConfirmModal cancel/confirm buttons); FleetStatsBar now uses CSS grid `grid-cols-2 sm:grid-cols-4` so stats wrap into a 2x2 grid on mobile instead of a cramped single row; StoreTabs scrolls horizontally on mobile with hidden scrollbar (`overflow-x-auto`, `scrollbarWidth: none`) and `whitespace-nowrap` on tab buttons; FleetAnalytics charts stack full-width on mobile (`grid-cols-1 md:grid-cols-3`); PlanogramTab grid is responsive (`grid-cols-2 sm:grid-cols-4`) instead of hardcoded 4-column; added Framer Motion `fadeInUp` entrance animation with `spring.smooth` transition to both OperatorDashboard and StoreDetail page content
+
 ## 2026-07-01 - version 0.10.12
 
 - integrated operator dashboard into app navigation and feature hub — added "Operator Dashboard" card to `FeatureHub.tsx` with a mini-preview showing store status dots, inventory health bars, and health percentages; added `--color-feature-operator` design token (`#c4b5fd`, violet-300) to `tokens.css`; added "Operator" link with control-panel icon to `HeaderMenu.tsx` dropdown (visible on all pages, not gated behind auth); added "Fleet Operator" card with monitor icon to the landing page `FeaturesSection.tsx` grid

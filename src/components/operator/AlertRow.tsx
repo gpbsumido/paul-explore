@@ -34,7 +34,7 @@ export default function AlertRow({
       <button
         onClick={() => onDismiss(alert.id)}
         disabled={isDismissing}
-        className="shrink-0 rounded-md border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:text-foreground hover:border-foreground/20 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="shrink-0 rounded-md border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:text-foreground hover:border-foreground/20 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
       >
         {isDismissing ? "Dismissing..." : "Dismiss"}
       </button>

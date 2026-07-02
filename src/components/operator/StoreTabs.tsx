@@ -50,9 +50,10 @@ export default function StoreTabs({ storeId }: StoreTabsProps) {
     <div>
       {/* Tab bar */}
       <div
-        className="flex gap-1 border-b border-border"
+        className="flex gap-1 overflow-x-auto border-b border-border"
         role="tablist"
         aria-label="Store sections"
+        style={{ scrollbarWidth: "none" }}
       >
         {TABS.map((tab) => {
           const isActive = tab.id === activeTab;
@@ -63,7 +64,7 @@ export default function StoreTabs({ storeId }: StoreTabsProps) {
               aria-selected={isActive}
               aria-controls={`panel-${tab.id}`}
               onClick={() => setTab(tab.id)}
-              className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
+              className={`relative px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
                 isActive
                   ? "text-foreground"
                   : "text-muted hover:text-foreground"

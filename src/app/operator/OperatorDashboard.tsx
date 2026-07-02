@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useQueries } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
+import { fadeInUp, spring } from "@/lib/animations";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   sortStores,
@@ -129,7 +131,13 @@ export default function OperatorDashboard() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
+    <motion.main
+      className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6"
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      transition={spring.smooth}
+    >
       {/* Global refresh bar */}
       <RefreshBar />
 
@@ -178,7 +186,7 @@ export default function OperatorDashboard() {
           ))}
         </div>
       )}
-    </main>
+    </motion.main>
   );
 }
 
