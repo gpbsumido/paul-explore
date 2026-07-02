@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.31
+
+- unified duplicate `STATUS_CONFIG` objects from `StoreCard` and `StoreHeader` into a single export in `operator-detail.ts` -- the two copies had different shapes (`border` vs `bg` fields), now one config carries all fields both components need
+- bumped version to 0.10.31
+
 ## 2026-07-02 - version 0.10.30
 
 - added per-item restock feedback in `InventoryTab` and `InventoryRow` — previously `isRestocking` was a single global boolean so all rows showed "Restocking..." at once and there was no success indicator; now tracks in-flight and recently-restocked item IDs via sets, each row shows its own "Restocking..." state, and a green checkmark "Restocked" badge appears for 2 seconds after success

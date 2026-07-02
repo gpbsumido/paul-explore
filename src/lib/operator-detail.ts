@@ -7,6 +7,7 @@ import type {
   Alert,
   AlertSeverity,
   ActivityType,
+  StoreStatus,
 } from "@/types/operator";
 
 export type TabId = "inventory" | "alerts" | "activity" | "planogram";
@@ -22,6 +23,34 @@ export type InventorySummary = {
   needsRestock: number;
   fillPercentage: number;
 };
+
+export type StoreStatusConfig = {
+  label: string;
+  dot: string;
+  border: string;
+  bg: string;
+};
+
+export const STATUS_CONFIG: Record<StoreStatus, StoreStatusConfig> = {
+  online: {
+    label: "Online",
+    dot: "bg-success-500",
+    border: "",
+    bg: "bg-success-500/10",
+  },
+  degraded: {
+    label: "Degraded",
+    dot: "bg-warning-500",
+    border: "border-warning-400/40",
+    bg: "bg-warning-500/10",
+  },
+  offline: {
+    label: "Offline",
+    dot: "bg-error-500",
+    border: "border-error-400/40",
+    bg: "bg-error-500/10",
+  },
+} as const;
 
 export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "inventory", label: "Inventory" },
