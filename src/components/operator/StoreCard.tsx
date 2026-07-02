@@ -10,6 +10,7 @@ interface StoreCardProps {
   store: Store;
   alertCount: number;
   inventoryHealth: number;
+  hasQueryError?: boolean;
 }
 
 const STATUS_CONFIG = {
@@ -34,6 +35,7 @@ export default function StoreCard({
   store,
   alertCount,
   inventoryHealth,
+  hasQueryError = false,
 }: StoreCardProps) {
   const cfg = STATUS_CONFIG[store.status];
   const stale = isStaleData(store.lastPing);
@@ -96,9 +98,20 @@ export default function StoreCard({
         </div>
       </div>
 
-      {/* Footer: freshness */}
+      {/* Footer: freshness + error indicator */}
       <div className="flex items-center justify-between">
-        <FreshnessLabel lastPing={store.lastPing} />
+        <div className="flex items-center gap-2">
+          <FreshnessLabel lastPing={store.lastPing} />
+          {hasQueryError && (
+            <span
+              className="flex items-center gap-1 text-[11px] text-error-500"
+              title="Some data for this store failed to load"
+            >
+              <WarningTriangleIcon size={11} className="text-error-500" />
+              Data error
+            </span>
+          )}
+        </div>
         <span className="text-[11px] text-muted opacity-0 group-hover:opacity-100 transition-opacity">
           View details →
         </span>

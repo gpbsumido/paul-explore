@@ -50,6 +50,8 @@ export default function FleetHealthChart({ stores }: FleetHealthChartProps) {
                 borderRadius: 8,
                 fontSize: 12,
               }}
+              labelStyle={{ color: "var(--color-foreground)" }}
+              itemStyle={{ color: "var(--color-foreground)" }}
               formatter={(value, name) => [
                 `${value} store${value !== 1 ? "s" : ""}`,
                 String(name),

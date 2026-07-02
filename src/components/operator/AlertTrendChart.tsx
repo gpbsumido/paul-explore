@@ -72,6 +72,8 @@ export default function AlertTrendChart({ alerts }: AlertTrendChartProps) {
                 borderRadius: 8,
                 fontSize: 12,
               }}
+              labelStyle={{ color: "var(--color-foreground)" }}
+              itemStyle={{ color: "var(--color-foreground)" }}
               formatter={(value) => [
                 `${value} alert${value !== 1 ? "s" : ""}`,
                 "Count",

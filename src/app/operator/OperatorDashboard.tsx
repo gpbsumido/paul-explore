@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { fadeInUp, spring } from "@/lib/animations";
 import { queryKeys } from "@/lib/queryKeys";
@@ -26,6 +26,7 @@ import StoreFilters from "@/components/operator/StoreFilters";
  * without waterfall requests.
  */
 export default function OperatorDashboard() {
+  const queryClient = useQueryClient();
   const {
     stores,
     loading: storesLoading,
@@ -40,7 +41,7 @@ export default function OperatorDashboard() {
   // reference stable between renders when no query data has changed -- without
   // it useQueries returns a new result array every render, busting every
   // downstream useMemo.
-  const alertData = useQueries({
+  const alertResults = useQueries({
     queries: stores.map((s) => ({
       queryKey: queryKeys.operator.alerts(s.id),
       queryFn: async (): Promise<Alert[]> => {
@@ -52,11 +53,14 @@ export default function OperatorDashboard() {
       staleTime: 0,
       refetchInterval: 15_000,
     })),
-    combine: (results) => results.map((r) => r.data),
+    combine: (results) => ({
+      data: results.map((r) => r.data),
+      errors: results.map((r) => r.isError),
+    }),
   });
 
   // fan out inventory queries for every store (60s poll)
-  const inventoryData = useQueries({
+  const inventoryResults = useQueries({
     queries: stores.map((s) => ({
       queryKey: queryKeys.operator.inventory(s.id),
       queryFn: async (): Promise<InventoryItem[]> => {
@@ -68,27 +72,41 @@ export default function OperatorDashboard() {
       staleTime: 0,
       refetchInterval: 60_000,
     })),
-    combine: (results) => results.map((r) => r.data),
+    combine: (results) => ({
+      data: results.map((r) => r.data),
+      errors: results.map((r) => r.isError),
+    }),
   });
 
   // build lookup maps from the stable data arrays
   const alertsByStore = useMemo(() => {
     const map = new Map<string, readonly Alert[]>();
     stores.forEach((s, i) => {
-      const data = alertData[i];
+      const data = alertResults.data[i];
       if (data) map.set(s.id, data);
     });
     return map;
-  }, [stores, alertData]);
+  }, [stores, alertResults.data]);
 
   const inventoryByStore = useMemo(() => {
     const map = new Map<string, readonly InventoryItem[]>();
     stores.forEach((s, i) => {
-      const data = inventoryData[i];
+      const data = inventoryResults.data[i];
       if (data) map.set(s.id, data);
     });
     return map;
-  }, [stores, inventoryData]);
+  }, [stores, inventoryResults.data]);
+
+  // track which stores have failing sub-queries
+  const storeQueryErrors = useMemo(() => {
+    const set = new Set<string>();
+    stores.forEach((s, i) => {
+      if (alertResults.errors[i] || inventoryResults.errors[i]) {
+        set.add(s.id);
+      }
+    });
+    return set;
+  }, [stores, alertResults.errors, inventoryResults.errors]);
 
   const alertCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -132,6 +150,17 @@ export default function OperatorDashboard() {
     return (
       <div className="mx-auto max-w-5xl px-4 py-12 text-center">
         <p className="text-sm text-error-500">{storesError}</p>
+        <button
+          type="button"
+          className="mt-4 rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+          onClick={() =>
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.operator.stores(),
+            })
+          }
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -177,9 +206,23 @@ export default function OperatorDashboard() {
       {storesLoading && stores.length === 0 ? (
         <StoreGridSkeleton />
       ) : visibleStores.length === 0 ? (
-        <p className="py-12 text-center text-sm text-muted">
-          No stores match the current filters.
-        </p>
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted">
+            No stores match the current filters.
+          </p>
+          {(statusFilter !== "all" || search !== "") && (
+            <button
+              type="button"
+              className="mt-3 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              onClick={() => {
+                setStatusFilter("all");
+                setSearch("");
+              }}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleStores.map((store) => (
@@ -188,6 +231,7 @@ export default function OperatorDashboard() {
               store={store}
               alertCount={alertCounts.get(store.id) ?? 0}
               inventoryHealth={inventoryHealthByStore.get(store.id) ?? 0}
+              hasQueryError={storeQueryErrors.has(store.id)}
             />
           ))}
         </div>

@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.26
+
+- fixed unreadable tooltip text in dark mode across all three fleet analytics charts (`InventoryComparisonChart`, `FleetHealthChart`, `AlertTrendChart`) — `contentStyle.color` alone doesn't reach Recharts' inner text elements; replaced with `labelStyle` and `itemStyle` using `var(--color-foreground)` so both the tooltip title and value lines are readable in dark mode
+- bumped version to 0.10.26
+
+## 2026-07-02 - version 0.10.24
+
+- fixed silent error swallowing in `InventoryTab.handleRestock` — the `restockStore` promise had no `.catch()`, so a failed restock would optimistically roll back the UI but give the user no feedback; now catches the rejection and shows an error toast via `useToast`
+- bumped version to 0.10.24
+
+## 2026-07-02 - version 0.10.23
+
+- added "Clear filters" button to the empty store grid state in `OperatorDashboard` — resets both `statusFilter` and `search` to defaults; only renders when filters are actually active so it doesn't appear when the fleet is genuinely empty
+- bumped version to 0.10.23
+
+## 2026-07-02 - version 0.10.22
+
+- surfaced per-store sub-query failures in `OperatorDashboard` — the `useQueries` `combine` callbacks now track `isError` alongside `data`; a `storeQueryErrors` set identifies stores whose alert or inventory fetches failed, and `StoreCard` shows a subtle "Data error" indicator with a warning icon in the footer when `hasQueryError` is true
+- bumped version to 0.10.22
+
+## 2026-07-02 - version 0.10.21
+
+- added "Retry" button to the stores fetch error state in `OperatorDashboard` — previously a failed fetch showed only the error message with no way to recover; now calls `queryClient.invalidateQueries` on the stores query key so the user can re-trigger the fetch without refreshing the page
+- bumped version to 0.10.21
+
 ## 2026-07-02 - version 0.10.20
 
 - wrapped chart transform calls in `useMemo` inside `FleetHealthChart`, `AlertTrendChart`, and `InventoryComparisonChart` — `toFleetHealthData`, `toAlertTrendData`, and `toInventoryComparisonData` were called inline on every render; now memoized on their respective props so they only recompute when the underlying data changes
