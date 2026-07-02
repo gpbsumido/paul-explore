@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-01 - version 0.10.14
+
+- added operator dashboard thoughts page at `/thoughts/operator-dashboard` — design write-up covering tiered polling rationale (15s alerts, 30s stores, 60s inventory), optimistic update lifecycle, severity-first sorting UX, data freshness system (three-tier thresholds with deterministic `now` parameter), fleet analytics collapsible section, toast notification architecture (framework-agnostic `createToastStore` with `useSyncExternalStore` bridge), store detail tabs (inventory/alerts/activity/planogram with `?tab=` URL sync), and tradeoffs (in-memory data, per-store fan-out at scale, chart transform recomputation); includes future improvement discussion — WebSocket/SSE for sub-second alert delivery, push notifications for off-screen operators, historical anomaly detection, role-based multi-tenant auth, mobile-first field technician view, and geographic map overlay; both summary and iMessage chat views
+- updated README.md with Operator Dashboard feature section, architecture-map.md with thoughts route, and context INDEX.md with feature entry
+- bumped version to 0.10.14
+
 ## 2026-07-01 - version 0.10.13
 
 - polished operator dashboard for accessibility, responsive design, and motion — added `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500` to all interactive elements across 13 operator components (AlertSummaryBanner filter buttons, StoreCard links, StoreFilters status pills, RefreshBar button, FleetAnalytics toggle, StoreTabs tab buttons, InventoryRow restock button, AlertsTab severity filters, AlertRow dismiss button, ActivityTab load-more button, QuickActions action buttons, ConfirmModal cancel/confirm buttons); FleetStatsBar now uses CSS grid `grid-cols-2 sm:grid-cols-4` so stats wrap into a 2x2 grid on mobile instead of a cramped single row; StoreTabs scrolls horizontally on mobile with hidden scrollbar (`overflow-x-auto`, `scrollbarWidth: none`) and `whitespace-nowrap` on tab buttons; FleetAnalytics charts stack full-width on mobile (`grid-cols-1 md:grid-cols-3`); PlanogramTab grid is responsive (`grid-cols-2 sm:grid-cols-4`) instead of hardcoded 4-column; added Framer Motion `fadeInUp` entrance animation with `spring.smooth` transition to both OperatorDashboard and StoreDetail page content
