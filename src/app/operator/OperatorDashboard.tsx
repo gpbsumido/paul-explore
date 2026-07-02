@@ -14,6 +14,7 @@ import AlertSummaryBanner from "@/components/operator/AlertSummaryBanner";
 import FleetStatsBar from "@/components/operator/FleetStatsBar";
 import RefreshBar from "@/components/operator/RefreshBar";
 import StoreCard from "@/components/operator/StoreCard";
+import FleetAnalytics from "@/components/operator/FleetAnalytics";
 import StoreFilters from "@/components/operator/StoreFilters";
 
 /**
@@ -142,6 +143,13 @@ export default function OperatorDashboard() {
 
       {/* Fleet stats bar */}
       <FleetStatsBar stats={fleetStats} />
+
+      {/* Fleet analytics (collapsible charts) */}
+      <FleetAnalytics
+        stores={stores}
+        alertsByStore={alertsByStore}
+        inventoryByStore={inventoryByStore}
+      />
 
       {/* Filters */}
       <StoreFilters
