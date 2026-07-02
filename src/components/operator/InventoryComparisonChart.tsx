@@ -84,6 +84,8 @@ export default function InventoryComparisonChart({
                 borderRadius: 8,
                 fontSize: 12,
               }}
+              labelStyle={{ color: "var(--color-foreground)" }}
+              itemStyle={{ color: "var(--color-foreground)" }}
               formatter={(value) => [`${value}%`, "Health"]}
             />
             <Bar

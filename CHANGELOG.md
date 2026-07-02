@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.26
+
+- fixed unreadable tooltip text in dark mode across all three fleet analytics charts (`InventoryComparisonChart`, `FleetHealthChart`, `AlertTrendChart`) — `contentStyle.color` alone doesn't reach Recharts' inner text elements; replaced with `labelStyle` and `itemStyle` using `var(--color-foreground)` so both the tooltip title and value lines are readable in dark mode
+- bumped version to 0.10.26
+
 ## 2026-07-02 - version 0.10.24
 
 - fixed silent error swallowing in `InventoryTab.handleRestock` — the `restockStore` promise had no `.catch()`, so a failed restock would optimistically roll back the UI but give the user no feedback; now catches the rejection and shows an error toast via `useToast`
