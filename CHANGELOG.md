@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.19
+
+- fixed unstable `useMemo` deps in `OperatorDashboard` caused by `useQueries` returning a new array reference on every render — added `combine` callbacks that select just the `.data` arrays from each query result, so TanStack Query's `replaceEqualDeep` structural sharing keeps the reference stable between renders when no query data has actually changed; this stops the cascade where `alertsByStore` → `alertCounts` → `fleetStats` → `inventoryHealthByStore` → `visibleStores` all recalculated on every render
+- bumped version to 0.10.19
+
 ## 2026-07-02 - version 0.10.18
 
 - extracted inline SVG icons scattered across operator components into shared `src/components/operator/icons.tsx` — deduplicated WarningTriangle (was in StoreCard, SensorOfflineCallout, AlertSummaryBanner), RefreshIcon (was in QuickActions, RefreshBar); consolidated RestockIcon, CheckmarkIcon, CheckCircleIcon, ChevronDownIcon, OfflineXIcon, SignalBarsIcon as named exports with `size` and `className` props for flexible reuse
