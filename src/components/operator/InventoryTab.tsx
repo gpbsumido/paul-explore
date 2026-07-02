@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useOperatorInventory } from "@/hooks/useOperatorInventory";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { useRestockStore } from "@/hooks/useOperatorMutations";
+import { useToast } from "@/contexts/ToastContext";
 import { computeInventorySummary } from "@/lib/operator-detail";
 import InventorySummary from "./InventorySummary";
 import InventoryRow from "./InventoryRow";
@@ -22,11 +23,14 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
   const { items, loading, error } = useOperatorInventory(storeId);
   const { store } = useOperatorStore(storeId);
   const { restockStore, isRestocking } = useRestockStore();
+  const { addToast } = useToast();
 
   const summary = useMemo(() => computeInventorySummary(items), [items]);
 
   const handleRestock = (itemId: string) => {
-    restockStore({ storeId, itemIds: [itemId] });
+    restockStore({ storeId, itemIds: [itemId] }).catch(() => {
+      addToast({ message: "Failed to restock item", variant: "error" });
+    });
   };
 
   if (error) {

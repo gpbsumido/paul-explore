@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.24
+
+- fixed silent error swallowing in `InventoryTab.handleRestock` — the `restockStore` promise had no `.catch()`, so a failed restock would optimistically roll back the UI but give the user no feedback; now catches the rejection and shows an error toast via `useToast`
+- bumped version to 0.10.24
+
 ## 2026-07-02 - version 0.10.23
 
 - added "Clear filters" button to the empty store grid state in `OperatorDashboard` — resets both `statusFilter` and `search` to defaults; only renders when filters are actually active so it doesn't appear when the fleet is genuinely empty
