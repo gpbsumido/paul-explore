@@ -60,6 +60,7 @@ export default function StoreTabs({ storeId }: StoreTabsProps) {
           return (
             <button
               key={tab.id}
+              id={`tab-${tab.id}`}
               role="tab"
               aria-selected={isActive}
               aria-controls={`panel-${tab.id}`}
@@ -88,7 +89,7 @@ export default function StoreTabs({ storeId }: StoreTabsProps) {
       <div
         id={`panel-${activeTab}`}
         role="tabpanel"
-        aria-labelledby={activeTab}
+        aria-labelledby={`tab-${activeTab}`}
         className="py-6"
       >
         <TabContent tab={activeTab} storeId={storeId} />

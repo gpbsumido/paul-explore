@@ -55,8 +55,11 @@ export function parseTab(param: string | null): TabId {
  * Derives sensor connection quality from the lastPing ISO timestamp.
  * Strong = within 2 min, Weak = 2-5 min, Poor = 5-10 min, Offline = over 10 min.
  */
-export function getConnectionQuality(lastPing: string): ConnectionQuality {
-  const elapsed = Date.now() - new Date(lastPing).getTime();
+export function getConnectionQuality(
+  lastPing: string,
+  now: number = Date.now(),
+): ConnectionQuality {
+  const elapsed = now - new Date(lastPing).getTime();
 
   if (elapsed < WEAK_THRESHOLD_MS) return "strong";
   if (elapsed < POOR_THRESHOLD_MS) return "weak";
