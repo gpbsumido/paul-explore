@@ -120,6 +120,14 @@ const FEATURES: FeatureItem[] = [
     color: "#f9a8d4",
     thoughtsHref: "/thoughts/ketsup",
   },
+  {
+    id: "operator",
+    title: "Operator Dashboard",
+    description:
+      "Manage a MicroMart smart store fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
+    href: "/operator",
+    color: "#8b5cf6",
+  },
 ].reverse();
 
 const THOUGHTS: ThoughtItem[] = [
@@ -747,6 +755,51 @@ function KetsupPreview() {
   );
 }
 
+const OPERATOR_STORES = [
+  { name: "Lobby Fridge", status: "online" as const, health: 82 },
+  { name: "Break Room", status: "degraded" as const, health: 45 },
+  { name: "Cafeteria", status: "online" as const, health: 91 },
+];
+
+const STATUS_DOT: Record<string, string> = {
+  online: "#22c55e",
+  degraded: "#f59e0b",
+  offline: "#ef4444",
+};
+
+function OperatorPreview() {
+  return (
+    <div className="space-y-1.5">
+      {OPERATOR_STORES.map((s) => (
+        <div
+          key={s.name}
+          className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-1.5"
+        >
+          <div
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: STATUS_DOT[s.status] }}
+          />
+          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
+            {s.name}
+          </span>
+          <div className="h-1.5 w-8 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${s.health}%`,
+                backgroundColor: s.health > 60 ? "#22c55e" : "#f59e0b",
+              }}
+            />
+          </div>
+          <span className="shrink-0 tabular-nums text-[8px] text-black/40 dark:text-white/40">
+            {s.health}%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Maps feature.id to its design-token CSS variable name.
 const FEATURE_TOKEN: Record<string, string> = {
   nba: "--color-feature-nba",
@@ -761,6 +814,7 @@ const FEATURE_TOKEN: Record<string, string> = {
   vitals: "--color-feature-vitals",
   particles: "--color-feature-particles",
   ketsup: "--color-feature-ketsup",
+  operator: "--color-feature-operator",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
@@ -777,6 +831,7 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
   vitals: VitalsPreview,
   particles: ParticlesPreview,
   ketsup: KetsupPreview,
+  operator: OperatorPreview,
 };
 
 // ---- FeatureCard ----

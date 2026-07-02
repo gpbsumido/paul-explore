@@ -93,6 +93,15 @@ const IconGraph = () => (
   </svg>
 );
 
+/** Control panel monitor with indicator lights — operator dashboard */
+const IconOperator = () => (
+  <svg {...iconProps}>
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <path d="M8 21h8M12 17v4" />
+    <path d="M7 10h2M11 10h2M15 10h2" />
+  </svg>
+);
+
 /** Two overlapping image frames with a text line — social posts */
 const IconSocial = () => (
   <svg {...iconProps}>
@@ -290,6 +299,14 @@ export default function FeaturesSection() {
             transition={transition}
             featureToken="--color-feature-particles"
             href="/lab/particles"
+          />
+          <FeatureCard
+            icon={<IconOperator />}
+            title="Fleet Operator"
+            description="Real-time fleet monitoring for micro-retail stores — live status, alerts, inventory health, analytics charts, and per-store drill-down."
+            transition={transition}
+            featureToken="--color-feature-operator"
+            href="/operator"
           />
           <FeatureCard
             icon={<IconSocial />}
