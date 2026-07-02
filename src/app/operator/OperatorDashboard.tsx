@@ -206,9 +206,23 @@ export default function OperatorDashboard() {
       {storesLoading && stores.length === 0 ? (
         <StoreGridSkeleton />
       ) : visibleStores.length === 0 ? (
-        <p className="py-12 text-center text-sm text-muted">
-          No stores match the current filters.
-        </p>
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted">
+            No stores match the current filters.
+          </p>
+          {(statusFilter !== "all" || search !== "") && (
+            <button
+              type="button"
+              className="mt-3 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              onClick={() => {
+                setStatusFilter("all");
+                setSearch("");
+              }}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleStores.map((store) => (

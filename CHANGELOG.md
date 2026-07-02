@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.23
+
+- added "Clear filters" button to the empty store grid state in `OperatorDashboard` — resets both `statusFilter` and `search` to defaults; only renders when filters are actually active so it doesn't appear when the fleet is genuinely empty
+- bumped version to 0.10.23
+
 ## 2026-07-02 - version 0.10.22
 
 - surfaced per-store sub-query failures in `OperatorDashboard` — the `useQueries` `combine` callbacks now track `isError` alongside `data`; a `storeQueryErrors` set identifies stores whose alert or inventory fetches failed, and `StoreCard` shows a subtle "Data error" indicator with a warning icon in the footer when `hasQueryError` is true
