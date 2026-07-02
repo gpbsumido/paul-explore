@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.28
+
+- fixed alert banner filter callbacks in `OperatorDashboard` — `onFilterCritical` and `onFilterWarning` both set `statusFilter("degraded")` which is wrong (store status !== alert severity); replaced with a new `severityFilter` state that narrows visible stores to only those with unacknowledged alerts of the selected severity; shows a dismissible chip when active; "Clear filters" resets it too
+- bumped version to 0.10.28
+
 ## 2026-07-02 - version 0.10.27
 
 - added "Back to fleet" link above `StoreHeader` in `StoreDetail` — store detail page had no way to navigate back to the fleet dashboard without using browser back; now shows a subtle link at the top pointing to `/operator`
