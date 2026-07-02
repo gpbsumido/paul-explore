@@ -41,7 +41,7 @@ export default function OperatorDashboard() {
   // reference stable between renders when no query data has changed -- without
   // it useQueries returns a new result array every render, busting every
   // downstream useMemo.
-  const alertData = useQueries({
+  const alertResults = useQueries({
     queries: stores.map((s) => ({
       queryKey: queryKeys.operator.alerts(s.id),
       queryFn: async (): Promise<Alert[]> => {
@@ -53,11 +53,14 @@ export default function OperatorDashboard() {
       staleTime: 0,
       refetchInterval: 15_000,
     })),
-    combine: (results) => results.map((r) => r.data),
+    combine: (results) => ({
+      data: results.map((r) => r.data),
+      errors: results.map((r) => r.isError),
+    }),
   });
 
   // fan out inventory queries for every store (60s poll)
-  const inventoryData = useQueries({
+  const inventoryResults = useQueries({
     queries: stores.map((s) => ({
       queryKey: queryKeys.operator.inventory(s.id),
       queryFn: async (): Promise<InventoryItem[]> => {
@@ -69,27 +72,41 @@ export default function OperatorDashboard() {
       staleTime: 0,
       refetchInterval: 60_000,
     })),
-    combine: (results) => results.map((r) => r.data),
+    combine: (results) => ({
+      data: results.map((r) => r.data),
+      errors: results.map((r) => r.isError),
+    }),
   });
 
   // build lookup maps from the stable data arrays
   const alertsByStore = useMemo(() => {
     const map = new Map<string, readonly Alert[]>();
     stores.forEach((s, i) => {
-      const data = alertData[i];
+      const data = alertResults.data[i];
       if (data) map.set(s.id, data);
     });
     return map;
-  }, [stores, alertData]);
+  }, [stores, alertResults.data]);
 
   const inventoryByStore = useMemo(() => {
     const map = new Map<string, readonly InventoryItem[]>();
     stores.forEach((s, i) => {
-      const data = inventoryData[i];
+      const data = inventoryResults.data[i];
       if (data) map.set(s.id, data);
     });
     return map;
-  }, [stores, inventoryData]);
+  }, [stores, inventoryResults.data]);
+
+  // track which stores have failing sub-queries
+  const storeQueryErrors = useMemo(() => {
+    const set = new Set<string>();
+    stores.forEach((s, i) => {
+      if (alertResults.errors[i] || inventoryResults.errors[i]) {
+        set.add(s.id);
+      }
+    });
+    return set;
+  }, [stores, alertResults.errors, inventoryResults.errors]);
 
   const alertCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -200,6 +217,7 @@ export default function OperatorDashboard() {
               store={store}
               alertCount={alertCounts.get(store.id) ?? 0}
               inventoryHealth={inventoryHealthByStore.get(store.id) ?? 0}
+              hasQueryError={storeQueryErrors.has(store.id)}
             />
           ))}
         </div>

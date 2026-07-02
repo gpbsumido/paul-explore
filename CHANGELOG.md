@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.22
+
+- surfaced per-store sub-query failures in `OperatorDashboard` — the `useQueries` `combine` callbacks now track `isError` alongside `data`; a `storeQueryErrors` set identifies stores whose alert or inventory fetches failed, and `StoreCard` shows a subtle "Data error" indicator with a warning icon in the footer when `hasQueryError` is true
+- bumped version to 0.10.22
+
 ## 2026-07-02 - version 0.10.21
 
 - added "Retry" button to the stores fetch error state in `OperatorDashboard` — previously a failed fetch showed only the error message with no way to recover; now calls `queryClient.invalidateQueries` on the stores query key so the user can re-trigger the fetch without refreshing the page
