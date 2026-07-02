@@ -66,18 +66,7 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
 // Inline skeleton for client-side loading state
 // ---------------------------------------------------------------------------
 
-function Bone({ style }: { style?: React.CSSProperties }) {
-  return (
-    <div
-      style={{
-        background: "var(--color-surface-raised)",
-        borderRadius: 6,
-        animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
-        ...style,
-      }}
-    />
-  );
-}
+import Bone from "@/components/operator/Bone";
 
 function StoreDetailSkeleton() {
   return (

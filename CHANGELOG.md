@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.17
+
+- extracted shared `Bone` skeleton component to `src/components/operator/Bone.tsx` — was duplicated identically across 8 files (OperatorDashboard, StoreDetail, operator/loading, stores/[storeId]/loading, InventoryTab, AlertsTab, ActivityTab, PlanogramTab); all now import from the single source
+- bumped version to 0.10.17
+
 ## 2026-07-02 - version 0.10.16
 
 - fixed direct object mutation in `operator-data.ts` — `dismissAlert()` and `restockItems()` were mutating in-memory objects directly (`alert.acknowledged = true`, `item.currentStock = item.capacity`), which violates immutability and can cause stale reference bugs with React's diffing; both now return new objects via spread and replace entries in their respective maps/arrays
