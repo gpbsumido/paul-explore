@@ -81,11 +81,21 @@ export function getAlert(alertId: string): Alert | undefined {
 }
 
 export function dismissAlert(alertId: string): Alert | undefined {
-  const alert = allAlerts.get(alertId);
-  if (alert) {
-    alert.acknowledged = true;
+  const existing = allAlerts.get(alertId);
+  if (!existing) return undefined;
+
+  const updated = { ...existing, acknowledged: true };
+  allAlerts.set(alertId, updated);
+
+  const storeAlerts = alertsByStore.get(updated.storeId);
+  if (storeAlerts) {
+    alertsByStore.set(
+      updated.storeId,
+      storeAlerts.map((a) => (a.id === alertId ? updated : a)),
+    );
   }
-  return alert;
+
+  return updated;
 }
 
 export function restockItems(
@@ -95,13 +105,18 @@ export function restockItems(
   const inventory = inventoryByStore.get(storeId);
   if (!inventory) return undefined;
 
+  const targetIds = new Set(itemIds);
   const restocked: InventoryItem[] = [];
-  for (const item of inventory) {
-    if (itemIds.includes(item.id)) {
-      item.currentStock = item.capacity;
-      restocked.push(item);
+  const updatedInventory = inventory.map((item) => {
+    if (targetIds.has(item.id)) {
+      const updated = { ...item, currentStock: item.capacity };
+      restocked.push(updated);
+      return updated;
     }
-  }
+    return item;
+  });
+
+  inventoryByStore.set(storeId, updatedInventory);
 
   const activity = buildActivityEvent({
     storeId,

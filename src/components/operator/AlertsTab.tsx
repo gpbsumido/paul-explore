@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useOperatorAlerts } from "@/hooks/useOperatorAlerts";
 import { useDismissAlert } from "@/hooks/useOperatorMutations";
 import {
@@ -8,7 +8,6 @@ import {
   filterAlertsBySeverity,
   type AlertSeverityFilter,
 } from "@/lib/operator-detail";
-import type { AlertSeverity } from "@/types/operator";
 import AlertRow from "./AlertRow";
 
 interface AlertsTabProps {
@@ -32,18 +31,31 @@ const SEVERITY_FILTERS: readonly {
  */
 export default function AlertsTab({ storeId }: AlertsTabProps) {
   const { alerts, loading, error } = useOperatorAlerts(storeId);
-  const { dismissAlert, isDismissing } = useDismissAlert();
+  const { dismissAlert } = useDismissAlert();
   const [severityFilter, setSeverityFilter] =
     useState<AlertSeverityFilter>("all");
+  const [dismissingIds, setDismissingIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
 
   const visibleAlerts = useMemo(() => {
     const filtered = filterAlertsBySeverity(alerts, severityFilter);
     return sortAlertsBySeverity(filtered);
   }, [alerts, severityFilter]);
 
-  const handleDismiss = (alertId: string) => {
-    dismissAlert({ alertId, storeId });
-  };
+  const handleDismiss = useCallback(
+    (alertId: string) => {
+      setDismissingIds((prev) => new Set([...prev, alertId]));
+      dismissAlert({ alertId, storeId }).finally(() => {
+        setDismissingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(alertId);
+          return next;
+        });
+      });
+    },
+    [dismissAlert, storeId],
+  );
 
   if (error) {
     return <p className="text-sm text-error-500 py-4">{error}</p>;
@@ -110,7 +122,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
               key={alert.id}
               alert={alert}
               onDismiss={handleDismiss}
-              isDismissing={isDismissing}
+              isDismissing={dismissingIds.has(alert.id)}
             />
           ))}
         </div>
