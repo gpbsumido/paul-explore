@@ -3,6 +3,7 @@
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { useEffect, useReducer } from "react";
+import { RefreshIcon } from "./icons";
 
 /**
  * Global refresh bar shown at the top of the fleet overview. Displays when
@@ -41,19 +42,10 @@ export default function RefreshBar() {
         disabled={isFetching > 0}
         className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-raised px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
       >
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
+        <RefreshIcon
+          size={12}
           className={isFetching > 0 ? "animate-spin" : ""}
-          aria-hidden
-        >
-          <path d="M14 8A6 6 0 1 1 8 2" strokeLinecap="round" />
-          <path d="M8 0l3 2-3 2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        />
         {isFetching > 0 ? "Refreshing..." : "Refresh"}
       </button>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   AreaChart,
   Area,
@@ -21,7 +22,7 @@ interface AlertTrendChartProps {
  * see whether alert frequency is trending up or down.
  */
 export default function AlertTrendChart({ alerts }: AlertTrendChartProps) {
-  const data = toAlertTrendData(alerts);
+  const data = useMemo(() => toAlertTrendData(alerts), [alerts]);
 
   return (
     <div className="flex flex-col gap-3">

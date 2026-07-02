@@ -67,18 +67,7 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
 // Skeleton
 // ---------------------------------------------------------------------------
 
-function Bone({ style }: { style?: React.CSSProperties }) {
-  return (
-    <div
-      style={{
-        background: "var(--color-surface-raised)",
-        borderRadius: 6,
-        animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
-        ...style,
-      }}
-    />
-  );
-}
+import Bone from "./Bone";
 
 function InventoryTabSkeleton() {
   return (

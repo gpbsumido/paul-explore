@@ -4,6 +4,7 @@ import {
   getConnectionQuality,
   type ConnectionQuality as Quality,
 } from "@/lib/operator-detail";
+import { OfflineXIcon, SignalBarsIcon } from "./icons";
 
 interface ConnectionQualityProps {
   lastPing: string;
@@ -51,53 +52,7 @@ export default function ConnectionQuality({
 
   return (
     <span className={`inline-flex items-center gap-1.5 ${color}`} title={label}>
-      {offline ? (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          aria-hidden
-        >
-          <path d="M4 4l8 8M12 4l-8 8" />
-        </svg>
-      ) : (
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 16 16"
-          fill="currentColor"
-          aria-hidden
-        >
-          <rect
-            x="1"
-            y="11"
-            width="3"
-            height="4"
-            rx="0.5"
-            opacity={bars >= 1 ? 1 : 0.2}
-          />
-          <rect
-            x="6"
-            y="7"
-            width="3"
-            height="8"
-            rx="0.5"
-            opacity={bars >= 2 ? 1 : 0.2}
-          />
-          <rect
-            x="11"
-            y="3"
-            width="3"
-            height="12"
-            rx="0.5"
-            opacity={bars >= 3 ? 1 : 0.2}
-          />
-        </svg>
-      )}
+      {offline ? <OfflineXIcon /> : <SignalBarsIcon bars={bars} />}
       <span className="text-xs font-medium">{label}</span>
     </span>
   );

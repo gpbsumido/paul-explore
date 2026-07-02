@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.20
+
+- wrapped chart transform calls in `useMemo` inside `FleetHealthChart`, `AlertTrendChart`, and `InventoryComparisonChart` — `toFleetHealthData`, `toAlertTrendData`, and `toInventoryComparisonData` were called inline on every render; now memoized on their respective props so they only recompute when the underlying data changes
+- bumped version to 0.10.20
+
+## 2026-07-02 - version 0.10.19
+
+- fixed unstable `useMemo` deps in `OperatorDashboard` caused by `useQueries` returning a new array reference on every render — added `combine` callbacks that select just the `.data` arrays from each query result, so TanStack Query's `replaceEqualDeep` structural sharing keeps the reference stable between renders when no query data has actually changed; this stops the cascade where `alertsByStore` → `alertCounts` → `fleetStats` → `inventoryHealthByStore` → `visibleStores` all recalculated on every render
+- bumped version to 0.10.19
+
+## 2026-07-02 - version 0.10.18
+
+- extracted inline SVG icons scattered across operator components into shared `src/components/operator/icons.tsx` — deduplicated WarningTriangle (was in StoreCard, SensorOfflineCallout, AlertSummaryBanner), RefreshIcon (was in QuickActions, RefreshBar); consolidated RestockIcon, CheckmarkIcon, CheckCircleIcon, ChevronDownIcon, OfflineXIcon, SignalBarsIcon as named exports with `size` and `className` props for flexible reuse
+- bumped version to 0.10.18
+
+## 2026-07-02 - version 0.10.17
+
+- extracted shared `Bone` skeleton component to `src/components/operator/Bone.tsx` — was duplicated identically across 8 files (OperatorDashboard, StoreDetail, operator/loading, stores/[storeId]/loading, InventoryTab, AlertsTab, ActivityTab, PlanogramTab); all now import from the single source
+- bumped version to 0.10.17
+
 ## 2026-07-02 - version 0.10.16
 
 - fixed direct object mutation in `operator-data.ts` — `dismissAlert()` and `restockItems()` were mutating in-memory objects directly (`alert.acknowledged = true`, `item.currentStock = item.capacity`), which violates immutability and can cause stale reference bugs with React's diffing; both now return new objects via spread and replace entries in their respective maps/arrays

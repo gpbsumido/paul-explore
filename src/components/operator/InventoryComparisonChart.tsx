@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -34,8 +35,10 @@ export default function InventoryComparisonChart({
   stores,
   inventoryByStore,
 }: InventoryComparisonChartProps) {
-  const raw = toInventoryComparisonData(stores, inventoryByStore);
-  const data = raw.map((d) => ({ ...d, fill: healthColor(d.health) }));
+  const data = useMemo(() => {
+    const raw = toInventoryComparisonData(stores, inventoryByStore);
+    return raw.map((d) => ({ ...d, fill: healthColor(d.health) }));
+  }, [stores, inventoryByStore]);
 
   if (data.length === 0) {
     return (

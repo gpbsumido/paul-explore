@@ -35,8 +35,12 @@ export default function OperatorDashboard() {
   const [statusFilter, setStatusFilter] = useState<StoreStatus | "all">("all");
   const [search, setSearch] = useState("");
 
-  // fan out alert queries for every store (15s poll matches useOperatorAlerts)
-  const alertQueries = useQueries({
+  // fan out alert queries for every store (15s poll matches useOperatorAlerts).
+  // combine selects just the data arrays so structural sharing keeps the
+  // reference stable between renders when no query data has changed -- without
+  // it useQueries returns a new result array every render, busting every
+  // downstream useMemo.
+  const alertData = useQueries({
     queries: stores.map((s) => ({
       queryKey: queryKeys.operator.alerts(s.id),
       queryFn: async (): Promise<Alert[]> => {
@@ -48,10 +52,11 @@ export default function OperatorDashboard() {
       staleTime: 0,
       refetchInterval: 15_000,
     })),
+    combine: (results) => results.map((r) => r.data),
   });
 
   // fan out inventory queries for every store (60s poll)
-  const inventoryQueries = useQueries({
+  const inventoryData = useQueries({
     queries: stores.map((s) => ({
       queryKey: queryKeys.operator.inventory(s.id),
       queryFn: async (): Promise<InventoryItem[]> => {
@@ -63,26 +68,27 @@ export default function OperatorDashboard() {
       staleTime: 0,
       refetchInterval: 60_000,
     })),
+    combine: (results) => results.map((r) => r.data),
   });
 
-  // build lookup maps from the parallel queries
+  // build lookup maps from the stable data arrays
   const alertsByStore = useMemo(() => {
     const map = new Map<string, readonly Alert[]>();
     stores.forEach((s, i) => {
-      const data = alertQueries[i]?.data;
+      const data = alertData[i];
       if (data) map.set(s.id, data);
     });
     return map;
-  }, [stores, alertQueries]);
+  }, [stores, alertData]);
 
   const inventoryByStore = useMemo(() => {
     const map = new Map<string, readonly InventoryItem[]>();
     stores.forEach((s, i) => {
-      const data = inventoryQueries[i]?.data;
+      const data = inventoryData[i];
       if (data) map.set(s.id, data);
     });
     return map;
-  }, [stores, inventoryQueries]);
+  }, [stores, inventoryData]);
 
   const alertCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -194,25 +200,7 @@ export default function OperatorDashboard() {
 // Inline skeleton for the initial load state
 // ---------------------------------------------------------------------------
 
-function Bone({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <div
-      className={className}
-      style={{
-        background: "var(--color-surface-raised)",
-        borderRadius: 6,
-        animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
-        ...style,
-      }}
-    />
-  );
-}
+import Bone from "@/components/operator/Bone";
 
 function StoreCardSkeleton() {
   return (
