@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.27
+
+- added "Back to fleet" link above `StoreHeader` in `StoreDetail` — store detail page had no way to navigate back to the fleet dashboard without using browser back; now shows a subtle link at the top pointing to `/operator`
+- bumped version to 0.10.27
+
 ## 2026-07-02 - version 0.10.26
 
 - fixed unreadable tooltip text in dark mode across all three fleet analytics charts (`InventoryComparisonChart`, `FleetHealthChart`, `AlertTrendChart`) — `contentStyle.color` alone doesn't reach Recharts' inner text elements; replaced with `labelStyle` and `itemStyle` using `var(--color-foreground)` so both the tooltip title and value lines are readable in dark mode
