@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { fadeInUp, spring } from "@/lib/animations";
 import { queryKeys } from "@/lib/queryKeys";
@@ -26,6 +26,7 @@ import StoreFilters from "@/components/operator/StoreFilters";
  * without waterfall requests.
  */
 export default function OperatorDashboard() {
+  const queryClient = useQueryClient();
   const {
     stores,
     loading: storesLoading,
@@ -132,6 +133,17 @@ export default function OperatorDashboard() {
     return (
       <div className="mx-auto max-w-5xl px-4 py-12 text-center">
         <p className="text-sm text-error-500">{storesError}</p>
+        <button
+          type="button"
+          className="mt-4 rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+          onClick={() =>
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.operator.stores(),
+            })
+          }
+        >
+          Retry
+        </button>
       </div>
     );
   }

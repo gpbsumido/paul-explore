@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.21
+
+- added "Retry" button to the stores fetch error state in `OperatorDashboard` — previously a failed fetch showed only the error message with no way to recover; now calls `queryClient.invalidateQueries` on the stores query key so the user can re-trigger the fetch without refreshing the page
+- bumped version to 0.10.21
+
 ## 2026-07-02 - version 0.10.20
 
 - wrapped chart transform calls in `useMemo` inside `FleetHealthChart`, `AlertTrendChart`, and `InventoryComparisonChart` — `toFleetHealthData`, `toAlertTrendData`, and `toInventoryComparisonData` were called inline on every render; now memoized on their respective props so they only recompute when the underlying data changes
