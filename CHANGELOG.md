@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.32
+
+- moved `allAlerts` flat-array computation from `FleetAnalytics` up to `OperatorDashboard` -- `FleetAnalytics` was receiving `alertsByStore` only to flatten it via `useMemo`, but the parent already has all alert data; now `OperatorDashboard` computes the flat array once and passes it down as an `allAlerts` prop, removing the redundant transform from the child
+- bumped version to 0.10.32
+
 ## 2026-07-02 - version 0.10.31
 
 - unified duplicate `STATUS_CONFIG` objects from `StoreCard` and `StoreHeader` into a single export in `operator-detail.ts` -- the two copies had different shapes (`border` vs `bg` fields), now one config carries all fields both components need
