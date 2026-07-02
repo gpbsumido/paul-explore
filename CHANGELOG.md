@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.30
+
+- added per-item restock feedback in `InventoryTab` and `InventoryRow` — previously `isRestocking` was a single global boolean so all rows showed "Restocking..." at once and there was no success indicator; now tracks in-flight and recently-restocked item IDs via sets, each row shows its own "Restocking..." state, and a green checkmark "Restocked" badge appears for 2 seconds after success
+- bumped version to 0.10.30
+
 ## 2026-07-02 - version 0.10.29
 
 - added expand/collapse animation to `FleetAnalytics` — the chart section previously toggled instantly via conditional render; wrapped in `AnimatePresence` + `motion.div` with height and opacity animation (0.25s easeInOut) for a smooth transition
