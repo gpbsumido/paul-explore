@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.29
+
+- added expand/collapse animation to `FleetAnalytics` — the chart section previously toggled instantly via conditional render; wrapped in `AnimatePresence` + `motion.div` with height and opacity animation (0.25s easeInOut) for a smooth transition
+- bumped version to 0.10.29
+
 ## 2026-07-02 - version 0.10.28
 
 - fixed alert banner filter callbacks in `OperatorDashboard` — `onFilterCritical` and `onFilterWarning` both set `statusFilter("degraded")` which is wrong (store status !== alert severity); replaced with a new `severityFilter` state that narrows visible stores to only those with unacknowledged alerts of the selected severity; shows a dismissible chip when active; "Clear filters" resets it too
