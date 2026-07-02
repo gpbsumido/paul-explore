@@ -9,6 +9,7 @@ import {
   type AlertSeverityFilter,
 } from "@/lib/operator-detail";
 import AlertRow from "./AlertRow";
+import { CheckCircleIcon } from "./icons";
 
 interface AlertsTabProps {
   storeId: string;
@@ -90,28 +91,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
       {/* Alert list or empty state */}
       {visibleAlerts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface py-16 gap-3">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 16 16"
-            fill="none"
-            className="text-success-500"
-          >
-            <circle
-              cx="8"
-              cy="8"
-              r="7"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-            <path
-              d="M5 8l2 2 4-4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <CheckCircleIcon className="text-success-500" />
           <p className="text-sm font-medium text-foreground">All clear</p>
           <p className="text-xs text-muted">No active alerts for this store.</p>
         </div>

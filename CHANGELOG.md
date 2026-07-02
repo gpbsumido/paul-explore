@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.18
+
+- extracted inline SVG icons scattered across operator components into shared `src/components/operator/icons.tsx` — deduplicated WarningTriangle (was in StoreCard, SensorOfflineCallout, AlertSummaryBanner), RefreshIcon (was in QuickActions, RefreshBar); consolidated RestockIcon, CheckmarkIcon, CheckCircleIcon, ChevronDownIcon, OfflineXIcon, SignalBarsIcon as named exports with `size` and `className` props for flexible reuse
+- bumped version to 0.10.18
+
 ## 2026-07-02 - version 0.10.17
 
 - extracted shared `Bone` skeleton component to `src/components/operator/Bone.tsx` — was duplicated identically across 8 files (OperatorDashboard, StoreDetail, operator/loading, stores/[storeId]/loading, InventoryTab, AlertsTab, ActivityTab, PlanogramTab); all now import from the single source
