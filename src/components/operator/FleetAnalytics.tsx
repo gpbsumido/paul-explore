@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { Store, Alert, InventoryItem } from "@/types/operator";
 import FleetHealthChart from "./FleetHealthChart";
 import AlertTrendChart from "./AlertTrendChart";
@@ -75,18 +76,29 @@ export default function FleetAnalytics({
         />
       </button>
 
-      {!collapsed && (
-        <div className="border-t border-border px-4 py-5">
-          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
-            <FleetHealthChart stores={stores} />
-            <AlertTrendChart alerts={allAlerts} />
-            <InventoryComparisonChart
-              stores={stores}
-              inventoryByStore={inventoryByStore}
-            />
-          </div>
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.div
+            key="fleet-analytics-content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="border-t border-border px-4 py-5">
+              <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
+                <FleetHealthChart stores={stores} />
+                <AlertTrendChart alerts={allAlerts} />
+                <InventoryComparisonChart
+                  stores={stores}
+                  inventoryByStore={inventoryByStore}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

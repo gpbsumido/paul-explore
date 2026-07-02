@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.30
+
+- added per-item restock feedback in `InventoryTab` and `InventoryRow` — previously `isRestocking` was a single global boolean so all rows showed "Restocking..." at once and there was no success indicator; now tracks in-flight and recently-restocked item IDs via sets, each row shows its own "Restocking..." state, and a green checkmark "Restocked" badge appears for 2 seconds after success
+- bumped version to 0.10.30
+
+## 2026-07-02 - version 0.10.29
+
+- added expand/collapse animation to `FleetAnalytics` — the chart section previously toggled instantly via conditional render; wrapped in `AnimatePresence` + `motion.div` with height and opacity animation (0.25s easeInOut) for a smooth transition
+- bumped version to 0.10.29
+
+## 2026-07-02 - version 0.10.28
+
+- fixed alert banner filter callbacks in `OperatorDashboard` — `onFilterCritical` and `onFilterWarning` both set `statusFilter("degraded")` which is wrong (store status !== alert severity); replaced with a new `severityFilter` state that narrows visible stores to only those with unacknowledged alerts of the selected severity; shows a dismissible chip when active; "Clear filters" resets it too
+- bumped version to 0.10.28
+
+## 2026-07-02 - version 0.10.27
+
+- added "Back to fleet" link above `StoreHeader` in `StoreDetail` — store detail page had no way to navigate back to the fleet dashboard without using browser back; now shows a subtle link at the top pointing to `/operator`
+- bumped version to 0.10.27
+
 ## 2026-07-02 - version 0.10.26
 
 - fixed unreadable tooltip text in dark mode across all three fleet analytics charts (`InventoryComparisonChart`, `FleetHealthChart`, `AlertTrendChart`) — `contentStyle.color` alone doesn't reach Recharts' inner text elements; replaced with `labelStyle` and `itemStyle` using `var(--color-foreground)` so both the tooltip title and value lines are readable in dark mode

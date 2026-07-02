@@ -3,6 +3,7 @@
 import { formatDistanceToNow } from "date-fns";
 import type { InventoryItem } from "@/types/operator";
 import { categorizeStock, type StockStatus } from "@/lib/operator-detail";
+import { CheckmarkIcon } from "./icons";
 import StockBar from "./StockBar";
 import StockSparkline from "./StockSparkline";
 
@@ -10,6 +11,7 @@ interface InventoryRowProps {
   item: InventoryItem;
   onRestock: (itemId: string) => void;
   isRestocking: boolean;
+  isRestocked?: boolean;
 }
 
 const STATUS_BADGE: Record<StockStatus, { label: string; className: string }> =
@@ -48,6 +50,7 @@ export default function InventoryRow({
   item,
   onRestock,
   isRestocking,
+  isRestocked = false,
 }: InventoryRowProps) {
   const status = categorizeStock(item.currentStock, item.capacity);
   const badge = STATUS_BADGE[status];
@@ -90,13 +93,20 @@ export default function InventoryRow({
       </span>
 
       {/* Restock button */}
-      <button
-        onClick={() => onRestock(item.id)}
-        disabled={isRestocking || status === "healthy"}
-        className="shrink-0 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-      >
-        {isRestocking ? "Restocking..." : "Restock"}
-      </button>
+      {isRestocked ? (
+        <span className="shrink-0 flex items-center gap-1 rounded-md bg-success-500/10 px-3 py-1.5 text-xs font-medium text-success-600">
+          <CheckmarkIcon size={12} />
+          Restocked
+        </span>
+      ) : (
+        <button
+          onClick={() => onRestock(item.id)}
+          disabled={isRestocking || status === "healthy"}
+          className="shrink-0 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+        >
+          {isRestocking ? "Restocking..." : "Restock"}
+        </button>
+      )}
     </div>
   );
 }

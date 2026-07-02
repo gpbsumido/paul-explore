@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { useOperatorInventory } from "@/hooks/useOperatorInventory";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { useRestockStore } from "@/hooks/useOperatorMutations";
@@ -22,16 +22,45 @@ interface InventoryTabProps {
 export default function InventoryTab({ storeId }: InventoryTabProps) {
   const { items, loading, error } = useOperatorInventory(storeId);
   const { store } = useOperatorStore(storeId);
-  const { restockStore, isRestocking } = useRestockStore();
+  const { restockStore } = useRestockStore();
   const { addToast } = useToast();
+
+  const [restockingIds, setRestockingIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const [restockedIds, setRestockedIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
 
   const summary = useMemo(() => computeInventorySummary(items), [items]);
 
-  const handleRestock = (itemId: string) => {
-    restockStore({ storeId, itemIds: [itemId] }).catch(() => {
-      addToast({ message: "Failed to restock item", variant: "error" });
-    });
-  };
+  const handleRestock = useCallback(
+    (itemId: string) => {
+      setRestockingIds((prev) => new Set([...prev, itemId]));
+      restockStore({ storeId, itemIds: [itemId] })
+        .then(() => {
+          setRestockedIds((prev) => new Set([...prev, itemId]));
+          setTimeout(() => {
+            setRestockedIds((prev) => {
+              const next = new Set(prev);
+              next.delete(itemId);
+              return next;
+            });
+          }, 2000);
+        })
+        .catch(() => {
+          addToast({ message: "Failed to restock item", variant: "error" });
+        })
+        .finally(() => {
+          setRestockingIds((prev) => {
+            const next = new Set(prev);
+            next.delete(itemId);
+            return next;
+          });
+        });
+    },
+    [storeId, restockStore, addToast],
+  );
 
   if (error) {
     return <p className="text-sm text-error-500 py-4">{error}</p>;
@@ -59,7 +88,8 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
             key={item.id}
             item={item}
             onRestock={handleRestock}
-            isRestocking={isRestocking}
+            isRestocking={restockingIds.has(item.id)}
+            isRestocked={restockedIds.has(item.id)}
           />
         ))}
       </div>

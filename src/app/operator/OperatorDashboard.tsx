@@ -11,7 +11,12 @@ import {
   filterStores,
   computeFleetStats,
 } from "@/lib/operator-utils";
-import type { Alert, InventoryItem, StoreStatus } from "@/types/operator";
+import type {
+  Alert,
+  AlertSeverity,
+  InventoryItem,
+  StoreStatus,
+} from "@/types/operator";
 import AlertSummaryBanner from "@/components/operator/AlertSummaryBanner";
 import FleetStatsBar from "@/components/operator/FleetStatsBar";
 import RefreshBar from "@/components/operator/RefreshBar";
@@ -35,6 +40,9 @@ export default function OperatorDashboard() {
 
   const [statusFilter, setStatusFilter] = useState<StoreStatus | "all">("all");
   const [search, setSearch] = useState("");
+  const [severityFilter, setSeverityFilter] = useState<AlertSeverity | null>(
+    null,
+  );
 
   // fan out alert queries for every store (15s poll matches useOperatorAlerts).
   // combine selects just the data arrays so structural sharing keeps the
@@ -143,8 +151,23 @@ export default function OperatorDashboard() {
   // filter then sort
   const visibleStores = useMemo(() => {
     const filtered = filterStores(stores, { status: statusFilter, search });
-    return sortStores(filtered, alertCounts);
-  }, [stores, statusFilter, search, alertCounts]);
+    const bySeverity = severityFilter
+      ? filtered.filter((s) => {
+          const alerts = alertsByStore.get(s.id);
+          return alerts?.some(
+            (a) => !a.acknowledged && a.severity === severityFilter,
+          );
+        })
+      : filtered;
+    return sortStores(bySeverity, alertCounts);
+  }, [
+    stores,
+    statusFilter,
+    search,
+    alertCounts,
+    severityFilter,
+    alertsByStore,
+  ]);
 
   if (storesError) {
     return (
@@ -180,8 +203,8 @@ export default function OperatorDashboard() {
       <AlertSummaryBanner
         criticalCount={fleetStats.criticalAlerts}
         warningCount={fleetStats.warningAlerts}
-        onFilterCritical={() => setStatusFilter("degraded")}
-        onFilterWarning={() => setStatusFilter("degraded")}
+        onFilterCritical={() => setSeverityFilter("critical")}
+        onFilterWarning={() => setSeverityFilter("warning")}
       />
 
       {/* Fleet stats bar */}
@@ -202,6 +225,29 @@ export default function OperatorDashboard() {
         onSearchChange={setSearch}
       />
 
+      {/* Active severity filter chip */}
+      {severityFilter && (
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+              severityFilter === "critical"
+                ? "bg-error-100 text-error-700 dark:bg-error-950/40 dark:text-error-400"
+                : "bg-warning-100 text-warning-700 dark:bg-warning-950/40 dark:text-warning-400"
+            }`}
+          >
+            {severityFilter} alerts only
+            <button
+              type="button"
+              className="ml-0.5 hover:opacity-70 transition-opacity"
+              aria-label="Clear severity filter"
+              onClick={() => setSeverityFilter(null)}
+            >
+              ×
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* Store card grid */}
       {storesLoading && stores.length === 0 ? (
         <StoreGridSkeleton />
@@ -210,13 +256,14 @@ export default function OperatorDashboard() {
           <p className="text-sm text-muted">
             No stores match the current filters.
           </p>
-          {(statusFilter !== "all" || search !== "") && (
+          {(statusFilter !== "all" || search !== "" || severityFilter) && (
             <button
               type="button"
               className="mt-3 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
               onClick={() => {
                 setStatusFilter("all");
                 setSearch("");
+                setSeverityFilter(null);
               }}
             >
               Clear filters
