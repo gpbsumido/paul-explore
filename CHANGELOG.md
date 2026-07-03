@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-03 - version 0.11.5
+
+- added a not-found page for when we navigate to pages that don't exist
+
 ## 2026-07-03 - version 0.11.4
 
 - added Stacks & Queues topic page at `/learn/stacks-queues` -- side-by-side interactive Stack (LIFO) and Queue (FIFO) with push/pop and enqueue/dequeue controls using spring-animated blocks via AnimatePresence, Valid Parentheses demo with preset pills scanning characters left to right while a stack visualization grows/shrinks with push/pop/mismatch highlighting, "when to use which" left-border callout with two concise lists, two stacked code templates (valid parentheses stack, BFS queue), "spot this pattern" callout with O(n) time/O(n) space; follows Visual Style Guide
