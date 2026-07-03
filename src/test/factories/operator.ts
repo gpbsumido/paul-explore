@@ -70,7 +70,7 @@ export function buildStore(overrides: Partial<Store> = {}): Store {
     location: STORE_LOCATIONS[idx],
     status: "online",
     temperature: Number((2 + Math.random() * 4).toFixed(1)),
-    lastPing: recentTimestamp(Math.random() * 2),
+    lastPing: recentTimestamp(Math.random() / 60),
     uptime: Number((95 + Math.random() * 5).toFixed(1)),
     revenue24h: Number((50 + Math.random() * 200).toFixed(2)),
     ...overrides,

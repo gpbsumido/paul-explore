@@ -345,6 +345,216 @@ export default function OperatorDashboardContent() {
                 inputs, and returns new values — no side effects, no internal
                 state.
               </p>
+              <p className="mt-3 text-muted">
+                One thing that surprised us: Next.js bundles each route handler
+                independently, so a plain module-level variable in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-data.ts
+                </code>{" "}
+                ended up as a separate instance per route. The dismiss route
+                updated its copy of the alerts map, but the alerts GET route
+                read from a different copy where nothing had changed. The fix
+                was to attach the data store to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  globalThis
+                </code>{" "}
+                behind a singleton accessor — the same pattern the Next.js docs
+                recommend for Prisma clients in development mode. Every route
+                handler now shares the same maps regardless of bundling.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">The self-review</h2>
+              <p className="text-muted">
+                After the feature was fully built and working, I went back
+                through it the way I&apos;d review someone else&apos;s PR. Not
+                looking for &quot;does it work&quot; — the tests answer that.
+                Looking for &quot;what will bite us in six months.&quot; I
+                audited in order of severity: correctness bugs first, then
+                performance, then UX gaps, then code quality, then test
+                coverage.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Correctness
+              </h3>
+              <p className="text-muted">
+                The in-memory data layer was mutating objects directly —{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  alert.acknowledged = true
+                </code>{" "}
+                instead of returning a new object. Not a visible bug in demo
+                mode, but in production React&apos;s diffing relies on reference
+                identity. If the object reference doesn&apos;t change, React
+                doesn&apos;t re-render, and the UI gets out of sync with the
+                data. Fixed by returning new objects from every mutation.
+              </p>
+              <p className="mt-3 text-muted">
+                The dismiss button had shared loading state across all alert
+                rows. Dismissing one alert disabled the button on every alert in
+                the list. Fixed by tracking in-flight alert IDs in a Set so each
+                row manages its own state independently.
+              </p>
+              <p className="mt-3 text-muted">
+                Two time-dependent functions —{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  getConnectionQuality
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  toAlertTrendData
+                </code>{" "}
+                — called{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Date.now()
+                </code>{" "}
+                internally instead of accepting a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  now
+                </code>{" "}
+                parameter. Every other freshness function in the codebase
+                already took an injectable time value for deterministic testing.
+                These two were the inconsistent ones. Fixed to match the
+                pattern.
+              </p>
+              <p className="mt-3 text-muted">
+                A subtler one: the factory generated{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  lastPing
+                </code>{" "}
+                timestamps 0-2 hours in the past at module load time, but the
+                connection quality thresholds mark anything over 10 minutes as
+                offline. So every store drifted into &quot;Offline&quot; signal
+                and triggered sensor offline callouts as the dev server ran.
+                Fixed by recomputing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  lastPing
+                </code>{" "}
+                relative to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Date.now()
+                </code>{" "}
+                on every read from the store accessors, so demo data never goes
+                stale regardless of how long the server has been running.
+              </p>
+              <p className="mt-3 text-muted">
+                The trickiest one: dismissing an alert would vanish it
+                momentarily (the optimistic update worked) then it would pop
+                right back on the next poll. The dismiss PATCH route and the
+                alerts GET route each got their own instance of{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-data.ts
+                </code>{" "}
+                because Next.js bundles route handlers independently. So the
+                dismiss mutated one copy of the in-memory map while the poll
+                read from a separate copy where the alert was never dismissed.
+                Fixed by attaching the data store to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  globalThis
+                </code>{" "}
+                behind a singleton accessor — the same pattern Next.js docs
+                recommend for Prisma clients in dev mode.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Performance
+              </h3>
+              <p className="text-muted">
+                The fleet overview was making 2N+1 parallel requests per poll
+                cycle — one alert query and one inventory query per store, plus
+                the store list. At 6 stores that&apos;s 13 requests. At 30
+                stores it&apos;s 61. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useMemo
+                </code>{" "}
+                that aggregated query results had unstable dependencies — the
+                query result arrays got new references on every render — so the
+                memo ran every render anyway.
+              </p>
+              <p className="mt-3 text-muted">
+                Replaced the entire fan-out with a single{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/operator/fleet-summary
+                </code>{" "}
+                endpoint that returns aggregated alert counts, inventory health,
+                and fleet stats per store in one request. The dashboard went
+                from N parallel queries to 1. Chart transforms that were
+                recomputing on every render got wrapped in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useMemo
+                </code>{" "}
+                with stable dependencies.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                UX gaps
+              </h3>
+              <p className="text-muted">
+                When the stores fetch failed, the error state was a dead end —
+                no retry button, no way to recover without reloading the page.
+                Individual store sub-query failures were completely silent; the
+                store card just showed zero alerts. Empty search results
+                didn&apos;t suggest clearing filters. The restock button had no
+                per-item feedback — all rows showed &quot;Restocking...&quot; at
+                once and there was no success indicator after completion.
+              </p>
+              <p className="mt-3 text-muted">
+                Each of these is the kind of thing that works fine in a demo but
+                would frustrate a real operator. Added retry buttons on error
+                states, per-store error indicators on cards, &quot;clear
+                filters&quot; in empty states, and per-item restock feedback
+                with a brief success checkmark after completion. Also added the
+                analytics expand/collapse animation that was missing.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Code quality
+              </h3>
+              <p className="text-muted">
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Bone
+                </code>{" "}
+                skeleton component was copy-pasted into four files.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  STATUS_CONFIG
+                </code>{" "}
+                was defined twice with different shapes. Inline SVG icons were
+                scattered across components.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  FleetAnalytics
+                </code>{" "}
+                was flattening an alert map that the parent already had in flat
+                form. None of these were bugs, but each one makes the next
+                developer slower. Extracted shared components, unified configs,
+                pushed transforms to where the data naturally lives.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Testing
+              </h3>
+              <p className="text-muted">
+                The original test suite covered utility functions well but had
+                gaps at the integration level. No test for the fleet overview
+                rendering with real data and verifying sort order. No tests for
+                error or empty states in tab components. No test for the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  RefreshBar
+                </code>{" "}
+                reading from the query cache. The restock rollback test only
+                asserted the final state — a mutant that removed the optimistic
+                update entirely would still pass because the stock level never
+                changed from its original value.
+              </p>
+              <p className="mt-3 text-muted">
+                Backfilled all four gaps. The rollback test was the interesting
+                one — it now verifies the optimistic update fires first (stock
+                jumps to capacity) and then verifies it reverts after the 500
+                response. That&apos;s the difference between &quot;the final
+                state is correct&quot; and &quot;the rollback mechanism actually
+                works.&quot;
+              </p>
             </section>
 
             <section>
@@ -442,24 +652,28 @@ export default function OperatorDashboardContent() {
                 long-running scenarios or cross-session state. The tradeoff was
                 intentional — wiring up a real database for demo data would have
                 added deployment complexity without adding much to the frontend
-                story.
-              </p>
-              <p className="mt-3 text-muted">
-                The per-store fan-out pattern (parallel queries for alerts and
-                inventory for every store in the fleet) works at 10-20 stores
-                but would be expensive at 200. A real backend would aggregate
-                fleet stats server-side and return a single summary, with
-                per-store detail fetched only when the operator drills in.
-              </p>
-              <p className="mt-3 text-muted">
-                The chart data transforms recompute on every render from raw
-                data rather than caching intermediate results. At the current
-                scale this is invisible, but if the fleet grew large the chart
-                section would benefit from{" "}
+                story. One gotcha that came up: static{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useMemo
+                  lastPing
                 </code>{" "}
-                on the transform outputs.
+                timestamps generated at module load time drifted past the
+                freshness thresholds as the server ran, making every store show
+                &quot;Offline.&quot; The fix was to recompute timestamps
+                relative to now on every read, so the demo data stays realistic
+                regardless of server uptime.
+              </p>
+              <p className="mt-3 text-muted">
+                Two tradeoffs from the initial build have since been resolved.
+                The per-store fan-out pattern (N parallel queries for alerts and
+                inventory) was replaced by a single{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/operator/fleet-summary
+                </code>{" "}
+                endpoint that returns aggregated data in one request. The chart
+                transforms that recomputed on every render are now memoized with
+                stable dependencies. Both were acceptable at demo scale but
+                would have been real problems at fleet size, so fixing them
+                early was the right call.
               </p>
             </section>
           </div>
@@ -642,6 +856,130 @@ export default function OperatorDashboardContent() {
               <Sent pos="last">
                 chart transforms recompute on every render. invisible at this
                 scale but would need useMemo at fleet size
+              </Sent>
+
+              <Timestamp>2:40 PM</Timestamp>
+
+              <Received>
+                did you go back and review it after building it
+              </Received>
+
+              <Sent pos="first">
+                yeah. went through it the way i&apos;d review someone
+                else&apos;s PR. not &quot;does it work&quot; — the tests answer
+                that. more like &quot;what will bite us in six months&quot;
+              </Sent>
+              <Sent pos="last">
+                audited in severity order: correctness bugs, performance, UX
+                gaps, code quality, test coverage
+              </Sent>
+
+              <Received>what did you find</Received>
+
+              <Sent pos="first">
+                correctness first. the data layer was mutating objects directly
+                instead of returning new ones. react&apos;s diffing relies on
+                reference identity so that&apos;s a subtle re-render bug waiting
+                to happen
+              </Sent>
+              <Sent pos="middle">
+                the dismiss button shared loading state across all rows. dismiss
+                one alert, every dismiss button in the list disables. fixed it
+                with a Set of in-flight IDs so each row tracks its own state
+              </Sent>
+              <Sent pos="last">
+                two time functions called Date.now() internally instead of
+                taking an injectable now param. every other freshness function
+                already did it right — these two were the inconsistent ones
+              </Sent>
+
+              <Timestamp>2:46 PM</Timestamp>
+
+              <Received>what about performance</Received>
+
+              <Sent pos="first">
+                the big one. fleet overview was making 2N+1 requests per poll
+                cycle — alert query + inventory query per store plus the store
+                list. at 6 stores that&apos;s 13 requests. at 30 stores
+                it&apos;s 61
+              </Sent>
+              <Sent pos="middle">
+                replaced the whole fan-out with a single fleet-summary endpoint.
+                one request returns everything the dashboard needs. went from N
+                parallel queries to 1
+              </Sent>
+              <Sent pos="last">
+                chart transforms were recomputing every render too. wrapped them
+                in useMemo with stable deps
+              </Sent>
+
+              <Received>and UX</Received>
+
+              <Sent pos="first">
+                error states were dead ends. no retry button on fetch failure.
+                individual store query failures were completely silent — card
+                just showed zero alerts. empty search results didn&apos;t
+                suggest clearing filters
+              </Sent>
+              <Sent pos="last">
+                the restock button had no per-item feedback. all rows showed
+                &quot;Restocking...&quot; at once. now each row tracks its own
+                state and shows a checkmark on success
+              </Sent>
+
+              <Timestamp>2:52 PM</Timestamp>
+
+              <Received>
+                wait all the stores are showing offline on the detail page
+              </Received>
+
+              <Sent pos="first">
+                oh yeah. the factory generates lastPing timestamps 0-2 hours in
+                the past at module load time. but the connection quality
+                thresholds mark anything over 10 minutes as offline. so they
+                drift past the threshold as the server runs
+              </Sent>
+              <Sent pos="last">
+                fixed it by recomputing lastPing relative to Date.now() on every
+                read from the store accessors. online stores get a 0-60 second
+                old ping, degraded store gets 7 minutes. demo data never goes
+                stale now no matter how long the server&apos;s been up
+              </Sent>
+
+              <Received>
+                dismissing alerts is broken too. it vanishes then pops right
+                back
+              </Received>
+
+              <Sent pos="first">
+                different bug, same root cause. Next.js bundles each route
+                handler separately so the dismiss PATCH route and the alerts GET
+                route had their own copies of the in-memory data store.
+                dismissing an alert updated one copy, but the 15-second poll
+                read from the other copy where nothing changed
+              </Sent>
+              <Sent pos="last">
+                moved the data store onto globalThis behind a singleton
+                accessor. same pattern the Next.js docs recommend for Prisma
+                clients. every route handler shares the same maps now regardless
+                of bundling
+              </Sent>
+
+              <Timestamp>2:55 PM</Timestamp>
+
+              <Received>testing gaps?</Received>
+
+              <Sent pos="first">
+                the restock rollback test was the interesting one. it only
+                checked the final state — stock is 3 after the error. but a
+                mutant that removes the optimistic update entirely still passes
+                because the stock never changed from 3 in the first place
+              </Sent>
+              <Sent pos="last">
+                now it verifies the optimistic update fires first (stock jumps
+                to capacity), then verifies the rollback reverts it. that&apos;s
+                the difference between &quot;final state is correct&quot; and
+                &quot;the mechanism actually works&quot;
               </Sent>
 
               <div className={styles.typingDots}>

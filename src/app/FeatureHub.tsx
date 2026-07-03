@@ -127,6 +127,7 @@ const FEATURES: FeatureItem[] = [
       "Manage a MicroMart smart store fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
     href: "/operator",
     color: "#8b5cf6",
+    thoughtsHref: "/thoughts/operator-dashboard",
   },
 ].reverse();
 
@@ -242,6 +243,13 @@ const THOUGHTS: ThoughtItem[] = [
     preview:
       "Why links opened in Facebook Messenger showed a logged-in hub for unauthenticated users, and the two-line fix",
     color: "#3b82f6",
+  },
+  {
+    title: "Operator Dashboard",
+    href: "/thoughts/operator-dashboard",
+    preview:
+      "Fleet management with tiered polling, optimistic updates, data freshness, and a globalThis singleton for in-memory state",
+    color: "#8b5cf6",
   },
 ].reverse();
 
