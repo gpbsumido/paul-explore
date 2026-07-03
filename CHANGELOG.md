@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-03 - version 0.11.1
+
+- added Two Pointers topic page at `/learn/two-pointers` -- first topic page, sets the quality bar for all others; two interactive demos (Two Sum on sorted array with target selector, Remove Duplicates in-place with read/write pointers), step/play/reset controls, narration per step, code template, "spot this pattern" box, prev/next navigation; follows the Visual Style Guide with dot-grid background, thin-bordered cells, spring-animated pointer indicators, left-border accent callouts
+- bumped version to 0.11.1
+
 ## 2026-07-03 - version 0.11.0
 
 - added `/learn` hub page with 13 algorithm and frontend pattern topics grouped by category (Core Algorithms, Frontend Patterns) -- editorial design with dot-grid background, monospace numbering (01-13), no card borders, unique geometric SVG marks per topic that animate on hover to demonstrate each concept (two pointers converge, sliding window slides, DP grid fills in a diagonal wave, etc.)
