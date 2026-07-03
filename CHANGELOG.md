@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.35
+
+- added component-level tests for error and empty states across all four store detail tabs (InventoryTab, AlertsTab, ActivityTab, PlanogramTab) -- previously only utility function tests existed; new tests use MSW to return 500s and empty arrays, verifying each tab renders the correct error message on fetch failure and the appropriate empty state when no data exists
+- bumped version to 0.10.35
+
 ## 2026-07-02 - version 0.10.34
 
 - added integration test for `OperatorDashboard` render with MSW -- verifies store cards appear for every store in the fleet, checks worst-first sort order (offline > degraded with alerts > online), asserts per-card alert count and inventory health from fleet summary, and confirms fleet stats bar renders
