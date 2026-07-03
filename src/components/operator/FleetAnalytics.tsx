@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Store, Alert, InventoryItem } from "@/types/operator";
 import FleetHealthChart from "./FleetHealthChart";
@@ -10,7 +10,7 @@ import { ChevronDownIcon } from "./icons";
 
 interface FleetAnalyticsProps {
   stores: readonly Store[];
-  alertsByStore: ReadonlyMap<string, readonly Alert[]>;
+  allAlerts: readonly Alert[];
   inventoryByStore: ReadonlyMap<string, readonly InventoryItem[]>;
 }
 
@@ -37,7 +37,7 @@ function readCollapsed(): boolean {
  */
 export default function FleetAnalytics({
   stores,
-  alertsByStore,
+  allAlerts,
   inventoryByStore,
 }: FleetAnalyticsProps) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
@@ -53,14 +53,6 @@ export default function FleetAnalytics({
       return next;
     });
   }, []);
-
-  const allAlerts = useMemo(() => {
-    const result: Alert[] = [];
-    for (const alerts of alertsByStore.values()) {
-      result.push(...alerts);
-    }
-    return result;
-  }, [alertsByStore]);
 
   return (
     <section className="rounded-xl border border-border bg-surface">

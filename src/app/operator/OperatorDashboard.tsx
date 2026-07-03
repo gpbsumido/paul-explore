@@ -116,6 +116,14 @@ export default function OperatorDashboard() {
     return set;
   }, [stores, alertResults.errors, inventoryResults.errors]);
 
+  const allAlerts = useMemo(() => {
+    const result: Alert[] = [];
+    for (const alerts of alertsByStore.values()) {
+      result.push(...alerts);
+    }
+    return result;
+  }, [alertsByStore]);
+
   const alertCounts = useMemo(() => {
     const map = new Map<string, number>();
     for (const [storeId, alerts] of alertsByStore) {
@@ -213,7 +221,7 @@ export default function OperatorDashboard() {
       {/* Fleet analytics (collapsible charts) */}
       <FleetAnalytics
         stores={stores}
-        alertsByStore={alertsByStore}
+        allAlerts={allAlerts}
         inventoryByStore={inventoryByStore}
       />
 

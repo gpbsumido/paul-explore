@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { Store } from "@/types/operator";
+import { STATUS_CONFIG } from "@/lib/operator-detail";
 import { isStaleData } from "@/lib/operator-freshness";
 import FreshnessLabel from "./FreshnessLabel";
 import { WarningTriangleIcon } from "./icons";
@@ -12,20 +13,6 @@ interface StoreCardProps {
   inventoryHealth: number;
   hasQueryError?: boolean;
 }
-
-const STATUS_CONFIG = {
-  online: { label: "Online", dot: "bg-success-500", border: "" },
-  degraded: {
-    label: "Degraded",
-    dot: "bg-warning-500",
-    border: "border-warning-400/40",
-  },
-  offline: {
-    label: "Offline",
-    dot: "bg-error-500",
-    border: "border-error-400/40",
-  },
-} as const;
 
 /**
  * Fleet overview card for a single store. Shows status, location, alert count,
