@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.36
+
+- added test for `RefreshBar` "last refreshed" display -- verifies the component reads `dataUpdatedAt` timestamps from the operator query cache and renders the correct relative time via `formatDistanceToNow`, picks the most recent entry when multiple operator queries exist, and falls back to "less than a minute ago" when no queries are cached
+- bumped version to 0.10.36
+
 ## 2026-07-02 - version 0.10.35
 
 - added component-level tests for error and empty states across all four store detail tabs (InventoryTab, AlertsTab, ActivityTab, PlanogramTab) -- previously only utility function tests existed; new tests use MSW to return 500s and empty arrays, verifying each tab renders the correct error message on fetch failure and the appropriate empty state when no data exists
