@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.34
+
+- added integration test for `OperatorDashboard` render with MSW -- verifies store cards appear for every store in the fleet, checks worst-first sort order (offline > degraded with alerts > online), asserts per-card alert count and inventory health from fleet summary, and confirms fleet stats bar renders
+- bumped version to 0.10.34
+
 ## 2026-07-02 - version 0.10.33
 
 - added `/api/operator/fleet-summary` endpoint that returns aggregated alert counts, inventory health, fleet stats, and alert trend data per store in a single request -- the dashboard previously fanned out 2N parallel queries (alerts + inventory per store, each polling independently), which doesn't scale past ~20 stores; now the fleet overview makes 1 request every 15s regardless of fleet size
