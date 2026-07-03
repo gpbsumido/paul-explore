@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ---------------------------------------------------------------------------
@@ -388,63 +389,87 @@ const VARIANTS: Variant[] = [
 // Not Found page
 // ---------------------------------------------------------------------------
 
+const emptySubscribe = () => () => {};
+
+function useClientOnly() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 export default function NotFound() {
+  const mounted = useClientOnly();
+  const router = useRouter();
   const [variantIndex] = useState(() =>
     Math.floor(Math.random() * VARIANTS.length),
   );
+
+  const goBack = useCallback(() => router.back(), [router]);
 
   const variant = VARIANTS[variantIndex];
 
   return (
     <div
       className="flex min-h-dvh items-center justify-center bg-background px-4"
-      style={{ backgroundColor: variant.bg }}
+      style={mounted ? { backgroundColor: variant.bg } : undefined}
     >
-      <div className="max-w-sm text-center">
-        <AnimatePresence>
-          <motion.div
-            key={variantIndex}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            {variant.visual(variant.color)}
-
-            <motion.h1
-              className="mt-4 text-2xl font-bold tracking-tight text-foreground"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...spring, delay: 0.2 }}
-            >
-              {variant.heading}
-            </motion.h1>
-
-            <motion.p
-              className="mt-2 text-[14px] leading-relaxed text-muted"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...spring, delay: 0.3 }}
-            >
-              {variant.message}
-            </motion.p>
-
+      {mounted && (
+        <div className="max-w-sm text-center">
+          <AnimatePresence>
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...spring, delay: 0.4 }}
-              className="mt-6"
+              key={variantIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
             >
-              <Link
-                href="/"
-                className="inline-block font-mono text-[13px] transition-colors hover:brightness-110"
-                style={{ color: variant.color }}
+              {variant.visual(variant.color)}
+
+              <motion.h1
+                className="mt-4 text-2xl font-bold tracking-tight text-foreground"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...spring, delay: 0.2 }}
               >
-                ← Back home
-              </Link>
+                {variant.heading}
+              </motion.h1>
+
+              <motion.p
+                className="mt-2 text-[14px] leading-relaxed text-muted"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...spring, delay: 0.3 }}
+              >
+                {variant.message}
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...spring, delay: 0.4 }}
+                className="mt-6 flex items-center justify-center gap-4"
+              >
+                <button
+                  onClick={goBack}
+                  className="font-mono text-[13px] transition-colors hover:brightness-110"
+                  style={{ color: variant.color }}
+                >
+                  ← Go back
+                </button>
+                <span className="text-muted/20">|</span>
+                <Link
+                  href="/"
+                  className="font-mono text-[13px] transition-colors hover:brightness-110"
+                  style={{ color: variant.color }}
+                >
+                  Home
+                </Link>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
+          </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }
