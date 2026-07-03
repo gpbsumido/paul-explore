@@ -28,6 +28,7 @@ const stores: Store[] = [...buildStoreList(6)].map((s, i) => {
       status: "degraded" as const,
       temperature: 8.4,
       uptime: 72.3,
+      lastPing: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
     };
   }
   return { ...s };
@@ -56,12 +57,30 @@ for (const alerts of alertsByStore.values()) {
 // Accessors
 // ---------------------------------------------------------------------------
 
+/**
+ * Recomputes lastPing relative to now so demo data never drifts into "offline".
+ * Online stores get a 0-60s-old ping; degraded stores get a 7-min-old ping.
+ */
+function withFreshPing(store: Store): Store {
+  if (store.status !== "online") {
+    return {
+      ...store,
+      lastPing: new Date(Date.now() - 7 * 60 * 1000).toISOString(),
+    };
+  }
+  return {
+    ...store,
+    lastPing: new Date(Date.now() - Math.random() * 60_000).toISOString(),
+  };
+}
+
 export function getStores(): readonly Store[] {
-  return stores;
+  return stores.map(withFreshPing);
 }
 
 export function getStore(id: string): Store | undefined {
-  return stores.find((s) => s.id === id);
+  const store = stores.find((s) => s.id === id);
+  return store ? withFreshPing(store) : undefined;
 }
 
 export function getInventory(storeId: string): InventoryItem[] | undefined {

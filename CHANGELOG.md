@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.39
+
+- fixed all stores showing "Offline" connection quality and sensor offline callouts -- `lastPing` timestamps in the factory were generated 0-2 hours in the past at module load time and never refreshed, so they always drifted past the 10-minute offline threshold; store accessors now recompute `lastPing` relative to `Date.now()` on every read (online stores get 0-60s old pings, degraded store gets 7-minute old ping), and the factory default was tightened from `Math.random() * 2` hours to `Math.random() / 60` hours
+- bumped version to 0.10.39
+
 ## 2026-07-02 - version 0.10.38
 
 - updated operator dashboard thoughts page to cover the full self-review pass -- added a new "The self-review" section explaining the audit process (correctness, performance, UX, code quality, testing) with specifics on what was found and fixed, updated the tradeoffs section to reflect that the fan-out query pattern and unmemoized chart transforms have been resolved, and added a matching conversation thread to the chat view

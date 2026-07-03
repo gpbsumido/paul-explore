@@ -401,6 +401,26 @@ export default function OperatorDashboardContent() {
                 These two were the inconsistent ones. Fixed to match the
                 pattern.
               </p>
+              <p className="mt-3 text-muted">
+                A subtler one: the factory generated{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  lastPing
+                </code>{" "}
+                timestamps 0-2 hours in the past at module load time, but the
+                connection quality thresholds mark anything over 10 minutes as
+                offline. So every store drifted into &quot;Offline&quot; signal
+                and triggered sensor offline callouts as the dev server ran.
+                Fixed by recomputing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  lastPing
+                </code>{" "}
+                relative to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Date.now()
+                </code>{" "}
+                on every read from the store accessors, so demo data never goes
+                stale regardless of how long the server has been running.
+              </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 Performance
@@ -597,7 +617,15 @@ export default function OperatorDashboardContent() {
                 long-running scenarios or cross-session state. The tradeoff was
                 intentional — wiring up a real database for demo data would have
                 added deployment complexity without adding much to the frontend
-                story.
+                story. One gotcha that came up: static{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  lastPing
+                </code>{" "}
+                timestamps generated at module load time drifted past the
+                freshness thresholds as the server ran, making every store show
+                &quot;Offline.&quot; The fix was to recompute timestamps
+                relative to now on every read, so the demo data stays realistic
+                regardless of server uptime.
               </p>
               <p className="mt-3 text-muted">
                 Two tradeoffs from the initial build have since been resolved.
@@ -862,6 +890,25 @@ export default function OperatorDashboardContent() {
                 the restock button had no per-item feedback. all rows showed
                 &quot;Restocking...&quot; at once. now each row tracks its own
                 state and shows a checkmark on success
+              </Sent>
+
+              <Timestamp>2:52 PM</Timestamp>
+
+              <Received>
+                wait all the stores are showing offline on the detail page
+              </Received>
+
+              <Sent pos="first">
+                oh yeah. the factory generates lastPing timestamps 0-2 hours in
+                the past at module load time. but the connection quality
+                thresholds mark anything over 10 minutes as offline. so they
+                drift past the threshold as the server runs
+              </Sent>
+              <Sent pos="last">
+                fixed it by recomputing lastPing relative to Date.now() on every
+                read from the store accessors. online stores get a 0-60 second
+                old ping, degraded store gets 7 minutes. demo data never goes
+                stale now no matter how long the server&apos;s been up
               </Sent>
 
               <Timestamp>2:52 PM</Timestamp>
