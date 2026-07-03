@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.38
+
+- updated operator dashboard thoughts page to cover the full self-review pass -- added a new "The self-review" section explaining the audit process (correctness, performance, UX, code quality, testing) with specifics on what was found and fixed, updated the tradeoffs section to reflect that the fan-out query pattern and unmemoized chart transforms have been resolved, and added a matching conversation thread to the chat view
+- bumped version to 0.10.38
+
 ## 2026-07-02 - version 0.10.37
 
 - strengthened `useRestockStore` rollback test to close a mutation testing gap -- previously the test only asserted the final state (`currentStock === 3`), which a mutant that removes the `onMutate` optimistic update could survive (stock never changes from 3, so it trivially passes); now the test adds a 300ms delay to the 500 response and asserts the optimistic update fires first (`currentStock === 10`) before verifying the rollback reverts it
