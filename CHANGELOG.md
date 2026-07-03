@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-03 - version 0.11.0
+
+- added `/learn` hub page with 13 algorithm and frontend pattern topics grouped by category (Core Algorithms, Frontend Patterns) -- editorial design with dot-grid background, monospace numbering (01-13), no card borders, unique geometric SVG marks per topic that animate on hover to demonstrate each concept (two pointers converge, sliding window slides, DP grid fills in a diagonal wave, etc.)
+- added learn entry to FeatureHub with preview component echoing the hub's dot-grid + monospace-number aesthetic
+- added `--color-feature-learn` design token
+- added dashboard back-link to learn page header via PageHeader breadcrumbs
+- updated `/learn` implementation plan with comprehensive Visual Style Guide and specific styling details for all 13 topic page steps
+- bumped version to 0.11.0
+
 ## 2026-07-03 - version 0.10.40
 
 - fixed alert dismiss not persisting across route handlers -- Next.js bundles each route handler independently in dev mode, so the dismiss PATCH route and the alerts GET route had separate instances of the in-memory data store; dismissing an alert updated one instance while the 15-second poll refetched from another where the alert was never dismissed; moved the data store onto `globalThis` behind a singleton accessor so all route handlers share the same state (same pattern Next.js docs recommend for Prisma clients)
