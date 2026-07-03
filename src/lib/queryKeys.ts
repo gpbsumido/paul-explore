@@ -146,5 +146,8 @@ export const queryKeys = {
     /** Activity events for a specific store. */
     activity: (storeId: string) =>
       ["operator", "stores", storeId, "activity"] as const,
+
+    /** Aggregated alert counts + inventory health for the fleet dashboard. Polled every 15s. */
+    fleetSummary: () => ["operator", "fleet-summary"] as const,
   },
 } as const;

@@ -4,7 +4,9 @@ import type {
   InventoryItem,
   Alert,
   ActivityEvent,
+  StoreSummary,
 } from "@/types/operator";
+import { toAlertTrendData } from "@/lib/operator-chart-transforms";
 import {
   buildStoreList,
   buildInventoryList,
@@ -65,7 +67,69 @@ function randomDelay(): Promise<void> {
 // Handlers
 // ---------------------------------------------------------------------------
 
+const LOW_STOCK_THRESHOLD = 0.2;
+
 export const operatorHandlers = [
+  // GET /api/operator/fleet-summary — aggregated dashboard data
+  http.get("/api/operator/fleet-summary", async () => {
+    await randomDelay();
+
+    const allAlertsFlat: Alert[] = [];
+    let criticalAlerts = 0;
+    let warningAlerts = 0;
+    let lowStockItems = 0;
+    let totalHealth = 0;
+    let totalItems = 0;
+
+    const summaries: StoreSummary[] = stores.map((store) => {
+      const storeAlerts = alertsByStore.get(store.id) ?? [];
+      const inventory = inventoryByStore.get(store.id) ?? [];
+
+      allAlertsFlat.push(...storeAlerts);
+
+      const unacknowledged = storeAlerts.filter((a) => !a.acknowledged);
+
+      for (const a of unacknowledged) {
+        if (a.severity === "critical") criticalAlerts++;
+        if (a.severity === "warning") warningAlerts++;
+      }
+
+      let storeHealth = 0;
+      for (const item of inventory) {
+        totalItems++;
+        const ratio = item.capacity > 0 ? item.currentStock / item.capacity : 0;
+        totalHealth += ratio;
+        storeHealth += ratio;
+        if (ratio < LOW_STOCK_THRESHOLD) lowStockItems++;
+      }
+
+      const inventoryHealth =
+        inventory.length > 0
+          ? Math.round((storeHealth / inventory.length) * 100)
+          : 0;
+
+      return {
+        storeId: store.id,
+        alertCount: unacknowledged.length,
+        inventoryHealth,
+        hasCritical: unacknowledged.some((a) => a.severity === "critical"),
+        hasWarning: unacknowledged.some((a) => a.severity === "warning"),
+      };
+    });
+
+    const fleetStats = {
+      criticalAlerts,
+      warningAlerts,
+      lowStockItems,
+      avgInventoryHealth:
+        totalItems > 0 ? Math.round((totalHealth / totalItems) * 100) : 0,
+    };
+
+    const alertTrend = toAlertTrendData(allAlertsFlat);
+
+    return HttpResponse.json({ summaries, fleetStats, alertTrend });
+  }),
+
   // GET /api/operator/stores — fleet list
   http.get("/api/operator/stores", async () => {
     await randomDelay();

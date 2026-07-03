@@ -78,7 +78,7 @@ export interface FleetStats {
   warningAlerts: number;
 }
 
-const LOW_STOCK_THRESHOLD = 0.2;
+export const LOW_STOCK_THRESHOLD = 0.2;
 
 /**
  * Computes aggregate fleet statistics from stores, alerts, and inventory data.

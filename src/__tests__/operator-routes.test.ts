@@ -5,6 +5,7 @@ import {
   inventoryItemSchema,
   alertSchema,
   activityEventSchema,
+  fleetSummaryResponseSchema,
 } from "@/lib/operator-schemas";
 import { z } from "zod";
 
@@ -266,5 +267,56 @@ describe("POST /api/operator/stores/:storeId/restock", () => {
       makeParams({ storeId: "nonexistent-999" }),
     );
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/fleet-summary
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/fleet-summary", () => {
+  it("returns a response that passes schema validation", async () => {
+    const { GET } = await import("@/app/api/operator/fleet-summary/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = fleetSummaryResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+  });
+
+  it("returns one summary per store", async () => {
+    const { GET: listGET } = await import("@/app/api/operator/stores/route");
+    const listRes = await listGET();
+    const { stores } = await listRes.json();
+
+    const { GET } = await import("@/app/api/operator/fleet-summary/route");
+    const res = await GET();
+    const body = await res.json();
+
+    expect(body.summaries.length).toBe(stores.length);
+    const summaryIds = body.summaries.map(
+      (s: { storeId: string }) => s.storeId,
+    );
+    for (const store of stores) {
+      expect(summaryIds).toContain(store.id);
+    }
+  });
+
+  it("returns 24 hourly alert trend buckets", async () => {
+    const { GET } = await import("@/app/api/operator/fleet-summary/route");
+    const res = await GET();
+    const body = await res.json();
+    expect(body.alertTrend).toHaveLength(24);
+  });
+
+  it("returns fleet stats with non-negative values", async () => {
+    const { GET } = await import("@/app/api/operator/fleet-summary/route");
+    const res = await GET();
+    const body = await res.json();
+    expect(body.fleetStats.criticalAlerts).toBeGreaterThanOrEqual(0);
+    expect(body.fleetStats.warningAlerts).toBeGreaterThanOrEqual(0);
+    expect(body.fleetStats.lowStockItems).toBeGreaterThanOrEqual(0);
+    expect(body.fleetStats.avgInventoryHealth).toBeGreaterThanOrEqual(0);
+    expect(body.fleetStats.avgInventoryHealth).toBeLessThanOrEqual(100);
   });
 });
