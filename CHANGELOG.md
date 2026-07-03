@@ -1,9 +1,16 @@
 # Changelog
 
+## 2026-07-03 - version 0.11.4
+
+- added Stacks & Queues topic page at `/learn/stacks-queues` -- side-by-side interactive Stack (LIFO) and Queue (FIFO) with push/pop and enqueue/dequeue controls using spring-animated blocks via AnimatePresence, Valid Parentheses demo with preset pills scanning characters left to right while a stack visualization grows/shrinks with push/pop/mismatch highlighting, "when to use which" left-border callout with two concise lists, two stacked code templates (valid parentheses stack, BFS queue), "spot this pattern" callout with O(n) time/O(n) space; follows Visual Style Guide
+- bumped version to 0.11.4
+
 ## 2026-07-03 - version 0.11.3
 
 - added Hash Maps & Sets topic page at `/learn/hash-maps` -- interactive Two Sum (unsorted) demo with array cells on top and map table growing below via AnimatePresence as each value is stored, SVG hashing diagram with pathLength-animated arrows drawing in on scroll, Set operations mini-visual with add/has/delete chips that enter with scaleIn, flash on has, and exit on delete, three stacked code templates (Map pattern, Set pattern, frequency counting), "spot this pattern" callout with O(n) time/O(n) space; follows Visual Style Guide with dot-grid background, thin-bordered cells, left-border accent callouts, prev/next navigation
 - bumped version to 0.11.3
+
+## 2026-07-03 - version 0.11.2
 
 - added Sliding Window topic page at `/learn/sliding-window` -- two interactive demos (Max Sum Subarray with window size selector and spring-animated window overlay that slides across cells, Longest Substring Without Repeats with variable window overlay that expands/contracts and seen-characters chips via AnimatePresence), fixed vs variable window comparison with mini-cell diagrams, stacked code templates for both patterns, step/play/reset controls, narration per step; follows the Visual Style Guide with dot-grid background, thin-bordered cells, left-border accent callouts, prev/next navigation
 - bumped version to 0.11.2
