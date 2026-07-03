@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-03 - version 0.11.2
+
+- added Sliding Window topic page at `/learn/sliding-window` -- two interactive demos (Max Sum Subarray with window size selector and spring-animated window overlay that slides across cells, Longest Substring Without Repeats with variable window overlay that expands/contracts and seen-characters chips via AnimatePresence), fixed vs variable window comparison with mini-cell diagrams, stacked code templates for both patterns, step/play/reset controls, narration per step; follows the Visual Style Guide with dot-grid background, thin-bordered cells, left-border accent callouts, prev/next navigation
+- bumped version to 0.11.2
+
 ## 2026-07-03 - version 0.11.1
 
 - added Two Pointers topic page at `/learn/two-pointers` -- first topic page, sets the quality bar for all others; two interactive demos (Two Sum on sorted array with target selector, Remove Duplicates in-place with read/write pointers), step/play/reset controls, narration per step, code template, "spot this pattern" box, prev/next navigation; follows the Visual Style Guide with dot-grid background, thin-bordered cells, spring-animated pointer indicators, left-border accent callouts
