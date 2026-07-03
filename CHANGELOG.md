@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-03 - version 0.10.40
+
+- fixed alert dismiss not persisting across route handlers -- Next.js bundles each route handler independently in dev mode, so the dismiss PATCH route and the alerts GET route had separate instances of the in-memory data store; dismissing an alert updated one instance while the 15-second poll refetched from another where the alert was never dismissed; moved the data store onto `globalThis` behind a singleton accessor so all route handlers share the same state (same pattern Next.js docs recommend for Prisma clients)
+- added operator dashboard to the thoughts section in FeatureHub with a card linking to `/thoughts/operator-dashboard`, and added `thoughtsHref` to the operator feature card so it gets an "About" link like the other features
+- bumped version to 0.10.40
+
 ## 2026-07-02 - version 0.10.39
 
 - fixed all stores showing "Offline" connection quality and sensor offline callouts -- `lastPing` timestamps in the factory were generated 0-2 hours in the past at module load time and never refreshed, so they always drifted past the 10-minute offline threshold; store accessors now recompute `lastPing` relative to `Date.now()` on every read (online stores get 0-60s old pings, degraded store gets 7-minute old ping), and the factory default was tightened from `Math.random() * 2` hours to `Math.random() / 60` hours

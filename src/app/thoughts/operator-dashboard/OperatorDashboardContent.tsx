@@ -345,6 +345,23 @@ export default function OperatorDashboardContent() {
                 inputs, and returns new values — no side effects, no internal
                 state.
               </p>
+              <p className="mt-3 text-muted">
+                One thing that surprised us: Next.js bundles each route handler
+                independently, so a plain module-level variable in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-data.ts
+                </code>{" "}
+                ended up as a separate instance per route. The dismiss route
+                updated its copy of the alerts map, but the alerts GET route
+                read from a different copy where nothing had changed. The fix
+                was to attach the data store to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  globalThis
+                </code>{" "}
+                behind a singleton accessor — the same pattern the Next.js docs
+                recommend for Prisma clients in development mode. Every route
+                handler now shares the same maps regardless of bundling.
+              </p>
             </section>
 
             <section>
@@ -420,6 +437,24 @@ export default function OperatorDashboardContent() {
                 </code>{" "}
                 on every read from the store accessors, so demo data never goes
                 stale regardless of how long the server has been running.
+              </p>
+              <p className="mt-3 text-muted">
+                The trickiest one: dismissing an alert would vanish it
+                momentarily (the optimistic update worked) then it would pop
+                right back on the next poll. The dismiss PATCH route and the
+                alerts GET route each got their own instance of{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-data.ts
+                </code>{" "}
+                because Next.js bundles route handlers independently. So the
+                dismiss mutated one copy of the in-memory map while the poll
+                read from a separate copy where the alert was never dismissed.
+                Fixed by attaching the data store to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  globalThis
+                </code>{" "}
+                behind a singleton accessor — the same pattern Next.js docs
+                recommend for Prisma clients in dev mode.
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
@@ -911,7 +946,26 @@ export default function OperatorDashboardContent() {
                 stale now no matter how long the server&apos;s been up
               </Sent>
 
-              <Timestamp>2:52 PM</Timestamp>
+              <Received>
+                dismissing alerts is broken too. it vanishes then pops right
+                back
+              </Received>
+
+              <Sent pos="first">
+                different bug, same root cause. Next.js bundles each route
+                handler separately so the dismiss PATCH route and the alerts GET
+                route had their own copies of the in-memory data store.
+                dismissing an alert updated one copy, but the 15-second poll
+                read from the other copy where nothing changed
+              </Sent>
+              <Sent pos="last">
+                moved the data store onto globalThis behind a singleton
+                accessor. same pattern the Next.js docs recommend for Prisma
+                clients. every route handler shares the same maps now regardless
+                of bundling
+              </Sent>
+
+              <Timestamp>2:55 PM</Timestamp>
 
               <Received>testing gaps?</Received>
 
