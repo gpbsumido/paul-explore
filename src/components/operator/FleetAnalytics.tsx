@@ -2,16 +2,21 @@
 
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { Store, Alert, InventoryItem } from "@/types/operator";
+import type { Store, AlertTrendBucket } from "@/types/operator";
 import FleetHealthChart from "./FleetHealthChart";
 import AlertTrendChart from "./AlertTrendChart";
 import InventoryComparisonChart from "./InventoryComparisonChart";
 import { ChevronDownIcon } from "./icons";
 
+interface InventoryComparisonDatum {
+  readonly name: string;
+  readonly health: number;
+}
+
 interface FleetAnalyticsProps {
   stores: readonly Store[];
-  allAlerts: readonly Alert[];
-  inventoryByStore: ReadonlyMap<string, readonly InventoryItem[]>;
+  alertTrend: readonly AlertTrendBucket[];
+  inventoryComparison: readonly InventoryComparisonDatum[];
 }
 
 const STORAGE_KEY = "operator-fleet-analytics-collapsed";
@@ -37,8 +42,8 @@ function readCollapsed(): boolean {
  */
 export default function FleetAnalytics({
   stores,
-  allAlerts,
-  inventoryByStore,
+  alertTrend,
+  inventoryComparison,
 }: FleetAnalyticsProps) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
@@ -81,11 +86,8 @@ export default function FleetAnalytics({
             <div className="border-t border-border px-4 py-5">
               <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
                 <FleetHealthChart stores={stores} />
-                <AlertTrendChart alerts={allAlerts} />
-                <InventoryComparisonChart
-                  stores={stores}
-                  inventoryByStore={inventoryByStore}
-                />
+                <AlertTrendChart data={alertTrend} />
+                <InventoryComparisonChart data={inventoryComparison} />
               </div>
             </div>
           </motion.div>

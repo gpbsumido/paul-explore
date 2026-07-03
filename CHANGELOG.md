@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.33
+
+- added `/api/operator/fleet-summary` endpoint that returns aggregated alert counts, inventory health, fleet stats, and alert trend data per store in a single request -- the dashboard previously fanned out 2N parallel queries (alerts + inventory per store, each polling independently), which doesn't scale past ~20 stores; now the fleet overview makes 1 request every 15s regardless of fleet size
+- refactored `OperatorDashboard` to replace the two `useQueries` fan-outs with a single `useQuery` to `/api/operator/fleet-summary`, cutting per-store `alertsByStore`/`inventoryByStore` maps in favor of a flat `StoreSummary[]` lookup
+- updated `FleetAnalytics`, `AlertTrendChart`, and `InventoryComparisonChart` to accept pre-computed data from the server instead of raw alert/inventory arrays
+- bumped version to 0.10.33
+
 ## 2026-07-02 - version 0.10.32
 
 - moved `allAlerts` flat-array computation from `FleetAnalytics` up to `OperatorDashboard` -- `FleetAnalytics` was receiving `alertsByStore` only to flatten it via `useMemo`, but the parent already has all alert data; now `OperatorDashboard` computes the flat array once and passes it down as an `allAlerts` prop, removing the redundant transform from the child

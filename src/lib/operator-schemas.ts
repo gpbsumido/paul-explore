@@ -82,6 +82,36 @@ export const activityEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Fleet summary (aggregated per-store data for the dashboard)
+// ---------------------------------------------------------------------------
+
+export const storeSummarySchema = z.object({
+  storeId: z.string(),
+  alertCount: z.number().int().min(0),
+  inventoryHealth: z.number().int().min(0).max(100),
+  hasCritical: z.boolean(),
+  hasWarning: z.boolean(),
+});
+
+export const fleetStatsSchema = z.object({
+  criticalAlerts: z.number().int().min(0),
+  warningAlerts: z.number().int().min(0),
+  lowStockItems: z.number().int().min(0),
+  avgInventoryHealth: z.number().int().min(0).max(100),
+});
+
+export const alertTrendBucketSchema = z.object({
+  hour: z.string(),
+  count: z.number().int().min(0),
+});
+
+export const fleetSummaryResponseSchema = z.object({
+  summaries: z.array(storeSummarySchema),
+  fleetStats: fleetStatsSchema,
+  alertTrend: z.array(alertTrendBucketSchema),
+});
+
+// ---------------------------------------------------------------------------
 // Request bodies
 // ---------------------------------------------------------------------------
 
