@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-03 - version 0.11.6
+
+- added Binary Search topic page at `/learn/binary-search` -- two interactive demos: classic binary search on a sorted 10-element array with L/R/mid pointer labels that spring between cells via motion.div, three preset targets (found-quick, found-longer, not-found), eliminated cells fade to opacity-[0.15]; search-the-answer-space demo ("minimum ship capacity to deliver packages in D days") with capacity range cells, lo/hi/mid pointer labels springing inward, package day-assignment visualization below showing how packages distribute across days for each candidate capacity; "the real insight" left-border callout with static F/T monotonic predicate row and boundary accent; two stacked code templates (classic find-target, search-the-answer predicate boundary); "spot this pattern" callout with O(log n) time; follows Visual Style Guide with dot-grid background, thin-bordered rounded-sm cells, hoverSpring animations, step/play/reset pill controls, narration with monospace values
+- bumped version to 0.11.6
+
 ## 2026-07-03 - version 0.11.5
 
 - added a not-found page for when we navigate to pages that don't exist
