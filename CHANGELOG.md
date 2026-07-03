@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.37
+
+- strengthened `useRestockStore` rollback test to close a mutation testing gap -- previously the test only asserted the final state (`currentStock === 3`), which a mutant that removes the `onMutate` optimistic update could survive (stock never changes from 3, so it trivially passes); now the test adds a 300ms delay to the 500 response and asserts the optimistic update fires first (`currentStock === 10`) before verifying the rollback reverts it
+- bumped version to 0.10.37
+
+## 2026-07-02 - version 0.10.36
+
+- added test for `RefreshBar` "last refreshed" display -- verifies the component reads `dataUpdatedAt` timestamps from the operator query cache and renders the correct relative time via `formatDistanceToNow`, picks the most recent entry when multiple operator queries exist, and falls back to "less than a minute ago" when no queries are cached
+- bumped version to 0.10.36
+
+## 2026-07-02 - version 0.10.35
+
+- added component-level tests for error and empty states across all four store detail tabs (InventoryTab, AlertsTab, ActivityTab, PlanogramTab) -- previously only utility function tests existed; new tests use MSW to return 500s and empty arrays, verifying each tab renders the correct error message on fetch failure and the appropriate empty state when no data exists
+- bumped version to 0.10.35
+
+## 2026-07-02 - version 0.10.34
+
+- added integration test for `OperatorDashboard` render with MSW -- verifies store cards appear for every store in the fleet, checks worst-first sort order (offline > degraded with alerts > online), asserts per-card alert count and inventory health from fleet summary, and confirms fleet stats bar renders
+- bumped version to 0.10.34
+
 ## 2026-07-02 - version 0.10.33
 
 - added `/api/operator/fleet-summary` endpoint that returns aggregated alert counts, inventory health, fleet stats, and alert trend data per store in a single request -- the dashboard previously fanned out 2N parallel queries (alerts + inventory per store, each polling independently), which doesn't scale past ~20 stores; now the fleet overview makes 1 request every 15s regardless of fleet size
