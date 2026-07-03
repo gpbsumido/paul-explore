@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-02 - version 0.10.37
+
+- strengthened `useRestockStore` rollback test to close a mutation testing gap -- previously the test only asserted the final state (`currentStock === 3`), which a mutant that removes the `onMutate` optimistic update could survive (stock never changes from 3, so it trivially passes); now the test adds a 300ms delay to the 500 response and asserts the optimistic update fires first (`currentStock === 10`) before verifying the rollback reverts it
+- bumped version to 0.10.37
+
 ## 2026-07-02 - version 0.10.36
 
 - added test for `RefreshBar` "last refreshed" display -- verifies the component reads `dataUpdatedAt` timestamps from the operator query cache and renders the correct relative time via `formatDistanceToNow`, picks the most recent entry when multiple operator queries exist, and falls back to "less than a minute ago" when no queries are cached
