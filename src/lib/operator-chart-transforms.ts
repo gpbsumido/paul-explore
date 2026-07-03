@@ -70,8 +70,8 @@ type AlertTrendDatum = {
  */
 export function toAlertTrendData(
   alerts: readonly Alert[],
+  now: Date = new Date(),
 ): readonly AlertTrendDatum[] {
-  const now = new Date();
   const buckets = new Array<number>(24).fill(0);
 
   const currentHourStart = new Date(now);

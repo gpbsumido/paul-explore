@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useOperatorAlerts } from "@/hooks/useOperatorAlerts";
 import { useDismissAlert } from "@/hooks/useOperatorMutations";
 import {
@@ -8,8 +8,8 @@ import {
   filterAlertsBySeverity,
   type AlertSeverityFilter,
 } from "@/lib/operator-detail";
-import type { AlertSeverity } from "@/types/operator";
 import AlertRow from "./AlertRow";
+import { CheckCircleIcon } from "./icons";
 
 interface AlertsTabProps {
   storeId: string;
@@ -32,18 +32,31 @@ const SEVERITY_FILTERS: readonly {
  */
 export default function AlertsTab({ storeId }: AlertsTabProps) {
   const { alerts, loading, error } = useOperatorAlerts(storeId);
-  const { dismissAlert, isDismissing } = useDismissAlert();
+  const { dismissAlert } = useDismissAlert();
   const [severityFilter, setSeverityFilter] =
     useState<AlertSeverityFilter>("all");
+  const [dismissingIds, setDismissingIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
 
   const visibleAlerts = useMemo(() => {
     const filtered = filterAlertsBySeverity(alerts, severityFilter);
     return sortAlertsBySeverity(filtered);
   }, [alerts, severityFilter]);
 
-  const handleDismiss = (alertId: string) => {
-    dismissAlert({ alertId, storeId });
-  };
+  const handleDismiss = useCallback(
+    (alertId: string) => {
+      setDismissingIds((prev) => new Set([...prev, alertId]));
+      dismissAlert({ alertId, storeId }).finally(() => {
+        setDismissingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(alertId);
+          return next;
+        });
+      });
+    },
+    [dismissAlert, storeId],
+  );
 
   if (error) {
     return <p className="text-sm text-error-500 py-4">{error}</p>;
@@ -78,28 +91,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
       {/* Alert list or empty state */}
       {visibleAlerts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface py-16 gap-3">
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 16 16"
-            fill="none"
-            className="text-success-500"
-          >
-            <circle
-              cx="8"
-              cy="8"
-              r="7"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-            <path
-              d="M5 8l2 2 4-4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <CheckCircleIcon className="text-success-500" />
           <p className="text-sm font-medium text-foreground">All clear</p>
           <p className="text-xs text-muted">No active alerts for this store.</p>
         </div>
@@ -110,7 +102,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
               key={alert.id}
               alert={alert}
               onDismiss={handleDismiss}
-              isDismissing={isDismissing}
+              isDismissing={dismissingIds.has(alert.id)}
             />
           ))}
         </div>
@@ -123,18 +115,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
 // Skeleton
 // ---------------------------------------------------------------------------
 
-function Bone({ style }: { style?: React.CSSProperties }) {
-  return (
-    <div
-      style={{
-        background: "var(--color-surface-raised)",
-        borderRadius: 6,
-        animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
-        ...style,
-      }}
-    />
-  );
-}
+import Bone from "./Bone";
 
 function AlertsTabSkeleton() {
   return (

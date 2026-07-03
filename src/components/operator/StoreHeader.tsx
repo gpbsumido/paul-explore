@@ -1,22 +1,13 @@
 "use client";
 
 import type { Store } from "@/types/operator";
+import { STATUS_CONFIG } from "@/lib/operator-detail";
 import ConnectionQuality from "./ConnectionQuality";
 import FreshnessLabel from "./FreshnessLabel";
 
 interface StoreHeaderProps {
   store: Store;
 }
-
-const STATUS_CONFIG = {
-  online: { label: "Online", dot: "bg-success-500", bg: "bg-success-500/10" },
-  degraded: {
-    label: "Degraded",
-    dot: "bg-warning-500",
-    bg: "bg-warning-500/10",
-  },
-  offline: { label: "Offline", dot: "bg-error-500", bg: "bg-error-500/10" },
-} as const;
 
 /**
  * Store detail header showing the store's identity, live status, uptime,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -9,12 +10,14 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { toInventoryComparisonData } from "@/lib/operator-chart-transforms";
-import type { Store, InventoryItem } from "@/types/operator";
+
+interface InventoryComparisonDatum {
+  readonly name: string;
+  readonly health: number;
+}
 
 interface InventoryComparisonChartProps {
-  stores: readonly Store[];
-  inventoryByStore: ReadonlyMap<string, readonly InventoryItem[]>;
+  data: readonly InventoryComparisonDatum[];
 }
 
 /**
@@ -31,11 +34,12 @@ function healthColor(health: number): string {
  * which store needs restocking most via color-coded bars.
  */
 export default function InventoryComparisonChart({
-  stores,
-  inventoryByStore,
+  data: raw,
 }: InventoryComparisonChartProps) {
-  const raw = toInventoryComparisonData(stores, inventoryByStore);
-  const data = raw.map((d) => ({ ...d, fill: healthColor(d.health) }));
+  const data = useMemo(
+    () => raw.map((d) => ({ ...d, fill: healthColor(d.health) })),
+    [raw],
+  );
 
   if (data.length === 0) {
     return (
@@ -81,6 +85,8 @@ export default function InventoryComparisonChart({
                 borderRadius: 8,
                 fontSize: 12,
               }}
+              labelStyle={{ color: "var(--color-foreground)" }}
+              itemStyle={{ color: "var(--color-foreground)" }}
               formatter={(value) => [`${value}%`, "Health"]}
             />
             <Bar

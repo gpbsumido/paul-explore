@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { fadeInUp, spring } from "@/lib/animations";
@@ -51,6 +52,12 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
         animate="visible"
         transition={spring.smooth}
       >
+        <Link
+          href="/operator"
+          className="inline-flex items-center gap-1 text-xs text-muted hover:text-foreground transition-colors"
+        >
+          ← Back to fleet
+        </Link>
         <StoreHeader store={store} />
         <QuickActions storeId={storeId} />
         <Suspense>
@@ -66,18 +73,7 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
 // Inline skeleton for client-side loading state
 // ---------------------------------------------------------------------------
 
-function Bone({ style }: { style?: React.CSSProperties }) {
-  return (
-    <div
-      style={{
-        background: "var(--color-surface-raised)",
-        borderRadius: 6,
-        animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
-        ...style,
-      }}
-    />
-  );
-}
+import Bone from "@/components/operator/Bone";
 
 function StoreDetailSkeleton() {
   return (

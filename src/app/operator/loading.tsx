@@ -1,22 +1,4 @@
-function Bone({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <div
-      className={className}
-      style={{
-        background: "var(--color-surface-raised)",
-        borderRadius: 6,
-        animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
-        ...style,
-      }}
-    />
-  );
-}
+import Bone from "@/components/operator/Bone";
 
 function StoreCardSkeleton() {
   return (

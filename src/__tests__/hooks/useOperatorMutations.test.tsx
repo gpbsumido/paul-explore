@@ -191,9 +191,10 @@ describe("useRestockStore", () => {
       http.get("/api/operator/stores/:id/inventory", () =>
         HttpResponse.json({ items }),
       ),
-      http.post("/api/operator/stores/:id/restock", () =>
-        HttpResponse.json({ error: "Server error" }, { status: 500 }),
-      ),
+      http.post("/api/operator/stores/:id/restock", async () => {
+        await delay(300);
+        return HttpResponse.json({ error: "Server error" }, { status: 500 });
+      }),
     );
 
     const { queryClient, Wrapper } = makeWrapper();
@@ -203,12 +204,21 @@ describe("useRestockStore", () => {
       wrapper: Wrapper,
     });
 
-    await act(async () => {
-      await result.current
+    act(() => {
+      void result.current
         .restockStore({ storeId, itemIds: ["item-fail"] })
         .catch(() => {});
     });
 
+    // the optimistic update should fire before the server responds
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<InventoryItem[]>(
+        queryKeys.operator.inventory(storeId),
+      );
+      expect(cached?.find((i) => i.id === "item-fail")?.currentStock).toBe(10);
+    });
+
+    // after the 500 response, stock should revert to the original value
     await waitFor(() => {
       const cached = queryClient.getQueryData<InventoryItem[]>(
         queryKeys.operator.inventory(storeId),

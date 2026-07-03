@@ -2,28 +2,17 @@
 
 import Link from "next/link";
 import type { Store } from "@/types/operator";
+import { STATUS_CONFIG } from "@/lib/operator-detail";
 import { isStaleData } from "@/lib/operator-freshness";
 import FreshnessLabel from "./FreshnessLabel";
+import { WarningTriangleIcon } from "./icons";
 
 interface StoreCardProps {
   store: Store;
   alertCount: number;
   inventoryHealth: number;
+  hasQueryError?: boolean;
 }
-
-const STATUS_CONFIG = {
-  online: { label: "Online", dot: "bg-success-500", border: "" },
-  degraded: {
-    label: "Degraded",
-    dot: "bg-warning-500",
-    border: "border-warning-400/40",
-  },
-  offline: {
-    label: "Offline",
-    dot: "bg-error-500",
-    border: "border-error-400/40",
-  },
-} as const;
 
 /**
  * Fleet overview card for a single store. Shows status, location, alert count,
@@ -33,6 +22,7 @@ export default function StoreCard({
   store,
   alertCount,
   inventoryHealth,
+  hasQueryError = false,
 }: StoreCardProps) {
   const cfg = STATUS_CONFIG[store.status];
   const stale = isStaleData(store.lastPing);
@@ -65,15 +55,7 @@ export default function StoreCard({
       <div className="flex items-center gap-4 text-xs text-muted">
         {alertCount > 0 && (
           <span className="flex items-center gap-1 text-warning-600 font-medium">
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M8 1a1 1 0 0 1 .867.5l6.062 10.5A1 1 0 0 1 14.062 13.5H1.938a1 1 0 0 1-.867-1.5L7.133 1.5A1 1 0 0 1 8 1Zm0 4.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8 5.5ZM8 11a.75.75 0 1 0 0-1.5A.75.75 0 0 0 8 11Z" />
-            </svg>
+            <WarningTriangleIcon size={12} />
             {alertCount} alert{alertCount !== 1 ? "s" : ""}
           </span>
         )}
@@ -103,9 +85,20 @@ export default function StoreCard({
         </div>
       </div>
 
-      {/* Footer: freshness */}
+      {/* Footer: freshness + error indicator */}
       <div className="flex items-center justify-between">
-        <FreshnessLabel lastPing={store.lastPing} />
+        <div className="flex items-center gap-2">
+          <FreshnessLabel lastPing={store.lastPing} />
+          {hasQueryError && (
+            <span
+              className="flex items-center gap-1 text-[11px] text-error-500"
+              title="Some data for this store failed to load"
+            >
+              <WarningTriangleIcon size={11} className="text-error-500" />
+              Data error
+            </span>
+          )}
+        </div>
         <span className="text-[11px] text-muted opacity-0 group-hover:opacity-100 transition-opacity">
           View details →
         </span>

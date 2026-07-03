@@ -1,5 +1,132 @@
 # Changelog
 
+## 2026-07-03 - version 0.10.40
+
+- fixed alert dismiss not persisting across route handlers -- Next.js bundles each route handler independently in dev mode, so the dismiss PATCH route and the alerts GET route had separate instances of the in-memory data store; dismissing an alert updated one instance while the 15-second poll refetched from another where the alert was never dismissed; moved the data store onto `globalThis` behind a singleton accessor so all route handlers share the same state (same pattern Next.js docs recommend for Prisma clients)
+- added operator dashboard to the thoughts section in FeatureHub with a card linking to `/thoughts/operator-dashboard`, and added `thoughtsHref` to the operator feature card so it gets an "About" link like the other features
+- bumped version to 0.10.40
+
+## 2026-07-02 - version 0.10.39
+
+- fixed all stores showing "Offline" connection quality and sensor offline callouts -- `lastPing` timestamps in the factory were generated 0-2 hours in the past at module load time and never refreshed, so they always drifted past the 10-minute offline threshold; store accessors now recompute `lastPing` relative to `Date.now()` on every read (online stores get 0-60s old pings, degraded store gets 7-minute old ping), and the factory default was tightened from `Math.random() * 2` hours to `Math.random() / 60` hours
+- bumped version to 0.10.39
+
+## 2026-07-02 - version 0.10.38
+
+- updated operator dashboard thoughts page to cover the full self-review pass -- added a new "The self-review" section explaining the audit process (correctness, performance, UX, code quality, testing) with specifics on what was found and fixed, updated the tradeoffs section to reflect that the fan-out query pattern and unmemoized chart transforms have been resolved, and added a matching conversation thread to the chat view
+- bumped version to 0.10.38
+
+## 2026-07-02 - version 0.10.37
+
+- strengthened `useRestockStore` rollback test to close a mutation testing gap -- previously the test only asserted the final state (`currentStock === 3`), which a mutant that removes the `onMutate` optimistic update could survive (stock never changes from 3, so it trivially passes); now the test adds a 300ms delay to the 500 response and asserts the optimistic update fires first (`currentStock === 10`) before verifying the rollback reverts it
+- bumped version to 0.10.37
+
+## 2026-07-02 - version 0.10.36
+
+- added test for `RefreshBar` "last refreshed" display -- verifies the component reads `dataUpdatedAt` timestamps from the operator query cache and renders the correct relative time via `formatDistanceToNow`, picks the most recent entry when multiple operator queries exist, and falls back to "less than a minute ago" when no queries are cached
+- bumped version to 0.10.36
+
+## 2026-07-02 - version 0.10.35
+
+- added component-level tests for error and empty states across all four store detail tabs (InventoryTab, AlertsTab, ActivityTab, PlanogramTab) -- previously only utility function tests existed; new tests use MSW to return 500s and empty arrays, verifying each tab renders the correct error message on fetch failure and the appropriate empty state when no data exists
+- bumped version to 0.10.35
+
+## 2026-07-02 - version 0.10.34
+
+- added integration test for `OperatorDashboard` render with MSW -- verifies store cards appear for every store in the fleet, checks worst-first sort order (offline > degraded with alerts > online), asserts per-card alert count and inventory health from fleet summary, and confirms fleet stats bar renders
+- bumped version to 0.10.34
+
+## 2026-07-02 - version 0.10.33
+
+- added `/api/operator/fleet-summary` endpoint that returns aggregated alert counts, inventory health, fleet stats, and alert trend data per store in a single request -- the dashboard previously fanned out 2N parallel queries (alerts + inventory per store, each polling independently), which doesn't scale past ~20 stores; now the fleet overview makes 1 request every 15s regardless of fleet size
+- refactored `OperatorDashboard` to replace the two `useQueries` fan-outs with a single `useQuery` to `/api/operator/fleet-summary`, cutting per-store `alertsByStore`/`inventoryByStore` maps in favor of a flat `StoreSummary[]` lookup
+- updated `FleetAnalytics`, `AlertTrendChart`, and `InventoryComparisonChart` to accept pre-computed data from the server instead of raw alert/inventory arrays
+- bumped version to 0.10.33
+
+## 2026-07-02 - version 0.10.32
+
+- moved `allAlerts` flat-array computation from `FleetAnalytics` up to `OperatorDashboard` -- `FleetAnalytics` was receiving `alertsByStore` only to flatten it via `useMemo`, but the parent already has all alert data; now `OperatorDashboard` computes the flat array once and passes it down as an `allAlerts` prop, removing the redundant transform from the child
+- bumped version to 0.10.32
+
+## 2026-07-02 - version 0.10.31
+
+- unified duplicate `STATUS_CONFIG` objects from `StoreCard` and `StoreHeader` into a single export in `operator-detail.ts` -- the two copies had different shapes (`border` vs `bg` fields), now one config carries all fields both components need
+- bumped version to 0.10.31
+
+## 2026-07-02 - version 0.10.30
+
+- added per-item restock feedback in `InventoryTab` and `InventoryRow` — previously `isRestocking` was a single global boolean so all rows showed "Restocking..." at once and there was no success indicator; now tracks in-flight and recently-restocked item IDs via sets, each row shows its own "Restocking..." state, and a green checkmark "Restocked" badge appears for 2 seconds after success
+- bumped version to 0.10.30
+
+## 2026-07-02 - version 0.10.29
+
+- added expand/collapse animation to `FleetAnalytics` — the chart section previously toggled instantly via conditional render; wrapped in `AnimatePresence` + `motion.div` with height and opacity animation (0.25s easeInOut) for a smooth transition
+- bumped version to 0.10.29
+
+## 2026-07-02 - version 0.10.28
+
+- fixed alert banner filter callbacks in `OperatorDashboard` — `onFilterCritical` and `onFilterWarning` both set `statusFilter("degraded")` which is wrong (store status !== alert severity); replaced with a new `severityFilter` state that narrows visible stores to only those with unacknowledged alerts of the selected severity; shows a dismissible chip when active; "Clear filters" resets it too
+- bumped version to 0.10.28
+
+## 2026-07-02 - version 0.10.27
+
+- added "Back to fleet" link above `StoreHeader` in `StoreDetail` — store detail page had no way to navigate back to the fleet dashboard without using browser back; now shows a subtle link at the top pointing to `/operator`
+- bumped version to 0.10.27
+
+## 2026-07-02 - version 0.10.26
+
+- fixed unreadable tooltip text in dark mode across all three fleet analytics charts (`InventoryComparisonChart`, `FleetHealthChart`, `AlertTrendChart`) — `contentStyle.color` alone doesn't reach Recharts' inner text elements; replaced with `labelStyle` and `itemStyle` using `var(--color-foreground)` so both the tooltip title and value lines are readable in dark mode
+- bumped version to 0.10.26
+
+## 2026-07-02 - version 0.10.24
+
+- fixed silent error swallowing in `InventoryTab.handleRestock` — the `restockStore` promise had no `.catch()`, so a failed restock would optimistically roll back the UI but give the user no feedback; now catches the rejection and shows an error toast via `useToast`
+- bumped version to 0.10.24
+
+## 2026-07-02 - version 0.10.23
+
+- added "Clear filters" button to the empty store grid state in `OperatorDashboard` — resets both `statusFilter` and `search` to defaults; only renders when filters are actually active so it doesn't appear when the fleet is genuinely empty
+- bumped version to 0.10.23
+
+## 2026-07-02 - version 0.10.22
+
+- surfaced per-store sub-query failures in `OperatorDashboard` — the `useQueries` `combine` callbacks now track `isError` alongside `data`; a `storeQueryErrors` set identifies stores whose alert or inventory fetches failed, and `StoreCard` shows a subtle "Data error" indicator with a warning icon in the footer when `hasQueryError` is true
+- bumped version to 0.10.22
+
+## 2026-07-02 - version 0.10.21
+
+- added "Retry" button to the stores fetch error state in `OperatorDashboard` — previously a failed fetch showed only the error message with no way to recover; now calls `queryClient.invalidateQueries` on the stores query key so the user can re-trigger the fetch without refreshing the page
+- bumped version to 0.10.21
+
+## 2026-07-02 - version 0.10.20
+
+- wrapped chart transform calls in `useMemo` inside `FleetHealthChart`, `AlertTrendChart`, and `InventoryComparisonChart` — `toFleetHealthData`, `toAlertTrendData`, and `toInventoryComparisonData` were called inline on every render; now memoized on their respective props so they only recompute when the underlying data changes
+- bumped version to 0.10.20
+
+## 2026-07-02 - version 0.10.19
+
+- fixed unstable `useMemo` deps in `OperatorDashboard` caused by `useQueries` returning a new array reference on every render — added `combine` callbacks that select just the `.data` arrays from each query result, so TanStack Query's `replaceEqualDeep` structural sharing keeps the reference stable between renders when no query data has actually changed; this stops the cascade where `alertsByStore` → `alertCounts` → `fleetStats` → `inventoryHealthByStore` → `visibleStores` all recalculated on every render
+- bumped version to 0.10.19
+
+## 2026-07-02 - version 0.10.18
+
+- extracted inline SVG icons scattered across operator components into shared `src/components/operator/icons.tsx` — deduplicated WarningTriangle (was in StoreCard, SensorOfflineCallout, AlertSummaryBanner), RefreshIcon (was in QuickActions, RefreshBar); consolidated RestockIcon, CheckmarkIcon, CheckCircleIcon, ChevronDownIcon, OfflineXIcon, SignalBarsIcon as named exports with `size` and `className` props for flexible reuse
+- bumped version to 0.10.18
+
+## 2026-07-02 - version 0.10.17
+
+- extracted shared `Bone` skeleton component to `src/components/operator/Bone.tsx` — was duplicated identically across 8 files (OperatorDashboard, StoreDetail, operator/loading, stores/[storeId]/loading, InventoryTab, AlertsTab, ActivityTab, PlanogramTab); all now import from the single source
+- bumped version to 0.10.17
+
+## 2026-07-02 - version 0.10.16
+
+- fixed direct object mutation in `operator-data.ts` — `dismissAlert()` and `restockItems()` were mutating in-memory objects directly (`alert.acknowledged = true`, `item.currentStock = item.capacity`), which violates immutability and can cause stale reference bugs with React's diffing; both now return new objects via spread and replace entries in their respective maps/arrays
+- fixed shared `isDismissing` state in `AlertsTab` — previously a single boolean from `useDismissAlert()` was passed to every `AlertRow`, so dismissing one alert disabled all dismiss buttons; now tracks in-flight alert IDs via a `Set<string>` so only the specific row being dismissed shows "Dismissing..." and disables its button
+- fixed ARIA tab pattern in `StoreTabs` — tab buttons now have `id="tab-{id}"` and the tab panel's `aria-labelledby` references it, completing the `aria-controls`/`aria-labelledby` relationship
+- made `toAlertTrendData` deterministic — added optional `now: Date` parameter (defaults to `new Date()`) so tests can pass a fixed date instead of depending on wall-clock time
+- made `getConnectionQuality` deterministic — added optional `now: number` parameter (defaults to `Date.now()`) matching the pattern in `operator-freshness.ts`
+- bumped version to 0.10.16
+
 ## 2026-07-01 - version 0.10.14
 
 - added operator dashboard thoughts page at `/thoughts/operator-dashboard` — design write-up covering tiered polling rationale (15s alerts, 30s stores, 60s inventory), optimistic update lifecycle, severity-first sorting UX, data freshness system (three-tier thresholds with deterministic `now` parameter), fleet analytics collapsible section, toast notification architecture (framework-agnostic `createToastStore` with `useSyncExternalStore` bridge), store detail tabs (inventory/alerts/activity/planogram with `?tab=` URL sync), and tradeoffs (in-memory data, per-store fan-out at scale, chart transform recomputation); includes future improvement discussion — WebSocket/SSE for sub-second alert delivery, push notifications for off-screen operators, historical anomaly detection, role-based multi-tenant auth, mobile-first field technician view, and geographic map overlay; both summary and iMessage chat views

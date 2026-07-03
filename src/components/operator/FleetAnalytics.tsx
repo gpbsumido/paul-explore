@@ -1,15 +1,22 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import type { Store, Alert, InventoryItem } from "@/types/operator";
+import { useState, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import type { Store, AlertTrendBucket } from "@/types/operator";
 import FleetHealthChart from "./FleetHealthChart";
 import AlertTrendChart from "./AlertTrendChart";
 import InventoryComparisonChart from "./InventoryComparisonChart";
+import { ChevronDownIcon } from "./icons";
+
+interface InventoryComparisonDatum {
+  readonly name: string;
+  readonly health: number;
+}
 
 interface FleetAnalyticsProps {
   stores: readonly Store[];
-  alertsByStore: ReadonlyMap<string, readonly Alert[]>;
-  inventoryByStore: ReadonlyMap<string, readonly InventoryItem[]>;
+  alertTrend: readonly AlertTrendBucket[];
+  inventoryComparison: readonly InventoryComparisonDatum[];
 }
 
 const STORAGE_KEY = "operator-fleet-analytics-collapsed";
@@ -35,8 +42,8 @@ function readCollapsed(): boolean {
  */
 export default function FleetAnalytics({
   stores,
-  alertsByStore,
-  inventoryByStore,
+  alertTrend,
+  inventoryComparison,
 }: FleetAnalyticsProps) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
@@ -52,14 +59,6 @@ export default function FleetAnalytics({
     });
   }, []);
 
-  const allAlerts = useMemo(() => {
-    const result: Alert[] = [];
-    for (const alerts of alertsByStore.values()) {
-      result.push(...alerts);
-    }
-    return result;
-  }, [alertsByStore]);
-
   return (
     <section className="rounded-xl border border-border bg-surface">
       <button
@@ -69,33 +68,31 @@ export default function FleetAnalytics({
         aria-expanded={!collapsed}
       >
         <span className="text-sm font-semibold">Fleet Analytics</span>
-        <svg
+        <ChevronDownIcon
           className={`h-4 w-4 text-muted transition-transform ${collapsed ? "" : "rotate-180"}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        />
       </button>
 
-      {!collapsed && (
-        <div className="border-t border-border px-4 py-5">
-          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
-            <FleetHealthChart stores={stores} />
-            <AlertTrendChart alerts={allAlerts} />
-            <InventoryComparisonChart
-              stores={stores}
-              inventoryByStore={inventoryByStore}
-            />
-          </div>
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.div
+            key="fleet-analytics-content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="border-t border-border px-4 py-5">
+              <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
+                <FleetHealthChart stores={stores} />
+                <AlertTrendChart data={alertTrend} />
+                <InventoryComparisonChart data={inventoryComparison} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

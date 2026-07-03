@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
 import { toFleetHealthData } from "@/lib/operator-chart-transforms";
 import type { Store } from "@/types/operator";
@@ -13,7 +14,7 @@ interface FleetHealthChartProps {
  * Each slice represents online, degraded, or offline count.
  */
 export default function FleetHealthChart({ stores }: FleetHealthChartProps) {
-  const data = toFleetHealthData(stores);
+  const data = useMemo(() => toFleetHealthData(stores), [stores]);
 
   if (data.length === 0) {
     return (
@@ -49,6 +50,8 @@ export default function FleetHealthChart({ stores }: FleetHealthChartProps) {
                 borderRadius: 8,
                 fontSize: 12,
               }}
+              labelStyle={{ color: "var(--color-foreground)" }}
+              itemStyle={{ color: "var(--color-foreground)" }}
               formatter={(value, name) => [
                 `${value} store${value !== 1 ? "s" : ""}`,
                 String(name),

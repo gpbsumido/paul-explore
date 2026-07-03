@@ -9,20 +9,17 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { toAlertTrendData } from "@/lib/operator-chart-transforms";
-import type { Alert } from "@/types/operator";
+import type { AlertTrendBucket } from "@/types/operator";
 
 interface AlertTrendChartProps {
-  alerts: readonly Alert[];
+  data: readonly AlertTrendBucket[];
 }
 
 /**
  * Area chart showing alert volume over the last 24 hours. Helps operators
  * see whether alert frequency is trending up or down.
  */
-export default function AlertTrendChart({ alerts }: AlertTrendChartProps) {
-  const data = toAlertTrendData(alerts);
-
+export default function AlertTrendChart({ data }: AlertTrendChartProps) {
   return (
     <div className="flex flex-col gap-3">
       <h4 className="text-xs font-medium text-muted uppercase tracking-wide text-center">
@@ -71,6 +68,8 @@ export default function AlertTrendChart({ alerts }: AlertTrendChartProps) {
                 borderRadius: 8,
                 fontSize: 12,
               }}
+              labelStyle={{ color: "var(--color-foreground)" }}
+              itemStyle={{ color: "var(--color-foreground)" }}
               formatter={(value) => [
                 `${value} alert${value !== 1 ? "s" : ""}`,
                 "Count",

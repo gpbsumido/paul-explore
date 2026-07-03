@@ -6,6 +6,7 @@ import {
   inventoryItemSchema,
   alertSchema,
   activityEventSchema,
+  fleetSummaryResponseSchema,
 } from "@/lib/operator-schemas";
 import { z } from "zod";
 
@@ -222,6 +223,42 @@ describe("POST /api/operator/stores/:id/restock", () => {
       body: JSON.stringify({ itemIds: ["item-001"] }),
     });
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/fleet-summary — aggregated dashboard data
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/fleet-summary", () => {
+  it("returns a response that passes schema validation", async () => {
+    const res = await fetch("/api/operator/fleet-summary");
+    expect(res.ok).toBe(true);
+    const body = await res.json();
+    const result = fleetSummaryResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+  });
+
+  it("returns one summary per store", async () => {
+    const storesRes = await fetch("/api/operator/stores");
+    const { stores } = await storesRes.json();
+
+    const res = await fetch("/api/operator/fleet-summary");
+    const body = await res.json();
+
+    expect(body.summaries.length).toBe(stores.length);
+    const summaryIds = body.summaries.map(
+      (s: { storeId: string }) => s.storeId,
+    );
+    for (const store of stores) {
+      expect(summaryIds).toContain(store.id);
+    }
+  });
+
+  it("returns 24 hourly alert trend buckets", async () => {
+    const res = await fetch("/api/operator/fleet-summary");
+    const body = await res.json();
+    expect(body.alertTrend).toHaveLength(24);
   });
 });
 

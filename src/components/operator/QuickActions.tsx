@@ -13,6 +13,7 @@ import {
 import { queryKeys } from "@/lib/queryKeys";
 import { useToast } from "@/contexts/ToastContext";
 import ConfirmModal from "./ConfirmModal";
+import { RestockIcon, CheckmarkIcon, RefreshIcon } from "./icons";
 
 interface QuickActionsProps {
   storeId: string;
@@ -103,7 +104,7 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
         <ActionButton
           onClick={() => setConfirmTarget("dismiss")}
           disabled={dismissableAlerts.length === 0 || isDismissing}
-          icon={<DismissIcon />}
+          icon={<CheckmarkIcon />}
           label={
             dismissableAlerts.length > 0
               ? `Acknowledge All (${dismissableAlerts.length})`
@@ -113,7 +114,9 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
         <ActionButton
           onClick={handleSensorRefresh}
           disabled={isSensorRefreshing}
-          icon={<SensorIcon spinning={isSensorRefreshing} />}
+          icon={
+            <RefreshIcon className={isSensorRefreshing ? "animate-spin" : ""} />
+          }
           label={isSensorRefreshing ? "Refreshing..." : "Force Sensor Refresh"}
         />
       </div>
@@ -158,63 +161,5 @@ function ActionButton({
       {icon}
       {label}
     </button>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Inline icons
-// ---------------------------------------------------------------------------
-
-function RestockIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden
-    >
-      <path
-        d="M8 2v12M4 10l4 4 4-4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function DismissIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden
-    >
-      <path d="M3 8.5l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function SensorIcon({ spinning }: { spinning: boolean }) {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      className={spinning ? "animate-spin" : ""}
-      aria-hidden
-    >
-      <path d="M14 8A6 6 0 1 1 8 2" strokeLinecap="round" />
-      <path d="M8 0l3 2-3 2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }

@@ -2,16 +2,18 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { useQueries } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { fadeInUp, spring } from "@/lib/animations";
 import { queryKeys } from "@/lib/queryKeys";
-import {
-  sortStores,
-  filterStores,
-  computeFleetStats,
-} from "@/lib/operator-utils";
-import type { Alert, InventoryItem, StoreStatus } from "@/types/operator";
+import { sortStores, filterStores } from "@/lib/operator-utils";
+import type {
+  AlertSeverity,
+  AlertTrendBucket,
+  FleetSummaryResponse,
+  StoreSummary,
+  StoreStatus,
+} from "@/types/operator";
 import AlertSummaryBanner from "@/components/operator/AlertSummaryBanner";
 import FleetStatsBar from "@/components/operator/FleetStatsBar";
 import RefreshBar from "@/components/operator/RefreshBar";
@@ -19,13 +21,16 @@ import StoreCard from "@/components/operator/StoreCard";
 import FleetAnalytics from "@/components/operator/FleetAnalytics";
 import StoreFilters from "@/components/operator/StoreFilters";
 
+const MAX_CHART_NAME_LENGTH = 20;
+
 /**
  * Client-side operator fleet dashboard. Fetches the store list via
- * useOperatorStores (30s poll), then fans out parallel queries for alerts and
- * inventory per store so the sorting, stats, and card data are all available
- * without waterfall requests.
+ * useOperatorStores (30s poll) and aggregated alert/inventory data via a
+ * single fleet-summary request (15s poll) instead of fanning out per-store
+ * queries. This scales to any fleet size with constant request count.
  */
 export default function OperatorDashboard() {
+  const queryClient = useQueryClient();
   const {
     stores,
     loading: storesLoading,
@@ -34,98 +39,111 @@ export default function OperatorDashboard() {
 
   const [statusFilter, setStatusFilter] = useState<StoreStatus | "all">("all");
   const [search, setSearch] = useState("");
-
-  // fan out alert queries for every store (15s poll matches useOperatorAlerts)
-  const alertQueries = useQueries({
-    queries: stores.map((s) => ({
-      queryKey: queryKeys.operator.alerts(s.id),
-      queryFn: async (): Promise<Alert[]> => {
-        const res = await fetch(`/api/operator/stores/${s.id}/alerts`);
-        if (!res.ok) throw new Error("Failed to fetch alerts");
-        const json = await res.json();
-        return json.alerts as Alert[];
-      },
-      staleTime: 0,
-      refetchInterval: 15_000,
-    })),
-  });
-
-  // fan out inventory queries for every store (60s poll)
-  const inventoryQueries = useQueries({
-    queries: stores.map((s) => ({
-      queryKey: queryKeys.operator.inventory(s.id),
-      queryFn: async (): Promise<InventoryItem[]> => {
-        const res = await fetch(`/api/operator/stores/${s.id}/inventory`);
-        if (!res.ok) throw new Error("Failed to fetch inventory");
-        const json = await res.json();
-        return json.items as InventoryItem[];
-      },
-      staleTime: 0,
-      refetchInterval: 60_000,
-    })),
-  });
-
-  // build lookup maps from the parallel queries
-  const alertsByStore = useMemo(() => {
-    const map = new Map<string, readonly Alert[]>();
-    stores.forEach((s, i) => {
-      const data = alertQueries[i]?.data;
-      if (data) map.set(s.id, data);
-    });
-    return map;
-  }, [stores, alertQueries]);
-
-  const inventoryByStore = useMemo(() => {
-    const map = new Map<string, readonly InventoryItem[]>();
-    stores.forEach((s, i) => {
-      const data = inventoryQueries[i]?.data;
-      if (data) map.set(s.id, data);
-    });
-    return map;
-  }, [stores, inventoryQueries]);
-
-  const alertCounts = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const [storeId, alerts] of alertsByStore) {
-      map.set(storeId, alerts.filter((a) => !a.acknowledged).length);
-    }
-    return map;
-  }, [alertsByStore]);
-
-  // compute fleet stats from all data
-  const fleetStats = useMemo(
-    () => computeFleetStats(stores, alertsByStore, inventoryByStore),
-    [stores, alertsByStore, inventoryByStore],
+  const [severityFilter, setSeverityFilter] = useState<AlertSeverity | null>(
+    null,
   );
 
-  // compute per-store inventory health for cards
-  const inventoryHealthByStore = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const [storeId, items] of inventoryByStore) {
-      if (items.length === 0) {
-        map.set(storeId, 0);
-        continue;
-      }
-      const total = items.reduce(
-        (sum, item) =>
-          sum + (item.capacity > 0 ? item.currentStock / item.capacity : 0),
-        0,
-      );
-      map.set(storeId, Math.round((total / items.length) * 100));
+  // single aggregated query replaces the 2N fan-out (alerts + inventory per store)
+  const { data: fleetSummary } = useQuery({
+    queryKey: queryKeys.operator.fleetSummary(),
+    queryFn: async ({ signal }): Promise<FleetSummaryResponse> => {
+      const res = await fetch("/api/operator/fleet-summary", { signal });
+      if (!res.ok) throw new Error("Failed to fetch fleet summary");
+      return res.json() as Promise<FleetSummaryResponse>;
+    },
+    staleTime: 0,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
+  });
+
+  // build lookup map from summaries for O(1) per-store access
+  const summaryByStore = useMemo(() => {
+    const map = new Map<string, StoreSummary>();
+    for (const s of fleetSummary?.summaries ?? []) {
+      map.set(s.storeId, s);
     }
     return map;
-  }, [inventoryByStore]);
+  }, [fleetSummary?.summaries]);
+
+  // alert counts map for sorting
+  const alertCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const s of fleetSummary?.summaries ?? []) {
+      map.set(s.storeId, s.alertCount);
+    }
+    return map;
+  }, [fleetSummary?.summaries]);
+
+  // fleet stats for the banner and stats bar, with safe defaults before data loads
+  const fleetStats = useMemo(
+    () => ({
+      totalStores: stores.length,
+      needsAttention: stores.filter(
+        (s) => s.status === "degraded" || s.status === "offline",
+      ).length,
+      criticalAlerts: fleetSummary?.fleetStats.criticalAlerts ?? 0,
+      warningAlerts: fleetSummary?.fleetStats.warningAlerts ?? 0,
+      lowStockItems: fleetSummary?.fleetStats.lowStockItems ?? 0,
+      avgInventoryHealth: fleetSummary?.fleetStats.avgInventoryHealth ?? 0,
+    }),
+    [stores, fleetSummary?.fleetStats],
+  );
+
+  // pre-computed alert trend for the chart (from the server)
+  const alertTrend: readonly AlertTrendBucket[] =
+    fleetSummary?.alertTrend ?? [];
+
+  // derive inventory comparison chart data from summaries + store names
+  const inventoryComparison = useMemo(
+    () =>
+      stores.map((store) => {
+        const summary = summaryByStore.get(store.id);
+        const name =
+          store.name.length > MAX_CHART_NAME_LENGTH
+            ? store.name.slice(0, MAX_CHART_NAME_LENGTH - 1) + "\u2026"
+            : store.name;
+        return { name, health: summary?.inventoryHealth ?? 0 };
+      }),
+    [stores, summaryByStore],
+  );
 
   // filter then sort
   const visibleStores = useMemo(() => {
     const filtered = filterStores(stores, { status: statusFilter, search });
-    return sortStores(filtered, alertCounts);
-  }, [stores, statusFilter, search, alertCounts]);
+    const bySeverity = severityFilter
+      ? filtered.filter((s) => {
+          const summary = summaryByStore.get(s.id);
+          if (!summary) return false;
+          if (severityFilter === "critical") return summary.hasCritical;
+          if (severityFilter === "warning") return summary.hasWarning;
+          return false;
+        })
+      : filtered;
+    return sortStores(bySeverity, alertCounts);
+  }, [
+    stores,
+    statusFilter,
+    search,
+    alertCounts,
+    severityFilter,
+    summaryByStore,
+  ]);
 
   if (storesError) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-12 text-center">
         <p className="text-sm text-error-500">{storesError}</p>
+        <button
+          type="button"
+          className="mt-4 rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+          onClick={() =>
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.operator.stores(),
+            })
+          }
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -145,8 +163,8 @@ export default function OperatorDashboard() {
       <AlertSummaryBanner
         criticalCount={fleetStats.criticalAlerts}
         warningCount={fleetStats.warningAlerts}
-        onFilterCritical={() => setStatusFilter("degraded")}
-        onFilterWarning={() => setStatusFilter("degraded")}
+        onFilterCritical={() => setSeverityFilter("critical")}
+        onFilterWarning={() => setSeverityFilter("warning")}
       />
 
       {/* Fleet stats bar */}
@@ -155,8 +173,8 @@ export default function OperatorDashboard() {
       {/* Fleet analytics (collapsible charts) */}
       <FleetAnalytics
         stores={stores}
-        alertsByStore={alertsByStore}
-        inventoryByStore={inventoryByStore}
+        alertTrend={alertTrend}
+        inventoryComparison={inventoryComparison}
       />
 
       {/* Filters */}
@@ -167,23 +185,64 @@ export default function OperatorDashboard() {
         onSearchChange={setSearch}
       />
 
+      {/* Active severity filter chip */}
+      {severityFilter && (
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+              severityFilter === "critical"
+                ? "bg-error-100 text-error-700 dark:bg-error-950/40 dark:text-error-400"
+                : "bg-warning-100 text-warning-700 dark:bg-warning-950/40 dark:text-warning-400"
+            }`}
+          >
+            {severityFilter} alerts only
+            <button
+              type="button"
+              className="ml-0.5 hover:opacity-70 transition-opacity"
+              aria-label="Clear severity filter"
+              onClick={() => setSeverityFilter(null)}
+            >
+              ×
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* Store card grid */}
       {storesLoading && stores.length === 0 ? (
         <StoreGridSkeleton />
       ) : visibleStores.length === 0 ? (
-        <p className="py-12 text-center text-sm text-muted">
-          No stores match the current filters.
-        </p>
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted">
+            No stores match the current filters.
+          </p>
+          {(statusFilter !== "all" || search !== "" || severityFilter) && (
+            <button
+              type="button"
+              className="mt-3 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              onClick={() => {
+                setStatusFilter("all");
+                setSearch("");
+                setSeverityFilter(null);
+              }}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visibleStores.map((store) => (
-            <StoreCard
-              key={store.id}
-              store={store}
-              alertCount={alertCounts.get(store.id) ?? 0}
-              inventoryHealth={inventoryHealthByStore.get(store.id) ?? 0}
-            />
-          ))}
+          {visibleStores.map((store) => {
+            const summary = summaryByStore.get(store.id);
+            return (
+              <StoreCard
+                key={store.id}
+                store={store}
+                alertCount={summary?.alertCount ?? 0}
+                inventoryHealth={summary?.inventoryHealth ?? 0}
+              />
+            );
+          })}
         </div>
       )}
     </motion.main>
@@ -194,25 +253,7 @@ export default function OperatorDashboard() {
 // Inline skeleton for the initial load state
 // ---------------------------------------------------------------------------
 
-function Bone({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <div
-      className={className}
-      style={{
-        background: "var(--color-surface-raised)",
-        borderRadius: 6,
-        animation: "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite",
-        ...style,
-      }}
-    />
-  );
-}
+import Bone from "@/components/operator/Bone";
 
 function StoreCardSkeleton() {
   return (

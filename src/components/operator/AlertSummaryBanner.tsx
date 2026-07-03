@@ -1,3 +1,5 @@
+import { WarningTriangleIcon } from "./icons";
+
 interface AlertSummaryBannerProps {
   criticalCount: number;
   warningCount: number;
@@ -27,16 +29,9 @@ export default function AlertSummaryBanner({
       }`}
       role="status"
     >
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="currentColor"
+      <WarningTriangleIcon
         className={criticalCount > 0 ? "text-error-500" : "text-warning-500"}
-        aria-hidden
-      >
-        <path d="M8 1a1 1 0 0 1 .867.5l6.062 10.5A1 1 0 0 1 14.062 13.5H1.938a1 1 0 0 1-.867-1.5L7.133 1.5A1 1 0 0 1 8 1Zm0 4.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8 5.5ZM8 11a.75.75 0 1 0 0-1.5A.75.75 0 0 0 8 11Z" />
-      </svg>
+      />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
         {criticalCount > 0 && (
