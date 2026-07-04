@@ -783,9 +783,13 @@ export default function WeatherCanvas({ className }: { className?: string }) {
     const scheduling = (navigator as Navigator & { scheduling?: SchedulingAPI })
       .scheduling;
 
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const onResize = () => {
-      setSize();
-      effect.resize(canvas.width, canvas.height);
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        setSize();
+        effect.resize(canvas.width, canvas.height);
+      }, 150);
     };
     window.addEventListener("resize", onResize, { passive: true });
 
@@ -825,6 +829,7 @@ export default function WeatherCanvas({ className }: { className?: string }) {
 
     return () => {
       cancelAnimationFrame(animId);
+      clearTimeout(resizeTimer);
       io.disconnect();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("mousemove", onMouse);

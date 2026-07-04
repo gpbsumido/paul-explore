@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useWeather, type WeatherCondition } from "@/hooks/useWeather";
 
 export type EffectChoice = WeatherCondition | "auto";
@@ -50,37 +57,51 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
     },
   );
 
-  const toggle = () =>
-    setEnabled((v) => {
-      const next = !v;
-      localStorage.setItem("weather-fx-enabled", String(next));
-      return next;
-    });
+  const toggle = useCallback(
+    () =>
+      setEnabled((v) => {
+        const next = !v;
+        localStorage.setItem("weather-fx-enabled", String(next));
+        return next;
+      }),
+    [],
+  );
 
-  const setSelectedEffect = (v: EffectChoice) => {
+  const setSelectedEffect = useCallback((v: EffectChoice) => {
     setSelectedEffectState(v);
     localStorage.setItem("weather-fx-effect", v);
-  };
+  }, []);
 
   const activeCondition: WeatherCondition =
     selectedEffect === "auto" ? weather.condition : selectedEffect;
 
+  const value = useMemo<WeatherCtx>(
+    () => ({
+      condition: weather.condition,
+      temperature: weather.temperature,
+      city: weather.city,
+      loading: weather.loading,
+      enabled,
+      toggle,
+      selectedEffect,
+      setSelectedEffect,
+      activeCondition,
+    }),
+    [
+      weather.condition,
+      weather.temperature,
+      weather.city,
+      weather.loading,
+      enabled,
+      toggle,
+      selectedEffect,
+      setSelectedEffect,
+      activeCondition,
+    ],
+  );
+
   return (
-    <WeatherContext.Provider
-      value={{
-        condition: weather.condition,
-        temperature: weather.temperature,
-        city: weather.city,
-        loading: weather.loading,
-        enabled,
-        toggle,
-        selectedEffect,
-        setSelectedEffect,
-        activeCondition,
-      }}
-    >
-      {children}
-    </WeatherContext.Provider>
+    <WeatherContext.Provider value={value}>{children}</WeatherContext.Provider>
   );
 }
 

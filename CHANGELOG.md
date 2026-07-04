@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.1
+
+- debounced WeatherCanvas resize handler at 150ms to prevent dozens of offscreen canvas allocations per second during window drag-resize (cloud effect was calling `makeCloudSprite` 14 times per resize frame, each allocating a `document.createElement('canvas')` with gradient fills)
+- updated Render Performance thoughts page with resize debounce section
+- bumped version to 0.12.1
+
+## 2026-07-04 - version 0.12.0
+
+- fixed WeatherContext value instability causing cascading re-renders: wrapped `toggle` and `setSelectedEffect` in `useCallback`, wrapped context value object in `useMemo` keyed on actual values so consumers only re-render when data changes
+- created Render Performance thoughts page at `/thoughts/render-perf` documenting the runtime performance review and incremental fixes (starting with WeatherContext, with 17 more issues queued)
+- bumped version to 0.12.0
+
 ## 2026-07-04 - version 0.11.17
 
 - added Operator and Learn to the landing page feature grid in FeaturesSection (new IconLearn + IconOperator SVGs, FeatureCards with design tokens and links)
