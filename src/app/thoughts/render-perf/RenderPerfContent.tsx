@@ -158,14 +158,44 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                FeaturesSection backdrop-filter blur reduction
+              </h2>
+              <p className="text-muted">
+                Every{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  FeatureCard
+                </code>{" "}
+                had{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  backdrop-filter: blur(16px)
+                </code>{" "}
+                applied via inline style. The section renders 11 cards.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  backdrop-filter: blur()
+                </code>{" "}
+                is one of the most expensive CSS compositor operations &mdash;
+                it rasterizes the content behind each element, applies a
+                Gaussian blur kernel, and composites. With 11 elements visible
+                simultaneously, that&apos;s significant GPU memory pressure.
+              </p>
+              <p className="mt-3 text-muted">
+                The Gaussian blur kernel cost scales with the square of the
+                radius. Reducing from 16px to 4px is roughly 1/16th the
+                computation per card. Across 11 cards, that&apos;s a major
+                reduction in per-frame compositor work while preserving the
+                frosted glass aesthetic.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 16 more issues across backdrop-filter GPU
-                pressure, infinite animations that never pause offscreen,
-                unbounded DOM growth in infinite scroll lists, transition-all
-                waste, background tab polling, loading state flicker, and
-                missing memo boundaries. These will be addressed incrementally
-                and documented here as they land.
+                The review identified 15 more issues across infinite animations
+                that never pause offscreen, unbounded DOM growth in infinite
+                scroll lists, transition-all waste, background tab polling,
+                loading state flicker, and missing memo boundaries. These will
+                be addressed incrementally and documented here as they land.
               </p>
             </section>
           </div>
@@ -301,6 +331,27 @@ export default function RenderPerfContent() {
                 debounced the handler at 150ms. canvas stays at its old size
                 during the drag and snaps to final dimensions when you stop.
                 timer gets cleaned up in the effect teardown
+              </Sent>
+
+              <Timestamp>2:18 PM</Timestamp>
+
+              <Received>
+                what about the backdrop blur thing on the feature cards
+              </Received>
+
+              <Sent pos="first">
+                every FeatureCard had <code>backdrop-filter: blur(16px)</code>.
+                11 cards on screen at once
+              </Sent>
+              <Sent pos="middle">
+                backdrop-filter blur is one of the most expensive CSS compositor
+                ops. it rasterizes what&apos;s behind the element, runs a
+                gaussian kernel, and composites. times 11
+              </Sent>
+              <Sent pos="last">
+                the blur kernel cost scales with the radius squared. dropped it
+                from 16px to 4px, so roughly 1/16th the cost per card. still
+                looks like frosted glass, just subtler
               </Sent>
 
               <div className={styles.typingDots}>

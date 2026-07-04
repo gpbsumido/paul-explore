@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.2
+
+- reduced FeaturesSection `backdrop-filter` blur radius from 16px to 4px across all 11 FeatureCards (Gaussian kernel cost scales with radius squared, so ~1/16th GPU compositor cost per card while preserving frosted glass aesthetic)
+- updated Render Performance thoughts page with backdrop-filter blur reduction section
+- bumped version to 0.12.2
+
 ## 2026-07-04 - version 0.12.1
 
 - debounced WeatherCanvas resize handler at 150ms to prevent dozens of offscreen canvas allocations per second during window drag-resize (cloud effect was calling `makeCloudSprite` 14 times per resize frame, each allocating a `document.createElement('canvas')` with gradient fills)
