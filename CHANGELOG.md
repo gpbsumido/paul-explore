@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.2
+
+- added Memoization topic page at `/learn/memoization` -- interactive cache visualizer demo with three compute(n) pill buttons triggering a 1-second progress bar on cache miss (requestAnimationFrame-driven), instant return with row flash on cache hit, cache table grows via AnimatePresence + fadeInUp, status text shows miss/hit state; React.memo component tree demo with Parent and three children (List/Form/Chart) as thin-bordered boxes connected by lines, render counts in monospace, "Re-render parent" pill button cascades to all children without memo vs parent-only with React.memo toggle; "build it from scratch" annotated memoize() utility (~10 lines) with JSON.stringify key derivation; "when not to memoize" left-border callout with four anti-patterns; "spot this pattern" callout; follows Visual Style Guide
+- bumped version to 0.12.2
+
 ## 2026-07-04 - version 0.12.1
 
 - added Debounce & Throttle topic page at `/learn/debounce-throttle` -- live click timeline demo with three horizontal timelines (Raw, Debounced 300ms, Throttled 300ms) showing DOM-based dots at time-proportional positions with scaleIn entrance and flash-to-settle opacity on debounced/throttled dots, real debounce (trailing) and throttle (leading) logic via setTimeout/Date.now refs, Clear button resets all state; leading vs trailing edge section with two side-by-side static SVG timeline diagrams showing event dots, 300ms brackets, and handler fire position; "build it from scratch" section with annotated two-column code blocks (code left, annotations right via flex layout hidden on mobile) for debounce (~8 lines) and throttle (~10 lines); "when to use which" left-border callout with four use cases; "spot this pattern" callout; follows Visual Style Guide
