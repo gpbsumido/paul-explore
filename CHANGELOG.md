@@ -1,5 +1,101 @@
 # Changelog
 
+## 2026-07-04 - version 0.11.17
+
+- added Operator and Learn to the landing page feature grid in FeaturesSection (new IconLearn + IconOperator SVGs, FeatureCards with design tokens and links)
+- created dedicated OperatorSection landing component with mock fleet dashboard (4 store rows with status dots, health bars, alert badges), 3 highlight cards, and violet-themed CTA
+- created dedicated LearnSection landing component with dot-grid topic list (8 topics with category labels), 3 highlight cards, and emerald-themed CTA
+- wired OperatorSection and LearnSection into LandingContent.tsx as dynamic imports, rendered after FeaturesSection
+- bumped version to 0.11.17
+
+## 2026-07-04 - version 0.11.16
+
+- polished all 13 learn pages for Visual Style Guide consistency: fixed PageHeader breadcrumbs and maxWidth on async-patterns and from-scratch pages, changed code block containers from `<div>` to `<pre>` on debounce-throttle and memoization pages, reduced code block span colors from 4 to 3 (removed redundant text-foreground identifier spans) on two-pointers/hash-maps/stacks-queues/binary-search/trees-graphs pages, added missing monospace complexity notes to "spot this pattern" boxes on debounce-throttle/memoization/event-delegation/async-patterns pages, standardized dot-grid positioning and outer shell structure on async-patterns and from-scratch pages
+- added missing learn routes to architecture map (dynamic-programming through from-scratch)
+- bumped version to 0.11.16
+
+## 2026-07-04 - version 0.11.15
+
+- added From Scratch topic page at `/learn/from-scratch` -- tabbed interface with five pill-toggled challenges (once(), pipe(), Promise.all(), bind(), Array.map()), each with a guided line-by-line code walkthrough where lines reveal one at a time via motion.div + fadeInUp with "Next line" pill button, each revealed line paired with a text-[11px] annotation explaining what it does (hidden on mobile), progress counter showing lines revealed; "Run tests" pill appears when all lines are revealed, test cases render as thin-bordered rows with AnimatePresence staggered entrance, monospace ✓ at text-foreground/50 for pass and ✗ at text-foreground/30 for fail; tab content swaps with AnimatePresence mode="wait" crossfade; Reset pill to restart walkthrough; bottom nav with "← Async Patterns" and "Back to all topics" with small 3×3 dot-grid SVG motif; no "spot this pattern" box (the whole page is the pattern); follows Visual Style Guide
+- bumped version to 0.12.5
+
+## 2026-07-04 - version 0.11.14
+
+- added Async Patterns topic page at `/learn/async-patterns` -- interactive event loop simulator with three preset code snippets (console logs, setTimeout + Promise, nested microtasks), three-column layout (Call Stack, Microtask Queue, Macrotask Queue) with motion.div blocks moving between columns via AnimatePresence + spring transitions, output line accumulating below, step-by-step narration, Step/Play/Reset pill controls at 800ms interval; Promise combinators section with three stacked SVG timeline diagrams (Promise.all, Promise.allSettled, Promise.race) showing task bars as motion.rect at varying fillOpacity with scaleX scroll-triggered animation and resolution dots at different positions; sequential vs parallel pitfall section with two code blocks and companion SVG timelines (end-to-end bars for sequential ~3s vs overlapping bars for parallel ~1s); three stacked code templates (event loop quiz answer with output order, Promise.all parallel fetch, try/catch/finally error handling); "spot this pattern" callout; follows Visual Style Guide
+- bumped version to 0.12.4
+
+## 2026-07-04 - version 0.11.13
+
+- added Event Delegation topic page at `/learn/event-delegation` -- interactive bubbling visualizer with nested DOM boxes (document > body > div > ul > li) built via Array.reduce, clicking the innermost li triggers staggered activation up through each layer (120ms per step) with ring pulse and accent border, "Bubble!" pill button resets and replays; cost comparison section with two scrollable 50-item lists side by side (50 individual onClick handlers vs single parent handler using data-idx delegation), click highlights the selected row in both, handler count labels show 50 vs 1; dynamic list demo with add/remove items via AnimatePresence, single parent handler using data-item-id delegation, counter tracks dynamically added items to prove no re-binding needed; capture vs bubble static SVG diagram with three nested boxes and directional arrows showing capture (down) and bubble (up) phases; vanilla JS delegation code block (~12 lines) with target.closest pattern; React synthetic events left-border callout explaining built-in delegation; "spot this pattern" callout; follows Visual Style Guide
+- bumped version to 0.12.3
+
+## 2026-07-04 - version 0.11.12
+
+- added Memoization topic page at `/learn/memoization` -- interactive cache visualizer demo with three compute(n) pill buttons triggering a 1-second progress bar on cache miss (requestAnimationFrame-driven), instant return with row flash on cache hit, cache table grows via AnimatePresence + fadeInUp, status text shows miss/hit state; React.memo component tree demo with Parent and three children (List/Form/Chart) as thin-bordered boxes connected by lines, render counts in monospace, "Re-render parent" pill button cascades to all children without memo vs parent-only with React.memo toggle; "build it from scratch" annotated memoize() utility (~10 lines) with JSON.stringify key derivation; "when not to memoize" left-border callout with four anti-patterns; "spot this pattern" callout; follows Visual Style Guide
+- bumped version to 0.12.2
+
+## 2026-07-04 - version 0.11.11
+
+- added Debounce & Throttle topic page at `/learn/debounce-throttle` -- live click timeline demo with three horizontal timelines (Raw, Debounced 300ms, Throttled 300ms) showing DOM-based dots at time-proportional positions with scaleIn entrance and flash-to-settle opacity on debounced/throttled dots, real debounce (trailing) and throttle (leading) logic via setTimeout/Date.now refs, Clear button resets all state; leading vs trailing edge section with two side-by-side static SVG timeline diagrams showing event dots, 300ms brackets, and handler fire position; "build it from scratch" section with annotated two-column code blocks (code left, annotations right via flex layout hidden on mobile) for debounce (~8 lines) and throttle (~10 lines); "when to use which" left-border callout with four use cases; "spot this pattern" callout; follows Visual Style Guide
+- bumped version to 0.12.1
+
+## 2026-07-04 - version 0.11.10
+
+- added Dynamic Programming topic page at `/learn/dynamic-programming` -- static fib(5) call tree SVG as bridge from recursion page (dashed borders on duplicate nodes), interactive bottom-up Fibonacci table demo with 8 cells filling left to right via AnimatePresence (step/play/reset controls), interactive Unique Paths grid demo with preset size pills (3×3 through 6×6) filling in diagonal-wave order with narration explaining each cell's formula, top-down vs bottom-up section with left-border callouts and small static SVG direction diagrams (tree with recurse/combine arrows, row of cells with iterate arrow), climbing stairs mini-demo as SVG staircase with 6 thin-bordered steps and ways-to-reach counts auto-animating bottom to top via motion.text with staggered delays on scroll, three stacked code templates (top-down memoized recursion, bottom-up table iteration, climbing stairs concrete example), "spot this pattern" callout with O(n²) or O(n\*m) time; follows Visual Style Guide
+- bumped version to 0.12.0
+
+## 2026-07-03 - version 0.11.9
+
+- added Recursion & Backtracking topic page at `/learn/recursion-backtracking` -- interactive Fibonacci call tree demo with SVG binary tree built dynamically for n=3-6 presets, memoization toggle that prunes redundant subtrees (dashed borders without memo, fade-to-invisible with memo), DFS step-through with vertical call stack panel and cache chip row (AnimatePresence entries), call count comparison showing savings; interactive backtracking subsets demo for [1,2,3] with 15-node binary decision tree, +n/−n edge labels, active path highlighting at strokeOpacity 0.5 with backtracked paths dimmed, result chips accumulating with AnimatePresence, leaf labels showing subset notation; "why recursion feels hard" left-border callout; two stacked code templates (recursive template, backtracking choose/explore/unchoose); "spot this pattern" callout with O(2^n) or O(n!) time; follows Visual Style Guide
+- bumped version to 0.11.9
+
+## 2026-07-03 - version 0.11.8
+
+- added Trees & Graphs topic page at `/learn/trees-graphs` -- interactive tree traversal demo with SVG binary tree (7 nodes), pill-toggled DFS modes (pre-order, in-order, post-order) and BFS, edges animate with pathLength as they're followed, visited nodes fill to fillOpacity 0.2 with strokeOpacity 0.7, vertical call stack panel for DFS (thin-bordered blocks with spring entries) and horizontal queue panel for BFS, visit order accumulates as monospace chips with AnimatePresence; DOM tree analogy section with mini SVG tree showing querySelector is DFS; interactive graph BFS demo with SVG undirected graph (6 nodes, 7 edges, cycles), three preset start/target pairs plus click-to-change-target, BFS explores level by level with staggered fill delays (level \* 0.08), shortest path edges highlighted at strokeOpacity 0.6, queue and visited set shown as chip rows; three stacked code templates (tree DFS recursive, tree BFS iterative, graph BFS with visited set); "spot this pattern" callout with O(V+E) time; follows Visual Style Guide
+- bumped version to 0.11.8
+
+## 2026-07-03 - version 0.11.7
+
+- add Vitals and Learn quicklinks in settings menu
+
+## 2026-07-03 - version 0.11.6
+
+- added Binary Search topic page at `/learn/binary-search` -- two interactive demos: classic binary search on a sorted 10-element array with L/R/mid pointer labels that spring between cells via motion.div, three preset targets (found-quick, found-longer, not-found), eliminated cells fade to opacity-[0.15]; search-the-answer-space demo ("minimum ship capacity to deliver packages in D days") with capacity range cells, lo/hi/mid pointer labels springing inward, package day-assignment visualization below showing how packages distribute across days for each candidate capacity; "the real insight" left-border callout with static F/T monotonic predicate row and boundary accent; two stacked code templates (classic find-target, search-the-answer predicate boundary); "spot this pattern" callout with O(log n) time; follows Visual Style Guide with dot-grid background, thin-bordered rounded-sm cells, hoverSpring animations, step/play/reset pill controls, narration with monospace values
+- bumped version to 0.11.6
+
+## 2026-07-03 - version 0.11.5
+
+- added a not-found page for when we navigate to pages that don't exist
+
+## 2026-07-03 - version 0.11.4
+
+- added Stacks & Queues topic page at `/learn/stacks-queues` -- side-by-side interactive Stack (LIFO) and Queue (FIFO) with push/pop and enqueue/dequeue controls using spring-animated blocks via AnimatePresence, Valid Parentheses demo with preset pills scanning characters left to right while a stack visualization grows/shrinks with push/pop/mismatch highlighting, "when to use which" left-border callout with two concise lists, two stacked code templates (valid parentheses stack, BFS queue), "spot this pattern" callout with O(n) time/O(n) space; follows Visual Style Guide
+- bumped version to 0.11.4
+
+## 2026-07-03 - version 0.11.3
+
+- added Hash Maps & Sets topic page at `/learn/hash-maps` -- interactive Two Sum (unsorted) demo with array cells on top and map table growing below via AnimatePresence as each value is stored, SVG hashing diagram with pathLength-animated arrows drawing in on scroll, Set operations mini-visual with add/has/delete chips that enter with scaleIn, flash on has, and exit on delete, three stacked code templates (Map pattern, Set pattern, frequency counting), "spot this pattern" callout with O(n) time/O(n) space; follows Visual Style Guide with dot-grid background, thin-bordered cells, left-border accent callouts, prev/next navigation
+- bumped version to 0.11.3
+
+## 2026-07-03 - version 0.11.2
+
+- added Sliding Window topic page at `/learn/sliding-window` -- two interactive demos (Max Sum Subarray with window size selector and spring-animated window overlay that slides across cells, Longest Substring Without Repeats with variable window overlay that expands/contracts and seen-characters chips via AnimatePresence), fixed vs variable window comparison with mini-cell diagrams, stacked code templates for both patterns, step/play/reset controls, narration per step; follows the Visual Style Guide with dot-grid background, thin-bordered cells, left-border accent callouts, prev/next navigation
+- bumped version to 0.11.2
+
+## 2026-07-03 - version 0.11.1
+
+- added Two Pointers topic page at `/learn/two-pointers` -- first topic page, sets the quality bar for all others; two interactive demos (Two Sum on sorted array with target selector, Remove Duplicates in-place with read/write pointers), step/play/reset controls, narration per step, code template, "spot this pattern" box, prev/next navigation; follows the Visual Style Guide with dot-grid background, thin-bordered cells, spring-animated pointer indicators, left-border accent callouts
+- bumped version to 0.11.1
+
+## 2026-07-03 - version 0.11.0
+
+- added `/learn` hub page with 13 algorithm and frontend pattern topics grouped by category (Core Algorithms, Frontend Patterns) -- editorial design with dot-grid background, monospace numbering (01-13), no card borders, unique geometric SVG marks per topic that animate on hover to demonstrate each concept (two pointers converge, sliding window slides, DP grid fills in a diagonal wave, etc.)
+- added learn entry to FeatureHub with preview component echoing the hub's dot-grid + monospace-number aesthetic
+- added `--color-feature-learn` design token
+- added dashboard back-link to learn page header via PageHeader breadcrumbs
+- updated `/learn` implementation plan with comprehensive Visual Style Guide and specific styling details for all 13 topic page steps
+- bumped version to 0.11.0
+
 ## 2026-07-03 - version 0.10.40
 
 - fixed alert dismiss not persisting across route handlers -- Next.js bundles each route handler independently in dev mode, so the dismiss PATCH route and the alerts GET route had separate instances of the in-memory data store; dismissing an alert updated one instance while the 15-second poll refetched from another where the alert was never dismissed; moved the data store onto `globalThis` behind a singleton accessor so all route handlers share the same state (same pattern Next.js docs recommend for Prisma clients)

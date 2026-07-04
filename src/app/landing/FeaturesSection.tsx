@@ -112,6 +112,16 @@ const IconSocial = () => (
   </svg>
 );
 
+/** Open book with numbered lines — interactive learning */
+const IconLearn = () => (
+  <svg {...iconProps}>
+    <path d="M2 4h6a4 4 0 014 4v12a3 3 0 00-3-3H2V4z" />
+    <path d="M22 4h-6a4 4 0 00-4 4v12a3 3 0 013-3h7V4z" />
+    <path d="M6 8h2M6 12h2" strokeOpacity="0.6" />
+    <path d="M16 8h2M16 12h2" strokeOpacity="0.6" />
+  </svg>
+);
+
 /** Scatter of dots with faint connecting lines — particle network */
 const IconParticles = () => (
   <svg {...iconProps}>
@@ -239,11 +249,20 @@ export default function FeaturesSection() {
           animate={inView ? "visible" : "hidden"}
         >
           <FeatureCard
-            icon={<IconKey />}
-            title="Auth & Security"
-            description="Auth0 integration with CSP headers, proxy middleware, and protected routes."
+            icon={<IconOperator />}
+            title="Fleet Operator"
+            description="Real-time fleet monitoring for micro-retail stores — live status, alerts, inventory health, analytics charts, and per-store drill-down."
             transition={transition}
-            featureToken="--color-feature-auth"
+            featureToken="--color-feature-operator"
+            href="/operator"
+          />
+          <FeatureCard
+            icon={<IconLearn />}
+            title="Learn"
+            description="Interactive deep-dives into algorithms and frontend patterns. Visual-first teaching with demos you can poke at."
+            transition={transition}
+            featureToken="--color-feature-learn"
+            href="/learn"
           />
           <FeatureCard
             icon={<IconPulse />}
@@ -252,6 +271,21 @@ export default function FeaturesSection() {
             transition={transition}
             featureToken="--color-feature-vitals"
             href="/auth/login"
+          />
+          <FeatureCard
+            icon={<IconSocial />}
+            title="Ketsup"
+            description="A social app for image and text posts — think Instagram but simpler. Built and shipped at its own domain."
+            transition={transition}
+            featureToken="--color-feature-ketsup"
+            href="https://ketsup.paulsumido.com"
+          />
+          <FeatureCard
+            icon={<IconKey />}
+            title="Auth & Security"
+            description="Auth0 integration with CSP headers, proxy middleware, and protected routes."
+            transition={transition}
+            featureToken="--color-feature-auth"
           />
           <FeatureCard
             icon={<IconLayers />}
@@ -299,22 +333,6 @@ export default function FeaturesSection() {
             transition={transition}
             featureToken="--color-feature-particles"
             href="/lab/particles"
-          />
-          <FeatureCard
-            icon={<IconOperator />}
-            title="Fleet Operator"
-            description="Real-time fleet monitoring for micro-retail stores — live status, alerts, inventory health, analytics charts, and per-store drill-down."
-            transition={transition}
-            featureToken="--color-feature-operator"
-            href="/operator"
-          />
-          <FeatureCard
-            icon={<IconSocial />}
-            title="Ketsup"
-            description="A social app for image and text posts — think Instagram but simpler. Built and shipped at its own domain."
-            transition={transition}
-            featureToken="--color-feature-ketsup"
-            href="https://ketsup.paulsumido.com"
           />
         </motion.div>
       </div>
