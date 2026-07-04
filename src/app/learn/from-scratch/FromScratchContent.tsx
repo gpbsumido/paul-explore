@@ -677,121 +677,131 @@ export default function FromScratchContent() {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <div className="relative min-h-screen">
-      {/* dot-grid background */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: "radial-gradient(currentColor 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
+    <div className="min-h-dvh bg-background">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Learn", href: "/learn" },
+          { label: "From Scratch" },
+        ]}
+        maxWidth="max-w-3xl"
       />
 
-      <main className="relative mx-auto max-w-3xl px-6 py-20">
-        <PageHeader />
+      <main className="relative mx-auto max-w-3xl px-4 py-12 sm:py-16">
+        {/* dot-grid background */}
+        <div
+          className="pointer-events-none absolute inset-0 text-foreground opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "radial-gradient(currentColor 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+          aria-hidden
+        />
 
-        {/* back link */}
-        <Link
-          href="/learn"
-          className="mt-8 inline-block font-mono text-[13px] text-muted transition-colors hover:text-foreground"
-        >
-          &larr; All topics
-        </Link>
+        <div className="relative">
+          {/* back link */}
+          <Link
+            href="/learn"
+            className="mb-10 inline-flex items-center gap-1 font-mono text-[13px] text-muted transition-colors hover:text-foreground"
+          >
+            &larr; All topics
+          </Link>
 
-        <div className="mt-10 space-y-0">
-          {/* ----------------------------------------------------------- */}
-          {/* 1. Core idea                                                  */}
-          {/* ----------------------------------------------------------- */}
-          <Section transition={t}>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              From Scratch
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Senior frontend interviews love &ldquo;implement X without using
-              X.&rdquo; These test whether you understand what the standard
-              library does under the hood. Pick a function, build it line by
-              line, then run the tests.
-            </p>
-          </Section>
+          <div className="mt-10 space-y-0">
+            {/* ----------------------------------------------------------- */}
+            {/* 1. Core idea                                                  */}
+            {/* ----------------------------------------------------------- */}
+            <Section transition={t}>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                From Scratch
+              </h1>
+              <p className="mt-3 text-[15px] leading-relaxed text-muted">
+                Senior frontend interviews love &ldquo;implement X without using
+                X.&rdquo; These test whether you understand what the standard
+                library does under the hood. Pick a function, build it line by
+                line, then run the tests.
+              </p>
+            </Section>
 
-          {/* ----------------------------------------------------------- */}
-          {/* 2. Tabbed interface                                           */}
-          {/* ----------------------------------------------------------- */}
-          <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
-              Pick a function
-            </h2>
+            {/* ----------------------------------------------------------- */}
+            {/* 2. Tabbed interface                                           */}
+            {/* ----------------------------------------------------------- */}
+            <Section className="mt-14" transition={t}>
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+                Pick a function
+              </h2>
 
-            {/* tab pills */}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {CHALLENGES.map((c, i) => (
-                <Pill
-                  key={c.name}
-                  onClick={() => setActiveTab(i)}
-                  active={i === activeTab}
-                >
-                  {c.name}
-                </Pill>
-              ))}
-            </div>
+              {/* tab pills */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {CHALLENGES.map((c, i) => (
+                  <Pill
+                    key={c.name}
+                    onClick={() => setActiveTab(i)}
+                    active={i === activeTab}
+                  >
+                    {c.name}
+                  </Pill>
+                ))}
+              </div>
 
-            {/* active tab content */}
-            <div className="mt-8">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={CHALLENGES[activeTab].name}
-                  variants={fadeInUp}
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={itemT}
-                >
-                  <GuidedWalkthrough
-                    challenge={CHALLENGES[activeTab]}
+              {/* active tab content */}
+              <div className="mt-8">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={CHALLENGES[activeTab].name}
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate="visible"
+                    exit={{ opacity: 0, y: -10 }}
                     transition={itemT}
-                  />
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </Section>
-
-          {/* ----------------------------------------------------------- */}
-          {/* 3. Bottom nav                                                 */}
-          {/* ----------------------------------------------------------- */}
-          <nav className="mt-16 flex items-center border-t border-foreground/5 pt-6">
-            <Link
-              href="/learn/async-patterns"
-              className="font-mono text-[13px] text-muted transition-colors hover:text-foreground"
-            >
-              &larr; Async Patterns
-            </Link>
-            <Link
-              href="/learn"
-              className="ml-auto flex items-center gap-2 font-mono text-[13px] text-muted transition-colors hover:text-foreground"
-            >
-              <span>Back to all topics</span>
-              {/* small dot-grid motif */}
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                aria-hidden
-                className="opacity-30"
-              >
-                {[0, 1, 2].map((row) =>
-                  [0, 1, 2].map((col) => (
-                    <circle
-                      key={`${row}-${col}`}
-                      cx={3 + col * 5}
-                      cy={3 + row * 5}
-                      r={0.8}
+                  >
+                    <GuidedWalkthrough
+                      challenge={CHALLENGES[activeTab]}
+                      transition={itemT}
                     />
-                  )),
-                )}
-              </svg>
-            </Link>
-          </nav>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </Section>
+
+            {/* ----------------------------------------------------------- */}
+            {/* 3. Bottom nav                                                 */}
+            {/* ----------------------------------------------------------- */}
+            <nav className="mt-16 flex items-center border-t border-foreground/5 pt-6">
+              <Link
+                href="/learn/async-patterns"
+                className="font-mono text-[13px] text-muted transition-colors hover:text-foreground"
+              >
+                &larr; Async Patterns
+              </Link>
+              <Link
+                href="/learn"
+                className="ml-auto flex items-center gap-2 font-mono text-[13px] text-muted transition-colors hover:text-foreground"
+              >
+                <span>Back to all topics</span>
+                {/* small dot-grid motif */}
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  aria-hidden
+                  className="opacity-30"
+                >
+                  {[0, 1, 2].map((row) =>
+                    [0, 1, 2].map((col) => (
+                      <circle
+                        key={`${row}-${col}`}
+                        cx={3 + col * 5}
+                        cy={3 + row * 5}
+                        r={0.8}
+                      />
+                    )),
+                  )}
+                </svg>
+              </Link>
+            </nav>
+          </div>
         </div>
       </main>
     </div>

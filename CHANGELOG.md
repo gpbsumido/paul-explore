@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-04 - version 0.11.16
+
+- polished all 13 learn pages for Visual Style Guide consistency: fixed PageHeader breadcrumbs and maxWidth on async-patterns and from-scratch pages, changed code block containers from `<div>` to `<pre>` on debounce-throttle and memoization pages, reduced code block span colors from 4 to 3 (removed redundant text-foreground identifier spans) on two-pointers/hash-maps/stacks-queues/binary-search/trees-graphs pages, added missing monospace complexity notes to "spot this pattern" boxes on debounce-throttle/memoization/event-delegation/async-patterns pages, standardized dot-grid positioning and outer shell structure on async-patterns and from-scratch pages
+- added missing learn routes to architecture map (dynamic-programming through from-scratch)
+- bumped version to 0.11.16
+
 ## 2026-07-04 - version 0.11.15
 
 - added From Scratch topic page at `/learn/from-scratch` -- tabbed interface with five pill-toggled challenges (once(), pipe(), Promise.all(), bind(), Array.map()), each with a guided line-by-line code walkthrough where lines reveal one at a time via motion.div + fadeInUp with "Next line" pill button, each revealed line paired with a text-[11px] annotation explaining what it does (hidden on mobile), progress counter showing lines revealed; "Run tests" pill appears when all lines are revealed, test cases render as thin-bordered rows with AnimatePresence staggered entrance, monospace ✓ at text-foreground/50 for pass and ✗ at text-foreground/30 for fail; tab content swaps with AnimatePresence mode="wait" crossfade; Reset pill to restart walkthrough; bottom nav with "← Async Patterns" and "Back to all topics" with small 3×3 dot-grid SVG motif; no "spot this pattern" box (the whole page is the pattern); follows Visual Style Guide

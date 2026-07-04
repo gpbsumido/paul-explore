@@ -501,7 +501,7 @@ export default function DebounceThrottleContent() {
             </h2>
 
             <p className="mt-4 font-mono text-[12px] text-muted/40">debounce</p>
-            <div className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
+            <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <CL>
                 <Kw>function</Kw> debounce(fn, ms) {"{"}
               </CL>
@@ -521,10 +521,10 @@ export default function DebounceThrottleContent() {
               <CL>{"    "})</CL>
               <CL>{"  }"}</CL>
               <CL>{"}"}</CL>
-            </div>
+            </pre>
 
             <p className="mt-6 font-mono text-[12px] text-muted/40">throttle</p>
-            <div className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
+            <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <CL>
                 <Kw>function</Kw> throttle(fn, ms) {"{"}
               </CL>
@@ -549,7 +549,7 @@ export default function DebounceThrottleContent() {
               <CL>{"    }"}</CL>
               <CL>{"  }"}</CL>
               <CL>{"}"}</CL>
-            </div>
+            </pre>
           </Section>
 
           {/* ----------------------------------------------------------- */}
@@ -601,6 +601,9 @@ export default function DebounceThrottleContent() {
                 <li>Resize/scroll handlers doing expensive layout work</li>
                 <li>Rate limiting any high-frequency callback</li>
               </ul>
+              <p className="mt-3 font-mono text-[13px] text-muted/60">
+                O(1) per call, O(1) space
+              </p>
             </div>
           </Section>
 

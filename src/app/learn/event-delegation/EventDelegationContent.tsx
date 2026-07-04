@@ -618,6 +618,9 @@ export default function EventDelegationContent() {
                   you
                 </li>
               </ul>
+              <p className="mt-3 font-mono text-[13px] text-muted/60">
+                O(1) listeners instead of O(n)
+              </p>
             </div>
           </Section>
 

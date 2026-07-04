@@ -865,10 +865,8 @@ export default function BinarySearchContent() {
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">binarySearch</span>(
-              <span className="text-foreground">arr</span>:{" "}
-              <span className="text-foreground/70">number</span>[],{" "}
-              <span className="text-foreground">target</span>:{" "}
+              binarySearch(arr:{" "}
+              <span className="text-foreground/70">number</span>[], target:{" "}
               <span className="text-foreground/70">number</span>) {"{\n"}
               {"  "}
               <span className="text-foreground/70">let</span> left ={" "}
@@ -907,10 +905,8 @@ export default function BinarySearchContent() {
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">searchAnswer</span>(
-              <span className="text-foreground">lo</span>:{" "}
-              <span className="text-foreground/70">number</span>,{" "}
-              <span className="text-foreground">hi</span>:{" "}
+              searchAnswer(lo:{" "}
+              <span className="text-foreground/70">number</span>, hi:{" "}
               <span className="text-foreground/70">number</span>) {"{\n"}
               {"  "}
               <span className="text-foreground/70">while</span> (lo {"<"} hi){" "}

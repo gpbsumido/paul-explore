@@ -651,8 +651,7 @@ export default function TwoPointersContent() {
             </h2>
             <pre className="mt-4 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">twoPointers</span>(
-              <span className="text-foreground">arr</span>:{" "}
+              twoPointers(arr:{" "}
               <span className="text-foreground/70">number</span>[]) {"{\n"}
               {"  "}
               <span className="text-foreground/70">let</span> l ={" "}

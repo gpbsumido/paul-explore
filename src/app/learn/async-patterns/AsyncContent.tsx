@@ -934,203 +934,225 @@ export default function AsyncContent() {
   const t = reduced ? instantTransition : spring.smooth;
 
   return (
-    <div className="relative min-h-screen">
-      {/* dot-grid background */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: "radial-gradient(currentColor 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
-        }}
+    <div className="min-h-dvh bg-background">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Learn", href: "/learn" },
+          { label: "Async Patterns" },
+        ]}
+        maxWidth="max-w-3xl"
       />
 
-      <main className="relative mx-auto max-w-3xl px-6 py-20">
-        <PageHeader />
+      <main className="relative mx-auto max-w-3xl px-4 py-12 sm:py-16">
+        {/* dot-grid background */}
+        <div
+          className="pointer-events-none absolute inset-0 text-foreground opacity-[0.04]"
+          style={{
+            backgroundImage:
+              "radial-gradient(currentColor 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+          aria-hidden
+        />
 
-        {/* back link */}
-        <Link
-          href="/learn"
-          className="mt-8 inline-block font-mono text-[13px] text-muted transition-colors hover:text-foreground"
-        >
-          &larr; All topics
-        </Link>
+        <div className="relative">
+          {/* back link */}
+          <Link
+            href="/learn"
+            className="mb-10 inline-flex items-center gap-1 font-mono text-[13px] text-muted transition-colors hover:text-foreground"
+          >
+            &larr; All topics
+          </Link>
 
-        <div className="mt-10 space-y-0">
-          {/* ----------------------------------------------------------- */}
-          {/* 1. Core idea                                                  */}
-          {/* ----------------------------------------------------------- */}
-          <Section transition={t}>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Async Patterns
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              JavaScript is single-threaded. The event loop, microtask queue,
-              and macrotask queue determine when your async code actually runs.
-              Understanding the order isn&apos;t optional &mdash; it&apos;s the
-              difference between code that works and code that works by
-              accident.
-            </p>
-          </Section>
+          <div className="mt-10 space-y-0">
+            {/* ----------------------------------------------------------- */}
+            {/* 1. Core idea                                                  */}
+            {/* ----------------------------------------------------------- */}
+            <Section transition={t}>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                Async Patterns
+              </h1>
+              <p className="mt-3 text-[15px] leading-relaxed text-muted">
+                JavaScript is single-threaded. The event loop, microtask queue,
+                and macrotask queue determine when your async code actually
+                runs. Understanding the order isn&apos;t optional &mdash;
+                it&apos;s the difference between code that works and code that
+                works by accident.
+              </p>
+            </Section>
 
-          {/* ----------------------------------------------------------- */}
-          {/* 2. Event loop simulator                                       */}
-          {/* ----------------------------------------------------------- */}
-          <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
-              Event loop simulator
-            </h2>
-            <p className="mt-3 text-[14px] leading-relaxed text-muted">
-              Pick a snippet and step through it. Watch items move between the
-              call stack and the two queues. Microtasks always drain before the
-              next macrotask runs.
-            </p>
-            <div className="mt-6">
-              <EventLoopSimulator />
-            </div>
-          </Section>
+            {/* ----------------------------------------------------------- */}
+            {/* 2. Event loop simulator                                       */}
+            {/* ----------------------------------------------------------- */}
+            <Section className="mt-14" transition={t}>
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+                Event loop simulator
+              </h2>
+              <p className="mt-3 text-[14px] leading-relaxed text-muted">
+                Pick a snippet and step through it. Watch items move between the
+                call stack and the two queues. Microtasks always drain before
+                the next macrotask runs.
+              </p>
+              <div className="mt-6">
+                <EventLoopSimulator />
+              </div>
+            </Section>
 
-          {/* ----------------------------------------------------------- */}
-          {/* 3. Promise patterns visual                                    */}
-          {/* ----------------------------------------------------------- */}
-          <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
-              Promise combinators
-            </h2>
-            <p className="mt-3 text-[14px] leading-relaxed text-muted">
-              Three tasks start at the same time. The difference is when the
-              combinator resolves.{" "}
-              <span className="font-mono text-foreground/70">Promise.all</span>{" "}
-              waits for every task.{" "}
-              <span className="font-mono text-foreground/70">Promise.race</span>{" "}
-              resolves at the first settlement.{" "}
-              <span className="font-mono text-foreground/70">
-                Promise.allSettled
-              </span>{" "}
-              never short-circuits.
-            </p>
-            <div className="mt-6">
-              <PromisePatternsVisual />
-            </div>
-          </Section>
+            {/* ----------------------------------------------------------- */}
+            {/* 3. Promise patterns visual                                    */}
+            {/* ----------------------------------------------------------- */}
+            <Section className="mt-14" transition={t}>
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+                Promise combinators
+              </h2>
+              <p className="mt-3 text-[14px] leading-relaxed text-muted">
+                Three tasks start at the same time. The difference is when the
+                combinator resolves.{" "}
+                <span className="font-mono text-foreground/70">
+                  Promise.all
+                </span>{" "}
+                waits for every task.{" "}
+                <span className="font-mono text-foreground/70">
+                  Promise.race
+                </span>{" "}
+                resolves at the first settlement.{" "}
+                <span className="font-mono text-foreground/70">
+                  Promise.allSettled
+                </span>{" "}
+                never short-circuits.
+              </p>
+              <div className="mt-6">
+                <PromisePatternsVisual />
+              </div>
+            </Section>
 
-          {/* ----------------------------------------------------------- */}
-          {/* 4. Sequential vs parallel                                     */}
-          {/* ----------------------------------------------------------- */}
-          <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
-              Sequential vs parallel
-            </h2>
-            <p className="mt-3 text-[14px] leading-relaxed text-muted">
-              Awaiting in a loop runs each request after the previous one
-              finishes. Wrapping them in{" "}
-              <span className="font-mono text-foreground/70">Promise.all</span>{" "}
-              fires them all at once. The code looks almost the same. The
-              performance gap is 3&times;.
-            </p>
-            <div className="mt-6">
-              <SequentialVsParallel />
-            </div>
-          </Section>
+            {/* ----------------------------------------------------------- */}
+            {/* 4. Sequential vs parallel                                     */}
+            {/* ----------------------------------------------------------- */}
+            <Section className="mt-14" transition={t}>
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+                Sequential vs parallel
+              </h2>
+              <p className="mt-3 text-[14px] leading-relaxed text-muted">
+                Awaiting in a loop runs each request after the previous one
+                finishes. Wrapping them in{" "}
+                <span className="font-mono text-foreground/70">
+                  Promise.all
+                </span>{" "}
+                fires them all at once. The code looks almost the same. The
+                performance gap is 3&times;.
+              </p>
+              <div className="mt-6">
+                <SequentialVsParallel />
+              </div>
+            </Section>
 
-          {/* ----------------------------------------------------------- */}
-          {/* 5. Code section                                               */}
-          {/* ----------------------------------------------------------- */}
-          <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
-              The patterns
-            </h2>
+            {/* ----------------------------------------------------------- */}
+            {/* 5. Code section                                               */}
+            {/* ----------------------------------------------------------- */}
+            <Section className="mt-14" transition={t}>
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+                The patterns
+              </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
-              Event loop quiz answer
-            </p>
-            <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              console.log(<Str>&apos;1&apos;</Str>){"\n"}
-              setTimeout(() {"=>"} console.log(<Str>&apos;2&apos;</Str>), 0)
-              {"\n"}
-              Promise.resolve().then(() {"=>"} console.log(
-              <Str>&apos;3&apos;</Str>)){"\n"}
-              console.log(<Str>&apos;4&apos;</Str>){"\n\n"}
-              <Cmt>{"// Output: 1, 4, 3, 2"}</Cmt>
-              {"\n"}
-              <Cmt>{"// sync first, then microtask, then macrotask"}</Cmt>
-            </pre>
+              <p className="mt-4 font-mono text-[12px] text-muted/40">
+                Event loop quiz answer
+              </p>
+              <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
+                console.log(<Str>&apos;1&apos;</Str>){"\n"}
+                setTimeout(() {"=>"} console.log(<Str>&apos;2&apos;</Str>), 0)
+                {"\n"}
+                Promise.resolve().then(() {"=>"} console.log(
+                <Str>&apos;3&apos;</Str>)){"\n"}
+                console.log(<Str>&apos;4&apos;</Str>){"\n\n"}
+                <Cmt>{"// Output: 1, 4, 3, 2"}</Cmt>
+                {"\n"}
+                <Cmt>{"// sync first, then microtask, then macrotask"}</Cmt>
+              </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
-              Promise.all usage
-            </p>
-            <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <Kw>const</Kw> [users, posts] = <Kw>await</Kw> Promise.all([{"\n"}
-              {"  "}fetch(<Str>&apos;/api/users&apos;</Str>).then(r {"=>"}{" "}
-              r.json()),{"\n"}
-              {"  "}fetch(<Str>&apos;/api/posts&apos;</Str>).then(r {"=>"}{" "}
-              r.json()),{"\n"}
-              ]){"\n\n"}
-              <Cmt>{"// both requests fly in parallel"}</Cmt>
-              {"\n"}
-              <Cmt>{"// rejects immediately if any fails"}</Cmt>
-            </pre>
+              <p className="mt-6 font-mono text-[12px] text-muted/40">
+                Promise.all usage
+              </p>
+              <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
+                <Kw>const</Kw> [users, posts] = <Kw>await</Kw> Promise.all([
+                {"\n"}
+                {"  "}fetch(<Str>&apos;/api/users&apos;</Str>).then(r {"=>"}{" "}
+                r.json()),{"\n"}
+                {"  "}fetch(<Str>&apos;/api/posts&apos;</Str>).then(r {"=>"}{" "}
+                r.json()),{"\n"}
+                ]){"\n\n"}
+                <Cmt>{"// both requests fly in parallel"}</Cmt>
+                {"\n"}
+                <Cmt>{"// rejects immediately if any fails"}</Cmt>
+              </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
-              Error handling with try/catch
-            </p>
-            <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <Kw>try</Kw> {"{\n"}
-              {"  "}
-              <Kw>const</Kw> data = <Kw>await</Kw> fetchData(){"\n"}
-              {"  "}render(data){"\n"}
-              {"}"} <Kw>catch</Kw> (err) {"{\n"}
-              {"  "}showError(err.message){"\n"}
-              {"}"} <Kw>finally</Kw> {"{\n"}
-              {"  "}hideSpinner(){"\n"}
-              {"}"}
-              {"\n\n"}
-              <Cmt>{"// finally always runs — cleanup goes here"}</Cmt>
-            </pre>
-          </Section>
+              <p className="mt-6 font-mono text-[12px] text-muted/40">
+                Error handling with try/catch
+              </p>
+              <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
+                <Kw>try</Kw> {"{\n"}
+                {"  "}
+                <Kw>const</Kw> data = <Kw>await</Kw> fetchData(){"\n"}
+                {"  "}render(data){"\n"}
+                {"}"} <Kw>catch</Kw> (err) {"{\n"}
+                {"  "}showError(err.message){"\n"}
+                {"}"} <Kw>finally</Kw> {"{\n"}
+                {"  "}hideSpinner(){"\n"}
+                {"}"}
+                {"\n\n"}
+                <Cmt>{"// finally always runs — cleanup goes here"}</Cmt>
+              </pre>
+            </Section>
 
-          {/* ----------------------------------------------------------- */}
-          {/* 6. Spot this pattern                                          */}
-          {/* ----------------------------------------------------------- */}
-          <Section className="mt-14" transition={t}>
-            <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
-                Spot this pattern
-              </h3>
-              <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
-                <li>
-                  &ldquo;What&apos;s the output?&rdquo; interview questions
-                  mixing setTimeout and Promises
-                </li>
-                <li>
-                  Managing concurrent API calls — fetching user data and posts
-                  in parallel
-                </li>
-                <li>
-                  Error handling across async boundaries without swallowing
-                  failures
-                </li>
-                <li>Race conditions from stale closures over awaited values</li>
-              </ul>
-            </div>
-          </Section>
+            {/* ----------------------------------------------------------- */}
+            {/* 6. Spot this pattern                                          */}
+            {/* ----------------------------------------------------------- */}
+            <Section className="mt-14" transition={t}>
+              <div className="border-l-2 border-foreground/15 pl-4">
+                <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+                  Spot this pattern
+                </h3>
+                <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
+                  <li>
+                    &ldquo;What&apos;s the output?&rdquo; interview questions
+                    mixing setTimeout and Promises
+                  </li>
+                  <li>
+                    Managing concurrent API calls — fetching user data and posts
+                    in parallel
+                  </li>
+                  <li>
+                    Error handling across async boundaries without swallowing
+                    failures
+                  </li>
+                  <li>
+                    Race conditions from stale closures over awaited values
+                  </li>
+                </ul>
+                <p className="mt-3 font-mono text-[13px] text-muted/60">
+                  Microtasks before macrotasks, always
+                </p>
+              </div>
+            </Section>
 
-          {/* ----------------------------------------------------------- */}
-          {/* 7. Bottom nav                                                 */}
-          {/* ----------------------------------------------------------- */}
-          <nav className="mt-16 flex items-center border-t border-foreground/5 pt-6">
-            <Link
-              href="/learn/event-delegation"
-              className="font-mono text-[13px] text-muted transition-colors hover:text-foreground"
-            >
-              &larr; Event Delegation
-            </Link>
-            <Link
-              href="/learn/from-scratch"
-              className="ml-auto font-mono text-[13px] text-muted transition-colors hover:text-foreground"
-            >
-              From Scratch &rarr;
-            </Link>
-          </nav>
+            {/* ----------------------------------------------------------- */}
+            {/* 7. Bottom nav                                                 */}
+            {/* ----------------------------------------------------------- */}
+            <nav className="mt-16 flex items-center border-t border-foreground/5 pt-6">
+              <Link
+                href="/learn/event-delegation"
+                className="font-mono text-[13px] text-muted transition-colors hover:text-foreground"
+              >
+                &larr; Event Delegation
+              </Link>
+              <Link
+                href="/learn/from-scratch"
+                className="ml-auto font-mono text-[13px] text-muted transition-colors hover:text-foreground"
+              >
+                From Scratch &rarr;
+              </Link>
+            </nav>
+          </div>
         </div>
       </main>
     </div>

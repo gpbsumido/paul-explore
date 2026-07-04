@@ -760,11 +760,8 @@ export default function HashMapsContent() {
               Map pattern
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">twoSum</span>(
-              <span className="text-foreground">nums</span>:{" "}
-              <span className="text-foreground/70">number</span>[],{" "}
-              <span className="text-foreground">target</span>:{" "}
+              <span className="text-foreground/70">function</span> twoSum( nums:{" "}
+              <span className="text-foreground/70">number</span>[], target:{" "}
               <span className="text-foreground/70">number</span>) {"{\n"}
               {"  "}
               <span className="text-foreground/70">const</span> map ={" "}
@@ -800,10 +797,9 @@ export default function HashMapsContent() {
               Set pattern
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">hasDuplicate</span>(
-              <span className="text-foreground">nums</span>:{" "}
-              <span className="text-foreground/70">number</span>[]) {"{\n"}
+              <span className="text-foreground/70">function</span> hasDuplicate(
+              nums: <span className="text-foreground/70">number</span>[]){" "}
+              {"{\n"}
               {"  "}
               <span className="text-foreground/70">const</span> seen ={" "}
               <span className="text-foreground/70">new</span> Set{"<"}
@@ -833,11 +829,8 @@ export default function HashMapsContent() {
               Frequency counting
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">topKFrequent</span>(
-              <span className="text-foreground">nums</span>:{" "}
-              <span className="text-foreground/70">number</span>[],{" "}
-              <span className="text-foreground">k</span>:{" "}
+              <span className="text-foreground/70">function</span> topKFrequent(
+              nums: <span className="text-foreground/70">number</span>[], k:{" "}
               <span className="text-foreground/70">number</span>) {"{\n"}
               {"  "}
               <span className="text-foreground/70">const</span> freq ={" "}

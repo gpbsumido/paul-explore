@@ -436,7 +436,7 @@ export default function MemoizationContent() {
             <p className="mt-4 font-mono text-[12px] text-muted/40">
               memoize()
             </p>
-            <div className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
+            <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <CL>
                 <Kw>function</Kw> memoize(fn) {"{"}
               </CL>
@@ -468,7 +468,7 @@ export default function MemoizationContent() {
               </CL>
               <CL>{"  }"}</CL>
               <CL>{"}"}</CL>
-            </div>
+            </pre>
           </Section>
 
           {/* ----------------------------------------------------------- */}
@@ -513,6 +513,9 @@ export default function MemoizationContent() {
                 <li>Preventing unnecessary re-renders in component trees</li>
                 <li>Derived data in selectors (Redux, Zustand, Recoil)</li>
               </ul>
+              <p className="mt-3 font-mono text-[13px] text-muted/60">
+                O(1) lookup, O(n) space for n unique inputs
+              </p>
             </div>
           </Section>
 

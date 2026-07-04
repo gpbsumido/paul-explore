@@ -1291,9 +1291,7 @@ export default function TreesGraphsContent() {
               Tree DFS — recursive
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">dfs</span>(
-              <span className="text-foreground">node</span>:{" "}
+              <span className="text-foreground/70">function</span> dfs(node:{" "}
               <span className="text-foreground/70">TreeNode</span> |{" "}
               <span className="text-foreground/70">null</span>) {"{\n"}
               {"  "}
@@ -1326,9 +1324,7 @@ export default function TreesGraphsContent() {
               Tree BFS — iterative with queue
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">bfs</span>(
-              <span className="text-foreground">root</span>:{" "}
+              <span className="text-foreground/70">function</span> bfs(root:{" "}
               <span className="text-foreground/70">TreeNode</span>) {"{\n"}
               {"  "}
               <span className="text-foreground/70">const</span> queue = [root]
@@ -1360,11 +1356,8 @@ export default function TreesGraphsContent() {
               Graph BFS — with visited set
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">bfs</span>(
-              <span className="text-foreground">graph</span>:{" "}
-              <span className="text-foreground/70">number</span>[][],{" "}
-              <span className="text-foreground">start</span>:{" "}
+              <span className="text-foreground/70">function</span> bfs(graph:{" "}
+              <span className="text-foreground/70">number</span>[][], start:{" "}
               <span className="text-foreground/70">number</span>) {"{\n"}
               {"  "}
               <span className="text-foreground/70">const</span> visited ={" "}

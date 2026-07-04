@@ -617,9 +617,7 @@ export default function StacksQueuesContent() {
               Stack — valid parentheses
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">isValid</span>(
-              <span className="text-foreground">s</span>:{" "}
+              <span className="text-foreground/70">function</span> isValid( s:{" "}
               <span className="text-foreground/70">string</span>) {"{\n"}
               {"  "}
               <span className="text-foreground/70">const</span> stack:{" "}
@@ -662,9 +660,7 @@ export default function StacksQueuesContent() {
               Queue — BFS level order
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
-              <span className="text-foreground/70">function</span>{" "}
-              <span className="text-foreground">bfs</span>(
-              <span className="text-foreground">root</span>:{" "}
+              <span className="text-foreground/70">function</span> bfs(root:{" "}
               <span className="text-foreground/70">Node</span>) {"{\n"}
               {"  "}
               <span className="text-foreground/70">const</span> queue = [root]
