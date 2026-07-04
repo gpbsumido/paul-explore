@@ -1,31 +1,31 @@
 # Changelog
 
-## 2026-07-04 - version 0.12.5
+## 2026-07-04 - version 0.11.15
 
 - added From Scratch topic page at `/learn/from-scratch` -- tabbed interface with five pill-toggled challenges (once(), pipe(), Promise.all(), bind(), Array.map()), each with a guided line-by-line code walkthrough where lines reveal one at a time via motion.div + fadeInUp with "Next line" pill button, each revealed line paired with a text-[11px] annotation explaining what it does (hidden on mobile), progress counter showing lines revealed; "Run tests" pill appears when all lines are revealed, test cases render as thin-bordered rows with AnimatePresence staggered entrance, monospace ✓ at text-foreground/50 for pass and ✗ at text-foreground/30 for fail; tab content swaps with AnimatePresence mode="wait" crossfade; Reset pill to restart walkthrough; bottom nav with "← Async Patterns" and "Back to all topics" with small 3×3 dot-grid SVG motif; no "spot this pattern" box (the whole page is the pattern); follows Visual Style Guide
 - bumped version to 0.12.5
 
-## 2026-07-04 - version 0.12.4
+## 2026-07-04 - version 0.11.14
 
 - added Async Patterns topic page at `/learn/async-patterns` -- interactive event loop simulator with three preset code snippets (console logs, setTimeout + Promise, nested microtasks), three-column layout (Call Stack, Microtask Queue, Macrotask Queue) with motion.div blocks moving between columns via AnimatePresence + spring transitions, output line accumulating below, step-by-step narration, Step/Play/Reset pill controls at 800ms interval; Promise combinators section with three stacked SVG timeline diagrams (Promise.all, Promise.allSettled, Promise.race) showing task bars as motion.rect at varying fillOpacity with scaleX scroll-triggered animation and resolution dots at different positions; sequential vs parallel pitfall section with two code blocks and companion SVG timelines (end-to-end bars for sequential ~3s vs overlapping bars for parallel ~1s); three stacked code templates (event loop quiz answer with output order, Promise.all parallel fetch, try/catch/finally error handling); "spot this pattern" callout; follows Visual Style Guide
 - bumped version to 0.12.4
 
-## 2026-07-04 - version 0.12.3
+## 2026-07-04 - version 0.11.13
 
 - added Event Delegation topic page at `/learn/event-delegation` -- interactive bubbling visualizer with nested DOM boxes (document > body > div > ul > li) built via Array.reduce, clicking the innermost li triggers staggered activation up through each layer (120ms per step) with ring pulse and accent border, "Bubble!" pill button resets and replays; cost comparison section with two scrollable 50-item lists side by side (50 individual onClick handlers vs single parent handler using data-idx delegation), click highlights the selected row in both, handler count labels show 50 vs 1; dynamic list demo with add/remove items via AnimatePresence, single parent handler using data-item-id delegation, counter tracks dynamically added items to prove no re-binding needed; capture vs bubble static SVG diagram with three nested boxes and directional arrows showing capture (down) and bubble (up) phases; vanilla JS delegation code block (~12 lines) with target.closest pattern; React synthetic events left-border callout explaining built-in delegation; "spot this pattern" callout; follows Visual Style Guide
 - bumped version to 0.12.3
 
-## 2026-07-04 - version 0.12.2
+## 2026-07-04 - version 0.11.12
 
 - added Memoization topic page at `/learn/memoization` -- interactive cache visualizer demo with three compute(n) pill buttons triggering a 1-second progress bar on cache miss (requestAnimationFrame-driven), instant return with row flash on cache hit, cache table grows via AnimatePresence + fadeInUp, status text shows miss/hit state; React.memo component tree demo with Parent and three children (List/Form/Chart) as thin-bordered boxes connected by lines, render counts in monospace, "Re-render parent" pill button cascades to all children without memo vs parent-only with React.memo toggle; "build it from scratch" annotated memoize() utility (~10 lines) with JSON.stringify key derivation; "when not to memoize" left-border callout with four anti-patterns; "spot this pattern" callout; follows Visual Style Guide
 - bumped version to 0.12.2
 
-## 2026-07-04 - version 0.12.1
+## 2026-07-04 - version 0.11.11
 
 - added Debounce & Throttle topic page at `/learn/debounce-throttle` -- live click timeline demo with three horizontal timelines (Raw, Debounced 300ms, Throttled 300ms) showing DOM-based dots at time-proportional positions with scaleIn entrance and flash-to-settle opacity on debounced/throttled dots, real debounce (trailing) and throttle (leading) logic via setTimeout/Date.now refs, Clear button resets all state; leading vs trailing edge section with two side-by-side static SVG timeline diagrams showing event dots, 300ms brackets, and handler fire position; "build it from scratch" section with annotated two-column code blocks (code left, annotations right via flex layout hidden on mobile) for debounce (~8 lines) and throttle (~10 lines); "when to use which" left-border callout with four use cases; "spot this pattern" callout; follows Visual Style Guide
 - bumped version to 0.12.1
 
-## 2026-07-04 - version 0.12.0
+## 2026-07-04 - version 0.11.10
 
 - added Dynamic Programming topic page at `/learn/dynamic-programming` -- static fib(5) call tree SVG as bridge from recursion page (dashed borders on duplicate nodes), interactive bottom-up Fibonacci table demo with 8 cells filling left to right via AnimatePresence (step/play/reset controls), interactive Unique Paths grid demo with preset size pills (3×3 through 6×6) filling in diagonal-wave order with narration explaining each cell's formula, top-down vs bottom-up section with left-border callouts and small static SVG direction diagrams (tree with recurse/combine arrows, row of cells with iterate arrow), climbing stairs mini-demo as SVG staircase with 6 thin-bordered steps and ways-to-reach counts auto-animating bottom to top via motion.text with staggered delays on scroll, three stacked code templates (top-down memoized recursion, bottom-up table iteration, climbing stairs concrete example), "spot this pattern" callout with O(n²) or O(n\*m) time; follows Visual Style Guide
 - bumped version to 0.12.0
