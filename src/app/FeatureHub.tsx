@@ -129,6 +129,14 @@ const FEATURES: FeatureItem[] = [
     color: "#8b5cf6",
     thoughtsHref: "/thoughts/operator-dashboard",
   },
+  {
+    id: "learn",
+    title: "Learn",
+    description:
+      "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
+    href: "/learn",
+    color: "#34d399",
+  },
 ].reverse();
 
 const THOUGHTS: ThoughtItem[] = [
@@ -808,6 +816,41 @@ function OperatorPreview() {
   );
 }
 
+const LEARN_PREVIEW_ITEMS = [
+  { num: "01", title: "Two Pointers" },
+  { num: "05", title: "Binary Search" },
+  { num: "08", title: "Dynamic Programming" },
+  { num: "10", title: "Memoization" },
+  { num: "13", title: "From Scratch" },
+];
+
+function LearnPreview() {
+  return (
+    <div className="relative overflow-hidden h-full">
+      <div
+        className="absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "radial-gradient(currentColor 0.5px, transparent 0.5px)",
+          backgroundSize: "10px 10px",
+        }}
+      />
+      <div className="relative space-y-1.5 py-0.5">
+        {LEARN_PREVIEW_ITEMS.map((item) => (
+          <div key={item.num} className="flex items-baseline gap-2 px-1">
+            <span className="font-mono text-[7px] tabular-nums text-black/20 dark:text-white/20">
+              {item.num}
+            </span>
+            <span className="text-[9px] text-black/50 dark:text-white/50">
+              {item.title}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Maps feature.id to its design-token CSS variable name.
 const FEATURE_TOKEN: Record<string, string> = {
   nba: "--color-feature-nba",
@@ -823,6 +866,7 @@ const FEATURE_TOKEN: Record<string, string> = {
   particles: "--color-feature-particles",
   ketsup: "--color-feature-ketsup",
   operator: "--color-feature-operator",
+  learn: "--color-feature-learn",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
@@ -840,6 +884,7 @@ const PREVIEW_MAP: Record<string, React.ComponentType> = {
   particles: ParticlesPreview,
   ketsup: KetsupPreview,
   operator: OperatorPreview,
+  learn: LearnPreview,
 };
 
 // ---- FeatureCard ----

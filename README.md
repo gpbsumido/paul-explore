@@ -22,7 +22,9 @@ A personal playground and portfolio — somewhere between a sandbox and a showca
 
 The following pages are fully public — no account needed:
 
-- **Landing page** (`/`) — hero, feature grid
+- **Landing page** (`/`) — hero, feature grid, dedicated Operator and Learn showcases
+- **Fleet Operator** (`/operator`) — real-time fleet monitoring dashboard with store cards, alerts, inventory health, and per-store drill-down
+- **Learn** (`/learn`) — 13 interactive deep-dives into algorithms and frontend patterns with visual-first demos
 - **Particle Lab** (`/lab/particles`) — interactive R3F particle network
 - **Motion Lab** (`/lab/motion`) — Framer Motion demos
 - **Pokémon TCG Browser** (`/tcg`) — browse, search, set and card detail pages
@@ -127,6 +129,16 @@ The data layer uses tiered polling — alerts every 15s, store list every 30s, i
 
 There's a write-up at `/thoughts/operator-dashboard` covering the polling tier rationale, optimistic update patterns, severity-first sorting, the freshness system, and what we'd improve for production (WebSockets, push notifications, anomaly detection, role-based auth, mobile field tech view, map overlay).
 
+### 📚 Learn
+
+Interactive deep-dives into algorithms and frontend patterns at `/learn`. 13 topics, each built around visual-first teaching: the demo comes before the code, and complexity builds as you scroll. Topics span two categories — algorithms (Two Pointers, Sliding Window, Hash Maps & Sets, Stacks & Queues, Binary Search, Trees & Graphs, Recursion & Backtracking, Dynamic Programming) and frontend patterns (Debounce & Throttle, Memoization, Event Delegation, Async Patterns, From Scratch).
+
+Each topic page follows a consistent Visual Style Guide: dot-grid CSS background, `max-w-3xl` content column, `PageHeader` with breadcrumbs, interactive demos with pill-button controls, SVG visualizations, 3-color code blocks wrapped in `<pre>`, and a "Spot this pattern" callout box at the bottom with monospace complexity annotations. Navigation links at the bottom of every page connect to the previous and next topics.
+
+Demos are self-contained and stateful — step through a two-pointer sweep, watch an event loop simulator process microtasks before macrotasks, build `Promise.all` from scratch line by line with inline annotations, or toggle React.memo on and off to see which components re-render. The From Scratch topic has five guided code walkthroughs (once, pipe, Promise.all, bind, Array.map) where lines reveal one at a time with a test runner at the end.
+
+All pages use `useHubReducedMotion()` for animation gating, export Next.js metadata, and are fully public.
+
 ### 📊 Web Vitals Dashboard
 
 Real-user Core Web Vitals collected from every page load and displayed on a protected dashboard at `/protected/vitals`. Five metric cards show the global P75 for LCP, FCP, INP, CLS, and TTFB with color-coded Good/Needs work/Poor ratings. A by-page table breaks the same numbers down per route. A version trend section (unovis sparklines) shows P75 across the last 5 app versions so you can see whether a deploy actually moved the numbers. The chart renders a matching skeleton grid on the server and during hydration so the section height is always reserved -- unovis needs the DOM, and without this the chart popping in after hydration causes CLS. The skeleton height accounts for the `VisAxis type="x"` tick labels, which render below the `VisXYContainer` boundary and add ~20px beyond the plot area height; both the skeleton and the real chart wrapper use a shared `CHART_CONTAINER_HEIGHT` const so they always match.
@@ -163,12 +175,12 @@ There's a write-up at `/thoughts/playoffs` covering the derived-state pattern, T
 
 ## Deployment
 
-| Layer       | Platform               | URL                        |
-| ----------- | ---------------------- | -------------------------- |
-| Frontend    | Vercel + Cloudflare CDN | paulsumido.com            |
-| Backend API | Railway                | api.paulsumido.com         |
-| Auth        | Auth0                  | (managed)                  |
-| Database    | PostgreSQL on Railway  | (internal)                 |
+| Layer       | Platform                | URL                |
+| ----------- | ----------------------- | ------------------ |
+| Frontend    | Vercel + Cloudflare CDN | paulsumido.com     |
+| Backend API | Railway                 | api.paulsumido.com |
+| Auth        | Auth0                   | (managed)          |
+| Database    | PostgreSQL on Railway   | (internal)         |
 
 CI runs on GitHub Actions — lint, typecheck, and full test suite on every push to `main`/`develop` and on PRs. A failing check blocks the Vercel deploy.
 
@@ -176,21 +188,21 @@ CI runs on GitHub Actions — lint, typecheck, and full test suite on every push
 
 ## Tech stack
 
-| Layer         | Choice                                      |
-| ------------- | ------------------------------------------- |
-| Framework     | Next.js 16 (App Router)                     |
-| Language      | TypeScript                                  |
-| Styling       | Tailwind CSS v4 + custom CSS tokens         |
-| Auth          | Auth0 (`@auth0/nextjs-auth0`)               |
-| Runtime       | React 19                                    |
-| Animation     | Framer Motion (`framer-motion`)             |
+| Layer         | Choice                                              |
+| ------------- | --------------------------------------------------- |
+| Framework     | Next.js 16 (App Router)                             |
+| Language      | TypeScript                                          |
+| Styling       | Tailwind CSS v4 + custom CSS tokens                 |
+| Auth          | Auth0 (`@auth0/nextjs-auth0`)                       |
+| Runtime       | React 19                                            |
+| Animation     | Framer Motion (`framer-motion`)                     |
 | 3D / WebGL    | Three.js + React Three Fiber (`@react-three/fiber`) |
-| WebGL hero    | ShaderGradient (`@shadergradient/react`)    |
-| Data fetching | TanStack Query v5                           |
-| Charts        | unovis (`@unovis/react`)                    |
-| Monitoring    | Vercel Speed Insights                       |
-| Linting       | ESLint (Next.js config)                     |
-| Bundle        | `@next/bundle-analyzer` (`npm run analyze`) |
+| WebGL hero    | ShaderGradient (`@shadergradient/react`)            |
+| Data fetching | TanStack Query v5                                   |
+| Charts        | unovis (`@unovis/react`)                            |
+| Monitoring    | Vercel Speed Insights                               |
+| Linting       | ESLint (Next.js config)                             |
+| Bundle        | `@next/bundle-analyzer` (`npm run analyze`)         |
 
 ---
 
@@ -199,6 +211,7 @@ CI runs on GitHub Actions — lint, typecheck, and full test suite on every push
 Requires Node.js 18+ and an Auth0 account (free tier works).
 
 **1. Clone and install**
+
 ```bash
 git clone https://github.com/gpbsumido/paul-explore.git
 cd paul-explore
@@ -206,11 +219,13 @@ npm install
 ```
 
 **2. Set up environment variables**
+
 ```bash
 cp .env.example .env.local
 ```
 
 **3. Fill in `.env.local`**
+
 ```env
 AUTH0_SECRET=            # openssl rand -hex 32
 AUTH0_DOMAIN=your-tenant.us.auth0.com
@@ -222,6 +237,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 **4. Start the dev server**
+
 ```bash
 npm run dev
 ```
@@ -248,6 +264,8 @@ src/
 │   │   ├── particles/    # R3F particle network with real-time controls
 │   │   └── motion/       # Framer Motion interactive demo page
 │   ├── landing/          # Landing page section components
+│   ├── learn/            # 13 interactive algorithm & frontend pattern deep-dives
+│   ├── operator/         # Fleet monitoring dashboard (overview + store detail)
 │   ├── protected/        # Auth-gated hub page
 │   ├── tcg/              # Pokémon TCG browser (browse, sets, card detail, pocket)
 │   └── thoughts/         # Write-ups on design decisions (styling, search, TCG)
