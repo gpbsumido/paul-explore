@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-03 - version 0.11.8
+
+- added Trees & Graphs topic page at `/learn/trees-graphs` -- interactive tree traversal demo with SVG binary tree (7 nodes), pill-toggled DFS modes (pre-order, in-order, post-order) and BFS, edges animate with pathLength as they're followed, visited nodes fill to fillOpacity 0.2 with strokeOpacity 0.7, vertical call stack panel for DFS (thin-bordered blocks with spring entries) and horizontal queue panel for BFS, visit order accumulates as monospace chips with AnimatePresence; DOM tree analogy section with mini SVG tree showing querySelector is DFS; interactive graph BFS demo with SVG undirected graph (6 nodes, 7 edges, cycles), three preset start/target pairs plus click-to-change-target, BFS explores level by level with staggered fill delays (level \* 0.08), shortest path edges highlighted at strokeOpacity 0.6, queue and visited set shown as chip rows; three stacked code templates (tree DFS recursive, tree BFS iterative, graph BFS with visited set); "spot this pattern" callout with O(V+E) time; follows Visual Style Guide
+- bumped version to 0.11.8
+
 ## 2026-07-03 - version 0.11.7
 
 - add Vitals and Learn quicklinks in settings menu
