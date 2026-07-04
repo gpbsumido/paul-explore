@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.3
+
+- fixed flash of authenticated hub skeleton for unauthenticated users on the root page: replaced the FeatureHub-shaped `loading.tsx` (header, 7 feature cards, 8 thought cards) with a neutral `bg-background` div since `auth0.getSession()` is a local cookie decrypt that resolves in milliseconds
+- bumped version to 0.12.3
+
 ## 2026-07-04 - version 0.12.2
 
 - reduced FeaturesSection `backdrop-filter` blur radius from 16px to 4px across all 11 FeatureCards (Gaussian kernel cost scales with radius squared, so ~1/16th GPU compositor cost per card while preserving frosted glass aesthetic)
