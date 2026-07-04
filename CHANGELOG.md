@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.1
+
+- added Debounce & Throttle topic page at `/learn/debounce-throttle` -- live click timeline demo with three horizontal timelines (Raw, Debounced 300ms, Throttled 300ms) showing DOM-based dots at time-proportional positions with scaleIn entrance and flash-to-settle opacity on debounced/throttled dots, real debounce (trailing) and throttle (leading) logic via setTimeout/Date.now refs, Clear button resets all state; leading vs trailing edge section with two side-by-side static SVG timeline diagrams showing event dots, 300ms brackets, and handler fire position; "build it from scratch" section with annotated two-column code blocks (code left, annotations right via flex layout hidden on mobile) for debounce (~8 lines) and throttle (~10 lines); "when to use which" left-border callout with four use cases; "spot this pattern" callout; follows Visual Style Guide
+- bumped version to 0.12.1
+
 ## 2026-07-04 - version 0.12.0
 
 - added Dynamic Programming topic page at `/learn/dynamic-programming` -- static fib(5) call tree SVG as bridge from recursion page (dashed borders on duplicate nodes), interactive bottom-up Fibonacci table demo with 8 cells filling left to right via AnimatePresence (step/play/reset controls), interactive Unique Paths grid demo with preset size pills (3×3 through 6×6) filling in diagonal-wave order with narration explaining each cell's formula, top-down vs bottom-up section with left-border callouts and small static SVG direction diagrams (tree with recurse/combine arrows, row of cells with iterate arrow), climbing stairs mini-demo as SVG staircase with 6 thin-bordered steps and ways-to-reach counts auto-animating bottom to top via motion.text with staggered delays on scroll, three stacked code templates (top-down memoized recursion, bottom-up table iteration, climbing stairs concrete example), "spot this pattern" callout with O(n²) or O(n\*m) time; follows Visual Style Guide
