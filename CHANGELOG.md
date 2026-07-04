@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.5
+
+- added From Scratch topic page at `/learn/from-scratch` -- tabbed interface with five pill-toggled challenges (once(), pipe(), Promise.all(), bind(), Array.map()), each with a guided line-by-line code walkthrough where lines reveal one at a time via motion.div + fadeInUp with "Next line" pill button, each revealed line paired with a text-[11px] annotation explaining what it does (hidden on mobile), progress counter showing lines revealed; "Run tests" pill appears when all lines are revealed, test cases render as thin-bordered rows with AnimatePresence staggered entrance, monospace ✓ at text-foreground/50 for pass and ✗ at text-foreground/30 for fail; tab content swaps with AnimatePresence mode="wait" crossfade; Reset pill to restart walkthrough; bottom nav with "← Async Patterns" and "Back to all topics" with small 3×3 dot-grid SVG motif; no "spot this pattern" box (the whole page is the pattern); follows Visual Style Guide
+- bumped version to 0.12.5
+
 ## 2026-07-04 - version 0.12.4
 
 - added Async Patterns topic page at `/learn/async-patterns` -- interactive event loop simulator with three preset code snippets (console logs, setTimeout + Promise, nested microtasks), three-column layout (Call Stack, Microtask Queue, Macrotask Queue) with motion.div blocks moving between columns via AnimatePresence + spring transitions, output line accumulating below, step-by-step narration, Step/Play/Reset pill controls at 800ms interval; Promise combinators section with three stacked SVG timeline diagrams (Promise.all, Promise.allSettled, Promise.race) showing task bars as motion.rect at varying fillOpacity with scaleX scroll-triggered animation and resolution dots at different positions; sequential vs parallel pitfall section with two code blocks and companion SVG timelines (end-to-end bars for sequential ~3s vs overlapping bars for parallel ~1s); three stacked code templates (event loop quiz answer with output order, Promise.all parallel fetch, try/catch/finally error handling); "spot this pattern" callout; follows Visual Style Guide
