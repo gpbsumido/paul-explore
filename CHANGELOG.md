@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-04 - version 0.11.17
+
+- added Operator and Learn to the landing page feature grid in FeaturesSection (new IconLearn + IconOperator SVGs, FeatureCards with design tokens and links)
+- created dedicated OperatorSection landing component with mock fleet dashboard (4 store rows with status dots, health bars, alert badges), 3 highlight cards, and violet-themed CTA
+- created dedicated LearnSection landing component with dot-grid topic list (8 topics with category labels), 3 highlight cards, and emerald-themed CTA
+- wired OperatorSection and LearnSection into LandingContent.tsx as dynamic imports, rendered after FeaturesSection
+- bumped version to 0.11.17
+
 ## 2026-07-04 - version 0.11.16
 
 - polished all 13 learn pages for Visual Style Guide consistency: fixed PageHeader breadcrumbs and maxWidth on async-patterns and from-scratch pages, changed code block containers from `<div>` to `<pre>` on debounce-throttle and memoization pages, reduced code block span colors from 4 to 3 (removed redundant text-foreground identifier spans) on two-pointers/hash-maps/stacks-queues/binary-search/trees-graphs pages, added missing monospace complexity notes to "spot this pattern" boxes on debounce-throttle/memoization/event-delegation/async-patterns pages, standardized dot-grid positioning and outer shell structure on async-patterns and from-scratch pages

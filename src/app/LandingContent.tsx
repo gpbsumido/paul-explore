@@ -32,6 +32,12 @@ const VitalsSection = dynamic(() => import("./landing/VitalsSection"), {
 const KetsupSection = dynamic(() => import("./landing/KetsupSection"), {
   ssr: true,
 });
+const OperatorSection = dynamic(() => import("./landing/OperatorSection"), {
+  ssr: true,
+});
+const LearnSection = dynamic(() => import("./landing/LearnSection"), {
+  ssr: true,
+});
 const FooterSection = dynamic(() => import("./landing/FooterSection"), {
   ssr: true,
 });
@@ -44,6 +50,8 @@ export default function LandingContent() {
         <WeatherCanvas className="fixed inset-0 z-0 pointer-events-none" />
         <HeroSection />
         <FeaturesSection />
+        <OperatorSection />
+        <LearnSection />
         <AuthSection />
         <DesignSection />
         <NbaSection />
