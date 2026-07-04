@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.0
+
+- added Dynamic Programming topic page at `/learn/dynamic-programming` -- static fib(5) call tree SVG as bridge from recursion page (dashed borders on duplicate nodes), interactive bottom-up Fibonacci table demo with 8 cells filling left to right via AnimatePresence (step/play/reset controls), interactive Unique Paths grid demo with preset size pills (3×3 through 6×6) filling in diagonal-wave order with narration explaining each cell's formula, top-down vs bottom-up section with left-border callouts and small static SVG direction diagrams (tree with recurse/combine arrows, row of cells with iterate arrow), climbing stairs mini-demo as SVG staircase with 6 thin-bordered steps and ways-to-reach counts auto-animating bottom to top via motion.text with staggered delays on scroll, three stacked code templates (top-down memoized recursion, bottom-up table iteration, climbing stairs concrete example), "spot this pattern" callout with O(n²) or O(n\*m) time; follows Visual Style Guide
+- bumped version to 0.12.0
+
 ## 2026-07-03 - version 0.11.9
 
 - added Recursion & Backtracking topic page at `/learn/recursion-backtracking` -- interactive Fibonacci call tree demo with SVG binary tree built dynamically for n=3-6 presets, memoization toggle that prunes redundant subtrees (dashed borders without memo, fade-to-invisible with memo), DFS step-through with vertical call stack panel and cache chip row (AnimatePresence entries), call count comparison showing savings; interactive backtracking subsets demo for [1,2,3] with 15-node binary decision tree, +n/−n edge labels, active path highlighting at strokeOpacity 0.5 with backtracked paths dimmed, result chips accumulating with AnimatePresence, leaf labels showing subset notation; "why recursion feels hard" left-border callout; two stacked code templates (recursive template, backtracking choose/explore/unchoose); "spot this pattern" callout with O(2^n) or O(n!) time; follows Visual Style Guide
