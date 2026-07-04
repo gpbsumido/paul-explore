@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-03 - version 0.11.9
+
+- added Recursion & Backtracking topic page at `/learn/recursion-backtracking` -- interactive Fibonacci call tree demo with SVG binary tree built dynamically for n=3-6 presets, memoization toggle that prunes redundant subtrees (dashed borders without memo, fade-to-invisible with memo), DFS step-through with vertical call stack panel and cache chip row (AnimatePresence entries), call count comparison showing savings; interactive backtracking subsets demo for [1,2,3] with 15-node binary decision tree, +n/−n edge labels, active path highlighting at strokeOpacity 0.5 with backtracked paths dimmed, result chips accumulating with AnimatePresence, leaf labels showing subset notation; "why recursion feels hard" left-border callout; two stacked code templates (recursive template, backtracking choose/explore/unchoose); "spot this pattern" callout with O(2^n) or O(n!) time; follows Visual Style Guide
+- bumped version to 0.11.9
+
 ## 2026-07-03 - version 0.11.8
 
 - added Trees & Graphs topic page at `/learn/trees-graphs` -- interactive tree traversal demo with SVG binary tree (7 nodes), pill-toggled DFS modes (pre-order, in-order, post-order) and BFS, edges animate with pathLength as they're followed, visited nodes fill to fillOpacity 0.2 with strokeOpacity 0.7, vertical call stack panel for DFS (thin-bordered blocks with spring entries) and horizontal queue panel for BFS, visit order accumulates as monospace chips with AnimatePresence; DOM tree analogy section with mini SVG tree showing querySelector is DFS; interactive graph BFS demo with SVG undirected graph (6 nodes, 7 edges, cycles), three preset start/target pairs plus click-to-change-target, BFS explores level by level with staggered fill delays (level \* 0.08), shortest path edges highlighted at strokeOpacity 0.6, queue and visited set shown as chip rows; three stacked code templates (tree DFS recursive, tree BFS iterative, graph BFS with visited set); "spot this pattern" callout with O(V+E) time; follows Visual Style Guide
