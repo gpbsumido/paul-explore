@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.3
+
+- added Event Delegation topic page at `/learn/event-delegation` -- interactive bubbling visualizer with nested DOM boxes (document > body > div > ul > li) built via Array.reduce, clicking the innermost li triggers staggered activation up through each layer (120ms per step) with ring pulse and accent border, "Bubble!" pill button resets and replays; cost comparison section with two scrollable 50-item lists side by side (50 individual onClick handlers vs single parent handler using data-idx delegation), click highlights the selected row in both, handler count labels show 50 vs 1; dynamic list demo with add/remove items via AnimatePresence, single parent handler using data-item-id delegation, counter tracks dynamically added items to prove no re-binding needed; capture vs bubble static SVG diagram with three nested boxes and directional arrows showing capture (down) and bubble (up) phases; vanilla JS delegation code block (~12 lines) with target.closest pattern; React synthetic events left-border callout explaining built-in delegation; "spot this pattern" callout; follows Visual Style Guide
+- bumped version to 0.12.3
+
 ## 2026-07-04 - version 0.12.2
 
 - added Memoization topic page at `/learn/memoization` -- interactive cache visualizer demo with three compute(n) pill buttons triggering a 1-second progress bar on cache miss (requestAnimationFrame-driven), instant return with row flash on cache hit, cache table grows via AnimatePresence + fadeInUp, status text shows miss/hit state; React.memo component tree demo with Parent and three children (List/Form/Chart) as thin-bordered boxes connected by lines, render counts in monospace, "Re-render parent" pill button cascades to all children without memo vs parent-only with React.memo toggle; "build it from scratch" annotated memoize() utility (~10 lines) with JSON.stringify key derivation; "when not to memoize" left-border callout with four anti-patterns; "spot this pattern" callout; follows Visual Style Guide
