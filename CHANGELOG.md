@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.4
+
+- replaced HeroSection scroll-hint `motion.rect` infinite Framer Motion animation with a CSS `@keyframes` animation (`animate-scroll-hint` utility); Framer Motion infinite animations run RAF callbacks for the entire session even when scrolled offscreen, CSS animations are compositor-friendly and browsers throttle them when not visible
+- bumped version to 0.12.4
+
 ## 2026-07-04 - version 0.12.3
 
 - fixed flash of authenticated hub skeleton for unauthenticated users on the root page: replaced the FeatureHub-shaped `loading.tsx` (header, 7 feature cards, 8 thought cards) with a neutral `bg-background` div since `auth0.getSession()` is a local cookie decrypt that resolves in milliseconds

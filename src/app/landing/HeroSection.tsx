@@ -135,19 +135,14 @@ export default function HeroSection() {
                 stroke="currentColor"
                 strokeWidth="1.5"
               />
-              <motion.rect
+              <rect
                 x="6"
                 y="4"
                 width="2"
                 height="4"
                 rx="1"
                 fill="currentColor"
-                animate={{ y: [4, 8, 4] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                className="animate-scroll-hint"
               />
             </svg>
           </div>
