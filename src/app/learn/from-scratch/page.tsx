@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import FromScratchContent from "./FromScratchContent";
+import dynamic from "next/dynamic";
+
+const FromScratchContent = dynamic(() => import("./FromScratchContent"), {
+  ssr: false,
+});
 
 const TITLE = "From Scratch";
 const DESCRIPTION =

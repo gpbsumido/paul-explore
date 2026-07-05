@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import AsyncContent from "./AsyncContent";
+import dynamic from "next/dynamic";
+
+const AsyncContent = dynamic(() => import("./AsyncContent"), { ssr: false });
 
 const TITLE = "Async Patterns";
 const DESCRIPTION =

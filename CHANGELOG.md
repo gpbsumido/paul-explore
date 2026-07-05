@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.10
+
+- code-split all 13 learn page routes using `next/dynamic` with `ssr: false`: async-patterns, binary-search, debounce-throttle, dynamic-programming, event-delegation, from-scratch, hash-maps, memoization, recursion-backtracking, sliding-window, stacks-queues, trees-graphs, two-pointers — each page now lazy-loads its content component so the router only ships lightweight server-rendered shells until the user navigates to a topic
+- updated Render Performance thoughts page with learn pages code splitting section
+- bumped version to 0.12.10
+
 ## 2026-07-04 - version 0.12.9
 
 - fixed loading state flicker across 7 hooks (useOperatorStores, useOperatorAlerts, useOperatorInventory, useOperatorStore, useOperatorActivity, useCalendarEvents, useCountdowns): changed `loading` from `isLoading || isFetching` to just `isLoading` so skeletons only show on initial load, not on every background poll cycle; `RefreshBar` already handles the subtle "updating" indicator via `isFetching`

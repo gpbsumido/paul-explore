@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import RecursionBacktrackingContent from "./RecursionBacktrackingContent";
+import dynamic from "next/dynamic";
+
+const RecursionBacktrackingContent = dynamic(
+  () => import("./RecursionBacktrackingContent"),
+  { ssr: false },
+);
 
 const TITLE = "Recursion & Backtracking";
 const DESCRIPTION =

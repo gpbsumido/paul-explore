@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import HashMapsContent from "./HashMapsContent";
+import dynamic from "next/dynamic";
+
+const HashMapsContent = dynamic(() => import("./HashMapsContent"), {
+  ssr: false,
+});
 
 const TITLE = "Hash Maps & Sets";
 const DESCRIPTION =

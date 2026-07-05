@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import MemoizationContent from "./MemoizationContent";
+import dynamic from "next/dynamic";
+
+const MemoizationContent = dynamic(() => import("./MemoizationContent"), {
+  ssr: false,
+});
 
 const TITLE = "Memoization";
 const DESCRIPTION =

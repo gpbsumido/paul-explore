@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import SlidingWindowContent from "./SlidingWindowContent";
+import dynamic from "next/dynamic";
+
+const SlidingWindowContent = dynamic(() => import("./SlidingWindowContent"), {
+  ssr: false,
+});
 
 const TITLE = "Sliding Window";
 const DESCRIPTION =

@@ -371,9 +371,40 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Learn pages code-split with dynamic imports
+              </h2>
+              <p className="text-muted">
+                All 13 learn topic pages eagerly imported their full content
+                component (500-1400 lines each, 13k lines total). Since{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  page.tsx
+                </code>{" "}
+                is a server component that rendered the client component
+                directly, Next.js bundled the entire content component into the
+                route chunk &mdash; all demo logic, SVG data, and animation code
+                downloaded before anything appeared.
+              </p>
+              <p className="mt-3 text-muted">
+                Each page now wraps its content in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  next/dynamic
+                </code>{" "}
+                with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ssr: false
+                </code>
+                . The content components are entirely interactive and require
+                client-side JavaScript anyway, so there&apos;s no SEO cost. The
+                route chunk now contains only metadata, and the heavy content
+                loads asynchronously.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 9 more issues across missing memo
+                The review identified 8 more issues across missing memo
                 boundaries, whileHover object recreation, and other rendering
                 optimizations. These will be addressed incrementally and
                 documented here as they land.
@@ -636,6 +667,22 @@ export default function RenderPerfContent() {
                 true when there&apos;s no cached data. the{" "}
                 <code>RefreshBar</code> component already handles the subtle
                 &ldquo;updating&rdquo; indicator separately
+              </Sent>
+
+              <Timestamp>2:50 PM</Timestamp>
+
+              <Received>and the learn pages code splitting</Received>
+
+              <Sent pos="first">
+                all 13 learn topic pages imported their content component
+                directly. 500 to 1400 lines each, 13k lines total, all bundled
+                into the route chunk
+              </Sent>
+              <Sent pos="last">
+                wrapped each one in <code>next/dynamic</code> with{" "}
+                <code>ssr: false</code>. the content is fully interactive and
+                needs client JS anyway so no SEO cost. route chunk is now just
+                metadata, content loads async
               </Sent>
 
               <div className={styles.typingDots}>

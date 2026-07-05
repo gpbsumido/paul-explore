@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import EventDelegationContent from "./EventDelegationContent";
+import dynamic from "next/dynamic";
+
+const EventDelegationContent = dynamic(
+  () => import("./EventDelegationContent"),
+  { ssr: false },
+);
 
 const TITLE = "Event Delegation";
 const DESCRIPTION =
