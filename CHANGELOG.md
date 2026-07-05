@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-05 - version 0.12.11
+
+- restored `src/middleware.ts` re-export (`export { proxy as middleware, config } from "./proxy"`) — the file was accidentally deleted in `56284b3` when middleware logic was consolidated into `proxy.ts`, leaving Next.js with no middleware for ~4 months; auth (Auth0 OIDC routes), CSP headers, session enforcement, rate limiting, and web vitals dashboard were all broken on deployed environments
+- bumped version to 0.12.11
+
 ## 2026-07-04 - version 0.12.10
 
 - code-split all 13 learn page routes using `next/dynamic`: async-patterns, binary-search, debounce-throttle, dynamic-programming, event-delegation, from-scratch, hash-maps, memoization, recursion-backtracking, sliding-window, stacks-queues, trees-graphs, two-pointers -- each page now lazy-loads its content component so the router only ships lightweight server-rendered shells until the user navigates to a topic (`ssr: false` removed since page.tsx files are Server Components that export metadata)
