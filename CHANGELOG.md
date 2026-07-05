@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.5
+
+- added `content-visibility: auto` with `contain-intrinsic-size` to TCG `CardTile` and GraphQL `PokemonCard` to gate rendering of offscreen cards in infinite scroll lists; browser skips paint, layout, and style recalculation for offscreen elements and can release image decode buffers — no JavaScript or new dependencies needed
+- updated Render Performance thoughts page with infinite scroll content-visibility section
+- bumped version to 0.12.5
+
 ## 2026-07-04 - version 0.12.4
 
 - replaced HeroSection scroll-hint `motion.rect` infinite Framer Motion animation with a CSS `@keyframes` animation (`animate-scroll-hint` utility); Framer Motion infinite animations run RAF callbacks for the entire session even when scrolled offscreen, CSS animations are compositor-friendly and browsers throttle them when not visible

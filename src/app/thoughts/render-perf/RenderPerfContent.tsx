@@ -189,13 +189,45 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Infinite scroll lists: content-visibility gating
+              </h2>
+              <p className="text-muted">
+                Both the TCG card browser and the GraphQL Pok&eacute;mon grid
+                use infinite scroll that appends pages to a flat CSS grid. After
+                several pages, the DOM reaches 1000+ nodes all rendered
+                simultaneously &mdash; images decoded, styles recalculated,
+                paint layers composited for elements no one can see.
+              </p>
+              <p className="mt-3 text-muted">
+                Full virtualization (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @tanstack/react-virtual
+                </code>
+                ) would be heavy to retrofit into responsive CSS grids. Instead,
+                both card components now use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  content-visibility: auto
+                </code>{" "}
+                with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  contain-intrinsic-size
+                </code>
+                . This is a browser-native CSS property that tells the
+                compositor to skip rendering for offscreen elements entirely
+                &mdash; no paint, no layout, no style recalculation. The browser
+                can also release image decode buffers at its discretion. No
+                JavaScript, no IntersectionObserver, no new dependencies.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 15 more issues across infinite animations
-                that never pause offscreen, unbounded DOM growth in infinite
-                scroll lists, transition-all waste, background tab polling,
-                loading state flicker, and missing memo boundaries. These will
-                be addressed incrementally and documented here as they land.
+                The review identified 13 more issues across transition-all
+                waste, background tab polling, loading state flicker, missing
+                memo boundaries, and mousemove dimension caching. These will be
+                addressed incrementally and documented here as they land.
               </p>
             </section>
           </div>
@@ -352,6 +384,28 @@ export default function RenderPerfContent() {
                 the blur kernel cost scales with the radius squared. dropped it
                 from 16px to 4px, so roughly 1/16th the cost per card. still
                 looks like frosted glass, just subtler
+              </Sent>
+
+              <Timestamp>2:24 PM</Timestamp>
+
+              <Received>
+                what about the infinite scroll lists growing the DOM forever
+              </Received>
+
+              <Sent pos="first">
+                both the TCG card browser and the GraphQL pokemon grid just
+                append pages to a flat grid. after 7+ pages you&apos;ve got
+                1000+ DOM nodes all rendered at once
+              </Sent>
+              <Sent pos="middle">
+                full virtualization would be heavy to retrofit into responsive
+                CSS grids. instead I used <code>content-visibility: auto</code>{" "}
+                with <code>contain-intrinsic-size</code>
+              </Sent>
+              <Sent pos="last">
+                it&apos;s a browser-native CSS property that tells the
+                compositor to skip rendering offscreen elements. no paint, no
+                layout, no style recalc. zero JavaScript, zero new dependencies
               </Sent>
 
               <div className={styles.typingDots}>

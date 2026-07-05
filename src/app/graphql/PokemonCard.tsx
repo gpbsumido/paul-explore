@@ -57,7 +57,10 @@ export default function PokemonCard({ pokemon }: PokemonCardProps) {
   const attack = getStat(pokemon, "attack");
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-3 flex flex-col gap-2.5 hover:border-muted/40 transition-colors">
+    <div
+      className="rounded-xl border border-border bg-surface p-3 flex flex-col gap-2.5 hover:border-muted/40 transition-colors"
+      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 200px" }}
+    >
       {/* dex number + type badges */}
       <div className="flex items-start justify-between gap-1 min-h-[20px]">
         <span className="text-[10px] font-mono text-muted/60">
@@ -96,7 +99,12 @@ export default function PokemonCard({ pokemon }: PokemonCardProps) {
       {/* stat bars */}
       <div className="space-y-1.5 pt-0.5">
         <StatBar label="HP" value={hp} max={MAX_HP} color="bg-emerald-500" />
-        <StatBar label="ATK" value={attack} max={MAX_ATTACK} color="bg-red-500" />
+        <StatBar
+          label="ATK"
+          value={attack}
+          max={MAX_ATTACK}
+          color="bg-red-500"
+        />
       </div>
     </div>
   );
