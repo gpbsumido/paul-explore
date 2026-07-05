@@ -259,6 +259,13 @@ const THOUGHTS: ThoughtItem[] = [
       "Fleet management with tiered polling, optimistic updates, data freshness, and a globalThis singleton for in-memory state",
     color: "#8b5cf6",
   },
+  {
+    title: "Render Performance",
+    href: "/thoughts/render-perf",
+    preview:
+      "Runtime rendering costs: context instability, resize allocation, backdrop-filter GPU pressure, and unbounded DOM growth",
+    color: "#14b8a6",
+  },
 ].reverse();
 
 // ---- Mini preview sub-components ----

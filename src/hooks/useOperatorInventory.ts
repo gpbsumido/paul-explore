@@ -23,7 +23,6 @@ export function useOperatorInventory(
   const {
     data,
     isLoading,
-    isFetching,
     isError,
     error: queryError,
   } = useQuery({
@@ -38,12 +37,13 @@ export function useOperatorInventory(
     },
     staleTime: 0,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   });
 
   return {
     items: data ?? [],
-    loading: isLoading || isFetching,
+    loading: isLoading,
     error: isError
       ? queryError instanceof Error
         ? queryError.message

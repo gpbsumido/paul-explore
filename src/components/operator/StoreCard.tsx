@@ -73,7 +73,7 @@ export default function StoreCard({
         </div>
         <div className="h-1.5 w-full rounded-full bg-neutral-200 dark:bg-neutral-800">
           <div
-            className={`h-full rounded-full transition-all ${
+            className={`h-full rounded-full transition-[width,background-color] ${
               inventoryHealth > 50
                 ? "bg-success-500"
                 : inventoryHealth > 20

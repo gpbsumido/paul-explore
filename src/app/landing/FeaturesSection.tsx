@@ -164,8 +164,8 @@ function FeatureCard({
       className="group relative overflow-hidden rounded-2xl p-6 h-full"
       style={{
         background: `color-mix(in srgb, var(${featureToken}) 6%, var(--glass-bg))`,
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        backdropFilter: "blur(4px)",
+        WebkitBackdropFilter: "blur(4px)",
         border: `1px solid color-mix(in srgb, var(${featureToken}) 15%, var(--glass-border))`,
       }}
     >

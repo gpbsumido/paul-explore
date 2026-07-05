@@ -74,7 +74,6 @@ export function useCountdowns({
   const {
     data,
     isLoading,
-    isFetching,
     isError,
     error: queryError,
     fetchNextPage,
@@ -103,7 +102,7 @@ export function useCountdowns({
     [data],
   );
 
-  const loading = isLoading || isFetching;
+  const loading = isLoading;
 
   const error = isError
     ? queryError instanceof Error

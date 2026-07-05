@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import DPContent from "./DPContent";
+import dynamic from "next/dynamic";
+
+const DPContent = dynamic(() => import("./DPContent"));
 
 const TITLE = "Dynamic Programming";
 const DESCRIPTION =

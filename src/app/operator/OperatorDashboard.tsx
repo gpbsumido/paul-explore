@@ -53,6 +53,7 @@ export default function OperatorDashboard() {
     },
     staleTime: 0,
     refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   });
 

@@ -221,6 +221,20 @@
   }
 }
 
+@keyframes scroll-hint {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@utility animate-scroll-hint {
+  animation: scroll-hint 2s ease-in-out infinite;
+}
+
 @layer base {
   html,
   body {

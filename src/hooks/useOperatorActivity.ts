@@ -22,7 +22,6 @@ export function useOperatorActivity(
   const {
     data,
     isLoading,
-    isFetching,
     isError,
     error: queryError,
   } = useQuery({
@@ -41,7 +40,7 @@ export function useOperatorActivity(
 
   return {
     events: data ?? [],
-    loading: isLoading || isFetching,
+    loading: isLoading,
     error: isError
       ? queryError instanceof Error
         ? queryError.message

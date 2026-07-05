@@ -12,7 +12,7 @@ import { WaveSim, HERO_COLORS } from "./waveSim";
 interface Effect {
   update(frame: number, w: number, h: number): void;
   render(ctx: CanvasRenderingContext2D, w: number, h: number): void;
-  setMouse(x: number, y: number): void;
+  setMouse(x: number, y: number, w?: number, h?: number): void;
   clearMouse(): void;
   resize(w: number, h: number): void;
   dispose(): void;
@@ -197,9 +197,9 @@ function createClearEffect(): Effect {
       ctx.globalCompositeOperation = "source-over";
       ctx.restore();
     },
-    setMouse(x, y) {
-      mnx = x / (window.innerWidth ?? 1920);
-      mny = y / (window.innerHeight ?? 1080);
+    setMouse(x, y, w, h) {
+      mnx = x / (w || 1920);
+      mny = y / (h || 1080);
     },
     clearMouse() {
       mnx = -1;
@@ -353,9 +353,9 @@ function createStormEffect(): Effect {
         ctx.restore();
       }
     },
-    setMouse(x, y) {
-      mnx = x / (window.innerWidth ?? 1920);
-      mny = y / (window.innerHeight ?? 1080);
+    setMouse(x, y, w, h) {
+      mnx = x / (w || 1920);
+      mny = y / (h || 1080);
     },
     clearMouse() {},
     resize() {},
@@ -783,9 +783,13 @@ export default function WeatherCanvas({ className }: { className?: string }) {
     const scheduling = (navigator as Navigator & { scheduling?: SchedulingAPI })
       .scheduling;
 
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const onResize = () => {
-      setSize();
-      effect.resize(canvas.width, canvas.height);
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        setSize();
+        effect.resize(canvas.width, canvas.height);
+      }, 150);
     };
     window.addEventListener("resize", onResize, { passive: true });
 
@@ -798,7 +802,8 @@ export default function WeatherCanvas({ className }: { className?: string }) {
     );
     io.observe(canvas);
 
-    const onMouse = (e: MouseEvent) => effect.setMouse(e.clientX, e.clientY);
+    const onMouse = (e: MouseEvent) =>
+      effect.setMouse(e.clientX, e.clientY, canvas.width, canvas.height);
     const onLeave = () => effect.clearMouse();
     window.addEventListener("mousemove", onMouse, { passive: true });
     document.addEventListener("mouseleave", onLeave);
@@ -825,6 +830,7 @@ export default function WeatherCanvas({ className }: { className?: string }) {
 
     return () => {
       cancelAnimationFrame(animId);
+      clearTimeout(resizeTimer);
       io.disconnect();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("mousemove", onMouse);

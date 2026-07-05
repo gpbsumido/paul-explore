@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import DebounceThrottleContent from "./DebounceThrottleContent";
+import dynamic from "next/dynamic";
+
+const DebounceThrottleContent = dynamic(
+  () => import("./DebounceThrottleContent"),
+);
 
 const TITLE = "Debounce & Throttle";
 const DESCRIPTION =
