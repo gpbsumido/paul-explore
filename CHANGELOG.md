@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.6
+
+- replaced `transition-all` with explicit property lists in 8 production components: `transition-[border-color,background-color]` for HeroSection/FooterSection auth buttons, `transition-[width,background-color]` for StockBar/StoreCard/PredictionPanel/NbaSection progress bars, `transition-[background-color,border-color]` for SeriesPickCard/FinalsCard team rows, `transition-[opacity,border-color]` for SeriesPickCard/FinalsCard containers
+- updated Render Performance thoughts page with transition-all cleanup section
+- bumped version to 0.12.6
+
 ## 2026-07-04 - version 0.12.5
 
 - added `content-visibility: auto` with `contain-intrinsic-size` to TCG `CardTile` and GraphQL `PokemonCard` to gate rendering of offscreen cards in infinite scroll lists; browser skips paint, layout, and style recalculation for offscreen elements and can release image decode buffers — no JavaScript or new dependencies needed

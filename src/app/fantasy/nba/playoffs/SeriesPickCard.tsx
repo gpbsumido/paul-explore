@@ -45,7 +45,7 @@ function TeamButton({
       onClick={onClick}
       whileTap={disabled ? undefined : { scale: 0.96 }}
       className={[
-        "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-all duration-150",
+        "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-[background-color,border-color] duration-150",
         disabled ? "" : "cursor-pointer",
         !isWinner && !isTbd ? "hover:bg-surface-raised" : "",
         !isWinner && isTbd ? "text-muted/50 hover:bg-surface-raised" : "",
@@ -149,7 +149,7 @@ export default function SeriesPickCard({
   return (
     <div
       className={[
-        "overflow-hidden rounded-xl border bg-surface transition-all duration-200",
+        "overflow-hidden rounded-xl border bg-surface transition-[opacity,border-color] duration-200",
         disabled ? "opacity-40" : "",
       ].join(" ")}
       style={

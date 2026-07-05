@@ -222,12 +222,46 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                transition-all replaced across 8 components
+              </h2>
+              <p className="text-muted">
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  transition-all
+                </code>{" "}
+                forces the browser to check every CSS property for changes on
+                every animation frame, even when only one or two properties
+                actually change. Eight production components were still using
+                it: the landing page hero and footer auth buttons, the operator
+                dashboard stock bar and store card, the NBA section slide dots,
+                both playoff pick cards, and the matchup prediction bar.
+              </p>
+              <p className="mt-3 text-muted">
+                Each one was replaced with an explicit property list matching
+                what actually transitions:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  transition-[border-color,background-color]
+                </code>{" "}
+                for hover effects,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  transition-[width,background-color]
+                </code>{" "}
+                for progress bars,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  transition-[opacity,border-color]
+                </code>{" "}
+                for card containers. The browser now only tracks properties that
+                can actually change.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 13 more issues across transition-all
-                waste, background tab polling, loading state flicker, missing
-                memo boundaries, and mousemove dimension caching. These will be
-                addressed incrementally and documented here as they land.
+                The review identified 12 more issues across background tab
+                polling, loading state flicker, missing memo boundaries, and
+                mousemove dimension caching. These will be addressed
+                incrementally and documented here as they land.
               </p>
             </section>
           </div>
@@ -406,6 +440,26 @@ export default function RenderPerfContent() {
                 it&apos;s a browser-native CSS property that tells the
                 compositor to skip rendering offscreen elements. no paint, no
                 layout, no style recalc. zero JavaScript, zero new dependencies
+              </Sent>
+
+              <Timestamp>2:30 PM</Timestamp>
+
+              <Received>what was the transition-all cleanup</Received>
+
+              <Sent pos="first">
+                eight components were still using <code>transition-all</code>.
+                it tells the browser to watch every CSS property for changes on
+                every animation frame
+              </Sent>
+              <Sent pos="middle">
+                most of them only transition one or two properties. border-color
+                on hover, width on a progress bar, that kind of thing
+              </Sent>
+              <Sent pos="last">
+                replaced each one with an explicit property list.{" "}
+                <code>transition-[width,background-color]</code> for bars,{" "}
+                <code>transition-[border-color,background-color]</code> for
+                buttons. browser only tracks what can actually change now
               </Sent>
 
               <div className={styles.typingDots}>

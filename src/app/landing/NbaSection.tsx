@@ -258,7 +258,7 @@ export default function NbaSection() {
                   aria-label={`View ${slide.title}`}
                   aria-current={i === activeSlide ? "true" : undefined}
                   className={[
-                    "h-2 rounded-full transition-all duration-300",
+                    "h-2 rounded-full transition-[width,background-color] duration-300",
                     i === activeSlide
                       ? "w-5 bg-yellow-300"
                       : "w-2 bg-foreground/30 hover:bg-foreground/50",
