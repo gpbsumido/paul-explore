@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import dynamic from "next/dynamic";
 
-const AsyncContent = dynamic(() => import("./AsyncContent"), { ssr: false });
+const AsyncContent = dynamic(() => import("./AsyncContent"));
 
 const TITLE = "Async Patterns";
 const DESCRIPTION =

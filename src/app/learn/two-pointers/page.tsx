@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import dynamic from "next/dynamic";
 
-const TwoPointersContent = dynamic(() => import("./TwoPointersContent"), {
-  ssr: false,
-});
+const TwoPointersContent = dynamic(() => import("./TwoPointersContent"));
 
 const TITLE = "Two Pointers";
 const DESCRIPTION =

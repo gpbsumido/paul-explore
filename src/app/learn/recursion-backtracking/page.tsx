@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 
 const RecursionBacktrackingContent = dynamic(
   () => import("./RecursionBacktrackingContent"),
-  { ssr: false },
 );
 
 const TITLE = "Recursion & Backtracking";

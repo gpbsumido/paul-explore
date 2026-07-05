@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import dynamic from "next/dynamic";
 
-const SlidingWindowContent = dynamic(() => import("./SlidingWindowContent"), {
-  ssr: false,
-});
+const SlidingWindowContent = dynamic(() => import("./SlidingWindowContent"));
 
 const TITLE = "Sliding Window";
 const DESCRIPTION =

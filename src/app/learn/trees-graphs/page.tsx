@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import dynamic from "next/dynamic";
 
-const TreesGraphsContent = dynamic(() => import("./TreesGraphsContent"), {
-  ssr: false,
-});
+const TreesGraphsContent = dynamic(() => import("./TreesGraphsContent"));
 
 const TITLE = "Trees & Graphs";
 const DESCRIPTION =

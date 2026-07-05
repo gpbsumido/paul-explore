@@ -2,7 +2,7 @@
 
 ## 2026-07-04 - version 0.12.10
 
-- code-split all 13 learn page routes using `next/dynamic` with `ssr: false`: async-patterns, binary-search, debounce-throttle, dynamic-programming, event-delegation, from-scratch, hash-maps, memoization, recursion-backtracking, sliding-window, stacks-queues, trees-graphs, two-pointers — each page now lazy-loads its content component so the router only ships lightweight server-rendered shells until the user navigates to a topic
+- code-split all 13 learn page routes using `next/dynamic`: async-patterns, binary-search, debounce-throttle, dynamic-programming, event-delegation, from-scratch, hash-maps, memoization, recursion-backtracking, sliding-window, stacks-queues, trees-graphs, two-pointers -- each page now lazy-loads its content component so the router only ships lightweight server-rendered shells until the user navigates to a topic (`ssr: false` removed since page.tsx files are Server Components that export metadata)
 - updated Render Performance thoughts page with learn pages code splitting section
 - bumped version to 0.12.10
 

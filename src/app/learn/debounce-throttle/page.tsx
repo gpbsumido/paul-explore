@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 
 const DebounceThrottleContent = dynamic(
   () => import("./DebounceThrottleContent"),
-  { ssr: false },
 );
 
 const TITLE = "Debounce & Throttle";

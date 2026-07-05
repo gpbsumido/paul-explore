@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import dynamic from "next/dynamic";
 
-const StacksQueuesContent = dynamic(() => import("./StacksQueuesContent"), {
-  ssr: false,
-});
+const StacksQueuesContent = dynamic(() => import("./StacksQueuesContent"));
 
 const TITLE = "Stacks & Queues";
 const DESCRIPTION =

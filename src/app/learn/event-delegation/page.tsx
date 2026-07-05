@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 
 const EventDelegationContent = dynamic(
   () => import("./EventDelegationContent"),
-  { ssr: false },
 );
 
 const TITLE = "Event Delegation";

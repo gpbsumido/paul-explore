@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import dynamic from "next/dynamic";
 
-const BinarySearchContent = dynamic(() => import("./BinarySearchContent"), {
-  ssr: false,
-});
+const BinarySearchContent = dynamic(() => import("./BinarySearchContent"));
 
 const TITLE = "Binary Search";
 const DESCRIPTION =
