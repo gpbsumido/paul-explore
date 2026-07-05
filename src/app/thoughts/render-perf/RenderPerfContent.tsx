@@ -299,12 +299,43 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Operator polling paused in background tabs
+              </h2>
+              <p className="text-muted">
+                The operator dashboard runs four concurrent polling intervals
+                &mdash; stores every 30s, alerts every 15s, inventory every 60s,
+                and a fleet summary every 15s. All four continued firing when
+                the tab was hidden. On mobile, where browsers aggressively
+                throttle background tabs, these requests pile up and fire in
+                bursts when the tab regains focus.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix is a single property:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  refetchIntervalInBackground: false
+                </code>
+                . TanStack Query checks{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  document.hidden
+                </code>{" "}
+                and automatically pauses polling when the tab isn&apos;t
+                visible. Combined with the existing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  refetchOnWindowFocus: true
+                </code>
+                , the dashboard refreshes immediately when the user returns and
+                resumes its normal polling cadence.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 11 more issues across background tab
-                polling, loading state flicker, missing memo boundaries, and
-                other rendering optimizations. These will be addressed
-                incrementally and documented here as they land.
+                The review identified 10 more issues across loading state
+                flicker, missing memo boundaries, and other rendering
+                optimizations. These will be addressed incrementally and
+                documented here as they land.
               </p>
             </section>
           </div>
@@ -522,6 +553,27 @@ export default function RenderPerfContent() {
                 pending style changes. now the caller passes cached canvas
                 dimensions into <code>setMouse</code> instead of hitting the DOM
                 every event
+              </Sent>
+
+              <Timestamp>2:40 PM</Timestamp>
+
+              <Received>what about the operator polling</Received>
+
+              <Sent pos="first">
+                four concurrent polling intervals on the operator dashboard.
+                stores every 30s, alerts every 15s, inventory every 60s, fleet
+                summary every 15s. all kept firing in background tabs
+              </Sent>
+              <Sent pos="middle">
+                on mobile that means requests pile up while throttled and fire
+                in bursts when the tab comes back
+              </Sent>
+              <Sent pos="last">
+                one property: <code>refetchIntervalInBackground: false</code>.
+                TanStack Query pauses polling when <code>document.hidden</code>{" "}
+                is true, resumes when the tab comes back. combined with{" "}
+                <code>refetchOnWindowFocus: true</code> it refreshes immediately
+                on return
               </Sent>
 
               <div className={styles.typingDots}>

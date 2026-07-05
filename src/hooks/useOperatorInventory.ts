@@ -38,6 +38,7 @@ export function useOperatorInventory(
     },
     staleTime: 0,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   });
 

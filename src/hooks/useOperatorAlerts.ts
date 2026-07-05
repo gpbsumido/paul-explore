@@ -36,6 +36,7 @@ export function useOperatorAlerts(storeId: string): UseOperatorAlertsReturn {
     },
     staleTime: 0,
     refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   });
 

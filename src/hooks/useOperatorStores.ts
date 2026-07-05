@@ -34,6 +34,7 @@ export function useOperatorStores(): UseOperatorStoresReturn {
     },
     staleTime: 0,
     refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
   });
 

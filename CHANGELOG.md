@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.8
+
+- added `refetchIntervalInBackground: false` to all four operator polling queries (useOperatorStores 30s, useOperatorAlerts 15s, useOperatorInventory 60s, OperatorDashboard fleet-summary 15s) so TanStack Query pauses polling when the tab is hidden; combined with existing `refetchOnWindowFocus: true`, dashboard refreshes immediately on tab return
+- updated Render Performance thoughts page with background polling section
+- bumped version to 0.12.8
+
 ## 2026-07-04 - version 0.12.7
 
 - eliminated `window.innerWidth`/`innerHeight` reads from WeatherCanvas mousemove handler (60+ Hz): Clear and Storm effects now receive cached canvas dimensions via `setMouse` instead of querying the DOM on every event, avoiding potential layout reflow
