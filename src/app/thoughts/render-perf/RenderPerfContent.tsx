@@ -256,11 +256,54 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                WeatherCanvas mousemove dimension caching
+              </h2>
+              <p className="text-muted">
+                The Clear and Storm weather effects normalize mouse coordinates
+                by dividing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  clientX
+                </code>
+                /
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  clientY
+                </code>{" "}
+                by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  window.innerWidth
+                </code>
+                /
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  window.innerHeight
+                </code>{" "}
+                on every mousemove event (60+ Hz). These property accesses can
+                force layout reflow if there are pending style changes.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: pass the cached canvas dimensions (which already match
+                the viewport from the resize handler) into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  setMouse
+                </code>{" "}
+                instead of reading{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  window.innerWidth
+                </code>
+                /
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  innerHeight
+                </code>{" "}
+                from the DOM on every event.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 12 more issues across background tab
+                The review identified 11 more issues across background tab
                 polling, loading state flicker, missing memo boundaries, and
-                mousemove dimension caching. These will be addressed
+                other rendering optimizations. These will be addressed
                 incrementally and documented here as they land.
               </p>
             </section>
@@ -460,6 +503,25 @@ export default function RenderPerfContent() {
                 <code>transition-[width,background-color]</code> for bars,{" "}
                 <code>transition-[border-color,background-color]</code> for
                 buttons. browser only tracks what can actually change now
+              </Sent>
+
+              <Timestamp>2:35 PM</Timestamp>
+
+              <Received>
+                and the mousemove dimension thing on the canvas
+              </Received>
+
+              <Sent pos="first">
+                the Clear and Storm effects normalize mouse coordinates by
+                dividing by <code>window.innerWidth</code> and{" "}
+                <code>innerHeight</code> on every mousemove. that fires 60+
+                times per second
+              </Sent>
+              <Sent pos="last">
+                those property reads can force layout reflow if there are
+                pending style changes. now the caller passes cached canvas
+                dimensions into <code>setMouse</code> instead of hitting the DOM
+                every event
               </Sent>
 
               <div className={styles.typingDots}>

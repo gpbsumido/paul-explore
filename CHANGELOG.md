@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.7
+
+- eliminated `window.innerWidth`/`innerHeight` reads from WeatherCanvas mousemove handler (60+ Hz): Clear and Storm effects now receive cached canvas dimensions via `setMouse` instead of querying the DOM on every event, avoiding potential layout reflow
+- updated Render Performance thoughts page with mousemove dimension caching section
+- bumped version to 0.12.7
+
 ## 2026-07-04 - version 0.12.6
 
 - replaced `transition-all` with explicit property lists in 8 production components: `transition-[border-color,background-color]` for HeroSection/FooterSection auth buttons, `transition-[width,background-color]` for StockBar/StoreCard/PredictionPanel/NbaSection progress bars, `transition-[background-color,border-color]` for SeriesPickCard/FinalsCard team rows, `transition-[opacity,border-color]` for SeriesPickCard/FinalsCard containers
