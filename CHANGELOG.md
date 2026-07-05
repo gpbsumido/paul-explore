@@ -1,5 +1,69 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.10
+
+- code-split all 13 learn page routes using `next/dynamic`: async-patterns, binary-search, debounce-throttle, dynamic-programming, event-delegation, from-scratch, hash-maps, memoization, recursion-backtracking, sliding-window, stacks-queues, trees-graphs, two-pointers -- each page now lazy-loads its content component so the router only ships lightweight server-rendered shells until the user navigates to a topic (`ssr: false` removed since page.tsx files are Server Components that export metadata)
+- updated Render Performance thoughts page with learn pages code splitting section
+- bumped version to 0.12.10
+
+## 2026-07-04 - version 0.12.9
+
+- fixed loading state flicker across 7 hooks (useOperatorStores, useOperatorAlerts, useOperatorInventory, useOperatorStore, useOperatorActivity, useCalendarEvents, useCountdowns): changed `loading` from `isLoading || isFetching` to just `isLoading` so skeletons only show on initial load, not on every background poll cycle; `RefreshBar` already handles the subtle "updating" indicator via `isFetching`
+- updated Render Performance thoughts page with loading flicker section
+- bumped version to 0.12.9
+
+## 2026-07-04 - version 0.12.8
+
+- added `refetchIntervalInBackground: false` to all four operator polling queries (useOperatorStores 30s, useOperatorAlerts 15s, useOperatorInventory 60s, OperatorDashboard fleet-summary 15s) so TanStack Query pauses polling when the tab is hidden; combined with existing `refetchOnWindowFocus: true`, dashboard refreshes immediately on tab return
+- updated Render Performance thoughts page with background polling section
+- bumped version to 0.12.8
+
+## 2026-07-04 - version 0.12.7
+
+- eliminated `window.innerWidth`/`innerHeight` reads from WeatherCanvas mousemove handler (60+ Hz): Clear and Storm effects now receive cached canvas dimensions via `setMouse` instead of querying the DOM on every event, avoiding potential layout reflow
+- updated Render Performance thoughts page with mousemove dimension caching section
+- bumped version to 0.12.7
+
+## 2026-07-04 - version 0.12.6
+
+- replaced `transition-all` with explicit property lists in 8 production components: `transition-[border-color,background-color]` for HeroSection/FooterSection auth buttons, `transition-[width,background-color]` for StockBar/StoreCard/PredictionPanel/NbaSection progress bars, `transition-[background-color,border-color]` for SeriesPickCard/FinalsCard team rows, `transition-[opacity,border-color]` for SeriesPickCard/FinalsCard containers
+- updated Render Performance thoughts page with transition-all cleanup section
+- bumped version to 0.12.6
+
+## 2026-07-04 - version 0.12.5
+
+- added `content-visibility: auto` with `contain-intrinsic-size` to TCG `CardTile` and GraphQL `PokemonCard` to gate rendering of offscreen cards in infinite scroll lists; browser skips paint, layout, and style recalculation for offscreen elements and can release image decode buffers — no JavaScript or new dependencies needed
+- updated Render Performance thoughts page with infinite scroll content-visibility section
+- bumped version to 0.12.5
+
+## 2026-07-04 - version 0.12.4
+
+- replaced HeroSection scroll-hint `motion.rect` infinite Framer Motion animation with a CSS `@keyframes` animation (`animate-scroll-hint` utility); Framer Motion infinite animations run RAF callbacks for the entire session even when scrolled offscreen, CSS animations are compositor-friendly and browsers throttle them when not visible
+- bumped version to 0.12.4
+
+## 2026-07-04 - version 0.12.3
+
+- fixed flash of authenticated hub skeleton for unauthenticated users on the root page: replaced the FeatureHub-shaped `loading.tsx` (header, 7 feature cards, 8 thought cards) with a neutral `bg-background` div since `auth0.getSession()` is a local cookie decrypt that resolves in milliseconds
+- bumped version to 0.12.3
+
+## 2026-07-04 - version 0.12.2
+
+- reduced FeaturesSection `backdrop-filter` blur radius from 16px to 4px across all 11 FeatureCards (Gaussian kernel cost scales with radius squared, so ~1/16th GPU compositor cost per card while preserving frosted glass aesthetic)
+- updated Render Performance thoughts page with backdrop-filter blur reduction section
+- bumped version to 0.12.2
+
+## 2026-07-04 - version 0.12.1
+
+- debounced WeatherCanvas resize handler at 150ms to prevent dozens of offscreen canvas allocations per second during window drag-resize (cloud effect was calling `makeCloudSprite` 14 times per resize frame, each allocating a `document.createElement('canvas')` with gradient fills)
+- updated Render Performance thoughts page with resize debounce section
+- bumped version to 0.12.1
+
+## 2026-07-04 - version 0.12.0
+
+- fixed WeatherContext value instability causing cascading re-renders: wrapped `toggle` and `setSelectedEffect` in `useCallback`, wrapped context value object in `useMemo` keyed on actual values so consumers only re-render when data changes
+- created Render Performance thoughts page at `/thoughts/render-perf` documenting the runtime performance review and incremental fixes (starting with WeatherContext, with 17 more issues queued)
+- bumped version to 0.12.0
+
 ## 2026-07-04 - version 0.11.17
 
 - added Operator and Learn to the landing page feature grid in FeaturesSection (new IconLearn + IconOperator SVGs, FeatureCards with design tokens and links)

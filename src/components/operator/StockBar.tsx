@@ -26,7 +26,7 @@ export default function StockBar({ currentStock, capacity }: StockBarProps) {
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-20 rounded-full bg-neutral-200 dark:bg-neutral-800">
         <div
-          className={`h-full rounded-full transition-all ${BAR_COLORS[status]}`}
+          className={`h-full rounded-full transition-[width,background-color] ${BAR_COLORS[status]}`}
           style={{ width: `${Math.min(pct, 100)}%` }}
         />
       </div>

@@ -1,11 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  createEvent,
-  updateEvent,
-  deleteEvent,
-} from "@/lib/calendar";
+import { createEvent, updateEvent, deleteEvent } from "@/lib/calendar";
 import type { CalendarEvent } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -79,11 +75,14 @@ export function useCalendarEvents({
   const {
     data,
     isLoading,
-    isFetching,
     isError,
     error: queryError,
   } = useQuery({
-    queryKey: queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+    queryKey: queryKeys.calendar.events({
+      start,
+      end,
+      calendarId: calendarId ?? undefined,
+    }),
     queryFn: async ({ signal }): Promise<CalendarEvent[]> => {
       const params = new URLSearchParams({ start, end });
       if (calendarId) params.set("calendarId", calendarId);
@@ -99,8 +98,8 @@ export function useCalendarEvents({
   /** Flat list of events for the current date window. */
   const events = data ?? [];
 
-  /** True while the initial fetch or a background refetch is in-flight. */
-  const loading = isLoading || isFetching;
+  /** True only during the initial fetch (no cached data yet). */
+  const loading = isLoading;
 
   /** Human-readable error message, or null when the last fetch succeeded. */
   const error = isError
@@ -120,18 +119,30 @@ export function useCalendarEvents({
     onMutate: async (event) => {
       await queryClient.cancelQueries({ queryKey: EVENTS_PREFIX });
       const snapshot = queryClient.getQueryData<CalendarEvent[]>(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
       );
       const tempEvent: CalendarEvent = { ...event, id: crypto.randomUUID() };
       queryClient.setQueryData(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
         (prev: CalendarEvent[] | undefined) => [...(prev ?? []), tempEvent],
       );
       return { snapshot };
     },
     onError: (_err, _vars, context) => {
       queryClient.setQueryData(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
         context?.snapshot,
       );
     },
@@ -152,10 +163,18 @@ export function useCalendarEvents({
     onMutate: async ({ id, fields }) => {
       await queryClient.cancelQueries({ queryKey: EVENTS_PREFIX });
       const snapshot = queryClient.getQueryData<CalendarEvent[]>(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
       );
       queryClient.setQueryData(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
         (prev: CalendarEvent[] | undefined) =>
           (prev ?? []).map((e) => (e.id === id ? { ...e, ...fields } : e)),
       );
@@ -163,7 +182,11 @@ export function useCalendarEvents({
     },
     onError: (_err, _vars, context) => {
       queryClient.setQueryData(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
         context?.snapshot,
       );
     },
@@ -178,10 +201,18 @@ export function useCalendarEvents({
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: EVENTS_PREFIX });
       const snapshot = queryClient.getQueryData<CalendarEvent[]>(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
       );
       queryClient.setQueryData(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
         (prev: CalendarEvent[] | undefined) =>
           (prev ?? []).filter((e) => e.id !== id),
       );
@@ -189,7 +220,11 @@ export function useCalendarEvents({
     },
     onError: (_err, _vars, context) => {
       queryClient.setQueryData(
-        queryKeys.calendar.events({ start, end, calendarId: calendarId ?? undefined }),
+        queryKeys.calendar.events({
+          start,
+          end,
+          calendarId: calendarId ?? undefined,
+        }),
         context?.snapshot,
       );
     },

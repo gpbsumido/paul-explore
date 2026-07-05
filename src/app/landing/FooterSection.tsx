@@ -52,7 +52,7 @@ export default function FooterSection() {
         >
           <AuthButton
             loggedIn={false}
-            className="inline-flex items-center rounded-full border border-foreground/25 bg-foreground/10 px-8 py-3 text-sm font-medium text-foreground backdrop-blur-sm transition-all hover:border-foreground/40 hover:bg-foreground/20"
+            className="inline-flex items-center rounded-full border border-foreground/25 bg-foreground/10 px-8 py-3 text-sm font-medium text-foreground backdrop-blur-sm transition-[border-color,background-color] hover:border-foreground/40 hover:bg-foreground/20"
           />
         </motion.div>
       </div>

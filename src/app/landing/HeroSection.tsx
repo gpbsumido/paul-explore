@@ -106,7 +106,7 @@ export default function HeroSection() {
         >
           <AuthButton
             loggedIn={false}
-            className="inline-flex items-center rounded-full border border-foreground/25 bg-foreground/10 px-8 py-3 text-sm font-medium text-foreground backdrop-blur-sm transition-all hover:border-foreground/40 hover:bg-foreground/20"
+            className="inline-flex items-center rounded-full border border-foreground/25 bg-foreground/10 px-8 py-3 text-sm font-medium text-foreground backdrop-blur-sm transition-[border-color,background-color] hover:border-foreground/40 hover:bg-foreground/20"
           />
         </motion.div>
 
@@ -135,19 +135,14 @@ export default function HeroSection() {
                 stroke="currentColor"
                 strokeWidth="1.5"
               />
-              <motion.rect
+              <rect
                 x="6"
                 y="4"
                 width="2"
                 height="4"
                 rx="1"
                 fill="currentColor"
-                animate={{ y: [4, 8, 4] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                className="animate-scroll-hint"
               />
             </svg>
           </div>
