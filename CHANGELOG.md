@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-05 - version 0.12.12
+
+- added `export const dynamic = "force-dynamic"` to `src/app/tcg/pokemon/sets/page.tsx` — TCGdex API fetches time out during static prerendering on build servers, so the page now renders fresh on each request instead
+- bumped version to 0.12.12
+
 ## 2026-07-05 - version 0.12.11
 
 - restored `src/middleware.ts` re-export (`export { proxy as middleware, config } from "./proxy"`) — the file was accidentally deleted in `56284b3` when middleware logic was consolidated into `proxy.ts`, leaving Next.js with no middleware for ~4 months; auth (Auth0 OIDC routes), CSP headers, session enforcement, rate limiting, and web vitals dashboard were all broken on deployed environments

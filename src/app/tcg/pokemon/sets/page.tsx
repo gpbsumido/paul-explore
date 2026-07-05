@@ -27,8 +27,9 @@ export const metadata: Metadata = {
 
 const tcgdex = new TCGdex("en");
 
-// Set list doesn't change often — rebuild at most once a day
-export const revalidate = 86400;
+// Skip static prerendering — TCGdex fetch times out on build servers.
+// The page renders fresh on each request, which is fine at portfolio scale.
+export const dynamic = "force-dynamic";
 
 export default async function SetsPage() {
   let validSeries: Awaited<ReturnType<typeof tcgdex.serie.get>>[] = [];
