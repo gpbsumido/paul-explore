@@ -21,7 +21,6 @@ export function useOperatorStores(): UseOperatorStoresReturn {
   const {
     data,
     isLoading,
-    isFetching,
     isError,
     error: queryError,
   } = useQuery({
@@ -40,7 +39,7 @@ export function useOperatorStores(): UseOperatorStoresReturn {
 
   return {
     stores: data ?? [],
-    loading: isLoading || isFetching,
+    loading: isLoading,
     error: isError
       ? queryError instanceof Error
         ? queryError.message

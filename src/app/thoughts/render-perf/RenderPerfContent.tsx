@@ -330,10 +330,51 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Loading state flicker eliminated
+              </h2>
+              <p className="text-muted">
+                Seven hooks were deriving their{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  loading
+                </code>{" "}
+                flag from{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  isLoading || isFetching
+                </code>
+                . In TanStack Query,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  isFetching
+                </code>{" "}
+                is true during background refetches too &mdash; not just the
+                initial load. So every 15-30s poll cycle briefly flashed a
+                skeleton or spinner even when cached data was already on screen.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  isLoading
+                </code>{" "}
+                alone for skeleton/spinner states. It&apos;s only true when
+                there&apos;s no cached data (the genuine initial load). The
+                existing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  RefreshBar
+                </code>{" "}
+                component already handles the subtle &ldquo;updating&rdquo;
+                indicator independently via{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  isFetching
+                </code>
+                .
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 10 more issues across loading state
-                flicker, missing memo boundaries, and other rendering
+                The review identified 9 more issues across missing memo
+                boundaries, whileHover object recreation, and other rendering
                 optimizations. These will be addressed incrementally and
                 documented here as they land.
               </p>
@@ -574,6 +615,27 @@ export default function RenderPerfContent() {
                 is true, resumes when the tab comes back. combined with{" "}
                 <code>refetchOnWindowFocus: true</code> it refreshes immediately
                 on return
+              </Sent>
+
+              <Timestamp>2:45 PM</Timestamp>
+
+              <Received>what about the loading flicker</Received>
+
+              <Sent pos="first">
+                seven hooks were using <code>isLoading || isFetching</code> for
+                their loading flag. <code>isFetching</code> is true during
+                background refetches too
+              </Sent>
+              <Sent pos="middle">
+                so every 15-30s poll cycle would briefly flash a skeleton even
+                though cached data was already on screen. users see a flicker
+                that makes the dashboard feel broken
+              </Sent>
+              <Sent pos="last">
+                switched all seven to just <code>isLoading</code>, which is only
+                true when there&apos;s no cached data. the{" "}
+                <code>RefreshBar</code> component already handles the subtle
+                &ldquo;updating&rdquo; indicator separately
               </Sent>
 
               <div className={styles.typingDots}>

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.9
+
+- fixed loading state flicker across 7 hooks (useOperatorStores, useOperatorAlerts, useOperatorInventory, useOperatorStore, useOperatorActivity, useCalendarEvents, useCountdowns): changed `loading` from `isLoading || isFetching` to just `isLoading` so skeletons only show on initial load, not on every background poll cycle; `RefreshBar` already handles the subtle "updating" indicator via `isFetching`
+- updated Render Performance thoughts page with loading flicker section
+- bumped version to 0.12.9
+
 ## 2026-07-04 - version 0.12.8
 
 - added `refetchIntervalInBackground: false` to all four operator polling queries (useOperatorStores 30s, useOperatorAlerts 15s, useOperatorInventory 60s, OperatorDashboard fleet-summary 15s) so TanStack Query pauses polling when the tab is hidden; combined with existing `refetchOnWindowFocus: true`, dashboard refreshes immediately on tab return
