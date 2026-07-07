@@ -266,6 +266,13 @@ const THOUGHTS: ThoughtItem[] = [
       "Runtime rendering costs: context instability, resize allocation, backdrop-filter GPU pressure, and unbounded DOM growth",
     color: "#14b8a6",
   },
+  {
+    title: "V2 Redesign",
+    href: "/thoughts/v2-redesign",
+    preview:
+      "URL-based version routing with next/dynamic bundle splitting — Three.js out of the default path, v2 ships a clean slate",
+    color: "#e879f9",
+  },
 ].reverse();
 
 // ---- Mini preview sub-components ----

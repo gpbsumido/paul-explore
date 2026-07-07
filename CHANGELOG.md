@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.0
+
+- page.tsx — added URL parameter-based version routing (`?version=v1` serves original, default serves v2) with `searchParams.version` from Next.js App Router page props
+- v1 components (LandingContent, FeatureHub) wrapped in `next/dynamic` so Three.js / R3F / ShaderGradient chunks only load on the v1 path
+- v2 placeholder components at `src/app/v2/LandingContentV2.tsx` and `src/app/v2/FeatureHubV2.tsx` — statically imported, no 3D deps
+- added V2 Redesign thoughts page at `/thoughts/v2-redesign`
+- bumped version to 0.13.0
+
 ## 2026-07-07 - version 0.12.16
 
 - VersionSelector.tsx — rewrote version dropdown with grouped options: Current Major (default, all data in the major version), Current Minor (all patches in latest minor), last 3 minor versions with individual patch versions in optgroups, and older minors aggregated as single entries

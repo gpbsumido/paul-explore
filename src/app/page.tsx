@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import nextDynamic from "next/dynamic";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import { auth0 } from "@/lib/auth0";
-import LandingContent from "./LandingContent";
-import FeatureHub from "./FeatureHub";
+
+// v1 -- dynamic so Three.js / R3F / ShaderGradient bundle only loads when ?version=v1
+const LandingContentV1 = nextDynamic(() => import("./LandingContent"));
+const FeatureHubV1 = nextDynamic(() => import("./FeatureHub"));
+
+// v2 -- static import, lightweight (no 3D deps)
+import LandingContentV2 from "./v2/LandingContentV2";
+import FeatureHubV2 from "./v2/FeatureHubV2";
 
 // Force dynamic rendering so Next.js never caches this page at the edge.
 // Without this, a logged-in user's FeatureHub HTML could be served to
@@ -13,7 +20,7 @@ export const dynamic = "force-dynamic";
 // auth0.getSession() to check whether a session cookie is present and renders
 // either the landing page or the authenticated hub. auth0.getSession() is a
 // local cookie decrypt with no network call, so the dynamic render cost is
-// negligible compared to the benefit of clean URLs — no redirect to /protected
+// negligible compared to the benefit of clean URLs -- no redirect to /protected
 // for logged-in users.
 const TITLE = "Paul Sumido";
 const DESCRIPTION =
@@ -37,16 +44,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function Home() {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const version = params.version;
+  const isV1 = version === "v1";
+
   const session = await auth0.getSession();
   if (session) {
-    // Pass user info from the session so FeatureHub's header renders immediately
-    // without a client-side /api/me round-trip on first paint.
     const initialMe = {
       name: session.user.name ?? null,
       email: session.user.email ?? null,
     };
-    return <FeatureHub initialMe={initialMe} />;
+    return isV1 ? <FeatureHubV1 initialMe={initialMe} /> : <FeatureHubV2 />;
   }
-  return <LandingContent />;
+  return isV1 ? <LandingContentV1 /> : <LandingContentV2 />;
 }
