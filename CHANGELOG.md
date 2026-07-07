@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.12.12
+
+- FeaturesSection.tsx — extracted whileHover object literal to module-level `HOVER_ANIMATION` constant (11 FeatureCard instances were each creating new objects + spreading spring.snappy on every render)
+- updated Render Performance thoughts page with whileHover section
+- bumped version to 0.12.12
+
 ## 2026-07-04 - version 0.12.11
 
 - StoreCard.tsx — wrapped in React.memo (re-renders on every 30s poll cycle)

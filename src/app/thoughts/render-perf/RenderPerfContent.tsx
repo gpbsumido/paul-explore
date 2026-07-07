@@ -443,11 +443,45 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                whileHover object literals hoisted to module scope
+              </h2>
+              <p className="text-muted">
+                Each of the 11{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  FeatureCard
+                </code>{" "}
+                instances passed an inline object to Framer Motion&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  whileHover
+                </code>{" "}
+                prop:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {`{{ y: -4, transition: { ...spring.snappy } }}`}
+                </code>
+                . Every render created a new object and spread{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  spring.snappy
+                </code>{" "}
+                into a new transition object. Framer Motion internally diffs
+                gesture handler objects to detect changes, so 11 fresh objects
+                meant 11 unnecessary diffs per render.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: extract to a single module-level constant{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  HOVER_ANIMATION
+                </code>
+                . One allocation at module load, stable reference across all
+                renders and all card instances.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified more issues across whileHover object
-                recreation and other rendering optimizations. These will be
-                addressed incrementally and documented here as they land.
+                The review identified additional rendering optimizations still
+                to be addressed. These will be documented here as they land.
               </p>
             </section>
           </div>
@@ -745,6 +779,28 @@ export default function RenderPerfContent() {
                 wrapped all three in <code>React.memo</code>. React skips
                 reconciliation for items whose props haven&apos;t changed. the
                 calendar components already had this &mdash; these were the gaps
+              </Sent>
+
+              <Timestamp>3:00 PM</Timestamp>
+
+              <Received>
+                what about the whileHover thing on the feature cards
+              </Received>
+
+              <Sent pos="first">
+                each of the 11 FeatureCard instances was passing an inline
+                object to <code>whileHover</code>. new object every render, plus
+                a spread of <code>spring.snappy</code> into a new transition
+                object each time
+              </Sent>
+              <Sent pos="middle">
+                Framer Motion diffs gesture handler objects internally to detect
+                changes. 11 fresh objects means 11 unnecessary diffs per render
+              </Sent>
+              <Sent pos="last">
+                extracted it to a module-level constant{" "}
+                <code>HOVER_ANIMATION</code>. one allocation at module load,
+                stable reference across all renders and all cards
               </Sent>
 
               <div className={styles.typingDots}>
