@@ -559,6 +559,7 @@ function FibonacciDemo() {
     if (stepIdx >= steps.length - 1) setStepIdx(0);
     setPlaying(true);
     intervalRef.current = setInterval(() => {
+      if (document.hidden) return;
       setStepIdx((prev) => {
         if (prev >= steps.length - 1) {
           stop();
@@ -883,6 +884,7 @@ function SubsetsDemo() {
     if (stepIdx >= steps.length - 1) setStepIdx(0);
     setPlaying(true);
     intervalRef.current = setInterval(() => {
+      if (document.hidden) return;
       setStepIdx((prev) => {
         if (prev >= steps.length - 1) {
           stop();

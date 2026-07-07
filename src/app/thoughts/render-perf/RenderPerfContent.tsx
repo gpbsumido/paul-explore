@@ -607,6 +607,52 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                HeroSection inline style objects hoisted
+              </h2>
+              <p className="text-muted">
+                The hero section had three inline style objects that depended on
+                the current theme (dark vs light): the radial vignette gradient,
+                the H1 text-shadow, and the subtitle text-shadow. Each created a
+                new object reference on every render, triggering Framer
+                Motion&apos;s internal prop diffing unnecessarily.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: six module-level constants (dark and light variants for
+                each). The component selects the right one with a ternary.
+                Stable references, zero allocations per render.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Learn page intervals paused in background tabs
+              </h2>
+              <p className="text-muted">
+                Nine learn pages use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  setInterval
+                </code>{" "}
+                for their &ldquo;Play&rdquo; auto-step feature (15 intervals
+                total across demos like binary search, sliding window, trees,
+                etc.). All properly clear intervals via refs, but none paused
+                when the tab was hidden. A user clicking Play and switching tabs
+                would have the animation silently complete in the background.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  document.hidden
+                </code>{" "}
+                guard at the top of each interval callback. When the tab is
+                hidden the callback returns immediately, skipping the step
+                advancement. The interval keeps ticking (so cleanup is
+                unchanged) but no state updates fire until the user is actually
+                watching.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
                 The review identified additional rendering optimizations still
@@ -963,9 +1009,7 @@ export default function RenderPerfContent() {
 
               <Timestamp>3:14 PM</Timestamp>
 
-              <Received>
-                what about framer-motion being in 41 files
-              </Received>
+              <Received>what about framer-motion being in 41 files</Received>
 
               <Sent pos="first">
                 yeah 41 components import it. ~32kb gzipped, lands in the shared
@@ -973,10 +1017,9 @@ export default function RenderPerfContent() {
               </Sent>
               <Sent pos="middle">
                 the fix would be CSS <code>@starting-style</code> for simple
-                fades or Framer&apos;s <code>m</code> +{" "}
-                <code>LazyMotion</code> to tree-shake. but that&apos;s
-                refactoring 41 files for a library that&apos;s already cached
-                after the first load
+                fades or Framer&apos;s <code>m</code> + <code>LazyMotion</code>{" "}
+                to tree-shake. but that&apos;s refactoring 41 files for a
+                library that&apos;s already cached after the first load
               </Sent>
               <Sent pos="last">
                 not worth the churn for a portfolio site. documenting it as a
@@ -1003,6 +1046,38 @@ export default function RenderPerfContent() {
                 each hook now has a module-level typed <code>EMPTY</code>{" "}
                 constant. same reference every time, no false positives in
                 downstream comparisons
+              </Sent>
+
+              <Timestamp>3:26 PM</Timestamp>
+
+              <Received>what about the inline styles in HeroSection</Received>
+
+              <Sent pos="first">
+                three inline style objects that change based on dark/light
+                theme. vignette gradient, h1 text-shadow, subtitle text-shadow.
+                new object every render, triggers Framer Motion diffing
+              </Sent>
+              <Sent pos="last">
+                extracted to six module-level constants &mdash; dark and light
+                variants for each. component picks the right one with a ternary.
+                stable references, zero allocations per render
+              </Sent>
+
+              <Timestamp>3:32 PM</Timestamp>
+
+              <Received>
+                and the learn page play buttons running in background tabs
+              </Received>
+
+              <Sent pos="first">
+                9 learn pages, 15 intervals total. all properly clear on unmount
+                but none checked if the tab was hidden. click Play, switch tabs,
+                come back and the demo already finished
+              </Sent>
+              <Sent pos="last">
+                added <code>if (document.hidden) return</code> at the top of
+                each interval callback. interval keeps ticking so cleanup is
+                unchanged, but no state updates fire until the user is watching
               </Sent>
 
               <div className={styles.typingDots}>

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-07 - version 0.12.15
+
+- HeroSection.tsx — extracted 3 theme-dependent inline style objects to module-level constants (dark/light variants for vignette, h1 text-shadow, subtitle text-shadow) to avoid recreating objects on every render for Framer Motion diffing
+- 9 learn pages (15 intervals) — added `document.hidden` guard to all `setInterval` play callbacks so auto-step animations pause when the tab is hidden
+- updated Render Performance thoughts page with both sections
+- bumped version to 0.12.15
+
 ## 2026-07-07 - version 0.12.14
 
 - useOperatorStores, useOperatorAlerts, useOperatorInventory, useOperatorActivity — replaced inline `data ?? []` fallbacks with module-level typed `EMPTY` constants to prevent new array reference on every render during loading phase
