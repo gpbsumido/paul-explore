@@ -157,7 +157,7 @@ const IMPROVEMENTS: { metric: MetricName; what: string; how: string }[] = [
 
 type Props = VitalsResponse & {
   versions: string[];
-  selectedVersion: string | undefined;
+  selectedVersion: string;
   byVersion: VersionMetrics[];
 };
 
