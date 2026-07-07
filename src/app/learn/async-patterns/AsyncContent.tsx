@@ -425,6 +425,7 @@ function EventLoopSimulator() {
     }
     setPlaying(true);
     intervalRef.current = setInterval(() => {
+      if (document.hidden) return;
       setStep((s) => {
         if (s >= maxStep) {
           stopPlay();

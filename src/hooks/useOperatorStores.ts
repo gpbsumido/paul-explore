@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { Store } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 
+const EMPTY: Store[] = [];
+
 export interface UseOperatorStoresReturn {
   stores: Store[];
   loading: boolean;
@@ -38,7 +40,7 @@ export function useOperatorStores(): UseOperatorStoresReturn {
   });
 
   return {
-    stores: data ?? [],
+    stores: data ?? EMPTY,
     loading: isLoading,
     error: isError
       ? queryError instanceof Error

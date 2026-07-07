@@ -226,6 +226,7 @@ function TwoSumDemo() {
     }
     setPlaying(true);
     intervalRef.current = setInterval(() => {
+      if (document.hidden) return;
       setStepIdx((prev) => {
         if (prev >= steps.length - 1) {
           stop();
@@ -405,6 +406,7 @@ function DedupDemo() {
     }
     setPlaying(true);
     intervalRef.current = setInterval(() => {
+      if (document.hidden) return;
       setStepIdx((prev) => {
         if (prev >= DEDUP_STEPS.length - 1) {
           stop();

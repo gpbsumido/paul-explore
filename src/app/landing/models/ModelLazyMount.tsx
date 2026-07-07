@@ -16,8 +16,14 @@ type Props = {
 };
 
 /**
- * Defers canvas mount until the container enters the viewport (200px rootMargin).
- * Prevents WebGL context creation for off-screen sections on page load.
+ * Bidirectional lazy-mount for WebGL canvases. Mounts children when the
+ * container enters a 200px margin around the viewport, unmounts when it
+ * scrolls more than 1000px away. This keeps the number of live WebGL
+ * contexts low — browsers limit contexts to ~8-16 before evicting old
+ * ones, causing expensive context restoration flicker.
+ *
+ * PauseWhenOffscreen (inside the Canvas) handles the frame loop;
+ * this component handles the context lifecycle itself.
  */
 export default function ModelLazyMount({ children, style, className }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,12 +35,9 @@ export default function ModelLazyMount({ children, style, className }: Props) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setMounted(true);
-          observer.disconnect();
-        }
+        setMounted(entry.isIntersecting);
       },
-      { rootMargin: "200px" },
+      { rootMargin: "1000px" },
     );
 
     observer.observe(el);

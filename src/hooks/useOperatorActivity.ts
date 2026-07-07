@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { ActivityEvent } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 
+const EMPTY: ActivityEvent[] = [];
+
 export interface UseOperatorActivityReturn {
   events: ActivityEvent[];
   loading: boolean;
@@ -39,7 +41,7 @@ export function useOperatorActivity(
   });
 
   return {
-    events: data ?? [],
+    events: data ?? EMPTY,
     loading: isLoading,
     error: isError
       ? queryError instanceof Error

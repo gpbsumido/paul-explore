@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-07-07 - version 0.12.15
+
+- HeroSection.tsx — extracted 3 theme-dependent inline style objects to module-level constants (dark/light variants for vignette, h1 text-shadow, subtitle text-shadow) to avoid recreating objects on every render for Framer Motion diffing
+- 9 learn pages (15 intervals) — added `document.hidden` guard to all `setInterval` play callbacks so auto-step animations pause when the tab is hidden
+- updated Render Performance thoughts page with both sections
+- bumped version to 0.12.15
+
+## 2026-07-07 - version 0.12.14
+
+- useOperatorStores, useOperatorAlerts, useOperatorInventory, useOperatorActivity — replaced inline `data ?? []` fallbacks with module-level typed `EMPTY` constants to prevent new array reference on every render during loading phase
+- updated Render Performance thoughts page with empty array reference stability section
+- bumped version to 0.12.14
+
+## 2026-07-07 - version 0.12.13
+
+- ModelLazyMount.tsx — converted from one-shot lazy mount to bidirectional observer: unmounts WebGL canvases when they scroll 1000px+ offscreen, remounts when they approach again. Keeps active WebGL context count low to avoid context eviction flicker on mobile (browsers limit to ~4-8 contexts)
+- updated Render Performance thoughts page with WebGL context lifecycle section
+- bumped version to 0.12.13
+
+## 2026-07-07 - version 0.12.12
+
+- FeaturesSection.tsx — extracted whileHover object literal to module-level `HOVER_ANIMATION` constant (11 FeatureCard instances were each creating new objects + spreading spring.snappy on every render)
+- updated Render Performance thoughts page with whileHover section
+- bumped version to 0.12.12
+
+## 2026-07-04 - version 0.12.11
+
+- StoreCard.tsx — wrapped in React.memo (re-renders on every 30s poll cycle)
+- CardTile in BrowseContent.tsx — wrapped in React.memo (20+ instances per page)
+- PokemonCard.tsx — wrapped in React.memo (rendered in GraphQL grid)
+- package.json — bumped to 0.12.11
+
 ## 2026-07-04 - version 0.12.10
 
 - code-split all 13 learn page routes using `next/dynamic`: async-patterns, binary-search, debounce-throttle, dynamic-programming, event-delegation, from-scratch, hash-maps, memoization, recursion-backtracking, sliding-window, stacks-queues, trees-graphs, two-pointers -- each page now lazy-loads its content component so the router only ships lightweight server-rendered shells until the user navigates to a topic (`ssr: false` removed since page.tsx files are Server Components that export metadata)

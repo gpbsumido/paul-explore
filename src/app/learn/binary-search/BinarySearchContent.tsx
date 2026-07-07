@@ -335,6 +335,7 @@ function ClassicSearchDemo() {
     }
     setPlaying(true);
     intervalRef.current = setInterval(() => {
+      if (document.hidden) return;
       setStepIdx((prev) => {
         if (prev >= steps.length - 1) {
           stop();
@@ -534,6 +535,7 @@ function CapacityDemo() {
     }
     setPlaying(true);
     intervalRef.current = setInterval(() => {
+      if (document.hidden) return;
       setStepIdx((prev) => {
         if (prev >= steps.length - 1) {
           stop();

@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { InventoryItem } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 
+const EMPTY: InventoryItem[] = [];
+
 export interface UseOperatorInventoryReturn {
   items: InventoryItem[];
   loading: boolean;
@@ -42,7 +44,7 @@ export function useOperatorInventory(
   });
 
   return {
-    items: data ?? [],
+    items: data ?? EMPTY,
     loading: isLoading,
     error: isError
       ? queryError instanceof Error
