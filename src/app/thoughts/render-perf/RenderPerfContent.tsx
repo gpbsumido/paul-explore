@@ -516,6 +516,46 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Skipped: framer-motion bundle weight (41 imports)
+              </h2>
+              <p className="text-muted">
+                The review flagged that 41 components import from{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  framer-motion
+                </code>{" "}
+                (~32kb gzipped). Because it&apos;s imported in the root
+                layout&apos;s providers and in so many leaf components,
+                it&apos;s in the shared chunk and loaded on every page. Pages
+                like{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /learn/two-pointers
+                </code>{" "}
+                pull in the full motion library for just fadeInUp entrance
+                animations that could be CSS.
+              </p>
+              <p className="mt-3 text-muted">
+                The potential fix would be CSS{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @starting-style
+                </code>{" "}
+                transitions or Framer Motion&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  m
+                </code>{" "}
+                +{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  LazyMotion
+                </code>{" "}
+                pattern to tree-shake unused features. But the tradeoff
+                doesn&apos;t justify the churn: refactoring 41 files for a
+                library that&apos;s already in the shared chunk of a portfolio
+                site. The cost is paid once on first load and cached. Leaving
+                this as a documented decision rather than a fix.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
                 The review identified additional rendering optimizations still
@@ -868,6 +908,28 @@ export default function RenderPerfContent() {
                 when it leaves. hero globe stays permanent, so worst case is 1
                 plus 2 or 3 nearby sections &mdash; well within every
                 device&apos;s limit
+              </Sent>
+
+              <Timestamp>3:14 PM</Timestamp>
+
+              <Received>
+                what about framer-motion being in 41 files
+              </Received>
+
+              <Sent pos="first">
+                yeah 41 components import it. ~32kb gzipped, lands in the shared
+                chunk, loaded on every page
+              </Sent>
+              <Sent pos="middle">
+                the fix would be CSS <code>@starting-style</code> for simple
+                fades or Framer&apos;s <code>m</code> +{" "}
+                <code>LazyMotion</code> to tree-shake. but that&apos;s
+                refactoring 41 files for a library that&apos;s already cached
+                after the first load
+              </Sent>
+              <Sent pos="last">
+                not worth the churn for a portfolio site. documenting it as a
+                deliberate tradeoff and moving on
               </Sent>
 
               <div className={styles.typingDots}>
