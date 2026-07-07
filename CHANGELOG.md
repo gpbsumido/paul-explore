@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.8
+
+- FooterSection.tsx — minimal server component footer at `src/app/v2/landing/FooterSection.tsx` with "paul-explore" wordmark, copyright year, and links to GitHub (external), Thoughts, and "View v1 →" (`?version=v1`). `border-t border-border`, stacks vertically on mobile, row on desktop. No animations, dark mode aware
+- updated V2 Redesign thoughts page with FooterSection section
+- bumped version to 0.13.8
+
 ## 2026-07-07 - version 0.13.7
 
 - ThoughtsPreview.tsx — curated dev thoughts grid at `src/app/v2/landing/ThoughtsPreview.tsx` showing all write-ups from the shared THOUGHTS array in a responsive grid (1-col mobile, 2-col tablet, 3-col desktop). Each card has a colored left accent border, title, preview text, and hover shadow. Section heading "How it's built" with subtitle, centered. Framer Motion staggered fade-up on scroll (50ms stagger, `whileInView`, `once: true`), guarded by `useReducedMotion()`

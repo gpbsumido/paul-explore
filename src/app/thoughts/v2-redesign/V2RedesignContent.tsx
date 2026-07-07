@@ -284,6 +284,26 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">FooterSection</h2>
+              <p className="text-muted">
+                A minimal server component footer -- no client JS, no
+                animations. Three elements in a row on desktop: the
+                &quot;paul-explore&quot; wordmark, a copyright year, and a nav
+                with links to GitHub, the thoughts index, and a &quot;View v1
+                →&quot; link that appends{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?version=v1
+                </code>{" "}
+                to the URL. On mobile the three elements stack vertically and
+                center-align. The GitHub link opens in a new tab with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  rel=&quot;noopener noreferrer&quot;
+                </code>
+                .
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">ThoughtsPreview</h2>
               <p className="text-muted">
                 A &quot;How it&apos;s built&quot; section that renders every
@@ -518,6 +538,20 @@ export default function V2RedesignContent() {
                 animation is <code>whileInView</code> with stagger delay per
                 index. hover lifts 4px. all guarded by{" "}
                 <code>useReducedMotion()</code>
+              </Sent>
+
+              <Received>and the footer</Received>
+
+              <Sent pos="first">
+                server component, no client JS at all. wordmark on the left,
+                copyright year in the center, links on the right -- GitHub,
+                Thoughts index, and a &quot;View v1&quot; link that adds{" "}
+                <code>?version=v1</code> to the URL
+              </Sent>
+              <Sent pos="last">
+                stacks vertically on mobile, single row on desktop. just{" "}
+                <code>border-t border-border</code> for separation. dark mode
+                aware through the design tokens, no extra work needed
               </Sent>
 
               <Received>and the thoughts preview</Received>
