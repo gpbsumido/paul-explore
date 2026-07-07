@@ -247,6 +247,43 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">StatsStrip</h2>
+              <p className="text-muted">
+                A full-bleed horizontal strip that shows four key stats: 14
+                features, 108+ tests, 17 write-ups, and 5 CWV metrics tracked.
+                The numbers count up from 0 to their target over 1.5 seconds
+                with ease-out cubic easing when the section scrolls into view.
+                The animation is driven by the existing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useCountUp
+                </code>{" "}
+                hook, extended with an optional{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  inView
+                </code>{" "}
+                parameter wired to Framer Motion&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInView
+                </code>
+                .
+              </p>
+              <p className="mt-3 text-muted">
+                SSR renders the final values using the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useSyncExternalStore
+                </code>{" "}
+                mounted flag -- same pattern as the hero. The server pass shows
+                &quot;14&quot;, &quot;108+&quot;, etc. so crawlers and no-JS
+                users see real content. After hydration the client resets to 0
+                and waits for scroll intersection before counting up. Users with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  prefers-reduced-motion
+                </code>{" "}
+                see the final values immediately with no animation.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">ProjectsSection</h2>
               <p className="text-muted">
                 The projects section is the main showcase -- it renders all 14
@@ -453,6 +490,22 @@ export default function V2RedesignContent() {
                 animation is <code>whileInView</code> with stagger delay per
                 index. hover lifts 4px. all guarded by{" "}
                 <code>useReducedMotion()</code>
+              </Sent>
+
+              <Received>what about the stats strip</Received>
+
+              <Sent pos="first">
+                full-bleed band with four numbers: 14 features, 108+ tests, 17
+                write-ups, 5 CWV metrics tracked. they count up from 0 when you
+                scroll to them -- 1.5 seconds with ease-out cubic
+              </Sent>
+              <Sent pos="last">
+                the existing <code>useCountUp</code> hook got a new{" "}
+                <code>inView</code> param so it waits for scroll intersection.
+                SSR renders the final values via the{" "}
+                <code>useSyncExternalStore</code> mounted flag so there is no
+                hydration mismatch. reduced-motion users see the numbers
+                immediately
               </Sent>
 
               <Received>how does the projects section work</Received>

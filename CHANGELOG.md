@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.6
+
+- StatsStrip.tsx — full-bleed evidence strip at `src/app/v2/landing/StatsStrip.tsx` with 4 key stats (14 features, 108+ tests, 17 write-ups, 5 CWV metrics tracked) in a 2x2 mobile / single-row desktop grid. Count-up animation on scroll intersection via `useCountUp` + Framer Motion `useInView`. `useSyncExternalStore` mounted flag renders final values during SSR for hydration safety. `bg-surface` background band with `border-y border-border`
+- useCountUp.ts — added optional `inView` parameter (defaults to `true` for backward compat) and `hasAnimated` ref so animation only fires once when the element scrolls into view
+- updated V2 Redesign thoughts page with StatsStrip section
+- bumped version to 0.13.6
+
 ## 2026-07-07 - version 0.13.5
 
 - ProjectsSection.tsx — main showcase section at `src/app/v2/landing/ProjectsSection.tsx` that renders all 14 features as ProjectCard components, grouped by category (Fantasy & NBA, Pokemon, Productivity, Engineering, Labs & Learning, Social) with sticky category labels and thin horizontal rules. Cards alternate `reversed` prop for zig-zag layout. Section has `id="projects"` as the hero scroll CTA target
