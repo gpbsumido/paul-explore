@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -221,7 +221,7 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
   );
 }
 
-function CardTile({ card }: { card: CardResume }) {
+const CardTile = memo(function CardTile({ card }: { card: CardResume }) {
   return (
     <Link
       href={`/tcg/pokemon/card/${card.id}`}
@@ -249,7 +249,7 @@ function CardTile({ card }: { card: CardResume }) {
       </div>
     </Link>
   );
-}
+});
 
 function TypePill({
   label,

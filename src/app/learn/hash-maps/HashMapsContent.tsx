@@ -182,6 +182,7 @@ function TwoSumDemo() {
     }
     setPlaying(true);
     intervalRef.current = setInterval(() => {
+      if (document.hidden) return;
       setStepIdx((prev) => {
         if (prev >= steps.length - 1) {
           stop();

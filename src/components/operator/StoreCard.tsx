@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import type { Store } from "@/types/operator";
 import { STATUS_CONFIG } from "@/lib/operator-detail";
@@ -18,7 +19,7 @@ interface StoreCardProps {
  * Fleet overview card for a single store. Shows status, location, alert count,
  * inventory health bar, and freshness. Clicking navigates to the store detail.
  */
-export default function StoreCard({
+const StoreCard = memo(function StoreCard({
   store,
   alertCount,
   inventoryHealth,
@@ -105,4 +106,6 @@ export default function StoreCard({
       </div>
     </Link>
   );
-}
+});
+
+export default StoreCard;

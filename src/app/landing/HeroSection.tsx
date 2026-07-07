@@ -20,6 +20,35 @@ const HeroGlobeCanvas = dynamic(() => import("./models/HeroGlobeCanvas"), {
 
 const WORDS = "Paul Sumido Portfolio".split(" ");
 
+const VIGNETTE_STYLE_DARK = {
+  background:
+    "radial-gradient(ellipse 70% 55% at 50% 50%, transparent 0%, rgba(0,4,12,0.60) 100%)",
+} as const;
+
+const VIGNETTE_STYLE_LIGHT = {
+  background:
+    "radial-gradient(ellipse 60% 50% at 50% 50%, transparent 0%, rgba(255,255,255,0.55) 100%)",
+} as const;
+
+const H1_STYLE_DARK = {
+  perspective: 800,
+  textShadow:
+    "0 0 40px rgba(92,206,245,0.5), 0 0 80px rgba(92,206,245,0.2), 0 2px 6px rgba(0,0,0,0.8)",
+} as const;
+
+const H1_STYLE_LIGHT = {
+  perspective: 800,
+  textShadow: "0 1px 6px rgba(0,0,0,0.12)",
+} as const;
+
+const SUBTITLE_STYLE_DARK = {
+  textShadow: "0 1px 8px rgba(0,0,0,0.6)",
+} as const;
+
+const SUBTITLE_STYLE_LIGHT = {
+  textShadow: "none",
+} as const;
+
 export default function HeroSection() {
   // mounted gates the entrance animation so the H1 is visible in SSR HTML
   // (initial={false} server-side preserves LCP) and only animates on the client.
@@ -48,11 +77,7 @@ export default function HeroSection() {
             so the vignette only needs to soften the globe at the edges) */}
         <div
           className="absolute inset-0 pointer-events-none z-[2]"
-          style={{
-            background: isDark
-              ? "radial-gradient(ellipse 70% 55% at 50% 50%, transparent 0%, rgba(0,4,12,0.60) 100%)"
-              : "radial-gradient(ellipse 60% 50% at 50% 50%, transparent 0%, rgba(255,255,255,0.55) 100%)",
-          }}
+          style={isDark ? VIGNETTE_STYLE_DARK : VIGNETTE_STYLE_LIGHT}
         />
 
         {/* Word-by-word H1 spring assembly. Server renders all words visible
@@ -60,12 +85,7 @@ export default function HeroSection() {
             client replays the entrance from hidden. */}
         <motion.h1
           className="relative z-10 text-5xl font-bold tracking-tight text-foreground md:text-7xl"
-          style={{
-            perspective: 800,
-            textShadow: isDark
-              ? "0 0 40px rgba(92,206,245,0.5), 0 0 80px rgba(92,206,245,0.2), 0 2px 6px rgba(0,0,0,0.8)"
-              : "0 1px 6px rgba(0,0,0,0.12)",
-          }}
+          style={isDark ? H1_STYLE_DARK : H1_STYLE_LIGHT}
           variants={staggerContainer(0.08, 0.1)}
           initial={mounted ? "hidden" : false}
           animate="visible"
@@ -85,9 +105,7 @@ export default function HeroSection() {
         {/* Subtitle fades up after the title stagger finishes */}
         <motion.p
           className="relative z-10 mt-4 max-w-md text-lg text-foreground/70 md:text-xl"
-          style={{
-            textShadow: isDark ? "0 1px 8px rgba(0,0,0,0.6)" : "none",
-          }}
+          style={isDark ? SUBTITLE_STYLE_DARK : SUBTITLE_STYLE_LIGHT}
           initial={mounted ? { opacity: 0, y: 16 } : false}
           animate={{ opacity: 1, y: 0 }}
           transition={transition ?? { ...spring.smooth, delay: 0.5 }}

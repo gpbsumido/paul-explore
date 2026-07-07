@@ -18,6 +18,8 @@ import {
   fadeUp,
 } from "@/lib/animations";
 
+const HOVER_ANIMATION = { y: -4, transition: { ...spring.snappy } };
+
 // ---------------------------------------------------------------------------
 // Per-feature stroke icons — 24x24 viewBox, strokeWidth 1.5, no fill
 // ---------------------------------------------------------------------------
@@ -160,7 +162,7 @@ function FeatureCard({
     <motion.div
       variants={cardFlipIn}
       transition={transition ?? { ...spring.bounce }}
-      whileHover={{ y: -4, transition: { ...spring.snappy } }}
+      whileHover={HOVER_ANIMATION}
       className="group relative overflow-hidden rounded-2xl p-6 h-full"
       style={{
         background: `color-mix(in srgb, var(${featureToken}) 6%, var(--glass-bg))`,

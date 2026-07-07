@@ -402,12 +402,261 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                React.memo on frequently-rerendering list items
+              </h2>
+              <p className="text-muted">
+                Three list-item components were missing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  React.memo
+                </code>
+                : the operator dashboard&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  StoreCard
+                </code>
+                , the TCG browser&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  CardTile
+                </code>
+                , and the GraphQL grid&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  PokemonCard
+                </code>
+                .
+              </p>
+              <p className="mt-3 text-muted">
+                The operator dashboard polls every 30 seconds. When the parent
+                re-renders with fresh data, all 4+ store cards reconcile even if
+                only one store&apos;s data changed. Similarly, when the TCG
+                browser loads the next page, every card on every previous page
+                re-renders because the parent state changed.
+              </p>
+              <p className="mt-3 text-muted">
+                Wrapping each in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  React.memo
+                </code>{" "}
+                lets React skip reconciliation for items whose props
+                haven&apos;t changed. The calendar components already used memo
+                correctly &mdash; these three were the gaps.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                whileHover object literals hoisted to module scope
+              </h2>
+              <p className="text-muted">
+                Each of the 11{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  FeatureCard
+                </code>{" "}
+                instances passed an inline object to Framer Motion&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  whileHover
+                </code>{" "}
+                prop:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {`{{ y: -4, transition: { ...spring.snappy } }}`}
+                </code>
+                . Every render created a new object and spread{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  spring.snappy
+                </code>{" "}
+                into a new transition object. Framer Motion internally diffs
+                gesture handler objects to detect changes, so 11 fresh objects
+                meant 11 unnecessary diffs per render.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: extract to a single module-level constant{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  HOVER_ANIMATION
+                </code>
+                . One allocation at module load, stable reference across all
+                renders and all card instances.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                WebGL context lifecycle: bidirectional unmount
+              </h2>
+              <p className="text-muted">
+                The landing page can have up to 7 separate R3F Canvas instances
+                &mdash; one per section model. While{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ModelLazyMount
+                </code>{" "}
+                deferred creation and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  PauseWhenOffscreen
+                </code>{" "}
+                paused rendering, each context still consumed GPU memory for its
+                framebuffer even when paused. Browsers limit WebGL contexts to
+                roughly 8&ndash;16 before evicting old ones. On mobile devices
+                with stricter limits (often 4&ndash;8), scrolling the full page
+                could trigger context loss events &mdash; models flickering or
+                going black.
+              </p>
+              <p className="mt-3 text-muted">
+                The previous{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ModelLazyMount
+                </code>{" "}
+                was one-shot: it mounted on first intersection and never
+                unmounted. The fix makes it bidirectional. It now uses a single
+                IntersectionObserver with a 1000px root margin. When the
+                container enters that margin the canvas mounts; when it leaves,
+                the canvas unmounts and the WebGL context is released. The hero
+                globe stays always-mounted (it&apos;s the first thing users
+                see), so the worst case is 1 permanent context plus at most
+                2&ndash;3 nearby section contexts &mdash; well within every
+                device&apos;s limit.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Skipped: framer-motion bundle weight (41 imports)
+              </h2>
+              <p className="text-muted">
+                The review flagged that 41 components import from{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  framer-motion
+                </code>{" "}
+                (~32kb gzipped). Because it&apos;s imported in the root
+                layout&apos;s providers and in so many leaf components,
+                it&apos;s in the shared chunk and loaded on every page. Pages
+                like{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /learn/two-pointers
+                </code>{" "}
+                pull in the full motion library for just fadeInUp entrance
+                animations that could be CSS.
+              </p>
+              <p className="mt-3 text-muted">
+                The potential fix would be CSS{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @starting-style
+                </code>{" "}
+                transitions or Framer Motion&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  m
+                </code>{" "}
+                +{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  LazyMotion
+                </code>{" "}
+                pattern to tree-shake unused features. But the tradeoff
+                doesn&apos;t justify the churn: refactoring 41 files for a
+                library that&apos;s already in the shared chunk of a portfolio
+                site. The cost is paid once on first load and cached. Leaving
+                this as a documented decision rather than a fix.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Empty array reference stability in operator hooks
+              </h2>
+              <p className="text-muted">
+                All four operator hooks (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorStores
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorAlerts
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorInventory
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorActivity
+                </code>
+                ) used{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data ?? []
+                </code>{" "}
+                as a fallback during loading. The inline{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  []
+                </code>{" "}
+                creates a new array reference on every render when{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data
+                </code>{" "}
+                is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  undefined
+                </code>
+                . Any consumer using the result in a dependency array or memo
+                comparison sees a &ldquo;change&rdquo; on every render during
+                the loading phase.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: each hook now has a module-level typed{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  EMPTY
+                </code>{" "}
+                constant. Same stable reference across all renders, no
+                unnecessary downstream re-renders during initial load.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                HeroSection inline style objects hoisted
+              </h2>
+              <p className="text-muted">
+                The hero section had three inline style objects that depended on
+                the current theme (dark vs light): the radial vignette gradient,
+                the H1 text-shadow, and the subtitle text-shadow. Each created a
+                new object reference on every render, triggering Framer
+                Motion&apos;s internal prop diffing unnecessarily.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: six module-level constants (dark and light variants for
+                each). The component selects the right one with a ternary.
+                Stable references, zero allocations per render.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Learn page intervals paused in background tabs
+              </h2>
+              <p className="text-muted">
+                Nine learn pages use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  setInterval
+                </code>{" "}
+                for their &ldquo;Play&rdquo; auto-step feature (15 intervals
+                total across demos like binary search, sliding window, trees,
+                etc.). All properly clear intervals via refs, but none paused
+                when the tab was hidden. A user clicking Play and switching tabs
+                would have the animation silently complete in the background.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  document.hidden
+                </code>{" "}
+                guard at the top of each interval callback. When the tab is
+                hidden the callback returns immediately, skipping the step
+                advancement. The interval keeps ticking (so cleanup is
+                unchanged) but no state updates fire until the user is actually
+                watching.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 8 more issues across missing memo
-                boundaries, whileHover object recreation, and other rendering
-                optimizations. These will be addressed incrementally and
-                documented here as they land.
+                The review identified additional rendering optimizations still
+                to be addressed. These will be documented here as they land.
               </p>
             </section>
           </div>
@@ -683,6 +932,152 @@ export default function RenderPerfContent() {
                 <code>ssr: false</code>. the content is fully interactive and
                 needs client JS anyway so no SEO cost. route chunk is now just
                 metadata, content loads async
+              </Sent>
+
+              <Timestamp>2:55 PM</Timestamp>
+
+              <Received>what about the missing memo stuff</Received>
+
+              <Sent pos="first">
+                three list-item components had no <code>React.memo</code>:{" "}
+                <code>StoreCard</code> on the operator dashboard,{" "}
+                <code>CardTile</code> in the TCG browser, and{" "}
+                <code>PokemonCard</code> in the GraphQL grid
+              </Sent>
+              <Sent pos="middle">
+                the operator dashboard polls every 30s. when it re-renders, all
+                4+ store cards reconcile even if only one store&apos;s data
+                changed. same thing with the TCG browser loading the next page
+                &mdash; every card on every previous page re-renders
+              </Sent>
+              <Sent pos="last">
+                wrapped all three in <code>React.memo</code>. React skips
+                reconciliation for items whose props haven&apos;t changed. the
+                calendar components already had this &mdash; these were the gaps
+              </Sent>
+
+              <Timestamp>3:00 PM</Timestamp>
+
+              <Received>
+                what about the whileHover thing on the feature cards
+              </Received>
+
+              <Sent pos="first">
+                each of the 11 FeatureCard instances was passing an inline
+                object to <code>whileHover</code>. new object every render, plus
+                a spread of <code>spring.snappy</code> into a new transition
+                object each time
+              </Sent>
+              <Sent pos="middle">
+                Framer Motion diffs gesture handler objects internally to detect
+                changes. 11 fresh objects means 11 unnecessary diffs per render
+              </Sent>
+              <Sent pos="last">
+                extracted it to a module-level constant{" "}
+                <code>HOVER_ANIMATION</code>. one allocation at module load,
+                stable reference across all renders and all cards
+              </Sent>
+
+              <Timestamp>3:08 PM</Timestamp>
+
+              <Received>
+                what about all the WebGL contexts on the landing page
+              </Received>
+
+              <Sent pos="first">
+                7 separate R3F Canvas instances, one per section model. each one
+                is its own WebGL context. browsers cap those at roughly 8 to 16
+                before they start evicting old ones
+              </Sent>
+              <Sent pos="middle">
+                on mobile the limit is often 4 to 8. scrolling the full page
+                could trigger context loss &mdash; models flicker or go black
+                while the browser tries to restore evicted contexts
+              </Sent>
+              <Sent pos="middle">
+                <code>ModelLazyMount</code> was one-shot: mount on first
+                intersection, never unmount. so once you scrolled through the
+                page all 7 contexts stayed alive forever
+              </Sent>
+              <Sent pos="last">
+                made it bidirectional. single IntersectionObserver with a 1000px
+                root margin. canvas mounts when it enters the margin, unmounts
+                when it leaves. hero globe stays permanent, so worst case is 1
+                plus 2 or 3 nearby sections &mdash; well within every
+                device&apos;s limit
+              </Sent>
+
+              <Timestamp>3:14 PM</Timestamp>
+
+              <Received>what about framer-motion being in 41 files</Received>
+
+              <Sent pos="first">
+                yeah 41 components import it. ~32kb gzipped, lands in the shared
+                chunk, loaded on every page
+              </Sent>
+              <Sent pos="middle">
+                the fix would be CSS <code>@starting-style</code> for simple
+                fades or Framer&apos;s <code>m</code> + <code>LazyMotion</code>{" "}
+                to tree-shake. but that&apos;s refactoring 41 files for a
+                library that&apos;s already cached after the first load
+              </Sent>
+              <Sent pos="last">
+                not worth the churn for a portfolio site. documenting it as a
+                deliberate tradeoff and moving on
+              </Sent>
+
+              <Timestamp>3:20 PM</Timestamp>
+
+              <Received>
+                what was the empty array thing on the operator hooks
+              </Received>
+
+              <Sent pos="first">
+                all four operator hooks had <code>data ?? []</code> as a
+                fallback. that inline <code>[]</code> creates a new array
+                reference every render when data is still undefined
+              </Sent>
+              <Sent pos="middle">
+                any consumer using the result in a dep array or memo comparison
+                sees a &ldquo;change&rdquo; on every render during the loading
+                phase. cascading wasted work
+              </Sent>
+              <Sent pos="last">
+                each hook now has a module-level typed <code>EMPTY</code>{" "}
+                constant. same reference every time, no false positives in
+                downstream comparisons
+              </Sent>
+
+              <Timestamp>3:26 PM</Timestamp>
+
+              <Received>what about the inline styles in HeroSection</Received>
+
+              <Sent pos="first">
+                three inline style objects that change based on dark/light
+                theme. vignette gradient, h1 text-shadow, subtitle text-shadow.
+                new object every render, triggers Framer Motion diffing
+              </Sent>
+              <Sent pos="last">
+                extracted to six module-level constants &mdash; dark and light
+                variants for each. component picks the right one with a ternary.
+                stable references, zero allocations per render
+              </Sent>
+
+              <Timestamp>3:32 PM</Timestamp>
+
+              <Received>
+                and the learn page play buttons running in background tabs
+              </Received>
+
+              <Sent pos="first">
+                9 learn pages, 15 intervals total. all properly clear on unmount
+                but none checked if the tab was hidden. click Play, switch tabs,
+                come back and the demo already finished
+              </Sent>
+              <Sent pos="last">
+                added <code>if (document.hidden) return</code> at the top of
+                each interval callback. interval keeps ticking so cleanup is
+                unchanged, but no state updates fire until the user is watching
               </Sent>
 
               <div className={styles.typingDots}>
