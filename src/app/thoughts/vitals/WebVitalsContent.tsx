@@ -200,6 +200,48 @@ export default function WebVitalsContent() {
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                Version selector grouping
+              </h2>
+              <p className="text-muted">
+                The original version selector was a flat dropdown of every patch
+                version — fine with 10 versions, unusable with 50. The new
+                selector groups versions into tiers: &ldquo;Current Major&rdquo;
+                (all data in the major version, the default), &ldquo;Current
+                Minor&rdquo; (all patches in the latest minor), the last 3 minor
+                versions with each patch shown individually in optgroups, and
+                everything older collapsed into one entry per minor version with
+                aggregated data.
+              </p>
+              <p className="mt-3 text-muted">
+                The URL encodes the filter mode via prefix:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  major:0
+                </code>{" "}
+                for all 0.x.y versions,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  minor:0.12
+                </code>{" "}
+                for all 0.12.x patches, or a bare{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  0.11.3
+                </code>{" "}
+                for an exact match. The backend&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  buildVersionConditions
+                </code>{" "}
+                helper translates the mode into the right SQL — major uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  split_part
+                </code>{" "}
+                on the first segment, minor matches both first and second, and
+                exact does a straight equality check. The trend chart adapts
+                too: minor mode returns up to 30 patch versions so you see the
+                full progression within a minor, while major mode caps at 10.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 What improved each metric
               </h2>
               <p className="text-muted">
@@ -725,6 +767,37 @@ const [versions, byVersion, { summary, byPage }] = await Promise.all([
 ]);
 const selectedVersion = urlVersion ?? versions[0];`}
               </div>
+
+              <Timestamp>10:38 AM</Timestamp>
+
+              <Received>
+                the version selector is getting long, how do you handle that
+              </Received>
+
+              <Sent pos="first">
+                it was a flat dropdown of every patch version. fine with 10
+                entries, unusable once you have 30+. so I grouped them into
+                tiers
+              </Sent>
+              <Sent pos="middle">
+                the top two options are &quot;Current Major&quot; (all data in
+                the major version, the default) and &quot;Current Minor&quot;
+                (all patches in the latest minor). below that, the last 3 minor
+                versions show every individual patch in optgroups. anything
+                older collapses into one entry per minor with aggregated data
+              </Sent>
+              <Sent pos="middle">
+                the URL encodes the filter mode via prefix —{" "}
+                <code>major:0</code> for all 0.x.y, <code>minor:0.12</code> for
+                all 0.12.x, or just <code>0.11.3</code> for an exact match. the
+                backend has a <code>buildVersionConditions</code> helper that
+                translates the mode param into the right SQL WHERE clause
+              </Sent>
+              <Sent pos="last">
+                the trend chart adapts too. minor mode returns up to 30 patch
+                versions so you see the full progression within a minor release.
+                major mode caps at 10 for the broader view
+              </Sent>
 
               <Timestamp>10:38 AM</Timestamp>
 
