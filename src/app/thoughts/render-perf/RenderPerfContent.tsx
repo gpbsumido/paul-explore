@@ -478,6 +478,44 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                WebGL context lifecycle: bidirectional unmount
+              </h2>
+              <p className="text-muted">
+                The landing page can have up to 7 separate R3F Canvas instances
+                &mdash; one per section model. While{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ModelLazyMount
+                </code>{" "}
+                deferred creation and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  PauseWhenOffscreen
+                </code>{" "}
+                paused rendering, each context still consumed GPU memory for its
+                framebuffer even when paused. Browsers limit WebGL contexts to
+                roughly 8&ndash;16 before evicting old ones. On mobile devices
+                with stricter limits (often 4&ndash;8), scrolling the full page
+                could trigger context loss events &mdash; models flickering or
+                going black.
+              </p>
+              <p className="mt-3 text-muted">
+                The previous{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ModelLazyMount
+                </code>{" "}
+                was one-shot: it mounted on first intersection and never
+                unmounted. The fix makes it bidirectional. It now uses a single
+                IntersectionObserver with a 1000px root margin. When the
+                container enters that margin the canvas mounts; when it leaves,
+                the canvas unmounts and the WebGL context is released. The hero
+                globe stays always-mounted (it&apos;s the first thing users
+                see), so the worst case is 1 permanent context plus at most
+                2&ndash;3 nearby section contexts &mdash; well within every
+                device&apos;s limit.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
                 The review identified additional rendering optimizations still
@@ -801,6 +839,35 @@ export default function RenderPerfContent() {
                 extracted it to a module-level constant{" "}
                 <code>HOVER_ANIMATION</code>. one allocation at module load,
                 stable reference across all renders and all cards
+              </Sent>
+
+              <Timestamp>3:08 PM</Timestamp>
+
+              <Received>
+                what about all the WebGL contexts on the landing page
+              </Received>
+
+              <Sent pos="first">
+                7 separate R3F Canvas instances, one per section model. each one
+                is its own WebGL context. browsers cap those at roughly 8 to 16
+                before they start evicting old ones
+              </Sent>
+              <Sent pos="middle">
+                on mobile the limit is often 4 to 8. scrolling the full page
+                could trigger context loss &mdash; models flicker or go black
+                while the browser tries to restore evicted contexts
+              </Sent>
+              <Sent pos="middle">
+                <code>ModelLazyMount</code> was one-shot: mount on first
+                intersection, never unmount. so once you scrolled through the
+                page all 7 contexts stayed alive forever
+              </Sent>
+              <Sent pos="last">
+                made it bidirectional. single IntersectionObserver with a 1000px
+                root margin. canvas mounts when it enters the margin, unmounts
+                when it leaves. hero globe stays permanent, so worst case is 1
+                plus 2 or 3 nearby sections &mdash; well within every
+                device&apos;s limit
               </Sent>
 
               <div className={styles.typingDots}>

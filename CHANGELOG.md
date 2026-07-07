@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.12.13
+
+- ModelLazyMount.tsx — converted from one-shot lazy mount to bidirectional observer: unmounts WebGL canvases when they scroll 1000px+ offscreen, remounts when they approach again. Keeps active WebGL context count low to avoid context eviction flicker on mobile (browsers limit to ~4-8 contexts)
+- updated Render Performance thoughts page with WebGL context lifecycle section
+- bumped version to 0.12.13
+
 ## 2026-07-07 - version 0.12.12
 
 - FeaturesSection.tsx — extracted whileHover object literal to module-level `HOVER_ANIMATION` constant (11 FeatureCard instances were each creating new objects + spreading spring.snappy on every render)
