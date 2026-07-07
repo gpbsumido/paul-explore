@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.1
+
+- NavBar.tsx — fixed top nav at `src/app/v2/landing/NavBar.tsx` with wordmark left, auth-aware right side (Log in link for guests, settings gear for authenticated users), transparent-to-frosted scroll transition at 50px
+- updated V2 Redesign thoughts page with NavBar section
+- bumped version to 0.13.1
+
 ## 2026-07-07 - version 0.13.0
 
 - page.tsx — added URL parameter-based version routing (`?version=v1` serves original, default serves v2) with `searchParams.version` from Next.js App Router page props

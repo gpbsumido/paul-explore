@@ -122,6 +122,40 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">NavBar</h2>
+              <p className="text-muted">
+                The v2 nav is a fixed bar that starts fully transparent and
+                picks up a frosted-glass treatment (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  backdrop-blur-xl bg-background/80
+                </code>
+                ) once you scroll past 50px. A scroll listener flips a boolean
+                in state and the background change runs through{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  transition-all duration-300
+                </code>
+                .
+              </p>
+              <p className="mt-3 text-muted">
+                The right side is auth-aware: unauthenticated users see a
+                &quot;Log in&quot; link pointing at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /auth/login
+                </code>
+                , authenticated users see a settings gear linking to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /settings
+                </code>
+                . The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  authenticated
+                </code>{" "}
+                prop is a boolean passed from the server component that already
+                has the session -- no client-side auth check needed.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
                 The v2 placeholders are intentionally empty -- just divs with
@@ -219,6 +253,23 @@ export default function V2RedesignContent() {
                 v2 lives in its own <code>src/app/v2/</code> directory. no
                 shared state, no conditional rendering inside components. a
                 change to v2 can&apos;t break v1
+              </Sent>
+
+              <Timestamp>2:15 PM</Timestamp>
+
+              <Received>what about the nav</Received>
+
+              <Sent pos="first">
+                fixed bar, starts transparent. once you scroll past 50px it
+                picks up a frosted-glass background --{" "}
+                <code>backdrop-blur-xl</code> and <code>bg-background/80</code>.
+                the transition is 300ms so it fades in instead of snapping
+              </Sent>
+              <Sent pos="last">
+                right side is auth-aware. guests see a &quot;Log in&quot; link,
+                authenticated users see a gear icon to <code>/settings</code>.
+                the server component passes an <code>authenticated</code>{" "}
+                boolean so the client never needs to check auth itself
               </Sent>
 
               <Received>what&apos;s the v2 plan</Received>
