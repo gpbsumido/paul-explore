@@ -247,6 +247,29 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">Shared data extraction</h2>
+              <p className="text-muted">
+                The v1 FeatureHub had ~1000 lines of inline data: the FEATURES
+                and THOUGHTS arrays, 14 mini-preview components, all the static
+                data those previews depend on, the PREVIEW_MAP and FEATURE_TOKEN
+                lookups, and the FeatureCard and ThoughtCard presentational
+                components. All of that lived in FeatureHub.tsx because it was
+                the only consumer.
+              </p>
+              <p className="mt-3 text-muted">
+                With v2, there are two consumers. Extracting everything into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  src/app/_shared/featureData.tsx
+                </code>{" "}
+                lets both v1&apos;s FeatureHub and v2&apos;s ProjectCard layout
+                import the same feature list, preview components, and card
+                components. FeatureHub.tsx drops to just its default export and
+                internal logic -- no behavioral change, just a different import
+                path.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
                 The v2 placeholders are intentionally empty -- just divs with
@@ -399,7 +422,24 @@ export default function V2RedesignContent() {
                 <code>useReducedMotion()</code>
               </Sent>
 
-              <Timestamp>2:28 PM</Timestamp>
+              <Received>
+                you mentioned sharing preview components between v1 and v2
+              </Received>
+
+              <Sent pos="first">
+                everything that was inline in FeatureHub.tsx -- the FEATURES
+                array, THOUGHTS array, all 14 mini-preview components, the
+                preview data, FEATURE_TOKEN, PREVIEW_MAP, FeatureCard,
+                ThoughtCard -- moved into{" "}
+                <code>src/app/_shared/featureData.tsx</code>
+              </Sent>
+              <Sent pos="last">
+                FeatureHub just imports from there now. same behavior, different
+                import path. v2 can import the same stuff without duplicating
+                ~1000 lines of preview components
+              </Sent>
+
+              <Timestamp>2:34 PM</Timestamp>
 
               <Received>what&apos;s the v2 plan</Received>
 

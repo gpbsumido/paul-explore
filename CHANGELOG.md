@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.4
+
+- featureData.tsx — extracted FEATURES, THOUGHTS, PREVIEW_MAP, FEATURE_TOKEN, all 14 mini-preview components (NBAPreview, MatchupsPreview, etc.), all static preview data arrays, and FeatureCard/ThoughtCard presentational components into `src/app/_shared/featureData.tsx` so both v1 FeatureHub and v2 can share them
+- FeatureHub.tsx — imports all data and sub-components from `@/app/_shared/featureData` instead of defining inline; default export and internal logic unchanged
+- updated V2 Redesign thoughts page with shared data extraction section
+- bumped version to 0.13.4
+
 ## 2026-07-07 - version 0.13.3
 
 - ProjectCard.tsx — reusable project showcase card at `src/app/v2/landing/ProjectCard.tsx` with two-column layout (60% preview / 40% text, reversible), color-tinted preview area, category dot, title, description, "View project →" and optional "Read about it →" links. Framer Motion scroll-triggered `whileInView` entrance with stagger delay, hover lift. `useReducedMotion()` guard
