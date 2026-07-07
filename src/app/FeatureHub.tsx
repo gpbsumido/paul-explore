@@ -177,12 +177,6 @@ const THOUGHTS: ThoughtItem[] = [
     color: "#6366f1",
   },
   {
-    title: "Web Vitals",
-    href: "/thoughts/vitals",
-    preview: "Real-user metrics, sendBeacon, P75, and the collection pipeline",
-    color: "#22c55e",
-  },
-  {
     title: "Bundle Analysis",
     href: "/thoughts/bundle",
     preview:
@@ -251,6 +245,12 @@ const THOUGHTS: ThoughtItem[] = [
     preview:
       "Why links opened in Facebook Messenger showed a logged-in hub for unauthenticated users, and the two-line fix",
     color: "#3b82f6",
+  },
+  {
+    title: "Web Vitals",
+    href: "/thoughts/vitals",
+    preview: "Real-user metrics, sendBeacon, P75, and the collection pipeline",
+    color: "#22c55e",
   },
   {
     title: "Operator Dashboard",

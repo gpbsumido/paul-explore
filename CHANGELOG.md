@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-07 - version 0.12.16
+
+- VersionSelector.tsx — rewrote version dropdown with grouped options: Current Major (default, all data in the major version), Current Minor (all patches in latest minor), last 3 minor versions with individual patch versions in optgroups, and older minors aggregated as single entries
+- page.tsx — updated version filtering to support mode-based URL params (`major:0`, `minor:0.12`, or exact `0.11.3`); fetchVitals and fetchByVersion now forward `mode` param to the backend
+- updated Web Vitals thoughts page with version selector grouping section
+- bumped version to 0.12.16
+
 ## 2026-07-07 - version 0.12.15
 
 - HeroSection.tsx — extracted 3 theme-dependent inline style objects to module-level constants (dark/light variants for vignette, h1 text-shadow, subtitle text-shadow) to avoid recreating objects on every render for Framer Motion diffing

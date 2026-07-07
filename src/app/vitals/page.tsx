@@ -14,27 +14,25 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 /**
  * Fetches the global P75 summary and per-page breakdown from the backend.
- * Pass a version string to filter to rows from that version onwards, or
- * leave it undefined to get all-time aggregates.
+ * Pass version + mode to filter: mode=major/minor scopes to that range,
+ * no mode = exact version match. Undefined version = all-time aggregates.
  *
- * Uses revalidate: 60 instead of no-store because this data changes maybe a
- * few times a day at most, not per-request. Saves a backend round trip for
- * anyone who refreshes within the same minute.
+ * Uses revalidate: 60 because vitals data changes at most a few times a day.
  *
- * Note on the cache key: Next.js data cache keys fetch() by URL only, the
- * Authorization header is not included. That means two requests within 60s
- * could get the same cached backend response regardless of which token was
- * used. This is fine here because the vitals aggregates are site-wide P75
- * scores, not per-user data, so the response is the same for any authenticated
- * caller. Auth is still enforced at the page level via auth0.getAccessToken()
- * before this function is ever called.
+ * Note on the cache key: Next.js keys fetch() by URL only, so two requests
+ * within 60s may share a cached response regardless of token. That's fine
+ * here because vitals aggregates are site-wide, not per-user.
  */
 async function fetchVitals(
   token: string,
   version: string | undefined,
+  mode: string | undefined,
 ): Promise<VitalsResponse> {
   const headers = { Authorization: `Bearer ${token}` };
-  const query = version ? `?v=${encodeURIComponent(version)}` : "";
+  const params = new URLSearchParams();
+  if (version) params.set("v", version);
+  if (mode) params.set("mode", mode);
+  const query = params.size > 0 ? `?${params.toString()}` : "";
 
   const [summaryRes, byPageRes] = await Promise.all([
     fetch(`${API_URL}/api/vitals/summary${query}`, {
@@ -47,13 +45,9 @@ async function fetchVitals(
     }),
   ]);
 
-  const { summary } = summaryRes.ok
-    ? await summaryRes.json()
-    : { summary: {} };
+  const { summary } = summaryRes.ok ? await summaryRes.json() : { summary: {} };
 
-  const { byPage } = byPageRes.ok
-    ? await byPageRes.json()
-    : { byPage: [] };
+  const { byPage } = byPageRes.ok ? await byPageRes.json() : { byPage: [] };
 
   return { summary, byPage };
 }
@@ -78,13 +72,22 @@ async function fetchVersions(token: string): Promise<string[]> {
 }
 
 /**
- * Returns P75 per metric for the last 5 versions, oldest to newest.
- * This is what feeds the trend sparklines. Returns empty on any failure
- * so the chart section just doesn't render rather than crashing the page.
+ * Returns P75 per metric for recent versions, oldest to newest.
+ * Accepts the same version/mode pair as fetchVitals so the chart scope
+ * matches the selected filter. Returns empty on failure so the chart
+ * section just hides rather than crashing the page.
  */
-async function fetchByVersion(token: string): Promise<VersionMetrics[]> {
+async function fetchByVersion(
+  token: string,
+  version: string | undefined,
+  mode: string | undefined,
+): Promise<VersionMetrics[]> {
   try {
-    const res = await fetch(`${API_URL}/api/vitals/by-version`, {
+    const params = new URLSearchParams();
+    if (version) params.set("v", version);
+    if (mode) params.set("mode", mode);
+    const query = params.size > 0 ? `?${params.toString()}` : "";
+    const res = await fetch(`${API_URL}/api/vitals/by-version${query}`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
@@ -110,26 +113,33 @@ export default async function VitalsPage({
 
   const { v: urlVersion } = await searchParams;
 
-  // "all" = user explicitly selected all versions, no param = show latest by default.
-  // explicitVersion is what we actually pass to the backend -- undefined means no
-  // version filter, which gives all-time aggregates.
-  const showAll = urlVersion === "all";
-  const explicitVersion = showAll ? undefined : urlVersion;
+  // URL values use a prefix to encode the filter mode:
+  //   "major:0"   → mode=major, v=0   (all 0.x.y versions)
+  //   "minor:0.12" → mode=minor, v=0.12 (all 0.12.x versions)
+  //   "0.11.3"    → no mode, exact match
+  //   undefined   → no filter (defaults to "Current Major" in the selector)
+  let filterMode: string | undefined;
+  let filterVersion: string | undefined;
 
-  // All three fetches run in parallel now. Previously fetchVitals had to wait
-  // for fetchVersions to finish so we could pass versions[0] as the default.
-  // Instead we pass explicitVersion directly (undefined when there's no param)
-  // and derive selectedVersion from the versions result after everything resolves.
+  if (urlVersion?.startsWith("major:")) {
+    filterMode = "major";
+    filterVersion = urlVersion.slice(6);
+  } else if (urlVersion?.startsWith("minor:")) {
+    filterMode = "minor";
+    filterVersion = urlVersion.slice(6);
+  } else if (urlVersion) {
+    filterVersion = urlVersion;
+  }
+
   const [versions, byVersion, { summary, byPage }] = await Promise.all([
     fetchVersions(token!),
-    fetchByVersion(token!),
-    fetchVitals(token!, explicitVersion),
+    fetchByVersion(token!, filterVersion, filterMode),
+    fetchVitals(token!, filterVersion, filterMode),
   ]);
 
-  // If no version was in the URL, default to the latest one for the selector UI.
-  // The data itself is already all-time aggregates at this point, which is fine
-  // since the user hasn't explicitly picked a version yet.
-  const selectedVersion = explicitVersion ?? versions[0];
+  // the selector value mirrors the URL param; defaults to current major
+  const defaultMajor = versions.length > 0 ? versions[0].split(".")[0] : "0";
+  const selectedVersion = urlVersion ?? `major:${defaultMajor}`;
 
   return (
     <VitalsContent
