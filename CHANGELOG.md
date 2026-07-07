@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.9
+
+- LandingContentV2.tsx — replaced placeholder with full composition of all v2 landing sections: NavBar (unauthenticated), HeroSection, ProjectsSection, StatsStrip, ThoughtsPreview, FooterSection. Wrapped in `scroll-smooth bg-background` div for smooth anchor scrolling across the whole page
+- updated V2 Redesign thoughts page with landing composition section
+- bumped version to 0.13.9
+
 ## 2026-07-07 - version 0.13.8
 
 - FooterSection.tsx — minimal server component footer at `src/app/v2/landing/FooterSection.tsx` with "paul-explore" wordmark, copyright year, and links to GitHub (external), Thoughts, and "View v1 →" (`?version=v1`). `border-t border-border`, stacks vertically on mobile, row on desktop. No animations, dark mode aware

@@ -284,6 +284,34 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">Landing composition</h2>
+              <p className="text-muted">
+                LandingContentV2 was a placeholder div. Now it composes all six
+                sections in order: NavBar (unauthenticated), HeroSection,
+                ProjectsSection, StatsStrip, ThoughtsPreview, FooterSection. The
+                outer wrapper applies{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  scroll-smooth bg-background
+                </code>{" "}
+                so the hero&apos;s &quot;Explore my work&quot; CTA and the
+                footer&apos;s anchor links animate smoothly rather than jumping.
+              </p>
+              <p className="mt-3 text-muted">
+                No changes to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  page.tsx
+                </code>{" "}
+                -- it already rendered LandingContentV2 for unauthenticated
+                non-v1 visitors. The hero is a full-viewport section (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  min-h-dvh
+                </code>
+                ) so the fixed NavBar overlaps it naturally without needing
+                explicit top padding.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">FooterSection</h2>
               <p className="text-muted">
                 A minimal server component footer -- no client JS, no
@@ -538,6 +566,20 @@ export default function V2RedesignContent() {
                 animation is <code>whileInView</code> with stagger delay per
                 index. hover lifts 4px. all guarded by{" "}
                 <code>useReducedMotion()</code>
+              </Sent>
+
+              <Received>so the landing page is fully wired up now</Received>
+
+              <Sent pos="first">
+                LandingContentV2 composes all six sections: NavBar, Hero,
+                Projects, StatsStrip, ThoughtsPreview, Footer. the wrapper div
+                adds <code>scroll-smooth</code> so anchor links animate across
+                the whole page
+              </Sent>
+              <Sent pos="last">
+                page.tsx already rendered it for unauthenticated non-v1 visitors
+                so no routing changes. the hero is full-viewport height so the
+                fixed nav overlaps it naturally
               </Sent>
 
               <Received>and the footer</Received>
