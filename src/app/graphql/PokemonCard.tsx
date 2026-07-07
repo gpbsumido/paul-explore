@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { Pokemon } from "@/types/graphql";
 import {
   spriteUrl,
@@ -49,7 +50,7 @@ interface PokemonCardProps {
  * and HP + Attack bars. Stat bars are scaled to the in-game maximums
  * so the bar length is actually meaningful relative to other Pokémon.
  */
-export default function PokemonCard({ pokemon }: PokemonCardProps) {
+const PokemonCard = memo(function PokemonCard({ pokemon }: PokemonCardProps) {
   const types = pokemon.pokemon_v2_pokemontypes.map(
     (t) => t.pokemon_v2_type.name,
   );
@@ -108,4 +109,6 @@ export default function PokemonCard({ pokemon }: PokemonCardProps) {
       </div>
     </div>
   );
-}
+});
+
+export default PokemonCard;

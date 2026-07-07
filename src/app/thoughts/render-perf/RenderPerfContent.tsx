@@ -402,12 +402,52 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                React.memo on frequently-rerendering list items
+              </h2>
+              <p className="text-muted">
+                Three list-item components were missing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  React.memo
+                </code>
+                : the operator dashboard&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  StoreCard
+                </code>
+                , the TCG browser&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  CardTile
+                </code>
+                , and the GraphQL grid&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  PokemonCard
+                </code>
+                .
+              </p>
+              <p className="mt-3 text-muted">
+                The operator dashboard polls every 30 seconds. When the parent
+                re-renders with fresh data, all 4+ store cards reconcile even if
+                only one store&apos;s data changed. Similarly, when the TCG
+                browser loads the next page, every card on every previous page
+                re-renders because the parent state changed.
+              </p>
+              <p className="mt-3 text-muted">
+                Wrapping each in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  React.memo
+                </code>{" "}
+                lets React skip reconciliation for items whose props
+                haven&apos;t changed. The calendar components already used memo
+                correctly &mdash; these three were the gaps.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
-                The review identified 8 more issues across missing memo
-                boundaries, whileHover object recreation, and other rendering
-                optimizations. These will be addressed incrementally and
-                documented here as they land.
+                The review identified more issues across whileHover object
+                recreation and other rendering optimizations. These will be
+                addressed incrementally and documented here as they land.
               </p>
             </section>
           </div>
@@ -683,6 +723,28 @@ export default function RenderPerfContent() {
                 <code>ssr: false</code>. the content is fully interactive and
                 needs client JS anyway so no SEO cost. route chunk is now just
                 metadata, content loads async
+              </Sent>
+
+              <Timestamp>2:55 PM</Timestamp>
+
+              <Received>what about the missing memo stuff</Received>
+
+              <Sent pos="first">
+                three list-item components had no <code>React.memo</code>:{" "}
+                <code>StoreCard</code> on the operator dashboard,{" "}
+                <code>CardTile</code> in the TCG browser, and{" "}
+                <code>PokemonCard</code> in the GraphQL grid
+              </Sent>
+              <Sent pos="middle">
+                the operator dashboard polls every 30s. when it re-renders, all
+                4+ store cards reconcile even if only one store&apos;s data
+                changed. same thing with the TCG browser loading the next page
+                &mdash; every card on every previous page re-renders
+              </Sent>
+              <Sent pos="last">
+                wrapped all three in <code>React.memo</code>. React skips
+                reconciliation for items whose props haven&apos;t changed. the
+                calendar components already had this &mdash; these were the gaps
               </Sent>
 
               <div className={styles.typingDots}>

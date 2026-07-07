@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-04 - version 0.12.11
+
+- StoreCard.tsx — wrapped in React.memo (re-renders on every 30s poll cycle)
+- CardTile in BrowseContent.tsx — wrapped in React.memo (20+ instances per page)
+- PokemonCard.tsx — wrapped in React.memo (rendered in GraphQL grid)
+- package.json — bumped to 0.12.11
+
 ## 2026-07-04 - version 0.12.10
 
 - code-split all 13 learn page routes using `next/dynamic`: async-patterns, binary-search, debounce-throttle, dynamic-programming, event-delegation, from-scratch, hash-maps, memoization, recursion-backtracking, sliding-window, stacks-queues, trees-graphs, two-pointers -- each page now lazy-loads its content component so the router only ships lightweight server-rendered shells until the user navigates to a topic (`ssr: false` removed since page.tsx files are Server Components that export metadata)
