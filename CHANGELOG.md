@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.2
+
+- HeroSection.tsx — v2 hero at `src/app/v2/landing/HeroSection.tsx` with CSS-only ambient gradient background (violet/blue tints, 20s drift animation, dark/light aware), staggered word-reveal H1 using `fadeInUp` + `spring.wordReveal`, badge pill, subtitle, scroll-to CTA, and bobbing scroll indicator line. Uses `useSyncExternalStore` mounted flag for LCP safety and `useReducedMotion()` guard
+- hero.module.css — CSS module for the ambient gradient with `background-size: 400% 400%` drift keyframes
+- updated V2 Redesign thoughts page with HeroSection section
+- bumped version to 0.13.2
+
 ## 2026-07-07 - version 0.13.1
 
 - NavBar.tsx — fixed top nav at `src/app/v2/landing/NavBar.tsx` with wordmark left, auth-aware right side (Log in link for guests, settings gear for authenticated users), transparent-to-frosted scroll transition at 50px

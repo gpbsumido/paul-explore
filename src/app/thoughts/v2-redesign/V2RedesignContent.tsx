@@ -156,6 +156,54 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">HeroSection</h2>
+              <p className="text-muted">
+                The v2 hero replaces the Three.js globe and ShaderGradient with
+                a CSS-only ambient gradient -- two overlapping radial gradients
+                (violet and blue tints) on a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  background-size: 400% 400%
+                </code>{" "}
+                canvas that drifts on a 20-second keyframe loop. Dark mode
+                pushes the tint opacity slightly higher so the color reads
+                against a near-black base. Light mode keeps them barely visible.
+                No canvas, no WebGL, no JS cost for the background.
+              </p>
+              <p className="mt-3 text-muted">
+                The headline uses Framer Motion&apos;s staggered word reveal --
+                each word in &quot;Hey, I&apos;m Paul. / I build things / people
+                use.&quot; fades up from 20px below with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  spring.wordReveal
+                </code>{" "}
+                physics. The subtitle and CTA button fade in after the headline
+                completes, timed off the word count so the delay stays correct
+                if the copy changes.
+              </p>
+              <p className="mt-3 text-muted">
+                LCP safety comes from the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useSyncExternalStore
+                </code>{" "}
+                mounted flag -- the same pattern v1 uses. SSR renders the H1
+                text visible (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initial=&#123;false&#125;
+                </code>{" "}
+                server-side), and the entrance animation only runs after
+                hydration. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useReducedMotion()
+                </code>{" "}
+                guard replaces all spring transitions with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  instantTransition
+                </code>{" "}
+                when the user has requested reduced motion.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
                 The v2 placeholders are intentionally empty -- just divs with
@@ -271,6 +319,24 @@ export default function V2RedesignContent() {
                 the server component passes an <code>authenticated</code>{" "}
                 boolean so the client never needs to check auth itself
               </Sent>
+
+              <Received>what about the hero</Received>
+
+              <Sent pos="first">
+                CSS-only background. two overlapping radial gradients -- violet
+                and blue tints -- on a <code>background-size: 400% 400%</code>{" "}
+                canvas that drifts on a 20-second keyframe loop. no canvas, no
+                WebGL, no JS for the background at all
+              </Sent>
+              <Sent pos="last">
+                the headline staggers each word in with{" "}
+                <code>spring.wordReveal</code>. subtitle and CTA fade in after.
+                uses the same <code>useSyncExternalStore</code> mounted flag as
+                v1 for LCP safety -- SSR renders text visible, animation only
+                runs after hydration
+              </Sent>
+
+              <Timestamp>2:22 PM</Timestamp>
 
               <Received>what&apos;s the v2 plan</Received>
 
