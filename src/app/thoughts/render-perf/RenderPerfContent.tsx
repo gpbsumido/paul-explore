@@ -556,6 +556,57 @@ export default function RenderPerfContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Empty array reference stability in operator hooks
+              </h2>
+              <p className="text-muted">
+                All four operator hooks (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorStores
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorAlerts
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorInventory
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorActivity
+                </code>
+                ) used{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data ?? []
+                </code>{" "}
+                as a fallback during loading. The inline{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  []
+                </code>{" "}
+                creates a new array reference on every render when{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data
+                </code>{" "}
+                is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  undefined
+                </code>
+                . Any consumer using the result in a dependency array or memo
+                comparison sees a &ldquo;change&rdquo; on every render during
+                the loading phase.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix: each hook now has a module-level typed{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  EMPTY
+                </code>{" "}
+                constant. Same stable reference across all renders, no
+                unnecessary downstream re-renders during initial load.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
                 The review identified additional rendering optimizations still
@@ -930,6 +981,28 @@ export default function RenderPerfContent() {
               <Sent pos="last">
                 not worth the churn for a portfolio site. documenting it as a
                 deliberate tradeoff and moving on
+              </Sent>
+
+              <Timestamp>3:20 PM</Timestamp>
+
+              <Received>
+                what was the empty array thing on the operator hooks
+              </Received>
+
+              <Sent pos="first">
+                all four operator hooks had <code>data ?? []</code> as a
+                fallback. that inline <code>[]</code> creates a new array
+                reference every render when data is still undefined
+              </Sent>
+              <Sent pos="middle">
+                any consumer using the result in a dep array or memo comparison
+                sees a &ldquo;change&rdquo; on every render during the loading
+                phase. cascading wasted work
+              </Sent>
+              <Sent pos="last">
+                each hook now has a module-level typed <code>EMPTY</code>{" "}
+                constant. same reference every time, no false positives in
+                downstream comparisons
               </Sent>
 
               <div className={styles.typingDots}>

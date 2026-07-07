@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.12.14
+
+- useOperatorStores, useOperatorAlerts, useOperatorInventory, useOperatorActivity — replaced inline `data ?? []` fallbacks with module-level typed `EMPTY` constants to prevent new array reference on every render during loading phase
+- updated Render Performance thoughts page with empty array reference stability section
+- bumped version to 0.12.14
+
 ## 2026-07-07 - version 0.12.13
 
 - ModelLazyMount.tsx — converted from one-shot lazy mount to bidirectional observer: unmounts WebGL canvases when they scroll 1000px+ offscreen, remounts when they approach again. Keeps active WebGL context count low to avoid context eviction flicker on mobile (browsers limit to ~4-8 contexts)

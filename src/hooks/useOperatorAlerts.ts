@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { Alert } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 
+const EMPTY: Alert[] = [];
+
 export interface UseOperatorAlertsReturn {
   alerts: Alert[];
   loading: boolean;
@@ -40,7 +42,7 @@ export function useOperatorAlerts(storeId: string): UseOperatorAlertsReturn {
   });
 
   return {
-    alerts: data ?? [],
+    alerts: data ?? EMPTY,
     loading: isLoading,
     error: isError
       ? queryError instanceof Error
