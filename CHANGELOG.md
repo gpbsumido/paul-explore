@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.7
+
+- ThoughtsPreview.tsx — curated dev thoughts grid at `src/app/v2/landing/ThoughtsPreview.tsx` showing all write-ups from the shared THOUGHTS array in a responsive grid (1-col mobile, 2-col tablet, 3-col desktop). Each card has a colored left accent border, title, preview text, and hover shadow. Section heading "How it's built" with subtitle, centered. Framer Motion staggered fade-up on scroll (50ms stagger, `whileInView`, `once: true`), guarded by `useReducedMotion()`
+- updated V2 Redesign thoughts page with ThoughtsPreview section
+- bumped version to 0.13.7
+
 ## 2026-07-07 - version 0.13.6
 
 - StatsStrip.tsx — full-bleed evidence strip at `src/app/v2/landing/StatsStrip.tsx` with 4 key stats (14 features, 108+ tests, 17 write-ups, 5 CWV metrics tracked) in a 2x2 mobile / single-row desktop grid. Count-up animation on scroll intersection via `useCountUp` + Framer Motion `useInView`. `useSyncExternalStore` mounted flag renders final values during SSR for hydration safety. `bg-surface` background band with `border-y border-border`

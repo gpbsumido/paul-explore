@@ -284,6 +284,34 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">ThoughtsPreview</h2>
+              <p className="text-muted">
+                A &quot;How it&apos;s built&quot; section that renders every
+                entry from the shared THOUGHTS array as a linked card in a
+                responsive grid -- single column on mobile, two on tablet, three
+                on desktop. Each card has a 3px left accent border in the
+                thought&apos;s color, a bold title, and preview text. Hover
+                darkens the border and adds a subtle shadow.
+              </p>
+              <p className="mt-3 text-muted">
+                The grid entrance uses Framer Motion&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  staggerContainer
+                </code>{" "}
+                with 50ms delay per card and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  whileInView
+                </code>{" "}
+                so cards fade up as the section scrolls into view. All motion is
+                guarded by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useReducedMotion()
+                </code>
+                .
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">ProjectsSection</h2>
               <p className="text-muted">
                 The projects section is the main showcase -- it renders all 14
@@ -490,6 +518,20 @@ export default function V2RedesignContent() {
                 animation is <code>whileInView</code> with stagger delay per
                 index. hover lifts 4px. all guarded by{" "}
                 <code>useReducedMotion()</code>
+              </Sent>
+
+              <Received>and the thoughts preview</Received>
+
+              <Sent pos="first">
+                a &quot;How it&apos;s built&quot; section with every dev
+                write-up in a responsive grid -- 1 column on mobile, 2 on
+                tablet, 3 on desktop. each card has a colored left accent
+                border, bold title, and preview text
+              </Sent>
+              <Sent pos="last">
+                entrance is a staggered fade-up with 50ms between cards,
+                triggered by <code>whileInView</code>. imports the THOUGHTS
+                array from the same shared module as the project cards
               </Sent>
 
               <Received>what about the stats strip</Received>
