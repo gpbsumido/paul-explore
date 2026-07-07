@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.3
+
+- ProjectCard.tsx — reusable project showcase card at `src/app/v2/landing/ProjectCard.tsx` with two-column layout (60% preview / 40% text, reversible), color-tinted preview area, category dot, title, description, "View project →" and optional "Read about it →" links. Framer Motion scroll-triggered `whileInView` entrance with stagger delay, hover lift. `useReducedMotion()` guard
+- updated V2 Redesign thoughts page with ProjectCard section
+- bumped version to 0.13.3
+
 ## 2026-07-07 - version 0.13.2
 
 - HeroSection.tsx — v2 hero at `src/app/v2/landing/HeroSection.tsx` with CSS-only ambient gradient background (violet/blue tints, 20s drift animation, dark/light aware), staggered word-reveal H1 using `fadeInUp` + `spring.wordReveal`, badge pill, subtitle, scroll-to CTA, and bobbing scroll indicator line. Uses `useSyncExternalStore` mounted flag for LCP safety and `useReducedMotion()` guard

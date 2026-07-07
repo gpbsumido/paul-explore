@@ -204,6 +204,49 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">ProjectCard</h2>
+              <p className="text-muted">
+                Each project gets a full-width card with a two-column layout on
+                desktop -- 60% preview area, 40% text content. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  reversed
+                </code>{" "}
+                prop swaps the columns so alternating cards zigzag down the
+                page. On mobile the columns stack vertically with the preview on
+                top.
+              </p>
+              <p className="mt-3 text-muted">
+                The preview area gets a subtle background tinted with the
+                feature&apos;s color at ~5% opacity. The text side has a
+                category dot (matching the color), the title, a description, and
+                one or two links: &quot;View project →&quot; always, &quot;Read
+                about it →&quot; when there&apos;s a matching thoughts page. The
+                card accepts a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  preview
+                </code>{" "}
+                ReactNode so it can render the same mini-preview components the
+                v1 hub uses -- no new preview code needed.
+              </p>
+              <p className="mt-3 text-muted">
+                Animation is scroll-triggered via{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  whileInView
+                </code>{" "}
+                with a -10% viewport margin so cards start animating slightly
+                before they enter the viewport. Each card staggers by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  index * 0.1s
+                </code>
+                . Hover lifts the card 4px. All motion respects{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useReducedMotion()
+                </code>
+                .
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
               <p className="text-muted">
                 The v2 placeholders are intentionally empty -- just divs with
@@ -336,7 +379,27 @@ export default function V2RedesignContent() {
                 runs after hydration
               </Sent>
 
-              <Timestamp>2:22 PM</Timestamp>
+              <Received>and the project cards</Received>
+
+              <Sent pos="first">
+                each project gets a full-width card with a 60/40 split --
+                preview on one side, text on the other. the{" "}
+                <code>reversed</code> prop swaps them so the cards zigzag down
+                the page. on mobile they just stack
+              </Sent>
+              <Sent pos="middle">
+                the preview area is tinted with the feature&apos;s color at ~5%
+                opacity. text side has a category dot, title, description, and
+                links. the card accepts a <code>preview</code> ReactNode so it
+                can reuse the same mini-preview components from v1
+              </Sent>
+              <Sent pos="last">
+                animation is <code>whileInView</code> with stagger delay per
+                index. hover lifts 4px. all guarded by{" "}
+                <code>useReducedMotion()</code>
+              </Sent>
+
+              <Timestamp>2:28 PM</Timestamp>
 
               <Received>what&apos;s the v2 plan</Received>
 
