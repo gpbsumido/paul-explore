@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.5
+
+- ProjectsSection.tsx — main showcase section at `src/app/v2/landing/ProjectsSection.tsx` that renders all 14 features as ProjectCard components, grouped by category (Fantasy & NBA, Pokemon, Productivity, Engineering, Labs & Learning, Social) with sticky category labels and thin horizontal rules. Cards alternate `reversed` prop for zig-zag layout. Section has `id="projects"` as the hero scroll CTA target
+- updated V2 Redesign thoughts page with ProjectsSection section
+- bumped version to 0.13.5
+
 ## 2026-07-07 - version 0.13.4
 
 - featureData.tsx — extracted FEATURES, THOUGHTS, PREVIEW_MAP, FEATURE_TOKEN, all 14 mini-preview components (NBAPreview, MatchupsPreview, etc.), all static preview data arrays, and FeatureCard/ThoughtCard presentational components into `src/app/_shared/featureData.tsx` so both v1 FeatureHub and v2 can share them

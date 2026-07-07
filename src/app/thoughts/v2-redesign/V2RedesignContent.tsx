@@ -247,6 +247,39 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">ProjectsSection</h2>
+              <p className="text-muted">
+                The projects section is the main showcase -- it renders all 14
+                features as ProjectCard components, grouped by category. Six
+                groups: Fantasy &amp; NBA (5 cards), Pok&eacute;mon (3),
+                Productivity (1), Engineering (2), Labs &amp; Learning (2), and
+                Social (1). Each group gets a sticky category label (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  text-xs uppercase tracking-widest text-muted font-bold
+                </code>
+                ) with a thin horizontal rule underneath. The label sticks to
+                the top of the viewport as you scroll through that group&apos;s
+                cards, so you always know which category you&apos;re in.
+              </p>
+              <p className="mt-3 text-muted">
+                Cards within each group alternate the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  reversed
+                </code>{" "}
+                prop so the preview/text sides zig-zag down the page. The
+                section has{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  id=&quot;projects&quot;
+                </code>{" "}
+                so the hero&apos;s &quot;Explore my work&quot; CTA scrolls
+                directly to it. Features are looked up by ID from the shared
+                FEATURES array and PREVIEW_MAP, so the grouping order is defined
+                entirely by the GROUPS config -- independent of the array&apos;s
+                own order.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">Shared data extraction</h2>
               <p className="text-muted">
                 The v1 FeatureHub had ~1000 lines of inline data: the FEATURES
@@ -420,6 +453,22 @@ export default function V2RedesignContent() {
                 animation is <code>whileInView</code> with stagger delay per
                 index. hover lifts 4px. all guarded by{" "}
                 <code>useReducedMotion()</code>
+              </Sent>
+
+              <Received>how does the projects section work</Received>
+
+              <Sent pos="first">
+                all 14 features rendered as ProjectCards, grouped into six
+                categories -- Fantasy &amp; NBA, Pok&eacute;mon, Productivity,
+                Engineering, Labs &amp; Learning, and Social. each group gets a
+                sticky label that stays at the top of the viewport as you scroll
+                through its cards
+              </Sent>
+              <Sent pos="last">
+                cards alternate the <code>reversed</code> prop so the
+                preview/text sides zig-zag. features are looked up by ID from
+                the shared FEATURES array so the display order is defined by the
+                GROUPS config, not the array order
               </Sent>
 
               <Received>
