@@ -61,7 +61,11 @@ export default async function Home({
       name: session.user.name ?? null,
       email: session.user.email ?? null,
     };
-    return isV1 ? <FeatureHubV1 initialMe={initialMe} /> : <FeatureHubV2 />;
+    return isV1 ? (
+      <FeatureHubV1 initialMe={initialMe} />
+    ) : (
+      <FeatureHubV2 initialMe={initialMe} />
+    );
   }
   return isV1 ? <LandingContentV1 /> : <LandingContentV2 />;
 }

@@ -284,6 +284,49 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">FeatureHubV2</h2>
+              <p className="text-muted">
+                The authenticated hub got the same treatment as the landing
+                page. NavBar with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  authenticated=&#123;true&#125;
+                </code>
+                , a generous header section with a personalized greeting
+                (&quot;Hey &#123;firstName&#125;.&quot;), feature count
+                subtitle, and inline stats line. Same{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useQuery
+                </code>{" "}
+                pattern as v1 -- server-seeded{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialMe
+                </code>{" "}
+                so the name renders on first paint, background refresh after 5
+                minutes.
+              </p>
+              <p className="mt-3 text-muted">
+                Below the header: pill-shaped category filter tabs (All, NBA,
+                Pokemon, Calendar, Engineering, Labs) that filter the FEATURES
+                array client-side. Active tab gets{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bg-foreground text-background
+                </code>
+                , inactive tabs get{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bg-surface text-muted
+                </code>
+                . The tab bar scrolls horizontally on mobile with a hidden
+                scrollbar. The filtered grid re-staggers on category change via
+                a Framer Motion{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  key=&#123;active&#125;
+                </code>{" "}
+                swap. Dev thoughts section reuses the same ThoughtCard and
+                scroll-triggered reveal as v1.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">Landing composition</h2>
               <p className="text-muted">
                 LandingContentV2 was a placeholder div. Now it composes all six
@@ -566,6 +609,27 @@ export default function V2RedesignContent() {
                 animation is <code>whileInView</code> with stagger delay per
                 index. hover lifts 4px. all guarded by{" "}
                 <code>useReducedMotion()</code>
+              </Sent>
+
+              <Received>what about the authenticated hub</Received>
+
+              <Sent pos="first">
+                same NavBar but with <code>authenticated=&#123;true&#125;</code>
+                . hero header with &quot;Hey &#123;firstName&#125;.&quot; and
+                inline stats. same <code>useQuery</code> pattern as v1 --
+                server-seeded <code>initialMe</code> so the name renders on
+                first paint
+              </Sent>
+              <Sent pos="middle">
+                category filter tabs below the header -- All, NBA, Pokemon,
+                Calendar, Engineering, Labs. pill-shaped buttons, active gets{" "}
+                <code>bg-foreground text-background</code>. horizontal scroll on
+                mobile with hidden scrollbar
+              </Sent>
+              <Sent pos="last">
+                the filtered grid re-staggers when you switch categories via a
+                Framer Motion <code>key</code> swap. dev thoughts section reuses
+                ThoughtCard and scroll-triggered reveal from v1
               </Sent>
 
               <Received>so the landing page is fully wired up now</Received>

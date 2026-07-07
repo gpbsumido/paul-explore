@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.10
+
+- FeatureHubV2.tsx — replaced placeholder with full authenticated hub: NavBar (authenticated), hero header with personalized greeting and inline stats, category filter tabs (All/NBA/Pokemon/Calendar/Engineering/Labs) with pill-shaped buttons and horizontal scroll on mobile, filtered FeatureCard grid with stagger animation, and ThoughtCard dev notes section with scroll-triggered reveal
+- page.tsx — updated to pass `initialMe` prop to FeatureHubV2 so user name renders on first paint without a client-side fetch
+- updated V2 Redesign thoughts page with FeatureHubV2 section
+- bumped version to 0.13.10
+
 ## 2026-07-07 - version 0.13.9
 
 - LandingContentV2.tsx — replaced placeholder with full composition of all v2 landing sections: NavBar (unauthenticated), HeroSection, ProjectsSection, StatsStrip, ThoughtsPreview, FooterSection. Wrapped in `scroll-smooth bg-background` div for smooth anchor scrolling across the whole page
