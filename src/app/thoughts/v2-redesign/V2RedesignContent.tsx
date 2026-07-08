@@ -557,6 +557,73 @@ export default function V2RedesignContent() {
                 regressions.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Version registry</h2>
+              <p className="text-muted">
+                As the version routing grew from a two-branch if/else into
+                something that could support v3 and beyond, the page.tsx
+                rendering logic was refactored into a registry pattern. A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  VERSIONS
+                </code>{" "}
+                object maps each version key to a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &#123; Landing, Hub &#125;
+                </code>{" "}
+                component pair. A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  CURRENT_VERSION
+                </code>{" "}
+                constant controls which version is the default, and a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  resolveVersion()
+                </code>{" "}
+                helper validates the URL param against the registry keys.
+              </p>
+              <p className="mt-3 text-muted">
+                The rendering path is now a single flow: look up the version,
+                destructure its components, render the appropriate one based on
+                auth state, and wrap with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  VersionBanner
+                </code>{" "}
+                if it&apos;s not the current version. Adding a v3 is one entry
+                in the registry object -- no branching logic to update. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  satisfies
+                </code>{" "}
+                constraint ensures every version entry provides both a Landing
+                and Hub component with the correct prop types, so TypeScript
+                catches mismatches at compile time.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">VersionBanner</h2>
+              <p className="text-muted">
+                When{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?version=v1
+                </code>{" "}
+                is in the URL, a thin fixed amber banner appears at the very top
+                of the page: &quot;You&apos;re viewing v1 — switch to current
+                ↗&quot;. The link points to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /
+                </code>{" "}
+                with no version param, which loads v2. The banner sits at z-50
+                above the v1 nav, and the v1 content is wrapped in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  pt-8
+                </code>{" "}
+                div to push it below the banner. Dark mode flips the text to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  text-amber-300
+                </code>
+                . The banner is a server component — no JS needed.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -856,6 +923,41 @@ export default function V2RedesignContent() {
                 <code>useSyncExternalStore</code> mounted flag, below-fold stuff
                 uses <code>whileInView</code>. hero H1 visible in SSR for LCP.
                 no layout shift. 421 tests passing across 36 files
+              </Sent>
+
+              <Received>
+                what happens when someone visits with <code>?version=v1</code>
+              </Received>
+
+              <Sent pos="first">
+                a thin amber banner sticks to the top of the page:
+                &quot;You&apos;re viewing v1 — switch to current ↗&quot;. links
+                to <code>/</code> with no version param so it loads v2
+              </Sent>
+              <Sent pos="last">
+                server component, z-50 so it sits above the v1 nav. the v1
+                content gets a <code>pt-8</code> wrapper to push it below the
+                banner. dark mode flips the text to amber-300
+              </Sent>
+
+              <Received>
+                what if there&apos;s a v3 later -- will the routing code get
+                messy
+              </Received>
+
+              <Sent pos="first">
+                refactored page.tsx into a version registry. a{" "}
+                <code>VERSIONS</code> object maps each version key to its
+                Landing and Hub components. <code>CURRENT_VERSION</code>{" "}
+                controls the default, <code>resolveVersion()</code> validates
+                the URL param against the registry
+              </Sent>
+              <Sent pos="last">
+                adding a v3 is one entry in the object -- no branching logic to
+                touch. the rendering path is a single flow: look up version,
+                destructure components, render based on auth, wrap with banner
+                if it&apos;s old. <code>satisfies</code> catches type mismatches
+                at compile time
               </Sent>
 
               <div className={styles.typingDots}>

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.15
+
+- page.tsx — refactored version routing from if/else branching to a `VERSIONS` registry pattern. Each version maps to a `{ Landing, Hub }` component pair. `CURRENT_VERSION` constant controls the default. `resolveVersion()` validates the URL param against the registry. Adding a future version (v3, etc.) is a single entry in the registry with no branching logic to update
+- single rendering path: determines content from `VERSIONS[version]`, conditionally wraps with `VersionBanner` for old versions. `satisfies` constraint ensures every version entry matches the expected component types
+- updated V2 Redesign thoughts page with version registry section
+- bumped version to 0.13.15
+
+## 2026-07-07 - version 0.13.14
+
+- VersionBanner.tsx — fixed-position amber banner at `src/app/v2/VersionBanner.tsx` shown when `?version=v1` is active: "You're viewing v1 — switch to current ↗" with link to `/` (no version param). `bg-amber-500/10 border-b border-amber-500/20 text-amber-700 dark:text-amber-300`, z-50 above nav
+- page.tsx — renders VersionBanner above v1 components when `isV1`, wraps v1 content in `pt-8` div to account for banner height. v2 path unchanged
+- updated V2 Redesign thoughts page with VersionBanner section
+- bumped version to 0.13.14
+
 ## 2026-07-07 - version 0.13.13
 
 - v2 quality gate — verified all 7 checklist items:
