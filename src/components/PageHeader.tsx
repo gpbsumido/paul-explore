@@ -114,7 +114,7 @@ export default function PageHeader({
   breadcrumbs,
   left,
   right,
-  showSettings = false,
+  showSettings = true,
   showLogout = true,
   maxWidth = "max-w-5xl",
   zIndex = "z-20",

@@ -57,6 +57,14 @@ A black CSS div is the fallback while WebGL loads, so LCP fires immediately on t
 
 The Three.js particle network that used to live in the hero is now at `/lab/particles` as its own interactive page — loading it behind everything on the landing page cost ~40kb of canvas code on every visit even for users who scrolled past. As its own route it loads only when navigated to and becomes something you can actually interact with.
 
+### V2 Redesign
+
+The landing page and authenticated hub were redesigned from scratch in v2, inspired by [Adam Hartwig's](https://www.adamhartwig.co.uk/) editorial layout style. The original experience (ShaderGradient hero, WeatherCanvas, Three.js globe) shipped a lot of JS on the default path; v2 replaces all of that with a CSS-only ambient gradient, scroll-triggered Framer Motion animations, and a full-width project showcase — zero 3D dependencies on the default load.
+
+**Versioning**: `?version=v1` in the URL serves the original experience. No param (or any other value) serves v2. The server component reads `searchParams.version` and looks up the matching `{ Landing, Hub }` pair from a `VERSIONS` registry. V1 components are wrapped in `next/dynamic` so their Three.js/R3F chunks only load when explicitly requested — the default path ships zero WebGL bytes. V1 visitors see a thin amber banner prompting them to switch to current.
+
+**What changed**: the landing page is now an editorial scroll — NavBar with frosted-glass scroll effect, a CSS gradient hero with staggered word reveal, grouped project cards with zig-zag layout, a count-up stats strip, a thoughts preview grid, and a minimal footer. The authenticated hub has category filter tabs, a personalized greeting, and inline stats. No feature pages were touched — only the landing and hub components changed.
+
 ### 🧪 Lab (`/lab`)
 
 A route group for interactive technical experiments. The sticky nav mirrors the hub with a "Lab" badge and a back link. Each lab page handles its own full-viewport layout.
