@@ -53,7 +53,7 @@ export default function HeroSection() {
             skip ? instantTransition : { ...spring.smooth, delay: 0.1 }
           }
         >
-          Full-Stack Engineer · 2026
+          Full-Stack Engineer
         </motion.p>
 
         {/* Headline with staggered word reveal */}

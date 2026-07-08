@@ -459,18 +459,60 @@ export default function V2RedesignContent() {
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">What&apos;s next</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                Dark mode &amp; responsive audit
+              </h2>
               <p className="text-muted">
-                The v2 placeholders are intentionally empty -- just divs with
-                text. The plan is to build v2 incrementally: landing page first,
-                then the authenticated hub. Each piece can be built and tested
-                independently while v1 continues to serve as the production
-                default for anyone who appends{" "}
+                Every v2 component was audited for theme and breakpoint
+                correctness. All colors use design token classes (
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ?version=v1
+                  text-foreground
                 </code>
-                . Once v2 is ready, v1 becomes the escape hatch instead of the
-                default.
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  text-muted
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bg-background
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bg-surface
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  border-border
+                </code>
+                ) -- no hardcoded hex values for theme-dependent colors. The
+                only inline color styles are feature accent colors, which are
+                intentionally fixed.
+              </p>
+              <p className="mt-3 text-muted">
+                Responsive breakpoints verified at 375px, 768px, and 1280px:
+                hero text scales down (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  text-5xl
+                </code>
+                /
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  6xl
+                </code>
+                /
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  7xl
+                </code>
+                ), project cards stack on mobile, stats go to 2x2 grid, thoughts
+                go single-column, footer stacks vertically. The ambient gradient
+                has an explicit dark variant with higher opacity in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  hero.module.css
+                </code>
+                . The nav blur uses token-based{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bg-background/80
+                </code>{" "}
+                so it tints correctly in both themes.
               </p>
             </section>
           </div>
@@ -736,6 +778,27 @@ export default function V2RedesignContent() {
                 once v2 is solid, flip the default. v1 becomes the escape hatch
                 at <code>?version=v1</code> instead of the main path. eventually
                 remove it entirely
+              </Sent>
+
+              <Timestamp>3:10 PM</Timestamp>
+
+              <Received>
+                did you audit dark mode and responsive across all the v2
+                components
+              </Received>
+
+              <Sent pos="first">
+                every file in <code>src/app/v2/</code> checked. all colors use
+                token classes -- <code>text-foreground</code>,{" "}
+                <code>bg-background</code>, <code>border-border</code>, etc. no
+                hardcoded hex for theme-dependent colors
+              </Sent>
+              <Sent pos="last">
+                responsive breakpoints confirmed at 375px, 768px, 1280px. hero
+                text scales, cards stack, stats go 2x2, thoughts go
+                single-column, footer stacks. gradient has a dark variant with
+                higher opacity. nav blur uses <code>bg-background/80</code> so
+                it tints correctly in both themes
               </Sent>
 
               <div className={styles.typingDots}>

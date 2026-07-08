@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.12
+
+- dark mode and responsive audit — verified all v2 components use design token classes (`text-foreground`, `text-muted`, `bg-background`, `bg-surface`, `border-border`) with no hardcoded colors. Responsive breakpoints confirmed: hero text scales (`text-5xl`/`6xl`/`7xl`), project cards stack on mobile (`flex-col sm:flex-row`), stats grid goes 2x2 (`grid-cols-2 sm:grid-cols-4`), thoughts grid goes single column (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`), footer stacks (`flex-col sm:flex-row`). Ambient gradient has explicit dark variant in `hero.module.css`. Nav blur uses token-based `bg-background/80`
+- HeroSection.tsx — removed year from badge pill ("Full-Stack Engineer · 2026" → "Full-Stack Engineer")
+- updated V2 Redesign thoughts page with audit section
+- bumped version to 0.13.12
+
 ## 2026-07-07 - version 0.13.11
 
 - Settings icon button on Feature hub only redirected to Settings page. Lost the Settings menu
