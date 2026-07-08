@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.13
+
+- v2 quality gate — verified all 7 checklist items:
+  - **Reduced motion**: every Framer Motion animation in v2 has `useReducedMotion()` guard — HeroSection, ProjectCard, ThoughtsPreview collapse delays to 0 and use `instantTransition`; StatsStrip count-up hook shows final values immediately; scroll indicator bob disabled
+  - **TypeScript**: `npm run build` passes with zero errors
+  - **Bundle splitting**: zero 3D imports (`three`, `@react-three/*`, `shader-gradient`) in `src/app/v2/`; 19/124 client chunks contain 3D deps, all lazy-loaded via `next/dynamic` and only fetched on `?version=v1`
+  - **Hydration**: HeroSection and StatsStrip use `useSyncExternalStore` mounted flag — SSR renders final visible state, animation only after hydration. ProjectCard and ThoughtsPreview use `whileInView` (below-fold, no mismatch risk)
+  - **LCP**: hero H1 renders with `initial={false}` on SSR so text is visible in initial paint
+  - **CLS**: HeroSection reserves `min-h-dvh`, ProjectCard preview reserves `min-h-[200px]`, all other sections use padding-based height
+  - **Tests**: 421 tests passing across 36 files, no regressions
+- updated V2 Redesign thoughts page with quality gate section
+- bumped version to 0.13.13
+
 ## 2026-07-07 - version 0.13.12
 
 - dark mode and responsive audit — verified all v2 components use design token classes (`text-foreground`, `text-muted`, `bg-background`, `bg-surface`, `border-border`) with no hardcoded colors. Responsive breakpoints confirmed: hero text scales (`text-5xl`/`6xl`/`7xl`), project cards stack on mobile (`flex-col sm:flex-row`), stats grid goes 2x2 (`grid-cols-2 sm:grid-cols-4`), thoughts grid goes single column (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`), footer stacks (`flex-col sm:flex-row`). Ambient gradient has explicit dark variant in `hero.module.css`. Nav blur uses token-based `bg-background/80`

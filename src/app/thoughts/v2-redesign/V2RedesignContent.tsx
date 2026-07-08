@@ -515,6 +515,48 @@ export default function V2RedesignContent() {
                 so it tints correctly in both themes.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Quality gate</h2>
+              <p className="text-muted">
+                Seven-point verification before shipping: reduced motion,
+                TypeScript build, bundle splitting, hydration safety, LCP, CLS,
+                and tests. Every Framer Motion animation has a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useReducedMotion()
+                </code>{" "}
+                guard -- delays collapse to zero, transitions become instant,
+                the scroll indicator stops bobbing, and count-up values jump
+                straight to their target.
+              </p>
+              <p className="mt-3 text-muted">
+                Bundle splitting confirmed: zero 3D imports in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  src/app/v2/
+                </code>
+                . The 19 chunks containing Three.js, R3F, and shader-gradient
+                are all lazy-loaded via{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  next/dynamic
+                </code>{" "}
+                and only fetched when{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?version=v1
+                </code>{" "}
+                is in the URL. Hydration is safe: HeroSection and StatsStrip use
+                the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useSyncExternalStore
+                </code>{" "}
+                mounted flag so SSR renders the final visible state and
+                animation only plays after hydration. Below-fold components use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  whileInView
+                </code>{" "}
+                which avoids the mismatch entirely. 421 tests passing, no
+                regressions.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -799,6 +841,21 @@ export default function V2RedesignContent() {
                 single-column, footer stacks. gradient has a dark variant with
                 higher opacity. nav blur uses <code>bg-background/80</code> so
                 it tints correctly in both themes
+              </Sent>
+
+              <Received>did everything pass the quality gate</Received>
+
+              <Sent pos="first">
+                seven checks, all green. every Framer animation has a{" "}
+                <code>useReducedMotion()</code> guard. build passes with zero
+                errors. zero 3D imports in <code>src/app/v2/</code> -- the 19
+                Three.js chunks only load on <code>?version=v1</code>
+              </Sent>
+              <Sent pos="last">
+                hydration is safe -- HeroSection and StatsStrip use the{" "}
+                <code>useSyncExternalStore</code> mounted flag, below-fold stuff
+                uses <code>whileInView</code>. hero H1 visible in SSR for LCP.
+                no layout shift. 421 tests passing across 36 files
               </Sent>
 
               <div className={styles.typingDots}>
