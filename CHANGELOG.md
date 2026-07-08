@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.14.0
+
+- bumped to 0.14.0 for v2 redesign milestone
+- README.md — added V2 Redesign section: versioning scheme (`?version=v1`), Adam Hartwig design inspiration, what changed (editorial layout replacing 3D hero), bundle impact (zero WebGL bytes on default path)
+- `/thoughts/ui-redesign` — added V2 redesign section documenting: editorial layout direction, what was removed (WeatherCanvas, ShaderGradient, Three.js globe), what was added (CSS gradient, scroll animations, project showcase), versioning approach, bundle impact. Added corresponding chat view messages
+
 ## 2026-07-07 - version 0.13.15
 
 - page.tsx — refactored version routing from if/else branching to a `VERSIONS` registry pattern. Each version maps to a `{ Landing, Hub }` component pair. `CURRENT_VERSION` constant controls the default. `resolveVersion()` validates the URL param against the registry. Adding a future version (v3, etc.) is a single entry in the registry with no branching logic to update
