@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-07 - version 0.13.11
+
+- Settings icon button on Feature hub only redirected to Settings page. Lost the Settings menu
+- made sure settings menu shows link to Settings Page
+- bumped version to 0.13.11
+
 ## 2026-07-07 - version 0.13.10
 
 - FeatureHubV2.tsx — replaced placeholder with full authenticated hub: NavBar (authenticated), hero header with personalized greeting and inline stats, category filter tabs (All/NBA/Pokemon/Calendar/Engineering/Labs) with pill-shaped buttons and horizontal scroll on mobile, filtered FeatureCard grid with stagger animation, and ThoughtCard dev notes section with scroll-triggered reveal

@@ -133,7 +133,7 @@ interface HeaderMenuProps {
  * optional settings navigation, and optional logout into one control.
  */
 export default function HeaderMenu({
-  showSettings = false,
+  showSettings = true,
   showLogout = true,
   showWeatherToggle = false,
 }: HeaderMenuProps) {
