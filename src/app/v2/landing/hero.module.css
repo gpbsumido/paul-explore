@@ -1,0 +1,48 @@
+.gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 30% 40%,
+      rgba(139, 92, 246, 0.06) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 80% at 70% 60%,
+      rgba(59, 130, 246, 0.05) 0%,
+      transparent 70%
+    ),
+    var(--color-background);
+  background-size: 400% 400%;
+  animation: drift 20s ease infinite;
+}
+
+:global(.dark) .gradient {
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 30% 40%,
+      rgba(139, 92, 246, 0.08) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 80% at 70% 60%,
+      rgba(59, 130, 246, 0.06) 0%,
+      transparent 70%
+    ),
+    var(--color-background);
+  background-size: 400% 400%;
+  animation: drift 20s ease infinite;
+}
+
+@keyframes drift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

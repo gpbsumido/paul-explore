@@ -1,5 +1,123 @@
 # Changelog
 
+## 2026-07-07 - version 0.14.0
+
+- bumped to 0.14.0 for v2 redesign milestone
+- README.md — added V2 Redesign section: versioning scheme (`?version=v1`), Adam Hartwig design inspiration, what changed (editorial layout replacing 3D hero), bundle impact (zero WebGL bytes on default path)
+- `/thoughts/ui-redesign` — added V2 redesign section documenting: editorial layout direction, what was removed (WeatherCanvas, ShaderGradient, Three.js globe), what was added (CSS gradient, scroll animations, project showcase), versioning approach, bundle impact. Added corresponding chat view messages
+
+## 2026-07-07 - version 0.13.15
+
+- page.tsx — refactored version routing from if/else branching to a `VERSIONS` registry pattern. Each version maps to a `{ Landing, Hub }` component pair. `CURRENT_VERSION` constant controls the default. `resolveVersion()` validates the URL param against the registry. Adding a future version (v3, etc.) is a single entry in the registry with no branching logic to update
+- single rendering path: determines content from `VERSIONS[version]`, conditionally wraps with `VersionBanner` for old versions. `satisfies` constraint ensures every version entry matches the expected component types
+- updated V2 Redesign thoughts page with version registry section
+- bumped version to 0.13.15
+
+## 2026-07-07 - version 0.13.14
+
+- VersionBanner.tsx — fixed-position amber banner at `src/app/v2/VersionBanner.tsx` shown when `?version=v1` is active: "You're viewing v1 — switch to current ↗" with link to `/` (no version param). `bg-amber-500/10 border-b border-amber-500/20 text-amber-700 dark:text-amber-300`, z-50 above nav
+- page.tsx — renders VersionBanner above v1 components when `isV1`, wraps v1 content in `pt-8` div to account for banner height. v2 path unchanged
+- updated V2 Redesign thoughts page with VersionBanner section
+- bumped version to 0.13.14
+
+## 2026-07-07 - version 0.13.13
+
+- v2 quality gate — verified all 7 checklist items:
+  - **Reduced motion**: every Framer Motion animation in v2 has `useReducedMotion()` guard — HeroSection, ProjectCard, ThoughtsPreview collapse delays to 0 and use `instantTransition`; StatsStrip count-up hook shows final values immediately; scroll indicator bob disabled
+  - **TypeScript**: `npm run build` passes with zero errors
+  - **Bundle splitting**: zero 3D imports (`three`, `@react-three/*`, `shader-gradient`) in `src/app/v2/`; 19/124 client chunks contain 3D deps, all lazy-loaded via `next/dynamic` and only fetched on `?version=v1`
+  - **Hydration**: HeroSection and StatsStrip use `useSyncExternalStore` mounted flag — SSR renders final visible state, animation only after hydration. ProjectCard and ThoughtsPreview use `whileInView` (below-fold, no mismatch risk)
+  - **LCP**: hero H1 renders with `initial={false}` on SSR so text is visible in initial paint
+  - **CLS**: HeroSection reserves `min-h-dvh`, ProjectCard preview reserves `min-h-[200px]`, all other sections use padding-based height
+  - **Tests**: 421 tests passing across 36 files, no regressions
+- updated V2 Redesign thoughts page with quality gate section
+- bumped version to 0.13.13
+
+## 2026-07-07 - version 0.13.12
+
+- dark mode and responsive audit — verified all v2 components use design token classes (`text-foreground`, `text-muted`, `bg-background`, `bg-surface`, `border-border`) with no hardcoded colors. Responsive breakpoints confirmed: hero text scales (`text-5xl`/`6xl`/`7xl`), project cards stack on mobile (`flex-col sm:flex-row`), stats grid goes 2x2 (`grid-cols-2 sm:grid-cols-4`), thoughts grid goes single column (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`), footer stacks (`flex-col sm:flex-row`). Ambient gradient has explicit dark variant in `hero.module.css`. Nav blur uses token-based `bg-background/80`
+- HeroSection.tsx — removed year from badge pill ("Full-Stack Engineer · 2026" → "Full-Stack Engineer")
+- updated V2 Redesign thoughts page with audit section
+- bumped version to 0.13.12
+
+## 2026-07-07 - version 0.13.11
+
+- Settings icon button on Feature hub only redirected to Settings page. Lost the Settings menu
+- made sure settings menu shows link to Settings Page
+- bumped version to 0.13.11
+
+## 2026-07-07 - version 0.13.10
+
+- FeatureHubV2.tsx — replaced placeholder with full authenticated hub: NavBar (authenticated), hero header with personalized greeting and inline stats, category filter tabs (All/NBA/Pokemon/Calendar/Engineering/Labs) with pill-shaped buttons and horizontal scroll on mobile, filtered FeatureCard grid with stagger animation, and ThoughtCard dev notes section with scroll-triggered reveal
+- page.tsx — updated to pass `initialMe` prop to FeatureHubV2 so user name renders on first paint without a client-side fetch
+- updated V2 Redesign thoughts page with FeatureHubV2 section
+- bumped version to 0.13.10
+
+## 2026-07-07 - version 0.13.9
+
+- LandingContentV2.tsx — replaced placeholder with full composition of all v2 landing sections: NavBar (unauthenticated), HeroSection, ProjectsSection, StatsStrip, ThoughtsPreview, FooterSection. Wrapped in `scroll-smooth bg-background` div for smooth anchor scrolling across the whole page
+- updated V2 Redesign thoughts page with landing composition section
+- bumped version to 0.13.9
+
+## 2026-07-07 - version 0.13.8
+
+- FooterSection.tsx — minimal server component footer at `src/app/v2/landing/FooterSection.tsx` with "paul-explore" wordmark, copyright year, and links to GitHub (external), Thoughts, and "View v1 →" (`?version=v1`). `border-t border-border`, stacks vertically on mobile, row on desktop. No animations, dark mode aware
+- updated V2 Redesign thoughts page with FooterSection section
+- bumped version to 0.13.8
+
+## 2026-07-07 - version 0.13.7
+
+- ThoughtsPreview.tsx — curated dev thoughts grid at `src/app/v2/landing/ThoughtsPreview.tsx` showing all write-ups from the shared THOUGHTS array in a responsive grid (1-col mobile, 2-col tablet, 3-col desktop). Each card has a colored left accent border, title, preview text, and hover shadow. Section heading "How it's built" with subtitle, centered. Framer Motion staggered fade-up on scroll (50ms stagger, `whileInView`, `once: true`), guarded by `useReducedMotion()`
+- updated V2 Redesign thoughts page with ThoughtsPreview section
+- bumped version to 0.13.7
+
+## 2026-07-07 - version 0.13.6
+
+- StatsStrip.tsx — full-bleed evidence strip at `src/app/v2/landing/StatsStrip.tsx` with 4 key stats (14 features, 108+ tests, 17 write-ups, 5 CWV metrics tracked) in a 2x2 mobile / single-row desktop grid. Count-up animation on scroll intersection via `useCountUp` + Framer Motion `useInView`. `useSyncExternalStore` mounted flag renders final values during SSR for hydration safety. `bg-surface` background band with `border-y border-border`
+- useCountUp.ts — added optional `inView` parameter (defaults to `true` for backward compat) and `hasAnimated` ref so animation only fires once when the element scrolls into view
+- updated V2 Redesign thoughts page with StatsStrip section
+- bumped version to 0.13.6
+
+## 2026-07-07 - version 0.13.5
+
+- ProjectsSection.tsx — main showcase section at `src/app/v2/landing/ProjectsSection.tsx` that renders all 14 features as ProjectCard components, grouped by category (Fantasy & NBA, Pokemon, Productivity, Engineering, Labs & Learning, Social) with sticky category labels and thin horizontal rules. Cards alternate `reversed` prop for zig-zag layout. Section has `id="projects"` as the hero scroll CTA target
+- updated V2 Redesign thoughts page with ProjectsSection section
+- bumped version to 0.13.5
+
+## 2026-07-07 - version 0.13.4
+
+- featureData.tsx — extracted FEATURES, THOUGHTS, PREVIEW_MAP, FEATURE_TOKEN, all 14 mini-preview components (NBAPreview, MatchupsPreview, etc.), all static preview data arrays, and FeatureCard/ThoughtCard presentational components into `src/app/_shared/featureData.tsx` so both v1 FeatureHub and v2 can share them
+- FeatureHub.tsx — imports all data and sub-components from `@/app/_shared/featureData` instead of defining inline; default export and internal logic unchanged
+- updated V2 Redesign thoughts page with shared data extraction section
+- bumped version to 0.13.4
+
+## 2026-07-07 - version 0.13.3
+
+- ProjectCard.tsx — reusable project showcase card at `src/app/v2/landing/ProjectCard.tsx` with two-column layout (60% preview / 40% text, reversible), color-tinted preview area, category dot, title, description, "View project →" and optional "Read about it →" links. Framer Motion scroll-triggered `whileInView` entrance with stagger delay, hover lift. `useReducedMotion()` guard
+- updated V2 Redesign thoughts page with ProjectCard section
+- bumped version to 0.13.3
+
+## 2026-07-07 - version 0.13.2
+
+- HeroSection.tsx — v2 hero at `src/app/v2/landing/HeroSection.tsx` with CSS-only ambient gradient background (violet/blue tints, 20s drift animation, dark/light aware), staggered word-reveal H1 using `fadeInUp` + `spring.wordReveal`, badge pill, subtitle, scroll-to CTA, and bobbing scroll indicator line. Uses `useSyncExternalStore` mounted flag for LCP safety and `useReducedMotion()` guard
+- hero.module.css — CSS module for the ambient gradient with `background-size: 400% 400%` drift keyframes
+- updated V2 Redesign thoughts page with HeroSection section
+- bumped version to 0.13.2
+
+## 2026-07-07 - version 0.13.1
+
+- NavBar.tsx — fixed top nav at `src/app/v2/landing/NavBar.tsx` with wordmark left, auth-aware right side (Log in link for guests, settings gear for authenticated users), transparent-to-frosted scroll transition at 50px
+- updated V2 Redesign thoughts page with NavBar section
+- bumped version to 0.13.1
+
+## 2026-07-07 - version 0.13.0
+
+- page.tsx — added URL parameter-based version routing (`?version=v1` serves original, default serves v2) with `searchParams.version` from Next.js App Router page props
+- v1 components (LandingContent, FeatureHub) wrapped in `next/dynamic` so Three.js / R3F / ShaderGradient chunks only load on the v1 path
+- v2 placeholder components at `src/app/v2/LandingContentV2.tsx` and `src/app/v2/FeatureHubV2.tsx` — statically imported, no 3D deps
+- added V2 Redesign thoughts page at `/thoughts/v2-redesign`
+- bumped version to 0.13.0
+
 ## 2026-07-07 - version 0.12.16
 
 - VersionSelector.tsx — rewrote version dropdown with grouped options: Current Major (default, all data in the major version), Current Minor (all patches in latest minor), last 3 minor versions with individual patch versions in optgroups, and older minors aggregated as single entries

@@ -166,6 +166,70 @@ export default function UIRedesignContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                V2 redesign — editorial layout
+              </h2>
+              <p className="text-muted">
+                The v1 redesign added Framer Motion, glassmorphism, and the
+                ShaderGradient hero. V2 goes further: it removes all 3D
+                dependencies from the default path entirely. The landing page
+                and authenticated hub were rebuilt from scratch, inspired by{" "}
+                <a
+                  href="https://www.adamhartwig.co.uk/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:opacity-80"
+                >
+                  Adam Hartwig&apos;s
+                </a>{" "}
+                editorial portfolio style — generous whitespace, full-width
+                project cards, scroll-triggered reveals, and typographic
+                hierarchy over visual noise.
+              </p>
+              <p className="mt-3 text-muted">
+                What was removed from the default landing: WeatherCanvas,
+                ShaderGradient (WebGL), the Three.js globe, and every R3F
+                dependency. What replaced them: a CSS-only ambient gradient (two
+                overlapping radial gradients on a 20-second keyframe loop),
+                Framer Motion scroll animations, and a project showcase with
+                grouped categories and zig-zag card layouts. The hero headline
+                uses a staggered word reveal instead of a WebGL background
+                effect.
+              </p>
+              <p className="mt-3 text-muted">
+                The versioning scheme uses a URL parameter:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?version=v1
+                </code>{" "}
+                serves the original experience with all its 3D dependencies,
+                loaded via{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  next/dynamic
+                </code>{" "}
+                so those chunks only download when explicitly requested. The
+                default path ships zero Three.js bytes. A version registry in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  page.tsx
+                </code>{" "}
+                maps each version to its Landing and Hub components, making
+                future versions a single entry addition.
+              </p>
+              <p className="mt-3 text-muted">
+                Bundle impact: the 19 chunks containing Three.js, R3F, and
+                shader-gradient are all lazy-loaded and only fetched on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?version=v1
+                </code>
+                . Zero 3D imports exist in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  src/app/v2/
+                </code>
+                . The default landing page is now pure CSS, Framer Motion, and
+                static React — no canvas, no WebGL, no heavy peer dependencies.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">Particle lab</h2>
               <p className="text-muted">
                 Moving the particle network to its own page at{" "}
@@ -508,14 +572,14 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
               </Sent>
 
               <Received>
-                and <code>AnimatePresence mode=&quot;wait&quot;</code> breaking with{" "}
-                <code>next/dynamic</code> — you mentioned that earlier. what was
-                the actual issue
+                and <code>AnimatePresence mode=&quot;wait&quot;</code> breaking
+                with <code>next/dynamic</code> — you mentioned that earlier.
+                what was the actual issue
               </Received>
 
               <Sent pos="first">
-                <code>mode=&quot;wait&quot;</code> holds the exiting component in the
-                React tree until its exit animation finishes.{" "}
+                <code>mode=&quot;wait&quot;</code> holds the exiting component
+                in the React tree until its exit animation finishes.{" "}
                 <code>next/dynamic</code> suspends when a chunk hasn{"'"}t
                 loaded yet. those two mechanisms both try to control when a
                 component is mounted and unmounted, and they disagree
@@ -524,9 +588,64 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
                 React{"'"}s Suspense cleanup fires while the exiting fiber is
                 still mounted, logs a warning about async info that {'"'}was not
                 on the parent Suspense boundary{'"'}. the fix is to drop{" "}
-                <code>mode=&quot;wait&quot;</code> — exit and enter run concurrently
-                instead of sequentially, which is fine for a slide transition.
-                the overlap is barely visible and the warning disappears
+                <code>mode=&quot;wait&quot;</code> — exit and enter run
+                concurrently instead of sequentially, which is fine for a slide
+                transition. the overlap is barely visible and the warning
+                disappears
+              </Sent>
+
+              <Timestamp>10:55 AM</Timestamp>
+
+              {/* ---- V2 redesign ---- */}
+              <Received pos="first">
+                so now there{"'"}s a v2. the ShaderGradient hero and
+                WeatherCanvas are gone from the default path
+              </Received>
+              <Received pos="last">what{"'"}s the design direction</Received>
+
+              <Sent pos="first">
+                inspired by Adam Hartwig{"'"}s editorial portfolio style.
+                generous whitespace, full-width project cards with a zig-zag
+                layout, scroll-triggered reveals, typographic hierarchy over
+                visual noise
+              </Sent>
+              <Sent pos="last">
+                the hero is now a CSS-only gradient — two overlapping radial
+                gradients on a 20-second keyframe loop. no canvas, no WebGL, no
+                JS for the background at all. the headline still does the
+                staggered word reveal but on a pure CSS backdrop instead of a
+                WebGL scene
+              </Sent>
+
+              <Received>
+                and the 3D stuff is completely gone from the default load
+              </Received>
+
+              <Sent pos="first">
+                zero 3D imports in <code>src/app/v2/</code>. Three.js, R3F,
+                shader-gradient, WeatherCanvas — all of it is behind{" "}
+                <code>next/dynamic</code> and only loads when you add{" "}
+                <code>?version=v1</code> to the URL
+              </Sent>
+              <Sent pos="last">
+                the default path ships pure CSS, Framer Motion, and static
+                React. 19 chunks worth of WebGL deps become opt-in instead of
+                mandatory. that{"'"}s the biggest bundle win of the whole
+                redesign
+              </Sent>
+
+              <Received>how does the versioning work</Received>
+
+              <Sent pos="first">
+                URL parameter. <code>?version=v1</code> serves the original
+                experience, no param serves v2. a version registry in{" "}
+                <code>page.tsx</code> maps each version key to its Landing and
+                Hub components
+              </Sent>
+              <Sent pos="last">
+                v1 visitors get a thin amber banner at the top prompting them to
+                switch. adding a v3 later is one entry in the registry — no
+                branching logic to update
               </Sent>
 
               {/* Typing indicator */}
