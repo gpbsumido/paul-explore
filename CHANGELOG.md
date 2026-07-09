@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.2
+
+- `Button.tsx` — replaced native `disabled` attribute with `aria-disabled` so disabled buttons remain focusable for screen reader discovery. Click prevention via guard on `onClick` instead of native disabled. Swapped `disabled:` Tailwind prefix classes for direct `pointer-events-none opacity-50` applied conditionally
+- `Button.test.tsx` — 11 tests: axe scan for all 5 variants (primary, secondary, outline, ghost, danger), loading state, disabled state, focusability when disabled, no native disabled attr, click prevention when disabled, focus-visible ring classes
+- bumped version to 0.14.2
+
 ## 2026-07-09 - version 0.14.1
 
 - added `vitest-axe` for unit-level WCAG 2.1 AA accessibility scans alongside the existing Playwright axe E2E layer
