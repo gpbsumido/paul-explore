@@ -266,6 +266,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "URL-based version routing with next/dynamic bundle splitting — Three.js out of the default path, v2 ships a clean slate",
     color: "#e879f9",
   },
+  {
+    title: "Accessibility",
+    href: "/thoughts/accessibility",
+    preview:
+      "WCAG 2.1 AA compliance — vitest-axe for unit-level scans, systematic primitive audits, and where automated tooling helps vs. where it doesn't",
+    color: "#f59e0b",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------

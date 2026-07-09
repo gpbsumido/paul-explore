@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.1
+
+- added `vitest-axe` for unit-level WCAG 2.1 AA accessibility scans alongside the existing Playwright axe E2E layer
+- `src/test/a11y.ts` — pre-configured axe instance scoped to wcag2a, wcag2aa, wcag21a, wcag21aa tags. Render a component, pass the container, assert `toHaveNoViolations()`
+- `src/test/setup.ts` — wired up vitest-axe matchers globally via `expect.extend()`
+- `src/test/a11y.test.ts` — two smoke tests: accessible markup passes, inaccessible markup (img without alt) is caught
+- `/thoughts/accessibility` — new thoughts page covering the approach: two-layer axe scanning, primitive component audit strategy, what axe catches vs. behavioral tests, 3D page accessibility, CI story
+- bumped version to 0.14.1
+
 ## 2026-07-07 - version 0.14.0
 
 - bumped to 0.14.0 for v2 redesign milestone
