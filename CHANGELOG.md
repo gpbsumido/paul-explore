@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.7
+
+- `Chip.tsx` — added `onRemove` prop: renders a remove button with accessible name (`Remove ${label}`) and an x icon. Static, clickable, and removable chips all pass axe scans
+- `Chip.test.tsx` — 5 tests: axe scans for static/clickable/removable variants, remove button has accessible name including chip label, onRemove fires on click
+- bumped version to 0.14.7
+
 ## 2026-07-09 - version 0.14.6
 
 - `Modal.tsx` — mark sibling DOM content with `aria-hidden="true"` when modal is open so screen readers ignore the background. Cleaned up on close
