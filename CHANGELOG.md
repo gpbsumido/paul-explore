@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.3
+
+- `IconButton.test.tsx` — 4 tests: axe violation on empty aria-label (button-name rule), no violations with descriptive label, aria-label renders on the button element, focus-visible outline classes. Confirms existing required `aria-label` prop covers the accessible name requirement
+- bumped version to 0.14.3
+
 ## 2026-07-09 - version 0.14.2
 
 - `Button.tsx` — replaced native `disabled` attribute with `aria-disabled` so disabled buttons remain focusable for screen reader discovery. Click prevention via guard on `onClick` instead of native disabled. Swapped `disabled:` Tailwind prefix classes for direct `pointer-events-none opacity-50` applied conditionally
