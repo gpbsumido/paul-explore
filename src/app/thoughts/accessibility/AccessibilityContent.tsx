@@ -253,6 +253,187 @@ expect(results).toHaveNoViolations();`}
                 decorative ones (3D scenes, particle effects) disable entirely.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Color contrast</h2>
+              <p className="text-muted">
+                WCAG SC 1.4.3 requires a 4.5:1 contrast ratio for normal text
+                and 3:1 for large text (18px+ or 14px+ bold). SC 1.4.11 extends
+                the 3:1 minimum to UI components and graphical objects. Axe
+                catches most contrast issues at render time, but dynamic states
+                (hover, focus, active) need manual verification.
+              </p>
+              <p className="mt-3 text-muted">
+                The audit found several muted text colors sitting below the
+                4.5:1 threshold against both light and dark backgrounds.
+                Adjusting these was straightforward, the tricky part was making
+                sure the fixes held across both themes. The design token system
+                helps here since contrast only needs to be verified at the token
+                level, not per-component.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Testing patterns for new components
+              </h2>
+              <p className="text-muted">
+                Every new component should follow the same three-layer test
+                pattern that came out of the audit. First, axe scans for every
+                visual variant (default, loading, error, disabled, empty). Each
+                variant can produce different DOM structures that need separate
+                evaluation. Second, label and ARIA assertions using{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  getByLabelText
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-describedby
+                </code>{" "}
+                checks, and role verification. Third, keyboard behavior tests
+                with user-event — tab order, Escape dismissal, Enter/Space
+                activation.
+              </p>
+              <p className="mt-3 text-muted">
+                The specifics to verify depend on what the component does:
+              </p>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-muted">
+                <li>
+                  <strong>Label association</strong> (SC 1.3.1, 4.1.2) — every
+                  form control needs a programmatic label via{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    htmlFor
+                  </code>
+                  /
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    id
+                  </code>{" "}
+                  or{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    aria-label
+                  </code>
+                  . Use{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    useId()
+                  </code>{" "}
+                  for stable IDs.
+                </li>
+                <li>
+                  <strong>Focus management</strong> (SC 2.4.3, 2.4.7) — modals
+                  trap focus and restore it on close, visible focus rings on all
+                  interactive elements, use{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    aria-disabled
+                  </code>{" "}
+                  over native{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    disabled
+                  </code>{" "}
+                  so elements stay keyboard-focusable.
+                </li>
+                <li>
+                  <strong>Keyboard interaction</strong> (SC 2.1.1, 2.1.2) —
+                  everything clickable works with Enter/Space, tooltips appear
+                  on focus and dismiss on Escape (SC 1.4.13), no{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    tabIndex
+                  </code>{" "}
+                  values greater than 0.
+                </li>
+                <li>
+                  <strong>Color contrast</strong> (SC 1.4.3, 1.4.11) — 4.5:1 for
+                  text, 3:1 for UI components. Axe catches most of this but
+                  verify dynamic states manually.
+                </li>
+                <li>
+                  <strong>Motion</strong> (SC 2.3.1, 2.3.3) — respect{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    prefers-reduced-motion
+                  </code>
+                  . Essential animations become opacity fades, decorative ones
+                  disable.
+                </li>
+                <li>
+                  <strong>Live regions</strong> (SC 4.1.3) — character counts
+                  and status messages use{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    aria-live=&quot;polite&quot;
+                  </code>
+                  , error messages use{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    role=&quot;alert&quot;
+                  </code>
+                  .
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">PR review checklist</h2>
+              <p className="text-muted">
+                A quick reference for reviewing PRs that touch UI. Not every
+                item applies to every PR, but scanning the list catches the
+                common gaps.
+              </p>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-muted">
+                <li>Axe scan test exists for every visual variant</li>
+                <li>
+                  Interactive elements reachable and operable by keyboard alone
+                </li>
+                <li>Focus ring visible on all interactive elements</li>
+                <li>
+                  Labels associated with inputs (not just placeholder text)
+                </li>
+                <li>
+                  Error states linked via{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    aria-describedby
+                  </code>{" "}
+                  and announced with{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    role=&quot;alert&quot;
+                  </code>
+                </li>
+                <li>
+                  Icon-only buttons have descriptive{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    aria-label
+                  </code>
+                </li>
+                <li>Modal/overlay traps focus and restores it on close</li>
+                <li>
+                  Animations respect{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    prefers-reduced-motion
+                  </code>
+                </li>
+                <li>
+                  Color contrast meets 4.5:1 for text, 3:1 for UI components
+                </li>
+                <li>
+                  No{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    tabIndex
+                  </code>{" "}
+                  values greater than 0
+                </li>
+                <li>
+                  Page has skip link and semantic landmarks (
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<main>"}
+                  </code>
+                  ,{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<nav>"}
+                  </code>
+                  ,{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<header>"}
+                  </code>
+                  )
+                </li>
+              </ul>
+            </section>
           </div>
         </main>
       ) : (
@@ -358,6 +539,67 @@ expect(results).toHaveNoViolations();`}
               <Sent pos="last">
                 the split is: axe for structure, manual tests for behavior. you
                 need both
+              </Sent>
+
+              <Timestamp>2:52 PM</Timestamp>
+
+              <Received>what about color contrast</Received>
+
+              <Sent pos="first">
+                WCAG wants 4.5:1 for normal text, 3:1 for large text and UI
+                components. axe catches most of it at render time but dynamic
+                states like hover and focus need manual checks
+              </Sent>
+              <Sent pos="last">
+                found a few muted text colors below the threshold in both
+                themes. the design token system made it easy to fix since you
+                only verify contrast at the token level, not per-component
+              </Sent>
+
+              <Timestamp>2:55 PM</Timestamp>
+
+              <Received>
+                so if someone adds a new component, what should they actually
+                test
+              </Received>
+
+              <Sent pos="first">
+                three layers. first, axe scans for every visual variant —
+                default, loading, error, disabled, empty. each variant can
+                produce different DOM that needs separate evaluation
+              </Sent>
+              <Sent pos="middle">
+                second, label and ARIA assertions. getByLabelText,
+                aria-describedby checks, role verification. make sure screen
+                readers get the right information
+              </Sent>
+              <Sent pos="last">
+                third, keyboard behavior with user-event. tab order, Escape
+                dismissal, Enter/Space activation. the WCAG criteria to hit are
+                1.3.1 and 4.1.2 for labels, 2.4.3 and 2.4.7 for focus, 2.1.1 for
+                keyboard, 1.4.3 for contrast, 4.1.3 for live regions
+              </Sent>
+
+              <Timestamp>2:58 PM</Timestamp>
+
+              <Received>
+                can you give me a quick checklist for reviewing PRs
+              </Received>
+
+              <Sent pos="first">
+                axe scan for every variant, keyboard-only operability, visible
+                focus rings, labels on inputs (not just placeholders), error
+                states with aria-describedby and role=&quot;alert&quot;
+              </Sent>
+              <Sent pos="middle">
+                icon-only buttons have aria-label, modals trap and restore
+                focus, animations respect prefers-reduced-motion, contrast
+                ratios met, no tabIndex greater than 0
+              </Sent>
+              <Sent pos="last">
+                and check for skip links and semantic landmarks — main, nav,
+                header. not every item applies to every PR but scanning the list
+                catches the common gaps
               </Sent>
 
               <div className={styles.typingDots}>

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.12
+
+- Added accessibility testing patterns and PR review checklist to the `/thoughts/accessibility` dev notes page:
+  - Color contrast section covering SC 1.4.3/1.4.11 findings and design token approach
+  - Testing patterns for new components: three-layer pattern (axe scans, label/ARIA assertions, keyboard behavior) with WCAG criteria numbers
+  - 11-item PR review checklist for UI changes
+  - Matching chat-view messages for all new sections
+- bumped version to 0.14.12
+
 ## 2026-07-09 - version 0.14.11
 
 - Fixed 6 WCAG AA color contrast failures across light and dark themes:
