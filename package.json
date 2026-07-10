@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true next build --webpack",
     "test:e2e": "playwright test",
+    "test:e2e:auth": "playwright test --project=authenticated",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report"
   },
@@ -61,6 +62,7 @@
     "msw": "^2.12.14",
     "tailwindcss": "^4.1.18",
     "typescript": "^5",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "vitest-axe": "^0.1.0"
   }
 }

@@ -1,6 +1,15 @@
 "use client";
 
-import { useState, useRef, useCallback, type ReactNode, type CSSProperties } from "react";
+import {
+  useState,
+  useRef,
+  useCallback,
+  useId,
+  type ReactNode,
+  type CSSProperties,
+  type FocusEvent,
+  type KeyboardEvent,
+} from "react";
 
 interface InfoTipProps {
   children: ReactNode;
@@ -8,31 +17,65 @@ interface InfoTipProps {
   maxWidth?: number;
   /** Which side to show the popover. Defaults to "top". */
   side?: "top" | "bottom";
+  /** Hover/focus delay in ms before showing. Defaults to 200. */
+  delay?: number;
 }
 
 /**
- * A small ⓘ badge that shows a rich multi-line popover on hover.
+ * A small ⓘ badge that shows a rich multi-line popover on hover/focus.
  * Uses position:fixed + getBoundingClientRect so it punches through
  * overflow:hidden containers the same way Tooltip does.
  */
-export default function InfoTip({ children, maxWidth = 220, side = "top" }: InfoTipProps) {
+export default function InfoTip({
+  children,
+  maxWidth = 220,
+  side = "top",
+  delay = 200,
+}: InfoTipProps) {
+  const tooltipId = useId();
   const [visible, setVisible] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleEnter = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setPos({
-      x: rect.left + rect.width / 2,
-      y: side === "top" ? rect.top : rect.bottom,
-    });
-    timer.current = setTimeout(() => setVisible(true), 200);
-  }, [side]);
+  const show = useCallback(
+    (rect: DOMRect) => {
+      setPos({
+        x: rect.left + rect.width / 2,
+        y: side === "top" ? rect.top : rect.bottom,
+      });
+      timer.current = setTimeout(() => setVisible(true), delay);
+    },
+    [side, delay],
+  );
 
-  const handleLeave = useCallback(() => {
+  const hide = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     setVisible(false);
   }, []);
+
+  const handleEnter = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      show(e.currentTarget.getBoundingClientRect());
+    },
+    [show],
+  );
+
+  const handleFocus = useCallback(
+    (e: FocusEvent<HTMLButtonElement>) => {
+      show(e.currentTarget.getBoundingClientRect());
+    },
+    [show],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLButtonElement>) => {
+      if (e.key === "Escape" && visible) {
+        e.preventDefault();
+        hide();
+      }
+    },
+    [hide, visible],
+  );
 
   const style: CSSProperties =
     side === "top"
@@ -58,15 +101,21 @@ export default function InfoTip({ children, maxWidth = 220, side = "top" }: Info
         };
 
   return (
-    <span
-      className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-border text-muted text-[9px] font-semibold cursor-help select-none shrink-0 hover:border-foreground hover:text-foreground transition-colors"
+    <button
+      type="button"
+      className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-border text-muted text-[9px] font-semibold cursor-help select-none shrink-0 hover:border-foreground hover:text-foreground transition-colors bg-transparent p-0"
       onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
+      onMouseLeave={hide}
+      onFocus={handleFocus}
+      onBlur={hide}
+      onKeyDown={handleKeyDown}
       aria-label="More information"
+      aria-describedby={visible ? tooltipId : undefined}
     >
       i
       {visible && pos && (
         <span
+          id={tooltipId}
           role="tooltip"
           style={style}
           className="rounded-lg bg-neutral-900 dark:bg-neutral-800 text-white text-[11px] leading-relaxed px-3 py-2 shadow-lg"
@@ -86,6 +135,6 @@ export default function InfoTip({ children, maxWidth = 220, side = "top" }: Info
           )}
         </span>
       )}
-    </span>
+    </button>
   );
 }

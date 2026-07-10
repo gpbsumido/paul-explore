@@ -114,6 +114,15 @@ export default function Modal({
     document.body.style.overflow = "hidden";
     document.body.style.paddingRight = `${scrollbarWidth}px`;
 
+    // Mark sibling content as inert so screen readers ignore background
+    const root = document.getElementById("__next") ?? document.body;
+    const siblings = Array.from(root.children).filter(
+      (el) => !el.contains(dialogRef.current) && el !== dialogRef.current,
+    );
+    for (const el of siblings) {
+      el.setAttribute("aria-hidden", "true");
+    }
+
     // Add keyboard listener
     document.addEventListener("keydown", handleKeyDown);
 
@@ -131,6 +140,9 @@ export default function Modal({
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = originalPaddingRight;
       document.removeEventListener("keydown", handleKeyDown);
+      for (const el of siblings) {
+        el.removeAttribute("aria-hidden");
+      }
       previousFocusRef.current?.focus();
     };
   }, [open, handleKeyDown, getFocusableElements]);

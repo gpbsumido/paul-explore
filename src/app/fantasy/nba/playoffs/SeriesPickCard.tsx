@@ -48,7 +48,7 @@ function TeamButton({
         "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-[background-color,border-color] duration-150",
         disabled ? "" : "cursor-pointer",
         !isWinner && !isTbd ? "hover:bg-surface-raised" : "",
-        !isWinner && isTbd ? "text-muted/50 hover:bg-surface-raised" : "",
+        !isWinner && isTbd ? "text-muted hover:bg-surface-raised" : "",
       ].join(" ")}
       style={
         isWinner && teamInfo
@@ -78,7 +78,7 @@ function TeamButton({
       )}
 
       {/* Seed */}
-      <span className="w-4 shrink-0 text-[10px] text-muted/50">
+      <span className="w-4 shrink-0 text-[10px] text-muted">
         {team.seed > 0 ? team.seed : "?"}
       </span>
 

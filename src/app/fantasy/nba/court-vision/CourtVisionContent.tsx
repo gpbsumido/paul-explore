@@ -158,7 +158,7 @@ export default function CourtVisionContent() {
         {!topLevelError && !playerId && (
           <div className="flex flex-col items-center gap-6">
             <CourtSVG zones={[]} />
-            <p className="text-[13px] text-muted/50">
+            <p className="text-[13px] text-muted">
               Select a team and player to view their shot chart
             </p>
           </div>
@@ -167,7 +167,7 @@ export default function CourtVisionContent() {
         {!topLevelError && playerId && shotsQuery.isLoading && (
           <div className="flex flex-col items-center gap-6">
             <CourtSVG zones={[]} loading />
-            <p className="text-[13px] text-muted/50 animate-pulse">
+            <p className="text-[13px] text-muted animate-pulse">
               Loading shot data…
             </p>
           </div>

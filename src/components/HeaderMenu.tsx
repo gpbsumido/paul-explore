@@ -223,7 +223,7 @@ export default function HeaderMenu({
         <div className="absolute right-0 top-full mt-1.5 w-44 rounded-xl border border-border bg-surface shadow-lg ring-1 ring-black/5 dark:ring-white/5 z-50">
           {/* Theme picker */}
           <div className="p-2">
-            <p className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted/50">
+            <p className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
               Theme
             </p>
             <div className="flex gap-1">

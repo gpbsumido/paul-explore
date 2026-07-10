@@ -1,5 +1,98 @@
 # Changelog
 
+## 2026-07-09 - version 0.15.0
+
+- Added WCAG primer and learning path to the `/thoughts/accessibility` dev notes page:
+  - "WCAG for the uninitiated" section: POUR principles, conformance levels (A/AA/AAA), success criterion numbering system
+  - "Getting up to speed" section: keyboard-first testing, axe browser extension, semantic HTML before ARIA, WAI-ARIA Authoring Practices, recommended courses, the dozen criteria that cover most day-to-day work
+  - Matching chat-view messages for both new sections
+- bumped version to 0.14.13
+
+## 2026-07-09 - version 0.14.12
+
+- Added accessibility testing patterns and PR review checklist to the `/thoughts/accessibility` dev notes page:
+  - Color contrast section covering SC 1.4.3/1.4.11 findings and design token approach
+  - Testing patterns for new components: three-layer pattern (axe scans, label/ARIA assertions, keyboard behavior) with WCAG criteria numbers
+  - 11-item PR review checklist for UI changes
+  - Matching chat-view messages for all new sections
+- bumped version to 0.14.12
+
+## 2026-07-09 - version 0.14.11
+
+- Fixed 6 WCAG AA color contrast failures across light and dark themes:
+  - `text-error-600` on dark surfaces (3.71:1) — added `dark:text-error-500` for 4.76:1 ratio
+  - `text-success-600` on light backgrounds (3.30:1) — bumped to `text-success-700` for 5.02:1
+  - `text-warning-600` on light backgrounds (3.19:1) — bumped to `text-warning-700` for 5.02:1
+  - danger button `text-red-500` (3.76:1) — bumped to `text-red-600` for 4.83:1
+  - `text-muted/50` on both themes (1.96:1 / 2.70:1) — replaced with full `text-muted` across 41 files
+- Updated Input, Textarea, Button, SeverityBadge, InventoryRow, FleetStatsBar, PlanogramSlot, SensorOfflineCallout, ConnectionQuality, StoreCard, PlanogramTab, and all thoughts/calendar/fantasy pages
+- bumped version to 0.14.11
+
+## 2026-07-09 - version 0.14.10
+
+- `e2e/public/landmarks.spec.ts` — 5 E2E tests verifying skip-to-content link (exists, visually hidden until focused, targets `#main-content`), navigation landmark, and main landmark on the landing page
+- `LandingContentV2.tsx` — wrapped page sections in `<main>` element so the v2 landing page has a proper main landmark. Footer stays outside `<main>` as expected
+- bumped version to 0.14.10
+
+## 2026-07-09 - version 0.14.9
+
+- `e2e/authenticated/a11y.spec.ts` — axe accessibility scans for calendar, vitals, and settings pages behind auth. Self-skips when `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` are not set so CI without credentials stays green
+- `package.json` — added `test:e2e:auth` script (`playwright test --project=authenticated`) for running authenticated E2E tests locally
+- **Known gap**: CI only runs `--project=public`. Authenticated axe scans require real Auth0 credentials and run locally via `npm run test:e2e:auth`
+- bumped version to 0.14.9
+
+## 2026-07-09 - version 0.14.8
+
+- verified all 477 tests (45 files) pass via `npm test`, including all new axe-based a11y tests. No jsdom or CI config changes needed — vitest-axe runs in the existing jsdom environment without additional setup
+- bumped version to 0.14.8
+
+## 2026-07-09 - version 0.14.7
+
+- `Chip.tsx` — added `onRemove` prop: renders a remove button with accessible name (`Remove ${label}`) and an x icon. Static, clickable, and removable chips all pass axe scans
+- `Chip.test.tsx` — 5 tests: axe scans for static/clickable/removable variants, remove button has accessible name including chip label, onRemove fires on click
+- bumped version to 0.14.7
+
+## 2026-07-09 - version 0.14.6
+
+- `Modal.tsx` — mark sibling DOM content with `aria-hidden="true"` when modal is open so screen readers ignore the background. Cleaned up on close
+- `Modal.test.tsx` — 6 tests: axe scan, role/aria-modal attributes, focus moves to first focusable on open, Tab cycles within focus trap, Escape closes, background marked inert
+- `Tooltip.tsx` — added `onFocus`/`onBlur` handlers so tooltip shows on keyboard focus (not just hover). Added Escape dismiss and `aria-describedby` linking tooltip content to trigger via generated ID
+- `Tooltip.test.tsx` — 5 tests: axe scan, shows on focus, hides on blur, Escape dismiss, aria-describedby linking
+- `InfoTip.tsx` — changed root element from `<span>` to `<button>` for proper button role. Added `onFocus`/`onBlur`, Escape dismiss, `aria-describedby`, configurable `delay` prop
+- `InfoTip.test.tsx` — 5 tests: axe scan, trigger has accessible name, shows on keyboard focus, aria-describedby linking, Escape dismiss
+- bumped version to 0.14.6
+
+## 2026-07-09 - version 0.14.5
+
+- `Textarea.tsx` — added character count display when `maxLength` is set, with `aria-live="polite"` so screen readers announce changes. Count is linked to the textarea via `aria-describedby`
+- `Textarea.test.tsx` — 9 tests: axe scans (visible label, hidden label, error state), label association, aria-invalid on error, aria-describedby for errors, character count display, count updates on typing, aria-live on count element
+- bumped version to 0.14.5
+
+## 2026-07-09 - version 0.14.4
+
+- `Input.test.tsx` — 9 tests: axe scans (visible label, hidden label, error state), label association via htmlFor/id, aria-invalid on error, aria-describedby linking error messages and helper text. Confirms existing implementation covers WCAG label and error announcement requirements
+- bumped version to 0.14.4
+
+## 2026-07-09 - version 0.14.3
+
+- `IconButton.test.tsx` — 4 tests: axe violation on empty aria-label (button-name rule), no violations with descriptive label, aria-label renders on the button element, focus-visible outline classes. Confirms existing required `aria-label` prop covers the accessible name requirement
+- bumped version to 0.14.3
+
+## 2026-07-09 - version 0.14.2
+
+- `Button.tsx` — replaced native `disabled` attribute with `aria-disabled` so disabled buttons remain focusable for screen reader discovery. Click prevention via guard on `onClick` instead of native disabled. Swapped `disabled:` Tailwind prefix classes for direct `pointer-events-none opacity-50` applied conditionally
+- `Button.test.tsx` — 11 tests: axe scan for all 5 variants (primary, secondary, outline, ghost, danger), loading state, disabled state, focusability when disabled, no native disabled attr, click prevention when disabled, focus-visible ring classes
+- bumped version to 0.14.2
+
+## 2026-07-09 - version 0.14.1
+
+- added `vitest-axe` for unit-level WCAG 2.1 AA accessibility scans alongside the existing Playwright axe E2E layer
+- `src/test/a11y.ts` — pre-configured axe instance scoped to wcag2a, wcag2aa, wcag21a, wcag21aa tags. Render a component, pass the container, assert `toHaveNoViolations()`
+- `src/test/setup.ts` — wired up vitest-axe matchers globally via `expect.extend()`
+- `src/test/a11y.test.ts` — two smoke tests: accessible markup passes, inaccessible markup (img without alt) is caught
+- `/thoughts/accessibility` — new thoughts page covering the approach: two-layer axe scanning, primitive component audit strategy, what axe catches vs. behavioral tests, 3D page accessibility, CI story
+- bumped version to 0.14.1
+
 ## 2026-07-07 - version 0.14.0
 
 - bumped to 0.14.0 for v2 redesign milestone

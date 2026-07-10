@@ -128,7 +128,7 @@ function BubblingDemo() {
             transition={hoverSpring}
           >
             <div className="mb-1 flex items-baseline justify-between">
-              <span className="font-mono text-[11px] text-muted/50">
+              <span className="font-mono text-[11px] text-muted">
                 &lt;{label}&gt;
               </span>
               <AnimatePresence>

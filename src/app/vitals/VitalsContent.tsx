@@ -224,7 +224,7 @@ export default function VitalsContent({
         {/* Version trend charts */}
         {byVersion.length >= 2 && (
           <div className="mt-8">
-            <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50">
+            <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
               Trend across versions
             </h2>
             <VitalsChart byVersion={byVersion} />
@@ -233,7 +233,7 @@ export default function VitalsContent({
 
         {/* By-page table */}
         <div className="mt-8">
-          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50">
+          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
             By page
           </h2>
 
@@ -313,7 +313,7 @@ export default function VitalsContent({
 
         {/* Improvement notes — what's actively being done per metric */}
         <div className="mt-10">
-          <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50">
+          <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
             What I&apos;m doing to improve these
           </h2>
 

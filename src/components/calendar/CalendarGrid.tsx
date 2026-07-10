@@ -70,7 +70,7 @@ function CalendarGrid({
         {DAY_LABELS.map((label) => (
           <div
             key={label}
-            className="py-2.5 text-center text-[10px] font-semibold uppercase tracking-widest text-muted/50"
+            className="py-2.5 text-center text-[10px] font-semibold uppercase tracking-widest text-muted"
           >
             {label}
           </div>

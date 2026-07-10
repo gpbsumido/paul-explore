@@ -122,7 +122,7 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
         <div ref={thoughtsRef} className="mt-14">
           <h2
             className={[
-              "mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50",
+              "mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted",
               reveal(thoughtsVisible, ""),
             ].join(" ")}
           >

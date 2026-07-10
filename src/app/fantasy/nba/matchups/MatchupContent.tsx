@@ -198,7 +198,7 @@ function MatchupCard({
               className="text-lg font-bold font-mono tabular-nums text-[#00D4FF]"
             />
           </div>
-          <span className="text-[10px] font-medium text-muted/50 tabular-nums">
+          <span className="text-[10px] font-medium text-muted tabular-nums">
             {awayCatWins}–{STAT_CATEGORIES.length - awayCatWins - homeCatWins}–
             {homeCatWins}
           </span>

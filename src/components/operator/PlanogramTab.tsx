@@ -61,7 +61,7 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
           Critical
         </span>
         {mismatchCount > 0 && (
-          <span className="text-warning-600 font-medium">
+          <span className="text-warning-700 dark:text-warning-500 font-medium">
             {mismatchCount} sensor mismatch{mismatchCount !== 1 ? "es" : ""}
           </span>
         )}

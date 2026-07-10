@@ -26,7 +26,7 @@ export default function AttachedCardsList({
 }: Props) {
   if (cards.length === 0) {
     return (
-      <p className="text-xs text-muted/50 text-center py-4 border border-dashed border-border rounded-lg">
+      <p className="text-xs text-muted text-center py-4 border border-dashed border-border rounded-lg">
         Search for a Pokémon card above to attach it to this event
       </p>
     );
