@@ -423,7 +423,7 @@ function ChampionDisplay({
           >
             {champion?.name ?? finalsPick.winner}
           </p>
-          <p className="mt-0.5 text-[10px] uppercase tracking-widest text-muted/50">
+          <p className="mt-0.5 text-[10px] uppercase tracking-widest text-muted">
             Your Champion
           </p>
         </div>
@@ -530,7 +530,7 @@ function RoundColumn({
       className="flex min-w-[130px] flex-1 flex-col gap-2"
     >
       {label && (
-        <span className="text-center text-[10px] font-bold uppercase tracking-wider text-muted/50">
+        <span className="text-center text-[10px] font-bold uppercase tracking-wider text-muted">
           {label}
         </span>
       )}
@@ -841,7 +841,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
           >
             {/* ── East ── */}
             <motion.div variants={slideInLeft}>
-              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted/50">
+              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted">
                 Eastern Conference
               </h2>
               <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:overflow-visible lg:px-0 lg:pb-0">
@@ -856,7 +856,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
               variants={fadeInUp}
               className="mx-auto w-full max-w-[260px] lg:mx-0 lg:max-w-none"
             >
-              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted/50">
+              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted">
                 NBA Finals
               </h2>
               {finals &&
@@ -887,7 +887,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
 
             {/* ── West ── */}
             <motion.div variants={slideInRight}>
-              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted/50">
+              <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted">
                 Western Conference
               </h2>
               {/* Mobile: normal L→R order (R1, R2, WCF). Desktop: mirrored so WCF is closest to center. */}
@@ -902,7 +902,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
 
         {/* ── Leaderboard ── */}
         <section className="mt-10">
-          <h2 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-muted/50">
+          <h2 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-muted">
             Leaderboard
           </h2>
           <PlayoffLeaderboard
@@ -913,7 +913,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
 
         {/* ── Rules & Scoring ── */}
         <section className="mt-10 mb-6">
-          <h2 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-muted/50">
+          <h2 className="mb-4 text-[12px] font-bold uppercase tracking-widest text-muted">
             Rules &amp; Scoring
           </h2>
           <div className="rounded-xl border border-border bg-surface p-5 space-y-5 text-[13px] text-foreground">

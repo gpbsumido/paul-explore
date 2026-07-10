@@ -55,7 +55,7 @@ const StoreCard = memo(function StoreCard({
       {/* Stats row */}
       <div className="flex items-center gap-4 text-xs text-muted">
         {alertCount > 0 && (
-          <span className="flex items-center gap-1 text-warning-600 font-medium">
+          <span className="flex items-center gap-1 text-warning-700 dark:text-warning-500 font-medium">
             <WarningTriangleIcon size={12} />
             {alertCount} alert{alertCount !== 1 ? "s" : ""}
           </span>

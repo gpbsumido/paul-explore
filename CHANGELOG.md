@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.11
+
+- Fixed 6 WCAG AA color contrast failures across light and dark themes:
+  - `text-error-600` on dark surfaces (3.71:1) — added `dark:text-error-500` for 4.76:1 ratio
+  - `text-success-600` on light backgrounds (3.30:1) — bumped to `text-success-700` for 5.02:1
+  - `text-warning-600` on light backgrounds (3.19:1) — bumped to `text-warning-700` for 5.02:1
+  - danger button `text-red-500` (3.76:1) — bumped to `text-red-600` for 4.83:1
+  - `text-muted/50` on both themes (1.96:1 / 2.70:1) — replaced with full `text-muted` across 41 files
+- Updated Input, Textarea, Button, SeverityBadge, InventoryRow, FleetStatsBar, PlanogramSlot, SensorOfflineCallout, ConnectionQuality, StoreCard, PlanogramTab, and all thoughts/calendar/fantasy pages
+- bumped version to 0.14.11
+
 ## 2026-07-09 - version 0.14.10
 
 - `e2e/public/landmarks.spec.ts` — 5 E2E tests verifying skip-to-content link (exists, visually hidden until focused, targets `#main-content`), navigation landmark, and main landmark on the landing page

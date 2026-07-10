@@ -9,11 +9,11 @@ interface SeverityBadgeProps {
 const CONFIG: Record<AlertSeverity, { label: string; className: string }> = {
   critical: {
     label: "Critical",
-    className: "bg-error-500/10 text-error-600",
+    className: "bg-error-500/10 text-error-600 dark:text-error-500",
   },
   warning: {
     label: "Warning",
-    className: "bg-warning-500/10 text-warning-600",
+    className: "bg-warning-500/10 text-warning-700 dark:text-warning-500",
   },
   info: {
     label: "Info",

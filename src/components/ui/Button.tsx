@@ -51,7 +51,7 @@ export default function Button({
         variant === "ghost" &&
           "bg-transparent text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
         variant === "danger" &&
-          "bg-transparent text-red-500 hover:text-red-400 active:text-red-600",
+          "bg-transparent text-red-600 hover:text-red-500 active:text-red-700",
         loading && "cursor-wait",
         className,
       ]

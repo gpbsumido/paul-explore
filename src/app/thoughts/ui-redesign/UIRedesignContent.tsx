@@ -21,7 +21,7 @@ export default function UIRedesignContent() {
       {view === "summary" ? (
         <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
           <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/50">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
               Dev notes
             </p>
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">

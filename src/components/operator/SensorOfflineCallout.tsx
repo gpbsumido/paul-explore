@@ -22,7 +22,7 @@ export default function SensorOfflineCallout({
 
   return (
     <div className="flex items-start gap-3 rounded-lg border border-warning-400/40 bg-warning-500/10 px-4 py-3">
-      <WarningTriangleIcon className="mt-0.5 shrink-0 text-warning-600" />
+      <WarningTriangleIcon className="mt-0.5 shrink-0 text-warning-700 dark:text-warning-500" />
       <div className="text-sm">
         <p className="font-medium text-warning-700 dark:text-warning-400">
           Sensor offline since {formatDistanceToNow(date, { addSuffix: true })}

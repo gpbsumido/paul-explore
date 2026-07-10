@@ -145,7 +145,7 @@ function WeekView({
         {/* All-day row */}
         <div className="flex border-b border-border">
           <div className="w-12 shrink-0 border-r border-border px-1 py-1 text-right">
-            <span className="text-[9px] font-semibold uppercase tracking-wide text-muted/50">
+            <span className="text-[9px] font-semibold uppercase tracking-wide text-muted">
               All day
             </span>
           </div>
