@@ -15,9 +15,9 @@ interface StatItemProps {
 function StatItem({ label, value, accent = "default" }: StatItemProps) {
   const valueColor =
     accent === "error"
-      ? "text-error-600 dark:text-error-400"
+      ? "text-error-700 dark:text-error-400"
       : accent === "warning"
-        ? "text-warning-600 dark:text-warning-400"
+        ? "text-warning-700 dark:text-warning-400"
         : "text-foreground";
 
   return (

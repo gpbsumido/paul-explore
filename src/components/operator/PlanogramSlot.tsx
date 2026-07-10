@@ -46,7 +46,7 @@ export default function PlanogramSlot({ slot }: PlanogramSlotProps) {
           <span className="text-[11px] tabular-nums text-muted">{pct}%</span>
         </div>
         {!slot.sensorMatch && (
-          <span className="text-[10px] font-medium text-warning-600">
+          <span className="text-[10px] font-medium text-warning-700 dark:text-warning-500">
             Mismatch
           </span>
         )}

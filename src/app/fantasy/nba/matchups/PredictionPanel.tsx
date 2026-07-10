@@ -592,7 +592,7 @@ export default function PredictionPanel({
                         <span className="text-[12px] font-mono tabular-nums text-foreground">
                           {w.avgPts}
                         </span>
-                        <span className="block text-[9px] text-muted/50 uppercase">
+                        <span className="block text-[9px] text-muted uppercase">
                           avg/g
                         </span>
                       </div>
@@ -667,7 +667,7 @@ export default function PredictionPanel({
           ) : (
             <section className="space-y-3">
               <SectionHeading>Injury Watch</SectionHeading>
-              <p className="text-[12px] text-muted/50 pl-4">
+              <p className="text-[12px] text-muted pl-4">
                 No injury flags on your roster this week.
               </p>
             </section>

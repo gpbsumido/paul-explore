@@ -151,7 +151,7 @@ export default function PlayerCompare({ rows, open }: Props) {
                   </RadarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-[300px] items-center justify-center text-[13px] text-muted/50">
+                <div className="flex h-[300px] items-center justify-center text-[13px] text-muted">
                   Select players to compare
                 </div>
               )}

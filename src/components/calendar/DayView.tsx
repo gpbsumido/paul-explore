@@ -101,7 +101,7 @@ function DayView({
           >
             {format(currentDate, "MMMM d")}
           </span>
-          <span className="text-base font-normal text-muted/50 leading-none">
+          <span className="text-base font-normal text-muted leading-none">
             {format(currentDate, "yyyy")}
           </span>
         </div>
@@ -114,7 +114,7 @@ function DayView({
             className="shrink-0 px-2 py-1.5 text-right"
             style={{ width: GUTTER_WIDTH }}
           >
-            <span className="text-[9px] font-semibold uppercase tracking-wide text-muted/50">
+            <span className="text-[9px] font-semibold uppercase tracking-wide text-muted">
               All day
             </span>
           </div>

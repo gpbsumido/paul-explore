@@ -40,7 +40,7 @@ interface EventModalProps {
 function SectionHeader({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-muted/50 whitespace-nowrap">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-muted whitespace-nowrap">
         {children}
       </span>
       <div className="flex-1 h-px bg-border" />

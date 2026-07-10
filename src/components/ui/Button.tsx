@@ -1,6 +1,11 @@
 import { type ComponentPropsWithRef, type ReactNode } from "react";
 
-export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "danger";
 export type ButtonSize = "xs" | "sm" | "md" | "lg";
 
 interface ButtonProps extends ComponentPropsWithRef<"button"> {
@@ -17,6 +22,7 @@ export default function Button({
   disabled,
   children,
   className,
+  onClick,
   ...rest
 }: ButtonProps) {
   const isDisabled = disabled || loading;
@@ -24,14 +30,14 @@ export default function Button({
   return (
     <button
       {...rest}
-      disabled={isDisabled}
-      aria-disabled={isDisabled}
+      aria-disabled={isDisabled || undefined}
       aria-busy={loading}
+      onClick={isDisabled ? undefined : onClick}
       className={[
         "inline-flex items-center justify-center font-medium",
         "transition-colors cursor-pointer",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
-        "disabled:pointer-events-none disabled:opacity-50",
+        isDisabled && "pointer-events-none opacity-50",
         size === "xs" && "px-3 py-1 text-[11px] rounded-md gap-1",
         size === "sm" && "h-8 px-4 text-sm rounded-md gap-1.5",
         size === "md" && "h-10 px-5 text-sm rounded-lg gap-2",
@@ -45,7 +51,7 @@ export default function Button({
         variant === "ghost" &&
           "bg-transparent text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
         variant === "danger" &&
-          "bg-transparent text-red-500 hover:text-red-400 active:text-red-600",
+          "bg-transparent text-red-600 hover:text-red-500 active:text-red-700",
         loading && "cursor-wait",
         className,
       ]

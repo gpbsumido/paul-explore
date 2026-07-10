@@ -28,7 +28,7 @@ const CONFIG: Record<
   },
   poor: {
     label: "Poor signal",
-    color: "text-warning-600",
+    color: "text-warning-700 dark:text-warning-500",
     bars: 1,
     offline: false,
   },

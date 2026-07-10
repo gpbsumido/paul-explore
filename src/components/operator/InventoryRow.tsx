@@ -18,19 +18,19 @@ const STATUS_BADGE: Record<StockStatus, { label: string; className: string }> =
   {
     healthy: {
       label: "Healthy",
-      className: "bg-success-500/10 text-success-600",
+      className: "bg-success-500/10 text-success-700 dark:text-success-500",
     },
     low: {
       label: "Low",
-      className: "bg-warning-500/10 text-warning-600",
+      className: "bg-warning-500/10 text-warning-700 dark:text-warning-500",
     },
     critical: {
       label: "Critical",
-      className: "bg-error-500/10 text-error-600",
+      className: "bg-error-500/10 text-error-600 dark:text-error-500",
     },
     "out-of-stock": {
       label: "Out of Stock",
-      className: "bg-error-500/10 text-error-600",
+      className: "bg-error-500/10 text-error-600 dark:text-error-500",
     },
   };
 
@@ -94,7 +94,7 @@ export default function InventoryRow({
 
       {/* Restock button */}
       {isRestocked ? (
-        <span className="shrink-0 flex items-center gap-1 rounded-md bg-success-500/10 px-3 py-1.5 text-xs font-medium text-success-600">
+        <span className="shrink-0 flex items-center gap-1 rounded-md bg-success-500/10 px-3 py-1.5 text-xs font-medium text-success-700 dark:text-success-500">
           <CheckmarkIcon size={12} />
           Restocked
         </span>
