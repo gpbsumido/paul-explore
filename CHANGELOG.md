@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.5
+
+- `Textarea.tsx` — added character count display when `maxLength` is set, with `aria-live="polite"` so screen readers announce changes. Count is linked to the textarea via `aria-describedby`
+- `Textarea.test.tsx` — 9 tests: axe scans (visible label, hidden label, error state), label association, aria-invalid on error, aria-describedby for errors, character count display, count updates on typing, aria-live on count element
+- bumped version to 0.14.5
+
 ## 2026-07-09 - version 0.14.4
 
 - `Input.test.tsx` — 9 tests: axe scans (visible label, hidden label, error state), label association via htmlFor/id, aria-invalid on error, aria-describedby linking error messages and helper text. Confirms existing implementation covers WCAG label and error announcement requirements
