@@ -4,9 +4,12 @@ import {
   useState,
   useRef,
   useCallback,
+  useId,
   type ReactNode,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
+  type FocusEvent,
+  type KeyboardEvent,
 } from "react";
 
 interface TooltipProps {
@@ -33,24 +36,48 @@ export default function Tooltip({
   children,
   delay = 500,
 }: TooltipProps) {
+  const tooltipId = useId();
   const [visible, setVisible] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrapperRef = useRef<HTMLSpanElement>(null);
 
-  const handleEnter = useCallback(
-    (e: ReactMouseEvent<HTMLSpanElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
+  const show = useCallback(
+    (rect: DOMRect) => {
       setPos({ x: rect.left + rect.width / 2, y: rect.top });
       timer.current = setTimeout(() => setVisible(true), delay);
     },
     [delay],
   );
 
-  const handleLeave = useCallback(() => {
+  const hide = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     setVisible(false);
-    // keep pos so there's no jump if the timer fires slightly late
   }, []);
+
+  const handleEnter = useCallback(
+    (e: ReactMouseEvent<HTMLSpanElement>) => {
+      show(e.currentTarget.getBoundingClientRect());
+    },
+    [show],
+  );
+
+  const handleFocus = useCallback(
+    (e: FocusEvent<HTMLSpanElement>) => {
+      show(e.currentTarget.getBoundingClientRect());
+    },
+    [show],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLSpanElement>) => {
+      if (e.key === "Escape" && visible) {
+        e.preventDefault();
+        hide();
+      }
+    },
+    [hide, visible],
+  );
 
   const style: CSSProperties = {
     position: "fixed",
@@ -62,10 +89,20 @@ export default function Tooltip({
   };
 
   return (
-    <span className="inline-flex w-full h-full" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <span
+      ref={wrapperRef}
+      className="inline-flex w-full h-full"
+      onMouseEnter={handleEnter}
+      onMouseLeave={hide}
+      onFocus={handleFocus}
+      onBlur={hide}
+      onKeyDown={handleKeyDown}
+      aria-describedby={visible ? tooltipId : undefined}
+    >
       {children}
       {visible && pos && (
         <div
+          id={tooltipId}
           role="tooltip"
           style={style}
           className="rounded-md bg-neutral-900 dark:bg-neutral-100 px-2.5 py-1.5 text-xs font-medium text-white dark:text-neutral-900 shadow-lg whitespace-nowrap"

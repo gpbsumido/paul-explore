@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.6
+
+- `Modal.tsx` — mark sibling DOM content with `aria-hidden="true"` when modal is open so screen readers ignore the background. Cleaned up on close
+- `Modal.test.tsx` — 6 tests: axe scan, role/aria-modal attributes, focus moves to first focusable on open, Tab cycles within focus trap, Escape closes, background marked inert
+- `Tooltip.tsx` — added `onFocus`/`onBlur` handlers so tooltip shows on keyboard focus (not just hover). Added Escape dismiss and `aria-describedby` linking tooltip content to trigger via generated ID
+- `Tooltip.test.tsx` — 5 tests: axe scan, shows on focus, hides on blur, Escape dismiss, aria-describedby linking
+- `InfoTip.tsx` — changed root element from `<span>` to `<button>` for proper button role. Added `onFocus`/`onBlur`, Escape dismiss, `aria-describedby`, configurable `delay` prop
+- `InfoTip.test.tsx` — 5 tests: axe scan, trigger has accessible name, shows on keyboard focus, aria-describedby linking, Escape dismiss
+- bumped version to 0.14.6
+
 ## 2026-07-09 - version 0.14.5
 
 - `Textarea.tsx` — added character count display when `maxLength` is set, with `aria-live="polite"` so screen readers announce changes. Count is linked to the textarea via `aria-describedby`
