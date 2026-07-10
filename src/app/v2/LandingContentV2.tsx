@@ -11,10 +11,12 @@ export default function LandingContentV2() {
   return (
     <div className="scroll-smooth bg-background">
       <NavBar authenticated={false} />
-      <HeroSection />
-      <ProjectsSection />
-      <StatsStrip />
-      <ThoughtsPreview />
+      <main>
+        <HeroSection />
+        <ProjectsSection />
+        <StatsStrip />
+        <ThoughtsPreview />
+      </main>
       <FooterSection />
     </div>
   );

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.10
+
+- `e2e/public/landmarks.spec.ts` — 5 E2E tests verifying skip-to-content link (exists, visually hidden until focused, targets `#main-content`), navigation landmark, and main landmark on the landing page
+- `LandingContentV2.tsx` — wrapped page sections in `<main>` element so the v2 landing page has a proper main landmark. Footer stays outside `<main>` as expected
+- bumped version to 0.14.10
+
 ## 2026-07-09 - version 0.14.9
 
 - `e2e/authenticated/a11y.spec.ts` — axe accessibility scans for calendar, vitals, and settings pages behind auth. Self-skips when `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` are not set so CI without credentials stays green
