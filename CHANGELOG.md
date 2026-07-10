@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.9
+
+- `e2e/authenticated/a11y.spec.ts` — axe accessibility scans for calendar, vitals, and settings pages behind auth. Self-skips when `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` are not set so CI without credentials stays green
+- `package.json` — added `test:e2e:auth` script (`playwright test --project=authenticated`) for running authenticated E2E tests locally
+- **Known gap**: CI only runs `--project=public`. Authenticated axe scans require real Auth0 credentials and run locally via `npm run test:e2e:auth`
+- bumped version to 0.14.9
+
 ## 2026-07-09 - version 0.14.8
 
 - verified all 477 tests (45 files) pass via `npm test`, including all new axe-based a11y tests. No jsdom or CI config changes needed — vitest-axe runs in the existing jsdom environment without additional setup
