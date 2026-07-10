@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.8
+
+- verified all 477 tests (45 files) pass via `npm test`, including all new axe-based a11y tests. No jsdom or CI config changes needed — vitest-axe runs in the existing jsdom environment without additional setup
+- bumped version to 0.14.8
+
 ## 2026-07-09 - version 0.14.7
 
 - `Chip.tsx` — added `onRemove` prop: renders a remove button with accessible name (`Remove ${label}`) and an x icon. Static, clickable, and removable chips all pass axe scans
