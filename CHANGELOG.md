@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-09 - version 0.14.4
+
+- `Input.test.tsx` — 9 tests: axe scans (visible label, hidden label, error state), label association via htmlFor/id, aria-invalid on error, aria-describedby linking error messages and helper text. Confirms existing implementation covers WCAG label and error announcement requirements
+- bumped version to 0.14.4
+
 ## 2026-07-09 - version 0.14.3
 
 - `IconButton.test.tsx` — 4 tests: axe violation on empty aria-label (button-name rule), no violations with descriptive label, aria-label renders on the button element, focus-visible outline classes. Confirms existing required `aria-label` prop covers the accessible name requirement
