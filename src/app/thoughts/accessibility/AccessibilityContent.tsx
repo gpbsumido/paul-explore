@@ -369,6 +369,143 @@ expect(results).toHaveNoViolations();`}
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                WCAG for the uninitiated
+              </h2>
+              <p className="text-muted">
+                WCAG (Web Content Accessibility Guidelines) sounds like a dense
+                legal document, and honestly, parts of it are. But the core idea
+                is simple: people interact with the web in different ways, and
+                your UI shouldn&apos;t assume they&apos;re all using a mouse
+                with perfect vision. WCAG organizes everything under four
+                principles, remembered by the acronym POUR:
+              </p>
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-muted">
+                <li>
+                  <strong>Perceivable</strong> — can the user actually see or
+                  hear the content? Text alternatives for images, captions for
+                  video, sufficient color contrast, content that works when you
+                  zoom to 200%.
+                </li>
+                <li>
+                  <strong>Operable</strong> — can they interact with it? Full
+                  keyboard support, enough time to read and act, no content that
+                  causes seizures, clear navigation and focus indicators.
+                </li>
+                <li>
+                  <strong>Understandable</strong> — does it make sense? Readable
+                  text, predictable behavior, helpful error messages. Forms
+                  should tell you what went wrong and how to fix it.
+                </li>
+                <li>
+                  <strong>Robust</strong> — does it work with different
+                  technologies? Valid HTML, proper ARIA usage, compatibility
+                  with assistive tech like screen readers and voice control.
+                </li>
+              </ul>
+              <p className="mt-3 text-muted">
+                There are three conformance levels: A (bare minimum), AA (the
+                standard everyone targets and what most legal requirements
+                reference), and AAA (ideal but rarely required in full). This
+                project targets AA across the board.
+              </p>
+              <p className="mt-3 text-muted">
+                Each rule is called a &quot;Success Criterion&quot; and has a
+                number like SC 1.4.3 (contrast) or SC 2.1.1 (keyboard). You
+                don&apos;t need to memorize them, but knowing the numbering
+                system helps when you see them referenced in axe violations or
+                audit reports. The first digit maps to POUR: 1 = Perceivable, 2
+                = Operable, 3 = Understandable, 4 = Robust.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Getting up to speed</h2>
+              <p className="text-muted">
+                The fastest way to build real intuition is to use your own app
+                without a mouse. Tab through the page. Can you reach every
+                button? Can you tell where focus is? Can you dismiss a modal
+                with Escape? Try a screen reader too — VoiceOver is built into
+                macOS (Cmd+F5). You&apos;ll immediately feel the difference
+                between a labeled input and an unlabeled one.
+              </p>
+              <p className="mt-3 text-muted">
+                After that, the most practical learning path:
+              </p>
+              <ul className="mt-3 list-decimal space-y-2 pl-5 text-muted">
+                <li>
+                  <strong>Start with the axe browser extension</strong> —
+                  install it in Chrome or Firefox, run it on your pages, and
+                  read the violations. Each one links to a detailed explanation
+                  of the WCAG criterion it violates and how to fix it. This
+                  teaches you the rules through your own code, not abstract
+                  examples.
+                </li>
+                <li>
+                  <strong>Learn semantic HTML before ARIA</strong> — most
+                  accessibility problems come from using{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<div>"}
+                  </code>{" "}
+                  and{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<span>"}
+                  </code>{" "}
+                  for everything. Use{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<button>"}
+                  </code>
+                  ,{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<nav>"}
+                  </code>
+                  ,{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<main>"}
+                  </code>
+                  ,{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<label>"}
+                  </code>{" "}
+                  — the browser gives you keyboard support, screen reader
+                  announcements, and focus management for free. ARIA is a patch
+                  for when HTML doesn&apos;t have the right element, not a
+                  replacement for using the right element.
+                </li>
+                <li>
+                  <strong>Read the WAI-ARIA Authoring Practices</strong> — this
+                  is the official patterns guide. It shows exactly how common
+                  widgets (tabs, modals, comboboxes, menus) should behave for
+                  keyboard and screen reader users. It&apos;s the single best
+                  reference for &quot;how should this component work
+                  accessibly?&quot;
+                </li>
+                <li>
+                  <strong>Follow a structured course</strong> — Google&apos;s
+                  free &quot;Accessibility&quot; course on web.dev covers the
+                  fundamentals well. For deeper dives, Deque University (the
+                  team behind axe-core) has detailed modules on ARIA, testing,
+                  and design patterns.
+                </li>
+                <li>
+                  <strong>Practice on real audit findings</strong> — the best
+                  teacher is fixing actual violations. Run axe, fix what it
+                  finds, then test the keyboard flow and screen reader output.
+                  Each fix teaches you a rule you won&apos;t forget because you
+                  felt the problem before you solved it.
+                </li>
+              </ul>
+              <p className="mt-3 text-muted">
+                You don&apos;t need to read the full WCAG spec. Most day-to-day
+                web development touches the same dozen or so criteria
+                repeatedly: labels (1.3.1, 4.1.2), keyboard access (2.1.1),
+                focus visible (2.4.7), contrast (1.4.3), error identification
+                (3.3.1), and name/role/value (4.1.2). Get comfortable with those
+                and you&apos;re ahead of most developers.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">PR review checklist</h2>
               <p className="text-muted">
                 A quick reference for reviewing PRs that touch UI. Not every
@@ -600,6 +737,59 @@ expect(results).toHaveNoViolations();`}
                 and check for skip links and semantic landmarks — main, nav,
                 header. not every item applies to every PR but scanning the list
                 catches the common gaps
+              </Sent>
+
+              <Timestamp>3:02 PM</Timestamp>
+
+              <Received pos="first">what even is WCAG though</Received>
+              <Received pos="last">
+                like I know it&apos;s accessibility guidelines but I don&apos;t
+                have a ton of formal experience with it
+              </Received>
+
+              <Sent pos="first">
+                it&apos;s organized around four principles, POUR: Perceivable,
+                Operable, Understandable, Robust. can the user see it, interact
+                with it, understand it, and does it work with assistive tech
+              </Sent>
+              <Sent pos="middle">
+                there are three levels: A is bare minimum, AA is the standard
+                everyone targets (and what legal requirements reference), AAA is
+                ideal but rarely required in full. we target AA
+              </Sent>
+              <Sent pos="last">
+                each rule has a number like SC 1.4.3. the first digit maps to
+                POUR: 1 = Perceivable, 2 = Operable, 3 = Understandable, 4 =
+                Robust. you don&apos;t need to memorize them but it helps when
+                reading axe violations
+              </Sent>
+
+              <Timestamp>3:06 PM</Timestamp>
+
+              <Received>how do you actually get good at this stuff</Received>
+
+              <Sent pos="first">
+                use your own app without a mouse. tab through the page, try to
+                reach every button, dismiss a modal with Escape. then turn on
+                VoiceOver (Cmd+F5 on Mac) and listen to what it announces.
+                you&apos;ll feel the gaps immediately
+              </Sent>
+              <Sent pos="middle">
+                install the axe browser extension, run it on your pages, and
+                read the violations. each one links to the WCAG criterion and
+                how to fix it. you learn the rules through your own code
+              </Sent>
+              <Sent pos="middle">
+                learn semantic HTML before ARIA. most problems come from div
+                soup. use button, nav, main, label — the browser gives you
+                keyboard support and screen reader announcements for free. ARIA
+                is a patch, not a replacement
+              </Sent>
+              <Sent pos="last">
+                day to day you only touch about a dozen criteria repeatedly:
+                labels, keyboard access, focus visible, contrast, error
+                identification, name/role/value. get comfortable with those and
+                you&apos;re ahead of most developers
               </Sent>
 
               <div className={styles.typingDots}>

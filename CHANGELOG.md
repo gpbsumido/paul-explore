@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-09 - version 0.15.0
+
+- Added WCAG primer and learning path to the `/thoughts/accessibility` dev notes page:
+  - "WCAG for the uninitiated" section: POUR principles, conformance levels (A/AA/AAA), success criterion numbering system
+  - "Getting up to speed" section: keyboard-first testing, axe browser extension, semantic HTML before ARIA, WAI-ARIA Authoring Practices, recommended courses, the dozen criteria that cover most day-to-day work
+  - Matching chat-view messages for both new sections
+- bumped version to 0.14.13
+
 ## 2026-07-09 - version 0.14.12
 
 - Added accessibility testing patterns and PR review checklist to the `/thoughts/accessibility` dev notes page:
