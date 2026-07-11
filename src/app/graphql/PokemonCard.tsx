@@ -64,7 +64,7 @@ const PokemonCard = memo(function PokemonCard({ pokemon }: PokemonCardProps) {
     >
       {/* dex number + type badges */}
       <div className="flex items-start justify-between gap-1 min-h-[20px]">
-        <span className="text-[10px] font-mono text-muted/60">
+        <span className="text-[10px] font-mono text-muted">
           {formatDexId(pokemon.id)}
         </span>
         <div className="flex gap-1 flex-wrap justify-end">

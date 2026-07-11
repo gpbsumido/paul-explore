@@ -571,6 +571,329 @@ expect(results).toHaveNoViolations();`}
                 </li>
               </ul>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Three-layer defense</h2>
+              <p className="text-muted">
+                The project now has three layers catching accessibility issues
+                at different stages. First, eslint-plugin-jsx-a11y runs
+                recommended WCAG rules at lint time, catching structural issues
+                like missing alt text, invalid ARIA attributes, and
+                non-interactive elements with click handlers before the code
+                even runs. Second, vitest-axe runs axe-core inside unit tests,
+                scanning every component variant against WCAG 2.1 AA criteria in
+                milliseconds. Third, @axe-core/playwright runs full-page axe
+                scans in E2E tests against rendered routes.
+              </p>
+              <p className="mt-3 text-muted">
+                Each layer catches things the others miss: lint catches patterns
+                (like a div with onClick but no role), unit tests catch rendered
+                DOM issues (like a generated ID that doesn&apos;t match), and
+                E2E tests catch composition problems (like two components that
+                individually pass but together create duplicate landmarks).
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                The feature-level audit
+              </h2>
+              <p className="text-muted">
+                The bottom-up approach (primitives first) left a gap:
+                feature-level components in operator/, calendar/, fantasy/, and
+                learn/ were assembled from accessible primitives but introduced
+                their own violations. Operator pages had charts with no text
+                alternatives (screen readers announced empty containers),
+                skeleton loaders that cluttered the accessibility tree, and
+                stock bars with no semantic meaning. The calendar had a combobox
+                that couldn&apos;t be operated by keyboard, toggle buttons with
+                no ARIA state, and time grid slots that were click-only.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix was systematic: run axe on every feature component, fix
+                what it finds, then add behavioral tests for keyboard
+                interaction. 29 new tests across two test files cover the
+                feature layer now.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Lint-time accessibility with eslint-plugin-jsx-a11y
+              </h2>
+              <p className="text-muted">
+                Adding eslint-plugin-jsx-a11y to the ESLint config catches a
+                category of issues that neither axe nor manual testing reliably
+                finds: patterns that are always wrong regardless of runtime
+                state. Things like a div with an onClick handler but no role
+                attribute, an img without alt, an anchor without href, or an
+                interactive element without a keyboard handler. The plugin runs
+                the recommended WCAG rules from the jsx-a11y package.
+              </p>
+              <p className="mt-3 text-muted">
+                One gotcha when using it alongside eslint-config-next: Next.js
+                already registers the jsx-a11y plugin internally, so you only
+                add the recommended rules object, not the full plugin config.
+                Trying to register the plugin twice causes a &quot;Cannot
+                redefine plugin&quot; error.
+              </p>
+              <p className="mt-3 text-muted">
+                In the browser, the Firefox Accessibility Inspector and the axe
+                DevTools extension complement this by letting you inspect the
+                live accessibility tree, run on-demand axe scans, and simulate
+                how screen readers interpret your page. Between lint, unit
+                tests, and browser dev tools, most violations get caught before
+                they reach a PR.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Event delegation and nested interactives
+              </h2>
+              <p className="text-muted">
+                CalendarGrid has a pattern that doesn&apos;t fit neatly into
+                accessibility rules: a day cell that&apos;s clickable (to create
+                an event) but also contains clickable EventChip buttons. You
+                can&apos;t put role=&quot;button&quot; on the outer div because
+                that creates nested interactive elements, which is an axe
+                violation. You can&apos;t remove the click handler because
+                clicking empty space in the cell should open the event creator.
+              </p>
+              <p className="mt-3 text-muted">
+                The solution is event delegation: the outer div handles onClick
+                but checks if the click target is inside a button or anchor (via
+                closest(&quot;button, a&quot;)). If it is, the click belongs to
+                the child and the parent ignores it. The div keeps its
+                aria-label for screen readers and handles Enter/Space for
+                keyboard users, but the eslint rule for
+                no-static-element-interactions gets a targeted disable comment
+                since the pattern is intentional. This is the right tradeoff —
+                the alternative (wrapping all empty space in invisible buttons)
+                creates worse keyboard navigation.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Accessibility beyond code
+              </h2>
+              <p className="text-muted">
+                Automated tools catch roughly 30-40% of accessibility issues.
+                The rest requires human judgment. Some things to build habits
+                around: Test with sound off to make sure nothing depends solely
+                on audio cues. Test at 200% zoom to verify layouts don&apos;t
+                break. Respect user preferences via media queries:
+                prefers-reduced-motion for animations, prefers-color-scheme for
+                themes, prefers-contrast for high-contrast modes.
+              </p>
+              <p className="mt-3 text-muted">
+                Make click targets large enough for users with motor impairments
+                and avoid time-limited interactions like auto-dismissing popups.
+                Use skip links so keyboard users can bypass repetitive
+                navigation. Provide captions for video and audio content.
+                Consider offering dyslexia-friendly font options for text-heavy
+                pages. The goal isn&apos;t perfection, it&apos;s building habits
+                that make accessibility a natural part of development rather
+                than an afterthought audit.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                How the tests work in practice
+              </h2>
+              <p className="text-muted">
+                Accessibility tests run at three different points in the
+                development cycle, and each one activates automatically — no
+                extra commands or config needed.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Lint time (eslint-plugin-jsx-a11y)</strong> — fires on
+                every save if your editor has ESLint integration, and runs in CI
+                as part of the standard lint step. Catches structural issues
+                before the code even executes: missing alt text, click handlers
+                without keyboard support, invalid ARIA attributes. Zero
+                developer effort to activate — if your ESLint config inherits
+                from the project&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  eslint.config.mjs
+                </code>
+                , you get the rules.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Unit tests (vitest-axe)</strong> — run as part of the
+                normal{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  npm test
+                </code>{" "}
+                command alongside all other Vitest tests. The axe matchers are
+                globally registered in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  src/test/setup.ts
+                </code>
+                , so any test file can import{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  axe
+                </code>{" "}
+                from{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @/test/a11y
+                </code>{" "}
+                and call{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  expect(results).toHaveNoViolations()
+                </code>
+                . These run in CI on every push.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>E2E tests (@axe-core/playwright)</strong> — run via{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  npm run test:e2e
+                </code>{" "}
+                for public routes and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  npm run test:e2e:auth
+                </code>{" "}
+                for authenticated routes. Public route scans run in CI.
+                Authenticated scans require real Auth0 credentials and run
+                locally.
+              </p>
+              <h3 className="mt-6 mb-2 text-base font-bold">
+                When building a new feature
+              </h3>
+              <p className="text-muted">
+                The process is the same every time. Write your component, then
+                add an accessibility test alongside your other tests:
+              </p>
+              <ol className="mt-3 list-decimal space-y-2 pl-5 text-muted">
+                <li>
+                  <strong>Add an axe scan for each visual variant</strong> —
+                  default, loading, error, disabled, empty. Each variant can
+                  produce different DOM structures, so each needs its own scan.
+                  Import{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    axe
+                  </code>{" "}
+                  from{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    @/test/a11y
+                  </code>
+                  , render the component, pass the container, assert zero
+                  violations.
+                </li>
+                <li>
+                  <strong>Add ARIA and label assertions</strong> — use{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    getByRole
+                  </code>
+                  ,{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    getByLabelText
+                  </code>
+                  , and{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    toHaveAttribute
+                  </code>{" "}
+                  to verify roles, labels, aria-expanded, aria-selected, and
+                  other ARIA state. These document the component&apos;s
+                  accessible API.
+                </li>
+                <li>
+                  <strong>Add keyboard behavior tests</strong> — if the
+                  component is interactive, verify it works with Enter, Space,
+                  Escape, and arrow keys as appropriate. Use{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    userEvent.keyboard
+                  </code>{" "}
+                  to simulate keypresses and assert the right callbacks fire.
+                </li>
+                <li>
+                  <strong>Check heading structure</strong> — if your feature
+                  adds a new page, make sure it has an{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    {"<h1>"}
+                  </code>
+                  . If it&apos;s visually redundant with PageHeader, use{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    sr-only
+                  </code>{" "}
+                  to hide it visually while keeping it in the accessibility
+                  tree.
+                </li>
+                <li>
+                  <strong>Verify contrast</strong> — don&apos;t use opacity
+                  modifiers on text-muted (like{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    text-muted/30
+                  </code>
+                  ). The base token already meets contrast requirements;
+                  reducing its opacity drops it below the 4.5:1 threshold.
+                </li>
+              </ol>
+              <pre className="mt-3 overflow-x-auto rounded bg-surface px-4 py-3 text-[13px] font-mono text-foreground">
+                {`// typical a11y test for a new component
+import { axe } from "@/test/a11y";
+
+it("has no axe violations", async () => {
+  const { container } = render(<MyComponent />);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+});
+
+it("is keyboard accessible", async () => {
+  render(<MyComponent onAction={onAction} />);
+  const trigger = screen.getByRole("button", { name: "Do thing" });
+  trigger.focus();
+  await userEvent.keyboard("{Enter}");
+  expect(onAction).toHaveBeenCalled();
+});`}
+              </pre>
+              <p className="mt-3 text-muted">
+                That&apos;s it. The lint rules catch the obvious structural
+                issues as you type, the axe scans catch WCAG violations when
+                tests run, and the E2E layer catches composition issues on the
+                full page. If all three pass, the component is in good shape.
+                The tests run automatically in CI — no manual steps needed
+                beyond writing them.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">ARIA live regions</h2>
+              <p className="text-muted">
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-live
+                </code>{" "}
+                attribute controls how screen readers announce dynamic content
+                updates.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-live=&quot;off&quot;
+                </code>{" "}
+                is the default, no announcements.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-live=&quot;polite&quot;
+                </code>{" "}
+                waits until the screen reader is idle to announce updates, which
+                is the right default for status messages, search result counts,
+                and saved confirmations.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-live=&quot;assertive&quot;
+                </code>{" "}
+                interrupts immediately and should be reserved for critical
+                alerts and errors.
+              </p>
+              <p className="mt-3 text-muted">
+                The project uses polite regions for toast notifications
+                (RefreshBar), search result counts (CardSearch), and character
+                counts (Textarea). The key insight is that the live region
+                container must exist in the DOM before the content changes — if
+                you conditionally render the container and the content at the
+                same time, screen readers miss the announcement because they
+                weren&apos;t watching the region when it appeared.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -790,6 +1113,180 @@ expect(results).toHaveNoViolations();`}
                 labels, keyboard access, focus visible, contrast, error
                 identification, name/role/value. get comfortable with those and
                 you&apos;re ahead of most developers
+              </Sent>
+
+              <Timestamp>3:10 PM</Timestamp>
+
+              <Received>
+                so what&apos;s the full defense setup look like now
+              </Received>
+
+              <Sent pos="first">
+                three layers. eslint-plugin-jsx-a11y catches structural issues
+                at lint time — divs with onClick but no role, missing alt text,
+                invalid ARIA. it runs before the code even executes
+              </Sent>
+              <Sent pos="middle">
+                second layer is vitest-axe in unit tests. scans every component
+                variant against WCAG 2.1 AA in milliseconds. third is
+                @axe-core/playwright in E2E tests for full-page scans
+              </Sent>
+              <Sent pos="last">
+                each catches different things. lint catches patterns, unit tests
+                catch rendered DOM issues, E2E catches composition problems
+                where individually accessible components break when assembled
+              </Sent>
+
+              <Timestamp>3:14 PM</Timestamp>
+
+              <Received>
+                what did the feature-level audit find beyond the primitives
+              </Received>
+
+              <Sent pos="first">
+                the bottom-up approach left gaps. operator charts had no text
+                alternatives, skeleton loaders cluttered the a11y tree, stock
+                bars had no semantic meaning. the calendar combobox
+                couldn&apos;t be keyboard operated
+              </Sent>
+              <Sent pos="last">
+                fixed all of it and added 29 tests across two new test files
+                covering the feature layer. the pattern is the same: run axe,
+                fix violations, add keyboard behavior tests
+              </Sent>
+
+              <Timestamp>3:18 PM</Timestamp>
+
+              <Received>tell me about the eslint plugin setup</Received>
+
+              <Sent pos="first">
+                eslint-plugin-jsx-a11y catches stuff that&apos;s always wrong
+                regardless of runtime state. divs with onClick but no role, imgs
+                without alt, interactive elements without keyboard handlers
+              </Sent>
+              <Sent pos="middle">
+                one gotcha with Next.js: eslint-config-next already registers
+                the plugin, so you only add the rules object, not the full
+                plugin config. otherwise you get a &quot;Cannot redefine
+                plugin&quot; error
+              </Sent>
+              <Sent pos="last">
+                pair it with Firefox&apos;s Accessibility Inspector and the axe
+                DevTools extension for browser-side inspection. between lint,
+                unit tests, and browser tools, most violations get caught before
+                a PR
+              </Sent>
+
+              <Timestamp>3:22 PM</Timestamp>
+
+              <Received>
+                what was the deal with CalendarGrid and nested interactives
+              </Received>
+
+              <Sent pos="first">
+                day cells are clickable to create events but contain clickable
+                EventChip buttons inside them. can&apos;t use
+                role=&quot;button&quot; on the outer div because nested
+                interactive elements is an axe violation
+              </Sent>
+              <Sent pos="last">
+                the fix is event delegation. the outer div handles onClick but
+                checks if the target is inside a button or anchor via closest().
+                if it is, the parent ignores the click. the eslint rule gets a
+                targeted disable since the pattern is intentional
+              </Sent>
+
+              <Timestamp>3:26 PM</Timestamp>
+
+              <Received>
+                what about stuff automated tools can&apos;t catch
+              </Received>
+
+              <Sent pos="first">
+                automated tools catch maybe 30-40% of issues. the rest is
+                habits. test with sound off, test at 200% zoom, respect
+                prefers-reduced-motion and prefers-contrast media queries
+              </Sent>
+              <Sent pos="middle">
+                make click targets large enough for motor impairments, avoid
+                auto-dismissing popups, add skip links for keyboard users,
+                caption all video and audio content
+              </Sent>
+              <Sent pos="last">
+                the goal isn&apos;t perfection, it&apos;s making accessibility a
+                natural part of development. build the habits so it&apos;s not
+                an afterthought audit
+              </Sent>
+
+              <Timestamp>3:30 PM</Timestamp>
+
+              <Received>how do aria-live regions actually work</Received>
+
+              <Sent pos="first">
+                three values. off is the default, no announcements. polite waits
+                until the screen reader is idle — right for status messages,
+                search counts, save confirmations. assertive interrupts
+                immediately, only for critical errors
+              </Sent>
+              <Sent pos="last">
+                key gotcha: the live region container must exist in the DOM
+                before the content changes. if you conditionally render the
+                container and content at the same time, screen readers miss it
+                because they weren&apos;t watching the region when it appeared
+              </Sent>
+
+              <Timestamp>3:34 PM</Timestamp>
+
+              <Received pos="first">
+                how do the tests actually work though
+              </Received>
+              <Received pos="last">
+                like when do they run, what do I need to do when building a new
+                feature
+              </Received>
+
+              <Sent pos="first">
+                three activation points. eslint-plugin-jsx-a11y fires on save in
+                your editor and in CI lint. vitest-axe runs as part of normal
+                npm test. playwright axe runs in the E2E step
+              </Sent>
+              <Sent pos="middle">
+                none of them need special commands. the lint rules are in the
+                eslint config, the axe matchers are globally registered in
+                test/setup.ts, and the E2E scans are just playwright tests. they
+                all run automatically in CI
+              </Sent>
+              <Sent pos="last">
+                for authenticated routes (calendar, vitals, settings), E2E axe
+                scans need real Auth0 credentials. those run locally via npm run
+                test:e2e:auth, not in CI for forks
+              </Sent>
+
+              <Timestamp>3:38 PM</Timestamp>
+
+              <Received>
+                so when I build a new component, what&apos;s the checklist
+              </Received>
+
+              <Sent pos="first">
+                first, add an axe scan for each visual variant — default,
+                loading, error, disabled. import axe from @/test/a11y, render,
+                pass the container, assert toHaveNoViolations()
+              </Sent>
+              <Sent pos="middle">
+                second, add ARIA assertions — getByRole, getByLabelText,
+                toHaveAttribute for aria-expanded, aria-selected, etc. these
+                document the component&apos;s accessible API
+              </Sent>
+              <Sent pos="middle">
+                third, keyboard tests if it&apos;s interactive. Enter, Space,
+                Escape, arrow keys as appropriate. use userEvent.keyboard to
+                simulate and assert callbacks fire
+              </Sent>
+              <Sent pos="last">
+                also: make sure new pages have an h1 (use sr-only if visually
+                redundant), and never use opacity modifiers on text-muted —
+                text-muted/30 drops below the 4.5:1 contrast threshold
               </Sent>
 
               <div className={styles.typingDots}>

@@ -7,5 +7,10 @@ export const metadata: Metadata = {
 };
 
 export default function EventsPage() {
-  return <EventsContent />;
+  return (
+    <>
+      <h1 className="sr-only">Events</h1>
+      <EventsContent />
+    </>
+  );
 }

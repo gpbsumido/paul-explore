@@ -24,7 +24,14 @@ export default function StockBar({ currentStock, capacity }: StockBarProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1.5 w-20 rounded-full bg-neutral-200 dark:bg-neutral-800">
+      <div
+        role="meter"
+        aria-label={`Stock level: ${currentStock} of ${capacity} (${status})`}
+        aria-valuenow={currentStock}
+        aria-valuemin={0}
+        aria-valuemax={capacity}
+        className="h-1.5 w-20 rounded-full bg-neutral-200 dark:bg-neutral-800"
+      >
         <div
           className={`h-full rounded-full transition-[width,background-color] ${BAR_COLORS[status]}`}
           style={{ width: `${Math.min(pct, 100)}%` }}

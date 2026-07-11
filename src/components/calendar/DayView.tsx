@@ -87,7 +87,7 @@ function DayView({
         <div
           className={[
             "text-[10px] font-bold uppercase tracking-[0.18em] mb-1",
-            today ? "text-red-500" : "text-muted/60",
+            today ? "text-red-500" : "text-muted",
           ].join(" ")}
         >
           {format(currentDate, "EEEE")}
@@ -150,9 +150,7 @@ function DayView({
               className="flex items-start justify-end pr-2 pt-1.5 border-b border-border last:border-b-0"
               style={{ height: DAY_ROW_HEIGHT }}
             >
-              <span className="text-[10px] text-muted/30">
-                {formatHour(hour)}
-              </span>
+              <span className="text-[10px] text-muted">{formatHour(hour)}</span>
             </div>
           ))}
         </div>
@@ -162,13 +160,20 @@ function DayView({
           {HOURS.map((hour) => (
             <div
               key={hour}
+              role="button"
+              tabIndex={0}
+              aria-label={`Create event at ${hour}:00`}
               onClick={() => onSlotClick(slotDate(currentDate, hour))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSlotClick(slotDate(currentDate, hour));
+                }
+              }}
               style={{ height: DAY_ROW_HEIGHT }}
               className={[
                 "border-b border-border last:border-b-0 cursor-pointer transition-colors",
-                today
-                  ? "hover:bg-red-500/5"
-                  : "hover:bg-surface-raised/50",
+                today ? "hover:bg-red-500/5" : "hover:bg-surface-raised/50",
               ].join(" ")}
             />
           ))}

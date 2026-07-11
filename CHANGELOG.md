@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-07-10 - version 0.15.1
+
+- Project-wide WCAG 2.1 AA accessibility audit and remediation across all features:
+  - **Operator pages**: added ARIA roles and labels to ToastNotification (`aria-live`), Bone (`aria-hidden`), RefreshBar (`role="status"`), StockBar (`role="meter"`), AlertTrendChart/FleetHealthChart/InventoryComparisonChart (`role="img"` with text alternatives)
+  - **Calendar**: full combobox rewrite for CardSearch (keyboard navigation, `aria-activedescendant`, live region for result count), radiogroup patterns for CalendarModal sync/role toggles, tablist for CountdownModal entry type toggle, keyboard-accessible time slots in DayView and WeekView (`role="button"`, Enter/Space handling), event delegation pattern for CalendarGrid day cells
+  - **PageHeader**: semantic breadcrumb navigation with `<ol>`/`<li>`, `aria-current="page"`, `aria-label="Breadcrumb"`
+  - **Fantasy**: fixed label-control association in PlayerCompare with `htmlFor`/`id` pairs
+  - **Learn**: added ARIA roles and keyboard handlers to EventDelegationContent interactive containers
+  - **Loading states**: added `aria-busy`/`aria-label` to operator, store detail, and vitals loading pages
+- Fixed color contrast violations across 40+ files: replaced `text-muted/30`, `text-muted/40`, `text-muted/60` opacity modifiers with `text-muted` to meet WCAG AA 4.5:1 minimum ratio
+- Added visually-hidden `<h1>` headings (`sr-only`) to 14 pages missing level-one headings
+- Added `eslint-plugin-jsx-a11y` recommended rules to ESLint config for lint-time a11y enforcement
+- New test suites:
+  - `src/__tests__/operator/a11y.test.tsx` — 16 axe scan and semantic assertion tests for operator components
+  - `src/__tests__/calendar/a11y.test.tsx` — 13 axe scan, keyboard accessibility, and ARIA assertion tests for calendar components (CountdownModal, CardSearch, DayView, WeekView, CalendarGrid)
+- Updated accessibility dev thoughts page with comprehensive WCAG masterclass content, three-layer defense strategy, and tooling documentation
+- All 506 tests passing, zero lint errors
+- bumped version to 0.15.1
+
 ## 2026-07-09 - version 0.15.0
 
 - Added WCAG primer and learning path to the `/thoughts/accessibility` dev notes page:

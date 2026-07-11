@@ -78,10 +78,14 @@ export default function PlayerCompare({ rows, open }: Props) {
             {/* Player selectors */}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+                <label
+                  htmlFor="compare-player-1"
+                  className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted"
+                >
                   Player 1
                 </label>
                 <select
+                  id="compare-player-1"
                   className={selectClass}
                   style={selectStyle}
                   value={idA ?? ""}
@@ -96,10 +100,14 @@ export default function PlayerCompare({ rows, open }: Props) {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+                <label
+                  htmlFor="compare-player-2"
+                  className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted"
+                >
                   Player 2
                 </label>
                 <select
+                  id="compare-player-2"
                   className={selectClass}
                   style={selectStyle}
                   value={idB ?? ""}
@@ -181,7 +189,7 @@ export default function PlayerCompare({ rows, open }: Props) {
                 <table className="w-full text-[12px]">
                   <thead>
                     <tr className="border-b border-border/50 bg-surface-raised/30">
-                      <th className="px-2.5 py-1.5 text-left font-semibold text-muted/60 uppercase tracking-wider">
+                      <th className="px-2.5 py-1.5 text-left font-semibold text-muted uppercase tracking-wider">
                         Stat
                       </th>
                       <th className="px-2.5 py-1.5 text-right font-semibold text-[#FF6B35]/80 uppercase tracking-wider">
@@ -211,9 +219,7 @@ export default function PlayerCompare({ rows, open }: Props) {
                           key={key}
                           className="border-b border-border/30 last:border-b-0"
                         >
-                          <td className="px-2.5 py-1.5 text-muted/70">
-                            {label}
-                          </td>
+                          <td className="px-2.5 py-1.5 text-muted">{label}</td>
                           <td
                             className={`px-2.5 py-1.5 text-right font-mono tabular-nums ${aWins ? "font-bold text-[#FF6B35]" : "text-muted"}`}
                           >

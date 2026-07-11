@@ -170,14 +170,23 @@ function SharingTab({
           {members.map((m) => (
             <li key={m.userSub} className="flex items-center gap-2 min-w-0">
               <span className="flex-1 text-xs truncate text-foreground">
-                {m.email ?? (m.role === "owner" && calendarRole === "owner" ? "You" : "—")}
+                {m.email ??
+                  (m.role === "owner" && calendarRole === "owner"
+                    ? "You"
+                    : "—")}
               </span>
               {calendarRole === "owner" && m.role !== "owner" ? (
                 <>
-                  <div className="flex items-center rounded border border-border overflow-hidden shrink-0">
+                  <div
+                    role="radiogroup"
+                    aria-label={`Role for ${m.email ?? "member"}`}
+                    className="flex items-center rounded border border-border overflow-hidden shrink-0"
+                  >
                     {(["editor", "viewer"] as const).map((r) => (
                       <button
                         key={r}
+                        role="radio"
+                        aria-checked={m.role === r}
                         onClick={() =>
                           updateMemberRole(calendarId, m.userSub, r)
                         }
@@ -233,15 +242,21 @@ function SharingTab({
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-muted">Invite by email</span>
             <InfoTip maxWidth={240}>
-              The person must already have an account in this app. Share the link with them first so they can sign up.
+              The person must already have an account in this app. Share the
+              link with them first so they can sign up.
               {"\n\n"}
-              <strong>Editor</strong> — can create, edit, and delete events on this calendar.
+              <strong>Editor</strong> — can create, edit, and delete events on
+              this calendar.
               {"\n\n"}
               <strong>Viewer</strong> — can only see events, no changes.
             </InfoTip>
           </div>
           <div className="flex gap-2">
+            <label className="sr-only" htmlFor="invite-email">
+              Invite email address
+            </label>
             <input
+              id="invite-email"
               type="email"
               placeholder="Invite by email"
               value={inviteEmail}
@@ -251,10 +266,16 @@ function SharingTab({
               }}
               className="flex-1 h-8 px-2 text-xs rounded-md border border-border bg-background text-foreground placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-foreground/20"
             />
-            <div className="flex items-center rounded border border-border overflow-hidden shrink-0">
+            <div
+              role="radiogroup"
+              aria-label="Invite role"
+              className="flex items-center rounded border border-border overflow-hidden shrink-0"
+            >
               {(["editor", "viewer"] as const).map((r) => (
                 <button
                   key={r}
+                  role="radio"
+                  aria-checked={inviteRole === r}
                   onClick={() => setInviteRole(r)}
                   className={[
                     "h-8 px-2 text-xs transition-colors",
@@ -324,7 +345,9 @@ export default function CalendarModal({
   const { connected } = useGoogleCalendarStatus();
 
   // non-owners go straight to the sharing tab — they can't edit calendar details
-  const [tab, setTab] = useState<"details" | "sharing">(isOwner ? "details" : "sharing");
+  const [tab, setTab] = useState<"details" | "sharing">(
+    isOwner ? "details" : "sharing",
+  );
 
   const [name, setName] = useState(calendar?.name ?? "");
   const [color, setColor] = useState(calendar?.color ?? EVENT_COLORS[0]);
@@ -552,14 +575,23 @@ export default function CalendarModal({
             <div className="flex items-center gap-1.5 mb-1">
               <p className={LABEL_CLASS}>Sync</p>
               <InfoTip maxWidth={260}>
-                <strong>Local only</strong> — events stay in this app only. No Google Calendar needed.
+                <strong>Local only</strong> — events stay in this app only. No
+                Google Calendar needed.
                 {"\n\n"}
-                <strong>Push</strong> — imports events from an existing Google Calendar into this app (read-only from Google).
+                <strong>Push</strong> — imports events from an existing Google
+                Calendar into this app (read-only from Google).
                 {"\n\n"}
-                <strong>Two-way</strong> — creates a Google Calendar in your account and keeps both in sync. Changes made here or in Google Calendar appear in both places. Requires Google Calendar to be connected.
+                <strong>Two-way</strong> — creates a Google Calendar in your
+                account and keeps both in sync. Changes made here or in Google
+                Calendar appear in both places. Requires Google Calendar to be
+                connected.
               </InfoTip>
             </div>
-            <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
+            <div
+              role="radiogroup"
+              aria-label="Sync mode"
+              className="flex items-center rounded-lg border border-border p-0.5 gap-0.5"
+            >
               {SYNC_OPTIONS.map(({ value, label }) => {
                 const isActive = syncMode === value;
                 const isDisabled = value === "two_way" && !connected;
@@ -575,6 +607,8 @@ export default function CalendarModal({
                   >
                     <button
                       type="button"
+                      role="radio"
+                      aria-checked={isActive}
                       disabled={isDisabled || isBusy || !isOwner}
                       onClick={() => setSyncMode(value)}
                       className={[
@@ -582,7 +616,7 @@ export default function CalendarModal({
                         isActive
                           ? "bg-foreground text-background"
                           : isDisabled
-                            ? "text-muted/40 cursor-not-allowed"
+                            ? "text-muted cursor-not-allowed"
                             : "text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
                       ].join(" ")}
                     >

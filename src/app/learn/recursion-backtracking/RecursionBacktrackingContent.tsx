@@ -601,7 +601,7 @@ function FibonacciDemo() {
     <div>
       {/* Preset pills + memo toggle */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           n
         </span>
         {FIB_PRESETS.map((preset) => (
@@ -623,7 +623,7 @@ function FibonacciDemo() {
       </div>
 
       {/* Call count comparison */}
-      <p className="mb-3 font-mono text-[11px] text-muted/40">
+      <p className="mb-3 font-mono text-[11px] text-muted">
         {tree.nodes.length} calls without memo &middot; {memoNodeCount} with
         memo
       </p>
@@ -748,7 +748,7 @@ function FibonacciDemo() {
       {/* Call stack + cache */}
       <div className="mt-3 grid gap-4 sm:grid-cols-[auto_1fr]">
         <div className="min-w-[5rem]">
-          <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
             Call stack
           </span>
           <div className="mt-2 flex min-h-[2rem] flex-col-reverse items-center gap-1">
@@ -772,14 +772,14 @@ function FibonacciDemo() {
               ))}
             </AnimatePresence>
             {step.callStack.length === 0 && stepIdx > 0 && (
-              <span className="font-mono text-[10px] text-muted/30">empty</span>
+              <span className="font-mono text-[10px] text-muted">empty</span>
             )}
           </div>
         </div>
 
         {memoEnabled && (
           <div>
-            <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+            <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
               Cache
             </span>
             <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
@@ -810,7 +810,7 @@ function FibonacciDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -1067,7 +1067,7 @@ function SubsetsDemo() {
 
       {/* Results */}
       <div className="mt-3">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Results
         </span>
         <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
@@ -1104,7 +1104,7 @@ function SubsetsDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -1208,7 +1208,7 @@ export default function RecursionBacktrackingContent() {
 
           {/* 2. Interactive Fibonacci call tree */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Fibonacci call tree
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -1225,7 +1225,7 @@ export default function RecursionBacktrackingContent() {
           {/* 3. Why recursion feels hard */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/10 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Why recursion feels hard
               </h3>
               <p className="mt-3 text-[13px] leading-relaxed text-muted">
@@ -1240,7 +1240,7 @@ export default function RecursionBacktrackingContent() {
 
           {/* 4. Interactive backtracking -- subsets */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Backtracking &mdash; subsets
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -1257,11 +1257,11 @@ export default function RecursionBacktrackingContent() {
 
           {/* 5. Code templates */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Templates
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
+            <p className="mt-4 font-mono text-[12px] text-muted">
               Recursive template
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1287,7 +1287,7 @@ export default function RecursionBacktrackingContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Backtracking &mdash; choose / explore / unchoose
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1328,7 +1328,7 @@ export default function RecursionBacktrackingContent() {
           {/* 6. Spot this pattern */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -1337,7 +1337,7 @@ export default function RecursionBacktrackingContent() {
                 <li>Tree/graph DFS (recursion is the natural fit)</li>
                 <li>Divide and conquer (merge sort, quick sort)</li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(2&#x207F;) or O(n!) time &mdash; exponential by nature
               </p>
             </div>

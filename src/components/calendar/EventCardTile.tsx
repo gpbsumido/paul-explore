@@ -14,7 +14,10 @@ export default function EventCardTile({ card }: { card: EventCard }) {
             loading="lazy"
           />
         ) : (
-          <div className="w-full bg-surface-raised" style={{ aspectRatio: "2.5/3.5" }} />
+          <div
+            className="w-full bg-surface-raised"
+            style={{ aspectRatio: "2.5/3.5" }}
+          />
         )}
         {card.quantity > 1 && (
           <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-semibold text-white tabular-nums">
@@ -30,7 +33,7 @@ export default function EventCardTile({ card }: { card: EventCard }) {
           <p className="text-[10px] text-muted truncate">{card.cardSetName}</p>
         )}
         {card.notes && (
-          <p className="text-[10px] text-muted/70 truncate italic">{card.notes}</p>
+          <p className="text-[10px] text-muted truncate italic">{card.notes}</p>
         )}
       </div>
     </div>

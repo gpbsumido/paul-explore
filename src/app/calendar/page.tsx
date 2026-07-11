@@ -74,6 +74,8 @@ export default function CalendarPage() {
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Calendar" }]}
       />
 
+      <h1 className="sr-only">Calendar</h1>
+
       <Suspense fallback={<CalendarLoading />}>
         <CalendarWithData />
       </Suspense>

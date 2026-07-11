@@ -94,7 +94,10 @@ function WeekView({
   const timedLayouts = useMemo(
     () =>
       weekDays.map((day) =>
-        layoutDayEvents(singleDayTimedEventsForDay(events, day), WEEK_ROW_HEIGHT),
+        layoutDayEvents(
+          singleDayTimedEventsForDay(events, day),
+          WEEK_ROW_HEIGHT,
+        ),
       ),
     [events, weekDays],
   );
@@ -210,7 +213,7 @@ function WeekView({
                 className="flex items-start justify-end pr-1 pt-1 border-b border-border last:border-b-0"
                 style={{ height: WEEK_ROW_HEIGHT }}
               >
-                <span className="text-[10px] text-muted/30">
+                <span className="text-[10px] text-muted">
                   {formatHour(hour)}
                 </span>
               </div>
@@ -229,7 +232,16 @@ function WeekView({
                   {HOURS.map((hour) => (
                     <div
                       key={hour}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Create event at ${hour}:00`}
                       onClick={() => onSlotClick(slotDate(day, hour))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onSlotClick(slotDate(day, hour));
+                        }
+                      }}
                       style={{ height: WEEK_ROW_HEIGHT }}
                       className={[
                         "border-b border-border last:border-b-0 cursor-pointer transition-colors",

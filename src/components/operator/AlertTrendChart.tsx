@@ -20,12 +20,22 @@ interface AlertTrendChartProps {
  * see whether alert frequency is trending up or down.
  */
 export default function AlertTrendChart({ data }: AlertTrendChartProps) {
+  const total = data.reduce((sum, d) => sum + d.count, 0);
+  const peak = data.reduce(
+    (max, d) => (d.count > max.count ? d : max),
+    data[0],
+  );
+
   return (
     <div className="flex flex-col gap-3">
       <h4 className="text-xs font-medium text-muted uppercase tracking-wide text-center">
         Alert Trend (24h)
       </h4>
-      <div className="h-48 w-full">
+      <div
+        role="img"
+        aria-label={`Alert trend over 24 hours: ${total} total alerts${peak ? `, peak of ${peak.count} at ${peak.hour}` : ""}`}
+        className="h-48 w-full"
+      >
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={[...data]}>
             <defs>

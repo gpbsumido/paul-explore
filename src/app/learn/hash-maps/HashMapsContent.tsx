@@ -256,7 +256,7 @@ function TwoSumDemo() {
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Target
         </span>
         {TWO_SUM_TARGETS.map((t) => (
@@ -298,9 +298,7 @@ function TwoSumDemo() {
               >
                 {val}
               </motion.div>
-              <span className="mt-1 font-mono text-[10px] text-muted/30">
-                {i}
-              </span>
+              <span className="mt-1 font-mono text-[10px] text-muted">{i}</span>
             </div>
           );
         })}
@@ -310,10 +308,8 @@ function TwoSumDemo() {
       <div className="mt-2 flex justify-center">
         <div className="w-48">
           <div className="flex border-b border-foreground/10 pb-1">
-            <span className="w-1/2 font-mono text-[10px] text-muted/40">
-              key
-            </span>
-            <span className="w-1/2 font-mono text-[10px] text-muted/40">
+            <span className="w-1/2 font-mono text-[10px] text-muted">key</span>
+            <span className="w-1/2 font-mono text-[10px] text-muted">
               value
             </span>
           </div>
@@ -355,7 +351,7 @@ function TwoSumDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -567,7 +563,7 @@ function SetDemo() {
     <div>
       {/* Current set chips */}
       <div className="flex min-h-[2.5rem] flex-wrap items-center gap-1.5">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Set
         </span>
         <AnimatePresence>
@@ -590,7 +586,7 @@ function SetDemo() {
           ))}
         </AnimatePresence>
         {currentSet.length === 0 && (
-          <span className="font-mono text-[11px] text-muted/30">empty</span>
+          <span className="font-mono text-[11px] text-muted">empty</span>
         )}
       </div>
 
@@ -602,7 +598,7 @@ function SetDemo() {
           </Pill>
         )}
         <Pill onClick={resetSet}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {Math.max(0, actionIdx + 1)}/{SET_ACTIONS.length}
         </span>
       </div>
@@ -707,7 +703,7 @@ export default function HashMapsContent() {
 
           {/* 2. Two Sum (unsorted) demo */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Two Sum (unsorted)
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -722,7 +718,7 @@ export default function HashMapsContent() {
           {/* 3. How hashing works */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/10 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 How hashing works (30-second version)
               </h3>
               <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -736,7 +732,7 @@ export default function HashMapsContent() {
 
           {/* 4. Set operations mini-visual */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Set operations
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -753,13 +749,11 @@ export default function HashMapsContent() {
 
           {/* 5. Code section */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Templates
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
-              Map pattern
-            </p>
+            <p className="mt-4 font-mono text-[12px] text-muted">Map pattern</p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <span className="text-foreground/70">function</span> twoSum( nums:{" "}
               <span className="text-foreground/70">number</span>[], target:{" "}
@@ -794,9 +788,7 @@ export default function HashMapsContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
-              Set pattern
-            </p>
+            <p className="mt-6 font-mono text-[12px] text-muted">Set pattern</p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <span className="text-foreground/70">function</span> hasDuplicate(
               nums: <span className="text-foreground/70">number</span>[]){" "}
@@ -826,7 +818,7 @@ export default function HashMapsContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Frequency counting
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -867,7 +859,7 @@ export default function HashMapsContent() {
           {/* 6. Spot this pattern */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -881,7 +873,7 @@ export default function HashMapsContent() {
                   Checking membership — &quot;have we seen this before?&quot;
                 </li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(n) time, O(n) space
               </p>
             </div>

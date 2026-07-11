@@ -24,12 +24,18 @@ export default function FleetHealthChart({ stores }: FleetHealthChartProps) {
     );
   }
 
+  const summary = data.map((d) => `${d.name}: ${d.value}`).join(", ");
+
   return (
     <div className="flex flex-col items-center gap-3">
       <h4 className="text-xs font-medium text-muted uppercase tracking-wide">
         Fleet Health
       </h4>
-      <div className="h-48 w-48">
+      <div
+        role="img"
+        aria-label={`Fleet health distribution: ${summary}`}
+        className="h-48 w-48"
+      >
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

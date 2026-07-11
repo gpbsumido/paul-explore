@@ -213,7 +213,7 @@ export default function SettingsContent() {
 
         {/* Connected accounts section */}
         <section className="mt-8">
-          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted/60">
+          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
             Connected accounts
           </h2>
 

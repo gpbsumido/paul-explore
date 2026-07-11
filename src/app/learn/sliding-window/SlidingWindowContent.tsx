@@ -347,7 +347,7 @@ function MaxSumDemo() {
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Window size
         </span>
         {WINDOW_SIZES.map((size) => (
@@ -365,7 +365,7 @@ function MaxSumDemo() {
         <span className="font-mono text-2xl font-bold text-foreground">
           {step.sum}
         </span>
-        <span className="font-mono text-[11px] text-muted/40">
+        <span className="font-mono text-[11px] text-muted">
           max: {step.maxSum}
         </span>
       </div>
@@ -405,7 +405,7 @@ function MaxSumDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -513,7 +513,7 @@ function SubstringDemo() {
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Input
         </span>
         {SUBSTR_PRESETS.map((s) => (
@@ -528,7 +528,7 @@ function SubstringDemo() {
       </div>
 
       <div className="mb-2">
-        <span className="font-mono text-[11px] text-muted/40">
+        <span className="font-mono text-[11px] text-muted">
           longest: {step.longest}
         </span>
       </div>
@@ -561,7 +561,7 @@ function SubstringDemo() {
       </div>
 
       <div className="mt-1 flex min-h-[1.75rem] flex-wrap items-center gap-1.5">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Seen
         </span>
         <AnimatePresence>
@@ -588,7 +588,7 @@ function SubstringDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -694,7 +694,7 @@ export default function SlidingWindowContent() {
 
           {/* Demo 1: Max Sum Subarray */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Max sum subarray of size K
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -724,7 +724,7 @@ export default function SlidingWindowContent() {
 
               <div className="mt-4 grid grid-cols-2 gap-6">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted/30">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted">
                     Fixed
                   </span>
                   <div className="mt-1.5 space-y-1">
@@ -734,7 +734,7 @@ export default function SlidingWindowContent() {
                   </div>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted/30">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted">
                     Variable
                   </span>
                   <div className="mt-1.5 space-y-1">
@@ -749,7 +749,7 @@ export default function SlidingWindowContent() {
 
           {/* Demo 2: Longest Substring Without Repeats */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Longest substring without repeats
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -764,11 +764,11 @@ export default function SlidingWindowContent() {
 
           {/* Code section */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Templates
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
+            <p className="mt-4 font-mono text-[12px] text-muted">
               Fixed window
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -806,7 +806,7 @@ export default function SlidingWindowContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Variable window
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -854,7 +854,7 @@ export default function SlidingWindowContent() {
           {/* Spot this pattern */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -867,9 +867,7 @@ export default function SlidingWindowContent() {
                   &quot;Without repeats&quot; or &quot;at most k distinct&quot;
                 </li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
-                O(n) time
-              </p>
+              <p className="mt-3 font-mono text-[13px] text-muted">O(n) time</p>
             </div>
           </Section>
 

@@ -94,6 +94,8 @@ export default async function PocketPage() {
         }
       />
 
+      <h1 className="sr-only">Pokémon Pocket</h1>
+
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-indigo-950/60 to-background">
         <div className="pointer-events-none absolute inset-0">

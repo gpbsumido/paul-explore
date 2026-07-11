@@ -371,7 +371,7 @@ function ClassicSearchDemo() {
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Target
         </span>
         {TARGET_PRESETS.map((t) => (
@@ -386,7 +386,7 @@ function ClassicSearchDemo() {
       </div>
 
       <div className="mb-2">
-        <span className="font-mono text-[11px] text-muted/40">
+        <span className="font-mono text-[11px] text-muted">
           target = {target}
         </span>
       </div>
@@ -464,7 +464,7 @@ function ClassicSearchDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -562,10 +562,10 @@ function CapacityDemo() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <span className="font-mono text-[11px] text-muted/40">
+        <span className="font-mono text-[11px] text-muted">
           packages = [{PACKAGES.join(", ")}]
         </span>
-        <span className="font-mono text-[11px] text-muted/40">
+        <span className="font-mono text-[11px] text-muted">
           D = {DAYS_LIMIT}
         </span>
       </div>
@@ -651,7 +651,7 @@ function CapacityDemo() {
               const total = day.reduce((a, b) => a + b, 0);
               return (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="w-10 font-mono text-[10px] text-muted/40">
+                  <span className="w-10 font-mono text-[10px] text-muted">
                     Day {i + 1}
                   </span>
                   <div className="flex gap-0.5">
@@ -664,7 +664,7 @@ function CapacityDemo() {
                       </div>
                     ))}
                   </div>
-                  <span className="font-mono text-[10px] text-muted/30">
+                  <span className="font-mono text-[10px] text-muted">
                     {total}/{step.mid}
                   </span>
                 </div>
@@ -682,7 +682,7 @@ function CapacityDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -789,7 +789,7 @@ export default function BinarySearchContent() {
 
           {/* 2. Classic binary search demo */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Classic binary search
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -804,7 +804,7 @@ export default function BinarySearchContent() {
           {/* 3. The real insight */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/10 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 The real insight
               </h3>
               <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -817,7 +817,7 @@ export default function BinarySearchContent() {
                 {["F", "F", "F", "F"].map((val, i) => (
                   <div
                     key={`f-${i}`}
-                    className="flex h-8 w-9 items-center justify-center rounded-sm border border-foreground/10 bg-foreground/[0.03] font-mono text-xs text-muted/60"
+                    className="flex h-8 w-9 items-center justify-center rounded-sm border border-foreground/10 bg-foreground/[0.03] font-mono text-xs text-muted"
                   >
                     {val}
                   </div>
@@ -843,7 +843,7 @@ export default function BinarySearchContent() {
 
           {/* 4. Search the answer space demo */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Search the answer space
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -858,11 +858,11 @@ export default function BinarySearchContent() {
 
           {/* 5. Code templates */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Templates
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
+            <p className="mt-4 font-mono text-[12px] text-muted">
               Classic — find target in sorted array
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -902,7 +902,7 @@ export default function BinarySearchContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Search the answer — find boundary of a predicate
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -937,7 +937,7 @@ export default function BinarySearchContent() {
           {/* 6. Spot this pattern */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -949,7 +949,7 @@ export default function BinarySearchContent() {
                 </li>
                 <li>Hidden monotonic predicate</li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(log n) time
               </p>
             </div>

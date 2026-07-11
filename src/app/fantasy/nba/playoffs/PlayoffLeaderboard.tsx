@@ -210,16 +210,16 @@ export default function PlayoffLeaderboard({
       <table className="w-full">
         <thead>
           <tr className="border-b border-border bg-surface-raised/30">
-            <th className="px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+            <th className="px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-muted">
               #
             </th>
-            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               Name
             </th>
-            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
               Score
             </th>
-            <th className="hidden px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted/60 sm:table-cell">
+            <th className="hidden px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted sm:table-cell">
               Breakdown
             </th>
             <th className="w-8 px-2 py-2" />
