@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-11 - version 0.15.5
+
+- `src/lib/agent/agent-state.ts` — agent run state machine reducer with discriminated union states (idle, running, awaiting_approval, completed, error, cancelled). Pure function, no React dependency. Handles 10 action types: START, APPEND_TEXT, APPEND_THINKING, ADD_TOOL_CALL, COMPLETE_TOOL_CALL, REQUEST_APPROVAL, RESOLVE_APPROVAL, COMPLETE, ERROR, CANCEL. Invalid transitions return state unchanged. All transitions produce new objects (immutable).
+- `src/lib/agent/agent-state.test.ts` — 28 tests covering every state transition, content appending, tool call lifecycle, approval flow (approve resumes, deny completes), invalid action guards, and immutability via Object.freeze.
+- bumped version to 0.15.5
+
 ## 2026-07-11 - version 0.15.4
 
 - `src/lib/agent/sse-parser.ts` — SSE wire format parser with chunked boundary handling. `createSSEParser()` returns a stateful `{ feed(chunk): SSEEvent[] }` that handles split chunks, multi-line data fields, event/id/retry fields, and comment lines. Pure function, no React or DOM dependencies.
