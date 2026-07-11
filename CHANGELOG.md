@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-11 - version 0.15.3
+
+- `src/lib/agent/types.ts` — type definitions for the AI agent UI feature: `SSEEvent` (parsed SSE frame), `AgentStep` discriminated union (thinking, text, tool_call, approval_request, error), `AgentRunState` state machine (idle, running, awaiting_approval, completed, error, cancelled), `AgentRunAction` reducer actions, `Scenario` and `ScenarioMeta` for demo scenarios. Pure types, no runtime code.
+- bumped version to 0.15.3
+
 ## 2026-07-10 - version 0.15.2
 
 - Fixed all 14 ESLint issues (2 errors, 12 warnings) that were failing CI:
