@@ -81,7 +81,7 @@ function TimelineRow({
 }) {
   return (
     <div>
-      <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+      <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
         {label}
       </span>
       <div className="relative mt-1 h-6 border-t border-foreground/10">
@@ -269,7 +269,7 @@ export default function DebounceThrottleContent() {
           {/* 2. Interactive timeline demo                                 */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Click timeline
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -286,7 +286,7 @@ export default function DebounceThrottleContent() {
           {/* 3. Leading vs trailing edge                                  */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Leading vs trailing edge
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -298,7 +298,7 @@ export default function DebounceThrottleContent() {
             <div className="mt-6 grid gap-8 sm:grid-cols-2">
               {/* Trailing edge */}
               <div>
-                <p className="font-mono text-[12px] text-muted/40">
+                <p className="font-mono text-[12px] text-muted">
                   Trailing edge
                 </p>
                 <svg
@@ -388,16 +388,14 @@ export default function DebounceThrottleContent() {
                     strokeWidth={0}
                   />
                 </svg>
-                <p className="mt-1 text-[11px] text-muted/40">
+                <p className="mt-1 text-[11px] text-muted">
                   fires after silence
                 </p>
               </div>
 
               {/* Leading edge */}
               <div>
-                <p className="font-mono text-[12px] text-muted/40">
-                  Leading edge
-                </p>
+                <p className="font-mono text-[12px] text-muted">Leading edge</p>
                 <svg
                   viewBox="0 0 200 64"
                   className="mt-2 w-full"
@@ -485,9 +483,7 @@ export default function DebounceThrottleContent() {
                     strokeWidth={0}
                   />
                 </svg>
-                <p className="mt-1 text-[11px] text-muted/40">
-                  fires immediately
-                </p>
+                <p className="mt-1 text-[11px] text-muted">fires immediately</p>
               </div>
             </div>
           </Section>
@@ -496,11 +492,11 @@ export default function DebounceThrottleContent() {
           {/* 4. Build it from scratch                                     */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Build it from scratch
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">debounce</p>
+            <p className="mt-4 font-mono text-[12px] text-muted">debounce</p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <CL>
                 <Kw>function</Kw> debounce(fn, ms) {"{"}
@@ -523,7 +519,7 @@ export default function DebounceThrottleContent() {
               <CL>{"}"}</CL>
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">throttle</p>
+            <p className="mt-6 font-mono text-[12px] text-muted">throttle</p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <CL>
                 <Kw>function</Kw> throttle(fn, ms) {"{"}
@@ -557,7 +553,7 @@ export default function DebounceThrottleContent() {
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/10 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 When to use which
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -590,7 +586,7 @@ export default function DebounceThrottleContent() {
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -601,7 +597,7 @@ export default function DebounceThrottleContent() {
                 <li>Resize/scroll handlers doing expensive layout work</li>
                 <li>Rate limiting any high-frequency callback</li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(1) per call, O(1) space
               </p>
             </div>

@@ -2,7 +2,11 @@ import Bone from "@/components/operator/Bone";
 
 export default function StoreDetailLoading() {
   return (
-    <main className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6">
+    <main
+      aria-busy="true"
+      aria-label="Loading store details"
+      className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6"
+    >
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }

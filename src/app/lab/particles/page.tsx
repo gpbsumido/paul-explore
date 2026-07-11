@@ -142,6 +142,8 @@ export default function ParticlesPage() {
       style={{ height: "calc(100dvh - 3.5rem)" }}
       onPointerMove={handlePointerMove}
     >
+      <h1 className="sr-only">Particle System</h1>
+
       {/* R3F Canvas — fills the container */}
       <ParticlesCanvas {...canvasProps} />
 

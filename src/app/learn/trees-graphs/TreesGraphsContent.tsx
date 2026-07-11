@@ -566,7 +566,7 @@ function TreeTraversalDemo() {
     <div>
       {/* Mode pills */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Mode
         </span>
         {(["pre", "in", "post", "bfs"] as TraversalMode[]).map((m) => (
@@ -662,7 +662,7 @@ function TreeTraversalDemo() {
       <div className="mt-3 grid gap-4 sm:grid-cols-[auto_1fr]">
         {/* Stack (vertical) or Queue (horizontal) */}
         <div className="min-w-[4.5rem]">
-          <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
             {step.dsLabel}
           </span>
           {!isBFS ? (
@@ -687,15 +687,13 @@ function TreeTraversalDemo() {
                 ))}
               </AnimatePresence>
               {step.dsValues.length === 0 && stepIdx > 0 && (
-                <span className="font-mono text-[10px] text-muted/30">
-                  empty
-                </span>
+                <span className="font-mono text-[10px] text-muted">empty</span>
               )}
             </div>
           ) : (
             <div className="mt-2 flex min-h-[2rem] items-center gap-1">
               {step.dsValues.length > 0 && (
-                <span className="mr-0.5 font-mono text-[9px] text-muted/30">
+                <span className="mr-0.5 font-mono text-[9px] text-muted">
                   front&thinsp;&rarr;
                 </span>
               )}
@@ -714,9 +712,7 @@ function TreeTraversalDemo() {
                 ))}
               </AnimatePresence>
               {step.dsValues.length === 0 && stepIdx > 0 && (
-                <span className="font-mono text-[10px] text-muted/30">
-                  empty
-                </span>
+                <span className="font-mono text-[10px] text-muted">empty</span>
               )}
             </div>
           )}
@@ -724,7 +720,7 @@ function TreeTraversalDemo() {
 
         {/* Visit order */}
         <div>
-          <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
             Visit order
           </span>
           <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
@@ -759,7 +755,7 @@ function TreeTraversalDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -875,7 +871,7 @@ function GraphBFSDemo() {
     <div>
       {/* Preset pills */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Path
         </span>
         {GRAPH_PRESETS.map(([s, t]) => (
@@ -889,7 +885,7 @@ function GraphBFSDemo() {
         ))}
       </div>
 
-      <p className="mb-3 font-mono text-[11px] text-muted/40">
+      <p className="mb-3 font-mono text-[11px] text-muted">
         click any node to change target
       </p>
 
@@ -1015,12 +1011,12 @@ function GraphBFSDemo() {
       {/* Queue + Visited chips */}
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <div>
-          <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
             Queue
           </span>
           <div className="mt-2 flex min-h-[2rem] items-center gap-1">
             {step.queue.length > 0 && (
-              <span className="mr-0.5 font-mono text-[9px] text-muted/30">
+              <span className="mr-0.5 font-mono text-[9px] text-muted">
                 front&thinsp;&rarr;
               </span>
             )}
@@ -1039,13 +1035,13 @@ function GraphBFSDemo() {
               ))}
             </AnimatePresence>
             {step.queue.length === 0 && stepIdx > 0 && (
-              <span className="font-mono text-[10px] text-muted/30">empty</span>
+              <span className="font-mono text-[10px] text-muted">empty</span>
             )}
           </div>
         </div>
 
         <div>
-          <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
             Visited
           </span>
           <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
@@ -1075,7 +1071,7 @@ function GraphBFSDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -1184,7 +1180,7 @@ export default function TreesGraphsContent() {
 
           {/* 2. Interactive tree traversal */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Tree traversal
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -1201,7 +1197,7 @@ export default function TreesGraphsContent() {
           {/* 3. DOM tree analogy */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/10 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 You already use trees
               </h3>
 
@@ -1269,7 +1265,7 @@ export default function TreesGraphsContent() {
 
           {/* 4. Interactive graph BFS */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Graph BFS — shortest path
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -1285,11 +1281,11 @@ export default function TreesGraphsContent() {
 
           {/* 5. Code templates */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Templates
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
+            <p className="mt-4 font-mono text-[12px] text-muted">
               Tree DFS — recursive
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1322,7 +1318,7 @@ export default function TreesGraphsContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Tree BFS — iterative with queue
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1354,7 +1350,7 @@ export default function TreesGraphsContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Graph BFS — with visited set
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1401,7 +1397,7 @@ export default function TreesGraphsContent() {
           {/* 6. Spot this pattern */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -1411,7 +1407,7 @@ export default function TreesGraphsContent() {
                 <li>Connected components</li>
                 <li>Cycle detection</li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(V + E) time
               </p>
             </div>

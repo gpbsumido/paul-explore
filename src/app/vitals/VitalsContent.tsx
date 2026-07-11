@@ -67,7 +67,7 @@ function MetricCard({ config, data }: MetricCardProps) {
           <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
             {config.name}
           </span>
-          <p className="mt-0.5 text-[11px] leading-tight text-muted/60">
+          <p className="mt-0.5 text-[11px] leading-tight text-muted">
             {config.label}
           </p>
         </div>
@@ -105,9 +105,7 @@ interface TableCellProps {
 /** A single cell in the by-page table, color-coded by rating. */
 function TableCell({ data, config }: TableCellProps) {
   if (!data) {
-    return (
-      <td className="px-3 py-3 text-center text-[12px] text-muted/30">--</td>
-    );
+    return <td className="px-3 py-3 text-center text-[12px] text-muted">--</td>;
   }
 
   const rating = getRating(data.p75, config);

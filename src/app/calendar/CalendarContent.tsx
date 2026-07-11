@@ -351,7 +351,7 @@ export default function CalendarContent({
         case "month":
           return (
             <div>
-              <div className="text-xs font-semibold text-muted/60 uppercase tracking-widest pb-2">
+              <div className="text-xs font-semibold text-muted uppercase tracking-widest pb-2">
                 {format(date, "MMMM yyyy")}
               </div>
               <CalendarGrid
@@ -367,7 +367,7 @@ export default function CalendarContent({
         case "year":
           return (
             <div>
-              <div className="text-xs font-semibold text-muted/60 uppercase tracking-widest pb-2">
+              <div className="text-xs font-semibold text-muted uppercase tracking-widest pb-2">
                 {format(date, "yyyy")}
               </div>
               <YearView

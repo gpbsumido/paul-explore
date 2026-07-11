@@ -209,12 +209,12 @@ function CacheVisualizerDemo() {
       {/* Cache table */}
       {cache.length > 0 && (
         <div className="mt-4">
-          <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
             Cache
           </span>
           <div className="mt-2 inline-block min-w-[10rem]">
             {/* Header */}
-            <div className="flex border-b border-foreground/10 pb-1 font-mono text-[11px] text-muted/40">
+            <div className="flex border-b border-foreground/10 pb-1 font-mono text-[11px] text-muted">
               <span className="w-16">Input</span>
               <span>Result</span>
             </div>
@@ -321,7 +321,7 @@ function ReactMemoDemo() {
                 ].join(" ")}
               >
                 <div className="text-center">
-                  <div className="text-muted/60">{childLabels[i]}</div>
+                  <div className="text-muted">{childLabels[i]}</div>
                   <div className="mt-0.5">{childCounts[i]}</div>
                 </div>
               </div>
@@ -397,7 +397,7 @@ export default function MemoizationContent() {
           {/* 2. Cache visualizer                                          */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Cache visualizer
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -413,7 +413,7 @@ export default function MemoizationContent() {
           {/* 3. React.memo / useCallback                                  */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               React.memo + useCallback
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -430,12 +430,10 @@ export default function MemoizationContent() {
           {/* 4. Build it from scratch                                     */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Build it from scratch
             </h2>
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
-              memoize()
-            </p>
+            <p className="mt-4 font-mono text-[12px] text-muted">memoize()</p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
               <CL>
                 <Kw>function</Kw> memoize(fn) {"{"}
@@ -476,7 +474,7 @@ export default function MemoizationContent() {
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/10 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 When not to memoize
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -505,7 +503,7 @@ export default function MemoizationContent() {
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -513,7 +511,7 @@ export default function MemoizationContent() {
                 <li>Preventing unnecessary re-renders in component trees</li>
                 <li>Derived data in selectors (Redux, Zustand, Recoil)</li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(1) lookup, O(n) space for n unique inputs
               </p>
             </div>

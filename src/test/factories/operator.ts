@@ -3,7 +3,6 @@ import type {
   InventoryItem,
   Alert,
   ActivityEvent,
-  StoreStatus,
   AlertSeverity,
   AlertCategory,
   ActivityType,
@@ -54,12 +53,6 @@ const STORE_LOCATIONS = [
   "Main Lobby",
   "Building C, Floor 2",
   "Tower 1, Rooftop",
-] as const;
-
-const STATUSES: readonly StoreStatus[] = [
-  "online",
-  "degraded",
-  "offline",
 ] as const;
 
 export function buildStore(overrides: Partial<Store> = {}): Store {

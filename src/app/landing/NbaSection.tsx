@@ -194,7 +194,12 @@ export default function NbaSection() {
             animate={inView ? "visible" : "hidden"}
             transition={transition ?? { ...spring.smooth, delay: 0.15 }}
           >
-            <div className="overflow-x-auto" tabIndex={0}>
+            <div
+              className="overflow-x-auto"
+              role="region"
+              aria-label="Stats leaderboard"
+              tabIndex={0}
+            >
               <table className="w-full text-left text-white">
                 <thead>
                   <tr className="border-b border-foreground/10 text-xs uppercase tracking-wider text-foreground/60">

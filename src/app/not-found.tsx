@@ -457,7 +457,7 @@ export default function NotFound() {
                 >
                   ← Go back
                 </button>
-                <span className="text-muted/20">|</span>
+                <span className="text-muted">|</span>
                 <Link
                   href="/"
                   className="font-mono text-[13px] transition-colors hover:brightness-110"

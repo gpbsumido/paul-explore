@@ -353,7 +353,7 @@ function FibBottomUpDemo() {
         {FIB_VALUES.map((_, i) => (
           <div
             key={i}
-            className="flex-1 text-center font-mono text-[10px] text-muted/30"
+            className="flex-1 text-center font-mono text-[10px] text-muted"
           >
             {i}
           </div>
@@ -404,7 +404,7 @@ function FibBottomUpDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -508,7 +508,7 @@ function UniquePathsDemo() {
     <div>
       {/* Preset pills */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Grid
         </span>
         {GRID_PRESETS.map((preset, i) => (
@@ -575,7 +575,7 @@ function UniquePathsDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -755,7 +755,7 @@ export default function DPContent() {
           {/* 2. Fibonacci bridge                                          */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               From recursion to DP
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -831,7 +831,7 @@ export default function DPContent() {
             </div>
 
             {/* Bottom-up table demo */}
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Bottom-up Fibonacci table
             </p>
             <div className="mt-3">
@@ -843,7 +843,7 @@ export default function DPContent() {
           {/* 3. Unique Paths grid                                         */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Unique Paths
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -861,13 +861,13 @@ export default function DPContent() {
           {/* 4. Top-down vs Bottom-up                                     */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Two directions, same idea
             </h2>
 
             {/* Top-down */}
             <div className="mt-6 border-l-2 border-foreground/10 pl-4">
-              <p className="font-mono text-[12px] text-muted/40">Top-down</p>
+              <p className="font-mono text-[12px] text-muted">Top-down</p>
               <p className="mt-2 text-[14px] leading-relaxed text-muted">
                 Recursion + cache. Start with the big problem, recurse into
                 subproblems, cache results so you never recompute.
@@ -988,7 +988,7 @@ export default function DPContent() {
 
             {/* Bottom-up */}
             <div className="mt-6 border-l-2 border-foreground/10 pl-4">
-              <p className="font-mono text-[12px] text-muted/40">Bottom-up</p>
+              <p className="font-mono text-[12px] text-muted">Bottom-up</p>
               <p className="mt-2 text-[14px] leading-relaxed text-muted">
                 Loop + table. Start with the smallest subproblems and build up
                 to the answer iteratively. No recursion overhead.
@@ -1062,7 +1062,7 @@ export default function DPContent() {
           {/* 5. Climbing Stairs mini-demo                                 */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Climbing Stairs
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -1079,11 +1079,11 @@ export default function DPContent() {
           {/* 6. Code templates                                            */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Templates
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
+            <p className="mt-4 font-mono text-[12px] text-muted">
               Top-down (memoized recursion)
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1107,7 +1107,7 @@ export default function DPContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Bottom-up (table iteration)
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1127,7 +1127,7 @@ export default function DPContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Climbing Stairs (concrete example)
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1160,7 +1160,7 @@ export default function DPContent() {
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -1180,7 +1180,7 @@ export default function DPContent() {
                   multiple times
                 </li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(n&sup2;) or O(n*m) time &mdash; polynomial, not exponential
               </p>
             </div>

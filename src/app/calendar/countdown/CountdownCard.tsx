@@ -17,10 +17,16 @@ function getDaysLabel(targetDate: string): {
   text: string;
   highlight: boolean;
 } {
-  const days = differenceInCalendarDays(new Date(`${targetDate}T00:00:00`), new Date());
+  const days = differenceInCalendarDays(
+    new Date(`${targetDate}T00:00:00`),
+    new Date(),
+  );
   if (days === 0) return { text: "Today!", highlight: true };
   if (days > 0)
-    return { text: `${days} day${days === 1 ? "" : "s"} away`, highlight: false };
+    return {
+      text: `${days} day${days === 1 ? "" : "s"} away`,
+      highlight: false,
+    };
   const abs = Math.abs(days);
   return { text: `${abs} day${abs === 1 ? "" : "s"} ago`, highlight: false };
 }
@@ -54,7 +60,7 @@ function CountdownCard({ countdown, onClick }: CountdownCardProps) {
             {format(parseISO(countdown.targetDate), "MMM d, yyyy")}
           </p>
           {countdown.description && (
-            <p className="mt-1.5 text-xs text-muted/70 line-clamp-2">
+            <p className="mt-1.5 text-xs text-muted line-clamp-2">
               {countdown.description}
             </p>
           )}
@@ -62,9 +68,7 @@ function CountdownCard({ countdown, onClick }: CountdownCardProps) {
         <span
           className={[
             "shrink-0 text-xs font-medium px-2 py-0.5 rounded-full",
-            highlight
-              ? "bg-foreground text-background"
-              : "text-muted",
+            highlight ? "bg-foreground text-background" : "text-muted",
           ]
             .filter(Boolean)
             .join(" ")}

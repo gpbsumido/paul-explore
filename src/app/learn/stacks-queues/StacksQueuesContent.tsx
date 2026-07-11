@@ -189,7 +189,7 @@ function StackQueueDemo() {
     <div className="grid gap-8 sm:grid-cols-2">
       {/* Stack column */}
       <div>
-        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
           Stack (LIFO)
         </span>
         <div className="mt-3 flex min-h-[10rem] flex-col-reverse items-center gap-1">
@@ -213,16 +213,14 @@ function StackQueueDemo() {
                 >
                   {item}
                   {isTop && (
-                    <span className="ml-2 text-[10px] text-muted/40">
-                      ← top
-                    </span>
+                    <span className="ml-2 text-[10px] text-muted">← top</span>
                   )}
                 </motion.div>
               );
             })}
           </AnimatePresence>
           {stackItems.length === 0 && (
-            <span className="font-mono text-[11px] text-muted/30">empty</span>
+            <span className="font-mono text-[11px] text-muted">empty</span>
           )}
         </div>
         <div className="mt-3 flex items-center gap-2">
@@ -233,7 +231,7 @@ function StackQueueDemo() {
 
       {/* Queue column */}
       <div>
-        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
           Queue (FIFO)
         </span>
         <div className="mt-3 flex min-h-[10rem] items-end gap-1">
@@ -257,14 +255,14 @@ function StackQueueDemo() {
                 >
                   {item}
                   {isFront && (
-                    <span className="text-[9px] text-muted/40">front</span>
+                    <span className="text-[9px] text-muted">front</span>
                   )}
                 </motion.div>
               );
             })}
           </AnimatePresence>
           {queueItems.length === 0 && (
-            <span className="font-mono text-[11px] text-muted/30">empty</span>
+            <span className="font-mono text-[11px] text-muted">empty</span>
           )}
         </div>
         <div className="mt-3 flex items-center gap-2">
@@ -351,7 +349,7 @@ function ParensDemo() {
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Input
         </span>
         {PARENS_PRESETS.map((s) => (
@@ -396,7 +394,7 @@ function ParensDemo() {
 
       {/* Stack visualization */}
       <div className="mt-2 flex items-center gap-3">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Stack
         </span>
         <div className="flex min-h-[2rem] flex-wrap items-center gap-1">
@@ -426,7 +424,7 @@ function ParensDemo() {
             })}
           </AnimatePresence>
           {step.stack.length === 0 && step.action !== "start" && (
-            <span className="font-mono text-[11px] text-muted/30">empty</span>
+            <span className="font-mono text-[11px] text-muted">empty</span>
           )}
         </div>
       </div>
@@ -440,7 +438,7 @@ function ParensDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -548,7 +546,7 @@ export default function StacksQueuesContent() {
 
           {/* 2. Side-by-side interactive */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Push, pop, enqueue, dequeue
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -562,7 +560,7 @@ export default function StacksQueuesContent() {
 
           {/* 3. Valid Parentheses demo */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Valid Parentheses
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -578,7 +576,7 @@ export default function StacksQueuesContent() {
           {/* 4. When to use which */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/10 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 When to use which
               </h3>
               <div className="mt-3 space-y-4">
@@ -610,11 +608,11 @@ export default function StacksQueuesContent() {
 
           {/* 5. Code section */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Templates
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
+            <p className="mt-4 font-mono text-[12px] text-muted">
               Stack — valid parentheses
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -657,7 +655,7 @@ export default function StacksQueuesContent() {
               {"}"}
             </pre>
 
-            <p className="mt-6 font-mono text-[12px] text-muted/40">
+            <p className="mt-6 font-mono text-[12px] text-muted">
               Queue — BFS level order
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -692,7 +690,7 @@ export default function StacksQueuesContent() {
           {/* 6. Spot this pattern */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -707,7 +705,7 @@ export default function StacksQueuesContent() {
                 </li>
                 <li>Undo, backtrack, or &quot;most recent first&quot;</li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(n) time, O(n) space
               </p>
             </div>

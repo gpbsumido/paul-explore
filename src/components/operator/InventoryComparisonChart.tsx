@@ -49,12 +49,18 @@ export default function InventoryComparisonChart({
     );
   }
 
+  const summary = data.map((d) => `${d.name}: ${d.health}%`).join(", ");
+
   return (
     <div className="flex flex-col gap-3">
       <h4 className="text-xs font-medium text-muted uppercase tracking-wide text-center">
         Inventory by Store
       </h4>
-      <div className="h-48 w-full">
+      <div
+        role="img"
+        aria-label={`Inventory health by store: ${summary}`}
+        className="h-48 w-full"
+      >
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={[...data]} layout="vertical">
             <CartesianGrid

@@ -65,6 +65,7 @@ function TeamButton({
     >
       {/* Team logo */}
       {logoUrl && !isTbd ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={logoUrl}
           alt=""
@@ -246,7 +247,7 @@ export default function FinalsCard({
         <div className="space-y-1">
           <label
             htmlFor={`combined-${matchupId}`}
-            className="block text-[10px] font-medium text-muted/70"
+            className="block text-[10px] font-medium text-muted"
           >
             Combined score, last game
           </label>
@@ -258,7 +259,7 @@ export default function FinalsCard({
             value={localCombinedScore}
             onChange={handleCombinedScoreChange}
             disabled={disabled}
-            className="h-7 w-full rounded-md border border-border/60 bg-surface px-2 text-[11px] text-foreground placeholder:text-muted/30 outline-none"
+            className="h-7 w-full rounded-md border border-border/60 bg-surface px-2 text-[11px] text-foreground placeholder:text-neutral-400 outline-none"
           />
         </div>
 
@@ -266,7 +267,7 @@ export default function FinalsCard({
         <div className="space-y-1">
           <label
             htmlFor={`mvp-${matchupId}`}
-            className="block text-[10px] font-medium text-muted/70"
+            className="block text-[10px] font-medium text-muted"
           >
             Finals MVP
           </label>
@@ -277,7 +278,7 @@ export default function FinalsCard({
             value={localMvp}
             onChange={handleMvpChange}
             disabled={disabled}
-            className="h-7 w-full rounded-md border border-border/60 bg-surface px-2 text-[11px] text-foreground placeholder:text-muted/30 outline-none"
+            className="h-7 w-full rounded-md border border-border/60 bg-surface px-2 text-[11px] text-foreground placeholder:text-neutral-400 outline-none"
             style={
               localMvp && winnerInfo
                 ? { borderColor: `${winnerInfo.primary}40` }

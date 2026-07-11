@@ -126,7 +126,7 @@ function CategoryRow({
       >
         {Number.isInteger(awayVal) ? awayVal : awayVal.toFixed(1)}
       </td>
-      <td className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+      <td className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-muted">
         {label}
       </td>
       <td
@@ -190,7 +190,7 @@ function MatchupCard({
               value={awayPts}
               className="text-lg font-bold font-mono tabular-nums text-[#FF6B35]"
             />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted/40">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted">
               vs
             </span>
             <CountUpScore
@@ -511,7 +511,7 @@ export default function MatchupContent() {
                     </span>
                   )}
                   {allZero && (
-                    <span className="text-[12px] text-muted/60 italic">
+                    <span className="text-[12px] text-muted italic">
                       Scores update as games complete
                     </span>
                   )}

@@ -146,7 +146,7 @@ function BubblingDemo() {
               </AnimatePresence>
             </div>
             {isInnermost ? (
-              <p className="py-2 text-center font-mono text-[11px] text-muted/40">
+              <p className="py-2 text-center font-mono text-[11px] text-muted">
                 click anywhere
               </p>
             ) : (
@@ -179,7 +179,7 @@ function CostComparisonDemo() {
     <div className="grid gap-6 sm:grid-cols-2">
       {/* 50 handlers */}
       <div>
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           50 handlers
         </span>
         <div className="mt-2 max-h-52 overflow-y-auto border border-foreground/10 rounded-sm">
@@ -198,20 +198,31 @@ function CostComparisonDemo() {
             </button>
           ))}
         </div>
-        <p className="mt-2 font-mono text-[11px] text-muted/40">handlers: 50</p>
+        <p className="mt-2 font-mono text-[11px] text-muted">handlers: 50</p>
       </div>
 
       {/* 1 handler */}
       <div>
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           1 handler
         </span>
         <div
+          role="listbox"
+          tabIndex={0}
+          aria-label="Delegated click demo list"
           className="mt-2 max-h-52 overflow-y-auto border border-foreground/10 rounded-sm"
           onClick={(e) => {
             const target = e.target as HTMLElement;
             const idx = target.dataset.idx;
             if (idx != null) flashItem(setFlashIdx1, Number(idx));
+          }}
+          onKeyDown={(e) => {
+            const target = e.target as HTMLElement;
+            const idx = target.dataset.idx;
+            if ((e.key === "Enter" || e.key === " ") && idx != null) {
+              e.preventDefault();
+              flashItem(setFlashIdx1, Number(idx));
+            }
           }}
         >
           {Array.from({ length: 50 }, (_, i) => (
@@ -229,7 +240,7 @@ function CostComparisonDemo() {
             </div>
           ))}
         </div>
-        <p className="mt-2 font-mono text-[11px] text-muted/40">handlers: 1</p>
+        <p className="mt-2 font-mono text-[11px] text-muted">handlers: 1</p>
       </div>
     </div>
   );
@@ -269,12 +280,27 @@ function DynamicListDemo() {
       <div className="flex flex-wrap items-center gap-2">
         <Pill onClick={addItem}>Add item</Pill>
         <Pill onClick={removeItem}>Remove</Pill>
-        <span className="ml-2 font-mono text-[11px] text-muted/40">
+        <span className="ml-2 font-mono text-[11px] text-muted">
           Items added after load: {addedCount}
         </span>
       </div>
 
-      <div className="mt-4 min-h-[2.5rem]" onClick={handleListClick}>
+      <div
+        role="listbox"
+        tabIndex={0}
+        aria-label="Dynamic items list"
+        className="mt-4 min-h-[2.5rem]"
+        onClick={handleListClick}
+        onKeyDown={(e) => {
+          const target = e.target as HTMLElement;
+          const id = target.dataset.itemId;
+          if ((e.key === "Enter" || e.key === " ") && id != null) {
+            e.preventDefault();
+            setFlashId(Number(id));
+            setTimeout(() => setFlashId(null), 400);
+          }
+        }}
+      >
         <AnimatePresence>
           {items.map((id) => (
             <motion.div
@@ -293,7 +319,7 @@ function DynamicListDemo() {
             >
               Item {id}
               {id > 3 && (
-                <span className="ml-2 text-[10px] text-muted/30">
+                <span className="ml-2 text-[10px] text-muted">
                   added dynamically
                 </span>
               )}
@@ -362,7 +388,7 @@ export default function EventDelegationContent() {
           {/* 2. Event bubbling visualizer                                 */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Event bubbling
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -379,7 +405,7 @@ export default function EventDelegationContent() {
           {/* 3. Side-by-side cost comparison                              */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Cost comparison
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -396,7 +422,7 @@ export default function EventDelegationContent() {
           {/* 4. Dynamic list demo                                         */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Dynamic elements
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -413,7 +439,7 @@ export default function EventDelegationContent() {
           {/* 5. Capture vs bubble                                         */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Capture vs bubble
             </h2>
             <div className="mt-4 flex justify-center">
@@ -555,11 +581,11 @@ export default function EventDelegationContent() {
           {/* 6. Code section                                              */}
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               The pattern
             </h2>
 
-            <p className="mt-4 font-mono text-[12px] text-muted/40">
+            <p className="mt-4 font-mono text-[12px] text-muted">
               Event delegation in vanilla JS
             </p>
             <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -606,7 +632,7 @@ export default function EventDelegationContent() {
           {/* ----------------------------------------------------------- */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -618,7 +644,7 @@ export default function EventDelegationContent() {
                   you
                 </li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(1) listeners instead of O(n)
               </p>
             </div>

@@ -79,7 +79,11 @@ function ImprovementCardSkeleton() {
 
 export default function VitalsLoading() {
   return (
-    <div className="min-h-dvh bg-background">
+    <div
+      aria-busy="true"
+      aria-label="Loading web vitals"
+      className="min-h-dvh bg-background"
+    >
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
@@ -124,7 +128,13 @@ export default function VitalsLoading() {
                   {/* Page header + 5 metric headers + samples header */}
                   {Array.from({ length: 7 }).map((_, i) => (
                     <th key={i} className="px-3 py-2.5">
-                      <Bone style={{ height: 11, width: i === 0 ? 36 : 28, margin: i === 0 ? undefined : "0 auto" }} />
+                      <Bone
+                        style={{
+                          height: 11,
+                          width: i === 0 ? 36 : 28,
+                          margin: i === 0 ? undefined : "0 auto",
+                        }}
+                      />
                     </th>
                   ))}
                 </tr>

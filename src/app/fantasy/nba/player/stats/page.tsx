@@ -28,5 +28,10 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default function StatsPage() {
-  return <StatsContent />;
+  return (
+    <>
+      <h1 className="sr-only">Player Stats</h1>
+      <StatsContent />
+    </>
+  );
 }

@@ -321,7 +321,7 @@ function Star({ filled }: { filled: boolean }) {
       fill={filled ? "#eab308" : "none"}
       stroke={filled ? "#eab308" : "currentColor"}
       strokeWidth="1.5"
-      className="text-muted/30"
+      className="text-muted"
       aria-hidden
     >
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -472,25 +472,25 @@ export default function PredictionPanel({
               <table className="w-full text-[12px] min-w-[640px]">
                 <thead>
                   <tr className="border-b border-border bg-surface-raised/30">
-                    <th className="px-3 py-2 text-left font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-3 py-2 text-left font-semibold uppercase tracking-wider text-muted">
                       Player
                     </th>
-                    <th className="px-3 py-2 text-center font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-3 py-2 text-center font-semibold uppercase tracking-wider text-muted">
                       Pos
                     </th>
-                    <th className="px-3 py-2 text-left font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-3 py-2 text-left font-semibold uppercase tracking-wider text-muted">
                       Games This Week
                     </th>
-                    <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted">
                       Avg
                     </th>
-                    <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted">
                       Week Proj
                     </th>
-                    <th className="px-3 py-2 text-center font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-3 py-2 text-center font-semibold uppercase tracking-wider text-muted">
                       Confidence
                     </th>
-                    <th className="px-3 py-2 text-center font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-3 py-2 text-center font-semibold uppercase tracking-wider text-muted">
                       Call
                     </th>
                   </tr>
@@ -521,16 +521,13 @@ export default function PredictionPanel({
                       </td>
                       <td className="px-3 py-2">
                         {p.games.length === 0 ? (
-                          <span className="text-[11px] text-muted/40">
+                          <span className="text-[11px] text-muted">
                             No games
                           </span>
                         ) : (
                           <div className="flex flex-col gap-0.5">
                             {p.games.map((g, i) => (
-                              <span
-                                key={i}
-                                className="text-[11px] text-muted/70"
-                              >
+                              <span key={i} className="text-[11px] text-muted">
                                 {g.label}
                               </span>
                             ))}
@@ -546,7 +543,7 @@ export default function PredictionPanel({
                       <td className="px-3 py-2">
                         <div className="flex items-center justify-center gap-2">
                           <ConfidenceBar value={p.confidence} />
-                          <span className="text-[10px] text-muted/60 font-mono tabular-nums w-7 text-right">
+                          <span className="text-[10px] text-muted font-mono tabular-nums w-7 text-right">
                             {p.confidence}%
                           </span>
                         </div>
@@ -621,11 +618,11 @@ export default function PredictionPanel({
                     <span className="text-[#FF6B35] font-semibold">
                       {outlook.userProj}
                     </span>
-                    <span className="text-muted/40">vs</span>
+                    <span className="text-muted">vs</span>
                     <span className="text-[#00D4FF] font-semibold">
                       {outlook.oppProj}
                     </span>
-                    <span className="text-[10px] text-muted/40 font-sans">
+                    <span className="text-[10px] text-muted font-sans">
                       projected
                     </span>
                   </div>
@@ -675,7 +672,7 @@ export default function PredictionPanel({
         </div>
 
         {/* Footer disclaimer */}
-        <p className="text-center text-[11px] font-mono text-muted/40">
+        <p className="text-center text-[11px] font-mono text-muted">
           Based on season averages and opponent rankings
         </p>
       </motion.div>

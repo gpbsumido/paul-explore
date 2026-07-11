@@ -203,19 +203,19 @@ export default function CourtVisionContent() {
                 <table className="w-full text-[12px]">
                   <thead>
                     <tr className="border-b border-border bg-surface-raised/30">
-                      <th className="px-3 py-2 text-left font-semibold uppercase tracking-wider text-muted/60">
+                      <th className="px-3 py-2 text-left font-semibold uppercase tracking-wider text-muted">
                         Zone
                       </th>
-                      <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted/60">
+                      <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted">
                         FG%
                       </th>
-                      <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted/60">
+                      <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted">
                         FGM
                       </th>
-                      <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted/60">
+                      <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted">
                         FGA
                       </th>
-                      <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted/60">
+                      <th className="px-3 py-2 text-right font-semibold uppercase tracking-wider text-muted">
                         Att/G
                       </th>
                     </tr>

@@ -34,6 +34,8 @@ export default function OperatorPage() {
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Operator" }]}
       />
 
+      <h1 className="sr-only">Fleet Dashboard</h1>
+
       <Suspense fallback={<OperatorLoading />}>
         <OperatorDashboard />
       </Suspense>

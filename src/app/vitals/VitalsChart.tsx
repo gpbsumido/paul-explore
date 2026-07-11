@@ -9,7 +9,12 @@ import {
   VisTooltip,
 } from "@unovis/react";
 import { CurveType } from "@unovis/ts";
-import { METRIC_ORDER, METRIC_CONFIGS, formatValue, getRatingColor } from "@/lib/vitals";
+import {
+  METRIC_ORDER,
+  METRIC_CONFIGS,
+  formatValue,
+  getRatingColor,
+} from "@/lib/vitals";
 import type { MetricName, VersionMetrics } from "@/types/vitals";
 
 type DataPoint = { index: number; p75: number; version: string };
@@ -58,17 +63,22 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
       <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
         {metric}
       </span>
-      <p className="mt-0.5 text-[10px] leading-tight text-muted/60">
+      <p className="mt-0.5 text-[10px] leading-tight text-muted">
         {config.label}
       </p>
       {data.length < 2 ? (
-        <p className="mt-6 text-center text-[11px] text-muted/30">
+        <p className="mt-6 text-center text-[11px] text-muted">
           Not enough data
         </p>
       ) : (
         <div className="mt-2" style={{ height: CHART_CONTAINER_HEIGHT }}>
           <VisXYContainer data={data} height={CHART_AREA_HEIGHT}>
-            <VisLine x={x} y={y} color={color} curveType={CurveType.MonotoneX} />
+            <VisLine
+              x={x}
+              y={y}
+              color={color}
+              curveType={CurveType.MonotoneX}
+            />
             <VisAxis
               type="x"
               tickValues={data.map((_, i) => i)}
@@ -99,11 +109,14 @@ function ChartSkeleton() {
       {METRIC_ORDER.map((metric) => {
         const config = METRIC_CONFIGS[metric];
         return (
-          <div key={metric} className="rounded-xl border border-border bg-surface p-4">
+          <div
+            key={metric}
+            className="rounded-xl border border-border bg-surface p-4"
+          >
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
               {metric}
             </span>
-            <p className="mt-0.5 text-[10px] leading-tight text-muted/60">
+            <p className="mt-0.5 text-[10px] leading-tight text-muted">
               {config.label}
             </p>
             <div
@@ -118,7 +131,11 @@ function ChartSkeleton() {
 }
 
 /** Grid of P75 trend sparklines, one per metric, across the last 5 versions. */
-export default function VitalsChart({ byVersion }: { byVersion: VersionMetrics[] }) {
+export default function VitalsChart({
+  byVersion,
+}: {
+  byVersion: VersionMetrics[];
+}) {
   const isClient = useSyncExternalStore(
     emptySubscribe,
     () => true,

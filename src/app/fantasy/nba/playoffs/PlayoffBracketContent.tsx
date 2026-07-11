@@ -669,7 +669,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
         }
       })
       .catch(() => setSaveStatus("idle"));
-  }, [autoSave, debouncedPicks, isViewMode]);
+  }, [autoSave, debouncedPicks, isViewMode, meQuery.data?.name]);
 
   function handlePick(matchupId: string, pick: PlayoffSeriesPick | FinalsPick) {
     if (isViewMode) return;
@@ -929,13 +929,13 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border bg-surface-raised/40">
-                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted">
                       Round
                     </th>
-                    <th className="px-4 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-4 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted">
                       Correct winner
                     </th>
-                    <th className="px-4 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted/60">
+                    <th className="px-4 py-2 text-right text-[11px] font-semibold uppercase tracking-wider text-muted">
                       Correct series length
                     </th>
                   </tr>
