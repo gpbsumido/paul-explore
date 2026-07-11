@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-11 - version 0.15.6
+
+- `src/lib/agent/mock-stream.ts` — mock AI agent streaming service with five demo scenarios (simple, tool_calls, thinking, approval, error_recovery). `createMockStream(scenario)` returns a `ReadableStream<string>` producing SSE-formatted chunks on timers with a `resume()` function for the approval scenario's pause/resume flow. Exports `SCENARIOS` metadata array for the UI picker.
+- `src/lib/agent/mock-stream.test.ts` — 7 tests covering event sequence for all 5 scenarios, stream cancellation, and SCENARIOS metadata validation. Uses `vi.useFakeTimers()` for deterministic timing.
+- bumped version to 0.15.6
+
 ## 2026-07-11 - version 0.15.5
 
 - `src/lib/agent/agent-state.ts` — agent run state machine reducer with discriminated union states (idle, running, awaiting_approval, completed, error, cancelled). Pure function, no React dependency. Handles 10 action types: START, APPEND_TEXT, APPEND_THINKING, ADD_TOOL_CALL, COMPLETE_TOOL_CALL, REQUEST_APPROVAL, RESOLVE_APPROVAL, COMPLETE, ERROR, CANCEL. Invalid transitions return state unchanged. All transitions produce new objects (immutable).
