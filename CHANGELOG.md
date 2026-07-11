@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-11 - version 0.15.4
+
+- `src/lib/agent/sse-parser.ts` — SSE wire format parser with chunked boundary handling. `createSSEParser()` returns a stateful `{ feed(chunk): SSEEvent[] }` that handles split chunks, multi-line data fields, event/id/retry fields, and comment lines. Pure function, no React or DOM dependencies.
+- `src/lib/agent/sse-parser.test.ts` — 12 tests covering single events, event type parsing, multi-line data, id/retry fields, comments, multiple events per chunk, split-across-chunk boundaries, incomplete chunks, [DONE] sentinel, empty data, and event type reset between events.
+- bumped version to 0.15.4
+
 ## 2026-07-11 - version 0.15.3
 
 - `src/lib/agent/types.ts` — type definitions for the AI agent UI feature: `SSEEvent` (parsed SSE frame), `AgentStep` discriminated union (thinking, text, tool_call, approval_request, error), `AgentRunState` state machine (idle, running, awaiting_approval, completed, error, cancelled), `AgentRunAction` reducer actions, `Scenario` and `ScenarioMeta` for demo scenarios. Pure types, no runtime code.
