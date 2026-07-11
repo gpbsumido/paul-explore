@@ -65,6 +65,7 @@ function TeamButton({
     >
       {/* Team logo */}
       {logoUrl && !isTbd ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={logoUrl}
           alt=""

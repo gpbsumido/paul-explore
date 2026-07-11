@@ -894,6 +894,89 @@ it("is keyboard accessible", async () => {
                 weren&apos;t watching the region when it appeared.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Tuning ESLint rules for real-world patterns
+              </h2>
+              <p className="text-muted">
+                The recommended ruleset from eslint-plugin-jsx-a11y is a good
+                starting point, but two rules needed project-level tuning after
+                the first CI run caught 14 issues.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>no-noninteractive-tabindex</strong> — flags{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  tabIndex=&#123;0&#125;
+                </code>{" "}
+                on non-interactive elements, which is usually correct. But
+                scrollable containers are the exception: keyboard users need to
+                tab into them to scroll with arrow keys. The fix is to give the
+                container{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  role=&quot;region&quot;
+                </code>{" "}
+                with an{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-label
+                </code>
+                , then configure the rule to allow tabIndex on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  region
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  tabpanel
+                </code>{" "}
+                roles. This way the rule still catches genuinely wrong uses
+                while allowing the legitimate accessibility pattern.
+              </p>
+              <pre className="mt-3 overflow-x-auto rounded bg-surface px-4 py-3 text-[13px] font-mono text-foreground">
+                {`// eslint.config.mjs
+"jsx-a11y/no-noninteractive-tabindex": [
+  "error",
+  { tags: [], roles: ["tabpanel", "region"] },
+],
+
+// in the component
+<div
+  className="overflow-x-auto"
+  role="region"
+  aria-label="Stats leaderboard"
+  tabIndex={0}
+>`}
+              </pre>
+              <p className="mt-3 text-muted">
+                <strong>no-unused-vars</strong> — the default{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @typescript-eslint/no-unused-vars
+                </code>{" "}
+                config from eslint-config-next doesn&apos;t recognize the
+                standard{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  _
+                </code>
+                -prefix convention for intentionally unused variables, and it
+                flags the throwaway variable in rest destructuring patterns like{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"const { name: _, ...rest } = obj"}
+                </code>
+                . Adding{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  argsIgnorePattern
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  varsIgnorePattern
+                </code>
+                , and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ignoreRestSiblings
+                </code>{" "}
+                fixes seven warnings in one config change. Not an accessibility
+                rule, but it came out of the same lint audit.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -1287,6 +1370,32 @@ it("is keyboard accessible", async () => {
                 also: make sure new pages have an h1 (use sr-only if visually
                 redundant), and never use opacity modifiers on text-muted —
                 text-muted/30 drops below the 4.5:1 contrast threshold
+              </Sent>
+
+              <Timestamp>3:42 PM</Timestamp>
+
+              <Received>
+                did you have to tune any of the eslint rules after enabling them
+              </Received>
+
+              <Sent pos="first">
+                yeah, two rules needed project-level config.
+                no-noninteractive-tabindex flags tabIndex on non-interactive
+                elements, which is correct 99% of the time. but scrollable
+                containers need tabIndex=&#123;0&#125; so keyboard users can
+                scroll with arrow keys
+              </Sent>
+              <Sent pos="middle">
+                the fix is role=&quot;region&quot; with an aria-label on the
+                container, then configure the rule to allow tabIndex on region
+                and tabpanel roles. still catches bad uses, but allows the
+                legitimate pattern
+              </Sent>
+              <Sent pos="last">
+                also had to override @typescript-eslint/no-unused-vars to
+                support the _ prefix convention and ignoreRestSiblings. not an
+                a11y rule but it came out of the same lint cleanup — seven
+                warnings from one config change
               </Sent>
 
               <div className={styles.typingDots}>

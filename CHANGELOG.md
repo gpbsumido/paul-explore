@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-10 - version 0.15.2
+
+- Fixed all 14 ESLint issues (2 errors, 12 warnings) that were failing CI:
+  - Added `@typescript-eslint/no-unused-vars` config with `argsIgnorePattern`, `varsIgnorePattern`, and `ignoreRestSiblings` for standard `_`-prefix convention
+  - Fixed `jsx-a11y/no-noninteractive-tabindex` on scrollable stats table in NbaSection (added `role="region"` + `aria-label`)
+  - Fixed `jsx-a11y/no-static-element-interactions` on Tooltip wrapper span
+  - Added missing `meQuery.data?.name` dependency to auto-save useEffect in PlayoffBracketContent
+  - Suppressed `@next/next/no-img-element` for small decorative team logos in FinalsCard and SeriesPickCard
+  - Removed unused imports (`beforeEach`, `vi`) in proxy.test.ts and unused `STATUSES`/`StoreStatus` in operator factory
+- bumped version to 0.15.2
+
 ## 2026-07-10 - version 0.15.1
 
 - Project-wide WCAG 2.1 AA accessibility audit and remediation across all features:

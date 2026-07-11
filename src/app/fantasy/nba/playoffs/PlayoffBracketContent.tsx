@@ -669,7 +669,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
         }
       })
       .catch(() => setSaveStatus("idle"));
-  }, [autoSave, debouncedPicks, isViewMode]);
+  }, [autoSave, debouncedPicks, isViewMode, meQuery.data?.name]);
 
   function handlePick(matchupId: string, pick: PlayoffSeriesPick | FinalsPick) {
     if (isViewMode) return;
