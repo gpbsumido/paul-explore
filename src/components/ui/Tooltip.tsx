@@ -89,6 +89,7 @@ export default function Tooltip({
   };
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <span
       ref={wrapperRef}
       className="inline-flex w-full h-full"

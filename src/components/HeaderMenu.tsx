@@ -358,7 +358,7 @@ export default function HeaderMenu({
                             <span>{opt.label}</span>
                             {opt.value === "auto" &&
                               weather.condition !== "unknown" && (
-                                <span className="ml-auto text-[10px] text-muted/60">
+                                <span className="ml-auto text-[10px] text-muted">
                                   {CONDITION_LABELS[weather.condition]?.emoji}
                                 </span>
                               )}

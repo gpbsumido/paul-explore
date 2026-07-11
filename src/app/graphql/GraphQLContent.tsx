@@ -244,7 +244,7 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted">
                 Live GraphQL Query
               </span>
-              <span className="text-[10px] text-muted/40">
+              <span className="text-[10px] text-muted">
                 — updates as you search or filter
               </span>
             </div>

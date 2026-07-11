@@ -103,13 +103,28 @@ function CalendarGrid({
           const remainingSlots = VISIBLE_CHIPS - eventSlots.length;
           const countdownSlots = dayCountdowns.slice(0, remainingSlots);
           const overflowCount =
-            allDisplay.length - eventSlots.length +
+            allDisplay.length -
+            eventSlots.length +
             (dayCountdowns.length - countdownSlots.length);
 
           return (
+            // eslint-disable-next-line jsx-a11y/no-static-element-interactions
             <div
               key={day.toISOString()}
-              onClick={() => onDayClick(day)}
+              aria-label={`${format(day, "EEEE, MMMM d")}${today ? " (today)" : ""}`}
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest("button, a")) return;
+                onDayClick(day);
+              }}
+              onKeyDown={(e) => {
+                if (
+                  (e.key === "Enter" || e.key === " ") &&
+                  !(e.target as HTMLElement).closest("button, a")
+                ) {
+                  e.preventDefault();
+                  onDayClick(day);
+                }
+              }}
               data-scroll-target={today || undefined}
               className={[
                 "h-[128px] sm:h-[132px] p-1.5 sm:p-2 overflow-hidden text-left border-b border-r border-border cursor-pointer transition-colors",
@@ -141,33 +156,35 @@ function CalendarGrid({
               </span>
 
               {/* Event and countdown chips — spanning event bars first, then timed events, then countdowns */}
-              {inMonth && (eventSlots.length > 0 || countdownSlots.length > 0) && (
-                <div className="mt-1 space-y-0.5">
-                  {eventSlots.map((ev) => (
-                    <EventChip
-                      key={ev.id}
-                      event={ev}
-                      onClick={() => onChipClick(ev)}
-                      // continuation bars for days after the event started
-                      continuation={
-                        isSpanning(ev) && !isSameDay(parseISO(ev.startDate), day)
-                      }
-                    />
-                  ))}
-                  {countdownSlots.map((c) => (
-                    <CountdownChip
-                      key={c.id}
-                      countdown={c}
-                      onClick={() => onCountdownClick?.(c)}
-                    />
-                  ))}
-                  {overflowCount > 0 && (
-                    <div className="text-[10px] text-muted px-1 leading-tight">
-                      +{overflowCount} more
-                    </div>
-                  )}
-                </div>
-              )}
+              {inMonth &&
+                (eventSlots.length > 0 || countdownSlots.length > 0) && (
+                  <div className="mt-1 space-y-0.5">
+                    {eventSlots.map((ev) => (
+                      <EventChip
+                        key={ev.id}
+                        event={ev}
+                        onClick={() => onChipClick(ev)}
+                        // continuation bars for days after the event started
+                        continuation={
+                          isSpanning(ev) &&
+                          !isSameDay(parseISO(ev.startDate), day)
+                        }
+                      />
+                    ))}
+                    {countdownSlots.map((c) => (
+                      <CountdownChip
+                        key={c.id}
+                        countdown={c}
+                        onClick={() => onCountdownClick?.(c)}
+                      />
+                    ))}
+                    {overflowCount > 0 && (
+                      <div className="text-[10px] text-muted px-1 leading-tight">
+                        +{overflowCount} more
+                      </div>
+                    )}
+                  </div>
+                )}
             </div>
           );
         })}

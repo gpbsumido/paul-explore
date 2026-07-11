@@ -712,7 +712,7 @@ export default function LearnHub() {
             return (
               <section key={category} className="mt-16">
                 <motion.h2
-                  className="mb-8 text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40"
+                  className="mb-8 text-[11px] font-bold uppercase tracking-[0.2em] text-muted"
                   variants={fadeInUp}
                   initial="hidden"
                   animate="visible"

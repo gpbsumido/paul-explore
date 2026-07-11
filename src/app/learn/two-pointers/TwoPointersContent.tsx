@@ -261,7 +261,7 @@ function TwoSumDemo() {
   return (
     <div>
       <div className="mb-3 flex items-center gap-2">
-        <span className="text-[11px] uppercase tracking-[0.2em] text-muted/40">
+        <span className="text-[11px] uppercase tracking-[0.2em] text-muted">
           Target
         </span>
         {TWO_SUM_TARGETS.map((t) => (
@@ -340,7 +340,7 @@ function TwoSumDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{steps.length}
         </span>
       </div>
@@ -498,7 +498,7 @@ function DedupDemo() {
         )}
         <Pill onClick={advance}>Step</Pill>
         <Pill onClick={reset}>Reset</Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40">
+        <span className="ml-auto font-mono text-[11px] text-muted">
           {stepIdx + 1}/{DEDUP_STEPS.length}
         </span>
       </div>
@@ -604,7 +604,7 @@ export default function TwoPointersContent() {
 
           {/* Demo 1: Two Sum on sorted array */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Two Sum on a sorted array
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -632,7 +632,7 @@ export default function TwoPointersContent() {
 
           {/* Demo 2: Remove Duplicates */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Remove duplicates in-place
             </h2>
             <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -648,7 +648,7 @@ export default function TwoPointersContent() {
 
           {/* Code section */}
           <Section className="mt-14" transition={t}>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
               Template
             </h2>
             <pre className="mt-4 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -684,7 +684,7 @@ export default function TwoPointersContent() {
           {/* Spot this pattern */}
           <Section className="mt-14" transition={t}>
             <div className="border-l-2 border-foreground/15 pl-4">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Spot this pattern
               </h3>
               <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -695,7 +695,7 @@ export default function TwoPointersContent() {
                   Compare from both ends (palindromes, container problems)
                 </li>
               </ul>
-              <p className="mt-3 font-mono text-[13px] text-muted/60">
+              <p className="mt-3 font-mono text-[13px] text-muted">
                 O(n) time, O(1) space
               </p>
             </div>

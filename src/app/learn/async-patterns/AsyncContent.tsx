@@ -490,7 +490,7 @@ function EventLoopSimulator() {
           const items = getItemsForLocation(col);
           return (
             <div key={col} className="min-h-[120px]">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 {label}
               </p>
               <div className="mt-2 space-y-1.5">
@@ -518,7 +518,7 @@ function EventLoopSimulator() {
 
       {/* output */}
       <div className="mt-4">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
           Output
         </p>
         <div className="mt-2 min-h-[32px] font-mono text-[13px] text-foreground/60">
@@ -564,7 +564,7 @@ function EventLoopSimulator() {
         <Pill onClick={handleReset} active={false}>
           Reset
         </Pill>
-        <span className="ml-auto font-mono text-[11px] text-muted/40 self-center">
+        <span className="ml-auto font-mono text-[11px] text-muted self-center">
           {step}/{maxStep}
         </span>
       </div>
@@ -619,7 +619,7 @@ function PromisePatternsVisual() {
     <div ref={ref} className="space-y-8">
       {patterns.map((p) => (
         <div key={p.label}>
-          <p className="font-mono text-[11px] text-muted/40">{p.label}</p>
+          <p className="font-mono text-[11px] text-muted">{p.label}</p>
           <svg
             viewBox="0 0 400 70"
             className="mt-2 w-full"
@@ -755,7 +755,7 @@ function SequentialVsParallel() {
   return (
     <div ref={ref}>
       {/* Sequential code */}
-      <p className="font-mono text-[12px] text-muted/40">
+      <p className="font-mono text-[12px] text-muted">
         Sequential (awaiting in a loop)
       </p>
       <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -828,7 +828,7 @@ function SequentialVsParallel() {
       </svg>
 
       {/* Parallel code */}
-      <p className="mt-8 font-mono text-[12px] text-muted/40">
+      <p className="mt-8 font-mono text-[12px] text-muted">
         Parallel (Promise.all)
       </p>
       <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -986,7 +986,7 @@ export default function AsyncContent() {
             {/* 2. Event loop simulator                                       */}
             {/* ----------------------------------------------------------- */}
             <Section className="mt-14" transition={t}>
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Event loop simulator
               </h2>
               <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -1003,7 +1003,7 @@ export default function AsyncContent() {
             {/* 3. Promise patterns visual                                    */}
             {/* ----------------------------------------------------------- */}
             <Section className="mt-14" transition={t}>
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Promise combinators
               </h2>
               <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -1031,7 +1031,7 @@ export default function AsyncContent() {
             {/* 4. Sequential vs parallel                                     */}
             {/* ----------------------------------------------------------- */}
             <Section className="mt-14" transition={t}>
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Sequential vs parallel
               </h2>
               <p className="mt-3 text-[14px] leading-relaxed text-muted">
@@ -1052,11 +1052,11 @@ export default function AsyncContent() {
             {/* 5. Code section                                               */}
             {/* ----------------------------------------------------------- */}
             <Section className="mt-14" transition={t}>
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 The patterns
               </h2>
 
-              <p className="mt-4 font-mono text-[12px] text-muted/40">
+              <p className="mt-4 font-mono text-[12px] text-muted">
                 Event loop quiz answer
               </p>
               <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1071,7 +1071,7 @@ export default function AsyncContent() {
                 <Cmt>{"// sync first, then microtask, then macrotask"}</Cmt>
               </pre>
 
-              <p className="mt-6 font-mono text-[12px] text-muted/40">
+              <p className="mt-6 font-mono text-[12px] text-muted">
                 Promise.all usage
               </p>
               <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1087,7 +1087,7 @@ export default function AsyncContent() {
                 <Cmt>{"// rejects immediately if any fails"}</Cmt>
               </pre>
 
-              <p className="mt-6 font-mono text-[12px] text-muted/40">
+              <p className="mt-6 font-mono text-[12px] text-muted">
                 Error handling with try/catch
               </p>
               <pre className="mt-2 overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
@@ -1110,7 +1110,7 @@ export default function AsyncContent() {
             {/* ----------------------------------------------------------- */}
             <Section className="mt-14" transition={t}>
               <div className="border-l-2 border-foreground/15 pl-4">
-                <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+                <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                   Spot this pattern
                 </h3>
                 <ul className="mt-3 space-y-1.5 text-[13px] text-muted">
@@ -1130,7 +1130,7 @@ export default function AsyncContent() {
                     Race conditions from stale closures over awaited values
                   </li>
                 </ul>
-                <p className="mt-3 font-mono text-[13px] text-muted/60">
+                <p className="mt-3 font-mono text-[13px] text-muted">
                   Microtasks before macrotasks, always
                 </p>
               </div>

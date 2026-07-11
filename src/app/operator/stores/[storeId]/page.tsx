@@ -54,6 +54,8 @@ export default async function StoreDetailPage({
         ]}
       />
 
+      <h1 className="sr-only">Store Details</h1>
+
       <Suspense fallback={<StoreDetailLoading />}>
         <StoreDetail storeId={storeId} />
       </Suspense>

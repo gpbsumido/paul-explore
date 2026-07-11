@@ -29,7 +29,11 @@ export default function RefreshBar() {
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-2 text-xs text-muted">
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-2 text-xs text-muted"
+    >
       <span>
         Last refreshed{" "}
         <span className="font-medium text-foreground">

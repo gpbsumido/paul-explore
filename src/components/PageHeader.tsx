@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Fragment, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import HeaderMenu from "@/components/HeaderMenu";
 
 export interface BreadcrumbItem {
@@ -135,39 +135,57 @@ export default function PageHeader({
       <div
         className={`relative mx-auto ${maxWidth} px-4 sm:px-6 h-full flex items-center gap-4`}
       >
-        {/* Left: custom node or breadcrumb trail */}
+        {/* Left: breadcrumb trail or custom node */}
         {left ??
-          breadcrumbs?.map((item, i) => (
-            <Fragment key={i}>
-              {i > 0 && <div className="h-4 w-px bg-border shrink-0" />}
+          (breadcrumbs && (
+            <ol aria-label="Breadcrumb" className="contents">
+              {breadcrumbs.map((item, i) => {
+                const isLast = i === breadcrumbs.length - 1;
+                return (
+                  <li key={i} className="contents">
+                    {i > 0 && (
+                      <div
+                        className="h-4 w-px bg-border shrink-0"
+                        aria-hidden="true"
+                      />
+                    )}
 
-              {i === 0 && item.href ? (
-                <Link
-                  href={item.href}
-                  onClick={item.onClick}
-                  className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
-                >
-                  <BackChevron />
-                  {item.label}
-                </Link>
-              ) : item.href ? (
-                <Link
-                  href={item.href}
-                  onClick={item.onClick}
-                  className="shrink-0 text-sm text-muted transition-colors hover:text-foreground max-w-[120px] truncate"
-                >
-                  {item.label}
-                </Link>
-              ) : item.badge ? (
-                <span className="rounded-md bg-surface-raised px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted">
-                  {item.label}
-                </span>
-              ) : (
-                <span className="text-xs font-black uppercase tracking-[0.15em] text-foreground truncate">
-                  {item.label}
-                </span>
-              )}
-            </Fragment>
+                    {i === 0 && item.href ? (
+                      <Link
+                        href={item.href}
+                        onClick={item.onClick}
+                        className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
+                      >
+                        <BackChevron />
+                        {item.label}
+                      </Link>
+                    ) : item.href ? (
+                      <Link
+                        href={item.href}
+                        onClick={item.onClick}
+                        className="shrink-0 text-sm text-muted transition-colors hover:text-foreground max-w-[120px] truncate"
+                      >
+                        {item.label}
+                      </Link>
+                    ) : item.badge ? (
+                      <span
+                        aria-current={isLast ? "page" : undefined}
+                        className="rounded-md bg-surface-raised px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-muted"
+                      >
+                        {item.label}
+                      </span>
+                    ) : (
+                      <span
+                        aria-current={isLast ? "page" : undefined}
+                        className="text-xs font-black uppercase tracking-[0.15em] text-foreground truncate"
+                      >
+                        {item.label}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
           ))}
 
         {/* Right: optional slot + dropdown menu */}

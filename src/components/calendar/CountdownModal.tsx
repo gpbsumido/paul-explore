@@ -37,7 +37,10 @@ interface CountdownModalProps {
  */
 function getDaysLabel(targetDate: string): string | null {
   if (!targetDate) return null;
-  const days = differenceInCalendarDays(new Date(`${targetDate}T00:00:00`), new Date());
+  const days = differenceInCalendarDays(
+    new Date(`${targetDate}T00:00:00`),
+    new Date(),
+  );
   if (days === 0) return "Today!";
   if (days > 0) return `${days} day${days === 1 ? "" : "s"} away`;
   return `${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"} ago`;
@@ -124,9 +127,15 @@ export default function CountdownModal({
             {isEdit ? "Edit countdown" : "New countdown"}
           </h2>
         ) : (
-          <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
+          <div
+            role="tablist"
+            aria-label="Entry type"
+            className="flex items-center rounded-lg border border-border p-0.5 gap-0.5"
+          >
             <button
               type="button"
+              role="tab"
+              aria-selected={false}
               onClick={onSwitchToEvent}
               className="h-7 px-3 text-xs font-medium rounded-md text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
@@ -134,6 +143,8 @@ export default function CountdownModal({
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={true}
               className="h-7 px-3 text-xs font-medium rounded-md bg-foreground text-background"
             >
               Countdown

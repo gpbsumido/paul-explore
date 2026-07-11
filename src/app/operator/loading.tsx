@@ -29,7 +29,11 @@ function StoreCardSkeleton() {
 
 export default function OperatorLoading() {
   return (
-    <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
+    <main
+      aria-busy="true"
+      aria-label="Loading fleet dashboard"
+      className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6"
+    >
       <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }

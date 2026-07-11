@@ -623,7 +623,7 @@ function GuidedWalkthrough({
             Reset
           </Pill>
         )}
-        <span className="ml-auto self-center font-mono text-[11px] text-muted/40">
+        <span className="ml-auto self-center font-mono text-[11px] text-muted">
           {revealedCount}/{maxLines}
         </span>
       </div>
@@ -727,7 +727,7 @@ export default function FromScratchContent() {
             {/* 2. Tabbed interface                                           */}
             {/* ----------------------------------------------------------- */}
             <Section className="mt-14" transition={t}>
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted/40">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">
                 Pick a function
               </h2>
 

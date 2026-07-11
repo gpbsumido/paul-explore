@@ -10,6 +10,7 @@ interface BoneProps {
 export default function Bone({ className, style }: BoneProps) {
   return (
     <div
+      aria-hidden="true"
       className={className}
       style={{
         background: "var(--color-surface-raised)",

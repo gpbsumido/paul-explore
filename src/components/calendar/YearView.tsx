@@ -33,7 +33,14 @@ interface MiniMonthProps {
 // MiniMonth renders a full mini-grid per month. There are 12 of them on screen
 // and they're cheap individually, but 12x the work still adds up on each keystroke
 // or modal toggle in the parent.
-const MiniMonth = memo(function MiniMonth({ month, events, countdowns, isCurrent, containsToday, onClick }: MiniMonthProps) {
+const MiniMonth = memo(function MiniMonth({
+  month,
+  events,
+  countdowns,
+  isCurrent,
+  containsToday,
+  onClick,
+}: MiniMonthProps) {
   const days = eachDayOfInterval({
     start: startOfWeek(startOfMonth(month)),
     end: endOfWeek(endOfMonth(month)),
@@ -65,7 +72,7 @@ const MiniMonth = memo(function MiniMonth({ month, events, countdowns, isCurrent
         {DAY_LABELS.map((d) => (
           <div
             key={d}
-            className="text-center text-[8px] font-semibold uppercase text-muted/40 pb-1"
+            className="text-center text-[8px] font-semibold uppercase text-muted pb-1"
           >
             {d[0]}
           </div>
@@ -85,7 +92,10 @@ const MiniMonth = memo(function MiniMonth({ month, events, countdowns, isCurrent
           ];
 
           return (
-            <div key={day.toISOString()} className="flex flex-col items-center mb-0.5">
+            <div
+              key={day.toISOString()}
+              className="flex flex-col items-center mb-0.5"
+            >
               {/* Day number — today gets a small filled circle */}
               <span
                 className={[
@@ -93,8 +103,8 @@ const MiniMonth = memo(function MiniMonth({ month, events, countdowns, isCurrent
                   today
                     ? "bg-red-500 text-white font-semibold"
                     : inMonth
-                    ? "text-foreground"
-                    : "text-muted opacity-20",
+                      ? "text-foreground"
+                      : "text-muted opacity-20",
                 ].join(" ")}
               >
                 {format(day, "d")}
