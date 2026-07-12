@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.15
+
+- `src/app/thoughts/ai-agent-patterns/page.tsx` — server component with metadata, OG tags, `revalidate = 86400`, renders AgentPatternsContent.
+- `src/app/thoughts/ai-agent-patterns/AgentPatternsContent.tsx` — dev thoughts page with summary/chat view toggle. Summary view covers 10 sections: SSE vs WebSockets vs polling, SSE wire format, fetch + ReadableStream, state machines over booleans, streaming markdown, auto-scroll UX, error taxonomy, performance at 50 tokens/sec, anti-patterns, and testing streaming UI. Chat view is an iMessage-style conversation covering the same topics using Sent/Received/Timestamp components.
+- bumped version to 0.15.15
+
 ## 2026-07-12 - version 0.15.14
 
 - `src/app/learn/ai-agent-patterns/page.tsx` — server component with metadata, OG tags, and dynamic import of AgentPatternsContent.
