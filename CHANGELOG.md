@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.19
+
+- added AI Agent Patterns to the Thoughts hub in `featureData.tsx` so it appears on the `/thoughts` page
+- bumped version to 0.15.19
+
 ## 2026-07-12 - version 0.15.18
 
 - added AI Agent Patterns to README.md features list and Learn section description (updated topic count from 13 to 14)

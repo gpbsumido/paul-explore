@@ -273,6 +273,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "WCAG 2.1 AA compliance — vitest-axe for unit-level scans, systematic primitive audits, and where automated tooling helps vs. where it doesn't",
     color: "#f59e0b",
   },
+  {
+    title: "AI Agent Patterns",
+    href: "/thoughts/ai-agent-patterns",
+    preview:
+      "SSE streaming, state machines, tool call UI, approval gates, and streaming markdown — the patterns behind modern agent interfaces",
+    color: "#6366f1",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
