@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.13
+
+- `src/components/agent/AgentTimeline.tsx` — vertical timeline rendering a sequence of `AgentStep[]`. Maps each step kind to its component: thinking (pulsing dot + italic text), text (StreamingMarkdown), tool_call (ToolCallCard), approval_request (ApprovalGate), error (red-tinted banner). Uses `staggerContainer` and `fadeInUp` from `@/lib/animations` for entrance animations.
+- `src/components/agent/StopButton.tsx` — cancel button for in-progress agent runs. Uses `Button` with `variant="danger"` and `size="sm"`, square stop icon, `aria-label="Stop generation"`.
+- `src/components/agent/AgentTimeline.test.tsx` — 8 tests covering empty steps, thinking/text/tool_call/approval_request/error step rendering, multiple steps in order, and axe accessibility scan with mixed step types.
+- `src/components/agent/StopButton.test.tsx` — 4 tests covering button text, onStop callback, aria-label, and axe scan.
+- bumped version to 0.15.13
+
 ## 2026-07-12 - version 0.15.12
 
 - `src/components/agent/ApprovalGate.tsx` — human-in-the-loop approval gate component. Displays action name and description with Approve (primary) and Deny (outline) buttons when pending, or a status label when resolved. Uses `role="alertdialog"` with `aria-labelledby`/`aria-describedby` via `useId()`. Framer Motion `scaleIn` entrance animation. Warning-style left-border card styling.
