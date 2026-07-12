@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.12
+
+- `src/components/agent/ApprovalGate.tsx` — human-in-the-loop approval gate component. Displays action name and description with Approve (primary) and Deny (outline) buttons when pending, or a status label when resolved. Uses `role="alertdialog"` with `aria-labelledby`/`aria-describedby` via `useId()`. Framer Motion `scaleIn` entrance animation. Warning-style left-border card styling.
+- `src/components/agent/ApprovalGate.test.tsx` — 12 tests covering action name/description rendering, Approve/Deny button clicks firing callbacks, `role="alertdialog"` with proper ARIA ID references, keyboard accessibility, approved/denied status labels replacing buttons, and axe accessibility scan.
+- bumped version to 0.15.12
+
 ## 2026-07-12 - version 0.15.11
 
 - `src/components/agent/StreamingMarkdown.tsx` — lightweight markdown renderer for mid-stream content. Hand-rolled parser handles paragraphs, code fences (auto-closes unclosed fences during streaming), inline code, bold, italic, and bullet lists. Wrapped in `React.memo` for memoization. No external markdown dependencies.
