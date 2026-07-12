@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.9
+
+- `src/hooks/useAgentRun.ts` — orchestrator hook wiring together `agentReducer`, `createMockStream`, `createSSEParser`, and `AbortController`. Parses SSE events from the mock stream and dispatches reducer actions (text_delta→APPEND_TEXT, thinking→APPEND_THINKING, tool_use_start→ADD_TOOL_CALL, tool_result→COMPLETE_TOOL_CALL, approval_request→REQUEST_APPROVAL, done→COMPLETE, error→ERROR). Returns `{ state, start, stop, approve, deny }` with abort support and approval flow resume.
+- `src/hooks/useAgentRun.test.ts` — 9 tests covering initial idle state, start transitions to running, simple scenario completion with thinking+text steps, stop preserves partial steps, approval flow (awaiting_approval→approve→completed, deny→completed with denied status), error_recovery scenario, and no-op on duplicate start.
+- bumped version to 0.15.9
+
 ## 2026-07-12 - version 0.15.8
 
 - `src/hooks/useAutoScroll.ts` — React hook that tracks whether a scrollable container is near the bottom and provides a `scrollToBottom()` function with smooth scrolling. Attaches a passive scroll listener to avoid blocking the main thread. Returns `{ containerRef, isAtBottom, scrollToBottom }` with configurable threshold (default 100px).
