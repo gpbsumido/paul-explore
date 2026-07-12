@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.10
+
+- `src/components/agent/ToolCallCard.tsx` — expandable tool call card component. Displays tool name with animated status indicator (spinner for running, checkmark for done, x for error). Clicking the header toggles an expand/collapse panel (Framer Motion `AnimatePresence`) showing formatted input JSON and result or error message. `aria-expanded` tracks state, keyboard accessible via native button element. Props: `step: ToolCallStep`, `defaultExpanded?: boolean`.
+- `src/components/agent/ToolCallCard.test.tsx` — 13 tests covering tool name rendering, three status indicators, click toggle, formatted JSON display, result text, error message with `data-error` styling, `aria-expanded` attribute, keyboard Enter/Space toggle, and axe accessibility scans for all three status states.
+- bumped version to 0.15.10
+
 ## 2026-07-12 - version 0.15.9
 
 - `src/hooks/useAgentRun.ts` — orchestrator hook wiring together `agentReducer`, `createMockStream`, `createSSEParser`, and `AbortController`. Parses SSE events from the mock stream and dispatches reducer actions (text_delta→APPEND_TEXT, thinking→APPEND_THINKING, tool_use_start→ADD_TOOL_CALL, tool_result→COMPLETE_TOOL_CALL, approval_request→REQUEST_APPROVAL, done→COMPLETE, error→ERROR). Returns `{ state, start, stop, approve, deny }` with abort support and approval flow resume.
