@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.18
+
+- added AI Agent Patterns to README.md features list and Learn section description (updated topic count from 13 to 14)
+- bumped version to 0.15.18
+
 ## 2026-07-12 - version 0.15.17
 
 - fix: allow starting a new agent run from terminal states (completed, error, cancelled). Previously the START action only worked from idle, so after a run finished the demo was stuck until a page refresh. The reducer now only blocks START during running or awaiting_approval.

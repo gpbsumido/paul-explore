@@ -24,7 +24,7 @@ The following pages are fully public — no account needed:
 
 - **Landing page** (`/`) — hero, feature grid, dedicated Operator and Learn showcases
 - **Fleet Operator** (`/operator`) — real-time fleet monitoring dashboard with store cards, alerts, inventory health, and per-store drill-down
-- **Learn** (`/learn`) — 13 interactive deep-dives into algorithms and frontend patterns with visual-first demos
+- **Learn** (`/learn`) — 14 interactive deep-dives into algorithms and frontend patterns with visual-first demos
 - **Particle Lab** (`/lab/particles`) — interactive R3F particle network
 - **Motion Lab** (`/lab/motion`) — Framer Motion demos
 - **Pokémon TCG Browser** (`/tcg`) — browse, search, set and card detail pages
@@ -139,7 +139,7 @@ There's a write-up at `/thoughts/operator-dashboard` covering the polling tier r
 
 ### 📚 Learn
 
-Interactive deep-dives into algorithms and frontend patterns at `/learn`. 13 topics, each built around visual-first teaching: the demo comes before the code, and complexity builds as you scroll. Topics span two categories — algorithms (Two Pointers, Sliding Window, Hash Maps & Sets, Stacks & Queues, Binary Search, Trees & Graphs, Recursion & Backtracking, Dynamic Programming) and frontend patterns (Debounce & Throttle, Memoization, Event Delegation, Async Patterns, From Scratch).
+Interactive deep-dives into algorithms and frontend patterns at `/learn`. 14 topics, each built around visual-first teaching: the demo comes before the code, and complexity builds as you scroll. Topics span two categories — algorithms (Two Pointers, Sliding Window, Hash Maps & Sets, Stacks & Queues, Binary Search, Trees & Graphs, Recursion & Backtracking, Dynamic Programming) and frontend patterns (Debounce & Throttle, Memoization, Event Delegation, Async Patterns, From Scratch, AI Agent Patterns). The AI Agent Patterns topic demonstrates SSE streaming, state machines, tool call UI, approval gates, and streaming markdown through five interactive scenarios.
 
 Each topic page follows a consistent Visual Style Guide: dot-grid CSS background, `max-w-3xl` content column, `PageHeader` with breadcrumbs, interactive demos with pill-button controls, SVG visualizations, 3-color code blocks wrapped in `<pre>`, and a "Spot this pattern" callout box at the bottom with monospace complexity annotations. Navigation links at the bottom of every page connect to the previous and next topics.
 
