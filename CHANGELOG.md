@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.8
+
+- `src/hooks/useAutoScroll.ts` — React hook that tracks whether a scrollable container is near the bottom and provides a `scrollToBottom()` function with smooth scrolling. Attaches a passive scroll listener to avoid blocking the main thread. Returns `{ containerRef, isAtBottom, scrollToBottom }` with configurable threshold (default 100px).
+- `src/hooks/useAutoScroll.test.ts` — 5 tests covering initial state (isAtBottom true), scrollToBottom calling `scrollTo`, isAtBottom true within threshold, isAtBottom false beyond threshold, and passive scroll listener verification.
+- bumped version to 0.15.8
+
 ## 2026-07-12 - version 0.15.7
 
 - `src/hooks/useStreamingText.ts` — React hook for streaming text accumulation with batched DOM updates. Consumes a `ReadableStream<string>` of SSE-formatted chunks, parses with `createSSEParser`, accumulates `text_delta` content in a ref buffer, and flushes to state via `requestAnimationFrame` batching to prevent per-token re-renders. Returns `{ text, isStreaming, start(stream), reset() }` with cleanup on unmount.
