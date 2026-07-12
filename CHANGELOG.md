@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.7
+
+- `src/hooks/useStreamingText.ts` — React hook for streaming text accumulation with batched DOM updates. Consumes a `ReadableStream<string>` of SSE-formatted chunks, parses with `createSSEParser`, accumulates `text_delta` content in a ref buffer, and flushes to state via `requestAnimationFrame` batching to prevent per-token re-renders. Returns `{ text, isStreaming, start(stream), reset() }` with cleanup on unmount.
+- `src/hooks/useStreamingText.test.ts` — 7 tests covering initial state, streaming start, text accumulation from text_delta events, stream end preserving text, reset clearing state, unmount cleanup, and ignoring non-text_delta events. Uses `renderHook` + `act()` with fake timers and a controllable `createTestStream()` helper.
+- bumped version to 0.15.7
+
 ## 2026-07-11 - version 0.15.6
 
 - `src/lib/agent/mock-stream.ts` — mock AI agent streaming service with five demo scenarios (simple, tool_calls, thinking, approval, error_recovery). `createMockStream(scenario)` returns a `ReadableStream<string>` producing SSE-formatted chunks on timers with a `resume()` function for the approval scenario's pause/resume flow. Exports `SCENARIOS` metadata array for the UI picker.
