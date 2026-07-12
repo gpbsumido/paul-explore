@@ -100,7 +100,8 @@ export type AgentRunAction =
   | { readonly type: "RESOLVE_APPROVAL"; readonly approved: boolean }
   | { readonly type: "COMPLETE" }
   | { readonly type: "ERROR"; readonly error: string }
-  | { readonly type: "CANCEL" };
+  | { readonly type: "CANCEL" }
+  | { readonly type: "RESET" };
 
 // ---------------------------------------------------------------------------
 // Scenario definitions

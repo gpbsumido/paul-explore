@@ -67,14 +67,15 @@ data: {}`,
 
 export default function AgentPatternsContent() {
   const [selectedScenario, setSelectedScenario] = useState<Scenario>("simple");
-  const { state, start, stop, approve, deny } = useAgentRun();
+  const { state, start, stop, approve, deny, reset } = useAgentRun();
   const { containerRef, isAtBottom, scrollToBottom } = useAutoScroll();
 
   const isRunning = state.status === "running";
-  const isIdle = state.status === "idle";
+  const isBusy =
+    state.status === "running" || state.status === "awaiting_approval";
 
   const handleRun = () => {
-    if (!isIdle) return;
+    if (isBusy) return;
     start(selectedScenario);
   };
 
@@ -105,14 +106,18 @@ export default function AgentPatternsContent() {
             {SCENARIOS.map((s) => (
               <button
                 key={s.id}
-                onClick={() => isIdle && setSelectedScenario(s.id)}
-                disabled={!isIdle}
+                onClick={() => {
+                  if (isBusy) return;
+                  setSelectedScenario(s.id);
+                  reset();
+                }}
+                disabled={isBusy}
                 className={[
                   "px-3 py-1.5 text-sm rounded-full border transition-colors cursor-pointer",
                   selectedScenario === s.id
                     ? "bg-primary-600 text-white border-primary-600"
                     : "bg-surface border-border text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
-                  !isIdle && "opacity-50 cursor-not-allowed",
+                  isBusy && "opacity-50 cursor-not-allowed",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -132,7 +137,7 @@ export default function AgentPatternsContent() {
               variant="primary"
               size="sm"
               onClick={handleRun}
-              disabled={!isIdle}
+              disabled={isBusy}
             >
               Run
             </Button>

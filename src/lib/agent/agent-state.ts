@@ -8,7 +8,8 @@ export function agentReducer(
 ): AgentRunState {
   switch (action.type) {
     case "START": {
-      if (state.status !== "idle") return state;
+      if (state.status === "running" || state.status === "awaiting_approval")
+        return state;
       return { status: "running", steps: [] };
     }
 
@@ -139,6 +140,10 @@ export function agentReducer(
     case "CANCEL": {
       if (state.status !== "running") return state;
       return { status: "cancelled", steps: state.steps };
+    }
+
+    case "RESET": {
+      return initialAgentState;
     }
   }
 }

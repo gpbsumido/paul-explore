@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.17
+
+- fix: allow starting a new agent run from terminal states (completed, error, cancelled). Previously the START action only worked from idle, so after a run finished the demo was stuck until a page refresh. The reducer now only blocks START during running or awaiting_approval.
+- fix: switching scenarios now clears previous output. Added RESET action to the reducer and `reset()` to `useAgentRun`. Scenario selector calls reset on change, returning state to idle so the demo area shows the placeholder instead of stale results.
+- bumped version to 0.15.17
+
 ## 2026-07-12 - version 0.15.16
 
 - `context/architecture-map.md` — added `/learn/ai-agent-patterns` and `/thoughts/ai-agent-patterns` routes, `useStreamingText`/`useAutoScroll`/`useAgentRun` hooks, `src/lib/agent/` modules, and `src/components/agent/` component section.

@@ -10,6 +10,7 @@ type AgentRunResult = {
   readonly stop: () => void;
   readonly approve: () => void;
   readonly deny: () => void;
+  readonly reset: () => void;
 };
 
 /**
@@ -25,7 +26,8 @@ export function useAgentRun(): AgentRunResult {
 
   const start = useCallback(
     (scenario: Scenario) => {
-      if (state.status !== "idle") return;
+      if (state.status === "running" || state.status === "awaiting_approval")
+        return;
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -126,5 +128,11 @@ export function useAgentRun(): AgentRunResult {
     dispatch({ type: "RESOLVE_APPROVAL", approved: false });
   }, []);
 
-  return { state, start, stop, approve, deny };
+  const reset = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    dispatch({ type: "RESET" });
+  }, []);
+
+  return { state, start, stop, approve, deny, reset };
 }
