@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.11
+
+- `src/components/agent/StreamingMarkdown.tsx` — lightweight markdown renderer for mid-stream content. Hand-rolled parser handles paragraphs, code fences (auto-closes unclosed fences during streaming), inline code, bold, italic, and bullet lists. Wrapped in `React.memo` for memoization. No external markdown dependencies.
+- `src/components/agent/StreamingMarkdown.test.tsx` — 10 tests covering plain text paragraphs, bold/italic/inline code rendering, complete code fences, unclosed code fence auto-close during streaming, multiple paragraphs, bullet lists, memoization, and axe accessibility scan.
+- bumped version to 0.15.11
+
 ## 2026-07-12 - version 0.15.10
 
 - `src/components/agent/ToolCallCard.tsx` — expandable tool call card component. Displays tool name with animated status indicator (spinner for running, checkmark for done, x for error). Clicking the header toggles an expand/collapse panel (Framer Motion `AnimatePresence`) showing formatted input JSON and result or error message. `aria-expanded` tracks state, keyboard accessible via native button element. Props: `step: ToolCallStep`, `defaultExpanded?: boolean`.
