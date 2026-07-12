@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.14
+
+- `src/app/learn/ai-agent-patterns/page.tsx` — server component with metadata, OG tags, and dynamic import of AgentPatternsContent.
+- `src/app/learn/ai-agent-patterns/AgentPatternsContent.tsx` — interactive feature page demoing all agent UI patterns. Scenario selector (5 scenarios as pill buttons), live demo area with AgentTimeline + StopButton + auto-scroll, status indicators for each run state, and 8 explanatory sections covering SSE parsing, state machines, streaming text, tool calls, approval gates, auto-scroll, error handling, and anti-patterns.
+- `src/app/learn/LearnHub.tsx` — added "AI Agent Patterns" topic (category: Frontend Patterns, difficulty: 3) with AgentPatternsMark SVG icon.
+- bumped version to 0.15.14
+
 ## 2026-07-12 - version 0.15.13
 
 - `src/components/agent/AgentTimeline.tsx` — vertical timeline rendering a sequence of `AgentStep[]`. Maps each step kind to its component: thinking (pulsing dot + italic text), text (StreamingMarkdown), tool_call (ToolCallCard), approval_request (ApprovalGate), error (red-tinted banner). Uses `staggerContainer` and `fadeInUp` from `@/lib/animations` for entrance animations.
