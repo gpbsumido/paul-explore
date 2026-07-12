@@ -1,5 +1,107 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.19
+
+- added AI Agent Patterns to the Thoughts hub in `featureData.tsx` so it appears on the `/thoughts` page
+- bumped version to 0.15.19
+
+## 2026-07-12 - version 0.15.18
+
+- added AI Agent Patterns to README.md features list and Learn section description (updated topic count from 13 to 14)
+- bumped version to 0.15.18
+
+## 2026-07-12 - version 0.15.17
+
+- fix: allow starting a new agent run from terminal states (completed, error, cancelled). Previously the START action only worked from idle, so after a run finished the demo was stuck until a page refresh. The reducer now only blocks START during running or awaiting_approval.
+- fix: switching scenarios now clears previous output. Added RESET action to the reducer and `reset()` to `useAgentRun`. Scenario selector calls reset on change, returning state to idle so the demo area shows the placeholder instead of stale results.
+- bumped version to 0.15.17
+
+## 2026-07-12 - version 0.15.16
+
+- `context/architecture-map.md` — added `/learn/ai-agent-patterns` and `/thoughts/ai-agent-patterns` routes, `useStreamingText`/`useAutoScroll`/`useAgentRun` hooks, `src/lib/agent/` modules, and `src/components/agent/` component section.
+- `context/INDEX.md` — added AI Agent Patterns to the features table.
+- bumped version to 0.15.16
+
+## 2026-07-12 - version 0.15.15
+
+- `src/app/thoughts/ai-agent-patterns/page.tsx` — server component with metadata, OG tags, `revalidate = 86400`, renders AgentPatternsContent.
+- `src/app/thoughts/ai-agent-patterns/AgentPatternsContent.tsx` — dev thoughts page with summary/chat view toggle. Summary view covers 10 sections: SSE vs WebSockets vs polling, SSE wire format, fetch + ReadableStream, state machines over booleans, streaming markdown, auto-scroll UX, error taxonomy, performance at 50 tokens/sec, anti-patterns, and testing streaming UI. Chat view is an iMessage-style conversation covering the same topics using Sent/Received/Timestamp components.
+- bumped version to 0.15.15
+
+## 2026-07-12 - version 0.15.14
+
+- `src/app/learn/ai-agent-patterns/page.tsx` — server component with metadata, OG tags, and dynamic import of AgentPatternsContent.
+- `src/app/learn/ai-agent-patterns/AgentPatternsContent.tsx` — interactive feature page demoing all agent UI patterns. Scenario selector (5 scenarios as pill buttons), live demo area with AgentTimeline + StopButton + auto-scroll, status indicators for each run state, and 8 explanatory sections covering SSE parsing, state machines, streaming text, tool calls, approval gates, auto-scroll, error handling, and anti-patterns.
+- `src/app/learn/LearnHub.tsx` — added "AI Agent Patterns" topic (category: Frontend Patterns, difficulty: 3) with AgentPatternsMark SVG icon.
+- bumped version to 0.15.14
+
+## 2026-07-12 - version 0.15.13
+
+- `src/components/agent/AgentTimeline.tsx` — vertical timeline rendering a sequence of `AgentStep[]`. Maps each step kind to its component: thinking (pulsing dot + italic text), text (StreamingMarkdown), tool_call (ToolCallCard), approval_request (ApprovalGate), error (red-tinted banner). Uses `staggerContainer` and `fadeInUp` from `@/lib/animations` for entrance animations.
+- `src/components/agent/StopButton.tsx` — cancel button for in-progress agent runs. Uses `Button` with `variant="danger"` and `size="sm"`, square stop icon, `aria-label="Stop generation"`.
+- `src/components/agent/AgentTimeline.test.tsx` — 8 tests covering empty steps, thinking/text/tool_call/approval_request/error step rendering, multiple steps in order, and axe accessibility scan with mixed step types.
+- `src/components/agent/StopButton.test.tsx` — 4 tests covering button text, onStop callback, aria-label, and axe scan.
+- bumped version to 0.15.13
+
+## 2026-07-12 - version 0.15.12
+
+- `src/components/agent/ApprovalGate.tsx` — human-in-the-loop approval gate component. Displays action name and description with Approve (primary) and Deny (outline) buttons when pending, or a status label when resolved. Uses `role="alertdialog"` with `aria-labelledby`/`aria-describedby` via `useId()`. Framer Motion `scaleIn` entrance animation. Warning-style left-border card styling.
+- `src/components/agent/ApprovalGate.test.tsx` — 12 tests covering action name/description rendering, Approve/Deny button clicks firing callbacks, `role="alertdialog"` with proper ARIA ID references, keyboard accessibility, approved/denied status labels replacing buttons, and axe accessibility scan.
+- bumped version to 0.15.12
+
+## 2026-07-12 - version 0.15.11
+
+- `src/components/agent/StreamingMarkdown.tsx` — lightweight markdown renderer for mid-stream content. Hand-rolled parser handles paragraphs, code fences (auto-closes unclosed fences during streaming), inline code, bold, italic, and bullet lists. Wrapped in `React.memo` for memoization. No external markdown dependencies.
+- `src/components/agent/StreamingMarkdown.test.tsx` — 10 tests covering plain text paragraphs, bold/italic/inline code rendering, complete code fences, unclosed code fence auto-close during streaming, multiple paragraphs, bullet lists, memoization, and axe accessibility scan.
+- bumped version to 0.15.11
+
+## 2026-07-12 - version 0.15.10
+
+- `src/components/agent/ToolCallCard.tsx` — expandable tool call card component. Displays tool name with animated status indicator (spinner for running, checkmark for done, x for error). Clicking the header toggles an expand/collapse panel (Framer Motion `AnimatePresence`) showing formatted input JSON and result or error message. `aria-expanded` tracks state, keyboard accessible via native button element. Props: `step: ToolCallStep`, `defaultExpanded?: boolean`.
+- `src/components/agent/ToolCallCard.test.tsx` — 13 tests covering tool name rendering, three status indicators, click toggle, formatted JSON display, result text, error message with `data-error` styling, `aria-expanded` attribute, keyboard Enter/Space toggle, and axe accessibility scans for all three status states.
+- bumped version to 0.15.10
+
+## 2026-07-12 - version 0.15.9
+
+- `src/hooks/useAgentRun.ts` — orchestrator hook wiring together `agentReducer`, `createMockStream`, `createSSEParser`, and `AbortController`. Parses SSE events from the mock stream and dispatches reducer actions (text_delta→APPEND_TEXT, thinking→APPEND_THINKING, tool_use_start→ADD_TOOL_CALL, tool_result→COMPLETE_TOOL_CALL, approval_request→REQUEST_APPROVAL, done→COMPLETE, error→ERROR). Returns `{ state, start, stop, approve, deny }` with abort support and approval flow resume.
+- `src/hooks/useAgentRun.test.ts` — 9 tests covering initial idle state, start transitions to running, simple scenario completion with thinking+text steps, stop preserves partial steps, approval flow (awaiting_approval→approve→completed, deny→completed with denied status), error_recovery scenario, and no-op on duplicate start.
+- bumped version to 0.15.9
+
+## 2026-07-12 - version 0.15.8
+
+- `src/hooks/useAutoScroll.ts` — React hook that tracks whether a scrollable container is near the bottom and provides a `scrollToBottom()` function with smooth scrolling. Attaches a passive scroll listener to avoid blocking the main thread. Returns `{ containerRef, isAtBottom, scrollToBottom }` with configurable threshold (default 100px).
+- `src/hooks/useAutoScroll.test.ts` — 5 tests covering initial state (isAtBottom true), scrollToBottom calling `scrollTo`, isAtBottom true within threshold, isAtBottom false beyond threshold, and passive scroll listener verification.
+- bumped version to 0.15.8
+
+## 2026-07-12 - version 0.15.7
+
+- `src/hooks/useStreamingText.ts` — React hook for streaming text accumulation with batched DOM updates. Consumes a `ReadableStream<string>` of SSE-formatted chunks, parses with `createSSEParser`, accumulates `text_delta` content in a ref buffer, and flushes to state via `requestAnimationFrame` batching to prevent per-token re-renders. Returns `{ text, isStreaming, start(stream), reset() }` with cleanup on unmount.
+- `src/hooks/useStreamingText.test.ts` — 7 tests covering initial state, streaming start, text accumulation from text_delta events, stream end preserving text, reset clearing state, unmount cleanup, and ignoring non-text_delta events. Uses `renderHook` + `act()` with fake timers and a controllable `createTestStream()` helper.
+- bumped version to 0.15.7
+
+## 2026-07-11 - version 0.15.6
+
+- `src/lib/agent/mock-stream.ts` — mock AI agent streaming service with five demo scenarios (simple, tool_calls, thinking, approval, error_recovery). `createMockStream(scenario)` returns a `ReadableStream<string>` producing SSE-formatted chunks on timers with a `resume()` function for the approval scenario's pause/resume flow. Exports `SCENARIOS` metadata array for the UI picker.
+- `src/lib/agent/mock-stream.test.ts` — 7 tests covering event sequence for all 5 scenarios, stream cancellation, and SCENARIOS metadata validation. Uses `vi.useFakeTimers()` for deterministic timing.
+- bumped version to 0.15.6
+
+## 2026-07-11 - version 0.15.5
+
+- `src/lib/agent/agent-state.ts` — agent run state machine reducer with discriminated union states (idle, running, awaiting_approval, completed, error, cancelled). Pure function, no React dependency. Handles 10 action types: START, APPEND_TEXT, APPEND_THINKING, ADD_TOOL_CALL, COMPLETE_TOOL_CALL, REQUEST_APPROVAL, RESOLVE_APPROVAL, COMPLETE, ERROR, CANCEL. Invalid transitions return state unchanged. All transitions produce new objects (immutable).
+- `src/lib/agent/agent-state.test.ts` — 28 tests covering every state transition, content appending, tool call lifecycle, approval flow (approve resumes, deny completes), invalid action guards, and immutability via Object.freeze.
+- bumped version to 0.15.5
+
+## 2026-07-11 - version 0.15.4
+
+- `src/lib/agent/sse-parser.ts` — SSE wire format parser with chunked boundary handling. `createSSEParser()` returns a stateful `{ feed(chunk): SSEEvent[] }` that handles split chunks, multi-line data fields, event/id/retry fields, and comment lines. Pure function, no React or DOM dependencies.
+- `src/lib/agent/sse-parser.test.ts` — 12 tests covering single events, event type parsing, multi-line data, id/retry fields, comments, multiple events per chunk, split-across-chunk boundaries, incomplete chunks, [DONE] sentinel, empty data, and event type reset between events.
+- bumped version to 0.15.4
+
+## 2026-07-11 - version 0.15.3
+
+- `src/lib/agent/types.ts` — type definitions for the AI agent UI feature: `SSEEvent` (parsed SSE frame), `AgentStep` discriminated union (thinking, text, tool_call, approval_request, error), `AgentRunState` state machine (idle, running, awaiting_approval, completed, error, cancelled), `AgentRunAction` reducer actions, `Scenario` and `ScenarioMeta` for demo scenarios. Pure types, no runtime code.
+- bumped version to 0.15.3
+
 ## 2026-07-10 - version 0.15.2
 
 - Fixed all 14 ESLint issues (2 errors, 12 warnings) that were failing CI:
