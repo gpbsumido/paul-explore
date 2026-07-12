@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-12 - version 0.15.16
+
+- `context/architecture-map.md` — added `/learn/ai-agent-patterns` and `/thoughts/ai-agent-patterns` routes, `useStreamingText`/`useAutoScroll`/`useAgentRun` hooks, `src/lib/agent/` modules, and `src/components/agent/` component section.
+- `context/INDEX.md` — added AI Agent Patterns to the features table.
+- bumped version to 0.15.16
+
 ## 2026-07-12 - version 0.15.15
 
 - `src/app/thoughts/ai-agent-patterns/page.tsx` — server component with metadata, OG tags, `revalidate = 86400`, renders AgentPatternsContent.
