@@ -125,6 +125,14 @@ const TOPICS: Topic[] = [
     category: "Frontend Patterns",
     difficulty: 3,
   },
+  {
+    id: "ai-agent-patterns",
+    title: "AI Agent Patterns",
+    subtitle:
+      "SSE, streaming, state machines, and the UI components that make agent features work.",
+    category: "Frontend Patterns",
+    difficulty: 3,
+  },
 ];
 
 const CATEGORIES = ["Core Algorithms", "Frontend Patterns"] as const;
@@ -556,6 +564,54 @@ function FromScratchMark({ h }: { h: boolean }) {
   );
 }
 
+function AgentPatternsMark({ h }: { h: boolean }) {
+  return (
+    <>
+      {/* streaming lines */}
+      <motion.line
+        x1="30"
+        y1="35"
+        x2="90"
+        y2="35"
+        strokeOpacity="0.3"
+        strokeWidth="2"
+        animate={{ x2: h ? 110 : 90 }}
+        transition={hoverSpring}
+      />
+      <motion.line
+        x1="30"
+        y1="50"
+        x2="75"
+        y2="50"
+        strokeOpacity="0.3"
+        strokeWidth="2"
+        animate={{ x2: h ? 95 : 75 }}
+        transition={hoverSpring}
+      />
+      <motion.line
+        x1="30"
+        y1="65"
+        x2="60"
+        y2="65"
+        strokeOpacity="0.3"
+        strokeWidth="2"
+        animate={{ x2: h ? 80 : 60 }}
+        transition={hoverSpring}
+      />
+      {/* cursor */}
+      <motion.rect
+        x="62"
+        y="60"
+        width="2"
+        height="10"
+        fill="currentColor"
+        animate={{ opacity: h ? 1 : 0.4 }}
+        transition={hoverSpring}
+      />
+    </>
+  );
+}
+
 const MARK_COMPONENTS: Record<string, React.ComponentType<{ h: boolean }>> = {
   "two-pointers": TwoPointersMark,
   "sliding-window": SlidingWindowMark,
@@ -570,6 +626,7 @@ const MARK_COMPONENTS: Record<string, React.ComponentType<{ h: boolean }>> = {
   "event-delegation": EventDelegationMark,
   "async-patterns": AsyncMark,
   "from-scratch": FromScratchMark,
+  "ai-agent-patterns": AgentPatternsMark,
 };
 
 function ConceptMark({ id, hovered }: { id: string; hovered: boolean }) {
