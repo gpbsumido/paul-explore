@@ -73,6 +73,9 @@ export default function WebVitalsReporter() {
   }, [pathname]);
 
   useEffect(() => {
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") return;
+
     const report = (metric: MetricType) =>
       sendVital(metric, pathnameRef.current);
 
