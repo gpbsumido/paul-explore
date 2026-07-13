@@ -20,10 +20,10 @@ export default function NavBar({ authenticated }: NavBarProps) {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 h-16 border-b transition-all duration-300 ${
         scrolled
-          ? "backdrop-blur-xl bg-background/80 border-b border-border"
-          : "bg-transparent"
+          ? "backdrop-blur-xl bg-background/80 border-border"
+          : "bg-transparent border-transparent"
       }`}
     >
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
