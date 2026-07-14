@@ -1,6 +1,9 @@
 /*
  * Design Tokens
- * Single source of truth for the design system.
+ * Sourced from @paul/tokens (shared design system).
+ * This file aliases --paul-* tokens to the unprefixed names
+ * used throughout this app and its Tailwind @theme bridge.
+ *
  * Consumed by:
  *   1. CSS Modules via var(--token-name)
  *   2. Tailwind utilities via @theme references in globals.css
@@ -13,93 +16,94 @@
 
 /* ========================================
    COLORS - Light theme (default)
+   Sourced from @paul/tokens
    ======================================== */
 :root {
-  /* Primary (blue) */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  --color-primary-950: #172554;
+  /* Primary (blue) — from @paul/tokens */
+  --color-primary-50: var(--paul-color-primary-50);
+  --color-primary-100: var(--paul-color-primary-100);
+  --color-primary-200: var(--paul-color-primary-200);
+  --color-primary-300: var(--paul-color-primary-300);
+  --color-primary-400: var(--paul-color-primary-400);
+  --color-primary-500: var(--paul-color-primary-500);
+  --color-primary-600: var(--paul-color-primary-600);
+  --color-primary-700: var(--paul-color-primary-700);
+  --color-primary-800: var(--paul-color-primary-800);
+  --color-primary-900: var(--paul-color-primary-900);
+  --color-primary-950: var(--paul-color-primary-950);
 
-  /* Secondary (violet) */
-  --color-secondary-50: #f5f3ff;
-  --color-secondary-100: #ede9fe;
-  --color-secondary-200: #ddd6fe;
-  --color-secondary-300: #c4b5fd;
-  --color-secondary-400: #a78bfa;
-  --color-secondary-500: #8b5cf6;
-  --color-secondary-600: #7c3aed;
-  --color-secondary-700: #6d28d9;
-  --color-secondary-800: #5b21b6;
-  --color-secondary-900: #4c1d95;
-  --color-secondary-950: #2e1065;
+  /* Secondary (violet) — from @paul/tokens */
+  --color-secondary-50: var(--paul-color-secondary-50);
+  --color-secondary-100: var(--paul-color-secondary-100);
+  --color-secondary-200: var(--paul-color-secondary-200);
+  --color-secondary-300: var(--paul-color-secondary-300);
+  --color-secondary-400: var(--paul-color-secondary-400);
+  --color-secondary-500: var(--paul-color-secondary-500);
+  --color-secondary-600: var(--paul-color-secondary-600);
+  --color-secondary-700: var(--paul-color-secondary-700);
+  --color-secondary-800: var(--paul-color-secondary-800);
+  --color-secondary-900: var(--paul-color-secondary-900);
+  --color-secondary-950: var(--paul-color-secondary-950);
 
-  /* Neutral (gray) */
-  --color-neutral-50: #fafafa;
-  --color-neutral-100: #f5f5f5;
-  --color-neutral-200: #e5e5e5;
-  --color-neutral-300: #d4d4d4;
-  --color-neutral-400: #a3a3a3;
-  --color-neutral-500: #737373;
-  --color-neutral-600: #525252;
-  --color-neutral-700: #404040;
-  --color-neutral-800: #262626;
-  --color-neutral-900: #171717;
-  --color-neutral-950: #0a0a0a;
+  /* Neutral (gray) — from @paul/tokens */
+  --color-neutral-50: var(--paul-color-neutral-50);
+  --color-neutral-100: var(--paul-color-neutral-100);
+  --color-neutral-200: var(--paul-color-neutral-200);
+  --color-neutral-300: var(--paul-color-neutral-300);
+  --color-neutral-400: var(--paul-color-neutral-400);
+  --color-neutral-500: var(--paul-color-neutral-500);
+  --color-neutral-600: var(--paul-color-neutral-600);
+  --color-neutral-700: var(--paul-color-neutral-700);
+  --color-neutral-800: var(--paul-color-neutral-800);
+  --color-neutral-900: var(--paul-color-neutral-900);
+  --color-neutral-950: var(--paul-color-neutral-950);
 
-  /* Semantic: Error (red) */
-  --color-error-50: #fef2f2;
-  --color-error-100: #fee2e2;
-  --color-error-200: #fecaca;
-  --color-error-300: #fca5a5;
-  --color-error-400: #f87171;
-  --color-error-500: #ef4444;
-  --color-error-600: #dc2626;
-  --color-error-700: #b91c1c;
-  --color-error-800: #991b1b;
-  --color-error-900: #7f1d1d;
-  --color-error-950: #450a0a;
+  /* Semantic: Error (red) — from @paul/tokens */
+  --color-error-50: var(--paul-color-error-50);
+  --color-error-100: var(--paul-color-error-100);
+  --color-error-200: var(--paul-color-error-200);
+  --color-error-300: var(--paul-color-error-300);
+  --color-error-400: var(--paul-color-error-400);
+  --color-error-500: var(--paul-color-error-500);
+  --color-error-600: var(--paul-color-error-600);
+  --color-error-700: var(--paul-color-error-700);
+  --color-error-800: var(--paul-color-error-800);
+  --color-error-900: var(--paul-color-error-900);
+  --color-error-950: var(--paul-color-error-950);
 
-  /* Semantic: Success (green) */
-  --color-success-50: #f0fdf4;
-  --color-success-100: #dcfce7;
-  --color-success-200: #bbf7d0;
-  --color-success-300: #86efac;
-  --color-success-400: #4ade80;
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
-  --color-success-700: #15803d;
-  --color-success-800: #166534;
-  --color-success-900: #14532d;
-  --color-success-950: #052e16;
+  /* Semantic: Success (green) — from @paul/tokens */
+  --color-success-50: var(--paul-color-success-50);
+  --color-success-100: var(--paul-color-success-100);
+  --color-success-200: var(--paul-color-success-200);
+  --color-success-300: var(--paul-color-success-300);
+  --color-success-400: var(--paul-color-success-400);
+  --color-success-500: var(--paul-color-success-500);
+  --color-success-600: var(--paul-color-success-600);
+  --color-success-700: var(--paul-color-success-700);
+  --color-success-800: var(--paul-color-success-800);
+  --color-success-900: var(--paul-color-success-900);
+  --color-success-950: var(--paul-color-success-950);
 
-  /* Semantic: Warning (amber) */
-  --color-warning-50: #fffbeb;
-  --color-warning-100: #fef3c7;
-  --color-warning-200: #fde68a;
-  --color-warning-300: #fcd34d;
-  --color-warning-400: #fbbf24;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
-  --color-warning-800: #92400e;
-  --color-warning-900: #78350f;
-  --color-warning-950: #451a03;
+  /* Semantic: Warning (amber) — from @paul/tokens */
+  --color-warning-50: var(--paul-color-warning-50);
+  --color-warning-100: var(--paul-color-warning-100);
+  --color-warning-200: var(--paul-color-warning-200);
+  --color-warning-300: var(--paul-color-warning-300);
+  --color-warning-400: var(--paul-color-warning-400);
+  --color-warning-500: var(--paul-color-warning-500);
+  --color-warning-600: var(--paul-color-warning-600);
+  --color-warning-700: var(--paul-color-warning-700);
+  --color-warning-800: var(--paul-color-warning-800);
+  --color-warning-900: var(--paul-color-warning-900);
+  --color-warning-950: var(--paul-color-warning-950);
 
-  /* Semantic aliases (surface/text colors) */
-  --color-background: #ffffff;
-  --color-foreground: #171717;
-  --color-surface: #ffffff;
-  --color-surface-raised: #fafafa;
-  --color-border: #e5e5e5;
-  --color-muted: #737373;
+  /* Semantic aliases (surface/text) — from @paul/tokens */
+  --color-background: var(--paul-color-background);
+  --color-foreground: var(--paul-color-foreground);
+  --color-surface: var(--paul-color-surface);
+  --color-surface-raised: var(--paul-color-surface);
+  --color-border: var(--paul-color-border);
+  --color-muted: var(--paul-color-muted);
 
   /* Backward compat aliases */
   --background: var(--color-background);
@@ -153,28 +157,30 @@
 
   /* ========================================
      SPACING - 4px base scale
+     Core values from @paul/tokens, extended
+     with app-specific steps (7, 9, 11, 14, 28+)
      ======================================== */
-  --spacing-0: 0px;
-  --spacing-0-5: 2px;
-  --spacing-1: 4px;
-  --spacing-1-5: 6px;
-  --spacing-2: 8px;
-  --spacing-2-5: 10px;
-  --spacing-3: 12px;
+  --spacing-0: var(--paul-spacing-0);
+  --spacing-0-5: var(--paul-spacing-0\.5);
+  --spacing-1: var(--paul-spacing-1);
+  --spacing-1-5: var(--paul-spacing-1\.5);
+  --spacing-2: var(--paul-spacing-2);
+  --spacing-2-5: var(--paul-spacing-2\.5);
+  --spacing-3: var(--paul-spacing-3);
   --spacing-3-5: 14px;
-  --spacing-4: 16px;
-  --spacing-5: 20px;
-  --spacing-6: 24px;
+  --spacing-4: var(--paul-spacing-4);
+  --spacing-5: var(--paul-spacing-5);
+  --spacing-6: var(--paul-spacing-6);
   --spacing-7: 28px;
-  --spacing-8: 32px;
+  --spacing-8: var(--paul-spacing-8);
   --spacing-9: 36px;
-  --spacing-10: 40px;
+  --spacing-10: var(--paul-spacing-10);
   --spacing-11: 44px;
-  --spacing-12: 48px;
+  --spacing-12: var(--paul-spacing-12);
   --spacing-14: 56px;
-  --spacing-16: 64px;
-  --spacing-20: 80px;
-  --spacing-24: 96px;
+  --spacing-16: var(--paul-spacing-16);
+  --spacing-20: var(--paul-spacing-20);
+  --spacing-24: var(--paul-spacing-24);
   --spacing-28: 112px;
   --spacing-32: 128px;
   --spacing-36: 144px;
@@ -190,81 +196,79 @@
   --spacing-96: 384px;
 
   /* ========================================
-     TYPOGRAPHY
+     TYPOGRAPHY — from @paul/tokens
      ======================================== */
   /* Font sizes */
-  --text-xs: 0.75rem; /* 12px */
-  --text-sm: 0.875rem; /* 14px */
-  --text-base: 1rem; /* 16px */
-  --text-lg: 1.125rem; /* 18px */
-  --text-xl: 1.25rem; /* 20px */
-  --text-2xl: 1.5rem; /* 24px */
-  --text-3xl: 1.875rem; /* 30px */
-  --text-4xl: 2.25rem; /* 36px */
-  --text-5xl: 3rem; /* 48px */
+  --text-xs: var(--paul-font-size-xs);
+  --text-sm: var(--paul-font-size-sm);
+  --text-base: var(--paul-font-size-base);
+  --text-lg: var(--paul-font-size-lg);
+  --text-xl: var(--paul-font-size-xl);
+  --text-2xl: var(--paul-font-size-2xl);
+  --text-3xl: var(--paul-font-size-3xl);
+  --text-4xl: var(--paul-font-size-4xl);
+  --text-5xl: var(--paul-font-size-5xl);
 
   /* Line heights */
   --leading-none: 1;
-  --leading-tight: 1.25;
-  --leading-snug: 1.375;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.625;
-  --leading-loose: 2;
+  --leading-tight: var(--paul-line-height-tight);
+  --leading-snug: var(--paul-line-height-snug);
+  --leading-normal: var(--paul-line-height-normal);
+  --leading-relaxed: var(--paul-line-height-relaxed);
+  --leading-loose: var(--paul-line-height-loose);
 
   /* Letter spacing */
-  --tracking-tighter: -0.05em;
-  --tracking-tight: -0.025em;
-  --tracking-normal: 0em;
-  --tracking-wide: 0.025em;
-  --tracking-wider: 0.05em;
+  --tracking-tighter: var(--paul-letter-spacing-tighter);
+  --tracking-tight: var(--paul-letter-spacing-tight);
+  --tracking-normal: var(--paul-letter-spacing-normal);
+  --tracking-wide: var(--paul-letter-spacing-wide);
+  --tracking-wider: var(--paul-letter-spacing-wider);
   --tracking-widest: 0.1em;
 
-  /* Font weights */
+  /* Font weights — core from @paul/tokens, extended with thin/light/extrabold/black */
   --font-weight-thin: 100;
   --font-weight-extralight: 200;
   --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+  --font-weight-normal: var(--paul-font-weight-normal);
+  --font-weight-medium: var(--paul-font-weight-medium);
+  --font-weight-semibold: var(--paul-font-weight-semibold);
+  --font-weight-bold: var(--paul-font-weight-bold);
   --font-weight-extrabold: 800;
   --font-weight-black: 900;
 
   /* ========================================
-     BORDER RADIUS
+     BORDER RADIUS — from @paul/tokens
      ======================================== */
   --radius-none: 0px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
+  --radius-sm: var(--paul-radius-sm);
+  --radius-md: var(--paul-radius-md);
+  --radius-lg: var(--paul-radius-lg);
+  --radius-xl: var(--paul-radius-xl);
+  --radius-2xl: var(--paul-radius-2xl);
   --radius-3xl: 24px;
-  --radius-full: 9999px;
+  --radius-full: var(--paul-radius-full);
 
   /* ========================================
-     SHADOWS
+     SHADOWS — from @paul/tokens
      ======================================== */
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl:
-    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-xs: var(--paul-shadow-xs);
+  --shadow-sm: var(--paul-shadow-sm);
+  --shadow-md: var(--paul-shadow-md);
+  --shadow-lg: var(--paul-shadow-lg);
+  --shadow-xl: var(--paul-shadow-xl);
+  --shadow-2xl: var(--paul-shadow-2xl);
 
   /* ========================================
-     Z-INDEX SCALE
+     Z-INDEX SCALE — from @paul/tokens
      ======================================== */
-  --z-base: 0;
-  --z-dropdown: 10;
-  --z-sticky: 20;
-  --z-fixed: 30;
-  --z-overlay: 40;
-  --z-modal: 50;
-  --z-popover: 60;
-  --z-toast: 70;
+  --z-base: var(--paul-z-base);
+  --z-dropdown: var(--paul-z-dropdown);
+  --z-sticky: var(--paul-z-sticky);
+  --z-fixed: var(--paul-z-fixed);
+  --z-overlay: var(--paul-z-modal-backdrop);
+  --z-modal: var(--paul-z-modal);
+  --z-popover: var(--paul-z-popover);
+  --z-toast: var(--paul-z-toast);
 
   /* ========================================
      BREAKPOINTS (reference values for JS)
@@ -277,19 +281,21 @@
 
   /* ========================================
      TRANSITIONS / ANIMATIONS
+     Core from @paul/tokens, extended with
+     app-specific fastest/slower/slowest steps
      ======================================== */
   --duration-fastest: 50ms;
-  --duration-fast: 100ms;
+  --duration-fast: var(--paul-duration-fast);
   --duration-normal: 150ms;
-  --duration-slow: 200ms;
-  --duration-slower: 300ms;
-  --duration-slowest: 500ms;
+  --duration-slow: var(--paul-duration-normal);
+  --duration-slower: var(--paul-duration-slow);
+  --duration-slowest: var(--paul-duration-glacial);
 
-  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-default: var(--paul-easing-default);
+  --ease-in: var(--paul-easing-in);
+  --ease-out: var(--paul-easing-out);
+  --ease-in-out: var(--paul-easing-in-out);
+  --ease-bounce: var(--paul-easing-bounce);
 }
 
 /* ========================================
@@ -298,12 +304,13 @@
    Palette shades stay the same.
    ======================================== */
 [data-theme="dark"] {
-  --color-background: #0a0a0a;
-  --color-foreground: #ededed;
-  --color-surface: #171717;
-  --color-surface-raised: #262626;
-  --color-border: #404040;
-  --color-muted: #a3a3a3;
+  /* Semantic aliases — from @paul/tokens dark overrides */
+  --color-background: var(--paul-color-background);
+  --color-foreground: var(--paul-color-foreground);
+  --color-surface: var(--paul-color-surface);
+  --color-surface-raised: var(--paul-color-surface);
+  --color-border: var(--paul-color-border);
+  --color-muted: var(--paul-color-muted);
 
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.2);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);

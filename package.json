@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.15.20",
+  "version": "0.15.21",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -17,6 +17,9 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
+    "@paul/tokens": "file:../paul-design-system/packages/tokens",
+    "@paul/css": "file:../paul-design-system/packages/css",
+    "@paul/react": "file:../paul-design-system/packages/react",
     "@auth0/nextjs-auth0": "^4.15.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",

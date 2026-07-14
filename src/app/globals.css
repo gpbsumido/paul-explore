@@ -4,8 +4,10 @@
 @import "tailwindcss";
 
 /* =============================================
-   2. Design tokens (CSS custom properties)
+   2. Design tokens — @paul/tokens (shared design system)
+      then local aliases for Tailwind compatibility
    ============================================= */
+@import "@paul/tokens/tokens.css";
 @import "../styles/tokens.css";
 
 /* =============================================
