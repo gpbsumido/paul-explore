@@ -1,5 +1,5 @@
 import { type ComponentPropsWithRef, type ReactNode } from "react";
-import { Button as PaulButton } from "@paul/react";
+import { Button as PaulButton } from "@paul-portfolio/react";
 
 export type ButtonVariant =
   | "primary"
@@ -18,7 +18,7 @@ interface ButtonProps extends ComponentPropsWithRef<"button"> {
 }
 
 /**
- * App-level Button backed by @paul/react.
+ * App-level Button backed by @paul-portfolio/react.
  * Preserves the existing API so all call sites keep working.
  */
 export default function Button({
@@ -32,17 +32,18 @@ export default function Button({
   ref,
   ...rest
 }: ButtonProps) {
+  const shared = { ref, variant, size, loading, disabled, className } as const;
+
+  if (href) {
+    return (
+      <PaulButton {...shared} href={href}>
+        {children}
+      </PaulButton>
+    );
+  }
+
   return (
-    <PaulButton
-      ref={ref}
-      variant={variant}
-      size={size}
-      loading={loading}
-      disabled={disabled}
-      className={className}
-      href={href}
-      {...rest}
-    >
+    <PaulButton {...shared} {...rest}>
       {children}
     </PaulButton>
   );

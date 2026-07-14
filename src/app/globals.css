@@ -4,11 +4,11 @@
 @import "tailwindcss";
 
 /* =============================================
-   2. Design tokens — @paul/tokens (shared design system)
+   2. Design tokens — @paul-portfolio/tokens (shared design system)
       then local aliases for Tailwind compatibility
    ============================================= */
-@import "@paul/tokens/tokens.css";
-@import "@paul/css/index.css";
+@import "@paul-portfolio/tokens/tokens.css";
+@import "@paul-portfolio/css/index.css";
 @import "../styles/tokens.css";
 
 /* =============================================

@@ -1,7 +1,7 @@
 "use client";
 
 import { type ComponentPropsWithRef, useId } from "react";
-import { Input as PaulInput } from "@paul/react";
+import { Input as PaulInput } from "@paul-portfolio/react";
 
 interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id" | "size"> {
   /** Visible label text */
@@ -17,7 +17,7 @@ interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id" | "size">
 }
 
 /**
- * App-level Input backed by @paul/react.
+ * App-level Input backed by @paul-portfolio/react.
  * Preserves the existing API (label, hideLabel, helperText, error, size).
  */
 export default function Input({

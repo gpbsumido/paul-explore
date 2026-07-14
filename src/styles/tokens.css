@@ -1,6 +1,6 @@
 /*
  * Design Tokens
- * Sourced from @paul/tokens (shared design system).
+ * Sourced from @paul-portfolio/tokens (shared design system).
  * This file aliases --paul-* tokens to the unprefixed names
  * used throughout this app and its Tailwind @theme bridge.
  *
@@ -16,10 +16,10 @@
 
 /* ========================================
    COLORS - Light theme (default)
-   Sourced from @paul/tokens
+   Sourced from @paul-portfolio/tokens
    ======================================== */
 :root {
-  /* Primary (blue) — from @paul/tokens */
+  /* Primary (blue) — from @paul-portfolio/tokens */
   --color-primary-50: var(--paul-color-primary-50);
   --color-primary-100: var(--paul-color-primary-100);
   --color-primary-200: var(--paul-color-primary-200);
@@ -32,7 +32,7 @@
   --color-primary-900: var(--paul-color-primary-900);
   --color-primary-950: var(--paul-color-primary-950);
 
-  /* Secondary (violet) — from @paul/tokens */
+  /* Secondary (violet) — from @paul-portfolio/tokens */
   --color-secondary-50: var(--paul-color-secondary-50);
   --color-secondary-100: var(--paul-color-secondary-100);
   --color-secondary-200: var(--paul-color-secondary-200);
@@ -45,7 +45,7 @@
   --color-secondary-900: var(--paul-color-secondary-900);
   --color-secondary-950: var(--paul-color-secondary-950);
 
-  /* Neutral (gray) — from @paul/tokens */
+  /* Neutral (gray) — from @paul-portfolio/tokens */
   --color-neutral-50: var(--paul-color-neutral-50);
   --color-neutral-100: var(--paul-color-neutral-100);
   --color-neutral-200: var(--paul-color-neutral-200);
@@ -58,7 +58,7 @@
   --color-neutral-900: var(--paul-color-neutral-900);
   --color-neutral-950: var(--paul-color-neutral-950);
 
-  /* Semantic: Error (red) — from @paul/tokens */
+  /* Semantic: Error (red) — from @paul-portfolio/tokens */
   --color-error-50: var(--paul-color-error-50);
   --color-error-100: var(--paul-color-error-100);
   --color-error-200: var(--paul-color-error-200);
@@ -71,7 +71,7 @@
   --color-error-900: var(--paul-color-error-900);
   --color-error-950: var(--paul-color-error-950);
 
-  /* Semantic: Success (green) — from @paul/tokens */
+  /* Semantic: Success (green) — from @paul-portfolio/tokens */
   --color-success-50: var(--paul-color-success-50);
   --color-success-100: var(--paul-color-success-100);
   --color-success-200: var(--paul-color-success-200);
@@ -84,7 +84,7 @@
   --color-success-900: var(--paul-color-success-900);
   --color-success-950: var(--paul-color-success-950);
 
-  /* Semantic: Warning (amber) — from @paul/tokens */
+  /* Semantic: Warning (amber) — from @paul-portfolio/tokens */
   --color-warning-50: var(--paul-color-warning-50);
   --color-warning-100: var(--paul-color-warning-100);
   --color-warning-200: var(--paul-color-warning-200);
@@ -97,7 +97,7 @@
   --color-warning-900: var(--paul-color-warning-900);
   --color-warning-950: var(--paul-color-warning-950);
 
-  /* Semantic aliases (surface/text) — from @paul/tokens */
+  /* Semantic aliases (surface/text) — from @paul-portfolio/tokens */
   --color-background: var(--paul-color-background);
   --color-foreground: var(--paul-color-foreground);
   --color-surface: var(--paul-color-surface);
@@ -157,7 +157,7 @@
 
   /* ========================================
      SPACING - 4px base scale
-     Core values from @paul/tokens, extended
+     Core values from @paul-portfolio/tokens, extended
      with app-specific steps (7, 9, 11, 14, 28+)
      ======================================== */
   --spacing-0: var(--paul-spacing-0);
@@ -196,7 +196,7 @@
   --spacing-96: 384px;
 
   /* ========================================
-     TYPOGRAPHY — from @paul/tokens
+     TYPOGRAPHY — from @paul-portfolio/tokens
      ======================================== */
   /* Font sizes */
   --text-xs: var(--paul-font-size-xs);
@@ -225,7 +225,7 @@
   --tracking-wider: var(--paul-letter-spacing-wider);
   --tracking-widest: 0.1em;
 
-  /* Font weights — core from @paul/tokens, extended with thin/light/extrabold/black */
+  /* Font weights — core from @paul-portfolio/tokens, extended with thin/light/extrabold/black */
   --font-weight-thin: 100;
   --font-weight-extralight: 200;
   --font-weight-light: 300;
@@ -237,7 +237,7 @@
   --font-weight-black: 900;
 
   /* ========================================
-     BORDER RADIUS — from @paul/tokens
+     BORDER RADIUS — from @paul-portfolio/tokens
      ======================================== */
   --radius-none: 0px;
   --radius-sm: var(--paul-radius-sm);
@@ -249,7 +249,7 @@
   --radius-full: var(--paul-radius-full);
 
   /* ========================================
-     SHADOWS — from @paul/tokens
+     SHADOWS — from @paul-portfolio/tokens
      ======================================== */
   --shadow-xs: var(--paul-shadow-xs);
   --shadow-sm: var(--paul-shadow-sm);
@@ -259,7 +259,7 @@
   --shadow-2xl: var(--paul-shadow-2xl);
 
   /* ========================================
-     Z-INDEX SCALE — from @paul/tokens
+     Z-INDEX SCALE — from @paul-portfolio/tokens
      ======================================== */
   --z-base: var(--paul-z-base);
   --z-dropdown: var(--paul-z-dropdown);
@@ -281,7 +281,7 @@
 
   /* ========================================
      TRANSITIONS / ANIMATIONS
-     Core from @paul/tokens, extended with
+     Core from @paul-portfolio/tokens, extended with
      app-specific fastest/slower/slowest steps
      ======================================== */
   --duration-fastest: 50ms;
@@ -304,7 +304,7 @@
    Palette shades stay the same.
    ======================================== */
 [data-theme="dark"] {
-  /* Semantic aliases — from @paul/tokens dark overrides */
+  /* Semantic aliases — from @paul-portfolio/tokens dark overrides */
   --color-background: var(--paul-color-background);
   --color-foreground: var(--paul-color-foreground);
   --color-surface: var(--paul-color-surface);
