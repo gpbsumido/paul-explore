@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-07-13 - version 0.15.24
+
+- fix: resolved circular `@theme` references in globals.css — Tailwind v4's `@theme` block creates new CSS custom properties, so `--color-X: var(--color-X)` was self-referencing and resolving to the guaranteed-invalid value. All Tailwind utilities for colors, shadows, and border radii were silently broken. Fixed by referencing `--paul-*` prefixed source tokens
+- fix: removed `@paul-portfolio/css` import — the full CSS package brought in competing resets, base typography, heading sizes, and `@layer` declarations that conflicted with Tailwind v4, shifting spacing and layout. Only the tokens package is needed since React components handle their own CSS
+- fix: restored distinct `--color-surface-raised` values (was incorrectly aliased to same value as `--color-surface`)
+- docs: expanded design system thoughts page with circular reference and CSS layer conflict lessons
+- bumped version to 0.15.24
+
+## 2026-07-12 - version 0.15.20
+
+- fix: `WebVitalsReporter` now skips registration on localhost and 127.0.0.1. Dev-mode pageviews were sending slow CWV metrics (unminified JS, turbopack overhead, devtools) to the backend, polluting the vitals dashboard with poor scores for the latest versions.
+- fix: NavBar always renders `border-b` (transparent when not scrolled, `border-border` when scrolled). Previously the border was conditionally added on scroll, causing a 1px CLS.
+- bumped version to 0.15.20
+
 ## 2026-07-12 - version 0.15.19
 
 - added AI Agent Patterns to the Thoughts hub in `featureData.tsx` so it appears on the `/thoughts` page

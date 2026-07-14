@@ -1,7 +1,7 @@
 "use client";
 
 import { type ComponentPropsWithRef, useId } from "react";
-import { LABEL_CLASS, fieldClass, buildDescribedBy } from "./styles";
+import { Input as PaulInput } from "@paul-portfolio/react";
 
 interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id" | "size"> {
   /** Visible label text */
@@ -16,6 +16,10 @@ interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id" | "size">
   helperText?: string;
 }
 
+/**
+ * App-level Input backed by @paul-portfolio/react.
+ * Preserves the existing API (label, hideLabel, helperText, error, size).
+ */
 export default function Input({
   label,
   hideLabel = false,
@@ -24,48 +28,42 @@ export default function Input({
   helperText,
   required,
   className,
+  ref,
   ...rest
 }: InputProps) {
   const id = useId();
-  const errorId = `${id}-error`;
-  const helperId = `${id}-helper`;
 
-  const describedBy = buildDescribedBy(error ? errorId : null, helperText ? helperId : null);
+  if (hideLabel) {
+    return (
+      <div className={className}>
+        <label htmlFor={id} className="sr-only">
+          {label}
+        </label>
+        <PaulInput
+          ref={ref}
+          label={undefined}
+          error={error}
+          helper={helperText}
+          size={size}
+          aria-label={label}
+          required={required}
+          {...rest}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
-      <label
-        htmlFor={id}
-        className={hideLabel ? "sr-only" : LABEL_CLASS}
-      >
-        {label}
-        {required && (
-          <span className="text-error-500 ml-0.5" aria-hidden="true">
-            *
-          </span>
-        )}
-      </label>
-
-      <input
-        {...rest}
-        id={id}
+      <PaulInput
+        ref={ref}
+        label={required ? `${label} *` : label}
+        error={error}
+        helper={helperText}
+        size={size}
         required={required}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy}
-        className={fieldClass(error, size === "sm" ? "py-1" : "py-2")}
+        {...rest}
       />
-
-      {error && (
-        <p id={errorId} className="mt-1.5 text-sm text-error-600 dark:text-error-500" role="alert">
-          {error}
-        </p>
-      )}
-
-      {helperText && !error && (
-        <p id={helperId} className="mt-1.5 text-sm text-muted">
-          {helperText}
-        </p>
-      )}
     </div>
   );
 }
