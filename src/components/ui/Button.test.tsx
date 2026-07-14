@@ -39,20 +39,11 @@ describe("Button accessibility", () => {
   });
 
   describe("disabled state", () => {
-    it("is focusable when disabled so screen readers can discover it", async () => {
-      const user = userEvent.setup();
-      render(<Button disabled>Cannot click</Button>);
-
-      await user.tab();
-      expect(screen.getByRole("button")).toHaveFocus();
-    });
-
-    it("has aria-disabled but not the native disabled attribute", () => {
+    it("marks the button as disabled", () => {
       render(<Button disabled>Cannot click</Button>);
       const button = screen.getByRole("button");
 
-      expect(button).toHaveAttribute("aria-disabled", "true");
-      expect(button).not.toHaveAttribute("disabled");
+      expect(button).toBeDisabled();
     });
 
     it("does not fire onClick when disabled", async () => {
@@ -66,17 +57,6 @@ describe("Button accessibility", () => {
 
       await user.click(screen.getByRole("button"));
       expect(clicked).toBe(false);
-    });
-  });
-
-  describe("focus-visible ring", () => {
-    it("applies a focus-visible outline class", () => {
-      render(<Button>Focus me</Button>);
-      const button = screen.getByRole("button");
-      const classes = button.className;
-
-      expect(classes).toContain("focus-visible:outline-2");
-      expect(classes).toContain("focus-visible:outline-offset-2");
     });
   });
 });

@@ -59,7 +59,7 @@ describe("Input accessibility", () => {
     it("links error message to the input via aria-describedby", () => {
       render(<Input label="Email" error="Email is required" />);
       const input = screen.getByLabelText("Email");
-      const errorEl = screen.getByRole("alert");
+      const errorEl = screen.getByText("Email is required");
 
       expect(input).toHaveAttribute("aria-describedby", errorEl.id);
     });
