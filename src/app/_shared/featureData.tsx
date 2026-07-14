@@ -280,6 +280,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "SSE streaming, state machines, tool call UI, approval gates, and streaming markdown — the patterns behind modern agent interfaces",
     color: "#6366f1",
   },
+  {
+    title: "Shared Design System",
+    href: "/thoughts/design-system",
+    preview:
+      "Extracting tokens and components into @paul-portfolio npm packages — CSS custom properties, thin framework wrappers, and token aliasing across React and Angular apps",
+    color: "#06b6d4",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
