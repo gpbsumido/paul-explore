@@ -206,9 +206,10 @@ export default function DesignSystemContent() {
                 What broke and why
               </h2>
               <p className="text-muted">
-                Five bugs surfaced during integration. The first three appeared
-                at publish time. The last two were visual regressions that only
-                showed up when running the app.
+                Seven bugs surfaced across the integration. The first three
+                appeared at publish time. The next two were visual regressions
+                in the consumer app. The last two showed up when wiring
+                Storybook and Chromatic for visual regression testing in CI.
               </p>
               <ul className="mt-3 space-y-4 text-muted">
                 <li>
@@ -346,6 +347,65 @@ export default function DesignSystemContent() {
                   </code>{" "}
                   custom properties.
                 </li>
+                <li>
+                  <strong className="text-foreground">
+                    Storybook imports broke in CI.
+                  </strong>{" "}
+                  The Storybook stories imported React components via relative
+                  paths into{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    ../../react/src/
+                  </code>
+                  . Locally this works because the source files are right there.
+                  In CI, the react package&apos;s{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    exports
+                  </code>{" "}
+                  field points at{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    dist/
+                  </code>{" "}
+                  which doesn&apos;t exist until after a build step that CI never
+                  ran. The fix was switching imports to the package name (
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    @paul-portfolio/react
+                  </code>
+                  ) and adding a Vite alias in the Storybook config to resolve it
+                  back to source. This also required setting{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    esbuild.jsx: &apos;automatic&apos;
+                  </code>{" "}
+                  — without it, esbuild compiled the source TSX files using
+                  classic JSX mode (
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    React.createElement
+                  </code>
+                  ), but the source files don&apos;t{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    import React
+                  </code>
+                  .
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Chromatic couldn&apos;t capture the Modal story.
+                  </strong>{" "}
+                  The Modal component uses{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    createPortal
+                  </code>{" "}
+                  to render into{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    document.body
+                  </code>
+                  , which puts the dialog outside Chromatic&apos;s capture root.
+                  The interactive story that clicks &quot;Open Modal&quot; and
+                  then asserts the dialog is visible crashed during Chromatic&apos;s
+                  snapshot. The fix was disabling the interactive story for
+                  Chromatic and adding a separate &quot;Open&quot; story that
+                  renders the Modal in a static open state — no user interaction
+                  needed for the visual snapshot.
+                </li>
               </ul>
             </section>
 
@@ -431,6 +491,38 @@ export default function DesignSystemContent() {
                     @layer
                   </code>{" "}
                   declarations on top of Tailwind. Import only the tokens.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Monorepo Storybook needs source aliases, not dist imports.
+                  </strong>{" "}
+                  In a monorepo, Storybook runs before sibling packages are
+                  built. If your component package&apos;s{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    exports
+                  </code>{" "}
+                  point at{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    dist/
+                  </code>
+                  , add a Vite alias to resolve the package to source. And if the
+                  source files use JSX without importing React, set{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    esbuild.jsx: &apos;automatic&apos;
+                  </code>{" "}
+                  in the Vite config.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Portal components need static stories for visual testing.
+                  </strong>{" "}
+                  Chromatic captures what&apos;s inside the Storybook root.{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    createPortal
+                  </code>{" "}
+                  renders outside it. Interactive stories that open portalled
+                  content will crash the snapshot. Add a separate story that
+                  renders the component in its open state without interaction.
                 </li>
               </ul>
             </section>
@@ -575,6 +667,61 @@ export default function DesignSystemContent() {
               and only import the layer you actually need from the design system
               — tokens yes, full CSS package no, unless you&apos;re using the
               CSS-only components
+            </Sent>
+
+            <Timestamp>Jul 14, 2026</Timestamp>
+
+            <Received>
+              what about storybook and visual regression testing? those working
+              in CI?
+            </Received>
+
+            <Sent>
+              that was another round of fun. storybook stories imported
+              components via relative paths — ../../react/src/Avatar. works
+              locally because the source is right there. in CI the package
+              exports point at dist/ which doesn&apos;t exist because CI never
+              builds the react package before storybook
+            </Sent>
+
+            <Received>
+              so you changed the imports to package names?
+            </Received>
+
+            <Sent>
+              yeah, switched to importing from @paul-portfolio/react and added a
+              Vite alias in the storybook config to resolve it back to source.
+              but then the build output had React.createElement calls even
+              though none of the source files import React — esbuild was using
+              classic JSX mode for the aliased source files. had to set
+              esbuild.jsx to automatic in the vite config
+            </Sent>
+
+            <Received>
+              chromatic work after that?
+            </Received>
+
+            <Sent>
+              mostly. the modal story crashed chromatic&apos;s snapshot. the modal
+              uses createPortal to render into document.body, which puts it
+              outside the storybook capture root. the interactive story that
+              clicks open and asserts the dialog was crashing. fixed it by
+              disabling that story for chromatic and adding a separate Open
+              story that renders the modal already open — no interaction needed
+              for the visual snapshot
+            </Sent>
+
+            <Received>
+              so the final takeaway list?
+            </Received>
+
+            <Sent>
+              eight things total now. the original six plus: monorepo storybook
+              needs vite aliases to resolve sibling packages to source instead
+              of dist, and set esbuild.jsx to automatic if the source files use
+              the new jsx transform. and portal components need static stories
+              for chromatic — interactive ones that open portalled content will
+              crash the snapshot
             </Sent>
           </div>
         </main>
