@@ -8,6 +8,7 @@
       then local aliases for Tailwind compatibility
    ============================================= */
 @import "@paul/tokens/tokens.css";
+@import "@paul/css/index.css";
 @import "../styles/tokens.css";
 
 /* =============================================
