@@ -206,8 +206,9 @@ export default function DesignSystemContent() {
                 What broke and why
               </h2>
               <p className="text-muted">
-                Three bugs made it through to the first publish. Each one taught
-                a lesson about what to check before shipping a package.
+                Five bugs surfaced during integration. The first three appeared
+                at publish time. The last two were visual regressions that only
+                showed up when running the app.
               </p>
               <ul className="mt-3 space-y-4 text-muted">
                 <li>
@@ -283,6 +284,68 @@ export default function DesignSystemContent() {
                   </code>{" "}
                   and only passing shared props to the anchor variant.
                 </li>
+                <li>
+                  <strong className="text-foreground">
+                    Circular references in Tailwind&apos;s @theme block.
+                  </strong>{" "}
+                  The{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    @theme
+                  </code>{" "}
+                  block in{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    globals.css
+                  </code>{" "}
+                  had entries like{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --color-background: var(--color-background)
+                  </code>
+                  . This looks harmless — it seems like it&apos;s just forwarding
+                  the value from{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    tokens.css
+                  </code>
+                  . But{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    @theme
+                  </code>{" "}
+                  creates new CSS custom properties. So the variable
+                  references itself, and per the CSS spec a self-referencing
+                  custom property resolves to the &quot;guaranteed-invalid
+                  value.&quot; Every Tailwind utility that used these tokens —
+                  colors, shadows, border radii — silently broke. Everything was
+                  square, shadowless, and missing colors. The fix was pointing
+                  each entry at the{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --paul-*
+                  </code>{" "}
+                  prefixed source token instead.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Design system CSS reset clobbering app layout.
+                  </strong>{" "}
+                  Importing{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    @paul-portfolio/css/index.css
+                  </code>{" "}
+                  brought in the full design system: a CSS reset, base
+                  typography, heading sizes, button resets, and all component
+                  CSS. The reset&apos;s{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    @layer
+                  </code>{" "}
+                  declarations conflicted with Tailwind v4&apos;s own layer
+                  system, and the base styles overrode the app&apos;s heading
+                  sizes and link colors. Spacing, layout, and typography all
+                  shifted. The fix was removing the import entirely — this app
+                  uses the React component package (which handles its own CSS
+                  classes) and only needs the tokens CSS for the raw{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --paul-*
+                  </code>{" "}
+                  custom properties.
+                </li>
               </ul>
             </section>
 
@@ -333,6 +396,41 @@ export default function DesignSystemContent() {
                     tsconfig.build.json
                   </code>{" "}
                   that only includes source files.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    The{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      @theme
+                    </code>{" "}
+                    block is a definition, not a passthrough.
+                  </strong>{" "}
+                  Tailwind v4&apos;s{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    @theme
+                  </code>{" "}
+                  creates new custom properties. Writing{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --color-X: var(--color-X)
+                  </code>{" "}
+                  looks like it&apos;s forwarding a value, but it&apos;s
+                  actually creating a circular reference that silently resolves
+                  to nothing. Always reference a differently-named source
+                  variable.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Only import the layer you need.
+                  </strong>{" "}
+                  A design system CSS package bundles resets, base styles, and
+                  component CSS — all useful if you&apos;re using the CSS-only
+                  components. But if you&apos;re consuming the React wrapper
+                  package, importing the full CSS package layers competing resets
+                  and{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    @layer
+                  </code>{" "}
+                  declarations on top of Tailwind. Import only the tokens.
                 </li>
               </ul>
             </section>
@@ -423,14 +521,60 @@ export default function DesignSystemContent() {
             </Sent>
 
             <Received>
+              did that fix everything?
+            </Received>
+
+            <Sent>
+              no. deployed and everything looked wrong — shadows were gone,
+              border radii were all zero (everything square), and some colors
+              were missing entirely. took a while to figure out. the @theme
+              block in globals.css had entries like --color-background:
+              var(--color-background). looks like it&apos;s forwarding the value from
+              tokens.css, but @theme creates NEW custom properties. so it was
+              referencing itself. CSS spec says self-referencing custom
+              properties resolve to the &quot;guaranteed-invalid value&quot; — which
+              means every Tailwind utility silently broke
+            </Sent>
+
+            <Received>
+              ouch. how do you even catch that?
+            </Received>
+
+            <Sent>
+              you have to know that @theme is a definition block, not a
+              passthrough. the fix was pointing each entry at the --paul-*
+              prefixed source token instead. so --color-background:
+              var(--paul-color-background) instead of var(--color-background).
+              different variable name, no circular reference
+            </Sent>
+
+            <Received>
+              anything else break after that?
+            </Received>
+
+            <Sent>
+              yeah, spacing and layout were off. the design system CSS package
+              was being imported — @paul-portfolio/css/index.css — which brings
+              in a full CSS reset, heading sizes, button resets, and @layer
+              declarations that conflict with Tailwind v4&apos;s own layers. the
+              reset was clobbering the app&apos;s styles. but we don&apos;t need it —
+              we use the React components which handle their own CSS. removed
+              the import entirely, kept just the tokens import
+            </Sent>
+
+            <Received>
               so the takeaway for next time?
             </Received>
 
             <Sent>
-              four things. run npm pack --dry-run and check every file before
-              publishing. validate generated CSS through all your consumers
-              parsers. never use file: paths in PRs that go through CI. and keep
-              a separate tsconfig.build.json that only includes source files
+              six things now. run npm pack --dry-run before publishing. validate
+              generated CSS through all your consumers&apos; parsers. never use
+              file: paths in PRs that go through CI. keep a separate
+              tsconfig.build.json. never write @theme entries that reference
+              their own name — always use a differently-named source variable.
+              and only import the layer you actually need from the design system
+              — tokens yes, full CSS package no, unless you&apos;re using the
+              CSS-only components
             </Sent>
           </div>
         </main>

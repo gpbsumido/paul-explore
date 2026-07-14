@@ -101,7 +101,7 @@
   --color-background: var(--paul-color-background);
   --color-foreground: var(--paul-color-foreground);
   --color-surface: var(--paul-color-surface);
-  --color-surface-raised: var(--paul-color-surface);
+  --color-surface-raised: #ffffff;
   --color-border: var(--paul-color-border);
   --color-muted: var(--paul-color-muted);
 
@@ -308,7 +308,7 @@
   --color-background: var(--paul-color-background);
   --color-foreground: var(--paul-color-foreground);
   --color-surface: var(--paul-color-surface);
-  --color-surface-raised: var(--paul-color-surface);
+  --color-surface-raised: #262626;
   --color-border: var(--paul-color-border);
   --color-muted: var(--paul-color-muted);
 
