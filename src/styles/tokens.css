@@ -161,11 +161,11 @@
      with app-specific steps (7, 9, 11, 14, 28+)
      ======================================== */
   --spacing-0: var(--paul-spacing-0);
-  --spacing-0-5: var(--paul-spacing-0\.5);
+  --spacing-0-5: var(--paul-spacing-0_5);
   --spacing-1: var(--paul-spacing-1);
-  --spacing-1-5: var(--paul-spacing-1\.5);
+  --spacing-1-5: var(--paul-spacing-1_5);
   --spacing-2: var(--paul-spacing-2);
-  --spacing-2-5: var(--paul-spacing-2\.5);
+  --spacing-2-5: var(--paul-spacing-2_5);
   --spacing-3: var(--paul-spacing-3);
   --spacing-3-5: 14px;
   --spacing-4: var(--paul-spacing-4);

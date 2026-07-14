@@ -202,18 +202,139 @@ export default function DesignSystemContent() {
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">What I&apos;d do differently</h2>
+              <h2 className="mb-3 text-lg font-bold">
+                What broke and why
+              </h2>
               <p className="text-muted">
-                The build story for the React and Angular packages needs work.
-                The initial publishes shipped empty dist folders because tsc was
-                trying to compile test files alongside source files. Excluding{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  __tests__
-                </code>{" "}
-                from the tsconfig fixed it, but the real fix is a proper build
-                pipeline — probably tsup or Vite library mode — that bundles,
-                tree-shakes, and produces clean ESM output. That&apos;s next.
+                Three bugs made it through to the first publish. Each one taught
+                a lesson about what to check before shipping a package.
               </p>
+              <ul className="mt-3 space-y-4 text-muted">
+                <li>
+                  <strong className="text-foreground">
+                    Dots in CSS custom property names.
+                  </strong>{" "}
+                  Tailwind uses fractional spacing keys like{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    0.5
+                  </code>
+                  , so the tokens package generated{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --paul-spacing-0.5
+                  </code>
+                  . Some browsers tolerate this, but Next.js&apos;s SWC CSS
+                  parser does not — it reads the dot as a number literal and
+                  crashes. The fix was replacing dots with underscores in the
+                  build script (
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --paul-spacing-0_5
+                  </code>
+                  ). The lesson: test your token output against the strictest CSS
+                  parser in your toolchain, not just the browser.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Test files in the dist bundle.
+                  </strong>{" "}
+                  The React and Angular packages used{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    npx tsc
+                  </code>{" "}
+                  as their build script. The tsconfig included{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    src/
+                  </code>{" "}
+                  which also compiles{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    src/__tests__/
+                  </code>
+                  . The test files import vitest matchers that extend the
+                  assertion types, so tsc failed trying to resolve them. The
+                  first publish shipped empty dist folders. The fix was excluding{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    __tests__
+                  </code>{" "}
+                  from tsconfig. The real fix is a proper bundler (tsup or Vite
+                  library mode) that only builds what you tell it to.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Discriminated union type mismatch.
+                  </strong>{" "}
+                  The design system&apos;s Button uses a discriminated union:{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    ButtonAsButton | ButtonAsAnchor
+                  </code>
+                  . The{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    disabled
+                  </code>{" "}
+                  prop only existed on the button branch, so TypeScript couldn&apos;t
+                  guarantee it was available on both. Moving shared props to a
+                  common base type fixed the type error. Similarly, the app-level
+                  adapter couldn&apos;t spread button-typed event handlers (
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    onClick: MouseEventHandler&lt;HTMLButtonElement&gt;
+                  </code>
+                  ) into the anchor branch. The fix was splitting the render path
+                  by checking{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    href
+                  </code>{" "}
+                  and only passing shared props to the anchor variant.
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                How to think about this next time
+              </h2>
+              <ul className="mt-3 space-y-4 text-muted">
+                <li>
+                  <strong className="text-foreground">
+                    Publish a dry run before real consumers depend on it.
+                  </strong>{" "}
+                  Run{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    npm pack --dry-run
+                  </code>{" "}
+                  and inspect every file in the tarball. If a file is 0 bytes or
+                  a test file, the build is wrong.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Validate token output against all consumers.
+                  </strong>{" "}
+                  Tokens look fine in a browser but break in SWC, esbuild, or
+                  Lightning CSS. Run the generated CSS through the strictest
+                  parser in your stack before publishing.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Don&apos;t use{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      file:
+                    </code>{" "}
+                    paths in PRs that go through CI.
+                  </strong>{" "}
+                  They work locally but fail on any runner that doesn&apos;t have
+                  the sibling repo checked out. Publish first, then open the
+                  consumer PR with version ranges.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Keep the build config separate from the test config.
+                  </strong>{" "}
+                  A single tsconfig that includes both source and tests works for
+                  type checking during development but fails as a build step.
+                  Use a{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    tsconfig.build.json
+                  </code>{" "}
+                  that only includes source files.
+                </li>
+              </ul>
             </section>
           </div>
         </main>
@@ -286,6 +407,30 @@ export default function DesignSystemContent() {
               dist folders because tsc was compiling test files. excluded
               __tests__ from tsconfig and it worked. real fix is a proper build
               pipeline like tsup
+            </Sent>
+
+            <Received>
+              anything else break?
+            </Received>
+
+            <Sent>
+              yeah, the spacing tokens had dots in the CSS property names.
+              --paul-spacing-0.5 — browsers handle it but Next.js SWC parser
+              treats the dot as a number literal and crashes the whole build.
+              switched to underscores: --paul-spacing-0_5. lesson learned: test
+              your tokens against the strictest parser in your toolchain, not
+              just the browser
+            </Sent>
+
+            <Received>
+              so the takeaway for next time?
+            </Received>
+
+            <Sent>
+              four things. run npm pack --dry-run and check every file before
+              publishing. validate generated CSS through all your consumers
+              parsers. never use file: paths in PRs that go through CI. and keep
+              a separate tsconfig.build.json that only includes source files
             </Sent>
           </div>
         </main>

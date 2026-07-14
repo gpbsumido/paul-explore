@@ -17,7 +17,7 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
-    "@paul-portfolio/tokens": "^0.1.3",
+    "@paul-portfolio/tokens": "^0.1.4",
     "@paul-portfolio/css": "^0.1.10",
     "@paul-portfolio/react": "^0.1.13",
     "@auth0/nextjs-auth0": "^4.15.0",
