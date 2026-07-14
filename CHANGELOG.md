@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-14 - version 0.15.25
+
+- docs: expanded design system thoughts page with Storybook CI and Chromatic lessons — monorepo source aliases, esbuild automatic JSX runtime, and portal component snapshot gotchas
+- bumped version to 0.15.25
+
 ## 2026-07-13 - version 0.15.24
 
 - fix: resolved circular `@theme` references in globals.css — Tailwind v4's `@theme` block creates new CSS custom properties, so `--color-X: var(--color-X)` was self-referencing and resolving to the guaranteed-invalid value. All Tailwind utilities for colors, shadows, and border radii were silently broken. Fixed by referencing `--paul-*` prefixed source tokens
