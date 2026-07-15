@@ -6,7 +6,9 @@
 - fix: calendar out-of-month day numbers `text-muted/50` fails contrast — changed to `text-muted`
 - fix: calendar "+N more" overflow text fails contrast on tinted backgrounds — changed to `text-foreground/80`
 - fix: TCG browse axe `document-title` violation from React 19 hydration clearing `<title>` — added `networkidle` wait before title check
-- fix: vitals a11y test navigated to removed `/protected/vitals` URL — updated to `/vitals`, skipped with TODO for 274 pre-existing contrast violations
+- fix: vitals a11y test navigated to removed `/protected/vitals` URL — updated to `/vitals`
+- fix: vitals page 274 color-contrast violations — `text-green-600`/`text-yellow-600` → `-800` for WCAG AA on white/surface backgrounds
+- fix: vitals VersionSelector `<select>` missing accessible name — added `aria-label`
 - fix: calendar E2E used static event title causing parallel test interference — switched to `uniqueTitle()` for isolation
 - fix: calendar UI test used optimistic temp UUID for delete — added page reload after POST to get server-assigned IDs
 - fix: calendar API test missing required `color` field and wrong response shape (`{id}` vs `{event:{id}}`)
