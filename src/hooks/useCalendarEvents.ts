@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createEvent, updateEvent, deleteEvent } from "@/lib/calendar";
 import type { CalendarEvent } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
+import { eventsResponseSchema } from "@/lib/schemas";
 
 // Prefix used to cancel and invalidate all calendar event queries at once.
 // A create, update, or delete can affect any cached range (multi-day events
@@ -88,8 +89,8 @@ export function useCalendarEvents({
       if (calendarId) params.set("calendarId", calendarId);
       const res = await fetch(`/api/calendar/events?${params}`, { signal });
       if (!res.ok) throw new Error("Failed to fetch events");
-      const json = await res.json();
-      return json.events as CalendarEvent[];
+      const json = eventsResponseSchema.parse(await res.json());
+      return json.events;
     },
     staleTime: 0,
     placeholderData: initialEvents,

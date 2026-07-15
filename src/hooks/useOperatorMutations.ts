@@ -3,6 +3,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Alert, InventoryItem, ActivityEvent } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
+import { alertSchema, inventoryItemSchema, activityEventSchema } from "@/lib/operator-schemas";
+import { z } from "zod";
 
 // ---------------------------------------------------------------------------
 // Dismiss alert
@@ -35,7 +37,7 @@ export function useDismissAlert(): UseDismissAlertReturn {
       });
       if (!res.ok) throw new Error("Failed to dismiss alert");
       const json = await res.json();
-      return json.alert as Alert;
+      return alertSchema.parse(json.alert);
     },
 
     onMutate: async ({ alertId, storeId }) => {
@@ -113,7 +115,10 @@ export function useRestockStore(): UseRestockStoreReturn {
       });
       if (!res.ok) throw new Error("Failed to restock items");
       const json = await res.json();
-      return json as RestockResult;
+      return z.object({
+        items: z.array(inventoryItemSchema),
+        activity: activityEventSchema,
+      }).parse(json);
     },
 
     onMutate: async ({ storeId, itemIds }) => {
