@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-15 - version 0.15.29
+
+- updated Design System imports for CSS fix for padding/spacing
+
+## 2026-07-15 - version 0.15.28
+
+- docs: expanded design system thoughts page with spacing token mismatch and modal focus bug — now 9 bugs documented with 10 takeaways
+- bumped version to 0.15.28
+
 ## 2026-07-14 - version 0.15.27
 
 - fix: modal inputs losing focus on every TanStack Query background refetch — the `useEffect` in Modal had `handleKeyDown` in its dependency array, which changed whenever the parent re-rendered (new `onClose` reference). Each re-run called `requestAnimationFrame(() => focusable[0].focus())`, stealing focus from the active input. Fixed by storing `handleKeyDown` in a ref so the effect only runs when `open` changes.
