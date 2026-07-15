@@ -204,10 +204,11 @@ export default function DesignSystemContent() {
             <section>
               <h2 className="mb-3 text-lg font-bold">What broke and why</h2>
               <p className="text-muted">
-                Seven bugs surfaced across the integration. The first three
+                Nine bugs surfaced across the integration. The first three
                 appeared at publish time. The next two were visual regressions
-                in the consumer app. The last two showed up when wiring
-                Storybook and Chromatic for visual regression testing in CI.
+                in the consumer app. Two showed up when wiring Storybook and
+                Chromatic for visual regression testing in CI. The last two
+                were interaction bugs that only appeared after real usage.
               </p>
               <ul className="mt-3 space-y-4 text-muted">
                 <li>
@@ -406,6 +407,61 @@ export default function DesignSystemContent() {
                   &quot;Open&quot; story that renders the Modal in a static open
                   state — no user interaction needed for the visual snapshot.
                 </li>
+                <li>
+                  <strong className="text-foreground">
+                    CSS spacing tokens renamed but CSS components not updated.
+                  </strong>{" "}
+                  The tokens package renamed fractional spacing properties from
+                  dots to underscores (
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --paul-spacing-1_5
+                  </code>
+                  ), but the CSS component package still referenced the old
+                  escaped-dot names (
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --paul-spacing-1\.5
+                  </code>
+                  ). These don&apos;t match. Buttons, chips, badges, and
+                  tooltips all lost their padding. The fix was updating all five
+                  CSS files to use underscore names. The lesson: when you rename
+                  tokens, grep every consumer package — the CSS package is a
+                  consumer too, not just the apps.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Modal focus stolen on every background refetch.
+                  </strong>{" "}
+                  The Modal component&apos;s{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    useEffect
+                  </code>{" "}
+                  had{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    handleKeyDown
+                  </code>{" "}
+                  in its dependency array.{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    handleKeyDown
+                  </code>{" "}
+                  depends on{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    onClose
+                  </code>
+                  , which is an inline arrow function that gets a new reference
+                  on every parent render. Every time TanStack Query&apos;s
+                  background polling re-rendered the calendar page, the effect
+                  re-ran and called{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    requestAnimationFrame(() =&gt; focusable[0].focus())
+                  </code>
+                  , stealing focus from whatever input you were typing in. The
+                  fix was storing the handler in a ref so the effect only runs
+                  when{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    open
+                  </code>{" "}
+                  changes.
+                </li>
               </ul>
             </section>
 
@@ -581,6 +637,40 @@ export default function DesignSystemContent() {
                   content will crash the snapshot. Add a separate story that
                   renders the component in its open state without interaction.
                 </li>
+                <li>
+                  <strong className="text-foreground">
+                    Grep every consumer when renaming tokens.
+                  </strong>{" "}
+                  Renaming{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --paul-spacing-0.5
+                  </code>{" "}
+                  to{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    --paul-spacing-0_5
+                  </code>{" "}
+                  in the tokens package is only half the fix. The CSS component
+                  package is a consumer too — it was still referencing the old
+                  escaped-dot names and silently failing. Treat token renames as
+                  cross-package breaking changes and grep everything.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Don&apos;t put unstable callbacks in useEffect deps.
+                  </strong>{" "}
+                  A modal&apos;s{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    onClose
+                  </code>{" "}
+                  prop is typically an inline arrow function — new reference on
+                  every parent render. If your{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                    useEffect
+                  </code>{" "}
+                  depends on a callback derived from it, the effect re-runs on
+                  every render. If the effect manages focus, it steals focus
+                  from inputs. Store the handler in a ref instead.
+                </li>
               </ul>
             </section>
           </div>
@@ -755,7 +845,7 @@ export default function DesignSystemContent() {
             <Received>so the final takeaway list?</Received>
 
             <Sent>
-              eight things total now. the original six plus: monorepo storybook
+              ten things total now. the original six plus: monorepo storybook
               needs vite aliases to resolve sibling packages to source instead
               of dist, and set esbuild.jsx to automatic if the source files use
               the new jsx transform. and portal components need static stories
@@ -795,6 +885,52 @@ export default function DesignSystemContent() {
               automatically. also made @paul-portfolio/css an explicit
               dependency instead of relying on it being transitive through the
               react package
+            </Sent>
+
+            <Received>
+              but buttons still looked weird right? no padding?
+            </Received>
+
+            <Sent>
+              yeah, different bug. the tokens package renamed fractional spacing
+              from dots to underscores — --paul-spacing-1.5 became
+              --paul-spacing-1_5. but the CSS component files still referenced
+              the old escaped-dot names. so var(--paul-spacing-1\.5) was
+              looking for a property that doesn&apos;t exist. buttons, chips,
+              badges, and tooltips all lost their padding
+            </Sent>
+
+            <Received>how did you miss it?</Received>
+
+            <Sent>
+              the token rename was in a different package than the CSS. when you
+              rename a token you have to grep every consumer, not just the
+              apps — the CSS package is a consumer of the tokens package too.
+              five files needed updating. the lesson is treat token renames as
+              cross-package breaking changes
+            </Sent>
+
+            <Received>what about the modal inputs? they were broken too?</Received>
+
+            <Sent>
+              that one was sneaky. typing in a modal input would lose focus
+              randomly. turned out the Modal useEffect had handleKeyDown in its
+              dep array. handleKeyDown depends on onClose, which is an inline
+              arrow function — new reference every parent render. every time
+              TanStack Query background polling re-rendered the calendar page,
+              the effect re-ran and called requestAnimationFrame with
+              focusable[0].focus(), stealing focus from the input. fixed it by
+              storing the handler in a ref so the effect only runs when open
+              changes
+            </Sent>
+
+            <Received>so the final takeaway count?</Received>
+
+            <Sent>
+              ten things now. the original eight plus: grep every consumer
+              package when renaming tokens, and never put unstable callbacks in
+              useEffect deps — store them in refs if the effect manages focus
+              or DOM state
             </Sent>
           </div>
         </main>
