@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-15 - version 0.15.29
+
+- updated Design System imports for CSS fix for padding/spacing
+
 ## 2026-07-15 - version 0.15.28
 
 - docs: expanded design system thoughts page with spacing token mismatch and modal focus bug — now 9 bugs documented with 10 takeaways
