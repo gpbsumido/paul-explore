@@ -1,53 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth0 } from "@/lib/auth0";
+import { parseBody } from "@/lib/parseBody";
+import { vitalsBeaconSchema } from "@/lib/schemas";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
-// these match the whitelist in routes/vitals.js — kept in sync manually
-// since the validation here is just a quick client-side gate before we
-// even bother hitting the backend
-const VALID_METRICS = new Set(["LCP", "CLS", "FCP", "INP", "TTFB"]);
 
 // POST /api/vitals
 // open ingestion — no session check, just validate the shape and forward
 export async function POST(request: NextRequest) {
-  const cl = Number(request.headers.get("content-length") ?? 0);
-  if (cl > 4_096) {
-    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
-  }
-
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  if (new TextEncoder().encode(JSON.stringify(body)).length > 4_096) {
-    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
-  }
-
-  const { metric, value, rating, page } = body;
-
-  if (!metric || value === undefined || value === null || !rating || !page) {
-    return NextResponse.json(
-      { error: "metric, value, rating, and page are required" },
-      { status: 400 },
-    );
-  }
-
-  if (typeof metric !== "string" || !VALID_METRICS.has(metric)) {
-    return NextResponse.json(
-      { error: `metric must be one of: ${[...VALID_METRICS].join(", ")}` },
-      { status: 400 },
-    );
-  }
+  const result = await parseBody(request, vitalsBeaconSchema, 4_096);
+  if (!result.ok) return result.response;
 
   try {
     const res = await fetch(`${API_URL}/api/vitals`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(result.data),
     });
     const data = await res.json().catch(() => null);
     return NextResponse.json(data ?? {}, { status: res.status });
