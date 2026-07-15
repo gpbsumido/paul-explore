@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-14 - version 0.15.26
+
+- switched from individual component CSS imports to `@paul-portfolio/css/components.css` entry point — one import gets all design system component styles without the reset that conflicts with Tailwind
+- added `@paul-portfolio/css` as an explicit dependency (was previously only transitive through the React package)
+- updated design system thoughts page with the `components.css` entry point section and chat thread
+- updated context docs (`ui-system.md`, `tech-stack.md`) to reflect design system package usage
+- bumped version to 0.15.26
+
 ## 2026-07-14 - version 0.15.25
 
 - docs: expanded design system thoughts page with Storybook CI and Chromatic lessons — monorepo source aliases, esbuild automatic JSX runtime, and portal component snapshot gotchas
