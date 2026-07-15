@@ -47,8 +47,9 @@ jobs:
       AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET || 'ci-placeholder-client-secret' }}
       AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE || 'https://placeholder-api' }}
       APP_BASE_URL: "http://localhost:3000"
-      # Skip the authenticated calendar tests in CI — they need real credentials.
-      # Public project (smoke + TCG + axe) runs unconditionally.
+      # Authenticated tests run when E2E credentials are configured.
+      E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+      E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
@@ -66,6 +67,10 @@ jobs:
 
       - name: Run public e2e tests (includes axe accessibility scans)
         run: npx playwright test --project=public
+
+      - name: Run authenticated e2e tests
+        if: env.E2E_TEST_EMAIL != ''
+        run: npx playwright test --project=authenticated
 
       - name: Upload Playwright report
         if: always()

@@ -10,6 +10,7 @@
 - fix: proxy.ts auth catch block silently swallowed errors — added error logging
 - docs: updated E2E thoughts page with "what broke when we actually ran them" section
 - bumped version to 0.15.30
+- update CI to include secrets
 
 ## 2026-07-15 - version 0.15.29
 
