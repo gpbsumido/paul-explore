@@ -8,6 +8,8 @@
       then local aliases for Tailwind compatibility
    ============================================= */
 @import "@paul-portfolio/tokens/tokens.css";
+@import "@paul-portfolio/css/src/components/button.css";
+@import "@paul-portfolio/css/src/components/input.css";
 @import "../styles/tokens.css";
 
 /* =============================================
