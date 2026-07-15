@@ -360,6 +360,101 @@ export default function E2eContent() {
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">
+                What broke when we actually ran them
+              </h2>
+              <p className="text-muted">
+                The authenticated tests hadn&apos;t been run in a while, and
+                three issues surfaced that had nothing to do with the features
+                under test.
+              </p>
+              <ul className="mt-3 space-y-3 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">
+                      &quot;Continue with Google&quot; button hijack.
+                    </strong>{" "}
+                    The globalSetup filled the email and clicked the first button
+                    matching{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      /continue/i
+                    </code>
+                    . Auth0&apos;s Universal Login page also has a &quot;Continue
+                    with Google&quot; social button that matched the same regex.
+                    Every run clicked Google OAuth instead of the database login,
+                    landing on{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      accounts.google.com
+                    </code>{" "}
+                    instead of the app. The fix was tightening the regex to{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      /^continue$/i
+                    </code>{" "}
+                    so it only matches the exact button text, and using a
+                    dedicated Auth0 database user instead of a Google-linked
+                    account.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">
+                      Calendar API response shape mismatch.
+                    </strong>{" "}
+                    The globalSetup parsed the POST response as{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      {"{ id: string }"}
+                    </code>{" "}
+                    but the backend returns{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      {"{ calendar: { id: string } }"}
+                    </code>
+                    . The calendar ID was{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      undefined
+                    </code>
+                    , so every CRUD test that depended on it silently failed.
+                    Matching the type assertion to the actual schema fixed it.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">
+                      Axe violations on authenticated routes.
+                    </strong>{" "}
+                    The calendar page had two WCAG AA violations: out-of-month
+                    day numbers used{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      opacity-25
+                    </code>{" "}
+                    which dropped below the 4.5:1 contrast ratio, and the
+                    infinite scroll container was a scrollable region without
+                    keyboard access ({" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      tabIndex
+                    </code>
+                    {" "}and{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      role=&quot;region&quot;
+                    </code>
+                    ). The settings page test had a brittle locator that matched
+                    both{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      {"<main>"}
+                    </code>{" "}
+                    and{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      {"<h1>"}
+                    </code>{" "}
+                    — fixed by targeting the heading by role and name.
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What this improves</h2>
               <p className="text-muted">
                 Before this, the only automated check on a full user flow was
@@ -579,6 +674,46 @@ export default function E2eContent() {
                 element is intentionally touched by an inline script. standard
                 pattern for any element the script layer owns before the
                 framework boots
+              </Sent>
+
+              <Timestamp>2:45 PM</Timestamp>
+
+              <Received pos="first">
+                did you actually run the authenticated tests recently
+              </Received>
+              <Received pos="last">
+                they&apos;re supposed to run with real Auth0 credentials right
+              </Received>
+
+              <Sent pos="first">
+                yeah, finally ran them and three things broke. the first was the
+                dumbest — globalSetup was clicking &quot;Continue with
+                Google&quot; instead of the database login button because the
+                regex /continue/i matched both
+              </Sent>
+              <Sent pos="middle">
+                the fix was tightening to /^continue$/i and making a dedicated
+                Auth0 database user so the login flow doesn&apos;t go through
+                Google OAuth at all
+              </Sent>
+              <Sent pos="last">
+                second, the calendar creation response is wrapped in{" "}
+                {"{ calendar: { id } }"} but the setup was parsing it as{" "}
+                {"{ id }"} directly. calendar ID was undefined so every CRUD
+                test silently failed
+              </Sent>
+
+              <Received>what about the a11y tests</Received>
+
+              <Sent pos="first">
+                two real violations on the calendar page. out-of-month day
+                numbers were at opacity-25 which tanks the contrast ratio below
+                4.5:1. and the infinite scroll container was scrollable but not
+                keyboard-accessible — needed tabIndex and role=region
+              </Sent>
+              <Sent pos="last">
+                the settings test also had a brittle locator that matched both
+                main and h1. switched to getByRole heading with the exact name
               </Sent>
 
               <div className={styles.typingDots}>

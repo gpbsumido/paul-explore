@@ -149,7 +149,7 @@ function CalendarGrid({
                     ? "bg-red-500 text-white font-semibold shadow-[0_0_0_4px_rgba(239,68,68,0.12)]"
                     : inMonth
                       ? "text-foreground"
-                      : "text-muted opacity-25",
+                      : "text-muted/50",
                 ].join(" ")}
               >
                 {format(day, "d")}

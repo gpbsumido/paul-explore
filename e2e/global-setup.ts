@@ -47,10 +47,10 @@ export default async function globalSetup(_config: FullConfig) {
       .fill(process.env.E2E_TEST_EMAIL);
 
     // Some Auth0 flows show password on the same page; others require clicking
-    // "Continue" first. Handle both.
+    // "Continue" first. Handle both. Use exact name match to avoid hitting
+    // "Continue with Google" social login button.
     const continueBtn = page.getByRole("button", {
-      name: /continue/i,
-      exact: false,
+      name: /^continue$/i,
     });
     if (await continueBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await continueBtn.click();
@@ -59,20 +59,34 @@ export default async function globalSetup(_config: FullConfig) {
     await page
       .locator('input[type="password"]')
       .fill(process.env.E2E_TEST_PASSWORD);
+
+    // Target the submit button for the email/password form, not social login
+    // buttons like "Continue with Google". The form submit button typically
+    // says just "Continue" or "Log In".
     await page
-      .getByRole("button", { name: /log in|sign in|continue/i, exact: false })
+      .getByRole("button", { name: /^(log in|sign in|continue)$/i })
       .last()
       .click();
 
-    // Wait until Auth0 redirects back to the app (URL hostname leaves auth0).
-    await page.waitForURL((url) => !url.hostname.includes("auth0"), {
-      timeout: 20_000,
-    });
+    // Wait until Auth0 redirects back to the app AND the callback finishes
+    // processing. The callback URL is on localhost so we can't just check
+    // "hostname doesn't contain auth0" — that fires too early on /auth/callback
+    // before the session cookie is set. Wait for the final redirect to land on
+    // a non-callback page with the network idle.
+    await page.waitForURL(
+      (url) =>
+        !url.hostname.includes("auth0") && !url.pathname.startsWith("/auth/"),
+      { timeout: 20_000 },
+    );
+    await page.waitForLoadState("networkidle");
 
     await context.storageState({ path: AUTH_FILE });
 
     // Create a dedicated test calendar so E2E events are isolated and cleaned
     // up by globalTeardown without touching any real user data.
+
+    await context.storageState({ path: AUTH_FILE });
+
     const res = await context.request.post(
       `${BASE_URL}/api/calendar/calendars`,
       {
@@ -85,9 +99,12 @@ export default async function globalSetup(_config: FullConfig) {
     );
 
     if (res.ok()) {
-      const calendar = (await res.json()) as { id: string };
-      fs.writeFileSync(STATE_FILE, JSON.stringify({ calendarId: calendar.id }));
-      console.log(`[E2E] Created test calendar ${calendar.id}`);
+      const body = (await res.json()) as { calendar: { id: string } };
+      fs.writeFileSync(
+        STATE_FILE,
+        JSON.stringify({ calendarId: body.calendar.id }),
+      );
+      console.log(`[E2E] Created test calendar ${body.calendar.id}`);
     } else {
       console.warn(
         `[E2E] Could not create test calendar: ${res.status()} ${await res.text()}`,

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-15 - version 0.15.30
+
+- fix: E2E globalSetup clicked "Continue with Google" instead of database login — tightened button regex to `/^continue$/i` and switched to a dedicated Auth0 database user
+- fix: globalSetup parsed calendar POST response as `{ id }` but backend returns `{ calendar: { id } }` — calendar ID was `undefined`, silently breaking all CRUD tests
+- fix: calendar day numbers used `opacity-25` failing WCAG AA contrast — switched to `text-muted/50`
+- fix: calendar infinite scroll container not keyboard-accessible — added `tabIndex={0}`, `role="region"`, and `aria-label`
+- fix: settings a11y test locator matched both `<main>` and `<h1>` — switched to `getByRole("heading")`
+- fix: proxy.ts auth catch block silently swallowed errors — added error logging
+- docs: updated E2E thoughts page with "what broke when we actually ran them" section
+- bumped version to 0.15.30
+
 ## 2026-07-15 - version 0.15.29
 
 - updated Design System imports for CSS fix for padding/spacing

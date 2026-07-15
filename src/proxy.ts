@@ -120,7 +120,8 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/auth/")) {
     try {
       return await auth0.middleware(request);
-    } catch {
+    } catch (err) {
+      console.error("[proxy] auth0.middleware() failed on", pathname, err);
       // Auth0 is misconfigured (e.g. missing env vars in CI). Fall through so
       // public routes continue to work — auth-gated routes will 500 naturally.
       return NextResponse.next();

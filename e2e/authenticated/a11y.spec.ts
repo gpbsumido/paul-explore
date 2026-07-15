@@ -37,7 +37,7 @@ test.describe("Authenticated route accessibility", () => {
 
   test("settings page has no axe violations", async ({ page }) => {
     await page.goto("/settings");
-    await expect(page.locator("main, [role='main'], h1")).toBeVisible({
+    await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible({
       timeout: 15_000,
     });
     await checkA11y(page, "/settings");
