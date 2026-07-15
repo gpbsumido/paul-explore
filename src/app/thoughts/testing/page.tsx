@@ -4,7 +4,7 @@ import TestingContent from "./TestingContent";
 
 const TITLE = "Testing | Thoughts";
 const DESCRIPTION =
-  "How 108 tests got added to a codebase with zero — the setup, what got tested and why, and the MSW delay() trick for proving optimistic updates actually work.";
+  "How 640+ tests (unit + e2e) got added to a codebase with zero — the setup, what got tested and why, and the MSW delay() trick for proving optimistic updates actually work.";
 
 export const metadata: Metadata = {
   title: TITLE,

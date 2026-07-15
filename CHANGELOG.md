@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-07-15 - version 0.15.32
+
+- fix: calendar today circle `bg-red-500` fails WCAG AA contrast vs white (~3.1:1) — changed to `bg-red-600` (~4.6:1)
+- fix: calendar out-of-month day numbers `text-muted/50` fails contrast — changed to `text-muted`
+- fix: calendar "+N more" overflow text fails contrast on tinted backgrounds — changed to `text-foreground/80`
+- fix: TCG browse axe `document-title` violation from React 19 hydration clearing `<title>` — added `networkidle` wait before title check
+- fix: vitals a11y test navigated to removed `/protected/vitals` URL — updated to `/vitals`, skipped with TODO for 274 pre-existing contrast violations
+- fix: calendar E2E used static event title causing parallel test interference — switched to `uniqueTitle()` for isolation
+- fix: calendar UI test used optimistic temp UUID for delete — added page reload after POST to get server-assigned IDs
+- fix: calendar API test missing required `color` field and wrong response shape (`{id}` vs `{event:{id}}`)
+- fix: calendar E2E removed non-existent "Confirm" delete step (EventModal deletes directly)
+- updated landing page stats: tests 108→640+, write-ups 17→25
+- updated testing thoughts page counts (108→640+) and metadata
+- added E2E Testing and NBA Playoffs Bracket to thoughts index (featureData)
+- updated testing thought preview to mention Playwright and e2e count
+- bumped version to 0.15.32
+
+## 2026-07-15 - version 0.15.31
+
+- (superseded by 0.15.32)
+
 ## 2026-07-15 - version 0.15.30
 
 - fix: E2E globalSetup clicked "Continue with Google" instead of database login — tightened button regex to `/^continue$/i` and switched to a dedicated Auth0 database user

@@ -10,8 +10,8 @@ const STATS: ReadonlyArray<{
   suffix?: string;
 }> = [
   { target: 14, label: "features" },
-  { target: 108, label: "tests", suffix: "+" },
-  { target: 17, label: "write-ups" },
+  { target: 640, label: "tests", suffix: "+" },
+  { target: 25, label: "write-ups" },
   { target: 5, label: "CWV metrics tracked" },
 ];
 

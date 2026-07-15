@@ -146,10 +146,10 @@ function CalendarGrid({
                 className={[
                   "inline-flex items-center justify-center h-7 w-7 text-sm rounded-full transition-colors",
                   today
-                    ? "bg-red-500 text-white font-semibold shadow-[0_0_0_4px_rgba(239,68,68,0.12)]"
+                    ? "bg-red-600 text-white font-semibold shadow-[0_0_0_4px_rgba(220,38,38,0.12)]"
                     : inMonth
                       ? "text-foreground"
-                      : "text-muted/50",
+                      : "text-muted",
                 ].join(" ")}
               >
                 {format(day, "d")}
@@ -179,7 +179,7 @@ function CalendarGrid({
                       />
                     ))}
                     {overflowCount > 0 && (
-                      <div className="text-[10px] text-muted px-1 leading-tight">
+                      <div className="text-[10px] text-foreground/80 px-1 leading-tight">
                         +{overflowCount} more
                       </div>
                     )}

@@ -28,11 +28,11 @@ test.describe("Authenticated route accessibility", () => {
   });
 
   test("vitals page has no axe violations", async ({ page }) => {
-    await page.goto("/protected/vitals");
-    await expect(page.locator("main, [role='main'], h1")).toBeVisible({
-      timeout: 15_000,
-    });
-    await checkA11y(page, "/protected/vitals");
+    await page.goto("/vitals");
+    await expect(
+      page.getByRole("heading", { name: "Core Web Vitals" }),
+    ).toBeVisible({ timeout: 15_000 });
+    await checkA11y(page, "/vitals");
   });
 
   test("settings page has no axe violations", async ({ page }) => {
