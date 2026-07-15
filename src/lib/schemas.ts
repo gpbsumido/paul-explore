@@ -180,6 +180,17 @@ export const countdownPageResponseSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Vitals beacon (POST /api/vitals)
+// ---------------------------------------------------------------------------
+
+export const vitalsBeaconSchema = z.object({
+  metric: z.enum(["LCP", "CLS", "FCP", "INP", "TTFB"]),
+  value: z.number(),
+  rating: z.string(),
+  page: z.string(),
+});
+
+// ---------------------------------------------------------------------------
 // GraphQL response wrapper
 // ---------------------------------------------------------------------------
 

@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Alert } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
+import { alertSchema } from "@/lib/operator-schemas";
+import { z } from "zod";
 
 const EMPTY: Alert[] = [];
 
@@ -33,7 +35,7 @@ export function useOperatorAlerts(storeId: string): UseOperatorAlertsReturn {
       });
       if (!res.ok) throw new Error("Failed to fetch alerts");
       const json = await res.json();
-      return json.alerts as Alert[];
+      return z.array(alertSchema).parse(json.alerts);
     },
     staleTime: 0,
     refetchInterval: 15_000,

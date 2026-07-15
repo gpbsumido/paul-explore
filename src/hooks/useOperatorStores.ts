@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Store } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
+import { storeSchema } from "@/lib/operator-schemas";
+import { z } from "zod";
 
 const EMPTY: Store[] = [];
 
@@ -31,7 +33,7 @@ export function useOperatorStores(): UseOperatorStoresReturn {
       const res = await fetch("/api/operator/stores", { signal });
       if (!res.ok) throw new Error("Failed to fetch stores");
       const json = await res.json();
-      return json.stores as Store[];
+      return z.array(storeSchema).parse(json.stores);
     },
     staleTime: 0,
     refetchInterval: 30_000,

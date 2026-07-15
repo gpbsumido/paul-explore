@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Store } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
+import { storeSchema } from "@/lib/operator-schemas";
 
 export interface UseOperatorStoreReturn {
   store: Store | undefined;
@@ -29,7 +30,7 @@ export function useOperatorStore(storeId: string): UseOperatorStoreReturn {
       const res = await fetch(`/api/operator/stores/${storeId}`, { signal });
       if (!res.ok) throw new Error("Failed to fetch store");
       const json = await res.json();
-      return json.store as Store;
+      return storeSchema.parse(json.store);
     },
     staleTime: 0,
     refetchOnWindowFocus: true,
