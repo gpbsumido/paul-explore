@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import type { InventoryItem } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
+import { inventoryItemSchema } from "@/lib/operator-schemas";
+import { z } from "zod";
 
 const EMPTY: InventoryItem[] = [];
 
@@ -35,7 +37,7 @@ export function useOperatorInventory(
       });
       if (!res.ok) throw new Error("Failed to fetch inventory");
       const json = await res.json();
-      return json.items as InventoryItem[];
+      return z.array(inventoryItemSchema).parse(json.items);
     },
     staleTime: 0,
     refetchInterval: 60_000,
