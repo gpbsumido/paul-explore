@@ -1,54 +1,24 @@
+import type { z } from "zod";
+import type {
+  calendarSchema,
+  calendarMemberSchema,
+  calendarEventSchema,
+  eventCardSchema,
+  countdownSchema,
+  countdownPageResponseSchema,
+} from "@/lib/schemas";
+
 export type CalendarView = "day" | "week" | "month" | "year";
 
 /** A named calendar that groups events and optionally links to a Google Calendar. */
-export type Calendar = {
-  id: string;
-  name: string;
-  color: string;
-  syncMode: "none" | "push" | "two_way";
-  googleCalId?: string;
-  googleCalName?: string;
-  /** Present on all calendars returned by getCalendars. 'owner' for owned calendars. */
-  role: "owner" | "editor" | "viewer";
-  /** Auth0 sub of the owner — only present on shared (non-owned) calendars. */
-  ownerSub?: string;
-  /** Email of the owner — only present on shared calendars. */
-  ownerEmail?: string;
-};
+export type Calendar = z.infer<typeof calendarSchema>;
 
 /** A member of a shared calendar. id is null for the synthesized owner entry. */
-export type CalendarMember = {
-  id: string | null;
-  userSub: string;
-  email: string;
-  role: "owner" | "editor" | "viewer";
-  invitedBy?: string;
-  createdAt?: string;
-};
+export type CalendarMember = z.infer<typeof calendarMemberSchema>;
 
-export type CalendarEvent = {
-  id: string;
-  title: string;
-  description?: string;
-  startDate: string; // ISO string, local datetime
-  endDate: string;
-  color: string;
-  allDay: boolean;
-  calendarId?: string;
-};
+export type CalendarEvent = z.infer<typeof calendarEventSchema>;
 
-export type EventCard = {
-  id: string;
-  eventId: string;
-  cardId: string;
-  cardName: string;
-  cardSetId?: string;
-  cardSetName?: string;
-  cardImageUrl?: string;
-  quantity: number;
-  notes?: string;
-  createdAt: string;
-};
+export type EventCard = z.infer<typeof eventCardSchema>;
 
 /**
  * A card entry that may be staged locally (pending) or already persisted.
@@ -69,22 +39,10 @@ export type ModalState =
   | { open: true; initialDate: Date; editingEvent?: CalendarEvent };
 
 /** A named date you want to count down to (or up from, if it's passed). */
-export type Countdown = {
-  id: string;
-  title: string;
-  description?: string;
-  /** ISO date string, "YYYY-MM-DD". No time component, no timezone. */
-  targetDate: string;
-  color: string;
-  createdAt: string;
-};
+export type Countdown = z.infer<typeof countdownSchema>;
 
 /** One page of countdown results as returned by the paginated list endpoint. */
-export type CountdownPage = {
-  countdowns: Countdown[];
-  /** Opaque cursor for the next page. Null when this is the last page. */
-  nextCursor: string | null;
-};
+export type CountdownPage = z.infer<typeof countdownPageResponseSchema>;
 
 export type CountdownModalState =
   | { open: false }
