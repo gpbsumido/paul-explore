@@ -100,6 +100,16 @@ export default function Modal({
     [onClose],
   );
 
+  // Keep a stable ref to the latest handleKeyDown so the keydown listener
+  // doesn't need to be torn down and re-added when onClose changes. Without
+  // this, every parent re-render (e.g. from TanStack Query polling) recreates
+  // onClose → handleKeyDown → re-runs the useEffect → steals focus from the
+  // active input via the requestAnimationFrame focus call.
+  const handleKeyDownRef = useRef(handleKeyDown);
+  useEffect(() => {
+    handleKeyDownRef.current = handleKeyDown;
+  }, [handleKeyDown]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -123,8 +133,11 @@ export default function Modal({
       el.setAttribute("aria-hidden", "true");
     }
 
-    // Add keyboard listener
-    document.addEventListener("keydown", handleKeyDown);
+    // Stable listener that delegates to the latest handler via ref
+    function onKeyDown(e: KeyboardEvent) {
+      handleKeyDownRef.current(e);
+    }
+    document.addEventListener("keydown", onKeyDown);
 
     // Focus the first focusable element in the dialog
     requestAnimationFrame(() => {
@@ -139,13 +152,13 @@ export default function Modal({
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = originalPaddingRight;
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", onKeyDown);
       for (const el of siblings) {
         el.removeAttribute("aria-hidden");
       }
       previousFocusRef.current?.focus();
     };
-  }, [open, handleKeyDown, getFocusableElements]);
+  }, [open, getFocusableElements]);
 
   // During SSR there is no document — bail out before createPortal touches it.
   if (typeof document === "undefined") return null;

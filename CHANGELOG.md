@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-14 - version 0.15.27
+
+- fix: modal inputs losing focus on every TanStack Query background refetch — the `useEffect` in Modal had `handleKeyDown` in its dependency array, which changed whenever the parent re-rendered (new `onClose` reference). Each re-run called `requestAnimationFrame(() => focusable[0].focus())`, stealing focus from the active input. Fixed by storing `handleKeyDown` in a ref so the effect only runs when `open` changes.
+- bumped version to 0.15.27
+
 ## 2026-07-14 - version 0.15.26
 
 - switched from individual component CSS imports to `@paul-portfolio/css/components.css` entry point — one import gets all design system component styles without the reset that conflicts with Tailwind
