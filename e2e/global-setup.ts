@@ -59,30 +59,14 @@ async function loginAndSetup(page: Page, context: BrowserContext) {
   // Auth0 Universal Login which hosts the email + password form.
   await page.goto(`${BASE_URL}/auth/login`);
 
-  // Wait for Auth0 to fully render — CI environments may be slower and
-  // Auth0's SPA login page can take a moment to hydrate.
-  await page.waitForLoadState("networkidle");
-
-  // Debug: dump page state to stderr (stdout is buffered by Playwright
-  // globalSetup and may not appear in CI logs) and to a file for artifacts.
-  const debugUrl = page.url();
-  const debugHtml = await page.content();
-  const debugInputs = await page.locator("input").count();
-  process.stderr.write(
-    `[E2E] Auth0 page URL: ${debugUrl}\n[E2E] Input count: ${debugInputs}\n[E2E] HTML length: ${debugHtml.length}\n`,
-  );
-  fs.writeFileSync(
-    path.join(path.dirname(AUTH_FILE), "auth-debug.html"),
-    `<!-- URL: ${debugUrl} -->\n${debugHtml}`,
-  );
-
-  // Auth0 Universal Login — selectors target the standard input attributes
-  // used by the default Auth0 template. The broader selector list covers
-  // both Classic and New Universal Login page structures.
-  await page
-    .locator('input[name="username"], input[name="email"], input[type="email"]')
-    .first()
-    .fill(process.env.E2E_TEST_EMAIL!);
+  // Auth0 Universal Login is a small HTML shell that renders the login form
+  // via client-side JS. networkidle can fire before the form hydrates, so
+  // wait explicitly for any input element to appear in the DOM.
+  const emailInput = page.locator(
+    'input[name="username"], input[name="email"], input[type="email"]',
+  ).first();
+  await emailInput.waitFor({ state: "visible", timeout: 30_000 });
+  await emailInput.fill(process.env.E2E_TEST_EMAIL!);
 
   // Some Auth0 flows show password on the same page; others require clicking
   // "Continue" first. Handle both. Use exact name match to avoid hitting

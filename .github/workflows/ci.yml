@@ -47,6 +47,7 @@ jobs:
       AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET || 'ci-placeholder-client-secret' }}
       AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE || 'https://placeholder-api' }}
       APP_BASE_URL: "http://localhost:3000"
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       # Authenticated tests run when E2E credentials are configured.
       E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
       E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
@@ -85,5 +86,4 @@ jobs:
           path: |
             playwright-report/
             e2e/.auth/auth-failure.png
-            e2e/.auth/auth-debug.html
           retention-days: 7
