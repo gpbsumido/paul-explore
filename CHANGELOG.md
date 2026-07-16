@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-07-15 - version 0.15.35
+
+- added AI Security & Bare Repo Attacks thoughts page — covers prompt injection via CLAUDE.md, hardened least-privilege agent configs, deny lists, PreToolUse boundary hooks, and sandboxed environments (frontend and backend) for untrusted code
+- hardened `.claude/settings.local.json` — stripped auto-approved permissions from 143 to 23 (read-only only), added 20-rule deny list blocking destructive and privileged commands
+- added PreToolUse hook in `.claude/settings.json` — blocks destructive shell patterns and prompts for confirmation on commands targeting paths outside the project directory
+- added AI Security entry to thoughts index (featureData)
+- re-order dev notes
+- bumped version to 0.15.35
+
+## 2026-07-15 - version 0.15.34
+
+- (superseded by 0.15.35)
+
 ## 2026-07-15 - version 0.15.33
 
 - fix: E2E globalSetup Auth0 login times out in CI — added `networkidle` wait for Auth0 SPA hydration, broadened email input selector for New Universal Login
