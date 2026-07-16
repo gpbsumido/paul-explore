@@ -31,8 +31,8 @@ export default function NpmToPnpmContent() {
               npm to pnpm
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Migrating from npm to pnpm, why it surfaced hidden issues in the
-              dependency graph, and what actually needed to change.
+              Switching package managers, what broke, and what it told us about
+              the dependency graph.
             </p>
           </header>
 
@@ -40,244 +40,92 @@ export default function NpmToPnpmContent() {
             <section>
               <h2 className="mb-3 text-lg font-bold">Why switch</h2>
               <p className="text-muted">
-                npm works. It&apos;s been the default for over a decade and
-                nothing was broken. The switch was about two things: install
-                speed and dependency honesty. pnpm uses a content-addressable
-                store with hard links, so packages are stored once on disk
-                globally and linked into each project. Installs are
-                significantly faster (especially in CI where caching matters)
-                and disk usage drops across multiple projects.
+                npm was fine. Nothing was broken. The motivation was pnpm&apos;s
+                strict dependency resolution: it only exposes packages you
+                explicitly declare, so you can&apos;t accidentally import
+                something a transitive dependency happens to provide. npm hoists
+                everything flat and you never notice these &quot;phantom
+                deps&quot; until one disappears.
               </p>
               <p className="mt-3 text-muted">
-                The more interesting benefit is strict dependency resolution.
-                npm hoists everything into a flat{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  node_modules
-                </code>
-                , which means your code can import packages you never explicitly
-                declared as dependencies. These &quot;phantom
-                dependencies&quot; work fine until the transitive dependency
-                that provided them upgrades or gets removed. pnpm&apos;s
-                symlinked{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  node_modules
-                </code>{" "}
-                structure only exposes packages listed in your own{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  package.json
-                </code>
-                , so phantom deps surface immediately.
+                The speed is nice too. Content-addressable store, hard links,
+                faster CI installs. But the strictness is the real value.
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">
-                What pnpm&apos;s strict resolution caught
-              </h2>
+              <h2 className="mb-3 text-lg font-bold">What broke</h2>
               <p className="text-muted">
-                The migration wasn&apos;t a clean lock file swap. pnpm resolves
-                semver ranges differently than npm in practice. Where npm tends
-                to resolve{" "}
+                pnpm resolved our loose semver ranges to their actual minimums.{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ^9
+                  &quot;eslint&quot;: &quot;^9&quot;
                 </code>{" "}
-                to whatever&apos;s in the lock file (often the latest at the
-                time), pnpm resolved it to 9.0.0. That matters when your config
-                imports from{" "}
+                became 9.0.0 instead of whatever npm had locked, and our
+                config imports{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   eslint/config
-                </code>
-                , which didn&apos;t exist until ESLint 9.15.
-              </p>
-              <p className="mt-3 text-muted">
-                Same story with TypeScript:{" "}
+                </code>{" "}
+                which didn&apos;t exist until 9.15. TypeScript{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   ^5
                 </code>{" "}
-                resolved to 5.0.2, but{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  @vitejs/plugin-react
-                </code>{" "}
-                uses the{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  as &quot;module.exports&quot;
-                </code>{" "}
-                syntax which needs TS 5.5+. And{" "}
+                went to 5.0.2, but a Vite plugin needs 5.5+ syntax.{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   @types/node@^20
                 </code>{" "}
-                resolved to 20.0.0, but Playwright 1.59+ needs types from
-                20.19+.
+                went to 20.0.0, but Playwright needs 20.19+.
               </p>
               <p className="mt-3 text-muted">
-                None of these were real bugs, they were loose version ranges
-                that happened to work because npm&apos;s lock file pinned them
-                to compatible versions. pnpm made the implicit explicit. The
-                fix was simple: tighten the minimums in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  package.json
-                </code>{" "}
-                to what the codebase actually requires.
+                None were real bugs. They were ranges that said &quot;anything
+                from X.0.0&quot; when the codebase actually needed X.15+. The
+                fix was tightening the minimums to match reality.
               </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                New lint rules from the version bump
-              </h2>
-              <p className="text-muted">
-                Bumping ESLint from ~9.0 to 9.39 pulled in new{" "}
+              <p className="mt-3 text-muted">
+                The ESLint bump also pulled in new{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   react-hooks
                 </code>{" "}
-                rules. The{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  react-hooks/refs
-                </code>{" "}
-                rule flagged three ref assignments in the particle scene that
-                were being set during render. React 19 discourages this, and
-                the rule is right to flag it. The fix was moving the assignments
-                into a{" "}
+                rules that flagged ref assignments during render in the particle
+                scene (moved to{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   useEffect
                 </code>
-                .
-              </p>
-              <p className="mt-3 text-muted">
-                Two other patterns needed suppression rather than refactoring.
-                R3F&apos;s{" "}
+                ) and two false positives that needed suppression: R3F&apos;s{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   useFrame
                 </code>{" "}
-                callback intentionally mutates Three.js objects every frame
-                &mdash; that&apos;s the whole point of an imperative render
-                loop. And syncing URL search params to local state via{" "}
+                mutating Three.js objects, and URL param syncing via{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useEffect + setState
+                  setState
                 </code>{" "}
-                is a standard pattern that the new{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  set-state-in-effect
-                </code>{" "}
-                rule doesn&apos;t distinguish from the problematic cases.
+                in effects.
               </p>
             </section>
 
             <section>
-              <h2 className="mb-3 text-lg font-bold">What changed</h2>
-              <ul className="list-disc space-y-2 pl-5 text-muted">
-                <li>
-                  <strong className="text-foreground">Lock file</strong>{" "}
-                  &mdash;{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    package-lock.json
-                  </code>{" "}
-                  replaced by{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    pnpm-lock.yaml
-                  </code>
-                </li>
-                <li>
-                  <strong className="text-foreground">CI workflow</strong>{" "}
-                  &mdash; GitHub Actions now uses{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    pnpm/action-setup
-                  </code>{" "}
-                  with{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    --frozen-lockfile
-                  </code>{" "}
-                  (the pnpm equivalent of{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    npm ci
-                  </code>
-                  )
-                </li>
-                <li>
-                  <strong className="text-foreground">Vercel</strong> &mdash;
-                  auto-detects pnpm from the lock file, no config changes
-                  needed
-                </li>
-                <li>
-                  <strong className="text-foreground">
-                    Dependency minimums
-                  </strong>{" "}
-                  &mdash; eslint, typescript, @types/node, @playwright/test,
-                  and @axe-core/playwright all tightened to versions the
-                  codebase actually needs
-                </li>
-                <li>
-                  <strong className="text-foreground">
-                    packageManager field
-                  </strong>{" "}
-                  &mdash; added to{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    package.json
-                  </code>{" "}
-                  so corepack and Vercel know which package manager to use
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">What I learned</h2>
-              <ul className="list-disc space-y-2 pl-5 text-muted">
-                <li>
-                  Loose semver ranges like{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    ^9
-                  </code>{" "}
-                  or{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    ^5
-                  </code>{" "}
-                  are a liability. The range says &quot;anything from 9.0.0 to
-                  9.x.x&quot; but the codebase actually depends on features
-                  from 9.15+. Pin the minimum to what you actually need.
-                </li>
-                <li>
-                  pnpm&apos;s strict{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    node_modules
-                  </code>{" "}
-                  layout is a feature, not a problem. It surfaces real issues
-                  that npm silently papers over. Every type mismatch we hit was
-                  a genuine inconsistency in the dependency graph.
-                </li>
-                <li>
-                  Switching package managers is the easy part. The version
-                  resolution differences and the lint/type errors they expose
-                  are where the actual work is. Plan for it.
-                </li>
-                <li>
-                  Vercel&apos;s auto-detection just works &mdash; commit the{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    pnpm-lock.yaml
-                  </code>
-                  , remove{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    package-lock.json
-                  </code>
-                  , and the deploy pipeline switches over with zero config
-                  changes.
-                </li>
-                <li>
-                  Adding{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    package-lock.json
-                  </code>{" "}
-                  to{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    .gitignore
-                  </code>{" "}
-                  prevents accidental drift &mdash; without it, running{" "}
-                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                    npm install
-                  </code>{" "}
-                  by muscle memory would generate a lock file and confuse
-                  the next deploy.
-                </li>
-              </ul>
+              <h2 className="mb-3 text-lg font-bold">What I took away</h2>
+              <p className="text-muted">
+                Switching the package manager is the easy part. The version
+                resolution differences and the errors they surface are where the
+                work is. Every type mismatch we hit was a genuine inconsistency
+                that npm silently papered over.
+              </p>
+              <p className="mt-3 text-muted">
+                CI and deployment were non-events. GitHub Actions has{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  pnpm/action-setup
+                </code>
+                , Vercel auto-detects the lock file. The only thing worth
+                remembering: add{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  package-lock.json
+                </code>{" "}
+                to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  .gitignore
+                </code>{" "}
+                or muscle memory will generate one and confuse the next deploy.
+              </p>
             </section>
           </div>
         </main>
@@ -289,93 +137,38 @@ export default function NpmToPnpmContent() {
             <Received>why pnpm over npm</Received>
 
             <Sent pos="first">
-              two things. faster installs because of the content-addressable
-              store with hard links. and strict dependency resolution
+              strict dependency resolution. npm hoists everything flat so you
+              can import packages you never declared. pnpm only exposes
+              what&apos;s in your package.json
             </Sent>
             <Sent pos="last">
-              npm hoists everything flat so you can accidentally import
-              packages you never declared. works fine until someone else&apos;s
-              transitive dep changes and your import breaks. pnpm only exposes
-              what&apos;s in your own package.json
+              the speed is a bonus but the strictness is the real point
             </Sent>
 
             <Timestamp>3:33 PM</Timestamp>
 
-            <Received>did anything break</Received>
+            <Received>did it just work</Received>
 
             <Sent pos="first">
-              yep. pnpm resolved{" "}
-              <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                &quot;eslint&quot;: &quot;^9&quot;
-              </code>{" "}
-              to 9.0.0 instead of whatever npm had locked. our config imports
-              from{" "}
-              <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                eslint/config
-              </code>{" "}
-              which didn&apos;t exist until 9.15
-            </Sent>
-            <Sent pos="middle">
-              same thing with typescript.{" "}
-              <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                ^5
-              </code>{" "}
-              resolved to 5.0.2 but the vitejs react plugin uses TS 5.5+
-              syntax. and{" "}
-              <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                @types/node@^20
-              </code>{" "}
-              went to 20.0.0 but Playwright needs 20.19+
+              nope. pnpm resolved our loose ranges to their actual minimums.
+              eslint ^9 became 9.0.0, typescript ^5 became 5.0.2, @types/node
+              ^20 became 20.0.0. all too low for what the codebase actually
+              uses
             </Sent>
             <Sent pos="last">
-              none of them were real bugs. just loose ranges that happened to
-              work because npm&apos;s lock file pinned them higher. tightened
-              all the minimums and it was fine
+              tightened the minimums, fixed a few new lint errors from the
+              eslint bump, and everything passed. CI and Vercel were
+              uneventful
             </Sent>
 
-            <Timestamp>3:37 PM</Timestamp>
-
-            <Received>what about lint</Received>
-
-            <Sent pos="first">
-              bumping eslint to 9.39 pulled in new react-hooks rules.
-              react-hooks/refs flagged ref assignments during render in the
-              particle scene. moved them into useEffect
-            </Sent>
-            <Sent pos="last">
-              had to suppress two false positives though. R3F&apos;s useFrame
-              intentionally mutates THREE objects every frame and URL param
-              syncing with useEffect + setState is a standard pattern the new
-              rule doesn&apos;t handle well
-            </Sent>
-
-            <Timestamp>3:40 PM</Timestamp>
-
-            <Received>what about CI and deployment</Received>
-
-            <Sent pos="first">
-              CI was straightforward. add pnpm/action-setup before
-              actions/setup-node, change cache from npm to pnpm, swap npm ci
-              for pnpm install --frozen-lockfile, and replace npx with pnpm
-              exec
-            </Sent>
-            <Sent pos="last">
-              Vercel auto-detects pnpm when it sees pnpm-lock.yaml. zero
-              config changes. didn&apos;t even need to touch vercel.json
-            </Sent>
-
-            <Timestamp>3:42 PM</Timestamp>
+            <Timestamp>3:36 PM</Timestamp>
 
             <Received>takeaway</Received>
 
-            <Sent pos="first">
-              the package manager swap itself is trivial. the real work is the
-              version resolution differences it exposes
-            </Sent>
-            <Sent pos="last">
-              if you&apos;ve been running loose semver ranges, pnpm will tell
-              you exactly where the floor actually is. that&apos;s the whole
-              point
+            <Sent>
+              the swap itself is trivial. the value is in what strict resolution
+              tells you about your dependency graph. every issue we hit was
+              real, npm just never surfaced it
             </Sent>
           </div>
         </main>
