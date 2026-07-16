@@ -2,6 +2,10 @@
 
 ## 2026-07-16 - version 0.16.0
 
+- linting with pnpm
+
+## 2026-07-16 - version 0.16.0
+
 - migrated package manager from npm to pnpm — content-addressable store, strict dependency resolution, faster installs
 - added `packageManager` and `engines` fields to `package.json` for pnpm/node version enforcement
 - replaced `package-lock.json` with `pnpm-lock.yaml`

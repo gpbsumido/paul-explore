@@ -295,7 +295,6 @@ export default function CalendarContent({
       const { id, ...fields } = eventData;
       await calendarEvents.updateEvent(id, fields);
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id: _id, ...fields } = eventData;
       await calendarEvents.createEvent(fields);
     }
