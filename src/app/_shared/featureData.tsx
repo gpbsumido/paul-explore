@@ -308,6 +308,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "Auth0 Universal Login, global setup/teardown, the Google OAuth button hijack, and what broke when we actually ran them",
     color: "#f43f5e",
   },
+  {
+    title: "npm to pnpm",
+    href: "/thoughts/npm-to-pnpm",
+    preview:
+      "Strict dependency resolution, version range surprises, and what a package manager migration actually involves",
+    color: "#f59e0b",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
