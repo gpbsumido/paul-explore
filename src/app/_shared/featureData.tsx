@@ -164,6 +164,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#f59e0b",
   },
   {
+    title: "NBA Playoffs Bracket",
+    href: "/thoughts/playoffs",
+    preview:
+      "TDD with MSW, derived state, TBD resolution, submit vs. auto-save design, and leaderboard before results",
+    color: "#f43f5e",
+  },
+  {
     title: "GraphQL",
     href: "/thoughts/graphql",
     preview: "Why GraphQL, why plain fetch over Apollo",
@@ -226,13 +233,6 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#f97316",
   },
   {
-    title: "CI E2E Reliability",
-    href: "/thoughts/ci-e2e",
-    preview:
-      "Auth0 crashing all middleware from a module-level throw, and a search test that needed page.route to stop depending on an external API",
-    color: "#06b6d4",
-  },
-  {
     title: "Messenger Auth Bug",
     href: "/thoughts/messenger-auth",
     preview:
@@ -244,6 +244,13 @@ export const THOUGHTS: ThoughtItem[] = [
     href: "/thoughts/vitals",
     preview: "Real-user metrics, sendBeacon, P75, and the collection pipeline",
     color: "#22c55e",
+  },
+  {
+    title: "CI E2E Reliability",
+    href: "/thoughts/ci-e2e",
+    preview:
+      "Auth0 crashing all middleware from a module-level throw, and a search test that needed page.route to stop depending on an external API",
+    color: "#06b6d4",
   },
   {
     title: "Operator Dashboard",
@@ -267,11 +274,11 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#e879f9",
   },
   {
-    title: "Accessibility",
-    href: "/thoughts/accessibility",
+    title: "AI Security & Bare Repo Attacks",
+    href: "/thoughts/ai-security",
     preview:
-      "WCAG 2.1 AA compliance — vitest-axe for unit-level scans, systematic primitive audits, and where automated tooling helps vs. where it doesn't",
-    color: "#f59e0b",
+      "Prompt injection via CLAUDE.md, hardened least-privilege configs, deny lists, and sandboxed environments for untrusted code",
+    color: "#dc2626",
   },
   {
     title: "AI Agent Patterns",
@@ -288,17 +295,17 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#06b6d4",
   },
   {
+    title: "Accessibility",
+    href: "/thoughts/accessibility",
+    preview:
+      "WCAG 2.1 AA compliance — vitest-axe for unit-level scans, systematic primitive audits, and where automated tooling helps vs. where it doesn't",
+    color: "#f59e0b",
+  },
+  {
     title: "E2E Testing",
     href: "/thoughts/e2e",
     preview:
       "Auth0 Universal Login, global setup/teardown, the Google OAuth button hijack, and what broke when we actually ran them",
-    color: "#f43f5e",
-  },
-  {
-    title: "NBA Playoffs Bracket",
-    href: "/thoughts/playoffs",
-    preview:
-      "TDD with MSW, derived state, TBD resolution, submit vs. auto-save design, and leaderboard before results",
     color: "#f43f5e",
   },
 ].reverse();
