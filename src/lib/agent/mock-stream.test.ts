@@ -13,7 +13,6 @@ async function drainStream(
   const reader = stream.getReader();
 
   const readAll = (async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -41,7 +40,6 @@ async function drainUntilPause(
   const events: SSEEvent[] = [];
   const reader = stream.getReader();
   const readLoop = (async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -130,7 +128,6 @@ describe("createMockStream", () => {
     const afterEvents: SSEEvent[] = [];
 
     const readRest = (async () => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;

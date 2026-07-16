@@ -42,7 +42,6 @@ export function useAgentRun(): AgentRunResult {
 
       const read = async () => {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           while (true) {
             if (controller.signal.aborted) break;
             const { done, value } = await reader.read();

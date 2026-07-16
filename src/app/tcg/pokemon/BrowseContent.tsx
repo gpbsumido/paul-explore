@@ -39,10 +39,10 @@ export default function BrowseContent({ initialCards }: BrowseContentProps) {
   const debouncedSearch = useDebounce(search, 350);
 
   useEffect(() => {
-    setSearch(urlQ);
+    setSearch(urlQ); // eslint-disable-line react-hooks/set-state-in-effect -- sync URL param to local state
   }, [urlQ]);
   useEffect(() => {
-    setType(urlType);
+    setType(urlType); // eslint-disable-line react-hooks/set-state-in-effect -- sync URL param to local state
   }, [urlType]);
 
   // When server data is available start from page 1 so initialData and

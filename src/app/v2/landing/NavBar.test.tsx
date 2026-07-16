@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
 vi.mock("next/link", () => ({
   default: ({

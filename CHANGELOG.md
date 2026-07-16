@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-07-16 - version 0.16.1
+
+- add dev thoughts page about pnpm switch
+
+## 2026-07-16 - version 0.16.0
+
+- linting with pnpm
+
+## 2026-07-16 - version 0.16.0
+
+- migrated package manager from npm to pnpm — content-addressable store, strict dependency resolution, faster installs
+- added `packageManager` and `engines` fields to `package.json` for pnpm/node version enforcement
+- replaced `package-lock.json` with `pnpm-lock.yaml`
+- updated GitHub Actions CI to use `pnpm/action-setup` with `--frozen-lockfile` installs
+- bumped dependency minimums exposed by pnpm's strict resolution: eslint `^9.39.5`, typescript `^5.5`, `@types/node` `^20.19`, `@playwright/test` `^1.61.1`, `@axe-core/playwright` `^4.12.1`
+- fixed new `react-hooks/refs` lint errors in ParticleScene (moved ref writes into useEffect)
+- suppressed intentional `react-hooks/set-state-in-effect` and `react-hooks/immutability` false positives
+- added `package-lock.json` to `.gitignore` to prevent accidental npm usage
+- updated README, next.config.ts, and docs to use pnpm commands
+- added npm-to-pnpm dev thoughts page
+
 ## 2026-07-15 - version 0.15.35
 
 - added AI Security & Bare Repo Attacks thoughts page — covers prompt injection via CLAUDE.md, hardened least-privilege agent configs, deny lists, PreToolUse boundary hooks, and sandboxed environments (frontend and backend) for untrusted code

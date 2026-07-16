@@ -210,20 +210,20 @@ CI runs on GitHub Actions — lint, typecheck, and full test suite on every push
 | Charts        | unovis (`@unovis/react`)                            |
 | Monitoring    | Vercel Speed Insights                               |
 | Linting       | ESLint (Next.js config)                             |
-| Bundle        | `@next/bundle-analyzer` (`npm run analyze`)         |
+| Bundle        | `@next/bundle-analyzer` (`pnpm analyze`)             |
 
 ---
 
 ## Run locally
 
-Requires Node.js 18+ and an Auth0 account (free tier works).
+Requires Node.js 22+ and pnpm. If you don't have pnpm, run `corepack enable pnpm` (ships with Node.js) or install it globally via `npm install -g pnpm`.
 
 **1. Clone and install**
 
 ```bash
 git clone https://github.com/gpbsumido/paul-explore.git
 cd paul-explore
-npm install
+pnpm install
 ```
 
 **2. Set up environment variables**
@@ -247,7 +247,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 **4. Start the dev server**
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 **5. Open [http://localhost:3000](http://localhost:3000)**
