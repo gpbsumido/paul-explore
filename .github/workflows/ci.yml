@@ -85,4 +85,5 @@ jobs:
           path: |
             playwright-report/
             e2e/.auth/auth-failure.png
+            e2e/.auth/auth-debug.html
           retention-days: 7

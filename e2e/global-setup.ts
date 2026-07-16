@@ -63,6 +63,19 @@ async function loginAndSetup(page: Page, context: BrowserContext) {
   // Auth0's SPA login page can take a moment to hydrate.
   await page.waitForLoadState("networkidle");
 
+  // Debug: dump page state to stderr (stdout is buffered by Playwright
+  // globalSetup and may not appear in CI logs) and to a file for artifacts.
+  const debugUrl = page.url();
+  const debugHtml = await page.content();
+  const debugInputs = await page.locator("input").count();
+  process.stderr.write(
+    `[E2E] Auth0 page URL: ${debugUrl}\n[E2E] Input count: ${debugInputs}\n[E2E] HTML length: ${debugHtml.length}\n`,
+  );
+  fs.writeFileSync(
+    path.join(path.dirname(AUTH_FILE), "auth-debug.html"),
+    `<!-- URL: ${debugUrl} -->\n${debugHtml}`,
+  );
+
   // Auth0 Universal Login — selectors target the standard input attributes
   // used by the default Auth0 template. The broader selector list covers
   // both Classic and New Universal Login page structures.
