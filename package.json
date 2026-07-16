@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.15.29",
+  "version": "0.15.33",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true next build --webpack",
+    "test:all": "vitest run && playwright test",
     "test:e2e": "playwright test",
     "test:e2e:auth": "playwright test --project=authenticated",
     "test:e2e:ui": "playwright test --ui",

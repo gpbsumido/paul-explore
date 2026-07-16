@@ -1,4 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
+import { readFileSync, existsSync } from "fs";
+
+// Load E2E credentials from .env.e2e when present (gitignored)
+if (existsSync(".env.e2e")) {
+  for (const line of readFileSync(".env.e2e", "utf-8").split("\n")) {
+    const match = line.match(/^(\w+)=(.+)$/);
+    if (match && !process.env[match[1]]) process.env[match[1]] = match[2];
+  }
+}
 
 /**
  * E2E test configuration.

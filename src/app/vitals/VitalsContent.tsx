@@ -23,13 +23,13 @@ const RATING_STYLES: Record<
 > = {
   good: {
     bg: "bg-green-500/10",
-    text: "text-green-600 dark:text-green-400",
+    text: "text-green-800 dark:text-green-400",
     dot: "bg-green-500",
     label: "Good",
   },
   "needs-improvement": {
     bg: "bg-yellow-500/10",
-    text: "text-yellow-600 dark:text-yellow-400",
+    text: "text-yellow-800 dark:text-yellow-400",
     dot: "bg-yellow-500",
     label: "Needs work",
   },

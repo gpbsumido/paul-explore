@@ -1,4 +1,4 @@
-import { chromium, type FullConfig } from "@playwright/test";
+import { chromium, type BrowserContext, type FullConfig, type Page } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 
@@ -35,65 +35,98 @@ export default async function globalSetup(_config: FullConfig) {
   const page = await context.newPage();
 
   try {
-    // Navigate to Auth0 login. The middleware redirects /auth/login to
-    // Auth0 Universal Login which hosts the email + password form.
-    await page.goto(`${BASE_URL}/auth/login`);
-
-    // Auth0 Universal Login — selectors target the standard input attributes
-    // used by the default Auth0 template. If the login page shape changes,
-    // update these selectors first.
+    await loginAndSetup(page, context);
+  } catch (err) {
+    // Capture a screenshot before re-throwing so CI artifacts show exactly
+    // what Auth0 rendered (CAPTCHA, changed DOM, error page, etc.).
+    const screenshotDir = path.dirname(AUTH_FILE);
     await page
-      .locator('input[name="username"], input[type="email"]')
-      .fill(process.env.E2E_TEST_EMAIL);
+      .screenshot({
+        path: path.join(screenshotDir, "auth-failure.png"),
+        fullPage: true,
+      })
+      .catch(() => {});
 
-    // Some Auth0 flows show password on the same page; others require clicking
-    // "Continue" first. Handle both.
-    const continueBtn = page.getByRole("button", {
-      name: /continue/i,
-      exact: false,
-    });
-    if (await continueBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await continueBtn.click();
-    }
-
-    await page
-      .locator('input[type="password"]')
-      .fill(process.env.E2E_TEST_PASSWORD);
-    await page
-      .getByRole("button", { name: /log in|sign in|continue/i, exact: false })
-      .last()
-      .click();
-
-    // Wait until Auth0 redirects back to the app (URL hostname leaves auth0).
-    await page.waitForURL((url) => !url.hostname.includes("auth0"), {
-      timeout: 20_000,
-    });
-
-    await context.storageState({ path: AUTH_FILE });
-
-    // Create a dedicated test calendar so E2E events are isolated and cleaned
-    // up by globalTeardown without touching any real user data.
-    const res = await context.request.post(
-      `${BASE_URL}/api/calendar/calendars`,
-      {
-        data: {
-          name: "[E2E] Test Calendar",
-          color: "#3B82F6",
-          syncMode: "none",
-        },
-      },
-    );
-
-    if (res.ok()) {
-      const calendar = (await res.json()) as { id: string };
-      fs.writeFileSync(STATE_FILE, JSON.stringify({ calendarId: calendar.id }));
-      console.log(`[E2E] Created test calendar ${calendar.id}`);
-    } else {
-      console.warn(
-        `[E2E] Could not create test calendar: ${res.status()} ${await res.text()}`,
-      );
-    }
+    throw err;
   } finally {
     await browser.close();
+  }
+}
+
+/** Handles the Auth0 Universal Login flow and creates the test calendar. */
+async function loginAndSetup(page: Page, context: BrowserContext) {
+  // Navigate to Auth0 login. The middleware redirects /auth/login to
+  // Auth0 Universal Login which hosts the email + password form.
+  await page.goto(`${BASE_URL}/auth/login`);
+
+  // Auth0 Universal Login is a small HTML shell that renders the login form
+  // via client-side JS. networkidle can fire before the form hydrates, so
+  // wait explicitly for any input element to appear in the DOM.
+  const emailInput = page.locator(
+    'input[name="username"], input[name="email"], input[type="email"]',
+  ).first();
+  await emailInput.waitFor({ state: "visible", timeout: 30_000 });
+  await emailInput.fill(process.env.E2E_TEST_EMAIL!);
+
+  // Some Auth0 flows show password on the same page; others require clicking
+  // "Continue" first. Handle both. Use exact name match to avoid hitting
+  // "Continue with Google" social login button.
+  const continueBtn = page.getByRole("button", {
+    name: /^continue$/i,
+  });
+  if (await continueBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await continueBtn.click();
+  }
+
+  await page
+    .locator('input[type="password"]')
+    .fill(process.env.E2E_TEST_PASSWORD!);
+
+  // Target the submit button for the email/password form, not social login
+  // buttons like "Continue with Google". The form submit button typically
+  // says just "Continue" or "Log In".
+  await page
+    .getByRole("button", { name: /^(log in|sign in|continue)$/i })
+    .last()
+    .click();
+
+  // Wait until Auth0 redirects back to the app AND the callback finishes
+  // processing. The callback URL is on localhost so we can't just check
+  // "hostname doesn't contain auth0" — that fires too early on /auth/callback
+  // before the session cookie is set. Wait for the final redirect to land on
+  // a non-callback page with the network idle.
+  await page.waitForURL(
+    (url) =>
+      !url.hostname.includes("auth0") && !url.pathname.startsWith("/auth/"),
+    { timeout: 20_000 },
+  );
+  await page.waitForLoadState("networkidle");
+
+  await context.storageState({ path: AUTH_FILE });
+
+  // Create a dedicated test calendar so E2E events are isolated and cleaned
+  // up by globalTeardown without touching any real user data.
+  const res = await context.request.post(
+    `${BASE_URL}/api/calendar/calendars`,
+    {
+      data: {
+        name: "[E2E] Test Calendar",
+        color: "#3B82F6",
+        syncMode: "none",
+      },
+    },
+  );
+
+  if (res.ok()) {
+    const body = (await res.json()) as { calendar: { id: string } };
+    fs.writeFileSync(
+      STATE_FILE,
+      JSON.stringify({ calendarId: body.calendar.id }),
+    );
+    console.log(`[E2E] Created test calendar ${body.calendar.id}`);
+  } else {
+    console.warn(
+      `[E2E] Could not create test calendar: ${res.status()} ${await res.text()}`,
+    );
   }
 }

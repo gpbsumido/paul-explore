@@ -215,7 +215,7 @@ export const THOUGHTS: ThoughtItem[] = [
     title: "Testing",
     href: "/thoughts/testing",
     preview:
-      "108 tests, Vitest + MSW, and the delay() trick for proving optimistic updates fire before the server responds",
+      "640+ tests (623 unit + 17 e2e), Vitest + MSW + Playwright, and the delay() trick for proving optimistic updates fire before the server responds",
     color: "#818cf8",
   },
   {
@@ -286,6 +286,20 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Extracting tokens and components into @paul-portfolio npm packages — CSS custom properties, thin framework wrappers, and token aliasing across React and Angular apps",
     color: "#06b6d4",
+  },
+  {
+    title: "E2E Testing",
+    href: "/thoughts/e2e",
+    preview:
+      "Auth0 Universal Login, global setup/teardown, the Google OAuth button hijack, and what broke when we actually ran them",
+    color: "#f43f5e",
+  },
+  {
+    title: "NBA Playoffs Bracket",
+    href: "/thoughts/playoffs",
+    preview:
+      "TDD with MSW, derived state, TBD resolution, submit vs. auto-save design, and leaderboard before results",
+    color: "#f43f5e",
   },
 ].reverse();
 

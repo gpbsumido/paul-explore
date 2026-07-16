@@ -88,6 +88,7 @@ export default function VersionSelector({
       value={selectedVersion}
       onChange={handleChange}
       disabled={isPending}
+      aria-label="Filter by version"
       className="rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-muted focus:outline-none disabled:opacity-50"
     >
       <option value={`major:${grouped.currentMajor}`}>

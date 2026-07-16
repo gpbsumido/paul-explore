@@ -269,6 +269,9 @@ const InfiniteCalendarScroll = memo(
           ref={scrollRef}
           className="overflow-y-auto"
           style={{ height: containerHeight }}
+          tabIndex={0}
+          role="region"
+          aria-label="Calendar scroll area"
         >
           <div ref={topSentinelRef} className="h-px" />
           {periods.map((date) => {

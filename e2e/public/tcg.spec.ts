@@ -8,6 +8,14 @@ test.describe("TCG card browser", () => {
     await page.waitForSelector('a[href^="/tcg/pokemon/card/"]', {
       timeout: 15_000,
     });
+    // Wait for all network activity to stop — React 19 hydration can
+    // briefly clear and re-insert <title> during head reconciliation.
+    // networkidle ensures JS execution (including hydration) has settled
+    // before we run axe or interact with the page.
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() => document.title.length > 0, null, {
+      timeout: 5_000,
+    });
   });
 
   test("browse page has no axe violations", async ({ page }) => {

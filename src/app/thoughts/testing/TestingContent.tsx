@@ -28,10 +28,10 @@ export default function TestingContent() {
               Testing
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              108 tests across 7 files — Vitest, Testing Library, and MSW. Pure
-              functions first, then hooks with fetch mocking, with a specific
-              technique for proving that optimistic updates actually fire before
-              the server responds.
+              640+ tests (623 unit + 17 e2e) — Vitest, Testing Library, MSW, and
+              Playwright. Pure functions first, then hooks with fetch mocking,
+              with a specific technique for proving that optimistic updates
+              actually fire before the server responds.
             </p>
           </header>
 
