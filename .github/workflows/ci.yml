@@ -47,8 +47,10 @@ jobs:
       AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET || 'ci-placeholder-client-secret' }}
       AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE || 'https://placeholder-api' }}
       APP_BASE_URL: "http://localhost:3000"
-      # Skip the authenticated calendar tests in CI — they need real credentials.
-      # Public project (smoke + TCG + axe) runs unconditionally.
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+      # Authenticated tests run when E2E credentials are configured.
+      E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+      E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
@@ -65,12 +67,23 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run public e2e tests (includes axe accessibility scans)
+        env:
+          # Override credentials for public-only run so globalSetup skips
+          # the Auth0 login — public tests don't need authentication.
+          E2E_TEST_EMAIL: ""
+          E2E_TEST_PASSWORD: ""
         run: npx playwright test --project=public
 
-      - name: Upload Playwright report
+      - name: Run authenticated e2e tests
+        if: env.E2E_TEST_EMAIL != ''
+        run: npx playwright test --project=authenticated
+
+      - name: Upload Playwright report & auth debug screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            e2e/.auth/auth-failure.png
           retention-days: 7
