@@ -112,14 +112,16 @@ export default function ParticleScene({
 }: ParticleSceneProps) {
   const starCount = Math.max(1, Math.floor(particleCount * 0.14));
 
-  // Refs updated synchronously each render so useFrame always reads fresh values
-  // without stale closures. (These are plain assignments, not setState calls.)
+  // Refs sync'd in an effect so useFrame always reads fresh values without
+  // stale closures. Using an effect satisfies react-hooks/refs.
   const speedRef = useRef(speedMult);
-  speedRef.current = speedMult;
   const connectDistRef = useRef(connectDist);
-  connectDistRef.current = connectDist;
   const attractRef = useRef(mouseAttraction);
-  attractRef.current = mouseAttraction;
+  useEffect(() => {
+    speedRef.current = speedMult;
+    connectDistRef.current = connectDist;
+    attractRef.current = mouseAttraction;
+  }, [speedMult, connectDist, mouseAttraction]);
 
   // Scratch THREE objects reused every frame to avoid per-frame allocations.
   const raycaster = useRef(new THREE.Raycaster());
@@ -204,6 +206,7 @@ export default function ParticleScene({
     };
   }, [sceneObj]);
 
+  // eslint-disable-next-line react-hooks/immutability -- R3F useFrame is an imperative render loop; mutating THREE objects here is the intended pattern
   useFrame(({ camera }) => {
     const { particles, starPs, smallPs, lineGeo, linePosArr, lineColArr } = sceneObj;
     const cDistSq = connectDistRef.current * connectDistRef.current;

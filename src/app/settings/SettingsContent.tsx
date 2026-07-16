@@ -113,7 +113,7 @@ export default function SettingsContent() {
   }, []);
 
   useEffect(() => {
-    fetchStatus();
+    fetchStatus(); // eslint-disable-line react-hooks/set-state-in-effect -- async fetch sets state in the callback, not synchronously
   }, [fetchStatus]);
 
   // when returning from the Google OAuth flow with ?gcal=connected, invalidate
