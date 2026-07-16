@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-16 - version 0.16.1
+
+- add dev thoughts page about pnpm switch
+
 ## 2026-07-16 - version 0.16.0
 
 - linting with pnpm
