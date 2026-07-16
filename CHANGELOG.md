@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-15 - version 0.15.33
+
+- fix: E2E globalSetup Auth0 login times out in CI — added `networkidle` wait for Auth0 SPA hydration, broadened email input selector for New Universal Login
+- fix: globalSetup Auth0 failure blocks public E2E tests in CI — override credentials to empty for `--project=public` so public tests aren't gated on auth
+- added failure screenshot capture in globalSetup for CI debugging (`auth-failure.png` uploaded as artifact)
+- extracted `loginAndSetup` helper from globalSetup for cleaner error handling
+- removed duplicate `storageState` call in globalSetup
+
 ## 2026-07-15 - version 0.15.32
 
 - fix: calendar today circle `bg-red-500` fails WCAG AA contrast vs white (~3.1:1) — changed to `bg-red-600` (~4.6:1)

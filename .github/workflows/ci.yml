@@ -66,16 +66,23 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run public e2e tests (includes axe accessibility scans)
+        env:
+          # Override credentials for public-only run so globalSetup skips
+          # the Auth0 login — public tests don't need authentication.
+          E2E_TEST_EMAIL: ""
+          E2E_TEST_PASSWORD: ""
         run: npx playwright test --project=public
 
       - name: Run authenticated e2e tests
         if: env.E2E_TEST_EMAIL != ''
         run: npx playwright test --project=authenticated
 
-      - name: Upload Playwright report
+      - name: Upload Playwright report & auth debug screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            e2e/.auth/auth-failure.png
           retention-days: 7
