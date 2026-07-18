@@ -19,9 +19,6 @@ dependencies:
   '@react-three/fiber':
     specifier: ^9.5.0
     version: 9.5.0(@types/react@19.0.0)(react-dom@19.2.3)(react@19.2.3)(three@0.183.2)
-  '@shadergradient/react':
-    specifier: ^2.4.20
-    version: 2.4.20(react-dom@19.2.3)(react@19.2.3)
   '@tanstack/react-query':
     specifier: ^5.90.21
     version: 5.90.21(react@19.2.3)
@@ -1644,16 +1641,6 @@ packages:
   /@rtsao/scc@1.1.0:
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
     dev: true
-
-  /@shadergradient/react@2.4.20(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-MVYvYgTHK3d36C2jNKzt4OzWeyNyc/bWI0zKRyv5EgI2hmUee8nD0cmuNX9X1lw1RCcuof6n1Rnj63jWepZHJA==}
-    peerDependencies:
-      react: ^18.2.0 || ^19.0.0
-      react-dom: ^18.2.0 || ^19.0.0
-    dependencies:
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
-    dev: false
 
   /@so-ric/colorspace@1.1.6:
     resolution: {integrity: sha512-/KiKkpHNOBgkFJwu9sh48LkHSMYGyuTcSFK/qMBdnOAlrRJzRSXAOFB5qwzaVQuDl8wAvHVMkaASQDReTahxuw==}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.12
+
+- deleted the two orphaned v1-landing WebGL components `ShaderGradientScene.tsx` and `WaterRipple.tsx`. Nothing imported them — not even the retired v1 landing that `page.tsx` still keeps reachable through the version switch — so they were pure dead code left over from an earlier hero iteration. The ShaderGradient story is still told in `/thoughts/ui-redesign` and `/thoughts/landing-page`, so no history is lost
+- dropped the `@shadergradient/react` dependency along with them. `ShaderGradientScene` was its only importer, so removing the component orphaned the whole WebGL package. This is the one change in the pass that actually trims the shipped bundle, not just source. Confirmed `waveSim.ts` stays (it's still shared with the live `WeatherCanvas`), and `tsc` is green
+
 ## 2026-07-18 - version 0.16.11
 
 - removed a batch of dead exports that `ts-prune` flagged and I verified by hand (grepped the whole repo, including co-located tests, for each symbol — every one appeared only in its own definition file). Because these are unused *exports* from modules that are otherwise imported, the bundler already tree-shakes them out, so this is source-hygiene, not a bundle-size win. `tsc` and all 626 tests stay green
