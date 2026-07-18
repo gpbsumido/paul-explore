@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.7
+
+- started a tree-shaking pass following `docs/tree-shaking-guide.md`. First up: dropped `autoprefixer`. Tailwind CSS v4 runs Lightning CSS internally, which already does vendor prefixing, so the separate autoprefixer pass in `postcss.config.mjs` was doing redundant work. Removed the plugin and the dependency, confirmed the production build still compiles CSS cleanly
+
 ## 2026-07-18 - version 0.16.6
 
 - fixed Web Vitals recording every beacon's `app_version` as "unknown", which is why new app versions never appeared in the vitals dashboard (it stayed stuck on 0.15.x). The `/api/vitals` BFF route validates the beacon with `vitalsBeaconSchema` and forwards the parsed result, but the schema only declared `metric`, `value`, `rating`, and `page` — so Zod's default key-stripping dropped `nav_type` and `app_version` before they reached the backend. Added both fields to the schema. Regression from the API-hardening commit that introduced schema validation on this route
