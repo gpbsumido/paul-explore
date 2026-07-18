@@ -250,6 +250,58 @@ export default function UIRedesignContent() {
                 reading about it.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                The cost of Framer Motion, and paying it back
+              </h2>
+              <p className="text-muted">
+                Real-user vitals caught up with the redesign. On the current
+                minor version the guest landing at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /
+                </code>{" "}
+                regressed: FCP p75 climbed to roughly 2.6s and CLS reached about
+                0.2, both worse than the version before it. The redesign bought
+                nicer motion but shipped the bill with it.
+              </p>
+              <p className="mt-3 text-muted">
+                The FCP cause was structural. The new landing was one big{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &quot;use client&quot;
+                </code>{" "}
+                component that statically imported all four sections, so every
+                one of them pulled Framer Motion into the initial chunk. The
+                old v1 landing had already solved this: keep the hero eager
+                because it holds the LCP element, and split everything below the
+                fold into async chunks with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  next/dynamic
+                </code>
+                . The v2 rewrite quietly dropped that pattern. Restoring it, with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ssr: true
+                </code>{" "}
+                so the streamed HTML and SEO stay identical, shrinks the initial
+                bundle so first paint lands sooner.
+              </p>
+              <p className="mt-3 text-muted">
+                The CLS cause was smaller but sneaky. The hero used{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  min-h-dvh
+                </code>
+                . On mobile the dynamic viewport unit grows the moment the URL
+                bar hides on scroll, which resizes the hero and pushes every
+                section below it down. That downward shove is exactly what CLS
+                measures. Switching to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  min-h-svh
+                </code>{" "}
+                pins the hero to the stable smallest-viewport height so it never
+                resizes mid-scroll. None of the markup, landmarks, or motion
+                changed, so the redesign looks the same and just measures better.
+              </p>
+            </section>
           </div>
         </main>
       ) : (
@@ -646,6 +698,41 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
                 v1 visitors get a thin amber banner at the top prompting them to
                 switch. adding a v3 later is one entry in the registry — no
                 branching logic to update
+              </Sent>
+
+              {/* ---- Vitals regression + fix ---- */}
+              <Received pos="first">
+                the real-user vitals came in on v2 and the landing page got
+                worse. FCP around 2.6s and CLS near 0.2 on the current minor
+              </Received>
+              <Received pos="last">what happened</Received>
+
+              <Sent pos="first">
+                framer motion, mostly. the new landing was one big use client
+                component that imported all four sections up front, so every one
+                dragged framer motion into the initial chunk
+              </Sent>
+              <Sent pos="middle">
+                the old v1 landing already had the fix. keep the hero eager
+                because it&apos;s the LCP element, then split everything below
+                the fold into async chunks with next/dynamic. the v2 rewrite
+                just forgot to carry it over
+              </Sent>
+              <Sent pos="middle">
+                put it back with ssr: true so the streamed html is identical.
+                smaller first chunk, paint lands sooner
+              </Sent>
+
+              <Received pos="first">and the CLS</Received>
+
+              <Sent pos="first">
+                the hero was min-h-dvh. on mobile that grows when the url bar
+                hides on scroll, so the hero resizes and shoves everything below
+                it down. that shove is the layout shift
+              </Sent>
+              <Sent pos="last">
+                switched it to min-h-svh, the stable smallest-viewport height. no
+                markup or motion changed, it just stops moving
               </Sent>
 
               {/* Typing indicator */}
