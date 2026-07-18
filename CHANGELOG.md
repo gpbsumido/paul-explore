@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.1
+
+- added the `/thoughts/bundlers` dev-notes page and registered it in the THOUGHTS hub. It writes up which bundler this project runs (Turbopack, the Next 16 default for dev and build; webpack only for `pnpm analyze` because the analyzer doesn't support Turbopack), whether it's the right call (yes, and the split setup is best-practice), and the real decision drivers behind when a lead reaches for a different bundler entirely — library output (Rollup/tsup), CLI speed (esbuild), webpack-config migration (Rspack), Module Federation (webpack/Rspack), the framework deciding for you (Vite), and zero-config spikes (Parcel)
+- the through-line is the mental model: you don't pick a bundler in the abstract, the deliverable and the dominant constraint pick it. Ties back to the `@paul-portfolio/*` packages this site consumes as the concrete "now you'd use a library bundler" case. Summary and chat views, same pattern as the other thoughts pages
 ## 2026-07-18 - version 0.17.0
 
 - added the `/thoughts/tree-shaking` dev-notes page and registered it in the THOUGHTS hub. It's the public write-up of this whole pass, and it leans into the reasoning rather than the diff: the three kinds of dead weight (shipped bundle vs. deploy weight vs. source hygiene) and why they pay off in different currencies, why removing an unused export is not a bundle win, the two findings that looked identical to their tools but needed opposite calls (`gltf-transform` kept, the v1 hero components deleted), and the blocking-vs-advisory trade-off behind putting the checks in CI. Summary and chat views, same pattern as the other thoughts pages
