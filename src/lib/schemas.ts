@@ -188,6 +188,11 @@ export const vitalsBeaconSchema = z.object({
   value: z.number(),
   rating: z.string(),
   page: z.string(),
+  // nav_type and app_version are sent by WebVitalsReporter and forwarded to the
+  // backend. They must be in the schema or safeParse strips them, which is why
+  // the backend was recording every beacon's app_version as "unknown".
+  nav_type: z.string(),
+  app_version: z.string(),
 });
 
 // ---------------------------------------------------------------------------
