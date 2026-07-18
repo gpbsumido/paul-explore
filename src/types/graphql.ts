@@ -29,12 +29,6 @@ export type PokemonPage = {
   total: number;
 };
 
-/** Wrapper around every PokeAPI GraphQL response — errors array is non-null on failure. */
-export type GraphQLResponse<T> = {
-  data: T;
-  errors?: Array<{ message: string }>;
-};
-
 /** Number of cards fetched per page in the browser. */
 export const PAGE_SIZE = 24;
 
@@ -63,5 +57,3 @@ export const POKEMON_TYPES = [
   "bug",
   "fairy",
 ] as const;
-
-export type PokemonTypeName = (typeof POKEMON_TYPES)[number];

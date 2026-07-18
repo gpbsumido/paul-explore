@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.11
+
+- removed a batch of dead exports that `ts-prune` flagged and I verified by hand (grepped the whole repo, including co-located tests, for each symbol — every one appeared only in its own definition file). Because these are unused *exports* from modules that are otherwise imported, the bundler already tree-shakes them out, so this is source-hygiene, not a bundle-size win. `tsc` and all 626 tests stay green
+- deleted two orphaned components: `PageIntro.tsx` and `PageLayout.tsx` (nothing rendered them)
+- dropped unused animation variants `fadeIn` and `calendarSlide` from `lib/animations.ts`
+- dropped the dead read-side of `lib/calendar.ts` (`fetchEvents`, `fetchEvent`, `searchEvents`, `fetchEventCards`, `eventsForHour`). The calendar feature fetches through other paths now; the write-side CRUD (`createEvent`/`updateEvent`/`deleteEvent`) is still live and untouched. The response schemas these used are shared with the API routes, so nothing cascaded
+- dropped unused helpers `getPlayerTier` (`lib/fantasyHelpers.ts`) and `getAlert` (`lib/operator-data.ts`), plus dead type aliases `PokemonType`, `PokemonTypeName`, `GraphQLResponse`, `ESPNOwner`, `PlayerStatsMap`, and a duplicate `FleetStats` (the live one is the interface in `lib/operator-utils.ts`)
+- left the two orphaned v1-landing WebGL components (`ShaderGradientScene`, `WaterRipple`) alone for now — they're unreachable but tangled up with the retired-version system, so they get their own decision
+
 ## 2026-07-18 - version 0.16.10
 
 - moved the source `.glb` models out of `public/` and into a new `models-src/` directory. The eight raw models (256K) are the regeneration source for the landing 3D models, but nothing at runtime loads them — only the optimized copies in `public/models/` get served. Everything under `public/` ships with every deploy, so the raw sources were 256K of never-loaded weight riding along on each one. They stay in the repo (still version-controlled) but no longer ship

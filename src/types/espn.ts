@@ -37,10 +37,6 @@ export interface ESPNRecord {
   };
 }
 
-export interface ESPNOwner {
-  displayName: string;
-}
-
 export interface ESPNTeam {
   id: number;
   name: string;

@@ -48,12 +48,6 @@ export const fadeInUp: Variants = {
   visible: { opacity: 1, y: 0 },
 };
 
-/** Simple opacity fade, no movement. */
-export const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-};
-
 /** Scale up from 92% with fade — good for modals and popovers. */
 export const scaleIn: Variants = {
   hidden: { opacity: 0, scale: 0.92 },
@@ -80,26 +74,6 @@ export const slideInRight: Variants = {
 export const cardFlipIn: Variants = {
   hidden: { opacity: 0, y: 40, rotateX: 25, scale: 0.96 },
   visible: { opacity: 1, y: 0, rotateX: 0, scale: 1 },
-};
-
-/**
- * Direction-aware slide for calendar view transitions.
- *
- * Accepts a `custom` prop of -1 (backward), 0 (crossfade), or 1 (forward).
- * Forward: new view slides in from the right. Backward: from the left.
- * Zero: pure opacity crossfade with no horizontal movement.
- *
- * Usage:
- *   <AnimatePresence mode="wait" custom={direction}>
- *     <motion.div key={viewKey} custom={direction} variants={calendarSlide}
- *                 initial="hidden" animate="visible" exit="exit"
- *                 transition={{ ...spring.smooth }} />
- *   </AnimatePresence>
- */
-export const calendarSlide: Variants = {
-  hidden: (direction: number) => ({ opacity: 0, x: direction * 40 }),
-  visible: { opacity: 1, x: 0 },
-  exit: (direction: number) => ({ opacity: 0, x: direction * -40 }),
 };
 
 /**
