@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.13
+
+- wired the tree-shaking checks into CI so the cleanup doesn't rot. Added a blocking `Dead-code check` step to `.github/workflows/ci.yml` that runs `pnpm deadcheck` — `depcheck` for unused dependencies, then `ts-prune` for dead exports. Both fail the build on findings
+- `depcheck` and `ts-prune` are now pinned devDeps (not `pnpm dlx`) so CI runs them from the frozen lockfile. Known false positives are curated in `.depcheckrc.json` (CLI-only tools, PostCSS plugins, CSS `@import` side-effects, the framework itself) and `.ts-prunerc.json` (App Router convention exports, config defaults, e2e setup, generated files, the `components/ui` barrel)
+- `ts-prune`'s own `--error` flag counts `(used in module)` exports as findings, but those are used inside their own file and aren't dead. Added `scripts/check-dead-exports.mjs` to filter those out so only genuinely-unreferenced exports fail the build. Negative-tested it: an injected dead export fails with exit 1, a clean tree passes
+- filed the guide that drove this pass under `plans/` (local planning docs, like `context/`) and added a "10. Automating this in CI" section covering what runs, the false-positive problem, and the blocking-vs-advisory trade-offs. The public write-up of all this is the new `/thoughts/tree-shaking` page
+- documented both tools in `context/tech-stack.md`
+
 ## 2026-07-18 - version 0.16.12
 
 - deleted the two orphaned v1-landing WebGL components `ShaderGradientScene.tsx` and `WaterRipple.tsx`. Nothing imported them — not even the retired v1 landing that `page.tsx` still keeps reachable through the version switch — so they were pure dead code left over from an earlier hero iteration. The ShaderGradient story is still told in `/thoughts/ui-redesign` and `/thoughts/landing-page`, so no history is lost

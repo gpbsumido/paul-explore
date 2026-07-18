@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.16.12",
+  "version": "0.16.13",
   "private": true,
   "packageManager": "pnpm@8.5.1",
   "engines": {
@@ -17,6 +17,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true next build --webpack",
+    "deadcode": "depcheck",
+    "deadexports": "node scripts/check-dead-exports.mjs",
+    "deadcheck": "pnpm deadcode && pnpm deadexports",
     "test:all": "vitest run && playwright test",
     "test:e2e": "playwright test",
     "test:e2e:auth": "playwright test --project=authenticated",
@@ -64,12 +67,14 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.2",
+    "depcheck": "^1.4.7",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.1.6",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "jsdom": "^29.0.1",
     "msw": "^2.12.14",
     "tailwindcss": "^4.1.18",
+    "ts-prune": "^0.10.3",
     "typescript": "^5.9.3",
     "vitest": "^4.1.2",
     "vitest-axe": "^0.1.0"
