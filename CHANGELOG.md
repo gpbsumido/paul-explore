@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.6
+
+- fixed Web Vitals recording every beacon's `app_version` as "unknown", which is why new app versions never appeared in the vitals dashboard (it stayed stuck on 0.15.x). The `/api/vitals` BFF route validates the beacon with `vitalsBeaconSchema` and forwards the parsed result, but the schema only declared `metric`, `value`, `rating`, and `page` — so Zod's default key-stripping dropped `nav_type` and `app_version` before they reached the backend. Added both fields to the schema. Regression from the API-hardening commit that introduced schema validation on this route
+- audited every other `parseBody`-based route (all calendar + operator routes) for the same "schema strips a forwarded field" bug — they're safe because their client payloads are strongly typed (`Omit<CalendarEvent,"id">`, `Pick<Calendar,...>`) to match the schemas exactly, unlike the hand-built vitals beacon
+
 ## 2026-07-17 - version 0.16.5
 
 - fixed poor FCP and CLS on the `/` route (guest landing). Real-user vitals for the current minor version (0.15.x) showed FCP p75 jump to ~2.6s and CLS reach ~0.2 on `/`, both regressions from the previous minor
