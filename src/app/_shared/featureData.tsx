@@ -335,6 +335,12 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Which bundler this project runs and why, whether it's the right one, and the real situations where a lead reaches for a different bundler — the deliverable and the dominant constraint pick it, not taste",
     color: "#a855f7",
+  },{
+    title: "Tree Shaking",
+    href: "/thoughts/tree-shaking",
+    preview:
+      "The three kinds of dead weight, why removing an unused export isn't a bundle win, the judgment calls a depcheck report can't make, and wiring it all into CI as a blocking check",
+    color: "#22c55e",
   },
 ].reverse();
 

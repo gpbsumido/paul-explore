@@ -1,9 +1,58 @@
 # Changelog
 
-## 2026-07-18 - version 0.16.7
+## 2026-07-18 - version 0.17.1
 
 - added the `/thoughts/bundlers` dev-notes page and registered it in the THOUGHTS hub. It writes up which bundler this project runs (Turbopack, the Next 16 default for dev and build; webpack only for `pnpm analyze` because the analyzer doesn't support Turbopack), whether it's the right call (yes, and the split setup is best-practice), and the real decision drivers behind when a lead reaches for a different bundler entirely — library output (Rollup/tsup), CLI speed (esbuild), webpack-config migration (Rspack), Module Federation (webpack/Rspack), the framework deciding for you (Vite), and zero-config spikes (Parcel)
 - the through-line is the mental model: you don't pick a bundler in the abstract, the deliverable and the dominant constraint pick it. Ties back to the `@paul-portfolio/*` packages this site consumes as the concrete "now you'd use a library bundler" case. Summary and chat views, same pattern as the other thoughts pages
+## 2026-07-18 - version 0.17.0
+
+- added the `/thoughts/tree-shaking` dev-notes page and registered it in the THOUGHTS hub. It's the public write-up of this whole pass, and it leans into the reasoning rather than the diff: the three kinds of dead weight (shipped bundle vs. deploy weight vs. source hygiene) and why they pay off in different currencies, why removing an unused export is not a bundle win, the two findings that looked identical to their tools but needed opposite calls (`gltf-transform` kept, the v1 hero components deleted), and the blocking-vs-advisory trade-off behind putting the checks in CI. Summary and chat views, same pattern as the other thoughts pages
+- rolled the tree-shaking work (0.16.7 through here) up into a minor version
+
+## 2026-07-18 - version 0.16.14
+
+- cleaned up the cascade left behind by removing the calendar read-side and the duplicate `FleetStats` in 0.16.11. Those functions were the last consumers of a few imports and schemas, which only showed up once the new CI checks and ESLint ran over the result — a nice demonstration that no single tool sees everything
+- ESLint flagged the now-unused imports (`EventSearchFilters`, `eventsResponseSchema`, `cardsResponseSchema` in `lib/calendar.ts`, `fleetStatsSchema` in `types/operator.ts`) that `ts-prune` can't see because they're unused *imports*, not exports. Removed them
+- removing those imports then orphaned two *exports* — `cardsResponseSchema` (`lib/schemas.ts`) and the `EventSearchFilters` type (`types/calendar.ts`) — which the new blocking `deadexports` check caught. Removed those too. `eventsResponseSchema` and `fleetStatsSchema` survived because other code still uses them. tsc, lint, and dead-code checks all green
+
+## 2026-07-18 - version 0.16.13
+
+- wired the tree-shaking checks into CI so the cleanup doesn't rot. Added a blocking `Dead-code check` step to `.github/workflows/ci.yml` that runs `pnpm deadcheck` — `depcheck` for unused dependencies, then `ts-prune` for dead exports. Both fail the build on findings
+- `depcheck` and `ts-prune` are now pinned devDeps (not `pnpm dlx`) so CI runs them from the frozen lockfile. Known false positives are curated in `.depcheckrc.json` (CLI-only tools, PostCSS plugins, CSS `@import` side-effects, the framework itself) and `.ts-prunerc.json` (App Router convention exports, config defaults, e2e setup, generated files, the `components/ui` barrel)
+- `ts-prune`'s own `--error` flag counts `(used in module)` exports as findings, but those are used inside their own file and aren't dead. Added `scripts/check-dead-exports.mjs` to filter those out so only genuinely-unreferenced exports fail the build. Negative-tested it: an injected dead export fails with exit 1, a clean tree passes
+- filed the guide that drove this pass under `plans/` (local planning docs, like `context/`) and added a "10. Automating this in CI" section covering what runs, the false-positive problem, and the blocking-vs-advisory trade-offs. The public write-up of all this is the new `/thoughts/tree-shaking` page
+- documented both tools in `context/tech-stack.md`
+
+## 2026-07-18 - version 0.16.12
+
+- deleted the two orphaned v1-landing WebGL components `ShaderGradientScene.tsx` and `WaterRipple.tsx`. Nothing imported them — not even the retired v1 landing that `page.tsx` still keeps reachable through the version switch — so they were pure dead code left over from an earlier hero iteration. The ShaderGradient story is still told in `/thoughts/ui-redesign` and `/thoughts/landing-page`, so no history is lost
+- dropped the `@shadergradient/react` dependency along with them. `ShaderGradientScene` was its only importer, so removing the component orphaned the whole WebGL package. This is the one change in the pass that actually trims the shipped bundle, not just source. Confirmed `waveSim.ts` stays (it's still shared with the live `WeatherCanvas`), and `tsc` is green
+
+## 2026-07-18 - version 0.16.11
+
+- removed a batch of dead exports that `ts-prune` flagged and I verified by hand (grepped the whole repo, including co-located tests, for each symbol — every one appeared only in its own definition file). Because these are unused *exports* from modules that are otherwise imported, the bundler already tree-shakes them out, so this is source-hygiene, not a bundle-size win. `tsc` and all 626 tests stay green
+- deleted two orphaned components: `PageIntro.tsx` and `PageLayout.tsx` (nothing rendered them)
+- dropped unused animation variants `fadeIn` and `calendarSlide` from `lib/animations.ts`
+- dropped the dead read-side of `lib/calendar.ts` (`fetchEvents`, `fetchEvent`, `searchEvents`, `fetchEventCards`, `eventsForHour`). The calendar feature fetches through other paths now; the write-side CRUD (`createEvent`/`updateEvent`/`deleteEvent`) is still live and untouched. The response schemas these used are shared with the API routes, so nothing cascaded
+- dropped unused helpers `getPlayerTier` (`lib/fantasyHelpers.ts`) and `getAlert` (`lib/operator-data.ts`), plus dead type aliases `PokemonType`, `PokemonTypeName`, `GraphQLResponse`, `ESPNOwner`, `PlayerStatsMap`, and a duplicate `FleetStats` (the live one is the interface in `lib/operator-utils.ts`)
+- left the two orphaned v1-landing WebGL components (`ShaderGradientScene`, `WaterRipple`) alone for now — they're unreachable but tangled up with the retired-version system, so they get their own decision
+
+## 2026-07-18 - version 0.16.10
+
+- moved the source `.glb` models out of `public/` and into a new `models-src/` directory. The eight raw models (256K) are the regeneration source for the landing 3D models, but nothing at runtime loads them — only the optimized copies in `public/models/` get served. Everything under `public/` ships with every deploy, so the raw sources were 256K of never-loaded weight riding along on each one. They stay in the repo (still version-controlled) but no longer ship
+- kept the `@gltf-transform` toolchain. It first looked like an unused devDep (depcheck flags it), but it's the documented, manually-run asset-prep pipeline that strips Draco compression from GLBs for a real CSP reason — `depcheck` just can't see CLI-only usage. Added a `models-src/README.md` with the regenerate command and noted the source/output split in `context/architecture-map.md`
+
+## 2026-07-18 - version 0.16.9
+
+- deduped `.gitignore`: `.DS_Store` was listed twice (once under `# misc`, once under a separate `# macOS` block). Checked that no `.DS_Store` files are actually tracked (`git ls-files "*.DS_Store"` was empty), so nothing needed untracking — just collapsed the duplicate ignore rule down to the single `# misc` entry
+
+## 2026-07-18 - version 0.16.8
+
+- removed the five Next.js starter SVGs that came with `create-next-app` and were never used: `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`. Grepped the whole app (src, e2e, context, README, CSS) for each filename first to confirm zero references. Everything in `public/` ships with every deploy whether or not anything points at it, so unreferenced starter assets are pure dead weight
+
+## 2026-07-18 - version 0.16.7
+
+- started a tree-shaking pass following `docs/tree-shaking-guide.md`. First up: dropped `autoprefixer`. Tailwind CSS v4 runs Lightning CSS internally, which already does vendor prefixing, so the separate autoprefixer pass in `postcss.config.mjs` was doing redundant work. Removed the plugin and the dependency, confirmed the production build still compiles CSS cleanly
 
 ## 2026-07-18 - version 0.16.6
 
