@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.8
+
+- removed the five Next.js starter SVGs that came with `create-next-app` and were never used: `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`. Grepped the whole app (src, e2e, context, README, CSS) for each filename first to confirm zero references. Everything in `public/` ships with every deploy whether or not anything points at it, so unreferenced starter assets are pure dead weight
+
 ## 2026-07-18 - version 0.16.7
 
 - started a tree-shaking pass following `docs/tree-shaking-guide.md`. First up: dropped `autoprefixer`. Tailwind CSS v4 runs Lightning CSS internally, which already does vendor prefixing, so the separate autoprefixer pass in `postcss.config.mjs` was doing redundant work. Removed the plugin and the dependency, confirmed the production build still compiles CSS cleanly
