@@ -14,22 +14,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
 
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: Run tests
-        run: npm test
+        run: pnpm test
 
   e2e-accessibility:
     name: E2E & Accessibility (public routes)
@@ -55,16 +58,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers (Chromium only)
-        run: npx playwright install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Run public e2e tests (includes axe accessibility scans)
         env:
@@ -72,11 +78,11 @@ jobs:
           # the Auth0 login — public tests don't need authentication.
           E2E_TEST_EMAIL: ""
           E2E_TEST_PASSWORD: ""
-        run: npx playwright test --project=public
+        run: pnpm exec playwright test --project=public
 
       - name: Run authenticated e2e tests
         if: env.E2E_TEST_EMAIL != ''
-        run: npx playwright test --project=authenticated
+        run: pnpm exec playwright test --project=authenticated
 
       - name: Upload Playwright report & auth debug screenshots
         if: always()

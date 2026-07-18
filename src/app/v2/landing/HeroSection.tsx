@@ -38,8 +38,12 @@ export default function HeroSection() {
   const staggerDelay = skip ? 0 : 0.08;
   const afterHeadlineDelay = skip ? 0 : wordCount * staggerDelay + 0.2;
 
+  // min-h-svh (small viewport), not dvh. dvh grows when the mobile URL bar
+  // hides on scroll, which resizes the hero and pushes every section below it
+  // down, a layout shift that shows up as CLS. svh is the stable smallest
+  // viewport height, so the hero never resizes mid-scroll.
   return (
-    <section className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 text-center">
+    <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-6 text-center">
       {/* CSS-only ambient gradient background */}
       <div className={styles.gradient} />
 

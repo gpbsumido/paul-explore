@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-07-17 - version 0.16.5
+
+- fixed poor FCP and CLS on the `/` route (guest landing). Real-user vitals for the current minor version (0.15.x) showed FCP p75 jump to ~2.6s and CLS reach ~0.2 on `/`, both regressions from the previous minor
+- FCP: `LandingContentV2` was one big `"use client"` bundle that eagerly pulled framer-motion in through all four sections. Restored the eager-Hero + lazy-below-fold pattern the v1 landing already used, splitting `ProjectsSection`, `StatsStrip`, `ThoughtsPreview`, and `FooterSection` into async chunks via `next/dynamic` (`ssr: true`, so the streamed HTML and SEO are unchanged). Smaller initial chunk means first paint lands sooner
+- CLS: the hero used `min-h-dvh`, which grows when the mobile URL bar hides on scroll and shifts every section below it. Switched to `min-h-svh` (stable smallest-viewport height) so the hero never resizes mid-scroll
+- no change to markup, landmarks, or accessibility semantics on the landing
+
+## 2026-07-17 - version 0.16.4
+
+- fixed thoughts loading skeleton flashing the chat/phone layout before snapping to the Summary view — rebuilt `ThoughtsSkeleton` to mirror the Summary layout (sticky header, title block, stacked section shimmers) so the loading state matches what actually renders
+- updated the Vitals CLS note that described the old chat-bubble skeleton
+
+## 2026-07-17 - version 0.16.3
+
+- expanded the API backend overhaul write-up with the full reasoning — per-phase "why it holds up" rationale, explicit "the pivot" callouts for every course change (response envelope shelved, legacy-JS restore, Swagger CSP), a collected pivots list, a system-design principles synthesis, and a frontend dev's framing throughout
+- extended the chat view to match the expanded content
+
+## 2026-07-17 - version 0.16.2
+
+- added `/thoughts/api-backend-overhaul` dev-notes page walking through all twelve phases of the portfolio_api TypeScript overhaul — from the consumer-contract constraint through the three data-access patterns, middleware, caching, testing, pnpm, and the architecture audit
+- registered the API backend overhaul entry in the THOUGHTS hub list (featureData)
+
+## 2026-07-16 - version 0.16.1
+
+- add dev thoughts page about pnpm switch
+
+## 2026-07-16 - version 0.16.0
+
+- linting with pnpm
+
+## 2026-07-16 - version 0.16.0
+
+- migrated package manager from npm to pnpm — content-addressable store, strict dependency resolution, faster installs
+- added `packageManager` and `engines` fields to `package.json` for pnpm/node version enforcement
+- replaced `package-lock.json` with `pnpm-lock.yaml`
+- updated GitHub Actions CI to use `pnpm/action-setup` with `--frozen-lockfile` installs
+- bumped dependency minimums exposed by pnpm's strict resolution: eslint `^9.39.5`, typescript `^5.5`, `@types/node` `^20.19`, `@playwright/test` `^1.61.1`, `@axe-core/playwright` `^4.12.1`
+- fixed new `react-hooks/refs` lint errors in ParticleScene (moved ref writes into useEffect)
+- suppressed intentional `react-hooks/set-state-in-effect` and `react-hooks/immutability` false positives
+- added `package-lock.json` to `.gitignore` to prevent accidental npm usage
+- updated README, next.config.ts, and docs to use pnpm commands
+- added npm-to-pnpm dev thoughts page
+
 ## 2026-07-15 - version 0.15.35
 
 - added AI Security & Bare Repo Attacks thoughts page — covers prompt injection via CLAUDE.md, hardened least-privilege agent configs, deny lists, PreToolUse boundary hooks, and sandboxed environments (frontend and backend) for untrusted code
