@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "next dev",
+    "stats": "node scripts/count-tests.mjs",
+    "prebuild": "node scripts/count-tests.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

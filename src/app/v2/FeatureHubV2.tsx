@@ -13,6 +13,7 @@ import {
   FeatureCard,
   ThoughtCard,
 } from "@/app/_shared/featureData";
+import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 
 type MeData = { name: string | null; email: string | null };
 
@@ -68,7 +69,8 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
           {FEATURES.length} features, all yours.
         </p>
         <p className="mt-1 text-xs text-muted">
-          108 tests &middot; 17 write-ups &middot; 5 CWV metrics
+          {TEST_COUNT}+ tests &middot; {THOUGHTS.length} write-ups &middot; 5 CWV
+          metrics
         </p>
       </header>
 

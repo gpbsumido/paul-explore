@@ -322,6 +322,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "Rebuilding portfolio_api into a typed, layered TypeScript backend across twelve phases, without breaking a single contract paul-explore depends on",
     color: "#0ea5e9",
   },
+  {
+    title: "Deployment",
+    href: "/thoughts/deployment",
+    preview:
+      "Deployment as five separate jobs, choosing a platform from the app's runtime shape, when to decide, the trade-offs that bite, and the Vercel + Cloudflare setup behind this site",
+    color: "#0ea5e9",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
