@@ -15,15 +15,12 @@ import type {
   CalendarView,
   CalendarEvent,
   EventCard,
-  EventSearchFilters,
   EventLayout,
   Countdown,
   CountdownPage,
 } from "@/types/calendar";
 import {
-  eventsResponseSchema,
   eventResponseSchema,
-  cardsResponseSchema,
   cardResponseSchema,
   countdownPageResponseSchema,
   countdownResponseSchema,

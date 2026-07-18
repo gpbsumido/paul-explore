@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.14
+
+- cleaned up the cascade left behind by removing the calendar read-side and the duplicate `FleetStats` in 0.16.11. Those functions were the last consumers of a few imports and schemas, which only showed up once the new CI checks and ESLint ran over the result — a nice demonstration that no single tool sees everything
+- ESLint flagged the now-unused imports (`EventSearchFilters`, `eventsResponseSchema`, `cardsResponseSchema` in `lib/calendar.ts`, `fleetStatsSchema` in `types/operator.ts`) that `ts-prune` can't see because they're unused *imports*, not exports. Removed them
+- removing those imports then orphaned two *exports* — `cardsResponseSchema` (`lib/schemas.ts`) and the `EventSearchFilters` type (`types/calendar.ts`) — which the new blocking `deadexports` check caught. Removed those too. `eventsResponseSchema` and `fleetStatsSchema` survived because other code still uses them. tsc, lint, and dead-code checks all green
+
 ## 2026-07-18 - version 0.16.13
 
 - wired the tree-shaking checks into CI so the cleanup doesn't rot. Added a blocking `Dead-code check` step to `.github/workflows/ci.yml` that runs `pnpm deadcheck` — `depcheck` for unused dependencies, then `ts-prune` for dead exports. Both fail the build on findings

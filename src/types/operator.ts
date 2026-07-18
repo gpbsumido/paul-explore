@@ -9,7 +9,6 @@ import type {
   alertSchema,
   activityEventSchema,
   storeSummarySchema,
-  fleetStatsSchema,
   alertTrendBucketSchema,
   fleetSummaryResponseSchema,
 } from "@/lib/operator-schemas";
