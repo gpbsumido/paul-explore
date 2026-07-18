@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.0
+
+- added the `/thoughts/tree-shaking` dev-notes page and registered it in the THOUGHTS hub. It's the public write-up of this whole pass, and it leans into the reasoning rather than the diff: the three kinds of dead weight (shipped bundle vs. deploy weight vs. source hygiene) and why they pay off in different currencies, why removing an unused export is not a bundle win, the two findings that looked identical to their tools but needed opposite calls (`gltf-transform` kept, the v1 hero components deleted), and the blocking-vs-advisory trade-off behind putting the checks in CI. Summary and chat views, same pattern as the other thoughts pages
+- rolled the tree-shaking work (0.16.7 through here) up into a minor version
+
 ## 2026-07-18 - version 0.16.14
 
 - cleaned up the cascade left behind by removing the calendar read-side and the duplicate `FleetStats` in 0.16.11. Those functions were the last consumers of a few imports and schemas, which only showed up once the new CI checks and ESLint ran over the result — a nice demonstration that no single tool sees everything

@@ -329,6 +329,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "Deployment as five separate jobs, choosing a platform from the app's runtime shape, when to decide, the trade-offs that bite, and the Vercel + Cloudflare setup behind this site",
     color: "#0ea5e9",
   },
+  {
+    title: "Tree Shaking",
+    href: "/thoughts/tree-shaking",
+    preview:
+      "The three kinds of dead weight, why removing an unused export isn't a bundle win, the judgment calls a depcheck report can't make, and wiring it all into CI as a blocking check",
+    color: "#22c55e",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
