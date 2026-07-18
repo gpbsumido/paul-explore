@@ -3,15 +3,19 @@
 import { useRef, useSyncExternalStore } from "react";
 import { useInView } from "framer-motion";
 import { useCountUp } from "@/hooks/useCountUp";
+import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
+import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 
+// Counts are derived, never hand-maintained: features and write-ups from their
+// source arrays, tests from the build-time counter (scripts/count-tests.mjs).
 const STATS: ReadonlyArray<{
   target: number;
   label: string;
   suffix?: string;
 }> = [
-  { target: 14, label: "features" },
-  { target: 640, label: "tests", suffix: "+" },
-  { target: 25, label: "write-ups" },
+  { target: FEATURES.length, label: "features" },
+  { target: TEST_COUNT, label: "tests", suffix: "+" },
+  { target: THOUGHTS.length, label: "write-ups" },
   { target: 5, label: "CWV metrics tracked" },
 ];
 
