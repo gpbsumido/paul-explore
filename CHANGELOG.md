@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.10
+
+- moved the source `.glb` models out of `public/` and into a new `models-src/` directory. The eight raw models (256K) are the regeneration source for the landing 3D models, but nothing at runtime loads them — only the optimized copies in `public/models/` get served. Everything under `public/` ships with every deploy, so the raw sources were 256K of never-loaded weight riding along on each one. They stay in the repo (still version-controlled) but no longer ship
+- kept the `@gltf-transform` toolchain. It first looked like an unused devDep (depcheck flags it), but it's the documented, manually-run asset-prep pipeline that strips Draco compression from GLBs for a real CSP reason — `depcheck` just can't see CLI-only usage. Added a `models-src/README.md` with the regenerate command and noted the source/output split in `context/architecture-map.md`
+
 ## 2026-07-18 - version 0.16.9
 
 - deduped `.gitignore`: `.DS_Store` was listed twice (once under `# misc`, once under a separate `# macOS` block). Checked that no `.DS_Store` files are actually tracked (`git ls-files "*.DS_Store"` was empty), so nothing needed untracking — just collapsed the duplicate ignore rule down to the single `# misc` entry
