@@ -1,100 +1,80 @@
-import styles from "@/app/thoughts/styling/styling.module.css";
+/**
+ * One shimmer line at a given Tailwind width, sized like a paragraph row.
+ */
+function Line({ w }: { w: string }) {
+  return (
+    <div
+      className={`h-4 ${w} animate-pulse rounded-full bg-border`}
+      style={{ opacity: 0.7 }}
+    />
+  );
+}
+
+/**
+ * A section placeholder: a heading bar followed by a few paragraph lines.
+ * Widths vary per section so the block reads as prose rather than a grid.
+ */
+function Section({ lines }: { lines: string[] }) {
+  return (
+    <div className="space-y-3">
+      <div className="h-5 w-1/3 animate-pulse rounded-full bg-border" />
+      {lines.map((w, i) => (
+        <Line key={i} w={w} />
+      ))}
+    </div>
+  );
+}
 
 /**
  * Skeleton placeholder shown while a thoughts-page content component loads.
  *
- * Replicates the phone container, sticky top bar, and a plausible mix of
- * sent/received chat bubbles so there's no jarring layout shift when the
- * real content arrives. Used as the `loading` fallback for next/dynamic on
- * all five thoughts pages.
- *
- * Shimmer bars use fixed Tailwind widths (not percentages) because the bubble
- * has no intrinsic width — percentage children would collapse to nothing.
+ * Thoughts pages open on the Summary view (an article), so this mirrors that
+ * layout: a sticky header bar like PageHeader, then a title block and a stack
+ * of section shimmers. Matching the default view is what stops the page from
+ * flashing the chat layout first and then snapping to the summary once the real
+ * content mounts. Used as the route-level `loading` fallback for all thoughts
+ * pages.
  */
 export default function ThoughtsSkeleton() {
   return (
-    <div className={styles.phone}>
-      {/* Top bar — matches the real sticky header structure */}
-      <div className={styles.topBar}>
-        {/* Back link placeholder */}
-        <div className="absolute left-4 h-4 w-10 animate-pulse rounded-full bg-border" />
+    <div className="min-h-dvh bg-background">
+      {/* Sticky header — mirrors PageHeader (h-14, border-b, max-w-3xl) */}
+      <div className="sticky top-0 z-20 h-14 border-b border-border">
+        <div className="mx-auto flex h-full max-w-3xl items-center gap-4 px-4 sm:px-6">
+          {/* Breadcrumb placeholder */}
+          <div className="h-4 w-14 animate-pulse rounded-full bg-border" />
+          <div className="h-4 w-px bg-border" />
+          <div className="h-4 w-28 animate-pulse rounded-full bg-border" />
 
-        {/* Contact info placeholder — two stacked lines */}
-        <div className="flex flex-col items-center gap-1.5">
-          <div className="h-[15px] w-24 animate-pulse rounded-full bg-border" />
-          <div className="h-2.5 w-16 animate-pulse rounded-full bg-border" />
+          {/* Right: view toggle + menu placeholders */}
+          <div className="ml-auto flex items-center gap-3">
+            <div className="h-6 w-28 animate-pulse rounded-md bg-border" />
+            <div className="h-6 w-6 animate-pulse rounded-full bg-border" />
+          </div>
         </div>
-
-        {/* Theme toggle placeholder */}
-        <div className="absolute right-4 h-6 w-6 animate-pulse rounded-full bg-border" />
       </div>
 
-      {/* Chat area — shimmer bubbles that mimic a real conversation layout */}
-      <div className={styles.chat}>
-        {/* Timestamp */}
-        <div className="mx-auto h-3 w-32 animate-pulse rounded-full bg-border" />
+      {/* Article — mirrors the summary <main> */}
+      <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
+        <header className="mb-10">
+          {/* Eyebrow label */}
+          <div className="mb-3 h-3 w-20 animate-pulse rounded-full bg-border" />
+          {/* Title */}
+          <div className="h-9 w-3/4 animate-pulse rounded-lg bg-border sm:h-10" />
+          {/* Subtitle, two lines */}
+          <div className="mt-4 space-y-2">
+            <Line w="w-full" />
+            <Line w="w-5/6" />
+          </div>
+        </header>
 
-        {/* Received — short question, two lines */}
-        <div className={`${styles.bubble} ${styles.received} ${styles.receivedFirst}`}>
-          <div className="h-[14px] w-44 animate-pulse rounded-full bg-muted/25" />
+        <div className="space-y-10">
+          <Section lines={["w-full", "w-full", "w-11/12", "w-2/3"]} />
+          <Section lines={["w-full", "w-10/12", "w-full", "w-1/2"]} />
+          <Section lines={["w-11/12", "w-full", "w-3/4"]} />
+          <Section lines={["w-full", "w-full", "w-5/6", "w-2/5"]} />
         </div>
-        <div className={`${styles.bubble} ${styles.received} ${styles.receivedLast}`}>
-          <div className="h-[14px] w-28 animate-pulse rounded-full bg-muted/25" />
-        </div>
-
-        {/* Sent — multi-line answer */}
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentFirst}`}>
-          <div className="h-[14px] w-52 animate-pulse rounded-full bg-white/30" />
-        </div>
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentMiddle}`}>
-          <div className="h-[14px] w-56 animate-pulse rounded-full bg-white/30" />
-        </div>
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentLast}`}>
-          <div className="h-[14px] w-40 animate-pulse rounded-full bg-white/30" />
-        </div>
-
-        {/* Received — follow-up question */}
-        <div className={`${styles.bubble} ${styles.received} ${styles.receivedOnly}`}>
-          <div className="h-[14px] w-48 animate-pulse rounded-full bg-muted/25" />
-        </div>
-
-        {/* Sent — longer multi-line */}
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentFirst}`}>
-          <div className="h-[14px] w-48 animate-pulse rounded-full bg-white/30" />
-        </div>
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentMiddle}`}>
-          <div className="h-[14px] w-56 animate-pulse rounded-full bg-white/30" />
-        </div>
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentMiddle}`}>
-          <div className="h-[14px] w-36 animate-pulse rounded-full bg-white/30" />
-        </div>
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentLast}`}>
-          <div className="h-[14px] w-52 animate-pulse rounded-full bg-white/30" />
-        </div>
-
-        {/* Timestamp */}
-        <div className="mx-auto h-3 w-24 animate-pulse rounded-full bg-border" />
-
-        {/* Received */}
-        <div className={`${styles.bubble} ${styles.received} ${styles.receivedOnly}`}>
-          <div className="h-[14px] w-44 animate-pulse rounded-full bg-muted/25" />
-        </div>
-
-        {/* Sent — last group */}
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentFirst}`}>
-          <div className="h-[14px] w-44 animate-pulse rounded-full bg-white/30" />
-        </div>
-        <div className={`${styles.bubble} ${styles.sent} ${styles.sentLast}`}>
-          <div className="h-[14px] w-36 animate-pulse rounded-full bg-white/30" />
-        </div>
-
-        {/* Typing indicator — same animated dots as the real content */}
-        <div className={styles.typingDots}>
-          <span />
-          <span />
-          <span />
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

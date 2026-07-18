@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-07-17 - version 0.16.4
+
+- fixed thoughts loading skeleton flashing the chat/phone layout before snapping to the Summary view — rebuilt `ThoughtsSkeleton` to mirror the Summary layout (sticky header, title block, stacked section shimmers) so the loading state matches what actually renders
+- updated the Vitals CLS note that described the old chat-bubble skeleton
+
+## 2026-07-17 - version 0.16.3
+
+- expanded the API backend overhaul write-up with the full reasoning — per-phase "why it holds up" rationale, explicit "the pivot" callouts for every course change (response envelope shelved, legacy-JS restore, Swagger CSP), a collected pivots list, a system-design principles synthesis, and a frontend dev's framing throughout
+- extended the chat view to match the expanded content
+
+## 2026-07-17 - version 0.16.2
+
+- added `/thoughts/api-backend-overhaul` dev-notes page walking through all twelve phases of the portfolio_api TypeScript overhaul — from the consumer-contract constraint through the three data-access patterns, middleware, caching, testing, pnpm, and the architecture audit
+- registered the API backend overhaul entry in the THOUGHTS hub list (featureData)
+
 ## 2026-07-16 - version 0.16.1
 
 - add dev thoughts page about pnpm switch
