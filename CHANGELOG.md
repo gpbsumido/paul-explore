@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.7
+
+- added the `/thoughts/bundlers` dev-notes page and registered it in the THOUGHTS hub. It writes up which bundler this project runs (Turbopack, the Next 16 default for dev and build; webpack only for `pnpm analyze` because the analyzer doesn't support Turbopack), whether it's the right call (yes, and the split setup is best-practice), and the real decision drivers behind when a lead reaches for a different bundler entirely — library output (Rollup/tsup), CLI speed (esbuild), webpack-config migration (Rspack), Module Federation (webpack/Rspack), the framework deciding for you (Vite), and zero-config spikes (Parcel)
+- the through-line is the mental model: you don't pick a bundler in the abstract, the deliverable and the dominant constraint pick it. Ties back to the `@paul-portfolio/*` packages this site consumes as the concrete "now you'd use a library bundler" case. Summary and chat views, same pattern as the other thoughts pages
+
 ## 2026-07-18 - version 0.16.6
 
 - fixed Web Vitals recording every beacon's `app_version` as "unknown", which is why new app versions never appeared in the vitals dashboard (it stayed stuck on 0.15.x). The `/api/vitals` BFF route validates the beacon with `vitalsBeaconSchema` and forwards the parsed result, but the schema only declared `metric`, `value`, `rating`, and `page` — so Zod's default key-stripping dropped `nav_type` and `app_version` before they reached the backend. Added both fields to the schema. Regression from the API-hardening commit that introduced schema validation on this route

@@ -329,6 +329,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "Deployment as five separate jobs, choosing a platform from the app's runtime shape, when to decide, the trade-offs that bite, and the Vercel + Cloudflare setup behind this site",
     color: "#0ea5e9",
   },
+  {
+    title: "Bundlers",
+    href: "/thoughts/bundlers",
+    preview:
+      "Which bundler this project runs and why, whether it's the right one, and the real situations where a lead reaches for a different bundler — the deliverable and the dominant constraint pick it, not taste",
+    color: "#a855f7",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
