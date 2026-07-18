@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.16.9
+
+- deduped `.gitignore`: `.DS_Store` was listed twice (once under `# misc`, once under a separate `# macOS` block). Checked that no `.DS_Store` files are actually tracked (`git ls-files "*.DS_Store"` was empty), so nothing needed untracking — just collapsed the duplicate ignore rule down to the single `# misc` entry
+
 ## 2026-07-18 - version 0.16.8
 
 - removed the five Next.js starter SVGs that came with `create-next-app` and were never used: `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg`. Grepped the whole app (src, e2e, context, README, CSS) for each filename first to confirm zero references. Everything in `public/` ships with every deploy whether or not anything points at it, so unreferenced starter assets are pure dead weight

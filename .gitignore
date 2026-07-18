@@ -188,9 +188,6 @@ dist
 # Local git configuration
 .gitattributes
 
-# macOS
-.DS_Store
-
 # plans
 /plans
 /context
