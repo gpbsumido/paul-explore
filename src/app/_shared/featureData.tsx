@@ -315,6 +315,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "Strict dependency resolution, version range surprises, and what a package manager migration actually involves",
     color: "#f59e0b",
   },
+  {
+    title: "API Backend Overhaul",
+    href: "/thoughts/api-backend-overhaul",
+    preview:
+      "Rebuilding portfolio_api into a typed, layered TypeScript backend across twelve phases, without breaking a single contract paul-explore depends on",
+    color: "#0ea5e9",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
