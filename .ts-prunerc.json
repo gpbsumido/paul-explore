@@ -1,0 +1,3 @@
+{
+  "ignore": "(\\.next|node_modules|\\.config\\.(ts|mjs|cjs|js):|(^|/)e2e/|src/proxy\\.ts:|\\.generated\\.|routes\\.d\\.ts|src/components/ui/index\\.ts:|src/app/([^/]+/)*(page|layout|template|loading|error|global-error|not-found|route|default|sitemap|robots|manifest|icon|apple-icon|opengraph-image|twitter-image)\\.tsx?:)"
+}

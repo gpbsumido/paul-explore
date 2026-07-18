@@ -35,8 +35,6 @@ export interface PlayerStats {
 
 // nba/player/stats page types
 
-export type PlayerStatsMap = Record<number, PlayerStats>;
-
 export type SortKey =
   | "name"
   | "pos"

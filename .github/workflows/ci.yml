@@ -31,6 +31,12 @@ jobs:
       - name: Typecheck
         run: pnpm exec tsc --noEmit
 
+      # Fails the build on unused dependencies (depcheck) and dead exports
+      # (ts-prune). Known false positives are configured in .depcheckrc.json
+      # and .ts-prunerc.json. See plans/tree-shaking-guide.md.
+      - name: Dead-code check
+        run: pnpm deadcheck
+
       - name: Run tests
         run: pnpm test
 

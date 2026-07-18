@@ -171,7 +171,6 @@ export const calendarsResponseSchema = z.object({ calendars: z.array(calendarSch
 export const calendarResponseSchema = z.object({ calendar: calendarSchema });
 export const membersResponseSchema = z.object({ members: z.array(calendarMemberSchema) });
 export const memberResponseSchema = z.object({ member: calendarMemberSchema });
-export const cardsResponseSchema = z.object({ cards: z.array(eventCardSchema) });
 export const cardResponseSchema = z.object({ card: eventCardSchema });
 export const countdownResponseSchema = z.object({ countdown: countdownSchema });
 export const countdownPageResponseSchema = z.object({
