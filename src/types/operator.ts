@@ -9,7 +9,6 @@ import type {
   alertSchema,
   activityEventSchema,
   storeSummarySchema,
-  fleetStatsSchema,
   alertTrendBucketSchema,
   fleetSummaryResponseSchema,
 } from "@/lib/operator-schemas";
@@ -25,6 +24,5 @@ export type Alert = z.infer<typeof alertSchema>;
 export type ActivityEvent = z.infer<typeof activityEventSchema>;
 
 export type StoreSummary = z.infer<typeof storeSummarySchema>;
-export type FleetStats = z.infer<typeof fleetStatsSchema>;
 export type AlertTrendBucket = z.infer<typeof alertTrendBucketSchema>;
 export type FleetSummaryResponse = z.infer<typeof fleetSummaryResponseSchema>;

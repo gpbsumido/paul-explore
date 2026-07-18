@@ -15,15 +15,12 @@ import type {
   CalendarView,
   CalendarEvent,
   EventCard,
-  EventSearchFilters,
   EventLayout,
   Countdown,
   CountdownPage,
 } from "@/types/calendar";
 import {
-  eventsResponseSchema,
   eventResponseSchema,
-  cardsResponseSchema,
   cardResponseSchema,
   countdownPageResponseSchema,
   countdownResponseSchema,
@@ -83,23 +80,6 @@ export function eventsForDay(
     const en = differenceInCalendarDays(parseISO(e.endDate), day);
     return s <= 0 && en >= 0;
   });
-}
-
-/**
- * Timed events that start at a specific hour on a given day.
- * Used by legacy code paths — new views prefer singleDayTimedEventsForDay.
- */
-export function eventsForHour(
-  events: CalendarEvent[],
-  day: Date,
-  hour: number,
-): CalendarEvent[] {
-  return events.filter(
-    (e) =>
-      !e.allDay &&
-      isSameDay(parseISO(e.startDate), day) &&
-      getHours(parseISO(e.startDate)) === hour,
-  );
 }
 
 /**
@@ -250,42 +230,6 @@ export function formatHeading(date: Date, view: CalendarView): string {
   }
 }
 
-// fetch events within date range (ISO strings)
-export async function fetchEvents(
-  start: string,
-  end: string,
-): Promise<CalendarEvent[]> {
-  const params = new URLSearchParams({ start, end });
-  const res = await fetch(`/api/calendar/events?${params}`);
-  if (!res.ok) throw new Error("Failed to fetch events");
-  const data = eventsResponseSchema.parse(await res.json());
-  return data.events;
-}
-
-// fetch a single event — returns null on 404, throws on other errors
-export async function fetchEvent(id: string): Promise<CalendarEvent | null> {
-  const res = await fetch(`/api/calendar/events/${id}`);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error("Failed to fetch event");
-  const data = eventResponseSchema.parse(await res.json());
-  return data.event;
-}
-
-// search/list events with optional filters; omit all to get everything
-export async function searchEvents(
-  filters: EventSearchFilters = {},
-): Promise<CalendarEvent[]> {
-  const params = new URLSearchParams();
-  if (filters.start) params.set("start", filters.start);
-  if (filters.end) params.set("end", filters.end);
-  if (filters.cardName) params.set("cardName", filters.cardName);
-  const qs = params.toString();
-  const res = await fetch(`/api/calendar/events${qs ? `?${qs}` : ""}`);
-  if (!res.ok) throw new Error("Failed to search events");
-  const data = eventsResponseSchema.parse(await res.json());
-  return data.events;
-}
-
 // create new event, id from backend
 export async function createEvent(
   event: Omit<CalendarEvent, "id">,
@@ -319,14 +263,6 @@ export async function updateEvent(
 export async function deleteEvent(id: string): Promise<void> {
   const res = await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete event");
-}
-
-// fetch event cards
-export async function fetchEventCards(eventId: string): Promise<EventCard[]> {
-  const res = await fetch(`/api/calendar/events/${eventId}/cards`);
-  if (!res.ok) throw new Error("Failed to fetch event cards");
-  const data = cardsResponseSchema.parse(await res.json());
-  return data.cards;
 }
 
 // attach card to event

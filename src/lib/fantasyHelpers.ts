@@ -44,10 +44,3 @@ export function normalizeStats(
     fg_pct: norm(stats.fg_pct, "fg_pct"),
   };
 }
-
-/** Quick tier label based on scoring output. */
-export function getPlayerTier(avgPts: number): "elite" | "solid" | "bench" {
-  if (avgPts > 25) return "elite";
-  if (avgPts >= 15) return "solid";
-  return "bench";
-}

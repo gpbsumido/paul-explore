@@ -1,0 +1,15 @@
+{
+  "ignores": [
+    "@paul-portfolio/css",
+    "@paul-portfolio/tokens",
+    "@gltf-transform/cli",
+    "@gltf-transform/core",
+    "@gltf-transform/extensions",
+    "@tailwindcss/postcss",
+    "@vitest/coverage-v8",
+    "tailwindcss",
+    "depcheck",
+    "ts-prune"
+  ],
+  "ignore-patterns": ["models-src", ".next", "coverage", "playwright-report"]
+}

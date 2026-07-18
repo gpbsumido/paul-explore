@@ -30,8 +30,6 @@ export const POKEMON_TYPES = [
   "Water",
 ] as const;
 
-export type PokemonType = (typeof POKEMON_TYPES)[number];
-
 export const TYPE_COLORS: Record<string, string> = {
   Fire: "bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-200",
   Water: "bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200",

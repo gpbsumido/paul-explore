@@ -128,10 +128,6 @@ export function getActivity(storeId: string): ActivityEvent[] | undefined {
   return getDataStore().activityByStore.get(storeId);
 }
 
-export function getAlert(alertId: string): Alert | undefined {
-  return getDataStore().allAlerts.get(alertId);
-}
-
 export function dismissAlert(alertId: string): Alert | undefined {
   const ds = getDataStore();
   const existing = ds.allAlerts.get(alertId);
