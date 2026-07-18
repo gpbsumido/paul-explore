@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-17 - version 0.16.5
+
+- fixed poor FCP and CLS on the `/` route (guest landing). Real-user vitals for the current minor version (0.15.x) showed FCP p75 jump to ~2.6s and CLS reach ~0.2 on `/`, both regressions from the previous minor
+- FCP: `LandingContentV2` was one big `"use client"` bundle that eagerly pulled framer-motion in through all four sections. Restored the eager-Hero + lazy-below-fold pattern the v1 landing already used, splitting `ProjectsSection`, `StatsStrip`, `ThoughtsPreview`, and `FooterSection` into async chunks via `next/dynamic` (`ssr: true`, so the streamed HTML and SEO are unchanged). Smaller initial chunk means first paint lands sooner
+- CLS: the hero used `min-h-dvh`, which grows when the mobile URL bar hides on scroll and shifts every section below it. Switched to `min-h-svh` (stable smallest-viewport height) so the hero never resizes mid-scroll
+- no change to markup, landmarks, or accessibility semantics on the landing
+
 ## 2026-07-17 - version 0.16.4
 
 - fixed thoughts loading skeleton flashing the chat/phone layout before snapping to the Summary view — rebuilt `ThoughtsSkeleton` to mirror the Summary layout (sticky header, title block, stacked section shimmers) so the loading state matches what actually renders
