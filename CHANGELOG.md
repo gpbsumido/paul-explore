@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.5
+
+- economy and financial-health demo from portal v1: a faucet-vs-sink bar chart for an in-game currency next to a KPI grid (net supply, sink ratio, whales, inflation) that color-flags supply pressure
+
 ## 2026-07-19 - version 0.18.4
 
 - per-title dashboard demo from portal v1: a game switcher (Game A/B/C, anonymized client titles) that reskins one dashboard with each game's accent color, genre, and its own MAU / ARPU / retention numbers and trend area
