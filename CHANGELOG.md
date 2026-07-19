@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.4
+
+- AI content module demo from the platform console: pick a template (patch notes, event teaser, store blurb), hit generate, and the canned copy streams in word by word. No model behind it, just the shape of the assisted-writing flow
+
 ## 2026-07-19 - version 0.18.3
 
 - admin suite demo from the platform console: a members-and-roles table with color-coded role chips, plus a live API key you can reveal and copy (copy faked with local state, the key is obviously fake)

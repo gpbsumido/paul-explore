@@ -24,6 +24,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "admin-suite": dynamic(() => import("./admin-suite"), {
     loading: () => <DemoSkeleton />,
   }),
+  "ai-content-engine": dynamic(() => import("./ai-content-engine"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
