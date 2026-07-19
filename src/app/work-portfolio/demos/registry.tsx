@@ -27,6 +27,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "ai-content-engine": dynamic(() => import("./ai-content-engine"), {
     loading: () => <DemoSkeleton />,
   }),
+  "ua-campaign-builder": dynamic(() => import("./ua-campaign-builder"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

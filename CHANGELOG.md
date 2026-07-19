@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.5
+
+- campaign builder demo from the UA tools: a form (name, reward, budget slider, channel) with a live preview card that updates as you type, including an estimated-installs figure derived from the budget
+
 ## 2026-07-19 - version 0.18.4
 
 - AI content module demo from the platform console: pick a template (patch notes, event teaser, store blurb), hit generate, and the canned copy streams in word by word. No model behind it, just the shape of the assisted-writing flow
