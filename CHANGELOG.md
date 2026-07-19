@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.6
+
+- referral links demo from the UA tools: type a handle to mint a referral link, copy it, and watch a simulated click counter tick up (seeded off the handle so it's stable). Brings in a copy of the seeded-RNG helper for this batch
+
 ## 2026-07-19 - version 0.18.5
 
 - campaign builder demo from the UA tools: a form (name, reward, budget slider, channel) with a live preview card that updates as you type, including an estimated-installs figure derived from the budget

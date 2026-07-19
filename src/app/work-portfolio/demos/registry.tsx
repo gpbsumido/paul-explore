@@ -30,6 +30,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "ua-campaign-builder": dynamic(() => import("./ua-campaign-builder"), {
     loading: () => <DemoSkeleton />,
   }),
+  "referral-links": dynamic(() => import("./referral-links"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
