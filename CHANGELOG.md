@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.5
+
+- streaming ops demo from the ops console: a topic table with consumer-lag badges (green/amber by threshold) and a fake maintenance console that appends rebalance-script output on run. Brings in a copy of the seeded-RNG helper for this batch
+
 ## 2026-07-19 - version 0.18.4
 
 - character sheet demo from the content engine: edit a game character's name and class and spend a 30-point stat budget across STR/AGI/INT/LCK with live bars, capped both per-stat and at the total budget

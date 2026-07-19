@@ -30,6 +30,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "character-sheets": dynamic(() => import("./character-sheets"), {
     loading: () => <DemoSkeleton />,
   }),
+  "streaming-ops": dynamic(() => import("./streaming-ops"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
