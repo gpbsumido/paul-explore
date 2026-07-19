@@ -27,6 +27,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "llm-assistant": dynamic(() => import("./llm-assistant"), {
     loading: () => <DemoSkeleton />,
   }),
+  "email-campaigns": dynamic(() => import("./email-campaigns"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.7
+
+- email studio demo from portal v2: a block-based email composer (add heading/text/button/image blocks to a live preview) next to a campaign table with per-campaign status chips and open rates
+
 ## 2026-07-19 - version 0.18.6
 
 - LLM assistant tool-call rows: each answer now runs a fake tool first (query_warehouse, segment_players, search_docs) shown as a monospace row that ticks from running to done before the text streams. Makes it read like a real agent, retrieve then answer, not just a canned chatbot
