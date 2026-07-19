@@ -14,6 +14,7 @@ import StageArrow from "./StageNav";
 import { ProjectChip, FeatureChip } from "./chips";
 import { cycleIndex } from "./nav";
 import ExplainerWindow, { type ExplainerSubject } from "./ExplainerWindow";
+import DemoStage from "./DemoStage";
 
 /**
  * Client shell for the work-portfolio page. Owns the single piece of state,
@@ -136,7 +137,8 @@ export default function WorkPortfolioContent() {
               {selected === null ? (
                 <IntroCard />
               ) : (
-                <div className="flex h-full flex-col items-center justify-center gap-2">
+                <div className="flex h-full flex-col gap-3">
+                  <div className="flex flex-col items-center gap-1">
                   <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
                     {projectFor(selected).name}
                   </p>
@@ -184,6 +186,13 @@ export default function WorkPortfolioContent() {
                     </button>
                   </div>
                   <p className="text-[15px] text-muted">{selected.tagline}</p>
+                  </div>
+                  <div className="min-h-0 flex-1">
+                    <DemoStage
+                      feature={selected}
+                      project={projectFor(selected)}
+                    />
+                  </div>
                 </div>
               )}
           </motion.div>

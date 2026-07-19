@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.12
+
+- work-portfolio demo stage. Each feature resolves through a registry to its demo component behind `next/dynamic` (own chunk, skeleton while loading), falling back to a coming-soon placeholder — demo PRs will each flip exactly one registry line, which is what makes them mergeable in any order. The stage surface carries the owning project's accent theme (tint, accent CSS var, mono/sans flavor): site chrome outside, original-app flavor inside
+- built the reference demo end to end: the driver-onboarding real-time dashboard, KPI tiles plus a signups line chart (recharts) advancing on a local interval that stands in for the original polling API
+
 ## 2026-07-18 - version 0.17.11
 
 - work-portfolio explainer hover intent: resting the mouse on an i button for 350ms opens the window unpinned, and leaving closes it again. A click pins it so mouse-out keeps it open. Timer-based, tested with fake timers
