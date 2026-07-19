@@ -60,19 +60,24 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
   const [loading, setLoading] = useState(false);
 
   // Overview is instant; the data-heavy tabs show a brief loading state,
-  // like the original waiting on the chain-data API.
+  // like the original waiting on the chain-data API. The loading flag is set
+  // when the tab is chosen (below), the effect only clears it on a timer.
   useEffect(() => {
-    if (!address || tab === "Overview") return;
-    setLoading(true);
+    if (!loading) return;
     const t = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(t);
-  }, [address, tab]);
+  }, [loading]);
 
   const submit = (addr: string) => {
     const trimmed = addr.trim();
     if (!trimmed) return;
     setAddress(trimmed);
     setTab("Overview");
+  };
+
+  const pickTab = (t: Tab) => {
+    setTab(t);
+    if (t !== "Overview") setLoading(true);
   };
 
   const wallet = address ? walletFor(address) : null;
@@ -134,7 +139,7 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
                 key={t}
                 role="tab"
                 aria-selected={tab === t}
-                onClick={() => setTab(t)}
+                onClick={() => pickTab(t)}
                 className={`-mb-px border-b-2 px-3 py-1.5 text-[12px] ${
                   tab === t ? "border-current text-foreground" : "border-transparent text-muted"
                 }`}

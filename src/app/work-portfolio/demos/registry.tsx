@@ -30,6 +30,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "email-campaigns": dynamic(() => import("./email-campaigns"), {
     loading: () => <DemoSkeleton />,
   }),
+  "workflow-editor": dynamic(() => import("./workflow-editor"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19 - version 0.20.0
+
+- workflow editor demo, the last of the portal-v2 batch: a hand-built SVG node graph (trigger, filters, enrich, action with connecting edges) where clicking a node shows its read-only config below. Stands in for the original's node-graph library plus code editor
+- decoupled the stage placeholder test from any specific slug (it now renders the coming-soon demo directly) so wiring a demo can't break it, and moved the wallet-lookup loading flag off the effect path to satisfy the render-safety lint rule
+
+
 ## 2026-07-19 - version 0.18.7
 
 - email studio demo from portal v2: a block-based email composer (add heading/text/button/image blocks to a live preview) next to a campaign table with per-campaign status chips and open rates
