@@ -20,4 +20,15 @@ describe("chart library demo", () => {
     fireEvent.click(screen.getByRole("button", { name: "Reroll data" }));
     expect(screen.getByText(/re-rolled 1 times/)).toBeInTheDocument();
   });
+
+  it("focus mode shows one chart at a time and steps through them", () => {
+    render(<ChartLibraryDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "focus" }));
+    // grid captions gone, only the focused one shows
+    expect(screen.getByText("Growth curve")).toBeInTheDocument();
+    expect(screen.queryByText("Conversion funnel")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Next chart" }));
+    expect(screen.getByText("Conversion funnel")).toBeInTheDocument();
+    expect(screen.queryByText("Growth curve")).toBeNull();
+  });
 });
