@@ -18,6 +18,14 @@
 ## 2026-07-19 - version 0.18.6
 
 - LLM assistant tool-call rows: each answer now runs a fake tool first (query_warehouse, segment_players, search_docs) shown as a monospace row that ticks from running to done before the text streams. Makes it read like a real agent, retrieve then answer, not just a canned chatbot
+## 2026-07-19 - version 0.19.1
+
+- swapped the chart library's neutral controls onto design-system primitives: the Reroll button is now a `Button`, and the focus-mode prev/next are `IconButton`s from `@/components/ui`. Left the Grid/Focus segmented toggle custom (no segmented-control primitive)
+
+
+## 2026-07-19 - version 0.19.0
+
+- slug-driven dashboards demo, the last of the analytics batch: a slug picker (`/d/<slug>`) that reshapes one dashboard entirely from config, different tiles, chart type, and accent per slug, which was the whole idea of the original catch-all route. Also tidied a couple of unused imports the linter flagged in the chart library
 
 
 ## 2026-07-19 - version 0.18.5
@@ -33,16 +41,27 @@
 ## 2026-07-19 - version 0.18.3
 
 - wallet lookup demo, shell: paste (or pick a sample) address and get an overview card of balance, tokens, NFTs, and first-seen, with Overview / NFTs / Transactions tabs. Data is a deterministic fake keyed off the address so the same address always resolves the same, no chain calls. NFT and transaction tabs come next
+- economy and financial-health demo from portal v1: a faucet-vs-sink bar chart for an in-game currency next to a KPI grid (net supply, sink ratio, whales, inflation) that color-flags supply pressure
+
+## 2026-07-19 - version 0.18.4
+
+- per-title dashboard demo from portal v1: a game switcher (Game A/B/C, anonymized client titles) that reskins one dashboard with each game's accent color, genre, and its own MAU / ARPU / retention numbers and trend area
+
+## 2026-07-19 - version 0.18.3
+
+- standard analytics demo: the domain-split dashboard sections from the analytics suite. Tabs for Game / Web / On-chain / Sandbox, each swapping its own KPI trio and bar chart. Per-tab numbers are deterministic so switching back and forth is stable
 
 
 ## 2026-07-19 - version 0.18.2
 
 - dashboard designer gets its interactivity: widgets reorder by pointer drag or with left/right move buttons, and resize between one and two columns with a size toggle. Kept the button controls alongside drag so the reorder is keyboard-reachable and testable, not drag-only
+- chart library demo gets its depth: two more chart types (a radial engagement gauge and a ranked-titles bar table) and a Grid/Focus toggle. Focus mode blows one chart up full-size with prev/next to page through all six, so it reads like the real thing where you drill into a single visualization
 
 
 ## 2026-07-19 - version 0.18.1
 
 - first portal-v2 demo, the dashboard designer shell. The original used a gridstack drag-drop engine; this rebuilds the idea as a CSS-grid canvas you compose from a widget palette (KPI tile, trend line, bar chart), with per-widget remove and an empty state. Reorder and resize come next. Carries a copy of the seeded-RNG helper so this demo batch stands alone
+- first work-portfolio demo: the analytics chart library. The original was 17 documented ECharts components, this rebuilds a representative board on recharts (growth curve, conversion funnel, retention bars, revenue donut). All four charts share one seed so a Reroll button re-rolls the whole board at once, off a small seeded RNG. Wired into the demo registry so it replaces the coming-soon placeholder
 - moved the work-portfolio chrome onto the app design-system primitives instead of hand-rolled buttons: the stage arrows, the chip info buttons, the explainer close, and the stage-header info button are now `IconButton`, and the ticker chip select body is a ghost `Button`, all from `@/components/ui` (which wraps `@paul-portfolio/react`). Kept the explainer window's anchored positioning custom since the shared `Modal` is centered-only
 
 

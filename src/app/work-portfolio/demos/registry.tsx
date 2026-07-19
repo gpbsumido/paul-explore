@@ -18,6 +18,21 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "realtime-metrics": dynamic(() => import("./realtime-metrics"), {
     loading: () => <DemoSkeleton />,
   }),
+  "chart-library": dynamic(() => import("./chart-library"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "standard-analytics": dynamic(() => import("./standard-analytics"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "per-game-analytics": dynamic(() => import("./per-game-analytics"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "economy-health": dynamic(() => import("./economy-health"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "slug-dashboards": dynamic(() => import("./slug-dashboards"), {
+    loading: () => <DemoSkeleton />,
+  }),
   "dashboard-designer": dynamic(() => import("./dashboard-designer"), {
     loading: () => <DemoSkeleton />,
   }),
