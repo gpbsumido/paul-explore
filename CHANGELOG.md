@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.3
+
+- registered the work-portfolio feature in the hub FEATURES list so it shows up on the landing hub, with a test pinning the entry. Noted the new route in the architecture map
+
 ## 2026-07-18 - version 0.17.2
 
 - started the work-portfolio feature: a single page at `/work-portfolio` that will demo features from 11 past projects as self-contained reconstructions. This commit lays the data spine: a typed catalog of 11 anonymized projects and 24 features (5 flagged as flagships), the route with metadata and a layout-matched loading skeleton, and an intro card as the stage's resting state
