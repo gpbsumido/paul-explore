@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   PROJECTS,
@@ -24,7 +24,25 @@ export default function WorkPortfolioContent() {
   const [explainer, setExplainer] = useState<{
     subject: ExplainerSubject;
     edge: "top" | "bottom";
+    pinned: boolean;
   } | null>(null);
+
+  // Desktop hover opens an unpinned preview after a short delay; leaving
+  // the trigger closes it again unless a click pinned it in the meantime.
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoverIntent =
+    (subject: ExplainerSubject, edge: "top" | "bottom") =>
+    (hovering: boolean) => {
+      if (hoverTimer.current) clearTimeout(hoverTimer.current);
+      if (hovering) {
+        hoverTimer.current = setTimeout(
+          () => setExplainer({ subject, edge, pinned: false }),
+          350,
+        );
+        return;
+      }
+      setExplainer((current) => (current && !current.pinned ? null : current));
+    };
 
   const selected = selectedIndex === null ? null : FEATURES[selectedIndex];
   const selectedProjectId = selected ? selected.projectId : null;
@@ -90,8 +108,13 @@ export default function WorkPortfolioContent() {
             active={project.id === selectedProjectId}
             onSelect={() => selectProject(project.id)}
             onInfo={() =>
-              setExplainer({ subject: { kind: "project", project }, edge: "top" })
+              setExplainer({
+                subject: { kind: "project", project },
+                edge: "top",
+                pinned: true,
+              })
             }
+            onInfoHover={hoverIntent({ kind: "project", project }, "top")}
           />
         ))}
       </Ticker>
@@ -132,7 +155,28 @@ export default function WorkPortfolioContent() {
                             project: projectFor(selected),
                           },
                           edge: "bottom",
+                          pinned: true,
                         })
+                      }
+                      onMouseEnter={() =>
+                        hoverIntent(
+                          {
+                            kind: "feature",
+                            feature: selected,
+                            project: projectFor(selected),
+                          },
+                          "bottom",
+                        )(true)
+                      }
+                      onMouseLeave={() =>
+                        hoverIntent(
+                          {
+                            kind: "feature",
+                            feature: selected,
+                            project: projectFor(selected),
+                          },
+                          "bottom",
+                        )(false)
                       }
                       className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-border text-[10px] font-bold text-muted hover:bg-surface hover:text-foreground"
                     >
@@ -162,8 +206,13 @@ export default function WorkPortfolioContent() {
                   project: projectFor(feature),
                 },
                 edge: "bottom",
+                pinned: true,
               })
             }
+            onInfoHover={hoverIntent(
+              { kind: "feature", feature, project: projectFor(feature) },
+              "bottom",
+            )}
           />
         ))}
       </Ticker>

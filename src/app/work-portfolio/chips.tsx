@@ -11,6 +11,7 @@ function ChipShell({
   active,
   onClick,
   onInfo,
+  onInfoHover,
   label,
   children,
 }: {
@@ -18,6 +19,8 @@ function ChipShell({
   active: boolean;
   onClick: () => void;
   onInfo: () => void;
+  /** hover intent on the info button, true on enter and false on leave */
+  onInfoHover?: (hovering: boolean) => void;
   label: string;
   children: React.ReactNode;
 }) {
@@ -45,6 +48,8 @@ function ChipShell({
         type="button"
         aria-label={`About ${label.replace(/^(Project|Feature): /, "")}`}
         onClick={onInfo}
+        onMouseEnter={() => onInfoHover?.(true)}
+        onMouseLeave={() => onInfoHover?.(false)}
         className="mr-1 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[10px] font-bold text-muted hover:bg-surface hover:text-foreground"
       >
         i
@@ -59,11 +64,13 @@ export function ProjectChip({
   active,
   onSelect,
   onInfo,
+  onInfoHover,
 }: {
   project: WorkProject;
   active: boolean;
   onSelect: () => void;
   onInfo: () => void;
+  onInfoHover?: (hovering: boolean) => void;
 }) {
   return (
     <ChipShell
@@ -71,6 +78,7 @@ export function ProjectChip({
       active={active}
       onClick={onSelect}
       onInfo={onInfo}
+      onInfoHover={onInfoHover}
       label={`Project: ${project.name}`}
     >
       <span className="font-medium">{project.name}</span>
@@ -85,12 +93,14 @@ export function FeatureChip({
   active,
   onSelect,
   onInfo,
+  onInfoHover,
 }: {
   feature: WorkFeature;
   project: WorkProject;
   active: boolean;
   onSelect: () => void;
   onInfo: () => void;
+  onInfoHover?: (hovering: boolean) => void;
 }) {
   return (
     <ChipShell
@@ -98,6 +108,7 @@ export function FeatureChip({
       active={active}
       onClick={onSelect}
       onInfo={onInfo}
+      onInfoHover={onInfoHover}
       label={`Feature: ${feature.title}`}
     >
       <span aria-hidden>{feature.icon}</span>

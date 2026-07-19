@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.11
+
+- work-portfolio explainer hover intent: resting the mouse on an i button for 350ms opens the window unpinned, and leaving closes it again. A click pins it so mouse-out keeps it open. Timer-based, tested with fake timers
+
 ## 2026-07-18 - version 0.17.10
 
 - work-portfolio explainer window. Every chip and the stage header carry a small i button (chips got restructured into a shell with two buttons, since buttons can't nest). Clicking it opens an anchored dialog: feature explainers show what the feature did, the original stack, and what's real vs mocked in the reconstruction; project explainers show the blurb, stack, and the features that didn't make the ticker. Esc, outside presses, and the close button dismiss it; focus is trapped inside while open, and it marks itself as an isolated keyboard scope so arrow keys don't drive the stage from within

@@ -1,9 +1,16 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, within, fireEvent } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+  render,
+  screen,
+  within,
+  fireEvent,
+  act,
+} from "@testing-library/react";
 import WorkPortfolioContent from "../WorkPortfolioContent";
 import { PROJECTS, FEATURES, projectFor } from "../_data/catalog";
 
 beforeEach(() => window.history.replaceState(null, "", "/work-portfolio"));
+afterEach(() => vi.useRealTimers());
 
 describe("explainer window", () => {
   it("opens from a feature chip's info button with the full story", () => {
@@ -72,6 +79,38 @@ describe("explainer window", () => {
     open();
     fireEvent.pointerDown(document.body);
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("hover opens a preview after a delay and mouse-out closes it", () => {
+    vi.useFakeTimers();
+    render(<WorkPortfolioContent />);
+    const bottom = screen.getByLabelText("Features ticker");
+    const info = within(bottom).getAllByRole("button", {
+      name: `About ${FEATURES[0].title}`,
+    })[0];
+
+    fireEvent.mouseEnter(info);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    act(() => vi.advanceTimersByTime(400));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.mouseLeave(info);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("a click pins the preview so mouse-out keeps it open", () => {
+    vi.useFakeTimers();
+    render(<WorkPortfolioContent />);
+    const bottom = screen.getByLabelText("Features ticker");
+    const info = within(bottom).getAllByRole("button", {
+      name: `About ${FEATURES[0].title}`,
+    })[0];
+
+    fireEvent.mouseEnter(info);
+    act(() => vi.advanceTimersByTime(400));
+    fireEvent.click(info);
+    fireEvent.mouseLeave(info);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("arrow keys do not change the selection while the explainer has focus", () => {
