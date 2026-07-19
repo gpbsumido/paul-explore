@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.1
+
+- first UA-batch demo, the driver signup flow shell: a three-step wizard (contact, vehicle, review) with a step indicator and back/next navigation that carries entered values through to the review step. Validation, campaign attribution, and the completion screen come next
+
+
 ## 2026-07-19 - version 0.18.0
 
 - work-portfolio base is feature-complete. Accessibility pass: the stage announces selection changes through a polite live region, and axe scans of both the intro and a selected demo come back clean. Reworked the stage layout so the demo surface fills ~95% of the space between the two tickers (compact header row, arrows hugging the edges) instead of sitting small in the middle
