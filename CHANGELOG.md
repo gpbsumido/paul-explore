@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19 - version 0.17.2
+
+- bumped `@paul-portfolio/react` and `/css` to 0.2.0 and `/tokens` to 0.1.9, which add IconButton, Textarea, InfoTip, Switch, Spinner, and Divider to the shared design system
+- re-backed `components/ui/IconButton` onto the design system's `IconButton` (it was hand-rolled Tailwind before), so its styling now comes from the shared `.icon-btn` class like Button and Input already do. Kept it a thin wrapper so every call site keeps working. Left `Textarea` and `InfoTip` local for now: their local versions are richer than the new DS ones (a character counter / hideLabel on Textarea, rich `ReactNode` popover content on InfoTip), so backing those cleanly needs a DS enhancement rather than a lossy rewrap
+
+
 ## 2026-07-18 - version 0.17.1
 
 - added the `/thoughts/bundlers` dev-notes page and registered it in the THOUGHTS hub. It writes up which bundler this project runs (Turbopack, the Next 16 default for dev and build; webpack only for `pnpm analyze` because the analyzer doesn't support Turbopack), whether it's the right call (yes, and the split setup is best-practice), and the real decision drivers behind when a lead reaches for a different bundler entirely — library output (Rollup/tsup), CLI speed (esbuild), webpack-config migration (Rspack), Module Federation (webpack/Rspack), the framework deciding for you (Vite), and zero-config spikes (Parcel)
