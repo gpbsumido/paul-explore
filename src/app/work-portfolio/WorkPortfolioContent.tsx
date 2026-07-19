@@ -15,6 +15,7 @@ import { ProjectChip, FeatureChip } from "./chips";
 import { cycleIndex } from "./nav";
 import ExplainerWindow, { type ExplainerSubject } from "./ExplainerWindow";
 import DemoStage from "./DemoStage";
+import IconButton from "@/components/ui/IconButton";
 
 /**
  * Client shell for the work-portfolio page. Owns the single piece of state,
@@ -148,8 +149,8 @@ export default function WorkPortfolioContent() {
                     <h1 className="text-lg font-bold text-foreground">
                       {selected.title}
                     </h1>
-                    <button
-                      type="button"
+                    <IconButton
+                      size="sm"
                       aria-label={`About ${selected.title}`}
                       onClick={() =>
                         setExplainer({
@@ -182,10 +183,10 @@ export default function WorkPortfolioContent() {
                           "bottom",
                         )(false)
                       }
-                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-border text-[10px] font-bold text-muted hover:bg-surface hover:text-foreground"
+                      className="!h-5 !w-5 border border-border text-[10px] font-bold"
                     >
                       i
-                    </button>
+                    </IconButton>
                   </div>
                   <p className="hidden text-[13px] text-muted sm:block">
                     {selected.tagline}
