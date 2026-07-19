@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.2
+
+- signup flow depth: per-step validation (required fields plus a real email check) blocks advancing with inline errors, a campaign-attribution chip rides along from the entry link's utm source, and submitting lands on a completion screen that credits the campaign. Start-over resets it
+
+
 ## 2026-07-19 - version 0.18.1
 
 - first UA-batch demo, the driver signup flow shell: a three-step wizard (contact, vehicle, review) with a step indicator and back/next navigation that carries entered values through to the review step. Validation, campaign attribution, and the completion screen come next
