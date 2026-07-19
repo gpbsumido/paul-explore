@@ -9,11 +9,11 @@ beforeEach(() => window.history.replaceState(null, "", "/work-portfolio"));
 afterEach(() => vi.useRealTimers());
 
 describe("demo stage", () => {
-  it("placeholder features render the coming-soon demo", () => {
+  it("placeholder features render the coming-soon demo", async () => {
     // wallet-lookup has no demo wired yet in this PR
     window.history.replaceState(null, "", "/work-portfolio?feature=wallet-lookup");
     render(<WorkPortfolioContent />);
-    expect(screen.getByText("Demo in progress")).toBeInTheDocument();
+    expect(await screen.findByText("Demo in progress")).toBeInTheDocument();
   });
 
   it("the reference demo is wired through the registry", async () => {

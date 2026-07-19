@@ -41,28 +41,37 @@ export default function ExplainerWindow({
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [onClose]);
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      onClose();
-      return;
-    }
-    // minimal focus trap: keep Tab cycling inside the panel
-    if (e.key === "Tab" && panelRef.current) {
-      const focusables = panelRef.current.querySelectorAll<HTMLElement>(
-        "button, a[href], [tabindex]:not([tabindex='-1'])",
-      );
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
+  // Escape closes and Tab cycles inside the panel. Document-level listener
+  // instead of a JSX handler, dialogs are containers not interactive elements.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      const inside =
+        document.activeElement && panel.contains(document.activeElement);
+      if (e.key === "Escape" && inside) {
+        onClose();
+        return;
       }
-    }
-  };
+      if (e.key === "Tab" && inside) {
+        const focusables = panel.querySelectorAll<HTMLElement>(
+          "button, a[href], [tabindex]:not([tabindex='-1'])",
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
 
   const project = subject.project;
   const feature = subject.kind === "feature" ? subject.feature : null;
@@ -75,7 +84,6 @@ export default function ExplainerWindow({
       role="dialog"
       aria-label={feature ? `About ${feature.title}` : `About ${project.name}`}
       data-keyboard-scope="isolated"
-      onKeyDown={onKeyDown}
       className={`fixed left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-border bg-background p-4 shadow-xl outline-none ${position}`}
     >
       <div className="mb-2 flex items-start justify-between gap-3">

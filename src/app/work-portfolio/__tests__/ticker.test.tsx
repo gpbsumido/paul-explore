@@ -1,5 +1,11 @@
-import { describe, it, expect, afterEach, vi } from "vitest";
-import { render, screen, within, fireEvent } from "@testing-library/react";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
+import {
+  render,
+  screen,
+  within,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 import WorkPortfolioContent from "../WorkPortfolioContent";
 import { PROJECTS, FEATURES } from "../_data/catalog";
 
@@ -67,11 +73,14 @@ describe("work-portfolio tickers", () => {
     );
   });
 
-  it("prefers-reduced-motion renders a single static copy", () => {
+  it("prefers-reduced-motion renders a single static copy", async () => {
     stubReducedMotion(true);
     render(<WorkPortfolioContent />);
     const top = screen.getByLabelText("Projects ticker");
-    expect(within(top).getAllByText(PROJECTS[0].name)).toHaveLength(1);
+    // the preference applies on a microtask after mount
+    await waitFor(() =>
+      expect(within(top).getAllByText(PROJECTS[0].name)).toHaveLength(1),
+    );
     expect(top.querySelector("[data-direction]")).toBeNull();
   });
 });

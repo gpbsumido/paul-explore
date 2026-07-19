@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.0
+
+- work-portfolio base is feature-complete. Accessibility pass: the stage announces selection changes through a polite live region, and axe scans of both the intro and a selected demo come back clean. Reworked the stage layout so the demo surface fills ~95% of the space between the two tickers (compact header row, arrows hugging the edges) instead of sitting small in the middle
+- tightened a few things the linter caught along the way: the demo registry now resolves every slug to a component at module scope so render code does a plain lookup, the explainer's key handling moved to a document listener (a dialog is a container, not an interactive element), and the deep-link and reduced-motion effects defer their state writes off the synchronous effect path
+
+
 ## 2026-07-18 - version 0.17.12
 
 - work-portfolio demo stage. Each feature resolves through a registry to its demo component behind `next/dynamic` (own chunk, skeleton while loading), falling back to a coming-soon placeholder — demo PRs will each flip exactly one registry line, which is what makes them mergeable in any order. The stage surface carries the owning project's accent theme (tint, accent CSS var, mono/sans flavor): site chrome outside, original-app flavor inside

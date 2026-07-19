@@ -100,12 +100,13 @@ describe("keyboard navigation", () => {
 });
 
 describe("deep links", () => {
-  it("?feature= selects that feature on load", () => {
+  it("?feature= selects that feature on load", async () => {
     const slug = FEATURES[7].slug;
     window.history.replaceState(null, "", `/work-portfolio?feature=${slug}`);
     render(<WorkPortfolioContent />);
+    // the deep-link read applies on a microtask, so wait for it
     expect(
-      screen.getByRole("heading", { name: FEATURES[7].title }),
+      await screen.findByRole("heading", { name: FEATURES[7].title }),
     ).toBeInTheDocument();
     window.history.replaceState(null, "", "/work-portfolio");
   });

@@ -13,7 +13,8 @@ export function useReducedMotionPref(): boolean {
     // jsdom has no matchMedia, so guard for tests and odd embedders
     if (typeof window.matchMedia !== "function") return;
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(query.matches);
+    // microtask defer keeps the effect from setting state synchronously
+    queueMicrotask(() => setReduced(query.matches));
     const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
     query.addEventListener("change", onChange);
     return () => query.removeEventListener("change", onChange);

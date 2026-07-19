@@ -63,7 +63,8 @@ export default function WorkPortfolioContent() {
     const slug = new URLSearchParams(window.location.search).get("feature");
     if (!slug) return;
     const index = featureIndexBySlug(slug);
-    if (index !== null) setSelectedIndex(index);
+    // microtask defer keeps the effect from setting state synchronously
+    if (index !== null) queueMicrotask(() => setSelectedIndex(index));
   }, []);
 
   // Keep the URL shareable as the selection moves, without history spam.
@@ -120,11 +121,11 @@ export default function WorkPortfolioContent() {
         ))}
       </Ticker>
       <main
-        className="flex flex-1 items-center gap-3 px-4 py-6"
+        className="flex min-h-0 flex-1 items-center gap-2 px-2 py-2"
         aria-label="Demo stage"
       >
         <StageArrow dir="prev" onClick={() => step(-1)} />
-        <div className="mx-auto h-full w-full max-w-4xl overflow-hidden">
+        <div className="h-full min-h-0 w-full overflow-hidden">
           {/* keying by slug remounts on change, giving a quick fade-in
               without AnimatePresence exit-waits (which stall in jsdom) */}
           <motion.div
@@ -137,13 +138,14 @@ export default function WorkPortfolioContent() {
               {selected === null ? (
                 <IntroCard />
               ) : (
-                <div className="flex h-full flex-col gap-3">
-                  <div className="flex flex-col items-center gap-1">
+                <div className="flex h-full flex-col gap-2">
+                  {/* compact header row so the demo surface gets ~95% of the space */}
+                  <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5">
                   <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
                     {projectFor(selected).name}
                   </p>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold text-foreground">
+                    <h1 className="text-lg font-bold text-foreground">
                       {selected.title}
                     </h1>
                     <button
@@ -185,7 +187,9 @@ export default function WorkPortfolioContent() {
                       i
                     </button>
                   </div>
-                  <p className="text-[15px] text-muted">{selected.tagline}</p>
+                  <p className="hidden text-[13px] text-muted sm:block">
+                    {selected.tagline}
+                  </p>
                   </div>
                   <div className="min-h-0 flex-1">
                     <DemoStage
@@ -232,6 +236,12 @@ export default function WorkPortfolioContent() {
           onClose={() => setExplainer(null)}
         />
       )}
+      {/* announces selection changes to screen readers without stealing focus */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {selected
+          ? `Showing ${selected.title} from ${projectFor(selected).name}`
+          : ""}
+      </div>
     </div>
   );
 }
