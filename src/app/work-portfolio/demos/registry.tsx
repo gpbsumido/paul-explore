@@ -21,6 +21,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "campaign-manager": dynamic(() => import("./campaign-manager"), {
     loading: () => <DemoSkeleton />,
   }),
+  "post-queue": dynamic(() => import("./post-queue"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.2
+
+- post queue demo from the content engine: a reorderable list of scheduled posts (move up/down) with a week strip that shows how many posts land each day, recomputed from the queue
+
 ## 2026-07-19 - version 0.18.1
 
 - first content-batch demo, the content engine's campaign manager: a list with a create form and an inline draft/live status toggle, standing in for the original's CRUD routes
