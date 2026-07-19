@@ -27,6 +27,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "community-mode": dynamic(() => import("./community-mode"), {
     loading: () => <DemoSkeleton />,
   }),
+  "character-sheets": dynamic(() => import("./character-sheets"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.4
+
+- character sheet demo from the content engine: edit a game character's name and class and spend a 30-point stat budget across STR/AGI/INT/LCK with live bars, capped both per-stat and at the total budget
+
 ## 2026-07-19 - version 0.18.3
 
 - community mode demo from the content engine: a likeable community feed with a per-post engagement bar and a running total, standing in for the posts and community-analytics views
