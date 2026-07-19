@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.7
+
+- work-portfolio stage navigation: arrow buttons flank the stage and cycle the selected feature with wraparound. From the intro state, next lands on the first feature and prev on the last (`cycleIndex` helper, unit tested). The stage crossfades on selection change by remounting a keyed motion div, deliberately avoiding AnimatePresence exit-waits which stall under jsdom
+
 ## 2026-07-18 - version 0.17.6
 
 - work-portfolio tickers are now interactive. Hover freezes the marquee (`animation-play-state`); on touch, the first touch freezes the strip for a few seconds so a tap can land. Chips are real buttons: clicking a feature selects it on the stage, clicking a project jumps to that project's first feature, and selection rings stay in sync across both tickers (`aria-pressed` carries the state). The marquee's clone copy is `inert` so its buttons can't be focused or clicked
