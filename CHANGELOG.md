@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.4
+
+- wallet lookup depth: the NFTs tab shows a rarity-tagged asset grid (or an empty state for wallets with none) and the Transactions tab a send/receive history. Switching to a data-heavy tab shows a brief skeleton-loading state first, like the original waiting on the chain-data API
+
+
 ## 2026-07-19 - version 0.18.3
 
 - wallet lookup demo, shell: paste (or pick a sample) address and get an overview card of balance, tokens, NFTs, and first-seen, with Overview / NFTs / Transactions tabs. Data is a deterministic fake keyed off the address so the same address always resolves the same, no chain calls. NFT and transaction tabs come next

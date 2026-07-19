@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -16,14 +16,37 @@ function walletFor(addr: string) {
   const rng = makeRng(
     addr.split("").reduce((sum, c) => sum + c.charCodeAt(0), 0) || 1,
   );
+  const nftCount = roundish(rng() * 12);
+  const txCount = roundish(2 + rng() * 20);
+  const nfts = Array.from({ length: nftCount }, (_, i) => ({
+    id: i,
+    name: `Item #${roundish(rng() * 9999)}`,
+    rarity: ["Common", "Rare", "Epic", "Legendary"][roundish(rng() * 3)],
+    hue: roundish(rng() * 360),
+  }));
+  const txns = Array.from({ length: txCount }, (_, i) => ({
+    id: i,
+    kind: rng() > 0.5 ? "Send" : "Receive",
+    amount: (rng() * 5).toFixed(3),
+    ago: `${roundish(1 + rng() * 60)}m ago`,
+  }));
   return {
     balance: (rng() * 40).toFixed(2),
     tokens: roundish(2 + rng() * 8),
-    nftCount: roundish(rng() * 12),
-    txCount: roundish(rng() * 200),
+    nftCount,
+    txCount,
     firstSeen: `${2020 + roundish(rng() * 4)}`,
+    nfts,
+    txns,
   };
 }
+
+const RARITY_TINT: Record<string, string> = {
+  Common: "#94a3b8",
+  Rare: "#60a5fa",
+  Epic: "#c084fc",
+  Legendary: "#f59e0b",
+};
 
 /**
  * Flagship demo for portal v2's wallet lookup. Enter an address, get an
@@ -34,6 +57,16 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
   const [input, setInput] = useState("");
   const [address, setAddress] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("Overview");
+  const [loading, setLoading] = useState(false);
+
+  // Overview is instant; the data-heavy tabs show a brief loading state,
+  // like the original waiting on the chain-data API.
+  useEffect(() => {
+    if (!address || tab === "Overview") return;
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(t);
+  }, [address, tab]);
 
   const submit = (addr: string) => {
     const trimmed = addr.trim();
@@ -130,10 +163,68 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
                 ))}
               </div>
             )}
-            {tab !== "Overview" && (
-              <p className="py-8 text-center text-[12px] text-muted">
-                {tab} view coming in the next commit
-              </p>
+            {tab !== "Overview" && loading && (
+              <div
+                aria-label="Loading"
+                className="grid grid-cols-3 gap-2 sm:grid-cols-4"
+              >
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-16 animate-pulse rounded-lg bg-black/5 dark:bg-white/10"
+                  />
+                ))}
+              </div>
+            )}
+
+            {tab === "NFTs" && !loading &&
+              (wallet.nfts.length === 0 ? (
+                <p className="py-8 text-center text-[12px] text-muted">
+                  this wallet holds no NFTs
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {wallet.nfts.map((nft) => (
+                    <div
+                      key={nft.id}
+                      className="overflow-hidden rounded-lg border border-border"
+                    >
+                      <div
+                        className="h-12"
+                        style={{ backgroundColor: `hsl(${nft.hue} 60% 55%)` }}
+                      />
+                      <div className="p-1.5">
+                        <p className="truncate text-[10px] font-medium text-foreground">
+                          {nft.name}
+                        </p>
+                        <p
+                          className="text-[9px] font-semibold"
+                          style={{ color: RARITY_TINT[nft.rarity] }}
+                        >
+                          {nft.rarity}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+
+            {tab === "Transactions" && !loading && (
+              <ul className="divide-y divide-border text-[12px]">
+                {wallet.txns.map((tx) => (
+                  <li key={tx.id} className="flex items-center justify-between py-1.5">
+                    <span
+                      className={
+                        tx.kind === "Receive" ? "text-emerald-500" : "text-foreground"
+                      }
+                    >
+                      {tx.kind}
+                    </span>
+                    <span className="font-mono text-foreground">{tx.amount} ETH</span>
+                    <span className="text-muted">{tx.ago}</span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </div>

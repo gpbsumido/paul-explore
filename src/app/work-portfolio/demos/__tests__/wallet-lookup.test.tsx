@@ -1,9 +1,11 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, afterEach, vi } from "vitest";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import WalletLookupDemo from "../wallet-lookup";
 import { FEATURES, featureIndexBySlug } from "../../_data/catalog";
 
 const feature = FEATURES[featureIndexBySlug("wallet-lookup")!];
+
+afterEach(() => vi.useRealTimers());
 
 describe("wallet lookup demo", () => {
   it("shows sample prompts before any lookup", () => {
@@ -27,5 +29,18 @@ describe("wallet lookup demo", () => {
     const chip = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("0x"))!;
     fireEvent.click(chip);
     expect(screen.getByRole("tablist")).toBeInTheDocument();
+  });
+
+  it("the NFTs tab shows a loading state then content", async () => {
+    vi.useFakeTimers();
+    render(<WalletLookupDemo feature={feature} />);
+    fireEvent.change(screen.getByLabelText("Wallet address"), {
+      target: { value: "0xloadsofnfts" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Look up" }));
+    fireEvent.click(screen.getByRole("tab", { name: "NFTs" }));
+    expect(screen.getByLabelText("Loading")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(600));
+    expect(screen.queryByLabelText("Loading")).toBeNull();
   });
 });
