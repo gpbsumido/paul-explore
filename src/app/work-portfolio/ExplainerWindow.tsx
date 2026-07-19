@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import IconButton from "@/components/ui/IconButton";
 import type { WorkProject, WorkFeature } from "./_data/types";
 
 /** What the explainer is currently describing. */
@@ -97,14 +98,14 @@ export default function ExplainerWindow({
             </p>
           )}
         </div>
-        <button
-          type="button"
+        <IconButton
+          size="sm"
           aria-label="Close explainer"
           onClick={onClose}
-          className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted hover:bg-surface hover:text-foreground"
+          className="shrink-0"
         >
           ✕
-        </button>
+        </IconButton>
       </div>
 
       <div className="space-y-2 text-[13px] leading-relaxed text-muted">

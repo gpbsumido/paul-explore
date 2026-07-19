@@ -1,10 +1,12 @@
 "use client";
 
+import Button from "@/components/ui/Button";
+import IconButton from "@/components/ui/IconButton";
 import type { WorkProject, WorkFeature } from "./_data/types";
 
 /**
- * Shared chip shell. The main body selects; the little i button opens the
- * explainer. Two separate buttons because buttons can't nest.
+ * Shared chip shell. The main body (a ghost Button) selects; a small
+ * IconButton opens the explainer. Both come from the app design system.
  */
 function ChipShell({
   color,
@@ -19,41 +21,42 @@ function ChipShell({
   active: boolean;
   onClick: () => void;
   onInfo: () => void;
-  /** hover intent on the info button, true on enter and false on leave */
   onInfoHover?: (hovering: boolean) => void;
   label: string;
   children: React.ReactNode;
 }) {
+  const name = label.replace(/^(Project|Feature): /, "");
   return (
     <span
-      className={`flex shrink-0 items-center rounded-full border bg-background text-[13px] text-foreground transition-shadow ${
+      className={`flex shrink-0 items-center rounded-full border bg-background text-[13px] transition-shadow ${
         active ? "border-foreground/60 ring-2 ring-foreground/30" : "border-border"
       }`}
     >
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
         aria-label={label}
         aria-pressed={active}
         onClick={onClick}
-        className="flex cursor-pointer items-center gap-2 rounded-l-full py-1.5 pl-3 pr-1.5"
+        className="!rounded-l-full !rounded-r-none !px-3 !py-1"
       >
         <span
           aria-hidden
-          className="h-2 w-2 rounded-full"
+          className="h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: color }}
         />
         {children}
-      </button>
-      <button
-        type="button"
-        aria-label={`About ${label.replace(/^(Project|Feature): /, "")}`}
+      </Button>
+      <IconButton
+        size="sm"
+        aria-label={`About ${name}`}
         onClick={onInfo}
         onMouseEnter={() => onInfoHover?.(true)}
         onMouseLeave={() => onInfoHover?.(false)}
-        className="mr-1 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[10px] font-bold text-muted hover:bg-surface hover:text-foreground"
+        className="mr-1 !h-5 !w-5 text-[10px] font-bold"
       >
         i
-      </button>
+      </IconButton>
     </span>
   );
 }
@@ -81,7 +84,7 @@ export function ProjectChip({
       onInfoHover={onInfoHover}
       label={`Project: ${project.name}`}
     >
-      <span className="font-medium">{project.name}</span>
+      <span className="font-medium text-foreground">{project.name}</span>
     </ChipShell>
   );
 }
@@ -112,7 +115,7 @@ export function FeatureChip({
       label={`Feature: ${feature.title}`}
     >
       <span aria-hidden>{feature.icon}</span>
-      <span className="font-medium">{feature.title}</span>
+      <span className="font-medium text-foreground">{feature.title}</span>
       <span className="text-[11px] text-muted">{project.name}</span>
     </ChipShell>
   );
