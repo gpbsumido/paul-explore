@@ -13,6 +13,7 @@ import Ticker from "./Ticker";
 import StageArrow from "./StageNav";
 import { ProjectChip, FeatureChip } from "./chips";
 import { cycleIndex } from "./nav";
+import ExplainerWindow, { type ExplainerSubject } from "./ExplainerWindow";
 
 /**
  * Client shell for the work-portfolio page. Owns the single piece of state,
@@ -20,6 +21,10 @@ import { cycleIndex } from "./nav";
  */
 export default function WorkPortfolioContent() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [explainer, setExplainer] = useState<{
+    subject: ExplainerSubject;
+    edge: "top" | "bottom";
+  } | null>(null);
 
   const selected = selectedIndex === null ? null : FEATURES[selectedIndex];
   const selectedProjectId = selected ? selected.projectId : null;
@@ -84,6 +89,9 @@ export default function WorkPortfolioContent() {
             project={project}
             active={project.id === selectedProjectId}
             onSelect={() => selectProject(project.id)}
+            onInfo={() =>
+              setExplainer({ subject: { kind: "project", project }, edge: "top" })
+            }
           />
         ))}
       </Ticker>
@@ -109,9 +117,28 @@ export default function WorkPortfolioContent() {
                   <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
                     {projectFor(selected).name}
                   </p>
-                  <h1 className="text-2xl font-bold text-foreground">
-                    {selected.title}
-                  </h1>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold text-foreground">
+                      {selected.title}
+                    </h1>
+                    <button
+                      type="button"
+                      aria-label={`About ${selected.title}`}
+                      onClick={() =>
+                        setExplainer({
+                          subject: {
+                            kind: "feature",
+                            feature: selected,
+                            project: projectFor(selected),
+                          },
+                          edge: "bottom",
+                        })
+                      }
+                      className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-border text-[10px] font-bold text-muted hover:bg-surface hover:text-foreground"
+                    >
+                      i
+                    </button>
+                  </div>
                   <p className="text-[15px] text-muted">{selected.tagline}</p>
                 </div>
               )}
@@ -127,9 +154,26 @@ export default function WorkPortfolioContent() {
             project={projectFor(feature)}
             active={i === selectedIndex}
             onSelect={() => setSelectedIndex(i)}
+            onInfo={() =>
+              setExplainer({
+                subject: {
+                  kind: "feature",
+                  feature,
+                  project: projectFor(feature),
+                },
+                edge: "bottom",
+              })
+            }
           />
         ))}
       </Ticker>
+      {explainer && (
+        <ExplainerWindow
+          subject={explainer.subject}
+          edge={explainer.edge}
+          onClose={() => setExplainer(null)}
+        />
+      )}
     </div>
   );
 }

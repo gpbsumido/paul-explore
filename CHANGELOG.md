@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.10
+
+- work-portfolio explainer window. Every chip and the stage header carry a small i button (chips got restructured into a shell with two buttons, since buttons can't nest). Clicking it opens an anchored dialog: feature explainers show what the feature did, the original stack, and what's real vs mocked in the reconstruction; project explainers show the blurb, stack, and the features that didn't make the ticker. Esc, outside presses, and the close button dismiss it; focus is trapped inside while open, and it marks itself as an isolated keyboard scope so arrow keys don't drive the stage from within
+
 ## 2026-07-18 - version 0.17.9
 
 - work-portfolio deep links: `?feature=<slug>` selects that demo on load (unknown slugs just leave the intro up), and moving the selection writes the slug back with `replaceState` so the URL stays shareable without polluting history. Tests reset the jsdom URL between cases since the sync effect genuinely writes it
