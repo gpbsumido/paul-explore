@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.4
+
+- per-title dashboard demo from portal v1: a game switcher (Game A/B/C, anonymized client titles) that reskins one dashboard with each game's accent color, genre, and its own MAU / ARPU / retention numbers and trend area
+
 ## 2026-07-19 - version 0.18.3
 
 - standard analytics demo: the domain-split dashboard sections from the analytics suite. Tabs for Game / Web / On-chain / Sandbox, each swapping its own KPI trio and bar chart. Per-tab numbers are deterministic so switching back and forth is stable

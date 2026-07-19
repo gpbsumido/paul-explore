@@ -24,6 +24,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "standard-analytics": dynamic(() => import("./standard-analytics"), {
     loading: () => <DemoSkeleton />,
   }),
+  "per-game-analytics": dynamic(() => import("./per-game-analytics"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
