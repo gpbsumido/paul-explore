@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Button from "@/components/ui/Button";
+import IconButton from "@/components/ui/IconButton";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -212,13 +214,9 @@ export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) 
               </button>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={() => setSeed((s) => s + 7)}
-            className="rounded-md border border-border px-2.5 py-1 text-[12px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
-          >
+          <Button variant="outline" size="xs" onClick={() => setSeed((s) => s + 7)}>
             Reroll data
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -245,22 +243,22 @@ export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) 
               {focused.title}
             </span>
             <span className="flex gap-1">
-              <button
-                type="button"
+              <IconButton
+                size="sm"
                 aria-label="Previous chart"
                 onClick={() => stepFocus(-1)}
-                className="h-6 w-6 rounded-md border border-border text-[11px] hover:bg-black/5 dark:hover:bg-white/10"
+                className="!h-6 !w-6 border border-border text-[11px]"
               >
                 ‹
-              </button>
-              <button
-                type="button"
+              </IconButton>
+              <IconButton
+                size="sm"
                 aria-label="Next chart"
                 onClick={() => stepFocus(1)}
-                className="h-6 w-6 rounded-md border border-border text-[11px] hover:bg-black/5 dark:hover:bg-white/10"
+                className="!h-6 !w-6 border border-border text-[11px]"
               >
                 ›
-              </button>
+              </IconButton>
             </span>
           </figcaption>
           <div className="min-h-0 flex-1">

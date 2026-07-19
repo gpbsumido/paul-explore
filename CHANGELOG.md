@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.19.1
+
+- swapped the chart library's neutral controls onto design-system primitives: the Reroll button is now a `Button`, and the focus-mode prev/next are `IconButton`s from `@/components/ui`. Left the Grid/Focus segmented toggle custom (no segmented-control primitive)
+
+
 ## 2026-07-19 - version 0.19.0
 
 - slug-driven dashboards demo, the last of the analytics batch: a slug picker (`/d/<slug>`) that reshapes one dashboard entirely from config, different tiles, chart type, and accent per slug, which was the whole idea of the original catch-all route. Also tidied a couple of unused imports the linter flagged in the chart library
