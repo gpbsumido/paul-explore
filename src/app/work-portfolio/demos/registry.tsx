@@ -24,6 +24,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "post-queue": dynamic(() => import("./post-queue"), {
     loading: () => <DemoSkeleton />,
   }),
+  "community-mode": dynamic(() => import("./community-mode"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

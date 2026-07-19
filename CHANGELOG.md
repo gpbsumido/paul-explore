@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.3
+
+- community mode demo from the content engine: a likeable community feed with a per-post engagement bar and a running total, standing in for the posts and community-analytics views
+
 ## 2026-07-19 - version 0.18.2
 
 - post queue demo from the content engine: a reorderable list of scheduled posts (move up/down) with a week strip that shows how many posts land each day, recomputed from the queue
