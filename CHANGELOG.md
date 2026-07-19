@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.1
+
+- first content-batch demo, the content engine's campaign manager: a list with a create form and an inline draft/live status toggle, standing in for the original's CRUD routes
+
+
 ## 2026-07-19 - version 0.18.0
 
 - work-portfolio base is feature-complete. Accessibility pass: the stage announces selection changes through a polite live region, and axe scans of both the intro and a selected demo come back clean. Reworked the stage layout so the demo surface fills ~95% of the space between the two tickers (compact header row, arrows hugging the edges) instead of sitting small in the middle
