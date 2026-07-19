@@ -9,18 +9,29 @@ import { ProjectChip, FeatureChip } from "./chips";
 /**
  * Client shell for the work-portfolio page. Owns the single piece of state,
  * the selected feature index (null means the intro card is showing).
- * Tickers, stage nav, and the demo stage all hang off this.
  */
 export default function WorkPortfolioContent() {
-  const [selectedIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const selected = selectedIndex === null ? null : FEATURES[selectedIndex];
+  const selectedProjectId = selected ? selected.projectId : null;
+
+  /** Jump to a project's first feature, used by the top ticker. */
+  const selectProject = (projectId: string) => {
+    const first = FEATURES.findIndex((f) => f.projectId === projectId);
+    if (first !== -1) setSelectedIndex(first);
+  };
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Ticker label="Projects ticker" edge="top" direction="left">
         {PROJECTS.map((project) => (
-          <ProjectChip key={project.id} project={project} />
+          <ProjectChip
+            key={project.id}
+            project={project}
+            active={project.id === selectedProjectId}
+            onSelect={() => selectProject(project.id)}
+          />
         ))}
       </Ticker>
       <main className="flex flex-1 items-stretch px-4 py-6" aria-label="Demo stage">
@@ -41,11 +52,13 @@ export default function WorkPortfolioContent() {
         </div>
       </main>
       <Ticker label="Features ticker" edge="bottom" direction="right">
-        {FEATURES.map((feature) => (
+        {FEATURES.map((feature, i) => (
           <FeatureChip
             key={feature.slug}
             feature={feature}
             project={projectFor(feature)}
+            active={i === selectedIndex}
+            onSelect={() => setSelectedIndex(i)}
           />
         ))}
       </Ticker>

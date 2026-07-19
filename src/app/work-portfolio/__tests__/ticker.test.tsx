@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import WorkPortfolioContent from "../WorkPortfolioContent";
 import { PROJECTS, FEATURES } from "../_data/catalog";
 
@@ -70,5 +70,45 @@ describe("work-portfolio tickers", () => {
     const top = screen.getByLabelText("Projects ticker");
     expect(within(top).getAllByText(PROJECTS[0].name)).toHaveLength(1);
     expect(top.querySelector("[data-direction]")).toBeNull();
+  });
+});
+
+describe("ticker selection", () => {
+  it("clicking a feature chip selects that feature on the stage", () => {
+    render(<WorkPortfolioContent />);
+    const bottom = screen.getByLabelText("Features ticker");
+    const chip = within(bottom).getAllByRole("button", {
+      name: `Feature: ${FEATURES[3].title}`,
+    })[0];
+    fireEvent.click(chip);
+    expect(
+      screen.getByRole("heading", { name: FEATURES[3].title }),
+    ).toBeInTheDocument();
+    expect(chip).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("clicking a project chip jumps to its first feature and syncs rings", () => {
+    render(<WorkPortfolioContent />);
+    const top = screen.getByLabelText("Projects ticker");
+    const project = PROJECTS[9];
+    const chip = within(top).getAllByRole("button", {
+      name: `Project: ${project.name}`,
+    })[0];
+    fireEvent.click(chip);
+
+    const firstFeature = FEATURES.find((f) => f.projectId === project.id)!;
+    expect(
+      screen.getByRole("heading", { name: firstFeature.title }),
+    ).toBeInTheDocument();
+    // the owning project chip lights up too
+    expect(chip).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("touchstart freezes the marquee so a tap can land", () => {
+    stubReducedMotion(false);
+    render(<WorkPortfolioContent />);
+    const top = screen.getByLabelText("Projects ticker");
+    fireEvent.touchStart(top);
+    expect(top.querySelector("[data-paused]")).not.toBeNull();
   });
 });

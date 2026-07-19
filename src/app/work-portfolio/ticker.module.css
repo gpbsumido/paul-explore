@@ -11,6 +11,13 @@
   animation-name: scroll-right;
 }
 
+/* Hover anywhere on the strip freezes it so chips can be clicked. Touch
+   devices get the same freeze via the paused class from a touchstart. */
+.track:hover,
+.paused {
+  animation-play-state: paused;
+}
+
 @keyframes scroll-left {
   from {
     transform: translateX(0);

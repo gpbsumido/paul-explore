@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.6
+
+- work-portfolio tickers are now interactive. Hover freezes the marquee (`animation-play-state`); on touch, the first touch freezes the strip for a few seconds so a tap can land. Chips are real buttons: clicking a feature selects it on the stage, clicking a project jumps to that project's first feature, and selection rings stay in sync across both tickers (`aria-pressed` carries the state). The marquee's clone copy is `inert` so its buttons can't be focused or clicked
+
 ## 2026-07-18 - version 0.17.5
 
 - work-portfolio tickers now actually tick: the strip renders twice inside a track that slides one copy-width on a CSS keyframe loop, top ticker traveling left and bottom traveling right. The clone is aria-hidden so assistive tech only reads one set. `prefers-reduced-motion` swaps the marquee for a plain scrollable row with a single copy, driven by a small matchMedia hook (guarded for jsdom)

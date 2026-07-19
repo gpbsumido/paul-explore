@@ -1,7 +1,11 @@
 "use client";
 
+import { useRef, useState } from "react";
 import styles from "./ticker.module.css";
 import { useReducedMotionPref } from "./useReducedMotionPref";
+
+/** How long a touch keeps the marquee frozen before it resumes. */
+const TOUCH_RESUME_MS = 4000;
 
 /**
  * A horizontal marquee strip. The content renders twice and the track slides
@@ -26,6 +30,16 @@ export default function Ticker({
   const reduced = useReducedMotionPref();
   const borderSide = edge === "top" ? "border-b" : "border-t";
 
+  // Touch has no hover, so the first touch freezes the strip long enough
+  // to tap a chip, then it resumes on its own.
+  const [touchPaused, setTouchPaused] = useState(false);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onTouchStart = () => {
+    setTouchPaused(true);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setTouchPaused(false), TOUCH_RESUME_MS);
+  };
+
   if (reduced) {
     return (
       <section
@@ -39,19 +53,33 @@ export default function Ticker({
     );
   }
 
-  const trackClass =
-    direction === "right" ? `${styles.track} ${styles.trackRight}` : styles.track;
+  const trackClass = [
+    styles.track,
+    direction === "right" ? styles.trackRight : "",
+    touchPaused ? styles.paused : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <section
       aria-label={label}
       className={`w-full overflow-hidden ${borderSide} border-border bg-surface/30`}
+      onTouchStart={onTouchStart}
     >
-      <div className={trackClass} data-direction={direction}>
+      <div
+        className={trackClass}
+        data-direction={direction}
+        data-paused={touchPaused || undefined}
+      >
         <div className="flex w-max items-center gap-2 px-4 py-2.5">
           {children}
         </div>
-        <div aria-hidden className="flex w-max items-center gap-2 px-4 py-2.5">
+        <div
+          aria-hidden
+          inert
+          className="flex w-max items-center gap-2 px-4 py-2.5"
+        >
           {children}
         </div>
       </div>
