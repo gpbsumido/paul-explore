@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.3
+
+- admin suite demo from the platform console: a members-and-roles table with color-coded role chips, plus a live API key you can reveal and copy (copy faked with local state, the key is obviously fake)
+
 ## 2026-07-19 - version 0.18.2
 
 - signup flow depth: per-step validation (required fields plus a real email check) blocks advancing with inline errors, a campaign-attribution chip rides along from the entry link's utm source, and submitting lands on a completion screen that credits the campaign. Start-over resets it

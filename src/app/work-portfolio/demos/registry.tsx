@@ -21,6 +21,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "signup-flow": dynamic(() => import("./signup-flow"), {
     loading: () => <DemoSkeleton />,
   }),
+  "admin-suite": dynamic(() => import("./admin-suite"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
