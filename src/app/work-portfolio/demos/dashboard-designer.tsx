@@ -76,11 +76,42 @@ export default function DashboardDesignerDemo({
   const [widgets, setWidgets] = useState<Widget[]>(INITIAL);
   const [nextId, setNextId] = useState(4);
 
+  const [dragId, setDragId] = useState<number | null>(null);
+
   const add = (kind: WidgetKind, title: string) => {
     setWidgets((w) => [...w, { id: nextId, kind, title, span: 1 }]);
     setNextId((n) => n + 1);
   };
   const remove = (id: number) => setWidgets((w) => w.filter((x) => x.id !== id));
+
+  const toggleSpan = (id: number) =>
+    setWidgets((w) =>
+      w.map((x) => (x.id === id ? { ...x, span: x.span === 1 ? 2 : 1 } : x)),
+    );
+
+  /** Move a widget one slot in a direction, used by the reorder buttons. */
+  const move = (id: number, dir: -1 | 1) =>
+    setWidgets((w) => {
+      const from = w.findIndex((x) => x.id === id);
+      const to = from + dir;
+      if (from === -1 || to < 0 || to >= w.length) return w;
+      const next = [...w];
+      [next[from], next[to]] = [next[to], next[from]];
+      return next;
+    });
+
+  /** Drop widget dragId in front of the target, the pointer-drag path. */
+  const dropOn = (targetId: number) =>
+    setWidgets((w) => {
+      if (dragId === null || dragId === targetId) return w;
+      const from = w.findIndex((x) => x.id === dragId);
+      const to = w.findIndex((x) => x.id === targetId);
+      if (from === -1 || to === -1) return w;
+      const next = [...w];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
@@ -109,22 +140,56 @@ export default function DashboardDesignerDemo({
           <div
             key={widget.id}
             data-widget={widget.id}
-            className={`flex flex-col gap-1 rounded-lg border border-border bg-background/50 p-2 ${
+            draggable
+            onDragStart={() => setDragId(widget.id)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              dropOn(widget.id);
+              setDragId(null);
+            }}
+            className={`flex cursor-grab flex-col gap-1 rounded-lg border border-border bg-background/50 p-2 active:cursor-grabbing ${
               widget.span === 2 ? "col-span-2" : "col-span-1"
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-muted">
+            <div className="flex items-center justify-between gap-1">
+              <span className="truncate text-[11px] font-medium text-muted">
                 {widget.title}
               </span>
-              <button
-                type="button"
-                aria-label={`Remove ${widget.title}`}
-                onClick={() => remove(widget.id)}
-                className="text-[11px] text-muted hover:text-foreground"
-              >
-                ✕
-              </button>
+              <span className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted">
+                <button
+                  type="button"
+                  aria-label={`Move ${widget.title} left`}
+                  onClick={() => move(widget.id, -1)}
+                  className="px-1 hover:text-foreground"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Move ${widget.title} right`}
+                  onClick={() => move(widget.id, 1)}
+                  className="px-1 hover:text-foreground"
+                >
+                  ›
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Resize ${widget.title}`}
+                  aria-pressed={widget.span === 2}
+                  onClick={() => toggleSpan(widget.id)}
+                  className="px-1 hover:text-foreground"
+                >
+                  {widget.span === 2 ? "▢" : "▭"}
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Remove ${widget.title}`}
+                  onClick={() => remove(widget.id)}
+                  className="px-1 hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </span>
             </div>
             <WidgetBody widget={widget} />
           </div>

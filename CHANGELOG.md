@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.2
+
+- dashboard designer gets its interactivity: widgets reorder by pointer drag or with left/right move buttons, and resize between one and two columns with a size toggle. Kept the button controls alongside drag so the reorder is keyboard-reachable and testable, not drag-only
+
+
 ## 2026-07-19 - version 0.18.1
 
 - first portal-v2 demo, the dashboard designer shell. The original used a gridstack drag-drop engine; this rebuilds the idea as a CSS-grid canvas you compose from a widget palette (KPI tile, trend line, bar chart), with per-widget remove and an empty state. Reorder and resize come next. Carries a copy of the seeded-RNG helper so this demo batch stands alone
