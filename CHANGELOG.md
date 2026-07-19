@@ -31,6 +31,7 @@
 ## 2026-07-19 - version 0.18.1
 
 - first work-portfolio demo: the analytics chart library. The original was 17 documented ECharts components, this rebuilds a representative board on recharts (growth curve, conversion funnel, retention bars, revenue donut). All four charts share one seed so a Reroll button re-rolls the whole board at once, off a small seeded RNG. Wired into the demo registry so it replaces the coming-soon placeholder
+- moved the work-portfolio chrome onto the app design-system primitives instead of hand-rolled buttons: the stage arrows, the chip info buttons, the explainer close, and the stage-header info button are now `IconButton`, and the ticker chip select body is a ghost `Button`, all from `@/components/ui` (which wraps `@paul-portfolio/react`). Kept the explainer window's anchored positioning custom since the shared `Modal` is centered-only
 
 
 ## 2026-07-19 - version 0.18.0
