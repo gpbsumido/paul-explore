@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #fb7185)";
@@ -39,24 +40,18 @@ export default function UaCampaignBuilderDemo({
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-2">
-          <label className="block">
-            <span className="mb-0.5 block text-[11px] text-muted">Campaign name</span>
-            <input
-              aria-label="Campaign name"
-              value={campaign.name}
-              onChange={(e) => set("name", e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-0.5 block text-[11px] text-muted">Reward</span>
-            <input
-              aria-label="Reward"
-              value={campaign.reward}
-              onChange={(e) => set("reward", e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
-            />
-          </label>
+          <Input
+            label="Campaign name"
+            size="sm"
+            value={campaign.name}
+            onChange={(e) => set("name", e.target.value)}
+          />
+          <Input
+            label="Reward"
+            size="sm"
+            value={campaign.reward}
+            onChange={(e) => set("reward", e.target.value)}
+          />
           <label className="block">
             <span className="mb-0.5 block text-[11px] text-muted">
               Budget: ${campaign.budget.toLocaleString()}

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #34d399)";
@@ -77,17 +79,18 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
           Signup complete. Attributed to{" "}
           <span className="font-medium text-foreground">{attribution.source}</span>.
         </p>
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-1"
           onClick={() => {
             setForm(EMPTY);
             setStep(0);
             setDone(false);
           }}
-          className="mt-1 rounded-md border border-border px-3 py-1.5 text-[12px] text-foreground"
         >
           Start over
-        </button>
+        </Button>
       </div>
     );
   }
@@ -156,14 +159,14 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
       </div>
 
       <div className="flex justify-between">
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={back}
           disabled={step === 0}
-          className="rounded-md border border-border px-3 py-1.5 text-[12px] text-foreground disabled:opacity-40"
         >
           Back
-        </button>
+        </Button>
         {current === "Review" ? (
           <button
             type="button"
@@ -200,18 +203,12 @@ function Field({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="block">
-      <span className="mb-0.5 block text-[11px] text-muted">{label}</span>
-      <input
-        aria-label={label}
-        aria-invalid={error ? true : undefined}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full rounded-md border bg-background px-2.5 py-1.5 text-[12px] text-foreground ${
-          error ? "border-red-500" : "border-border"
-        }`}
-      />
-      {error && <span className="mt-0.5 block text-[10px] text-red-500">{error}</span>}
-    </label>
+    <Input
+      label={label}
+      size="sm"
+      value={value}
+      error={error}
+      onChange={(e) => onChange(e.target.value)}
+    />
   );
 }

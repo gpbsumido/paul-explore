@@ -9,7 +9,7 @@ describe("referral links demo", () => {
   it("mints a link from the handle", () => {
     render(<ReferralLinksDemo feature={feature} />);
     expect(screen.getByText(/play\.example\.gg\/r\/nova/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Handle"), {
+    fireEvent.change(screen.getByLabelText("Your handle"), {
       target: { value: "blaze" },
     });
     expect(screen.getByText(/play\.example\.gg\/r\/blaze/)).toBeInTheDocument();

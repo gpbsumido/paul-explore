@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -35,15 +36,12 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
 
-      <label className="block">
-        <span className="mb-0.5 block text-[11px] text-muted">Your handle</span>
-        <input
-          aria-label="Handle"
-          value={handle}
-          onChange={(e) => setHandle(e.target.value.replace(/\s/g, ""))}
-          className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
-        />
-      </label>
+      <Input
+        label="Your handle"
+        size="sm"
+        value={handle}
+        onChange={(e) => setHandle(e.target.value.replace(/\s/g, ""))}
+      />
 
       <div className="rounded-lg border border-border p-3">
         <p className="mb-1 text-[11px] uppercase tracking-wider text-muted">

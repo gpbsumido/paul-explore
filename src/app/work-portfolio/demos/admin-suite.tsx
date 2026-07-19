@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
 type Role = "Owner" | "Admin" | "Analyst" | "Viewer";
@@ -40,23 +41,19 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
           <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[11px] text-foreground dark:bg-white/10">
             {revealed ? API_KEY : "•".repeat(28)}
           </code>
-          <button
-            type="button"
-            onClick={() => setRevealed((r) => !r)}
-            className="rounded-md border border-border px-2 py-1 text-[11px] text-foreground"
-          >
+          <Button variant="outline" size="xs" onClick={() => setRevealed((r) => !r)}>
             {revealed ? "Hide" : "Reveal"}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="outline"
+            size="xs"
             onClick={() => {
               setCopied(true);
               setTimeout(() => setCopied(false), 1200);
             }}
-            className="rounded-md border border-border px-2 py-1 text-[11px] text-foreground"
           >
             {copied ? "Copied" : "Copy"}
-          </button>
+          </Button>
         </div>
       </div>
 
