@@ -18,6 +18,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "realtime-metrics": dynamic(() => import("./realtime-metrics"), {
     loading: () => <DemoSkeleton />,
   }),
+  "dashboard-designer": dynamic(() => import("./dashboard-designer"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
