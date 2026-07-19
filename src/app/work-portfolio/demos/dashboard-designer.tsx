@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Button from "@/components/ui/Button";
+import IconButton from "@/components/ui/IconButton";
 import {
   ResponsiveContainer,
   LineChart,
@@ -120,14 +122,14 @@ export default function DashboardDesignerDemo({
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] text-muted">Add:</span>
           {PALETTE.map((p) => (
-            <button
+            <Button
               key={p.kind}
-              type="button"
+              variant="outline"
+              size="xs"
               onClick={() => add(p.kind, p.title)}
-              className="rounded-md border border-border px-2 py-0.5 text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
             >
               {p.title}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -156,39 +158,24 @@ export default function DashboardDesignerDemo({
                 {widget.title}
               </span>
               <span className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted">
-                <button
-                  type="button"
-                  aria-label={`Move ${widget.title} left`}
-                  onClick={() => move(widget.id, -1)}
-                  className="px-1 hover:text-foreground"
-                >
+                <IconButton size="sm" aria-label={`Move ${widget.title} left`} onClick={() => move(widget.id, -1)} className="!h-5 !w-5">
                   ‹
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Move ${widget.title} right`}
-                  onClick={() => move(widget.id, 1)}
-                  className="px-1 hover:text-foreground"
-                >
+                </IconButton>
+                <IconButton size="sm" aria-label={`Move ${widget.title} right`} onClick={() => move(widget.id, 1)} className="!h-5 !w-5">
                   ›
-                </button>
-                <button
-                  type="button"
+                </IconButton>
+                <IconButton
+                  size="sm"
                   aria-label={`Resize ${widget.title}`}
                   aria-pressed={widget.span === 2}
                   onClick={() => toggleSpan(widget.id)}
-                  className="px-1 hover:text-foreground"
+                  className="!h-5 !w-5"
                 >
                   {widget.span === 2 ? "▢" : "▭"}
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Remove ${widget.title}`}
-                  onClick={() => remove(widget.id)}
-                  className="px-1 hover:text-foreground"
-                >
+                </IconButton>
+                <IconButton size="sm" aria-label={`Remove ${widget.title}`} onClick={() => remove(widget.id)} className="!h-5 !w-5">
                   ✕
-                </button>
+                </IconButton>
               </span>
             </div>
             <WidgetBody widget={widget} />

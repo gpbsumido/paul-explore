@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -93,12 +94,14 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
         }}
         className="flex gap-2"
       >
-        <input
-          aria-label="Wallet address"
+        <Input
+          label="Wallet address"
+          hideLabel
+          size="sm"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="paste a wallet address"
-          className="min-w-0 flex-1 rounded-md border border-border bg-background px-2.5 py-1.5 font-mono text-[12px] text-foreground"
+          className="min-w-0 flex-1"
         />
         <button
           type="submit"

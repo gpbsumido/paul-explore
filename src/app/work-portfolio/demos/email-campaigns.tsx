@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #60a5fa)";
@@ -73,9 +74,9 @@ export default function EmailCampaignsDemo({ feature }: { feature: WorkFeature }
         <div className="flex min-h-0 flex-col gap-2">
           <div className="flex flex-wrap gap-1.5">
             <span className="text-[11px] text-muted">Add block:</span>
-            <button type="button" onClick={() => add({ kind: "text", text: "New paragraph of copy." })} className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-black/5 dark:hover:bg-white/10">Text</button>
-            <button type="button" onClick={() => add({ kind: "button", text: "Claim reward" })} className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-black/5 dark:hover:bg-white/10">Button</button>
-            <button type="button" onClick={() => add({ kind: "image" })} className="rounded border border-border px-2 py-0.5 text-[11px] hover:bg-black/5 dark:hover:bg-white/10">Image</button>
+            <Button variant="outline" size="xs" onClick={() => add({ kind: "text", text: "New paragraph of copy." })}>Text</Button>
+            <Button variant="outline" size="xs" onClick={() => add({ kind: "button", text: "Claim reward" })}>Button</Button>
+            <Button variant="outline" size="xs" onClick={() => add({ kind: "image" })}>Image</Button>
           </div>
           <div
             aria-label="Email preview"

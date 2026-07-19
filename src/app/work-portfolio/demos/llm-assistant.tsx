@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #60a5fa)";
@@ -188,12 +189,14 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
         }}
         className="flex gap-2"
       >
-        <input
-          aria-label="Message"
+        <Input
+          label="Message"
+          hideLabel
+          size="sm"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="ask a question"
-          className="min-w-0 flex-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
+          className="min-w-0 flex-1"
         />
         <button
           type="submit"

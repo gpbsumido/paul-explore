@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.20.1
+
+- moved the portal-v2 demos' neutral controls onto design-system primitives: the wallet-lookup address field and the LLM message field are now `Input`, the dashboard-designer palette and email-studio add-block buttons are `Button`, and the widget move/resize/remove controls are `IconButton`. Accent CTAs (Look up, Send), tabs, and segmented toggles stay as-is
+
+
 ## 2026-07-19 - version 0.20.0
 
 - workflow editor demo, the last of the portal-v2 batch: a hand-built SVG node graph (trigger, filters, enrich, action with connecting edges) where clicking a node shows its read-only config below. Stands in for the original's node-graph library plus code editor
