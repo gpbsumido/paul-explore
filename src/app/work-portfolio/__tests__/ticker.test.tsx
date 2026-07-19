@@ -17,6 +17,9 @@ function stubReducedMotion(matches: boolean) {
 
 afterEach(() => vi.unstubAllGlobals());
 
+// selection writes ?feature= to the URL, reset it so tests stay isolated
+beforeEach(() => window.history.replaceState(null, "", "/work-portfolio"));
+
 describe("work-portfolio tickers", () => {
   it("top ticker shows every project chip", () => {
     render(<WorkPortfolioContent />);

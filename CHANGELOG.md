@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.9
+
+- work-portfolio deep links: `?feature=<slug>` selects that demo on load (unknown slugs just leave the intro up), and moving the selection writes the slug back with `replaceState` so the URL stays shareable without polluting history. Tests reset the jsdom URL between cases since the sync effect genuinely writes it
+
 ## 2026-07-18 - version 0.17.8
 
 - work-portfolio keyboard navigation: ArrowLeft/ArrowRight cycle the selected feature through the same wraparound logic as the stage arrows. Keys are ignored while typing in a form control, inside contenteditable, or when focus sits inside an isolated keyboard scope (the marker the explainer window will use). Handler guards against window-targeted events, which have no DOM element API

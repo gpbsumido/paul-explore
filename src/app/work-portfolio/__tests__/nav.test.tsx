@@ -1,8 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import WorkPortfolioContent from "../WorkPortfolioContent";
 import { FEATURES } from "../_data/catalog";
 import { cycleIndex } from "../nav";
+
+// the URL-sync effect writes ?feature= as tests select things, so reset
+// the jsdom URL before every test or state leaks across them
+beforeEach(() => window.history.replaceState(null, "", "/work-portfolio"));
 
 describe("cycleIndex", () => {
   it("steps forward and wraps at the end", () => {
@@ -92,5 +96,32 @@ describe("keyboard navigation", () => {
     inside.focus();
     fireEvent.keyDown(inside, { key: "ArrowRight" });
     expect(screen.queryByRole("heading", { name: FEATURES[0].title })).toBeNull();
+  });
+});
+
+describe("deep links", () => {
+  it("?feature= selects that feature on load", () => {
+    const slug = FEATURES[7].slug;
+    window.history.replaceState(null, "", `/work-portfolio?feature=${slug}`);
+    render(<WorkPortfolioContent />);
+    expect(
+      screen.getByRole("heading", { name: FEATURES[7].title }),
+    ).toBeInTheDocument();
+    window.history.replaceState(null, "", "/work-portfolio");
+  });
+
+  it("an unknown slug leaves the intro card up", () => {
+    window.history.replaceState(null, "", "/work-portfolio?feature=nope");
+    render(<WorkPortfolioContent />);
+    expect(screen.queryByRole("heading", { name: FEATURES[0].title })).toBeNull();
+    window.history.replaceState(null, "", "/work-portfolio");
+  });
+
+  it("selection writes the slug back to the URL", () => {
+    window.history.replaceState(null, "", "/work-portfolio");
+    render(<WorkPortfolioContent />);
+    fireEvent.click(screen.getByRole("button", { name: "Next feature" }));
+    expect(window.location.search).toBe(`?feature=${FEATURES[0].slug}`);
+    window.history.replaceState(null, "", "/work-portfolio");
   });
 });

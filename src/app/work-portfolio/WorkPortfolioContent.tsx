@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { PROJECTS, FEATURES, projectFor } from "./_data/catalog";
+import {
+  PROJECTS,
+  FEATURES,
+  projectFor,
+  featureIndexBySlug,
+} from "./_data/catalog";
 import IntroCard from "./IntroCard";
 import Ticker from "./Ticker";
 import StageArrow from "./StageNav";
@@ -27,6 +32,27 @@ export default function WorkPortfolioContent() {
 
   const step = (dir: 1 | -1) =>
     setSelectedIndex((current) => cycleIndex(current, dir, FEATURES.length));
+
+  // ?feature=<slug> deep-links straight to a demo. Read once on mount;
+  // unknown slugs just leave the intro card up.
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get("feature");
+    if (!slug) return;
+    const index = featureIndexBySlug(slug);
+    if (index !== null) setSelectedIndex(index);
+  }, []);
+
+  // Keep the URL shareable as the selection moves, without history spam.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (selectedIndex === null) {
+      if (!url.searchParams.has("feature")) return;
+      url.searchParams.delete("feature");
+    } else {
+      url.searchParams.set("feature", FEATURES[selectedIndex].slug);
+    }
+    window.history.replaceState(null, "", url);
+  }, [selectedIndex]);
 
   // Keyboard arrows drive the same cycle. Skipped while typing in a form
   // control or while focus sits inside an isolated scope (the explainer
