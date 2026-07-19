@@ -33,6 +33,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "streaming-ops": dynamic(() => import("./streaming-ops"), {
     loading: () => <DemoSkeleton />,
   }),
+  "game-demo": dynamic(() => import("./game-demo"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
