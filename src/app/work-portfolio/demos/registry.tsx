@@ -21,6 +21,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "chart-library": dynamic(() => import("./chart-library"), {
     loading: () => <DemoSkeleton />,
   }),
+  "standard-analytics": dynamic(() => import("./standard-analytics"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.3
+
+- standard analytics demo: the domain-split dashboard sections from the analytics suite. Tabs for Game / Web / On-chain / Sandbox, each swapping its own KPI trio and bar chart. Per-tab numbers are deterministic so switching back and forth is stable
+
+
 ## 2026-07-19 - version 0.18.2
 
 - chart library demo gets its depth: two more chart types (a radial engagement gauge and a ranked-titles bar table) and a Grid/Focus toggle. Focus mode blows one chart up full-size with prev/next to page through all six, so it reads like the real thing where you drill into a single visualization
