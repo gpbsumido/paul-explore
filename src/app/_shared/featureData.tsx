@@ -130,6 +130,14 @@ export const FEATURES: FeatureItem[] = [
     href: "/learn",
     color: "#34d399",
   },
+  {
+    id: "work-portfolio",
+    title: "Work Portfolio",
+    description:
+      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
+    href: "/work-portfolio",
+    color: "#60a5fa",
+  },
 ].reverse();
 
 export const THOUGHTS: ThoughtItem[] = [

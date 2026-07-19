@@ -1,5 +1,63 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.1
+
+- moved the work-portfolio chrome onto the app design-system primitives instead of hand-rolled buttons: the stage arrows, the chip info buttons, the explainer close, and the stage-header info button are now `IconButton`, and the ticker chip select body is a ghost `Button`, all from `@/components/ui` (which wraps `@paul-portfolio/react`). Kept the explainer window's anchored positioning custom since the shared `Modal` is centered-only
+
+
+## 2026-07-19 - version 0.18.0
+
+- work-portfolio base is feature-complete. Accessibility pass: the stage announces selection changes through a polite live region, and axe scans of both the intro and a selected demo come back clean. Reworked the stage layout so the demo surface fills ~95% of the space between the two tickers (compact header row, arrows hugging the edges) instead of sitting small in the middle
+- tightened a few things the linter caught along the way: the demo registry now resolves every slug to a component at module scope so render code does a plain lookup, the explainer's key handling moved to a document listener (a dialog is a container, not an interactive element), and the deep-link and reduced-motion effects defer their state writes off the synchronous effect path
+
+
+## 2026-07-18 - version 0.17.12
+
+- work-portfolio demo stage. Each feature resolves through a registry to its demo component behind `next/dynamic` (own chunk, skeleton while loading), falling back to a coming-soon placeholder — demo PRs will each flip exactly one registry line, which is what makes them mergeable in any order. The stage surface carries the owning project's accent theme (tint, accent CSS var, mono/sans flavor): site chrome outside, original-app flavor inside
+- built the reference demo end to end: the driver-onboarding real-time dashboard, KPI tiles plus a signups line chart (recharts) advancing on a local interval that stands in for the original polling API
+
+## 2026-07-18 - version 0.17.11
+
+- work-portfolio explainer hover intent: resting the mouse on an i button for 350ms opens the window unpinned, and leaving closes it again. A click pins it so mouse-out keeps it open. Timer-based, tested with fake timers
+
+## 2026-07-18 - version 0.17.10
+
+- work-portfolio explainer window. Every chip and the stage header carry a small i button (chips got restructured into a shell with two buttons, since buttons can't nest). Clicking it opens an anchored dialog: feature explainers show what the feature did, the original stack, and what's real vs mocked in the reconstruction; project explainers show the blurb, stack, and the features that didn't make the ticker. Esc, outside presses, and the close button dismiss it; focus is trapped inside while open, and it marks itself as an isolated keyboard scope so arrow keys don't drive the stage from within
+
+## 2026-07-18 - version 0.17.9
+
+- work-portfolio deep links: `?feature=<slug>` selects that demo on load (unknown slugs just leave the intro up), and moving the selection writes the slug back with `replaceState` so the URL stays shareable without polluting history. Tests reset the jsdom URL between cases since the sync effect genuinely writes it
+
+## 2026-07-18 - version 0.17.8
+
+- work-portfolio keyboard navigation: ArrowLeft/ArrowRight cycle the selected feature through the same wraparound logic as the stage arrows. Keys are ignored while typing in a form control, inside contenteditable, or when focus sits inside an isolated keyboard scope (the marker the explainer window will use). Handler guards against window-targeted events, which have no DOM element API
+
+## 2026-07-18 - version 0.17.7
+
+- work-portfolio stage navigation: arrow buttons flank the stage and cycle the selected feature with wraparound. From the intro state, next lands on the first feature and prev on the last (`cycleIndex` helper, unit tested). The stage crossfades on selection change by remounting a keyed motion div, deliberately avoiding AnimatePresence exit-waits which stall under jsdom
+
+## 2026-07-18 - version 0.17.6
+
+- work-portfolio tickers are now interactive. Hover freezes the marquee (`animation-play-state`); on touch, the first touch freezes the strip for a few seconds so a tap can land. Chips are real buttons: clicking a feature selects it on the stage, clicking a project jumps to that project's first feature, and selection rings stay in sync across both tickers (`aria-pressed` carries the state). The marquee's clone copy is `inert` so its buttons can't be focused or clicked
+
+## 2026-07-18 - version 0.17.5
+
+- work-portfolio tickers now actually tick: the strip renders twice inside a track that slides one copy-width on a CSS keyframe loop, top ticker traveling left and bottom traveling right. The clone is aria-hidden so assistive tech only reads one set. `prefers-reduced-motion` swaps the marquee for a plain scrollable row with a single copy, driven by a small matchMedia hook (guarded for jsdom)
+
+## 2026-07-18 - version 0.17.4
+
+- work-portfolio tickers, static first pass: a reusable Ticker strip renders the 11 project chips along the top edge and the 24 feature chips (icon, title, project tag, project-accent dot) along the bottom. No animation yet, that lands next so each behavior stays independently testable. Route skeleton already matches the strip heights
+
+## 2026-07-18 - version 0.17.3
+
+- registered the work-portfolio feature in the hub FEATURES list so it shows up on the landing hub, with a test pinning the entry. Noted the new route in the architecture map
+
+## 2026-07-18 - version 0.17.2
+
+- started the work-portfolio feature: a single page at `/work-portfolio` that will demo features from 11 past projects as self-contained reconstructions. This commit lays the data spine: a typed catalog of 11 anonymized projects and 24 features (5 flagged as flagships), the route with metadata and a layout-matched loading skeleton, and an intro card as the stage's resting state
+- everything in the catalog is deliberately anonymized (no employer or client names), enforced by a unit test that scans every work-portfolio source file for a banned-name list so a slip can't ship
+
+
 ## 2026-07-18 - version 0.17.1
 
 - added the `/thoughts/bundlers` dev-notes page and registered it in the THOUGHTS hub. It writes up which bundler this project runs (Turbopack, the Next 16 default for dev and build; webpack only for `pnpm analyze` because the analyzer doesn't support Turbopack), whether it's the right call (yes, and the split setup is best-practice), and the real decision drivers behind when a lead reaches for a different bundler entirely — library output (Rollup/tsup), CLI speed (esbuild), webpack-config migration (Rspack), Module Federation (webpack/Rspack), the framework deciding for you (Vite), and zero-config spikes (Parcel)
