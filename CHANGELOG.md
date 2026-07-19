@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.5
+
+- work-portfolio tickers now actually tick: the strip renders twice inside a track that slides one copy-width on a CSS keyframe loop, top ticker traveling left and bottom traveling right. The clone is aria-hidden so assistive tech only reads one set. `prefers-reduced-motion` swaps the marquee for a plain scrollable row with a single copy, driven by a small matchMedia hook (guarded for jsdom)
+
 ## 2026-07-18 - version 0.17.4
 
 - work-portfolio tickers, static first pass: a reusable Ticker strip renders the 11 project chips along the top edge and the 24 feature chips (icon, title, project tag, project-accent dot) along the bottom. No animation yet, that lands next so each behavior stays independently testable. Route skeleton already matches the strip heights

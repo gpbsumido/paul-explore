@@ -18,7 +18,7 @@ export default function WorkPortfolioContent() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <Ticker label="Projects ticker" edge="top">
+      <Ticker label="Projects ticker" edge="top" direction="left">
         {PROJECTS.map((project) => (
           <ProjectChip key={project.id} project={project} />
         ))}
@@ -40,7 +40,7 @@ export default function WorkPortfolioContent() {
           )}
         </div>
       </main>
-      <Ticker label="Features ticker" edge="bottom">
+      <Ticker label="Features ticker" edge="bottom" direction="right">
         {FEATURES.map((feature) => (
           <FeatureChip
             key={feature.slug}

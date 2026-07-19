@@ -1,7 +1,21 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import WorkPortfolioContent from "../WorkPortfolioContent";
 import { PROJECTS, FEATURES } from "../_data/catalog";
+
+/** Stub matchMedia so the reduced-motion hook sees the given preference. */
+function stubReducedMotion(matches: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockReturnValue({
+      matches,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }),
+  );
+}
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("work-portfolio tickers", () => {
   it("top ticker shows every project chip", () => {
@@ -25,5 +39,36 @@ describe("work-portfolio tickers", () => {
     expect(
       screen.getByText(`${PROJECTS.length} projects · ${FEATURES.length} feature demos`),
     ).toBeInTheDocument();
+  });
+
+  it("marquee duplicates the strip for a seamless loop", () => {
+    stubReducedMotion(false);
+    render(<WorkPortfolioContent />);
+    const top = screen.getByLabelText("Projects ticker");
+    // two copies: the visible one and the aria-hidden clone
+    expect(within(top).getAllByText(PROJECTS[0].name)).toHaveLength(2);
+  });
+
+  it("tickers travel in opposite directions", () => {
+    stubReducedMotion(false);
+    render(<WorkPortfolioContent />);
+    const top = screen.getByLabelText("Projects ticker");
+    const bottom = screen.getByLabelText("Features ticker");
+    expect(top.querySelector("[data-direction]")).toHaveAttribute(
+      "data-direction",
+      "left",
+    );
+    expect(bottom.querySelector("[data-direction]")).toHaveAttribute(
+      "data-direction",
+      "right",
+    );
+  });
+
+  it("prefers-reduced-motion renders a single static copy", () => {
+    stubReducedMotion(true);
+    render(<WorkPortfolioContent />);
+    const top = screen.getByLabelText("Projects ticker");
+    expect(within(top).getAllByText(PROJECTS[0].name)).toHaveLength(1);
+    expect(top.querySelector("[data-direction]")).toBeNull();
   });
 });
