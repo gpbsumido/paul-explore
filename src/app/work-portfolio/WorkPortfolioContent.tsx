@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { FEATURES, projectFor } from "./_data/catalog";
+import { PROJECTS, FEATURES, projectFor } from "./_data/catalog";
 import IntroCard from "./IntroCard";
+import Ticker from "./Ticker";
+import { ProjectChip, FeatureChip } from "./chips";
 
 /**
  * Client shell for the work-portfolio page. Owns the single piece of state,
@@ -16,6 +18,11 @@ export default function WorkPortfolioContent() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
+      <Ticker label="Projects ticker" edge="top">
+        {PROJECTS.map((project) => (
+          <ProjectChip key={project.id} project={project} />
+        ))}
+      </Ticker>
       <main className="flex flex-1 items-stretch px-4 py-6" aria-label="Demo stage">
         <div className="mx-auto w-full max-w-4xl">
           {selected === null ? (
@@ -33,6 +40,15 @@ export default function WorkPortfolioContent() {
           )}
         </div>
       </main>
+      <Ticker label="Features ticker" edge="bottom">
+        {FEATURES.map((feature) => (
+          <FeatureChip
+            key={feature.slug}
+            feature={feature}
+            project={projectFor(feature)}
+          />
+        ))}
+      </Ticker>
     </div>
   );
 }

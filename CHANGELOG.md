@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.4
+
+- work-portfolio tickers, static first pass: a reusable Ticker strip renders the 11 project chips along the top edge and the 24 feature chips (icon, title, project tag, project-accent dot) along the bottom. No animation yet, that lands next so each behavior stays independently testable. Route skeleton already matches the strip heights
+
 ## 2026-07-18 - version 0.17.3
 
 - registered the work-portfolio feature in the hub FEATURES list so it shows up on the landing hub, with a test pinning the entry. Noted the new route in the architecture map
