@@ -1,7 +1,36 @@
 # Changelog
 
+## 2026-07-19 - version 0.19.1
+
+- swapped the chart library's neutral controls onto design-system primitives: the Reroll button is now a `Button`, and the focus-mode prev/next are `IconButton`s from `@/components/ui`. Left the Grid/Focus segmented toggle custom (no segmented-control primitive)
+
+
+## 2026-07-19 - version 0.19.0
+
+- slug-driven dashboards demo, the last of the analytics batch: a slug picker (`/d/<slug>`) that reshapes one dashboard entirely from config, different tiles, chart type, and accent per slug, which was the whole idea of the original catch-all route. Also tidied a couple of unused imports the linter flagged in the chart library
+
+
+## 2026-07-19 - version 0.18.5
+
+- economy and financial-health demo from portal v1: a faucet-vs-sink bar chart for an in-game currency next to a KPI grid (net supply, sink ratio, whales, inflation) that color-flags supply pressure
+
+## 2026-07-19 - version 0.18.4
+
+- per-title dashboard demo from portal v1: a game switcher (Game A/B/C, anonymized client titles) that reskins one dashboard with each game's accent color, genre, and its own MAU / ARPU / retention numbers and trend area
+
+## 2026-07-19 - version 0.18.3
+
+- standard analytics demo: the domain-split dashboard sections from the analytics suite. Tabs for Game / Web / On-chain / Sandbox, each swapping its own KPI trio and bar chart. Per-tab numbers are deterministic so switching back and forth is stable
+
+
+## 2026-07-19 - version 0.18.2
+
+- chart library demo gets its depth: two more chart types (a radial engagement gauge and a ranked-titles bar table) and a Grid/Focus toggle. Focus mode blows one chart up full-size with prev/next to page through all six, so it reads like the real thing where you drill into a single visualization
+
+
 ## 2026-07-19 - version 0.18.1
 
+- first work-portfolio demo: the analytics chart library. The original was 17 documented ECharts components, this rebuilds a representative board on recharts (growth curve, conversion funnel, retention bars, revenue donut). All four charts share one seed so a Reroll button re-rolls the whole board at once, off a small seeded RNG. Wired into the demo registry so it replaces the coming-soon placeholder
 - moved the work-portfolio chrome onto the app design-system primitives instead of hand-rolled buttons: the stage arrows, the chip info buttons, the explainer close, and the stage-header info button are now `IconButton`, and the ticker chip select body is a ghost `Button`, all from `@/components/ui` (which wraps `@paul-portfolio/react`). Kept the explainer window's anchored positioning custom since the shared `Modal` is centered-only
 
 
