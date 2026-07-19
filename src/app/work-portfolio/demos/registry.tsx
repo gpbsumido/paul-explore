@@ -36,6 +36,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "game-demo": dynamic(() => import("./game-demo"), {
     loading: () => <DemoSkeleton />,
   }),
+  "nft-inventory": dynamic(() => import("./nft-inventory"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.22.0
+
+- wallet + NFT inventory demo from the gamer hub, the last of the 24: a fake wallet-connect that reveals an on-chain asset grid with rarity-tagged items. With this the whole demo set is wired, once all the demo PRs land every ticker feature has a real reconstruction behind it
+
+
 ## 2026-07-19 - version 0.18.6
 
 - conference game demo: a faux game-embed frame with a booth-build start screen and a running-scene state, plus a note on how the original streamed WebGL gameplay events back into the analytics pipeline. The real engine build isn't shipped, so this stands in for the embed pattern
