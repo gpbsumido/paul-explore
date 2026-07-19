@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 - version 0.17.8
+
+- work-portfolio keyboard navigation: ArrowLeft/ArrowRight cycle the selected feature through the same wraparound logic as the stage arrows. Keys are ignored while typing in a form control, inside contenteditable, or when focus sits inside an isolated keyboard scope (the marker the explainer window will use). Handler guards against window-targeted events, which have no DOM element API
+
 ## 2026-07-18 - version 0.17.7
 
 - work-portfolio stage navigation: arrow buttons flank the stage and cycle the selected feature with wraparound. From the intro state, next lands on the first feature and prev on the last (`cycleIndex` helper, unit tested). The stage crossfades on selection change by remounting a keyed motion div, deliberately avoiding AnimatePresence exit-waits which stall under jsdom

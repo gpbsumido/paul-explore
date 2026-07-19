@@ -47,3 +47,50 @@ describe("stage arrows", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("keyboard navigation", () => {
+  it("ArrowRight and ArrowLeft cycle the selection", () => {
+    render(<WorkPortfolioContent />);
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(
+      screen.getByRole("heading", { name: FEATURES[0].title }),
+    ).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(
+      screen.getByRole("heading", { name: FEATURES[1].title }),
+    ).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "ArrowLeft" });
+    expect(
+      screen.getByRole("heading", { name: FEATURES[0].title }),
+    ).toBeInTheDocument();
+  });
+
+  it("ignores arrows while typing in an input", () => {
+    render(
+      <div>
+        <input aria-label="scratch" />
+        <WorkPortfolioContent />
+      </div>,
+    );
+    const input = screen.getByLabelText("scratch");
+    input.focus();
+    fireEvent.keyDown(input, { key: "ArrowRight" });
+    // still on the intro card, nothing selected
+    expect(screen.queryByRole("heading", { name: FEATURES[0].title })).toBeNull();
+  });
+
+  it("ignores arrows inside an isolated keyboard scope", () => {
+    render(
+      <div>
+        <div data-keyboard-scope="isolated">
+          <button>inside</button>
+        </div>
+        <WorkPortfolioContent />
+      </div>,
+    );
+    const inside = screen.getByRole("button", { name: "inside" });
+    inside.focus();
+    fireEvent.keyDown(inside, { key: "ArrowRight" });
+    expect(screen.queryByRole("heading", { name: FEATURES[0].title })).toBeNull();
+  });
+});

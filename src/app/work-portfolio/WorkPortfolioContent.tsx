@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { PROJECTS, FEATURES, projectFor } from "./_data/catalog";
 import IntroCard from "./IntroCard";
@@ -27,6 +27,27 @@ export default function WorkPortfolioContent() {
 
   const step = (dir: 1 | -1) =>
     setSelectedIndex((current) => cycleIndex(current, dir, FEATURES.length));
+
+  // Keyboard arrows drive the same cycle. Skipped while typing in a form
+  // control or while focus sits inside an isolated scope (the explainer
+  // window marks itself with data-keyboard-scope).
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      // events can target window itself, which has no DOM element API
+      if (e.target instanceof HTMLElement) {
+        const tag = e.target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (e.target.isContentEditable) return;
+        if (e.target.closest('[data-keyboard-scope="isolated"]')) return;
+      }
+      setSelectedIndex((current) =>
+        cycleIndex(current, e.key === "ArrowRight" ? 1 : -1, FEATURES.length),
+      );
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
