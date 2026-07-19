@@ -30,6 +30,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "economy-health": dynamic(() => import("./economy-health"), {
     loading: () => <DemoSkeleton />,
   }),
+  "slug-dashboards": dynamic(() => import("./slug-dashboards"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

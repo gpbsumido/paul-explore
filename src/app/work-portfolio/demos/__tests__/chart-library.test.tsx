@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import ChartLibraryDemo from "../chart-library";
 import { FEATURES, featureIndexBySlug } from "../../_data/catalog";
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.19.0
+
+- slug-driven dashboards demo, the last of the analytics batch: a slug picker (`/d/<slug>`) that reshapes one dashboard entirely from config, different tiles, chart type, and accent per slug, which was the whole idea of the original catch-all route. Also tidied a couple of unused imports the linter flagged in the chart library
+
+
 ## 2026-07-19 - version 0.18.5
 
 - economy and financial-health demo from portal v1: a faucet-vs-sink bar chart for an in-game currency next to a KPI grid (net supply, sink ratio, whales, inflation) that color-flags supply pressure
