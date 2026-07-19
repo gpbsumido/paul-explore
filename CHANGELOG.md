@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19 - version 0.23.0
+
+- work-portfolio write-up and docs, closing out the feature. Added a `/thoughts/work-portfolio` dev-notes page (summary + chat views) covering the reasoning: reconstruction over emulation, anonymizing client work and enforcing it with a test, the no-new-deps rule, the dual-ticker UX and its click-a-moving-target tradeoff, and shipping the whole thing as merge-order-independent PRs. Registered it in the thoughts hub
+- listed the page in the README feature list and noted both routes in the architecture map
+
+
 ## 2026-07-19 - version 0.18.1
 
 - work-portfolio e2e coverage (public Playwright project): intro state, clicking a feature chip and a project chip, arrow + keyboard navigation, `?feature=` deep link, and the explainer window open/close. Freezes CSS animations in the ticker-click tests so the marquee can't move mid-click
