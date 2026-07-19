@@ -24,6 +24,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "wallet-lookup": dynamic(() => import("./wallet-lookup"), {
     loading: () => <DemoSkeleton />,
   }),
+  "llm-assistant": dynamic(() => import("./llm-assistant"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

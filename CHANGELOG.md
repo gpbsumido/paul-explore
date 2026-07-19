@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.5
+
+- LLM assistant demo, chat shell: a chat surface that streams canned answers word by word, routed by keyword (retention, revenue, whales) with a fallback. Suggestion chips and a text input, send disabled while a response streams. Tool-call rows come next
+
+
 ## 2026-07-19 - version 0.18.4
 
 - wallet lookup depth: the NFTs tab shows a rarity-tagged asset grid (or an empty state for wallets with none) and the Transactions tab a send/receive history. Switching to a data-heavy tab shows a brief skeleton-loading state first, like the original waiting on the chain-data API
