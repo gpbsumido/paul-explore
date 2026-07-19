@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.22.1
+
+- moved the content/ops/game demos onto design-system primitives: the campaign-manager name field and character-sheet name/class are `Input`, the character-sheet stat steppers and post-queue reorder controls are `IconButton`, and the streaming-ops run-script button is a `Button`. Accent CTAs (Create, Connect wallet, Start demo), the like buttons, and colored status toggles stay as-is
+
+
 ## 2026-07-19 - version 0.22.0
 
 - wallet + NFT inventory demo from the gamer hub, the last of the 24: a fake wallet-connect that reveals an on-chain asset grid with rarity-tagged items. With this the whole demo set is wired, once all the demo PRs land every ticker feature has a real reconstruction behind it

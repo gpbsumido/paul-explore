@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import IconButton from "@/components/ui/IconButton";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #e879f9)";
@@ -66,8 +67,8 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
               {p.title}
             </span>
             <span className="flex shrink-0 gap-0.5 text-[11px] text-muted">
-              <button type="button" aria-label={`Move ${p.title} up`} onClick={() => move(p.id, -1)} className="px-1 hover:text-foreground">↑</button>
-              <button type="button" aria-label={`Move ${p.title} down`} onClick={() => move(p.id, 1)} className="px-1 hover:text-foreground">↓</button>
+              <IconButton size="sm" aria-label={`Move ${p.title} up`} onClick={() => move(p.id, -1)} className="!h-5 !w-5">↑</IconButton>
+              <IconButton size="sm" aria-label={`Move ${p.title} down`} onClick={() => move(p.id, 1)} className="!h-5 !w-5">↓</IconButton>
             </span>
           </li>
         ))}

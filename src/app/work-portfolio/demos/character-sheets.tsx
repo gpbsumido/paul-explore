@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Input from "@/components/ui/Input";
+import IconButton from "@/components/ui/IconButton";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #e879f9)";
@@ -40,24 +42,18 @@ export default function CharacterSheetsDemo({ feature }: { feature: WorkFeature 
       <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
 
       <div className="grid grid-cols-2 gap-2">
-        <label className="block">
-          <span className="mb-0.5 block text-[11px] text-muted">Name</span>
-          <input
-            aria-label="Character name"
-            value={char.name}
-            onChange={(e) => setChar((c) => ({ ...c, name: e.target.value }))}
-            className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-0.5 block text-[11px] text-muted">Class</span>
-          <input
-            aria-label="Class"
-            value={char.cls}
-            onChange={(e) => setChar((c) => ({ ...c, cls: e.target.value }))}
-            className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
-          />
-        </label>
+        <Input
+          label="Name"
+          size="sm"
+          value={char.name}
+          onChange={(e) => setChar((c) => ({ ...c, name: e.target.value }))}
+        />
+        <Input
+          label="Class"
+          size="sm"
+          value={char.cls}
+          onChange={(e) => setChar((c) => ({ ...c, cls: e.target.value }))}
+        />
       </div>
 
       <div className="flex items-center justify-between text-[11px] text-muted">
@@ -69,14 +65,14 @@ export default function CharacterSheetsDemo({ feature }: { feature: WorkFeature 
         {STATS.map((s) => (
           <div key={s} className="flex items-center gap-2">
             <span className="w-8 text-[11px] font-medium text-foreground">{s}</span>
-            <button type="button" aria-label={`Lower ${s}`} onClick={() => bump(s, -1)} className="h-5 w-5 rounded border border-border text-[11px]">−</button>
+            <IconButton size="sm" aria-label={`Lower ${s}`} onClick={() => bump(s, -1)} className="!h-5 !w-5 border border-border text-[11px]">−</IconButton>
             <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
               <span className="block h-full rounded-full" style={{ width: `${char.stats[s] * 10}%`, backgroundColor: ACCENT }} />
             </span>
             <span className="w-5 text-right text-[11px] tabular-nums text-foreground">
               {char.stats[s]}
             </span>
-            <button type="button" aria-label={`Raise ${s}`} onClick={() => bump(s, 1)} className="h-5 w-5 rounded border border-border text-[11px]">+</button>
+            <IconButton size="sm" aria-label={`Raise ${s}`} onClick={() => bump(s, 1)} className="!h-5 !w-5 border border-border text-[11px]">+</IconButton>
           </div>
         ))}
       </div>

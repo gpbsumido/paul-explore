@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #e879f9)";
@@ -46,12 +47,14 @@ export default function CampaignManagerDemo({ feature }: { feature: WorkFeature 
         }}
         className="flex gap-2"
       >
-        <input
-          aria-label="New campaign name"
+        <Input
+          label="New campaign name"
+          hideLabel
+          size="sm"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="name a campaign"
-          className="min-w-0 flex-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
+          className="min-w-0 flex-1"
         />
         <button
           type="submit"

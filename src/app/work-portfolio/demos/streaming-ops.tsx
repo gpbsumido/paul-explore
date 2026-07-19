@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -70,13 +71,9 @@ export default function StreamingOpsDemo({ feature }: { feature: WorkFeature }) 
 
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-muted">Maintenance</span>
-        <button
-          type="button"
-          onClick={runScript}
-          className="rounded-md border border-border px-2.5 py-1 text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
-        >
+        <Button variant="outline" size="xs" onClick={runScript}>
           Run rebalance script
-        </button>
+        </Button>
       </div>
 
       <pre
