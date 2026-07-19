@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.3
+
+- wallet lookup demo, shell: paste (or pick a sample) address and get an overview card of balance, tokens, NFTs, and first-seen, with Overview / NFTs / Transactions tabs. Data is a deterministic fake keyed off the address so the same address always resolves the same, no chain calls. NFT and transaction tabs come next
+
+
 ## 2026-07-19 - version 0.18.2
 
 - dashboard designer gets its interactivity: widgets reorder by pointer drag or with left/right move buttons, and resize between one and two columns with a size toggle. Kept the button controls alongside drag so the reorder is keyboard-reachable and testable, not drag-only

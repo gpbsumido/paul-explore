@@ -21,6 +21,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "dashboard-designer": dynamic(() => import("./dashboard-designer"), {
     loading: () => <DemoSkeleton />,
   }),
+  "wallet-lookup": dynamic(() => import("./wallet-lookup"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
