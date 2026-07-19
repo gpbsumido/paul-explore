@@ -5,34 +5,46 @@ import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #60a5fa)";
 
-type Msg = { id: number; role: "user" | "assistant"; text: string };
+type ToolCall = { name: string; args: string; status: "running" | "done" };
+type Msg = {
+  id: number;
+  role: "user" | "assistant";
+  text: string;
+  tool?: ToolCall;
+};
 
-/** Canned answers keyed by a keyword in the prompt, with a default. */
-const ANSWERS: { match: RegExp; reply: string }[] = [
+/** Canned answers keyed by a keyword, each with the tool call it "ran". */
+const ANSWERS: { match: RegExp; tool: { name: string; args: string }; reply: string }[] = [
   {
     match: /retention|churn/i,
+    tool: { name: "query_warehouse", args: "metric: retention, window: 30d" },
     reply:
       "D1 retention is holding at 42% but D30 slipped 3 points this week. The drop concentrates in players who never finished the tutorial, so that is where I would look first.",
   },
   {
     match: /revenue|arpu|money/i,
+    tool: { name: "query_warehouse", args: "metric: revenue, window: 7d" },
     reply:
       "Revenue is up 8% week over week, driven mostly by the battle pass rather than one-off purchases. ARPU is flat, so the lift is coming from more payers, not bigger spenders.",
   },
   {
     match: /whale|top spender/i,
+    tool: { name: "segment_players", args: "cohort: top_spenders" },
     reply:
       "Your top 2% of accounts drive 38% of revenue. That is healthy for this genre, but worth watching, a single churned whale is a visible dip.",
   },
 ];
 
-const DEFAULT_REPLY =
-  "I can pull that from the analytics warehouse. In the demo I only have a few canned answers, try asking about retention, revenue, or whales.";
+const DEFAULT = {
+  tool: { name: "search_docs", args: "q: metrics" },
+  reply:
+    "I can pull that from the analytics warehouse. In the demo I only have a few canned answers, try asking about retention, revenue, or whales.",
+};
 
 const SUGGESTIONS = ["How is retention?", "What about revenue?", "Who are the whales?"];
 
-function answerFor(prompt: string): string {
-  return ANSWERS.find((a) => a.match.test(prompt))?.reply ?? DEFAULT_REPLY;
+function answerFor(prompt: string) {
+  return ANSWERS.find((a) => a.match.test(prompt)) ?? DEFAULT;
 }
 
 /**
@@ -57,26 +69,47 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
   const send = (text: string) => {
     const prompt = text.trim();
     if (!prompt || streaming) return;
+    const { tool, reply } = answerFor(prompt);
     const userMsg: Msg = { id: nextId.current++, role: "user", text: prompt };
     const replyId = nextId.current++;
-    setMessages((m) => [...m, userMsg, { id: replyId, role: "assistant", text: "" }]);
+    setMessages((m) => [
+      ...m,
+      userMsg,
+      {
+        id: replyId,
+        role: "assistant",
+        text: "",
+        tool: { ...tool, status: "running" },
+      },
+    ]);
     setInput("");
     setStreaming(true);
 
-    const words = answerFor(prompt).split(" ");
-    let i = 0;
-    const timer = setInterval(() => {
-      i += 1;
+    // First the tool "runs", then the answer streams word by word.
+    const words = reply.split(" ");
+    const toolTimer = setTimeout(() => {
       setMessages((m) =>
         m.map((msg) =>
-          msg.id === replyId ? { ...msg, text: words.slice(0, i).join(" ") } : msg,
+          msg.id === replyId && msg.tool
+            ? { ...msg, tool: { ...msg.tool, status: "done" } }
+            : msg,
         ),
       );
-      if (i >= words.length) {
-        clearInterval(timer);
-        setStreaming(false);
-      }
-    }, 45);
+      let i = 0;
+      const timer = setInterval(() => {
+        i += 1;
+        setMessages((m) =>
+          m.map((msg) =>
+            msg.id === replyId ? { ...msg, text: words.slice(0, i).join(" ") } : msg,
+          ),
+        );
+        if (i >= words.length) {
+          clearInterval(timer);
+          setStreaming(false);
+        }
+      }, 45);
+    }, 500);
+    void toolTimer;
   };
 
   return (
@@ -97,17 +130,37 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
             key={m.id}
             className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
           >
-            <div
-              className={`max-w-[80%] rounded-2xl px-3 py-1.5 text-[12px] ${
-                m.role === "user"
-                  ? "text-white"
-                  : "border border-border bg-background text-foreground"
-              }`}
-              style={m.role === "user" ? { backgroundColor: ACCENT } : undefined}
-            >
-              {m.text}
-              {m.role === "assistant" && m.text === "" && streaming && (
-                <span className="text-muted">…</span>
+            <div className="flex max-w-[85%] flex-col gap-1">
+              {m.tool && (
+                <div
+                  data-testid="tool-call"
+                  className="flex items-center gap-1.5 rounded-md border border-border bg-background/60 px-2 py-1 font-mono text-[10px] text-muted"
+                >
+                  <span
+                    aria-hidden
+                    className={
+                      m.tool.status === "running"
+                        ? "animate-pulse"
+                        : "text-emerald-500"
+                    }
+                  >
+                    {m.tool.status === "running" ? "◷" : "✓"}
+                  </span>
+                  <span className="text-foreground">{m.tool.name}</span>
+                  <span className="truncate">({m.tool.args})</span>
+                </div>
+              )}
+              {m.text !== "" && (
+                <div
+                  className={`rounded-2xl px-3 py-1.5 text-[12px] ${
+                    m.role === "user"
+                      ? "self-end text-white"
+                      : "border border-border bg-background text-foreground"
+                  }`}
+                  style={m.role === "user" ? { backgroundColor: ACCENT } : undefined}
+                >
+                  {m.text}
+                </div>
               )}
             </div>
           </div>

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.18.6
+
+- LLM assistant tool-call rows: each answer now runs a fake tool first (query_warehouse, segment_players, search_docs) shown as a monospace row that ticks from running to done before the text streams. Makes it read like a real agent, retrieve then answer, not just a canned chatbot
+
+
 ## 2026-07-19 - version 0.18.5
 
 - LLM assistant demo, chat shell: a chat surface that streams canned answers word by word, routed by keyword (retention, revenue, whales) with a fallback. Suggestion chips and a text input, send disabled while a response streams. Tool-call rows come next
