@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-19 - version 0.21.0
+
+- auth flows demo, last of the UA batch: a walkthrough of the identity screens (sign in, verify email, reset password, wallet passport) with dot navigation and a next-screen cta. Read-only fields, nothing authenticates, it's the shape of the hosted-identity flows. Also moved the referral-links seed write off the synchronous effect path for lint
+
+
 ## 2026-07-19 - version 0.18.6
 
 - referral links demo from the UA tools: type a handle to mint a referral link, copy it, and watch a simulated click counter tick up (seeded off the handle so it's stable). Brings in a copy of the seeded-RNG helper for this batch

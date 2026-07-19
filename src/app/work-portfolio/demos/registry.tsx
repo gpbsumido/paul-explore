@@ -33,6 +33,9 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "referral-links": dynamic(() => import("./referral-links"), {
     loading: () => <DemoSkeleton />,
   }),
+  "auth-flows": dynamic(() => import("./auth-flows"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

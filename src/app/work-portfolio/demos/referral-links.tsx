@@ -23,7 +23,8 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
     const rng = makeRng(
       handle.split("").reduce((s, c) => s + c.charCodeAt(0), 0) || 1,
     );
-    setClicks(roundish(20 + rng() * 200));
+    // defer off the synchronous effect path
+    queueMicrotask(() => setClicks(roundish(20 + rng() * 200)));
     const timer = setInterval(() => {
       if (rng() > 0.4) setClicks((c) => c + 1);
     }, 1500);
