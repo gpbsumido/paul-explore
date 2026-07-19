@@ -4,10 +4,6 @@ import { test, expect } from "@playwright/test";
  * Public smoke coverage for the work-portfolio page: the tickers, stage
  * navigation (arrows + keyboard), deep links, and the explainer window.
  */
-// Reduced motion renders the tickers as static rows instead of a marquee,
-// so chips hold still and clicks aren't racing the animation.
-test.use({ reducedMotion: "reduce" });
-
 /** Hard-stop every CSS animation so the marquee can't move mid-click. */
 async function freezeAnimations(page: import("@playwright/test").Page) {
   await page.addStyleTag({
