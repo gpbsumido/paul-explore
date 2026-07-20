@@ -5,13 +5,13 @@ dependencies:
     specifier: ^4.15.0
     version: 4.15.0(next@16.1.6)(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/css':
-    specifier: ^0.4.0
-    version: 0.4.0(@paul-portfolio/tokens@0.1.9)
+    specifier: ^0.1.12
+    version: 0.1.12(@paul-portfolio/tokens@0.1.9)
   '@paul-portfolio/react':
-    specifier: ^0.4.0
-    version: 0.4.0(@paul-portfolio/css@0.4.0)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3)
+    specifier: ^0.1.13
+    version: 0.1.13(@paul-portfolio/css@0.1.12)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/tokens':
-    specifier: ^0.1.9
+    specifier: ^0.1.4
     version: 0.1.9
   '@react-three/drei':
     specifier: ^10.7.7
@@ -1348,23 +1348,23 @@ packages:
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
     dev: false
 
-  /@paul-portfolio/css@0.4.0(@paul-portfolio/tokens@0.1.9):
-    resolution: {integrity: sha512-IjYUyslWWFYZEB32KtU21C2g9d4bnILweT1I7Ilk7KPSPmrByAf0xCvY6OskZRgp/4K0EkqF2ikVlPw1nnV6vw==}
+  /@paul-portfolio/css@0.1.12(@paul-portfolio/tokens@0.1.9):
+    resolution: {integrity: sha512-OoQ0eOrPBLvRgcHAy7JVk4oFfpfkgSiBaGCR27UuDRU7oLaQTJ+Yr+9SMAx6yjt2mnJOygytwhjkGtkkMsQKNw==}
     peerDependencies:
       '@paul-portfolio/tokens': '>=0.1.0'
     dependencies:
       '@paul-portfolio/tokens': 0.1.9
     dev: false
 
-  /@paul-portfolio/react@0.4.0(@paul-portfolio/css@0.4.0)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-DAHh92JehUWXj9ZdENCsGoHEy7cqJbGqy5loF7faMHQdHZY/ZyfNQ7IiJA+6/SH4UeNY9W99JoQsuGF65Zushg==}
+  /@paul-portfolio/react@0.1.13(@paul-portfolio/css@0.1.12)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-IuieDvCtrgs2yBVuhbYcZYxNItB+MIE0FhJaUy043Ufjh2WAU+9ujzz1vg9qpj01bFOXD7xJIW8DgS51PfIZpw==}
     peerDependencies:
       '@paul-portfolio/css': '>=0.1.0'
       '@paul-portfolio/tokens': '>=0.1.0'
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@paul-portfolio/css': 0.4.0(@paul-portfolio/tokens@0.1.9)
+      '@paul-portfolio/css': 0.1.12(@paul-portfolio/tokens@0.1.9)
       '@paul-portfolio/tokens': 0.1.9
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
