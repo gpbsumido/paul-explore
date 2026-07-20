@@ -66,6 +66,27 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "auth-flows": dynamic(() => import("./auth-flows"), {
     loading: () => <DemoSkeleton />,
   }),
+  "campaign-manager": dynamic(() => import("./campaign-manager"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "post-queue": dynamic(() => import("./post-queue"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "community-mode": dynamic(() => import("./community-mode"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "character-sheets": dynamic(() => import("./character-sheets"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "streaming-ops": dynamic(() => import("./streaming-ops"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "game-demo": dynamic(() => import("./game-demo"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "nft-inventory": dynamic(() => import("./nft-inventory"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

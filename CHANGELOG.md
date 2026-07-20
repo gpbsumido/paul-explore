@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 - version 0.22.1
+
+- moved the content/ops/game demos onto design-system primitives: the campaign-manager name field and character-sheet name/class are `Input`, the character-sheet stat steppers and post-queue reorder controls are `IconButton`, and the streaming-ops run-script button is a `Button`. Accent CTAs (Create, Connect wallet, Start demo), the like buttons, and colored status toggles stay as-is
+
+
+## 2026-07-19 - version 0.22.0
+
+- wallet + NFT inventory demo from the gamer hub, the last of the 24: a fake wallet-connect that reveals an on-chain asset grid with rarity-tagged items. With this the whole demo set is wired, once all the demo PRs land every ticker feature has a real reconstruction behind it
 ## 2026-07-19 - version 0.21.1
 
 - moved the UA-batch demos onto design-system primitives: the signup wizard fields, campaign-builder name/reward, and referral handle are now `Input`; the signup Back / Start-over and admin reveal/copy buttons are `Button`. Accent CTAs (Next, Submit, Copy link, Generate), the budget slider, channel select, and template chips stay as-is
@@ -12,6 +20,27 @@
 
 ## 2026-07-19 - version 0.18.6
 
+- conference game demo: a faux game-embed frame with a booth-build start screen and a running-scene state, plus a note on how the original streamed WebGL gameplay events back into the analytics pipeline. The real engine build isn't shipped, so this stands in for the embed pattern
+
+## 2026-07-19 - version 0.18.5
+
+- streaming ops demo from the ops console: a topic table with consumer-lag badges (green/amber by threshold) and a fake maintenance console that appends rebalance-script output on run. Brings in a copy of the seeded-RNG helper for this batch
+
+## 2026-07-19 - version 0.18.4
+
+- character sheet demo from the content engine: edit a game character's name and class and spend a 30-point stat budget across STR/AGI/INT/LCK with live bars, capped both per-stat and at the total budget
+
+## 2026-07-19 - version 0.18.3
+
+- community mode demo from the content engine: a likeable community feed with a per-post engagement bar and a running total, standing in for the posts and community-analytics views
+
+## 2026-07-19 - version 0.18.2
+
+- post queue demo from the content engine: a reorderable list of scheduled posts (move up/down) with a week strip that shows how many posts land each day, recomputed from the queue
+
+## 2026-07-19 - version 0.18.1
+
+- first content-batch demo, the content engine's campaign manager: a list with a create form and an inline draft/live status toggle, standing in for the original's CRUD routes
 - referral links demo from the UA tools: type a handle to mint a referral link, copy it, and watch a simulated click counter tick up (seeded off the handle so it's stable). Brings in a copy of the seeded-RNG helper for this batch
 
 ## 2026-07-19 - version 0.18.5
