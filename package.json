@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "0.25.3",
+  "version": "0.25.4",
   "private": true,
   "packageManager": "pnpm@8.5.1",
   "engines": {
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.15.0",
-    "@paul-portfolio/css": "^0.4.0",
+    "@paul-portfolio/css": "^0.4.1",
     "@paul-portfolio/react": "^0.4.0",
     "@paul-portfolio/tokens": "^0.1.9",
     "@react-three/drei": "^10.7.7",

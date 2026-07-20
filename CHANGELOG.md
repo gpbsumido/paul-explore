@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.4
+
+- bumped `@paul-portfolio/css` to 0.4.1, which fixes the ghost button label losing contrast on hover in dark mode. The work-portfolio ticker chips read correctly on hover now
+
 ## 2026-07-20 - version 0.25.3
 
 - removed the Streaming Ops demo and its Ops Console project from the work-portfolio catalog, registry, and tests, trimming the set down as part of the demo revamp
