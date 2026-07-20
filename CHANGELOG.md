@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.6
+
+- gave the Work Portfolio hub card an animated mini dual-ticker preview (two rows of accent-dotted chips marqueeing in opposite directions, mirroring the real feature) so it stands out, with a static fallback under prefers-reduced-motion
+
 ## 2026-07-20 - version 0.25.5
 
 - reordered the feature categories on the hub and landing so Engineering, Labs, and the everyday tools lead, and filed Work Portfolio under Engineering in both places
