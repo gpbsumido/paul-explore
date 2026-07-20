@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.2
+
+- updated menu settings to include Work Portfolio
+
 ## 2026-07-20 - version 0.25.1
 
 - fixed the work-portfolio tickers so chips under the trailing (cloned) half of a marquee are clickable again. The aria-hidden clone was `inert`, which kills pointer events, so everything to the right of the last real chip (e.g. past Analytics Portal v2 in the top ticker, and intermittently in the bottom one) was a dead zone. The clone now stays out of the a11y tree and the tab order but is clickable
@@ -204,8 +208,8 @@
 ## 2026-07-18 - version 0.16.14
 
 - cleaned up the cascade left behind by removing the calendar read-side and the duplicate `FleetStats` in 0.16.11. Those functions were the last consumers of a few imports and schemas, which only showed up once the new CI checks and ESLint ran over the result — a nice demonstration that no single tool sees everything
-- ESLint flagged the now-unused imports (`EventSearchFilters`, `eventsResponseSchema`, `cardsResponseSchema` in `lib/calendar.ts`, `fleetStatsSchema` in `types/operator.ts`) that `ts-prune` can't see because they're unused *imports*, not exports. Removed them
-- removing those imports then orphaned two *exports* — `cardsResponseSchema` (`lib/schemas.ts`) and the `EventSearchFilters` type (`types/calendar.ts`) — which the new blocking `deadexports` check caught. Removed those too. `eventsResponseSchema` and `fleetStatsSchema` survived because other code still uses them. tsc, lint, and dead-code checks all green
+- ESLint flagged the now-unused imports (`EventSearchFilters`, `eventsResponseSchema`, `cardsResponseSchema` in `lib/calendar.ts`, `fleetStatsSchema` in `types/operator.ts`) that `ts-prune` can't see because they're unused _imports_, not exports. Removed them
+- removing those imports then orphaned two _exports_ — `cardsResponseSchema` (`lib/schemas.ts`) and the `EventSearchFilters` type (`types/calendar.ts`) — which the new blocking `deadexports` check caught. Removed those too. `eventsResponseSchema` and `fleetStatsSchema` survived because other code still uses them. tsc, lint, and dead-code checks all green
 
 ## 2026-07-18 - version 0.16.13
 
@@ -222,7 +226,7 @@
 
 ## 2026-07-18 - version 0.16.11
 
-- removed a batch of dead exports that `ts-prune` flagged and I verified by hand (grepped the whole repo, including co-located tests, for each symbol — every one appeared only in its own definition file). Because these are unused *exports* from modules that are otherwise imported, the bundler already tree-shakes them out, so this is source-hygiene, not a bundle-size win. `tsc` and all 626 tests stay green
+- removed a batch of dead exports that `ts-prune` flagged and I verified by hand (grepped the whole repo, including co-located tests, for each symbol — every one appeared only in its own definition file). Because these are unused _exports_ from modules that are otherwise imported, the bundler already tree-shakes them out, so this is source-hygiene, not a bundle-size win. `tsc` and all 626 tests stay green
 - deleted two orphaned components: `PageIntro.tsx` and `PageLayout.tsx` (nothing rendered them)
 - dropped unused animation variants `fadeIn` and `calendarSlide` from `lib/animations.ts`
 - dropped the dead read-side of `lib/calendar.ts` (`fetchEvents`, `fetchEvent`, `searchEvents`, `fetchEventCards`, `eventsForHour`). The calendar feature fetches through other paths now; the write-side CRUD (`createEvent`/`updateEvent`/`deleteEvent`) is still live and untouched. The response schemas these used are shared with the API routes, so nothing cascaded
