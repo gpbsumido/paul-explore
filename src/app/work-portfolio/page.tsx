@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import PageHeader from "@/components/PageHeader";
 import WorkPortfolioContent from "./WorkPortfolioContent";
 
 const TITLE = "Work Portfolio";
@@ -28,5 +29,15 @@ export const metadata: Metadata = {
 export const revalidate = 86400;
 
 export default function WorkPortfolioPage() {
-  return <WorkPortfolioContent />;
+  return (
+    <div className="flex min-h-dvh flex-col bg-background">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Work Portfolio" },
+        ]}
+      />
+      <WorkPortfolioContent />
+    </div>
+  );
 }
