@@ -4,6 +4,186 @@
 
 - bumped `@paul-portfolio/react` and `/css` to 0.2.0 and `/tokens` to 0.1.9, which add IconButton, Textarea, InfoTip, Switch, Spinner, and Divider to the shared design system
 - re-backed `components/ui/IconButton` onto the design system's `IconButton` (it was hand-rolled Tailwind before), so its styling now comes from the shared `.icon-btn` class like Button and Input already do. Kept it a thin wrapper so every call site keeps working. Left `Textarea` and `InfoTip` local for now: their local versions are richer than the new DS ones (a character counter / hideLabel on Textarea, rich `ReactNode` popover content on InfoTip), so backing those cleanly needs a DS enhancement rather than a lossy rewrap
+## 2026-07-19 - version 0.23.0
+
+- work-portfolio write-up and docs, closing out the feature. Added a `/thoughts/work-portfolio` dev-notes page (summary + chat views) covering the reasoning: reconstruction over emulation, anonymizing client work and enforcing it with a test, the no-new-deps rule, the dual-ticker UX and its click-a-moving-target tradeoff, and shipping the whole thing as merge-order-independent PRs. Registered it in the thoughts hub
+- listed the page in the README feature list and noted both routes in the architecture map
+## 2026-07-19 - version 0.22.1
+
+- moved the content/ops/game demos onto design-system primitives: the campaign-manager name field and character-sheet name/class are `Input`, the character-sheet stat steppers and post-queue reorder controls are `IconButton`, and the streaming-ops run-script button is a `Button`. Accent CTAs (Create, Connect wallet, Start demo), the like buttons, and colored status toggles stay as-is
+
+
+## 2026-07-19 - version 0.22.0
+
+- wallet + NFT inventory demo from the gamer hub, the last of the 24: a fake wallet-connect that reveals an on-chain asset grid with rarity-tagged items. With this the whole demo set is wired, once all the demo PRs land every ticker feature has a real reconstruction behind it
+## 2026-07-19 - version 0.21.1
+
+- moved the UA-batch demos onto design-system primitives: the signup wizard fields, campaign-builder name/reward, and referral handle are now `Input`; the signup Back / Start-over and admin reveal/copy buttons are `Button`. Accent CTAs (Next, Submit, Copy link, Generate), the budget slider, channel select, and template chips stay as-is
+
+
+## 2026-07-19 - version 0.21.0
+
+- auth flows demo, last of the UA batch: a walkthrough of the identity screens (sign in, verify email, reset password, wallet passport) with dot navigation and a next-screen cta. Read-only fields, nothing authenticates, it's the shape of the hosted-identity flows. Also moved the referral-links seed write off the synchronous effect path for lint
+
+
+## 2026-07-19 - version 0.18.6
+
+- conference game demo: a faux game-embed frame with a booth-build start screen and a running-scene state, plus a note on how the original streamed WebGL gameplay events back into the analytics pipeline. The real engine build isn't shipped, so this stands in for the embed pattern
+
+## 2026-07-19 - version 0.18.5
+
+- streaming ops demo from the ops console: a topic table with consumer-lag badges (green/amber by threshold) and a fake maintenance console that appends rebalance-script output on run. Brings in a copy of the seeded-RNG helper for this batch
+
+## 2026-07-19 - version 0.18.4
+
+- character sheet demo from the content engine: edit a game character's name and class and spend a 30-point stat budget across STR/AGI/INT/LCK with live bars, capped both per-stat and at the total budget
+
+## 2026-07-19 - version 0.18.3
+
+- community mode demo from the content engine: a likeable community feed with a per-post engagement bar and a running total, standing in for the posts and community-analytics views
+
+## 2026-07-19 - version 0.18.2
+
+- post queue demo from the content engine: a reorderable list of scheduled posts (move up/down) with a week strip that shows how many posts land each day, recomputed from the queue
+
+## 2026-07-19 - version 0.18.1
+
+- first content-batch demo, the content engine's campaign manager: a list with a create form and an inline draft/live status toggle, standing in for the original's CRUD routes
+- referral links demo from the UA tools: type a handle to mint a referral link, copy it, and watch a simulated click counter tick up (seeded off the handle so it's stable). Brings in a copy of the seeded-RNG helper for this batch
+
+## 2026-07-19 - version 0.18.5
+
+- campaign builder demo from the UA tools: a form (name, reward, budget slider, channel) with a live preview card that updates as you type, including an estimated-installs figure derived from the budget
+
+## 2026-07-19 - version 0.18.4
+
+- AI content module demo from the platform console: pick a template (patch notes, event teaser, store blurb), hit generate, and the canned copy streams in word by word. No model behind it, just the shape of the assisted-writing flow
+
+## 2026-07-19 - version 0.18.3
+
+- admin suite demo from the platform console: a members-and-roles table with color-coded role chips, plus a live API key you can reveal and copy (copy faked with local state, the key is obviously fake)
+
+## 2026-07-19 - version 0.18.2
+
+- signup flow depth: per-step validation (required fields plus a real email check) blocks advancing with inline errors, a campaign-attribution chip rides along from the entry link's utm source, and submitting lands on a completion screen that credits the campaign. Start-over resets it
+## 2026-07-19 - version 0.20.1
+
+- moved the portal-v2 demos' neutral controls onto design-system primitives: the wallet-lookup address field and the LLM message field are now `Input`, the dashboard-designer palette and email-studio add-block buttons are `Button`, and the widget move/resize/remove controls are `IconButton`. Accent CTAs (Look up, Send), tabs, and segmented toggles stay as-is
+
+
+## 2026-07-19 - version 0.20.0
+
+- workflow editor demo, the last of the portal-v2 batch: a hand-built SVG node graph (trigger, filters, enrich, action with connecting edges) where clicking a node shows its read-only config below. Stands in for the original's node-graph library plus code editor
+- decoupled the stage placeholder test from any specific slug (it now renders the coming-soon demo directly) so wiring a demo can't break it, and moved the wallet-lookup loading flag off the effect path to satisfy the render-safety lint rule
+
+
+## 2026-07-19 - version 0.18.7
+
+- email studio demo from portal v2: a block-based email composer (add heading/text/button/image blocks to a live preview) next to a campaign table with per-campaign status chips and open rates
+
+## 2026-07-19 - version 0.18.6
+
+- LLM assistant tool-call rows: each answer now runs a fake tool first (query_warehouse, segment_players, search_docs) shown as a monospace row that ticks from running to done before the text streams. Makes it read like a real agent, retrieve then answer, not just a canned chatbot
+## 2026-07-19 - version 0.19.1
+
+- swapped the chart library's neutral controls onto design-system primitives: the Reroll button is now a `Button`, and the focus-mode prev/next are `IconButton`s from `@/components/ui`. Left the Grid/Focus segmented toggle custom (no segmented-control primitive)
+
+
+## 2026-07-19 - version 0.19.0
+
+- slug-driven dashboards demo, the last of the analytics batch: a slug picker (`/d/<slug>`) that reshapes one dashboard entirely from config, different tiles, chart type, and accent per slug, which was the whole idea of the original catch-all route. Also tidied a couple of unused imports the linter flagged in the chart library
+
+
+## 2026-07-19 - version 0.18.5
+
+- LLM assistant demo, chat shell: a chat surface that streams canned answers word by word, routed by keyword (retention, revenue, whales) with a fallback. Suggestion chips and a text input, send disabled while a response streams. Tool-call rows come next
+
+
+## 2026-07-19 - version 0.18.4
+
+- wallet lookup depth: the NFTs tab shows a rarity-tagged asset grid (or an empty state for wallets with none) and the Transactions tab a send/receive history. Switching to a data-heavy tab shows a brief skeleton-loading state first, like the original waiting on the chain-data API
+
+
+## 2026-07-19 - version 0.18.3
+
+- wallet lookup demo, shell: paste (or pick a sample) address and get an overview card of balance, tokens, NFTs, and first-seen, with Overview / NFTs / Transactions tabs. Data is a deterministic fake keyed off the address so the same address always resolves the same, no chain calls. NFT and transaction tabs come next
+- economy and financial-health demo from portal v1: a faucet-vs-sink bar chart for an in-game currency next to a KPI grid (net supply, sink ratio, whales, inflation) that color-flags supply pressure
+
+## 2026-07-19 - version 0.18.4
+
+- per-title dashboard demo from portal v1: a game switcher (Game A/B/C, anonymized client titles) that reskins one dashboard with each game's accent color, genre, and its own MAU / ARPU / retention numbers and trend area
+
+## 2026-07-19 - version 0.18.3
+
+- standard analytics demo: the domain-split dashboard sections from the analytics suite. Tabs for Game / Web / On-chain / Sandbox, each swapping its own KPI trio and bar chart. Per-tab numbers are deterministic so switching back and forth is stable
+
+
+## 2026-07-19 - version 0.18.2
+
+- dashboard designer gets its interactivity: widgets reorder by pointer drag or with left/right move buttons, and resize between one and two columns with a size toggle. Kept the button controls alongside drag so the reorder is keyboard-reachable and testable, not drag-only
+- chart library demo gets its depth: two more chart types (a radial engagement gauge and a ranked-titles bar table) and a Grid/Focus toggle. Focus mode blows one chart up full-size with prev/next to page through all six, so it reads like the real thing where you drill into a single visualization
+
+
+## 2026-07-19 - version 0.18.1
+
+- work-portfolio e2e coverage (public Playwright project): intro state, clicking a feature chip and a project chip, arrow + keyboard navigation, `?feature=` deep link, and the explainer window open/close. Freezes CSS animations in the ticker-click tests so the marquee can't move mid-click
+- first UA-batch demo, the driver signup flow shell: a three-step wizard (contact, vehicle, review) with a step indicator and back/next navigation that carries entered values through to the review step. Validation, campaign attribution, and the completion screen come next
+- first portal-v2 demo, the dashboard designer shell. The original used a gridstack drag-drop engine; this rebuilds the idea as a CSS-grid canvas you compose from a widget palette (KPI tile, trend line, bar chart), with per-widget remove and an empty state. Reorder and resize come next. Carries a copy of the seeded-RNG helper so this demo batch stands alone
+- first work-portfolio demo: the analytics chart library. The original was 17 documented ECharts components, this rebuilds a representative board on recharts (growth curve, conversion funnel, retention bars, revenue donut). All four charts share one seed so a Reroll button re-rolls the whole board at once, off a small seeded RNG. Wired into the demo registry so it replaces the coming-soon placeholder
+- moved the work-portfolio chrome onto the app design-system primitives instead of hand-rolled buttons: the stage arrows, the chip info buttons, the explainer close, and the stage-header info button are now `IconButton`, and the ticker chip select body is a ghost `Button`, all from `@/components/ui` (which wraps `@paul-portfolio/react`). Kept the explainer window's anchored positioning custom since the shared `Modal` is centered-only
+
+
+## 2026-07-19 - version 0.18.0
+
+- work-portfolio base is feature-complete. Accessibility pass: the stage announces selection changes through a polite live region, and axe scans of both the intro and a selected demo come back clean. Reworked the stage layout so the demo surface fills ~95% of the space between the two tickers (compact header row, arrows hugging the edges) instead of sitting small in the middle
+- tightened a few things the linter caught along the way: the demo registry now resolves every slug to a component at module scope so render code does a plain lookup, the explainer's key handling moved to a document listener (a dialog is a container, not an interactive element), and the deep-link and reduced-motion effects defer their state writes off the synchronous effect path
+
+
+## 2026-07-18 - version 0.17.12
+
+- work-portfolio demo stage. Each feature resolves through a registry to its demo component behind `next/dynamic` (own chunk, skeleton while loading), falling back to a coming-soon placeholder — demo PRs will each flip exactly one registry line, which is what makes them mergeable in any order. The stage surface carries the owning project's accent theme (tint, accent CSS var, mono/sans flavor): site chrome outside, original-app flavor inside
+- built the reference demo end to end: the driver-onboarding real-time dashboard, KPI tiles plus a signups line chart (recharts) advancing on a local interval that stands in for the original polling API
+
+## 2026-07-18 - version 0.17.11
+
+- work-portfolio explainer hover intent: resting the mouse on an i button for 350ms opens the window unpinned, and leaving closes it again. A click pins it so mouse-out keeps it open. Timer-based, tested with fake timers
+
+## 2026-07-18 - version 0.17.10
+
+- work-portfolio explainer window. Every chip and the stage header carry a small i button (chips got restructured into a shell with two buttons, since buttons can't nest). Clicking it opens an anchored dialog: feature explainers show what the feature did, the original stack, and what's real vs mocked in the reconstruction; project explainers show the blurb, stack, and the features that didn't make the ticker. Esc, outside presses, and the close button dismiss it; focus is trapped inside while open, and it marks itself as an isolated keyboard scope so arrow keys don't drive the stage from within
+
+## 2026-07-18 - version 0.17.9
+
+- work-portfolio deep links: `?feature=<slug>` selects that demo on load (unknown slugs just leave the intro up), and moving the selection writes the slug back with `replaceState` so the URL stays shareable without polluting history. Tests reset the jsdom URL between cases since the sync effect genuinely writes it
+
+## 2026-07-18 - version 0.17.8
+
+- work-portfolio keyboard navigation: ArrowLeft/ArrowRight cycle the selected feature through the same wraparound logic as the stage arrows. Keys are ignored while typing in a form control, inside contenteditable, or when focus sits inside an isolated keyboard scope (the marker the explainer window will use). Handler guards against window-targeted events, which have no DOM element API
+
+## 2026-07-18 - version 0.17.7
+
+- work-portfolio stage navigation: arrow buttons flank the stage and cycle the selected feature with wraparound. From the intro state, next lands on the first feature and prev on the last (`cycleIndex` helper, unit tested). The stage crossfades on selection change by remounting a keyed motion div, deliberately avoiding AnimatePresence exit-waits which stall under jsdom
+
+## 2026-07-18 - version 0.17.6
+
+- work-portfolio tickers are now interactive. Hover freezes the marquee (`animation-play-state`); on touch, the first touch freezes the strip for a few seconds so a tap can land. Chips are real buttons: clicking a feature selects it on the stage, clicking a project jumps to that project's first feature, and selection rings stay in sync across both tickers (`aria-pressed` carries the state). The marquee's clone copy is `inert` so its buttons can't be focused or clicked
+
+## 2026-07-18 - version 0.17.5
+
+- work-portfolio tickers now actually tick: the strip renders twice inside a track that slides one copy-width on a CSS keyframe loop, top ticker traveling left and bottom traveling right. The clone is aria-hidden so assistive tech only reads one set. `prefers-reduced-motion` swaps the marquee for a plain scrollable row with a single copy, driven by a small matchMedia hook (guarded for jsdom)
+
+## 2026-07-18 - version 0.17.4
+
+- work-portfolio tickers, static first pass: a reusable Ticker strip renders the 11 project chips along the top edge and the 24 feature chips (icon, title, project tag, project-accent dot) along the bottom. No animation yet, that lands next so each behavior stays independently testable. Route skeleton already matches the strip heights
+
+## 2026-07-18 - version 0.17.3
+
+- registered the work-portfolio feature in the hub FEATURES list so it shows up on the landing hub, with a test pinning the entry. Noted the new route in the architecture map
+
+## 2026-07-18 - version 0.17.2
+
+- started the work-portfolio feature: a single page at `/work-portfolio` that will demo features from 11 past projects as self-contained reconstructions. This commit lays the data spine: a typed catalog of 11 anonymized projects and 24 features (5 flagged as flagships), the route with metadata and a layout-matched loading skeleton, and an intro card as the stage's resting state
+- everything in the catalog is deliberately anonymized (no employer or client names), enforced by a unit test that scans every work-portfolio source file for a banned-name list so a slip can't ship
 
 
 ## 2026-07-18 - version 0.17.1
