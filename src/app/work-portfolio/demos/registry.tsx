@@ -18,6 +18,75 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "realtime-metrics": dynamic(() => import("./realtime-metrics"), {
     loading: () => <DemoSkeleton />,
   }),
+  "chart-library": dynamic(() => import("./chart-library"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "standard-analytics": dynamic(() => import("./standard-analytics"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "per-game-analytics": dynamic(() => import("./per-game-analytics"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "economy-health": dynamic(() => import("./economy-health"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "slug-dashboards": dynamic(() => import("./slug-dashboards"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "dashboard-designer": dynamic(() => import("./dashboard-designer"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "wallet-lookup": dynamic(() => import("./wallet-lookup"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "llm-assistant": dynamic(() => import("./llm-assistant"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "email-campaigns": dynamic(() => import("./email-campaigns"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "workflow-editor": dynamic(() => import("./workflow-editor"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "signup-flow": dynamic(() => import("./signup-flow"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "admin-suite": dynamic(() => import("./admin-suite"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "ai-content-engine": dynamic(() => import("./ai-content-engine"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "ua-campaign-builder": dynamic(() => import("./ua-campaign-builder"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "referral-links": dynamic(() => import("./referral-links"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "auth-flows": dynamic(() => import("./auth-flows"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "campaign-manager": dynamic(() => import("./campaign-manager"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "post-queue": dynamic(() => import("./post-queue"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "community-mode": dynamic(() => import("./community-mode"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "character-sheets": dynamic(() => import("./character-sheets"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "streaming-ops": dynamic(() => import("./streaming-ops"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "game-demo": dynamic(() => import("./game-demo"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "nft-inventory": dynamic(() => import("./nft-inventory"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

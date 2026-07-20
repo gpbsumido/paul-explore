@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import WorkPortfolioContent from "../WorkPortfolioContent";
 import RealtimeMetricsDemo from "../demos/realtime-metrics";
+import ComingSoonDemo from "../demos/ComingSoonDemo";
 import DemoStage from "../DemoStage";
 import { FEATURES, PROJECTS, projectFor, featureIndexBySlug } from "../_data/catalog";
 
@@ -9,11 +10,10 @@ beforeEach(() => window.history.replaceState(null, "", "/work-portfolio"));
 afterEach(() => vi.useRealTimers());
 
 describe("demo stage", () => {
-  it("placeholder features render the coming-soon demo", async () => {
-    // wallet-lookup has no demo wired yet in this PR
-    window.history.replaceState(null, "", "/work-portfolio?feature=wallet-lookup");
-    render(<WorkPortfolioContent />);
-    expect(await screen.findByText("Demo in progress")).toBeInTheDocument();
+  it("the coming-soon placeholder renders for unwired features", () => {
+    // decoupled from which slugs are wired, tests the placeholder itself
+    render(<ComingSoonDemo feature={FEATURES[0]} />);
+    expect(screen.getByText("Demo in progress")).toBeInTheDocument();
   });
 
   it("the reference demo is wired through the registry", async () => {
