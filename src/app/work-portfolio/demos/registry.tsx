@@ -48,6 +48,24 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "workflow-editor": dynamic(() => import("./workflow-editor"), {
     loading: () => <DemoSkeleton />,
   }),
+  "signup-flow": dynamic(() => import("./signup-flow"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "admin-suite": dynamic(() => import("./admin-suite"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "ai-content-engine": dynamic(() => import("./ai-content-engine"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "ua-campaign-builder": dynamic(() => import("./ua-campaign-builder"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "referral-links": dynamic(() => import("./referral-links"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "auth-flows": dynamic(() => import("./auth-flows"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**

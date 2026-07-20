@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-07-19 - version 0.21.1
+
+- moved the UA-batch demos onto design-system primitives: the signup wizard fields, campaign-builder name/reward, and referral handle are now `Input`; the signup Back / Start-over and admin reveal/copy buttons are `Button`. Accent CTAs (Next, Submit, Copy link, Generate), the budget slider, channel select, and template chips stay as-is
+
+
+## 2026-07-19 - version 0.21.0
+
+- auth flows demo, last of the UA batch: a walkthrough of the identity screens (sign in, verify email, reset password, wallet passport) with dot navigation and a next-screen cta. Read-only fields, nothing authenticates, it's the shape of the hosted-identity flows. Also moved the referral-links seed write off the synchronous effect path for lint
+
+
+## 2026-07-19 - version 0.18.6
+
+- referral links demo from the UA tools: type a handle to mint a referral link, copy it, and watch a simulated click counter tick up (seeded off the handle so it's stable). Brings in a copy of the seeded-RNG helper for this batch
+
+## 2026-07-19 - version 0.18.5
+
+- campaign builder demo from the UA tools: a form (name, reward, budget slider, channel) with a live preview card that updates as you type, including an estimated-installs figure derived from the budget
+
+## 2026-07-19 - version 0.18.4
+
+- AI content module demo from the platform console: pick a template (patch notes, event teaser, store blurb), hit generate, and the canned copy streams in word by word. No model behind it, just the shape of the assisted-writing flow
+
+## 2026-07-19 - version 0.18.3
+
+- admin suite demo from the platform console: a members-and-roles table with color-coded role chips, plus a live API key you can reveal and copy (copy faked with local state, the key is obviously fake)
+
+## 2026-07-19 - version 0.18.2
+
+- signup flow depth: per-step validation (required fields plus a real email check) blocks advancing with inline errors, a campaign-attribution chip rides along from the entry link's utm source, and submitting lands on a completion screen that credits the campaign. Start-over resets it
 ## 2026-07-19 - version 0.20.1
 
 - moved the portal-v2 demos' neutral controls onto design-system primitives: the wallet-lookup address field and the LLM message field are now `Input`, the dashboard-designer palette and email-studio add-block buttons are `Button`, and the widget move/resize/remove controls are `IconButton`. Accent CTAs (Look up, Send), tabs, and segmented toggles stay as-is
@@ -60,6 +89,7 @@
 
 ## 2026-07-19 - version 0.18.1
 
+- first UA-batch demo, the driver signup flow shell: a three-step wizard (contact, vehicle, review) with a step indicator and back/next navigation that carries entered values through to the review step. Validation, campaign attribution, and the completion screen come next
 - first portal-v2 demo, the dashboard designer shell. The original used a gridstack drag-drop engine; this rebuilds the idea as a CSS-grid canvas you compose from a widget palette (KPI tile, trend line, bar chart), with per-widget remove and an empty state. Reorder and resize come next. Carries a copy of the seeded-RNG helper so this demo batch stands alone
 - first work-portfolio demo: the analytics chart library. The original was 17 documented ECharts components, this rebuilds a representative board on recharts (growth curve, conversion funnel, retention bars, revenue donut). All four charts share one seed so a Reroll button re-rolls the whole board at once, off a small seeded RNG. Wired into the demo registry so it replaces the coming-soon placeholder
 - moved the work-portfolio chrome onto the app design-system primitives instead of hand-rolled buttons: the stage arrows, the chip info buttons, the explainer close, and the stage-header info button are now `IconButton`, and the ticker chip select body is a ghost `Button`, all from `@/components/ui` (which wraps `@paul-portfolio/react`). Kept the explainer window's anchored positioning custom since the shared `Modal` is centered-only
