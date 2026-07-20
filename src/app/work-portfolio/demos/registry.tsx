@@ -33,6 +33,21 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "slug-dashboards": dynamic(() => import("./slug-dashboards"), {
     loading: () => <DemoSkeleton />,
   }),
+  "dashboard-designer": dynamic(() => import("./dashboard-designer"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "wallet-lookup": dynamic(() => import("./wallet-lookup"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "llm-assistant": dynamic(() => import("./llm-assistant"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "email-campaigns": dynamic(() => import("./email-campaigns"), {
+    loading: () => <DemoSkeleton />,
+  }),
+  "workflow-editor": dynamic(() => import("./workflow-editor"), {
+    loading: () => <DemoSkeleton />,
+  }),
 };
 
 /**
