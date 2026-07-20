@@ -211,6 +211,38 @@ expect(results).toHaveNoViolations();`}
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                A third axe layer, for free, in Chromatic
+              </h2>
+              <p className="text-muted">
+                The primitives now come from the design system, and its
+                Storybook already runs Chromatic on every PR for visual
+                regression. It turns out Chromatic has accessibility tests built
+                right in — the same axe-core engine as the unit and E2E scans —
+                and they were sitting there switched off. There was no library
+                to add and no new pipeline to wire up. It was a toggle in the
+                Chromatic project settings.
+              </p>
+              <p className="mt-3 text-muted">
+                Because the Chromatic step is already part of CI, flipping that
+                toggle means the a11y results land in the same build as the
+                visual snapshots — no separate job, no extra minutes to reason
+                about. And the coverage is exactly the shape that&apos;s awkward
+                to get elsewhere: Chromatic scans every story, so every button
+                variant, every input error state, every open modal gets an axe
+                pass. E2E scans see whole pages; unit tests see one render at a
+                time. This sits in between and sweeps the entire component
+                catalog automatically.
+              </p>
+              <p className="mt-3 text-muted">
+                So the defense now has three axe surfaces from one engine: fast
+                unit checks while writing a component, story-level checks across
+                every variant in Chromatic, and page-level checks in E2E where
+                accessible pieces get composed into real screens.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 Skip links and landmarks
               </h2>
               <p className="text-muted">
@@ -591,6 +623,12 @@ expect(results).toHaveNoViolations();`}
                 DOM issues (like a generated ID that doesn&apos;t match), and
                 E2E tests catch composition problems (like two components that
                 individually pass but together create duplicate landmarks).
+              </p>
+              <p className="mt-3 text-muted">
+                These three all live in this repo. On top of them, the design
+                system that backs the primitives runs its own story-level axe
+                pass in Chromatic, so the shared components are also getting
+                scanned in their own catalog before they ever land here.
               </p>
             </section>
 
@@ -1218,6 +1256,29 @@ it("is keyboard accessible", async () => {
                 each catches different things. lint catches patterns, unit tests
                 catch rendered DOM issues, E2E catches composition problems
                 where individually accessible components break when assembled
+              </Sent>
+
+              <Timestamp>3:12 PM</Timestamp>
+
+              <Received>
+                didn&apos;t you also turn something on in chromatic
+              </Received>
+
+              <Sent pos="first">
+                yeah, that was basically free. the design system&apos;s
+                storybook already runs chromatic on every PR for visual
+                regression, and chromatic has accessibility tests built in — same
+                axe-core engine — they were just switched off
+              </Sent>
+              <Sent pos="middle">
+                no new library, no new CI job. it was a toggle in the project
+                settings. since chromatic already runs in CI the a11y results
+                show up in the same build as the visual snapshots
+              </Sent>
+              <Sent pos="last">
+                and it scans every story, so every button variant and every
+                modal state gets an axe pass across the whole catalog. sits right
+                between the fast unit checks and the slow full-page E2E scans
               </Sent>
 
               <Timestamp>3:14 PM</Timestamp>

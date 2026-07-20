@@ -130,6 +130,14 @@ export const FEATURES: FeatureItem[] = [
     href: "/learn",
     color: "#34d399",
   },
+  {
+    id: "work-portfolio",
+    title: "Work Portfolio",
+    description:
+      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
+    href: "/work-portfolio",
+    color: "#60a5fa",
+  },
 ].reverse();
 
 export const THOUGHTS: ThoughtItem[] = [
@@ -341,6 +349,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "The three kinds of dead weight, why removing an unused export isn't a bundle win, the judgment calls a depcheck report can't make, and wiring it all into CI as a blocking check",
     color: "#22c55e",
+  },
+  {
+    title: "Work Portfolio",
+    href: "/thoughts/work-portfolio",
+    preview:
+      "Rebuilding 24 features from 11 old jobs as self-contained demos: reconstruction over emulation, anonymizing client work, the no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs",
+    color: "#60a5fa",
   },
 ].reverse();
 

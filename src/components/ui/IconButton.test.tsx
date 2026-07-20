@@ -38,14 +38,22 @@ describe("IconButton accessibility", () => {
     ).toBeInTheDocument();
   });
 
-  it("applies a focus-visible outline class", () => {
+  it("renders the design-system icon-btn class (focus ring lives in that CSS)", () => {
     render(
       <IconButton aria-label="Edit">
         <svg aria-hidden="true" />
       </IconButton>,
     );
-    const classes = screen.getByRole("button").className;
-    expect(classes).toContain("focus-visible:outline-2");
-    expect(classes).toContain("focus-visible:outline-offset-2");
+    expect(screen.getByRole("button")).toHaveClass("icon-btn");
+  });
+
+  it("still forwards a size and merges extra classes", () => {
+    render(
+      <IconButton aria-label="Edit" size="sm" className="border">
+        <svg aria-hidden="true" />
+      </IconButton>,
+    );
+    const btn = screen.getByRole("button");
+    expect(btn).toHaveClass("icon-btn", "icon-btn--sm", "border");
   });
 });
