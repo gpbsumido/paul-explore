@@ -1,36 +1,16 @@
 "use client";
 
-import { type ComponentPropsWithRef } from "react";
+import { type ComponentProps } from "react";
+import { IconButton as PaulIconButton } from "@paul-portfolio/react";
 
-interface IconButtonProps extends ComponentPropsWithRef<"button"> {
-  /** Required: describes the action for screen readers */
-  "aria-label": string;
-  size?: "sm" | "md";
-}
+type IconButtonProps = ComponentProps<typeof PaulIconButton>;
 
-export default function IconButton({
-  size = "md",
-  className,
-  children,
-  ...rest
-}: IconButtonProps) {
-  return (
-    <button
-      type="button"
-      {...rest}
-      className={[
-        "inline-flex items-center justify-center rounded-md",
-        "text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800",
-        "transition-colors cursor-pointer",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
-        "disabled:pointer-events-none disabled:opacity-50",
-        size === "sm" ? "h-7 w-7" : "h-8 w-8",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      {children}
-    </button>
-  );
+/**
+ * App-level IconButton backed by @paul-portfolio/react. Kept as a thin wrapper
+ * so every existing call site (import IconButton from "@/components/ui") keeps
+ * working while the styling now comes from the design system's .icon-btn class
+ * instead of hand-rolled Tailwind.
+ */
+export default function IconButton(props: IconButtonProps) {
+  return <PaulIconButton {...props} />;
 }
