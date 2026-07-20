@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.5
+
+- reordered the feature categories on the hub and landing so Engineering, Labs, and the everyday tools lead, and filed Work Portfolio under Engineering in both places
+
 ## 2026-07-20 - version 0.25.4
 
 - bumped `@paul-portfolio/css` to 0.4.1, which fixes the ghost button label losing contrast on hover in dark mode. The work-portfolio ticker chips read correctly on hover now

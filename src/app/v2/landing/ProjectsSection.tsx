@@ -4,15 +4,15 @@ import { FEATURES, PREVIEW_MAP } from "@/app/_shared/featureData";
 import ProjectCard from "./ProjectCard";
 
 const GROUPS = [
+  { label: "Engineering", ids: ["vitals", "operator", "work-portfolio"] },
+  { label: "Labs & Learning", ids: ["particles", "learn"] },
+  { label: "Productivity", ids: ["calendar"] },
+  { label: "Social", ids: ["ketsup"] },
   {
     label: "Fantasy & NBA",
     ids: ["nba", "matchups", "court-vision", "league", "playoffs"],
   },
   { label: "Pok\u00e9mon", ids: ["tcg", "pocket", "graphql"] },
-  { label: "Productivity", ids: ["calendar"] },
-  { label: "Engineering", ids: ["vitals", "operator"] },
-  { label: "Labs & Learning", ids: ["particles", "learn"] },
-  { label: "Social", ids: ["ketsup"] },
 ];
 
 const featureById = new Map(FEATURES.map((f) => [f.id, f]));

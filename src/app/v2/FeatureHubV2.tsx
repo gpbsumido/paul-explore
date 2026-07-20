@@ -23,13 +23,16 @@ const CATEGORIES: ReadonlyArray<{
 }> = [
   { label: "All", ids: null },
   {
+    label: "Engineering",
+    ids: new Set(["vitals", "operator", "ketsup", "work-portfolio"]),
+  },
+  { label: "Labs", ids: new Set(["particles", "learn"]) },
+  { label: "Calendar", ids: new Set(["calendar"]) },
+  {
     label: "NBA",
     ids: new Set(["nba", "matchups", "court-vision", "league", "playoffs"]),
   },
   { label: "Pokemon", ids: new Set(["tcg", "pocket", "graphql"]) },
-  { label: "Calendar", ids: new Set(["calendar"]) },
-  { label: "Engineering", ids: new Set(["vitals", "operator", "ketsup"]) },
-  { label: "Labs", ids: new Set(["particles", "learn"]) },
 ];
 
 export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
