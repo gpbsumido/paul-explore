@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-19 - version 0.23.0
+
+- work-portfolio write-up and docs, closing out the feature. Added a `/thoughts/work-portfolio` dev-notes page (summary + chat views) covering the reasoning: reconstruction over emulation, anonymizing client work and enforcing it with a test, the no-new-deps rule, the dual-ticker UX and its click-a-moving-target tradeoff, and shipping the whole thing as merge-order-independent PRs. Registered it in the thoughts hub
+- listed the page in the README feature list and noted both routes in the architecture map
 ## 2026-07-19 - version 0.22.1
 
 - moved the content/ops/game demos onto design-system primitives: the campaign-manager name field and character-sheet name/class are `Input`, the character-sheet stat steppers and post-queue reorder controls are `IconButton`, and the streaming-ops run-script button is a `Button`. Accent CTAs (Create, Connect wallet, Start demo), the like buttons, and colored status toggles stay as-is
@@ -118,6 +122,7 @@
 
 ## 2026-07-19 - version 0.18.1
 
+- work-portfolio e2e coverage (public Playwright project): intro state, clicking a feature chip and a project chip, arrow + keyboard navigation, `?feature=` deep link, and the explainer window open/close. Freezes CSS animations in the ticker-click tests so the marquee can't move mid-click
 - first UA-batch demo, the driver signup flow shell: a three-step wizard (contact, vehicle, review) with a step indicator and back/next navigation that carries entered values through to the review step. Validation, campaign attribution, and the completion screen come next
 - first portal-v2 demo, the dashboard designer shell. The original used a gridstack drag-drop engine; this rebuilds the idea as a CSS-grid canvas you compose from a widget palette (KPI tile, trend line, bar chart), with per-widget remove and an empty state. Reorder and resize come next. Carries a copy of the seeded-RNG helper so this demo batch stands alone
 - first work-portfolio demo: the analytics chart library. The original was 17 documented ECharts components, this rebuilds a representative board on recharts (growth curve, conversion funnel, retention bars, revenue donut). All four charts share one seed so a Reroll button re-rolls the whole board at once, off a small seeded RNG. Wired into the demo registry so it replaces the coming-soon placeholder

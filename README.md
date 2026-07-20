@@ -25,6 +25,7 @@ The following pages are fully public — no account needed:
 - **Landing page** (`/`) — hero, feature grid, dedicated Operator and Learn showcases
 - **Fleet Operator** (`/operator`) — real-time fleet monitoring dashboard with store cards, alerts, inventory health, and per-store drill-down
 - **Learn** (`/learn`) — 14 interactive deep-dives into algorithms and frontend patterns with visual-first demos
+- **Work Portfolio** (`/work-portfolio`) — 24 anonymized reconstructions of features from 11 past projects, browsable through dual tickers with per-feature explainers
 - **Particle Lab** (`/lab/particles`) — interactive R3F particle network
 - **Motion Lab** (`/lab/motion`) — Framer Motion demos
 - **Pokémon TCG Browser** (`/tcg`) — browse, search, set and card detail pages
