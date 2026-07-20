@@ -90,7 +90,7 @@ export default function WorkPortfolioThoughtsContent() {
                   Most of these were client and employer projects, so no real
                   names ship: not the company, not the games, not the wallets.
                   Projects get descriptive codenames (&quot;Analytics Portal
-                  v2&quot;, &quot;Ops Console&quot;).
+                  v2&quot;, &quot;Content Engine&quot;).
                 </Bullet>
                 <Bullet>
                   <strong className="text-foreground">The rule is enforced in code.</strong>{" "}

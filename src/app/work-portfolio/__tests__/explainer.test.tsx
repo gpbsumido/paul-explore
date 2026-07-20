@@ -32,7 +32,7 @@ describe("explainer window", () => {
   it("opens from a project chip with blurb, stack, and cut features", () => {
     render(<WorkPortfolioContent />);
     const top = screen.getByLabelText("Projects ticker");
-    const project = PROJECTS[10];
+    const project = PROJECTS[PROJECTS.length - 1];
     fireEvent.click(
       within(top).getAllByRole("button", { name: `About ${project.name}` })[0],
     );

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.3
+
+- removed the Streaming Ops demo and its Ops Console project from the work-portfolio catalog, registry, and tests, trimming the set down as part of the demo revamp
+
 ## 2026-07-20 - version 0.25.2
 
 - updated menu settings to include Work Portfolio
