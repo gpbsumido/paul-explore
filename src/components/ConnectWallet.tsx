@@ -8,7 +8,6 @@ import Button from "@/components/ui/Button";
  * Web3Provider. Wraps RainbowKit's headless ConnectButton so the trigger uses
  * the app's Button while the connect/account modals stay RainbowKit's.
  */
-// ts-prune-ignore-next -- public wallet control, wired into the gamer-hub demo in a later phase of the work-portfolio update
 export default function ConnectWallet() {
   return (
     <ConnectButton.Custom>
