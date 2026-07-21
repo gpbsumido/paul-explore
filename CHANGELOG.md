@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.38
+
+- Web3 Gamer Hub: click an NFT to open a detail modal with its metadata, attributes, and a provenance/history timeline (fixture data)
+
 ## 2026-07-21 - version 0.25.37
 
 - each Public Dashboards slug is now actually its own dashboard: different chart type (line, bar, area, radial), its own tiles, and metrics that read the right way (counts, percentages, dollars, latency) instead of the same layout recolored. added an acquisition slug too
