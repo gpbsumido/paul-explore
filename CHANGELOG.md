@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.10
+
+- added app-wide wallet-connect support (wagmi + viem + RainbowKit) via a `Web3Provider` mounted in the root layout, themed to match light/dark. Groundwork for the gamer-hub wallet demo and reusable across the app. The WalletConnect project id reads from `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` (injected wallets work without it)
+
 ## 2026-07-20 - version 0.25.9
 
 - trimmed the work-portfolio stage padding and gaps so the demo surface gets a bit more room, groundwork for the demos that now use the extra space
