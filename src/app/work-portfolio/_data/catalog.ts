@@ -114,9 +114,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "CRUD flows for content campaigns",
     icon: "📣",
     explainer: {
-      did: "Create, edit, and track content campaigns with dedicated create and edit routes and a campaign detail view.",
-      stack: "Next.js app router, MUI forms, Redux store",
-      mocked: "The list and forms are real UI; persistence is an in-memory mock store.",
+      did: "The content team's home base: create, edit, and track marketing campaigns. I rebuilt the create flow as a progressive-disclosure wizard (basics, then schedule and targeting, then review) so a dense form never hits you all at once, and added a live store inspector that shows the Redux-style state and dispatched actions updating in real time as you work.",
+      stack: "Next.js app router, MUI forms, Redux Toolkit store",
+      mocked: "The multi-step create modal and the live action/state inspector are fully real; persistence is an in-memory store instead of the production API.",
     },
   },
   {
@@ -126,9 +126,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Scheduled content pipeline",
     icon: "🗓️",
     explainer: {
-      did: "A queue of scheduled posts with a calendar view, so teams could see and reorder what ships when.",
+      did: "A pipeline for scheduled posts. I rebuilt it as a kanban board (backlog, scheduled, published) with real drag-and-drop between columns and a click-to-edit modal, while the week strip recomputes its per-day counts as cards move. The interesting part was keeping drag state, column state, and the calendar counts in sync.",
       stack: "Next.js, MUI date pickers, Redux",
-      mocked: "Drag-to-reorder works; the schedule data is static mock content.",
+      mocked: "The dnd-kit board and the edit modal are real; the seed posts are static fixture content.",
     },
   },
   {
@@ -138,9 +138,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Posts, replies, community analytics",
     icon: "💬",
     explainer: {
-      did: "A community feed with per-post pages, settings, and a small analytics view for engagement.",
+      did: "A community feed with per-post threads. You can open a compose modal to add a post, reply inline so replies nest under their parent, watch likes tick up in real time, and open an analytics modal that derives engagement over time from the post's own numbers.",
       stack: "Next.js dynamic routes, MUI",
-      mocked: "Feed and detail views are real; engagement numbers are generated.",
+      mocked: "Posting, replying, the live like counter, and the analytics modal are real; the underlying engagement figures are generated.",
     },
   },
   {
@@ -150,9 +150,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Game character profiles",
     icon: "🎭",
     explainer: {
-      did: "Editable character sheets for game characters used in content, with a dedicated sheet editor route.",
+      did: "Editable profiles for the game characters that show up in content. The rework is a stepped create flow (identity, class, then a stat-budget allocator) where the budget logic caps how many points you can spend, so you can't build an illegal character. New sheets append to a roster.",
       stack: "Next.js, MUI form components",
-      mocked: "Edits apply locally to a mock character.",
+      mocked: "The stepper, the enforced stat budget, and the roster are real; everything lives in local state.",
     },
   },
   // Analytics Suite
@@ -164,9 +164,9 @@ export const FEATURES: WorkFeature[] = [
     icon: "📊",
     flagship: true,
     explainer: {
-      did: "A documented library of 17 chart components: cohort retention, conversion funnel, gauge, Pareto, word cloud, ranked table, time series with KPI, and more.",
+      did: "A documented library of 17 chart types (cohort retention, conversion funnel, gauge, Pareto, word cloud, ranked table, time series with KPI, and more). Here they all render off one shared seed with a reroll, each chart opens a settings modal to change type, series, palette, and options live, and a fixed focus mode pages through them full-size. The skill on show is a consistent, configurable chart API across very different chart shapes.",
       stack: "ECharts wrapped in typed React components, one markdown doc per chart",
-      mocked: "Charts are rebuilt on this site's chart stack with generated data; the originals used ECharts.",
+      mocked: "All 17 charts, the per-chart settings, the custom tooltip, and focus-mode paging are real, rebuilt on this site's chart stack with generated data; the originals used ECharts.",
     },
   },
   {
@@ -176,9 +176,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Game, web, and on-chain sections",
     icon: "📈",
     explainer: {
-      did: "Prebuilt analytics sections split by domain: game, web, on-chain, and a sandbox area.",
+      did: "Prebuilt analytics split by domain (game, web, on-chain). I replaced the static sections with interactive charts plus date-range and segment filters that actually recompute the series, so the page responds to the questions you ask of it rather than just displaying a snapshot.",
       stack: "Next.js route groups, embedded BI dashboards",
-      mocked: "Tabs and KPIs are real UI; the BI embeds are replaced with local charts.",
+      mocked: "The charts and filters are real and recompute locally; the production BI embeds are replaced with local charts.",
     },
   },
   // Driver Onboarding
@@ -190,9 +190,9 @@ export const FEATURES: WorkFeature[] = [
     icon: "🚗",
     flagship: true,
     explainer: {
-      did: "A multi-step driver signup keyed by driver id, carrying campaign attribution from the landing link through completion.",
+      did: "A take-home built into a multi-step gig-driver signup, keyed by driver id, that carries campaign attribution from the landing link all the way through completion. Each step validates before you advance, and the attribution chip persists across the whole flow.",
       stack: "Next.js 16, Tailwind, route handlers",
-      mocked: "Validation and steps are real; submissions land in memory, not an API.",
+      mocked: "Per-step validation and the attribution carry-through are real; submissions land in memory, not an API.",
     },
   },
   {
@@ -202,9 +202,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Live campaign analytics",
     icon: "⚡",
     explainer: {
-      did: "A campaign analytics dashboard that refreshed live as signups came in.",
+      did: "The companion dashboard for the signup take-home: campaign analytics that refresh live as new signups land, so you can watch acquisition move in near real time.",
       stack: "Next.js, Recharts, polling API route",
-      mocked: "The tick is a local interval instead of a polling API; the chart is real.",
+      mocked: "The chart is real; the live tick is a local interval instead of a polling API.",
     },
   },
   // Portal v1
@@ -215,9 +215,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "One dashboard per game",
     icon: "🎮",
     explainer: {
-      did: "Dedicated analytics pages per client game title, each with its own layout and metrics.",
+      did: "Per-title analytics for studios. I reworked it into a config-driven multi-title view with a compare mode that diffs two titles' KPIs side by side and shows the derived deltas. The point it demonstrates is one reusable config shaping many dashboards, rather than a hand-built page per game.",
       stack: "Next.js pages router, ECharts, MUI",
-      mocked: "Titles are renamed to Game A, B, C; the switcher reskins one dashboard.",
+      mocked: "The compare mode and delta math are real and config-driven; titles are anonymized to Game A, B, C.",
     },
   },
   // Platform Console
@@ -228,9 +228,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Orgs, users, API keys, configs",
     icon: "🔐",
     explainer: {
-      did: "Administration for organizations, users, analytics configs, custom dashboards, API keys, and cache.",
+      did: "The platform's back office: organizations, users, analytics configs, API keys. I rebuilt it as a small CRUD console where you create each entity through a modal and wire up the relations between them (users to orgs, keys to owners, configs to orgs), with the tables and a local store staying in sync on both sides of each assignment.",
       stack: "Next.js 15, MUI 7, Redux",
-      mocked: "Tables and the key reveal/copy flow are real; the data is fixture content.",
+      mocked: "Create flows, the assignment relations, and the key reveal/copy are real and persist locally; the seed data is fixture content.",
     },
   },
   {
@@ -240,9 +240,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Assisted content generation",
     icon: "✨",
     explainer: {
-      did: "An AI-assisted content generation module inside the platform shell.",
+      did: "An AI-assisted content module in the platform shell. It generates copy with a streamed, token-by-token response, and a post-to-social action opens a confirm modal where you pick a character voice (hype announcer, grumpy veteran, lore keeper, meme lord) and the copy comes back restyled in that voice.",
       stack: "Next.js, streaming responses",
-      mocked: "Responses are canned and streamed locally, no model behind it.",
+      mocked: "The streaming UI, confirm gate, and voice branching are real; the copy is canned, there is no model behind it.",
     },
   },
   // Conference Game Demo
@@ -253,9 +253,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Engine build embedded on the web",
     icon: "🕹️",
     explainer: {
-      did: "A small game built for a conference booth, later wrapped as a web embed inside the analytics portal.",
+      did: "A booth game later wrapped as a web embed in the analytics portal. Here the build screen actually loads to completion and drops into a small self-contained reflex minigame (tap the targets) with a timed round, a game-over screen, and a locally-saved best score, standing in for the original engine build.",
       stack: "Unity project, WebGL embed wrapper page",
-      mocked: "This is a faux frame showing the embed pattern; the real build is not shipped here.",
+      mocked: "The loading-to-playable flow and the canvas minigame are real; the original engine build is not shipped here.",
     },
   },
   // Public Dashboards
@@ -266,9 +266,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Config in, dashboard out",
     icon: "🔗",
     explainer: {
-      did: "One catch-all route rendered many public game dashboards purely from slug config.",
+      did: "One catch-all route that rendered many public game dashboards purely from slug config. To make the idea legible I show the JSON config each slug renders from next to the result, and gave each slug its own tiles, chart type, and metric formatting, so switching slugs reshapes the whole dashboard rather than just recoloring it.",
       stack: "Next.js catch-all routes, config-driven rendering",
-      mocked: "The slug picker reshapes one local dashboard from JSON config.",
+      mocked: "The slug picker, the read-only config panel, and the distinct per-slug layouts are real; the numbers are generated locally.",
     },
   },
   // Gamer Hub
@@ -279,9 +279,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "On-chain assets in a grid",
     icon: "👛",
     explainer: {
-      did: "Wallet connect plus an inventory of on-chain game assets with metadata from a GraphQL indexer.",
-      stack: "ethers.js, wallet-connect modal, GraphQL",
-      mocked: "The wallet is fake and the assets are fixtures; no chain calls.",
+      did: "Wallet login plus an on-chain asset inventory. This uses a real wallet connect (wagmi and RainbowKit): connect a browser wallet and it reads your actual address, ENS, and balance. Click an asset for a detail modal with attributes and a provenance timeline, or flip on transfer mode to drag NFTs between two wallet panes.",
+      stack: "ethers.js and a wallet-connect modal originally; rebuilt on wagmi + viem + RainbowKit",
+      mocked: "The wallet connect and the balance/ENS reads are real; the NFT grid is fixture data and the drag transfer is a visualization, not a chain transaction.",
     },
   },
   // UA & Referrals
@@ -292,9 +292,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Create and edit UA campaigns",
     icon: "🛠️",
     explainer: {
-      did: "Create and edit user-acquisition campaigns with configurable reward and targeting fields.",
+      did: "The builder for user-acquisition campaigns. I turned it into a stepped, disclosed flow (basics, targeting, review) gated on having a name, with a live preview card that persists and updates across every step so you always see the campaign taking shape.",
       stack: "CRA, MUI forms",
-      mocked: "The live preview card is real; saving is local.",
+      mocked: "The stepped flow and the persisting live preview are real; saving is local.",
     },
   },
   {
@@ -304,9 +304,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Affiliate links and tracking",
     icon: "🔁",
     explainer: {
-      did: "Public referral landing links and affiliate registration, with click tracking into campaigns.",
-      stack: "CRA, public routes, tracking endpoints",
-      mocked: "Link generation and the copy flow are real; the click counter is simulated.",
+      did: "Referral links feeding campaign attribution. This one is genuinely wired to a small Express + Postgres service I built alongside the site: you create real links to paulsumido.com with server-side slug uniqueness, then see real click stats polled back with loading and empty states. A taken slug comes back as a friendly error.",
+      stack: "CRA and public routes originally; here a typed client + react-query against a portfolio_api referrals service",
+      mocked: "Link creation and click tracking are real HTTP calls; if the service is unreachable the demo degrades gracefully instead of breaking.",
     },
   },
   {
@@ -316,9 +316,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Login, recovery, verification",
     icon: "🪪",
     explainer: {
-      did: "Full identity flows against a hosted identity provider: login, registration, recovery, verification, plus a wallet-passport login option.",
+      did: "The full identity surface against a hosted provider: login, registration, recovery, verification, and a wallet-passport option. The fields are actually typeable with inline validation (email format, password length, matching confirm, six-digit code), presented as a walkthrough of the screens.",
       stack: "Hosted-identity SDK, CRA public routes",
-      mocked: "Presented as a stepper walkthrough of the screens; nothing authenticates.",
+      mocked: "The typeable fields and validation are real; nothing actually authenticates.",
     },
   },
   // Portal v2
@@ -330,9 +330,9 @@ export const FEATURES: WorkFeature[] = [
     icon: "🧩",
     flagship: true,
     explainer: {
-      did: "A drag-and-drop dashboard builder with a widget grid and a visual chart designer.",
+      did: "A drag-and-drop dashboard builder: compose a widget grid from a palette, then reorder and resize. I reworked the drag-drop on dnd-kit so a widget drops reliably into empty cells and earlier slots (the original gridstack behavior that was awkward to reproduce), and kept keyboard move and resize on buttons for accessibility.",
       stack: "Gridstack layout engine, ECharts, MUI",
-      mocked: "The grid is rebuilt with CSS grid and framer-motion instead of the layout engine.",
+      mocked: "The dnd-kit grid, reorder, and resize are real; the widget contents are generated.",
     },
   },
   {
@@ -343,9 +343,9 @@ export const FEATURES: WorkFeature[] = [
     icon: "🔎",
     flagship: true,
     explainer: {
-      did: "Look up any wallet address and browse an overview, NFT holdings, and transaction history in tabs.",
+      did: "Look up any wallet address and browse an overview, NFT holdings, and transaction history across tabs. The interesting work was the data-fetching shell: query keys per tab, and honest loading and empty states for a surface where any tab can be sparse.",
       stack: "TanStack Query, data-grid tables, chain data API",
-      mocked: "Addresses resolve to fixture wallets; loading and empty states are real.",
+      mocked: "The tabbed UI plus the loading and empty states are real; addresses resolve to fixture wallets.",
     },
   },
   {
@@ -355,9 +355,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Template builder and campaigns",
     icon: "✉️",
     explainer: {
-      did: "Marketing tooling: a block-based email template builder, campaign tables, audiences, and message-of-the-day campaigns.",
+      did: "Marketing tooling built around a block-based email template builder next to a campaign table. The blocks are editable in place (heading, body, and button text type right in the preview) and image blocks import a local file straight to a data URL, so you compose a real template without a server round-trip.",
       stack: "React, MUI, block editor",
-      mocked: "The composer preview is real; sending and audiences are fixtures.",
+      mocked: "Inline block editing and local image import are real; the campaign table and audiences are fixtures.",
     },
   },
   {
@@ -367,9 +367,9 @@ export const FEATURES: WorkFeature[] = [
     tagline: "Hooks as a node graph",
     icon: "🕸️",
     explainer: {
-      did: "Project automation: hooks and workflows edited in a node-graph editor with an embedded code editor.",
+      did: "Project automation edited as a node graph. It's an editable, hand-built SVG graph: drag nodes around, edit a node's label and config in place, and add or remove the connections between nodes. Building the drag and the edge model directly on SVG, rather than reaching for a graph library, was the fun constraint.",
       stack: "Node-graph library, embedded code editor, React",
-      mocked: "The graph is a hand-built SVG mock and the code pane is read-only.",
+      mocked: "Node dragging, in-place config editing, and add/remove edges are real; the starting graph is fixture data.",
     },
   },
   {
@@ -380,9 +380,9 @@ export const FEATURES: WorkFeature[] = [
     icon: "🤖",
     flagship: true,
     explainer: {
-      did: "An LLM chat demo and an agents portal inside the analytics product.",
+      did: "A chat and agents surface in the analytics product. It implements the full set of agent-UI patterns: an agent/chat mode toggle, a plan of steps that ticks off, a tool-call row that runs then completes, tokens that stream in, citation chips, and stop/retry controls. The value is the UI vocabulary for showing an agent's work, not any single answer.",
       stack: "React chat UI, streaming backend",
-      mocked: "Responses are canned and streamed locally, tool-call rows included.",
+      mocked: "Every pattern is real UI; the responses are canned and streamed locally, there is no model.",
     },
   },
 ];
