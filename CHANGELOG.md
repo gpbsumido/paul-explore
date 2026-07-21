@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.44
+
+- Auth Flows fields are now actually typeable with inline validation (email format, password length, matching confirm, 6-digit code). still a walkthrough, nothing authenticates
+
+## 2026-07-21 - version 0.25.43
+
+- Referral Links now shows real click stats from the API, polling so the total ticks up, with a recent-clicks list and proper loading and empty states. an "open link" button records a click so you can watch it move
+
+## 2026-07-21 - version 0.25.42
+
+- Referral Links now creates real links against the portfolio_api: pick where it points on paulsumido.com, optionally name the slug, and the server enforces uniqueness (a taken slug comes back as a friendly error). shows the created link with copy
+
+## 2026-07-21 - version 0.25.41
+
+- UA Campaign Builder is now a stepped flow (basics, targeting, review) that only lets you move on once the campaign has a name, with the live preview card carrying across every step
+
 ## 2026-07-21 - version 0.25.40
 
 - Web3 Gamer Hub now uses a real wallet connect (the shared wagmi/RainbowKit setup): connect a browser wallet and it shows your actual address, ENS, and balance. the NFT grid stays fixture data. the demo mounts its own Web3Provider so wallet code only loads here, not app-wide
