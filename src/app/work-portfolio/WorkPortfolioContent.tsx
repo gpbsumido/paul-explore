@@ -116,7 +116,7 @@ export default function WorkPortfolioContent() {
         ))}
       </Ticker>
       <main
-        className="flex min-h-0 flex-1 items-center gap-2 px-2 py-2"
+        className="flex min-h-0 flex-1 items-center gap-1 px-1 py-1.5"
         aria-label="Demo stage"
       >
         <StageArrow dir="prev" onClick={() => step(-1)} />
@@ -133,7 +133,7 @@ export default function WorkPortfolioContent() {
               {selected === null ? (
                 <IntroCard />
               ) : (
-                <div className="flex h-full flex-col gap-2">
+                <div className="flex h-full flex-col gap-1.5">
                   {/* compact header row so the demo surface gets ~95% of the space */}
                   <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5">
                   <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted">

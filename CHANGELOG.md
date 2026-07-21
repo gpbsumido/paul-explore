@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.9
+
+- trimmed the work-portfolio stage padding and gaps so the demo surface gets a bit more room, groundwork for the demos that now use the extra space
+
 ## 2026-07-20 - version 0.25.8
 
 - the work-portfolio info popup now stays open once shown (whether opened by hover or click) until you dismiss it with the close button or Escape; hovering away or pressing outside no longer closes it
