@@ -3,12 +3,15 @@
 import { useState } from "react";
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
   useDraggable,
   useDroppable,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import IconButton from "@/components/ui/IconButton";
 import Modal from "@/components/ui/Modal";
@@ -44,20 +47,18 @@ function Card({
   onMove: (id: number, dir: -1 | 1) => void;
   onEdit: (id: number) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: post.id });
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: post.id,
+  });
   const idx = COLUMNS.indexOf(post.column);
   return (
     <li
       ref={setNodeRef}
       data-post={post.id}
       data-column={post.column}
-      style={{
-        transform: transform
-          ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-          : undefined,
-        opacity: isDragging ? 0.4 : 1,
-      }}
+      // The moving card is drawn by the DragOverlay (which follows the pointer
+      // across columns), so the source just dims in place as a placeholder.
+      style={{ opacity: isDragging ? 0.4 : 1 }}
       className="flex items-center justify-between gap-1 rounded-md border border-border bg-background px-2 py-1.5"
     >
       <span
@@ -212,7 +213,9 @@ function EditPostModal({
 export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
   const [posts, setPosts] = useState<Post[]>(INITIAL);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [activeId, setActiveId] = useState<number | null>(null);
   const editing = posts.find((p) => p.id === editingId) ?? null;
+  const activePost = posts.find((p) => p.id === activeId) ?? null;
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -226,7 +229,10 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
       return movePost(ps, id, COLUMNS[idx]);
     });
 
+  const onDragStart = (e: DragStartEvent) => setActiveId(Number(e.active.id));
+
   const onDragEnd = (e: DragEndEvent) => {
+    setActiveId(null);
     const target = e.over?.id;
     if (typeof target === "string" && COLUMNS.includes(target as Column)) {
       setPosts((ps) => movePost(ps, Number(e.active.id), target as Column));
@@ -259,7 +265,13 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
         ))}
       </div>
 
-      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={pointerWithin}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragCancel={() => setActiveId(null)}
+      >
         <div className="grid min-h-0 flex-1 grid-cols-3 gap-2">
           {COLUMNS.map((c) => (
             <ColumnZone
@@ -271,6 +283,16 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
             />
           ))}
         </div>
+        <DragOverlay dropAnimation={null}>
+          {activePost ? (
+            <div className="flex cursor-grabbing items-center gap-1 rounded-md border border-border bg-background px-2 py-1.5 text-[12px] text-foreground shadow-lg">
+              <span className="mr-1.5 text-[10px] text-muted">
+                {DAYS[activePost.day]}
+              </span>
+              {activePost.title}
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
 
       {editing && (
