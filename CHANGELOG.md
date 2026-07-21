@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.33
+
+- the AI Content Module can now "post to social (not really)": a confirm modal lets you pick a character voice (Hype Announcer, Grumpy Veteran, Lore Keeper, Meme Lord) and posts the copy restyled in that voice, streamed in
+
 ## 2026-07-21 - version 0.25.32
 
 - Admin Suite rows can now reassign in place: move a user to another org, a key to another owner, or a config to another org, all persisted locally
