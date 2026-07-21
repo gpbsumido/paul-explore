@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.28
+
+- computed the Pareto chart's cumulative line without a mutable render-scoped variable, satisfying the react-compiler immutability lint
+
+## 2026-07-21 - version 0.25.27
+
+- reworked Standard Analytics into an interactive dashboard: KPI cards double as metric selectors and a range (7/30/90d) and segment (all/new/returning) filter recompute a live area chart per domain tab. Also fixed the chart not drawing (recharts needs a definite-height parent)
+
+## 2026-07-21 - version 0.25.26
+
+- Chart Library charts can now be renamed and re-accented through a settings modal (opened from a gear on each chart); the accent recolors that chart's series via a scoped CSS variable
+
+## 2026-07-21 - version 0.25.25
+
+- Chart Library charts now use a shared design-system tooltip (a label plus a colored swatch and formatted value per series) instead of the default recharts one
+
+## 2026-07-21 - version 0.25.24
+
+- fixed the Chart Library focus mode: recharts charts rendered blank because their flex container measured zero height on mount; the focused chart now has a concrete min-height and renders
+
+## 2026-07-21 - version 0.25.23
+
+- expanded the Chart Library demo to all 17 chart types (added cohort heatmap, Pareto, sentiment word cloud, DAU trend/KPI, DAU-vs-MAU, session histogram, regional split, stacked revenue, correlation scatter, balance radar, and KPI tiles), all re-rolling on one seed
+
 ## 2026-07-21 - version 0.25.22
 
 - removed unused `@dnd-kit/sortable` and `@dnd-kit/utilities`; the kanban only needs `@dnd-kit/core` (they can come back if a later drag demo needs sortable)
