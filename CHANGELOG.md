@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.11
+
+- added a reusable `useWallet` hook (address, ENS, balance, connection status) and a design-system-styled `ConnectWallet` button, both usable anywhere under the wallet provider
+
 ## 2026-07-20 - version 0.25.10
 
 - added app-wide wallet-connect support (wagmi + viem + RainbowKit) via a `Web3Provider` mounted in the root layout, themed to match light/dark. Groundwork for the gamer-hub wallet demo and reusable across the app. The WalletConnect project id reads from `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` (injected wallets work without it)
