@@ -12,9 +12,7 @@ describe("llm assistant demo", () => {
     vi.useFakeTimers();
     render(<LlmAssistantDemo feature={feature} />);
     fireEvent.click(screen.getByRole("button", { name: "How is retention?" }));
-    // the user's message shows immediately (button label + bubble = 2)
     expect(screen.getAllByText("How is retention?").length).toBeGreaterThan(1);
-    // the answer fills in as words stream
     act(() => vi.advanceTimersByTime(2000));
     expect(screen.getByText(/D1 retention/)).toBeInTheDocument();
   });
@@ -23,10 +21,8 @@ describe("llm assistant demo", () => {
     vi.useFakeTimers();
     render(<LlmAssistantDemo feature={feature} />);
     fireEvent.click(screen.getByRole("button", { name: "How is retention?" }));
-    // the tool call appears immediately, running
     const tool = screen.getByTestId("tool-call");
     expect(tool).toHaveTextContent("query_warehouse");
-    // after the tool finishes, the answer streams in
     act(() => vi.advanceTimersByTime(2500));
     expect(screen.getByText(/D1 retention/)).toBeInTheDocument();
   });
@@ -40,5 +36,48 @@ describe("llm assistant demo", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
     act(() => vi.advanceTimersByTime(2000));
     expect(screen.getByText(/Revenue is up/)).toBeInTheDocument();
+  });
+
+  it("streaming completes and re-enables the composer, with citations", () => {
+    vi.useFakeTimers();
+    render(<LlmAssistantDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "How is retention?" }));
+    act(() => vi.advanceTimersByTime(4000));
+    expect(screen.getByRole("button", { name: "Send" })).toBeEnabled();
+    expect(screen.getByText(/\[1\]/)).toBeInTheDocument();
+  });
+
+  it("stops an in-progress stream and leaves the partial answer", () => {
+    vi.useFakeTimers();
+    render(<LlmAssistantDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "How is retention?" }));
+    act(() => vi.advanceTimersByTime(700));
+    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+    const partial = screen.getByTestId("assistant-text").textContent;
+    act(() => vi.advanceTimersByTime(3000));
+    expect(screen.getByTestId("assistant-text").textContent).toBe(partial);
+    expect(screen.getByRole("button", { name: "Send" })).toBeEnabled();
+  });
+
+  it("re-runs the last answer when retry is clicked", () => {
+    vi.useFakeTimers();
+    render(<LlmAssistantDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "How is retention?" }));
+    act(() => vi.advanceTimersByTime(4000));
+    expect(screen.queryByRole("button", { name: "Stop" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
+  });
+
+  it("shows a plan in agent mode and hides it in chat mode", () => {
+    vi.useFakeTimers();
+    render(<LlmAssistantDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "How is retention?" }));
+    expect(screen.getByTestId("agent-plan")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+    fireEvent.click(screen.getByRole("button", { name: "Chat" }));
+    fireEvent.click(screen.getByRole("button", { name: "What about revenue?" }));
+    expect(screen.queryByTestId("agent-plan")).toBeNull();
   });
 });

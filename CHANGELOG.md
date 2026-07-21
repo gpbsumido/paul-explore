@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.48
+
+- LLM Assistant now shows the full set of agent-UI patterns (all simulated): an agent/chat mode toggle, a plan of steps that ticks off, the tool-call row running then done, streamed tokens, citation chips, and stop/retry controls
+
+## 2026-07-21 - version 0.25.47
+
+- Workflow Editor is now editable: drag nodes around the graph, edit a node's label and config in place, and add or remove connections between nodes
+
+## 2026-07-21 - version 0.25.46
+
+- Email Studio blocks are now editable in place (heading, body, button text type right in the preview) and image blocks import a local file straight to a data URL, no server
+
+## 2026-07-21 - version 0.25.45
+
+- Dashboard Designer drag-drop reworked on dnd-kit: drag a widget by its title onto another to drop it into that slot, or onto a trailing zone to send it to the end, so it lands in empty cells reliably. move and resize buttons still work
+
 ## 2026-07-21 - version 0.25.44
 
 - Auth Flows fields are now actually typeable with inline validation (email format, password length, matching confirm, 6-digit code). still a walkthrough, nothing authenticates
