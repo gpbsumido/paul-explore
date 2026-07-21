@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.8
+
+- the work-portfolio info popup now stays open once shown (whether opened by hover or click) until you dismiss it with the close button or Escape; hovering away or pressing outside no longer closes it
+
 ## 2026-07-20 - version 0.25.7
 
 - removed the Economy & Financial Health demo from the work-portfolio catalog and registry; it overlapped too much with the other analytics demos to earn its slot in the revamp

@@ -31,17 +31,6 @@ export default function ExplainerWindow({
     panelRef.current?.focus();
   }, [subject]);
 
-  // outside pointer presses dismiss
-  useEffect(() => {
-    const onPointerDown = (e: PointerEvent) => {
-      if (!panelRef.current) return;
-      if (e.target instanceof Node && panelRef.current.contains(e.target)) return;
-      onClose();
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [onClose]);
-
   // Escape closes and Tab cycles inside the panel. Document-level listener
   // instead of a JSX handler, dialogs are containers not interactive elements.
   useEffect(() => {

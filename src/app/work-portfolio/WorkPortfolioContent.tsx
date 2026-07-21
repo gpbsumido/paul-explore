@@ -26,24 +26,19 @@ export default function WorkPortfolioContent() {
   const [explainer, setExplainer] = useState<{
     subject: ExplainerSubject;
     edge: "top" | "bottom";
-    pinned: boolean;
   } | null>(null);
 
-  // Desktop hover opens an unpinned preview after a short delay; leaving
-  // the trigger closes it again unless a click pinned it in the meantime.
+  // Desktop hover opens the panel after a short delay. Once open it stays put
+  // until the user dismisses it with the close button or Escape, so leaving
+  // the trigger does not close it.
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverIntent =
     (subject: ExplainerSubject, edge: "top" | "bottom") =>
     (hovering: boolean) => {
       if (hoverTimer.current) clearTimeout(hoverTimer.current);
       if (hovering) {
-        hoverTimer.current = setTimeout(
-          () => setExplainer({ subject, edge, pinned: false }),
-          350,
-        );
-        return;
+        hoverTimer.current = setTimeout(() => setExplainer({ subject, edge }), 350);
       }
-      setExplainer((current) => (current && !current.pinned ? null : current));
     };
 
   const selected = selectedIndex === null ? null : FEATURES[selectedIndex];
@@ -114,7 +109,6 @@ export default function WorkPortfolioContent() {
               setExplainer({
                 subject: { kind: "project", project },
                 edge: "top",
-                pinned: true,
               })
             }
             onInfoHover={hoverIntent({ kind: "project", project }, "top")}
@@ -160,7 +154,6 @@ export default function WorkPortfolioContent() {
                             project: projectFor(selected),
                           },
                           edge: "bottom",
-                          pinned: true,
                         })
                       }
                       onMouseEnter={() =>
@@ -220,7 +213,6 @@ export default function WorkPortfolioContent() {
                   project: projectFor(feature),
                 },
                 edge: "bottom",
-                pinned: true,
               })
             }
             onInfoHover={hoverIntent(

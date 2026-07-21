@@ -58,7 +58,7 @@ describe("explainer window", () => {
     ).toBeInTheDocument();
   });
 
-  it("closes on Escape, the close button, and outside presses", () => {
+  it("closes on Escape and the close button, and stays open on outside presses", () => {
     render(<WorkPortfolioContent />);
     const bottom = screen.getByLabelText("Features ticker");
     const open = () =>
@@ -78,10 +78,10 @@ describe("explainer window", () => {
 
     open();
     fireEvent.pointerDown(document.body);
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("hover opens a preview after a delay and mouse-out closes it", () => {
+  it("hover opens the panel after a delay and it stays open on mouse-out", () => {
     vi.useFakeTimers();
     render(<WorkPortfolioContent />);
     const bottom = screen.getByLabelText("Features ticker");
@@ -95,10 +95,10 @@ describe("explainer window", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     fireEvent.mouseLeave(info);
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("a click pins the preview so mouse-out keeps it open", () => {
+  it("a click keeps the panel open on mouse-out", () => {
     vi.useFakeTimers();
     render(<WorkPortfolioContent />);
     const bottom = screen.getByLabelText("Features ticker");
