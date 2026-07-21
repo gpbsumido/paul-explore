@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.47
+
+- Workflow Editor is now editable: drag nodes around the graph, edit a node's label and config in place, and add or remove connections between nodes
+
 ## 2026-07-21 - version 0.25.46
 
 - Email Studio blocks are now editable in place (heading, body, button text type right in the preview) and image blocks import a local file straight to a data URL, no server
