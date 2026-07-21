@@ -14,6 +14,14 @@ describe("chart library demo", () => {
     expect(screen.getByText("Revenue mix")).toBeInTheDocument();
   });
 
+  it("renders all 17 chart types in the grid", () => {
+    render(<ChartLibraryDemo feature={feature} />);
+    expect(screen.getAllByRole("figure")).toHaveLength(17);
+    expect(screen.getByText("Cohort retention")).toBeInTheDocument();
+    expect(screen.getByText("Balance radar")).toBeInTheDocument();
+    expect(screen.getByText("KPI tiles")).toBeInTheDocument();
+  });
+
   it("counts up re-rolls when the reroll button is clicked", () => {
     render(<ChartLibraryDemo feature={feature} />);
     expect(screen.getByText(/re-rolled 0 times/)).toBeInTheDocument();
