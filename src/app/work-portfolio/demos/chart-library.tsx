@@ -526,7 +526,10 @@ export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) 
               </IconButton>
             </span>
           </figcaption>
-          <div className="min-h-0 flex-1">
+          {/* concrete min-height so recharts' ResponsiveContainer measures a
+              non-zero size on mount; a bare flex-1/min-h-0 read 0 and the
+              chart never rendered */}
+          <div className="min-h-[15rem] flex-1">
             <focused.Chart seed={seed + focused.key.length} />
           </div>
         </figure>

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.24
+
+- fixed the Chart Library focus mode: recharts charts rendered blank because their flex container measured zero height on mount; the focused chart now has a concrete min-height and renders
+
 ## 2026-07-21 - version 0.25.23
 
 - expanded the Chart Library demo to all 17 chart types (added cohort heatmap, Pareto, sentiment word cloud, DAU trend/KPI, DAU-vs-MAU, session histogram, regional split, stacked revenue, correlation scatter, balance radar, and KPI tiles), all re-rolling on one seed
