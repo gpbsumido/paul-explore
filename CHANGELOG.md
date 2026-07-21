@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.19
+
+- Community Mode now lets you compose a new post or reply to a post through a modal; replies thread under their post with a count
+
 ## 2026-07-20 - version 0.25.18
 
 - Post Queue kanban cards now open an edit modal on click (or keyboard activation) to change a post's title, scheduled day, and column
