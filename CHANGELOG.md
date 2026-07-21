@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.25
+
+- Chart Library charts now use a shared design-system tooltip (a label plus a colored swatch and formatted value per series) instead of the default recharts one
+
 ## 2026-07-21 - version 0.25.24
 
 - fixed the Chart Library focus mode: recharts charts rendered blank because their flex container measured zero height on mount; the focused chart now has a concrete min-height and renders

@@ -40,6 +40,43 @@ const PALETTE = ["#38bdf8", "#818cf8", "#f472b6", "#34d399", "#f59e0b", "#a3e635
 /** Every chart takes a seed so the whole gallery re-rolls together. */
 type ChartProps = { seed: number };
 
+/** The runtime shape recharts hands a custom tooltip's content element. */
+type WpTooltipProps = {
+  active?: boolean;
+  label?: string | number;
+  payload?: Array<{
+    value?: number | string;
+    name?: string | number;
+    color?: string;
+    payload?: { fill?: string };
+  }>;
+};
+
+/** Shared tooltip styled to the design system: a label, then a swatch + value per series. */
+function WpTooltip({ active, payload, label }: WpTooltipProps) {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="rounded-md border border-border bg-background/95 px-2 py-1 text-[10px] shadow-md backdrop-blur">
+      {label !== undefined && label !== "" && (
+        <p className="mb-0.5 font-medium text-foreground">{label}</p>
+      )}
+      {payload.map((p, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <span
+            aria-hidden
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: (p.color ?? p.payload?.fill ?? ACCENT) as string }}
+          />
+          {p.name !== undefined && <span className="text-muted">{p.name}</span>}
+          <span className="ml-auto pl-2 font-medium tabular-nums text-foreground">
+            {Number(p.value).toLocaleString()}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function GrowthCurve({ seed }: ChartProps) {
   const rng = makeRng(seed);
   const data = Array.from({ length: 12 }, (_, i) => ({
@@ -57,7 +94,7 @@ function GrowthCurve({ seed }: ChartProps) {
         </defs>
         <XAxis dataKey="m" tick={{ fontSize: 9 }} stroke="currentColor" />
         <YAxis tick={{ fontSize: 9 }} stroke="currentColor" />
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Area type="monotone" dataKey="v" stroke={ACCENT} fill="url(#wpArea)" strokeWidth={2} isAnimationActive={false} />
       </AreaChart>
     </ResponsiveContainer>
@@ -75,7 +112,7 @@ function ConversionFunnel({ seed }: ChartProps) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <FunnelChart>
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Funnel dataKey="value" data={data} isAnimationActive={false}>
           <LabelList position="right" fill="currentColor" stroke="none" dataKey="name" fontSize={9} />
         </Funnel>
@@ -95,7 +132,7 @@ function RetentionBars({ seed }: ChartProps) {
       <BarChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: -24 }}>
         <XAxis dataKey="d" tick={{ fontSize: 9 }} stroke="currentColor" />
         <YAxis tick={{ fontSize: 9 }} stroke="currentColor" />
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Bar dataKey="r" radius={[3, 3, 0, 0]} isAnimationActive={false}>
           {data.map((_, i) => (
             <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
@@ -115,7 +152,7 @@ function RevenueDonut({ seed }: ChartProps) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Pie data={data} dataKey="value" innerRadius="55%" outerRadius="85%" isAnimationActive={false}>
           {data.map((_, i) => (
             <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
@@ -217,7 +254,7 @@ function ParetoChart({ seed }: ChartProps) {
         <XAxis dataKey="name" {...axis} />
         <YAxis yAxisId="l" {...axis} />
         <YAxis yAxisId="r" orientation="right" {...axis} />
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Bar yAxisId="l" dataKey="count" fill={ACCENT} radius={[3, 3, 0, 0]} isAnimationActive={false} />
         <Line yAxisId="r" dataKey="cum" stroke={PALETTE[2]} strokeWidth={2} dot={false} isAnimationActive={false} />
       </ComposedChart>
@@ -287,7 +324,7 @@ function DauMauLine({ seed }: ChartProps) {
       <LineChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: -24 }}>
         <XAxis dataKey="m" {...axis} />
         <YAxis {...axis} />
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Line dataKey="dau" stroke={PALETTE[0]} dot={false} strokeWidth={2} isAnimationActive={false} />
         <Line dataKey="mau" stroke={PALETTE[1]} dot={false} strokeWidth={2} isAnimationActive={false} />
       </LineChart>
@@ -306,7 +343,7 @@ function SessionHistogram({ seed }: ChartProps) {
       <BarChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: -24 }}>
         <XAxis dataKey="b" {...axis} />
         <YAxis {...axis} />
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Bar dataKey="n" fill={PALETTE[3]} radius={[3, 3, 0, 0]} isAnimationActive={false} />
       </BarChart>
     </ResponsiveContainer>
@@ -323,7 +360,7 @@ function GeoSplit({ seed }: ChartProps) {
       <BarChart data={data} layout="vertical" margin={{ top: 2, right: 6, bottom: 0, left: 0 }}>
         <XAxis type="number" {...axis} hide />
         <YAxis type="category" dataKey="name" {...axis} width={40} />
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Bar dataKey="v" radius={[0, 3, 3, 0]} isAnimationActive={false}>
           {data.map((_, i) => (
             <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
@@ -347,7 +384,7 @@ function StackedArea({ seed }: ChartProps) {
       <AreaChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: -24 }}>
         <XAxis dataKey="i" {...axis} />
         <YAxis {...axis} />
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         {(["iap", "ads", "bp"] as const).map((k, i) => (
           <Area
             key={k}
@@ -376,7 +413,7 @@ function Correlation({ seed }: ChartProps) {
         <XAxis type="number" dataKey="x" {...axis} />
         <YAxis type="number" dataKey="y" {...axis} />
         <ZAxis range={[18, 18]} />
-        <Tooltip />
+        <Tooltip content={<WpTooltip />} />
         <Scatter data={data} fill={ACCENT} isAnimationActive={false} />
       </ScatterChart>
     </ResponsiveContainer>
