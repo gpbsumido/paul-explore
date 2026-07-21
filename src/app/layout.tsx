@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Web3Provider from "@/components/Web3Provider";
 import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
@@ -61,14 +60,12 @@ export default function RootLayout({
         </a>
         <Providers>
           <ThemeProvider>
-            <Web3Provider>
-              {/* id="main-content" is the skip link target. tabIndex={-1} allows
-                  programmatic focus from the skip link without making the div
-                  keyboard-reachable through normal Tab order. */}
-              <div id="main-content" tabIndex={-1}>
-                {children}
-              </div>
-            </Web3Provider>
+            {/* id="main-content" is the skip link target. tabIndex={-1} allows
+                programmatic focus from the skip link without making the div
+                keyboard-reachable through normal Tab order. */}
+            <div id="main-content" tabIndex={-1}>
+              {children}
+            </div>
           </ThemeProvider>
         </Providers>
         <SpeedInsights />

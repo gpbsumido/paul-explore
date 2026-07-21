@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.16
+
+- scoped the wallet provider off the root layout so wagmi/RainbowKit and their telemetry no longer load (and trip the site CSP) on every page. It will mount around the gamer-hub NFT demo when that lands, keeping wallet code off pages that do not use it
+
 ## 2026-07-20 - version 0.25.15
 
 - added a live store inspector to the Campaign Manager demo: a redux-devtools-style pane showing the dispatched-action log and a snapshot of the store, updating as you create and toggle campaigns
