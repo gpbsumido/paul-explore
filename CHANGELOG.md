@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.34
+
+- fixed the Conference Game demo hanging on "building": the booth build now loads to 100% and drops into a small reflex minigame (tap the targets to score) instead of an endless spinner
+
 ## 2026-07-21 - version 0.25.33
 
 - the AI Content Module can now "post to social (not really)": a confirm modal lets you pick a character voice (Hype Announcer, Grumpy Veteran, Lore Keeper, Meme Lord) and posts the copy restyled in that voice, streamed in
