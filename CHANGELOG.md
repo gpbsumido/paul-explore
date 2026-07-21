@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.17
+
+- reworked the Post Queue demo into a kanban board (Backlog / Scheduled / Published): cards drag between columns with dnd-kit, with keyboard-reachable move buttons as the accessible equivalent, and the week strip recomputes. Adds `@dnd-kit`
+
 ## 2026-07-20 - version 0.25.16
 
 - scoped the wallet provider off the root layout so wagmi/RainbowKit and their telemetry no longer load (and trip the site CSP) on every page. It will mount around the gamer-hub NFT demo when that lands, keeping wallet code off pages that do not use it
