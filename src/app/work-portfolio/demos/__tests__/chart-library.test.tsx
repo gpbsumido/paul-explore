@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import ChartLibraryDemo from "../chart-library";
 import { FEATURES, featureIndexBySlug } from "../../_data/catalog";
 
@@ -27,6 +27,21 @@ describe("chart library demo", () => {
     expect(screen.getByText(/re-rolled 0 times/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reroll data" }));
     expect(screen.getByText(/re-rolled 1 times/)).toBeInTheDocument();
+  });
+
+  it("renames a chart through the settings modal", () => {
+    render(<ChartLibraryDemo feature={feature} />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Edit Growth curve settings" }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "Chart settings" });
+    fireEvent.change(within(dialog).getByLabelText("Title"), {
+      target: { value: "New signups" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
+
+    expect(screen.getByText("New signups")).toBeInTheDocument();
+    expect(screen.queryByText("Growth curve")).toBeNull();
   });
 
   it("focus mode shows one chart at a time and steps through them", () => {

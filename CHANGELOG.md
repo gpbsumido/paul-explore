@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.26
+
+- Chart Library charts can now be renamed and re-accented through a settings modal (opened from a gear on each chart); the accent recolors that chart's series via a scoped CSS variable
+
 ## 2026-07-21 - version 0.25.25
 
 - Chart Library charts now use a shared design-system tooltip (a label plus a colored swatch and formatted value per series) instead of the default recharts one

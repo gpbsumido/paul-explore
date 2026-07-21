@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import Button from "@/components/ui/Button";
 import IconButton from "@/components/ui/IconButton";
+import Modal from "@/components/ui/Modal";
+import Input from "@/components/ui/Input";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -475,21 +477,96 @@ const GALLERY: { key: string; title: string; Chart: (p: ChartProps) => React.Rea
   { key: "tiles", title: "KPI tiles", Chart: KpiTiles },
 ];
 
+type Override = { title?: string; accent?: string };
+
+/** Edit one chart's title and accent color. The accent overrides --wp-accent
+ *  on that chart's figure, which its accent-colored series pick up for free. */
+function ChartSettingsModal({
+  defaultTitle,
+  current,
+  onClose,
+  onSave,
+}: {
+  defaultTitle: string;
+  current: Override;
+  onClose: () => void;
+  onSave: (patch: Override) => void;
+}) {
+  const [title, setTitle] = useState(current.title ?? defaultTitle);
+  const [accent, setAccent] = useState(current.accent ?? PALETTE[0]);
+  return (
+    <Modal open onClose={onClose} aria-label="Chart settings">
+      <div className="flex flex-col gap-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
+          Chart settings
+        </p>
+        <Input
+          label="Title"
+          size="sm"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[13px] font-medium text-foreground">Accent</span>
+          <div className="flex gap-2">
+            {PALETTE.map((c) => (
+              <button
+                key={c}
+                type="button"
+                aria-label={`Accent ${c}`}
+                aria-pressed={accent === c}
+                onClick={() => setAccent(c)}
+                className={`h-6 w-6 rounded-full transition-transform ${
+                  accent === c ? "ring-2 ring-foreground ring-offset-1" : ""
+                }`}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => onSave({ title: title.trim() || defaultTitle, accent })}
+          >
+            Apply
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 /**
  * Flagship demo for the analytics suite's chart library. The original was
  * 17 documented ECharts components; this rebuilds a representative set on
- * recharts, all sharing one seed so the whole board re-rolls together.
+ * recharts, all sharing one seed so the whole board re-rolls together. Each
+ * chart can be renamed and re-accented through a settings modal.
  */
 export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) {
   const [seed, setSeed] = useState(7);
   const [mode, setMode] = useState<"grid" | "focus">("grid");
   const [focusIndex, setFocusIndex] = useState(0);
+  const [overrides, setOverrides] = useState<Record<string, Override>>({});
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   // referenced so the re-roll count is visible and stable per seed
   const rerolls = useMemo(() => Math.floor(seed / 7) - 1, [seed]);
 
   const focused = GALLERY[focusIndex];
   const stepFocus = (d: 1 | -1) =>
     setFocusIndex((i) => (i + d + GALLERY.length) % GALLERY.length);
+
+  const titleOf = (key: string, def: string) => overrides[key]?.title ?? def;
+  const styleOf = (key: string) =>
+    overrides[key]?.accent
+      ? ({ "--wp-accent": overrides[key]!.accent } as React.CSSProperties)
+      : undefined;
+  const editing = editingKey
+    ? GALLERY.find((g) => g.key === editingKey)
+    : null;
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
@@ -527,10 +604,19 @@ export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) 
           {GALLERY.map(({ key, title, Chart }) => (
             <figure
               key={key}
+              style={styleOf(key)}
               className="flex min-h-36 flex-col rounded-lg border border-border bg-background/40 p-2"
             >
-              <figcaption className="mb-1 text-[11px] font-medium text-muted">
-                {title}
+              <figcaption className="mb-1 flex items-center justify-between gap-1 text-[11px] font-medium text-muted">
+                <span className="truncate">{titleOf(key, title)}</span>
+                <IconButton
+                  size="sm"
+                  aria-label={`Edit ${titleOf(key, title)} settings`}
+                  onClick={() => setEditingKey(key)}
+                  className="!h-4 !w-4 shrink-0 text-[10px]"
+                >
+                  ⚙
+                </IconButton>
               </figcaption>
               <div className="min-h-0 flex-1">
                 <Chart seed={seed + key.length} />
@@ -539,12 +625,23 @@ export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) 
           ))}
         </div>
       ) : (
-        <figure className="flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-background/40 p-3">
+        <figure
+          style={styleOf(focused.key)}
+          className="flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-background/40 p-3"
+        >
           <figcaption className="mb-2 flex items-center justify-between">
             <span className="text-[12px] font-medium text-foreground">
-              {focused.title}
+              {titleOf(focused.key, focused.title)}
             </span>
             <span className="flex gap-1">
+              <IconButton
+                size="sm"
+                aria-label={`Edit ${titleOf(focused.key, focused.title)} settings`}
+                onClick={() => setEditingKey(focused.key)}
+                className="!h-6 !w-6 border border-border text-[11px]"
+              >
+                ⚙
+              </IconButton>
               <IconButton
                 size="sm"
                 aria-label="Previous chart"
@@ -570,6 +667,18 @@ export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) 
             <focused.Chart seed={seed + focused.key.length} />
           </div>
         </figure>
+      )}
+
+      {editing && (
+        <ChartSettingsModal
+          defaultTitle={editing.title}
+          current={overrides[editing.key] ?? {}}
+          onClose={() => setEditingKey(null)}
+          onSave={(patch) => {
+            setOverrides((o) => ({ ...o, [editing.key]: patch }));
+            setEditingKey(null);
+          }}
+        />
       )}
     </div>
   );
