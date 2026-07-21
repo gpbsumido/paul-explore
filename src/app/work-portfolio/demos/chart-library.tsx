@@ -245,10 +245,11 @@ function ParetoChart({ seed }: ChartProps) {
     .map((name) => ({ name, count: roundish(20 + rng() * 180) }))
     .sort((a, b) => b.count - a.count);
   const total = raw.reduce((s, d) => s + d.count, 0);
-  let cum = 0;
-  const data = raw.map((d) => {
-    cum += d.count;
-    return { ...d, cum: roundish((cum / total) * 100) };
+  const data = raw.map((d, i) => {
+    const cumCount = raw
+      .slice(0, i + 1)
+      .reduce((s, x) => s + x.count, 0);
+    return { ...d, cum: roundish((cumCount / total) * 100) };
   });
   return (
     <ResponsiveContainer width="100%" height="100%">
