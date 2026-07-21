@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.51
+
+- fixed the work-portfolio wallet and referral demos being blocked by the Content-Security-Policy: allowed the referral API, the WalletConnect relay/endpoints, and the wallet RPC hosts in connect-src (plus wallet icons in img-src), and pinned the wagmi RPC endpoints so the allowed hosts stay in sync with what actually gets called
+
 ## 2026-07-21 - version 0.25.50
 
 - final polish pass: updated the README for the rebuild (real wallet connect, referral service, drag-and-drop editors, simulated agent UI) and corrected the feature and project counts. full suite and axe a11y checks green
