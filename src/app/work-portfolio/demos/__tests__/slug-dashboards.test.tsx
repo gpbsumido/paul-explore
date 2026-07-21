@@ -28,4 +28,20 @@ describe("slug dashboards demo", () => {
     expect(config()).toContain('"slug": "economy"');
     expect(config()).not.toContain('"slug": "overview"');
   });
+
+  it("changes chart type and tile set across slugs, not just the accent", () => {
+    render(<SlugDashboardsDemo feature={feature} />);
+    const chartType = () => screen.getByTestId("dashboard-chart").getAttribute("data-chart-type");
+    const tileCount = () => screen.getAllByTestId("dashboard-tile").length;
+
+    const overviewChart = chartType();
+    const overviewTiles = tileCount();
+
+    fireEvent.change(screen.getByLabelText("Dashboard slug"), {
+      target: { value: "economy" },
+    });
+
+    expect(chartType()).not.toBe(overviewChart);
+    expect(tileCount()).not.toBe(overviewTiles);
+  });
 });
