@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.32
+
+- Admin Suite rows can now reassign in place: move a user to another org, a key to another owner, or a config to another org, all persisted locally
+
 ## 2026-07-21 - version 0.25.31
 
 - reworked the Admin Suite into a tabbed console (orgs, users, API keys, configs) with create flows that assign each new user/key/config to an org or user, plus per-key reveal/copy. Persists to local storage (local memory), no backend, via a new `usePersistentState` hook

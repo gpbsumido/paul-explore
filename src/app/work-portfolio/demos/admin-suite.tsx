@@ -92,6 +92,34 @@ function initialFields(
   return { name: "", value: "", orgId: orgs[0]?.id ?? "" };
 }
 
+/** A compact inline select used to reassign a row's org/owner in place. */
+function RowSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { id: string; label: string }[];
+}) {
+  return (
+    <select
+      aria-label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="max-w-[7rem] shrink-0 truncate rounded border border-border bg-surface px-1 py-0.5 text-[10px] text-muted"
+    >
+      {options.map((o) => (
+        <option key={o.id} value={o.id}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 /** The create form for whichever entity tab is active. Users/keys/configs
  *  carry an assignment (org or user) set right here at creation. */
 function CreateModal({
@@ -183,9 +211,6 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const orgName = (id: string) => orgs.find((o) => o.id === id)?.name ?? "—";
-  const userName = (id: string) => users.find((u) => u.id === id)?.name ?? "—";
-
   const create = (payload: Record<string, string>) => {
     if (tab === "Users") {
       setUsers((u) => [
@@ -201,6 +226,16 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
     }
     setCreating(null);
   };
+
+  const reassignUser = (id: string, orgId: string) =>
+    setUsers((us) => us.map((u) => (u.id === id ? { ...u, orgId } : u)));
+  const reassignKey = (id: string, userId: string) =>
+    setKeys((ks) => ks.map((k) => (k.id === id ? { ...k, userId } : k)));
+  const reassignConfig = (id: string, orgId: string) =>
+    setConfigs((cs) => cs.map((c) => (c.id === id ? { ...c, orgId } : c)));
+
+  const orgOptions = orgs.map((o) => ({ id: o.id, label: o.name }));
+  const userOptions = users.map((u) => ({ id: u.id, label: u.name }));
 
   const toggleReveal = (id: string) =>
     setRevealed((r) => {
@@ -252,15 +287,21 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
               <li key={u.id} className="flex items-center justify-between gap-2 py-1.5">
                 <span className="min-w-0">
                   <span className="block truncate text-foreground">{u.name}</span>
-                  <span className="text-[10px] text-muted">
-                    {u.email} · {orgName(u.orgId)}
-                  </span>
+                  <span className="text-[10px] text-muted">{u.email}</span>
                 </span>
-                <span
-                  className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
-                  style={{ backgroundColor: ROLE_TINT[u.role] }}
-                >
-                  {u.role}
+                <span className="flex shrink-0 items-center gap-2">
+                  <RowSelect
+                    label={`Org for ${u.name}`}
+                    value={u.orgId}
+                    onChange={(orgId) => reassignUser(u.id, orgId)}
+                    options={orgOptions}
+                  />
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
+                    style={{ backgroundColor: ROLE_TINT[u.role] }}
+                  >
+                    {u.role}
+                  </span>
                 </span>
               </li>
             ))}
@@ -285,9 +326,14 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
           <ul aria-label="Keys" className="divide-y divide-border text-[12px]">
             {keys.map((k) => (
               <li key={k.id} className="flex flex-col gap-1 py-1.5">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <span className="text-foreground">{k.label}</span>
-                  <span className="text-[10px] text-muted">{userName(k.userId)}</span>
+                  <RowSelect
+                    label={`Owner for ${k.label}`}
+                    value={k.userId}
+                    onChange={(userId) => reassignKey(k.id, userId)}
+                    options={userOptions}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[11px] text-foreground dark:bg-white/10">
@@ -315,12 +361,17 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
         {tab === "Configs" && (
           <ul aria-label="Configs" className="divide-y divide-border text-[12px]">
             {configs.map((c) => (
-              <li key={c.id} className="flex items-center justify-between py-1.5">
+              <li key={c.id} className="flex items-center justify-between gap-2 py-1.5">
                 <span className="min-w-0">
                   <code className="font-mono text-foreground">{c.name}</code>
                   <span className="ml-2 text-muted">= {c.value}</span>
                 </span>
-                <span className="text-[10px] text-muted">{orgName(c.orgId)}</span>
+                <RowSelect
+                  label={`Org for ${c.name}`}
+                  value={c.orgId}
+                  onChange={(orgId) => reassignConfig(c.id, orgId)}
+                  options={orgOptions}
+                />
               </li>
             ))}
           </ul>

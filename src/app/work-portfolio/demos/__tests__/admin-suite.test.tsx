@@ -45,6 +45,17 @@ describe("admin suite demo", () => {
     expect(within(rioRow).getByText(/Pixel Forge/)).toBeInTheDocument();
   });
 
+  it("reassigns a user to a different org in place", () => {
+    render(<AdminSuiteDemo feature={feature} />);
+    // Ana P. starts in Nova Studio (o1)
+    const orgSelect = screen.getByLabelText("Org for Ana P.") as HTMLSelectElement;
+    expect(orgSelect.value).toBe("o1");
+    fireEvent.change(orgSelect, { target: { value: "o2" } });
+    expect(
+      (screen.getByLabelText("Org for Ana P.") as HTMLSelectElement).value,
+    ).toBe("o2");
+  });
+
   it("creates a new org that becomes assignable", () => {
     render(<AdminSuiteDemo feature={feature} />);
     fireEvent.click(screen.getByRole("tab", { name: "Orgs" }));
