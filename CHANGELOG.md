@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.33
+
+- the AI Content Module can now "post to social (not really)": a confirm modal lets you pick a character voice (Hype Announcer, Grumpy Veteran, Lore Keeper, Meme Lord) and posts the copy restyled in that voice, streamed in
+
+## 2026-07-21 - version 0.25.32
+
+- Admin Suite rows can now reassign in place: move a user to another org, a key to another owner, or a config to another org, all persisted locally
+
+## 2026-07-21 - version 0.25.31
+
+- reworked the Admin Suite into a tabbed console (orgs, users, API keys, configs) with create flows that assign each new user/key/config to an org or user, plus per-key reveal/copy. Persists to local storage (local memory), no backend, via a new `usePersistentState` hook
+
 ## 2026-07-21 - version 0.25.30
 
 - made the authenticated e2e login setup resilient to fix intermittent CI timeouts: it retries the Auth0 login once from a clean state, handles an occasional consent screen, and gives the login-to-app redirect a longer (45s) timeout
