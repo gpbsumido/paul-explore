@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.15
+
+- added a live store inspector to the Campaign Manager demo: a redux-devtools-style pane showing the dispatched-action log and a snapshot of the store, updating as you create and toggle campaigns
+
 ## 2026-07-20 - version 0.25.14
 
 - reworked the Campaign Manager demo: creating a campaign now runs through a stepped modal (basics, then targeting/schedule, then a review) with progressive disclosure and per-step gating, backed by a reducer, instead of the inline one-field form

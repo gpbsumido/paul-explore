@@ -24,7 +24,9 @@ describe("campaign manager demo", () => {
     // the new campaign lands in the list (scoped past the closing modal's
     // review copy, which lingers during its exit animation)
     expect(
-      within(screen.getByRole("list")).getByText("Holiday event"),
+      within(screen.getByRole("list", { name: "Campaigns" })).getByText(
+        "Holiday event",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -32,6 +34,17 @@ describe("campaign manager demo", () => {
     render(<CampaignManagerDemo feature={feature} />);
     fireEvent.click(screen.getByRole("button", { name: "New campaign" }));
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  });
+
+  it("logs dispatched actions in the store inspector", () => {
+    render(<CampaignManagerDemo feature={feature} />);
+    expect(screen.getByText("@@INIT")).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Toggle Creator spotlight" }),
+    );
+    expect(screen.getByText("campaign/toggled")).toBeInTheDocument();
+    expect(screen.getByText(/Creator spotlight → Live/)).toBeInTheDocument();
   });
 
   it("toggles a campaign's status", () => {
