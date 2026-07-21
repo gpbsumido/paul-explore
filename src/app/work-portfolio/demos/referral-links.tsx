@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { useCreateReferral } from "@/hooks/useReferrals";
+import { useCreateReferral, useReferralStats } from "@/hooks/useReferrals";
+import { recordReferralClick } from "@/lib/referrals";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #fb7185)";
@@ -26,6 +27,7 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
   const [copied, setCopied] = useState(false);
   const create = useCreateReferral();
   const created = create.data ?? null;
+  const stats = useReferralStats(created?.slug ?? null);
 
   const submit = () => {
     setCopied(false);
@@ -40,6 +42,13 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
     navigator.clipboard?.writeText(created.url).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
+  };
+
+  // Simulate someone opening the link, then refetch so the count moves live.
+  const recordVisit = async () => {
+    if (!created) return;
+    await recordReferralClick(created.slug).catch(() => {});
+    stats.refetch();
   };
 
   return (
@@ -101,6 +110,50 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
           <p className="mt-2 text-[11px] text-muted">
             points to paulsumido.com{created.targetPath}
           </p>
+        </div>
+      )}
+
+      {created && (
+        <div aria-label="Referral stats" className="rounded-lg border border-border p-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] uppercase tracking-wider text-muted">Clicks</p>
+            <button
+              type="button"
+              onClick={recordVisit}
+              className="rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-foreground/5"
+            >
+              Open link
+            </button>
+          </div>
+
+          {stats.isLoading ? (
+            <p className="mt-1 text-[12px] text-muted">Loading stats…</p>
+          ) : stats.isError ? (
+            <p className="mt-1 text-[12px] text-muted">
+              Stats are unavailable right now.
+            </p>
+          ) : stats.data && stats.data.clicks > 0 ? (
+            <>
+              <p
+                className="text-2xl font-bold text-foreground tabular-nums"
+                data-testid="stats-total"
+              >
+                {stats.data.clicks.toLocaleString()}
+              </p>
+              <ol className="mt-1 flex flex-col gap-0.5">
+                {stats.data.recent.slice(0, 4).map((r, i) => (
+                  <li key={i} className="flex items-center gap-1.5 text-[11px] text-muted">
+                    <span aria-hidden style={{ color: ACCENT }}>•</span>
+                    {new Date(r.at).toLocaleString()}
+                  </li>
+                ))}
+              </ol>
+            </>
+          ) : (
+            <p data-testid="stats-total" className="mt-1 text-[12px] text-muted">
+              No clicks yet — share your link to start tracking.
+            </p>
+          )}
         </div>
       )}
     </div>

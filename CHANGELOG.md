@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.43
+
+- Referral Links now shows real click stats from the API, polling so the total ticks up, with a recent-clicks list and proper loading and empty states. an "open link" button records a click so you can watch it move
+
 ## 2026-07-21 - version 0.25.42
 
 - Referral Links now creates real links against the portfolio_api: pick where it points on paulsumido.com, optionally name the slug, and the server enforces uniqueness (a taken slug comes back as a friendly error). shows the created link with copy
