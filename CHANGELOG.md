@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.49
+
+- rewrote every work-portfolio feature explainer into a longer, interview-style talk-through (what it did, the hard part, the skill shown) and brought the real-vs-mocked notes up to date with everything that became real across the rebuild
+
 ## 2026-07-21 - version 0.25.48
 
 - LLM Assistant now shows the full set of agent-UI patterns (all simulated): an agent/chat mode toggle, a plan of steps that ticks off, the tool-call row running then done, streamed tokens, citation chips, and stop/retry controls
