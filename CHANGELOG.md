@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.29
+
+- reworked Per-title Dashboards (portal v1) into a config-driven view: one config array drives every title's dashboard, with a single mode that reskins per title and a compare mode that diffs two titles' KPIs with per-metric deltas and an overlaid chart
+
 ## 2026-07-21 - version 0.25.28
 
 - computed the Pareto chart's cumulative line without a mutable render-scoped variable, satisfying the react-compiler immutability lint
