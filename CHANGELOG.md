@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.13
+
+- marked the wallet/referral public exports (`ConnectWallet`, `useCreateReferral`, `useReferralStats`, `getReferral`) with `ts-prune-ignore-next` so the dead-code CI passes; the demos that consume them land in later phases
+
 ## 2026-07-20 - version 0.25.12
 
 - added a typed client and react-query hooks for the portfolio_api referrals endpoints (create, resolve, click, stats), for the upcoming referral-links demo

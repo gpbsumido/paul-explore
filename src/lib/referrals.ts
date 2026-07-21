@@ -46,6 +46,7 @@ export async function createReferral(
   return parseOrThrow<Referral>(res, "Could not create the referral link.");
 }
 
+// ts-prune-ignore-next -- public client fn, used by the /r/:slug resolve route in a later phase
 export async function getReferral(slug: string): Promise<Referral> {
   const res = await fetch(`${BASE}/${slug}`);
   return parseOrThrow<Referral>(res, "Could not load the referral link.");

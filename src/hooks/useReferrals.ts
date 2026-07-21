@@ -10,6 +10,7 @@ import {
 } from "@/lib/referrals";
 
 /** Create a referral link. On success returns the slug + shareable url. */
+// ts-prune-ignore-next -- public hook, consumed by the referral-links demo in a later phase
 export function useCreateReferral() {
   return useMutation<Referral, Error, CreateReferralInput>({
     mutationFn: createReferral,
@@ -20,6 +21,7 @@ export function useCreateReferral() {
  * Poll a referral's click stats. Disabled until a slug exists; refetches on an
  * interval so the demo shows counts ticking up.
  */
+// ts-prune-ignore-next -- public hook, consumed by the referral-links demo in a later phase
 export function useReferralStats(slug: string | null) {
   return useQuery<ReferralStats>({
     queryKey: ["referrals", "stats", slug],
