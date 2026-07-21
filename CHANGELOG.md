@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.12
+
+- added a typed client and react-query hooks for the portfolio_api referrals endpoints (create, resolve, click, stats), for the upcoming referral-links demo
+
 ## 2026-07-20 - version 0.25.11
 
 - added a reusable `useWallet` hook (address, ENS, balance, connection status) and a design-system-styled `ConnectWallet` button, both usable anywhere under the wallet provider
