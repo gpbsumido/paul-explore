@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.21
+
+- Character Sheets now has a roster of characters and a stepped create modal (identity, then class, then the stat-point budget) for adding new ones
+
 ## 2026-07-21 - version 0.25.20
 
 - Community Mode likes now tick up live on an interval, and clicking a post opens an analytics modal with its likes, replies, and a like-over-time trend
