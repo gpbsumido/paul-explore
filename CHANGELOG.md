@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.42
+
+- Referral Links now creates real links against the portfolio_api: pick where it points on paulsumido.com, optionally name the slug, and the server enforces uniqueness (a taken slug comes back as a friendly error). shows the created link with copy
+
 ## 2026-07-21 - version 0.25.41
 
 - UA Campaign Builder is now a stepped flow (basics, targeting, review) that only lets you move on once the campaign has a name, with the live preview card carrying across every step
