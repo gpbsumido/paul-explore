@@ -18,7 +18,6 @@ import { useTheme } from "@/components/ThemeProvider";
  * inside ThemeProvider, so the RainbowKit modal follows the app's light/dark
  * theme.
  */
-// ts-prune-ignore-next -- mounted around the gamer-hub NFT demo in a later phase; kept out of the root layout so wallet code/telemetry doesn't load app-wide
 export default function Web3Provider({
   children,
 }: {
