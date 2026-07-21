@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.39
+
+- Web3 Gamer Hub: added a transfer mode with two wallet panes, drag an NFT from one to the other (or use the arrow button) to move it across, both grids update. simulated, no real transaction
+
 ## 2026-07-21 - version 0.25.38
 
 - Web3 Gamer Hub: click an NFT to open a detail modal with its metadata, attributes, and a provenance/history timeline (fixture data)
