@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
@@ -85,10 +85,80 @@ function ComposerModal({
   );
 }
 
+/** A deterministic, mostly-rising 12-point like trend ending at the current count. */
+function trendFor(id: number, current: number): number[] {
+  let seed = id * 9301 + 49297;
+  const rand = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+  const start = Math.max(1, Math.round(current * 0.4));
+  const out: number[] = [];
+  for (let i = 0; i < 12; i++) {
+    const t = i / 11;
+    const base = start + (current - start) * t;
+    out.push(Math.max(1, Math.round(base * (0.85 + rand() * 0.3))));
+  }
+  out[out.length - 1] = current;
+  return out;
+}
+
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-lg border border-border p-2 text-center">
+      <p className="text-[15px] font-bold text-foreground">{value}</p>
+      <p className="text-[10px] text-muted">{label}</p>
+    </div>
+  );
+}
+
+/** Per-post analytics: current counts and a like trend over time. */
+function AnalyticsModal({ post, onClose }: { post: Post; onClose: () => void }) {
+  const series = useMemo(() => trendFor(post.id, post.likes), [post.id, post.likes]);
+  const max = Math.max(1, ...series);
+  const engagement = Math.round((post.likes / (post.likes + 40)) * 100);
+  return (
+    <Modal open onClose={onClose} aria-label={`Analytics for ${post.author}`}>
+      <div className="flex flex-col gap-3">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
+            Post analytics
+          </p>
+          <p className="text-[13px] font-medium" style={{ color: ACCENT }}>
+            @{post.author}
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <Stat label="Likes" value={post.likes.toLocaleString()} />
+          <Stat label="Replies" value={post.replies.length} />
+          <Stat label="Engagement" value={`${engagement}%`} />
+        </div>
+        <div>
+          <p className="mb-1 text-[11px] text-muted">Likes over time</p>
+          <div className="flex h-16 items-end gap-0.5">
+            {series.map((v, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-t"
+                style={{ height: `${(v / max) * 100}%`, backgroundColor: ACCENT }}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Button size="sm" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 /**
  * Vignette: the content engine's community mode. A likeable feed you can post
- * and reply to, with an engagement bar per post, standing in for the posts and
- * community-analytics views.
+ * and reply to, with likes ticking up live and per-post analytics on click,
+ * standing in for the posts and community-analytics views.
  */
 export default function CommunityModeDemo({
   feature,
@@ -98,7 +168,24 @@ export default function CommunityModeDemo({
   const [posts, setPosts] = useState<Post[]>(FEED);
   const [liked, setLiked] = useState<Set<number>>(new Set());
   const [composer, setComposer] = useState<Composer | null>(null);
+  const [analyticsId, setAnalyticsId] = useState<number | null>(null);
   const [nextId, setNextId] = useState(1000);
+
+  // Likes tick up live, so the feed feels active like the real one did.
+  useEffect(() => {
+    const t = setInterval(() => {
+      setPosts((ps) => {
+        if (ps.length === 0) return ps;
+        const i = Math.floor(Math.random() * ps.length);
+        return ps.map((p, idx) =>
+          idx === i ? { ...p, likes: p.likes + 1 + Math.floor(Math.random() * 3) } : p,
+        );
+      });
+    }, 2000);
+    return () => clearInterval(t);
+  }, []);
+
+  const analyticsPost = posts.find((p) => p.id === analyticsId) ?? null;
 
   const toggleLiked = (id: number) => {
     const isLiked = liked.has(id);
@@ -167,7 +254,14 @@ export default function CommunityModeDemo({
             <p className="text-[11px] font-medium" style={{ color: ACCENT }}>
               @{p.author}
             </p>
-            <p className="text-[12px] text-foreground">{p.body}</p>
+            <button
+              type="button"
+              aria-label={`Analytics for ${p.author}`}
+              onClick={() => setAnalyticsId(p.id)}
+              className="text-left text-[12px] text-foreground hover:underline"
+            >
+              {p.body}
+            </button>
             <div className="mt-1.5 flex items-center gap-2">
               <button
                 type="button"
@@ -224,6 +318,12 @@ export default function CommunityModeDemo({
           composer={composer}
           onClose={() => setComposer(null)}
           onSubmit={submit}
+        />
+      )}
+      {analyticsPost && (
+        <AnalyticsModal
+          post={analyticsPost}
+          onClose={() => setAnalyticsId(null)}
         />
       )}
     </div>

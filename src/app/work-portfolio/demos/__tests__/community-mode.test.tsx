@@ -1,9 +1,11 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { render, screen, fireEvent, within, act } from "@testing-library/react";
 import CommunityModeDemo from "../community-mode";
 import { FEATURES, featureIndexBySlug } from "../../_data/catalog";
 
 const feature = FEATURES[featureIndexBySlug("community-mode")!];
+
+afterEach(() => vi.useRealTimers());
 
 describe("community mode demo", () => {
   it("bumps a post's like count when liked", () => {
@@ -40,5 +42,29 @@ describe("community mode demo", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Reply" }));
     expect(screen.getByText("huge congrats")).toBeInTheDocument();
+  });
+
+  it("opens per-post analytics on click", () => {
+    render(<CommunityModeDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "Analytics for novaqueen" }));
+    const dialog = screen.getByRole("dialog", { name: "Analytics for novaqueen" });
+    expect(within(dialog).getByText("Likes")).toBeInTheDocument();
+    expect(within(dialog).getByText("Replies")).toBeInTheDocument();
+    expect(within(dialog).getByText("Likes over time")).toBeInTheDocument();
+  });
+
+  it("ticks likes up live on an interval", () => {
+    vi.useFakeTimers();
+    render(<CommunityModeDemo feature={feature} />);
+    const total = () =>
+      Number(
+        screen.getByText(/total likes/).textContent!.match(/[\d,]+/)![0].replace(
+          /,/g,
+          "",
+        ),
+      );
+    const before = total();
+    act(() => vi.advanceTimersByTime(2100));
+    expect(total()).toBeGreaterThan(before);
   });
 });
