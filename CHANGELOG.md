@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.22
+
+- removed unused `@dnd-kit/sortable` and `@dnd-kit/utilities`; the kanban only needs `@dnd-kit/core` (they can come back if a later drag demo needs sortable)
+
+## 2026-07-21 - version 0.25.21
+
+- Character Sheets now has a roster of characters and a stepped create modal (identity, then class, then the stat-point budget) for adding new ones
+
+## 2026-07-21 - version 0.25.20
+
+- Community Mode likes now tick up live on an interval, and clicking a post opens an analytics modal with its likes, replies, and a like-over-time trend
+
+## 2026-07-21 - version 0.25.19
+
+- Community Mode now lets you compose a new post or reply to a post through a modal; replies thread under their post with a count
+
+## 2026-07-20 - version 0.25.18
+
+- Post Queue kanban cards now open an edit modal on click (or keyboard activation) to change a post's title, scheduled day, and column
+
+## 2026-07-20 - version 0.25.17
+
+- reworked the Post Queue demo into a kanban board (Backlog / Scheduled / Published): cards drag between columns with dnd-kit, with keyboard-reachable move buttons as the accessible equivalent, and the week strip recomputes. Adds `@dnd-kit`
+
+## 2026-07-20 - version 0.25.16
+
+- scoped the wallet provider off the root layout so wagmi/RainbowKit and their telemetry no longer load (and trip the site CSP) on every page. It will mount around the gamer-hub NFT demo when that lands, keeping wallet code off pages that do not use it
+
+## 2026-07-20 - version 0.25.15
+
+- added a live store inspector to the Campaign Manager demo: a redux-devtools-style pane showing the dispatched-action log and a snapshot of the store, updating as you create and toggle campaigns
+
+## 2026-07-20 - version 0.25.14
+
+- reworked the Campaign Manager demo: creating a campaign now runs through a stepped modal (basics, then targeting/schedule, then a review) with progressive disclosure and per-step gating, backed by a reducer, instead of the inline one-field form
+
 ## 2026-07-20 - version 0.25.13
 
 - marked the wallet/referral public exports (`ConnectWallet`, `useCreateReferral`, `useReferralStats`, `getReferral`) with `ts-prune-ignore-next` so the dead-code CI passes; the demos that consume them land in later phases
