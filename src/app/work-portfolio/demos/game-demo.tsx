@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePersistentState } from "@/hooks/usePersistentState";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #22d3ee)";
+const ROUND_SECONDS = 20;
 
 type Phase = "idle" | "loading" | "playing";
 type Target = { id: number; x: number; y: number };
@@ -23,7 +25,11 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState(0);
   const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(ROUND_SECONDS);
   const [target, setTarget] = useState<Target | null>(null);
+  const [best, setBest] = usePersistentState("wp-game-best", 0);
+
+  const over = phase === "playing" && timeLeft === 0;
 
   const start = () => {
     setPhase("loading");
@@ -34,6 +40,7 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
         if (next >= 100) {
           clearInterval(timer);
           setScore(0);
+          setTimeLeft(ROUND_SECONDS);
           setTarget(spawn(1));
           setPhase("playing");
           return 100;
@@ -43,8 +50,26 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
     }, 120);
   };
 
+  // Round countdown while playing; the "over" state is derived from timeLeft.
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const timer = setInterval(() => {
+      setTimeLeft((tl) => {
+        if (tl <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return tl - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [phase]);
+
   const hit = () => {
-    setScore((s) => s + 1);
+    if (over) return;
+    const next = score + 1;
+    setScore(next);
+    setBest((b) => Math.max(b, next));
     setTarget((t) => spawn((t?.id ?? 0) + 1));
   };
 
@@ -54,9 +79,9 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
         <p className="text-[13px] font-semibold text-foreground">
           {feature.title}
         </p>
-        {phase === "playing" && (
+        {phase === "playing" && !over && (
           <span className="font-mono text-[12px] text-cyan-300">
-            Score: {score}
+            Score: {score} · {timeLeft}s
           </span>
         )}
       </div>
@@ -98,7 +123,7 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
           </div>
         )}
 
-        {phase === "playing" && (
+        {phase === "playing" && !over && (
           <div className="h-full w-full">
             <p className="absolute left-2 top-2 font-mono text-[10px] text-cyan-300/70">
               tap the targets
@@ -117,6 +142,25 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
                 }}
               />
             )}
+          </div>
+        )}
+
+        {over && (
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-cyan-300/80">
+              Time!
+            </p>
+            <p className="text-[15px] font-bold text-cyan-100">
+              Score {score} · Best {best}
+            </p>
+            <button
+              type="button"
+              onClick={start}
+              className="mt-1 rounded-full px-5 py-2 text-[13px] font-bold text-black"
+              style={{ backgroundColor: ACCENT }}
+            >
+              ▶ Play again
+            </button>
           </div>
         )}
       </div>

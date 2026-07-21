@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.35
+
+- the Conference Game minigame now runs a 20-second round with a countdown, a game-over screen, a locally-persisted best score, and a play-again button
+
 ## 2026-07-21 - version 0.25.34
 
 - fixed the Conference Game demo hanging on "building": the booth build now loads to 100% and drops into a small reflex minigame (tap the targets to score) instead of an endless spinner
