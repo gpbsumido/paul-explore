@@ -27,9 +27,6 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
   "per-game-analytics": dynamic(() => import("./per-game-analytics"), {
     loading: () => <DemoSkeleton />,
   }),
-  "economy-health": dynamic(() => import("./economy-health"), {
-    loading: () => <DemoSkeleton />,
-  }),
   "slug-dashboards": dynamic(() => import("./slug-dashboards"), {
     loading: () => <DemoSkeleton />,
   }),
@@ -76,9 +73,6 @@ const SHIPPED: Partial<Record<string, DemoComponent>> = {
     loading: () => <DemoSkeleton />,
   }),
   "character-sheets": dynamic(() => import("./character-sheets"), {
-    loading: () => <DemoSkeleton />,
-  }),
-  "streaming-ops": dynamic(() => import("./streaming-ops"), {
     loading: () => <DemoSkeleton />,
   }),
   "game-demo": dynamic(() => import("./game-demo"), {

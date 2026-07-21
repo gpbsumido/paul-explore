@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./ticker.module.css";
 import { useReducedMotionPref } from "./useReducedMotionPref";
 
@@ -29,6 +29,21 @@ export default function Ticker({
 }) {
   const reduced = useReducedMotionPref();
   const borderSide = edge === "top" ? "border-b" : "border-t";
+
+  // The clone fills the trailing half of the loop, so chips under it need to
+  // stay clickable. inert would kill those clicks, so instead we keep the
+  // clone clickable and just drop its contents out of the tab order by hand.
+  // Paired with aria-hidden that keeps it invisible to screen readers and out
+  // of axe's focusable-content check, while pointer users lose no chips.
+  const cloneRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const focusables = cloneRef.current?.querySelectorAll<HTMLElement>(
+      "a[href], button, input, select, textarea, [tabindex]",
+    );
+    focusables?.forEach((el) => {
+      el.tabIndex = -1;
+    });
+  });
 
   // Touch has no hover, so the first touch freezes the strip long enough
   // to tap a chip, then it resumes on its own.
@@ -76,8 +91,8 @@ export default function Ticker({
           {children}
         </div>
         <div
+          ref={cloneRef}
           aria-hidden
-          inert
           className="flex w-max items-center gap-2 px-4 py-2.5"
         >
           {children}

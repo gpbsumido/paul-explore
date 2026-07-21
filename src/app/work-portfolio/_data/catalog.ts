@@ -51,15 +51,6 @@ export const PROJECTS: WorkProject[] = [
     cutFeatures: ["cache administration", "email verification gate"],
   },
   {
-    id: "ops-console",
-    name: "Ops Console",
-    blurb:
-      "An internal operations console for the data pipeline: streaming topics, consumer groups, scripts, and company metrics.",
-    stack: "React, react-router 7, MUI 6, ECharts",
-    accent: { accent: "#f59e0b", surface: "rgba(245,158,11,0.08)", font: "mono" },
-    cutFeatures: ["theme toggle", "avatar menu"],
-  },
-  {
     id: "game-demo",
     name: "Conference Game Demo",
     blurb:
@@ -229,18 +220,6 @@ export const FEATURES: WorkFeature[] = [
       mocked: "Titles are renamed to Game A, B, C; the switcher reskins one dashboard.",
     },
   },
-  {
-    slug: "economy-health",
-    projectId: "portal-v1",
-    title: "Economy & Financial Health",
-    tagline: "Token economy KPI views",
-    icon: "💹",
-    explainer: {
-      did: "Economy, payments, financial health, and comparative analytics pages for game economies.",
-      stack: "Next.js, ECharts, MUI",
-      mocked: "KPI values and comparisons are generated series.",
-    },
-  },
   // Platform Console
   {
     slug: "admin-suite",
@@ -264,19 +243,6 @@ export const FEATURES: WorkFeature[] = [
       did: "An AI-assisted content generation module inside the platform shell.",
       stack: "Next.js, streaming responses",
       mocked: "Responses are canned and streamed locally, no model behind it.",
-    },
-  },
-  // Ops Console
-  {
-    slug: "streaming-ops",
-    projectId: "ops-console",
-    title: "Streaming Ops",
-    tagline: "Topics, consumers, scripts",
-    icon: "🖥️",
-    explainer: {
-      did: "Managed streaming topics and consumer groups, ran maintenance scripts, and charted company metrics.",
-      stack: "React, react-router, ECharts",
-      mocked: "Topic lag and script output are simulated.",
     },
   },
   // Conference Game Demo

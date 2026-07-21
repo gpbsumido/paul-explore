@@ -28,11 +28,11 @@ describe("demo stage", () => {
   });
 
   it("the stage surface carries the project accent theme", () => {
-    const feature = FEATURES[featureIndexBySlug("streaming-ops")!];
+    const feature = FEATURES[featureIndexBySlug("chart-library")!];
     const project = projectFor(feature);
     render(<DemoStage feature={feature} project={project} />);
     const stage = screen.getByTestId("demo-stage");
-    // ops console is the mono-flavored project
+    // analytics suite is a mono-flavored project
     expect(project.accent.font).toBe("mono");
     expect(stage.className).toContain("font-mono");
     expect(stage.style.backgroundColor).not.toBe("");

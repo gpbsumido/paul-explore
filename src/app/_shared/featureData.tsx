@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { reveal } from "@/app/landing/Section";
 import { spring, cardFlipIn, instantTransition } from "@/lib/animations";
 import type { FeatureItem, ThoughtItem } from "@/types/hub";
@@ -951,6 +951,69 @@ export function LearnPreview() {
   );
 }
 
+// The work-portfolio card gets an animated mini dual-ticker so it stands out:
+// two rows of accent-dotted chips marquee in opposite directions, mirroring the
+// real feature. Falls back to a static strip under prefers-reduced-motion.
+const WP_TOP = ["Content Engine", "Analytics Suite", "Portal v2", "Gamer Hub"];
+const WP_BOTTOM = ["Wallet Lookup", "LLM Assistant", "Dashboard", "Email Studio"];
+
+function WpTickerRow({
+  items,
+  direction,
+  reduced,
+}: {
+  items: readonly string[];
+  direction: "left" | "right";
+  reduced: boolean;
+}) {
+  // two copies so the marquee loops seamlessly, same trick as the real ticker
+  const doubled = [...items, ...items];
+  const keyframes = direction === "left" ? ["0%", "-50%"] : ["-50%", "0%"];
+  return (
+    <div className="flex overflow-hidden">
+      <motion.div
+        className="flex w-max shrink-0 gap-1.5"
+        animate={reduced ? undefined : { x: keyframes }}
+        transition={
+          reduced
+            ? undefined
+            : { duration: 14, ease: "linear", repeat: Infinity }
+        }
+      >
+        {doubled.map((label, i) => (
+          <span
+            key={i}
+            className="flex items-center gap-1 rounded-full border border-black/10 px-1.5 py-0.5 dark:border-white/10"
+            style={{
+              background:
+                "color-mix(in srgb, var(--color-feature-work-portfolio) 12%, transparent)",
+            }}
+          >
+            <span
+              aria-hidden
+              className="h-1 w-1 shrink-0 rounded-full"
+              style={{ backgroundColor: "#60a5fa" }}
+            />
+            <span className="whitespace-nowrap text-[7px] text-black/50 dark:text-white/50">
+              {label}
+            </span>
+          </span>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+export function WorkPortfolioPreview() {
+  const reduced = useReducedMotion();
+  return (
+    <div className="flex h-full flex-col justify-center gap-2">
+      <WpTickerRow items={WP_TOP} direction="left" reduced={!!reduced} />
+      <WpTickerRow items={WP_BOTTOM} direction="right" reduced={!!reduced} />
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Maps & tokens
 // ---------------------------------------------------------------------------
@@ -971,6 +1034,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   ketsup: "--color-feature-ketsup",
   operator: "--color-feature-operator",
   learn: "--color-feature-learn",
+  "work-portfolio": "--color-feature-work-portfolio",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
@@ -989,6 +1053,7 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   ketsup: KetsupPreview,
   operator: OperatorPreview,
   learn: LearnPreview,
+  "work-portfolio": WorkPortfolioPreview,
 };
 
 // ---------------------------------------------------------------------------
