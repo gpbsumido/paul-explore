@@ -1,4 +1,5 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 
 /**
@@ -13,9 +14,21 @@ import { mainnet, sepolia } from "wagmi/chains";
 const projectId =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "PLACEHOLDER_PROJECT_ID";
 
+// Pin the RPC endpoints instead of using viem's rotating chain defaults, so the
+// hosts we allow in the CSP connect-src stay in sync with what actually gets
+// called. publicnode has open CORS and is stable across viem versions.
+export const RPC_URLS = {
+  mainnet: "https://ethereum-rpc.publicnode.com",
+  sepolia: "https://ethereum-sepolia-rpc.publicnode.com",
+} as const;
+
 export const wagmiConfig = getDefaultConfig({
   appName: "paul-explore",
   projectId,
   chains: [mainnet, sepolia],
+  transports: {
+    [mainnet.id]: http(RPC_URLS.mainnet),
+    [sepolia.id]: http(RPC_URLS.sepolia),
+  },
   ssr: true,
 });
