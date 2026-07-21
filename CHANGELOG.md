@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.27
+
+- reworked Standard Analytics into an interactive dashboard: KPI cards double as metric selectors and a range (7/30/90d) and segment (all/new/returning) filter recompute a live area chart per domain tab. Also fixed the chart not drawing (recharts needs a definite-height parent)
+
 ## 2026-07-21 - version 0.25.26
 
 - Chart Library charts can now be renamed and re-accented through a settings modal (opened from a gear on each chart); the accent recolors that chart's series via a scoped CSS variable
