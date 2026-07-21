@@ -11,6 +11,9 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import IconButton from "@/components/ui/IconButton";
+import Modal from "@/components/ui/Modal";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #e879f9)";
@@ -35,9 +38,11 @@ export function movePost(posts: Post[], id: number, column: Column): Post[] {
 function Card({
   post,
   onMove,
+  onEdit,
 }: {
   post: Post;
   onMove: (id: number, dir: -1 | 1) => void;
+  onEdit: (id: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: post.id });
@@ -58,7 +63,17 @@ function Card({
       <span
         {...attributes}
         {...listeners}
-        className="min-w-0 flex-1 cursor-grab truncate text-[12px] text-foreground"
+        role="button"
+        tabIndex={0}
+        aria-label={`Edit ${post.title}`}
+        onClick={() => onEdit(post.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onEdit(post.id);
+          }
+        }}
+        className="min-w-0 flex-1 cursor-grab truncate text-left text-[12px] text-foreground"
       >
         <span className="mr-1.5 text-[10px] text-muted">{DAYS[post.day]}</span>
         {post.title}
@@ -91,10 +106,12 @@ function ColumnZone({
   column,
   posts,
   onMove,
+  onEdit,
 }: {
   column: Column;
   posts: Post[];
   onMove: (id: number, dir: -1 | 1) => void;
+  onEdit: (id: number) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column });
   return (
@@ -110,20 +127,92 @@ function ColumnZone({
         }`}
       >
         {posts.map((p) => (
-          <Card key={p.id} post={p} onMove={onMove} />
+          <Card key={p.id} post={p} onMove={onMove} onEdit={onEdit} />
         ))}
       </ol>
     </div>
   );
 }
 
+/** Edit a post's title, scheduled day, and column in a modal. */
+function EditPostModal({
+  post,
+  onClose,
+  onSave,
+}: {
+  post: Post;
+  onClose: () => void;
+  onSave: (post: Post) => void;
+}) {
+  const [title, setTitle] = useState(post.title);
+  const [day, setDay] = useState(post.day);
+  const [column, setColumn] = useState<Column>(post.column);
+
+  return (
+    <Modal open onClose={onClose} aria-label={`Edit ${post.title}`}>
+      <div className="flex flex-col gap-3">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
+          Edit post
+        </p>
+        <Input
+          label="Title"
+          size="sm"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <label className="flex flex-col gap-1 text-[13px]">
+          <span className="font-medium text-foreground">Day</span>
+          <select
+            className="rounded-md border border-border bg-surface px-2 py-1.5 text-[13px] text-foreground"
+            value={day}
+            onChange={(e) => setDay(Number(e.target.value))}
+          >
+            {DAYS.map((d, i) => (
+              <option key={d} value={i}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[13px]">
+          <span className="font-medium text-foreground">Column</span>
+          <select
+            className="rounded-md border border-border bg-surface px-2 py-1.5 text-[13px] text-foreground"
+            value={column}
+            onChange={(e) => setColumn(e.target.value as Column)}
+          >
+            {COLUMNS.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </label>
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            disabled={!title.trim()}
+            onClick={() => onSave({ ...post, title: title.trim(), day, column })}
+          >
+            Save
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 /**
  * Vignette: the content engine's scheduling queue as a kanban board. Posts
  * drag between Backlog / Scheduled / Published columns (with move buttons as
- * the keyboard-reachable equivalent), and the week strip recomputes.
+ * the keyboard-reachable equivalent), each card opens an edit modal, and the
+ * week strip recomputes.
  */
 export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
   const [posts, setPosts] = useState<Post[]>(INITIAL);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const editing = posts.find((p) => p.id === editingId) ?? null;
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -178,10 +267,22 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
               column={c}
               posts={posts.filter((p) => p.column === c)}
               onMove={move}
+              onEdit={setEditingId}
             />
           ))}
         </div>
       </DndContext>
+
+      {editing && (
+        <EditPostModal
+          post={editing}
+          onClose={() => setEditingId(null)}
+          onSave={(updated) => {
+            setPosts((ps) => ps.map((p) => (p.id === updated.id ? updated : p)));
+            setEditingId(null);
+          }}
+        />
+      )}
     </div>
   );
 }

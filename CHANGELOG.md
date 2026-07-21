@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.18
+
+- Post Queue kanban cards now open an edit modal on click (or keyboard activation) to change a post's title, scheduled day, and column
+
 ## 2026-07-20 - version 0.25.17
 
 - reworked the Post Queue demo into a kanban board (Backlog / Scheduled / Published): cards drag between columns with dnd-kit, with keyboard-reachable move buttons as the accessible equivalent, and the week strip recomputes. Adds `@dnd-kit`

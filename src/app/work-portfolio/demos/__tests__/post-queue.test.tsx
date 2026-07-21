@@ -37,6 +37,17 @@ describe("post queue kanban demo", () => {
     expect(within(card).getByText("Wed")).toBeInTheDocument();
   });
 
+  it("edits a post's title through the card modal", () => {
+    render(<PostQueueDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "Edit Patch 4.1 recap" }));
+
+    const titleField = screen.getByLabelText("Title");
+    fireEvent.change(titleField, { target: { value: "Patch 4.1 highlights" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(screen.getByText("Patch 4.1 highlights")).toBeInTheDocument();
+  });
+
   it("movePost only changes the targeted post's column", () => {
     const posts = [
       { id: 1, title: "a", day: 0, column: "Backlog" as const },
