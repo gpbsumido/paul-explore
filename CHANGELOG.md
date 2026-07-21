@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.41
+
+- UA Campaign Builder is now a stepped flow (basics, targeting, review) that only lets you move on once the campaign has a name, with the live preview card carrying across every step
+
 ## 2026-07-21 - version 0.25.40
 
 - Web3 Gamer Hub now uses a real wallet connect (the shared wagmi/RainbowKit setup): connect a browser wallet and it shows your actual address, ENS, and balance. the NFT grid stays fixture data. the demo mounts its own Web3Provider so wallet code only loads here, not app-wide
