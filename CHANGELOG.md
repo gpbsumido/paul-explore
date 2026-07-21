@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.44
+
+- Auth Flows fields are now actually typeable with inline validation (email format, password length, matching confirm, 6-digit code). still a walkthrough, nothing authenticates
+
 ## 2026-07-21 - version 0.25.43
 
 - Referral Links now shows real click stats from the API, polling so the total ticks up, with a recent-clicks list and proper loading and empty states. an "open link" button records a click so you can watch it move
