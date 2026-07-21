@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.45
+
+- Dashboard Designer drag-drop reworked on dnd-kit: drag a widget by its title onto another to drop it into that slot, or onto a trailing zone to send it to the end, so it lands in empty cells reliably. move and resize buttons still work
+
 ## 2026-07-21 - version 0.25.44
 
 - Auth Flows fields are now actually typeable with inline validation (email format, password length, matching confirm, 6-digit code). still a walkthrough, nothing authenticates
