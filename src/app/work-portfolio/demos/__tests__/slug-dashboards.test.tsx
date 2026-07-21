@@ -17,4 +17,15 @@ describe("slug dashboards demo", () => {
     expect(screen.getByText("Fees")).toBeInTheDocument();
     expect(screen.queryByText("Fleet Overview")).toBeNull();
   });
+
+  it("shows the JSON config for the active slug", () => {
+    render(<SlugDashboardsDemo feature={feature} />);
+    const config = () => screen.getByTestId("json-view").textContent ?? "";
+    expect(config()).toContain('"slug": "overview"');
+    fireEvent.change(screen.getByLabelText("Dashboard slug"), {
+      target: { value: "economy" },
+    });
+    expect(config()).toContain('"slug": "economy"');
+    expect(config()).not.toContain('"slug": "overview"');
+  });
 });

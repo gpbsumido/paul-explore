@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
+import { JsonView } from "./_shared/json-view";
 
 /**
  * Each "slug" is a dashboard config: which tiles, which chart, what accent.
@@ -127,6 +128,15 @@ export default function SlugDashboardsDemo({ feature }: { feature: WorkFeature }
           </ResponsiveContainer>
         </div>
       </div>
+
+      <details className="rounded-lg border border-border" open>
+        <summary className="cursor-pointer select-none px-3 py-1.5 text-[11px] font-semibold text-muted">
+          config <span className="font-mono text-muted">/d/{config.slug}.json</span>
+        </summary>
+        <div className="px-2 pb-2">
+          <JsonView value={config} />
+        </div>
+      </details>
     </div>
   );
 }

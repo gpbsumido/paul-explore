@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.36
+
+- Public Dashboards now shows the JSON config each slug renders from, in a read-only syntax-highlighted panel, so you can see the config-in dashboard-out idea directly
+
 ## 2026-07-21 - version 0.25.35
 
 - the Conference Game minigame now runs a 20-second round with a countdown, a game-over screen, a locally-persisted best score, and a play-again button
