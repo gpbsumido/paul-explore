@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.30
+
+- made the authenticated e2e login setup resilient to fix intermittent CI timeouts: it retries the Auth0 login once from a clean state, handles an occasional consent screen, and gives the login-to-app redirect a longer (45s) timeout
+
 ## 2026-07-21 - version 0.25.29
 
 - reworked Per-title Dashboards (portal v1) into a config-driven view: one config array drives every title's dashboard, with a single mode that reskins per title and a compare mode that diffs two titles' KPIs with per-metric deltas and an overlaid chart

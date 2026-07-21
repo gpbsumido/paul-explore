@@ -53,54 +53,9 @@ export default async function globalSetup(_config: FullConfig) {
   }
 }
 
-/** Handles the Auth0 Universal Login flow and creates the test calendar. */
+/** Logs in via Auth0 (with a retry) and creates the test calendar. */
 async function loginAndSetup(page: Page, context: BrowserContext) {
-  // Navigate to Auth0 login. The middleware redirects /auth/login to
-  // Auth0 Universal Login which hosts the email + password form.
-  await page.goto(`${BASE_URL}/auth/login`);
-
-  // Auth0 Universal Login is a small HTML shell that renders the login form
-  // via client-side JS. networkidle can fire before the form hydrates, so
-  // wait explicitly for any input element to appear in the DOM.
-  const emailInput = page.locator(
-    'input[name="username"], input[name="email"], input[type="email"]',
-  ).first();
-  await emailInput.waitFor({ state: "visible", timeout: 30_000 });
-  await emailInput.fill(process.env.E2E_TEST_EMAIL!);
-
-  // Some Auth0 flows show password on the same page; others require clicking
-  // "Continue" first. Handle both. Use exact name match to avoid hitting
-  // "Continue with Google" social login button.
-  const continueBtn = page.getByRole("button", {
-    name: /^continue$/i,
-  });
-  if (await continueBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await continueBtn.click();
-  }
-
-  await page
-    .locator('input[type="password"]')
-    .fill(process.env.E2E_TEST_PASSWORD!);
-
-  // Target the submit button for the email/password form, not social login
-  // buttons like "Continue with Google". The form submit button typically
-  // says just "Continue" or "Log In".
-  await page
-    .getByRole("button", { name: /^(log in|sign in|continue)$/i })
-    .last()
-    .click();
-
-  // Wait until Auth0 redirects back to the app AND the callback finishes
-  // processing. The callback URL is on localhost so we can't just check
-  // "hostname doesn't contain auth0" — that fires too early on /auth/callback
-  // before the session cookie is set. Wait for the final redirect to land on
-  // a non-callback page with the network idle.
-  await page.waitForURL(
-    (url) =>
-      !url.hostname.includes("auth0") && !url.pathname.startsWith("/auth/"),
-    { timeout: 20_000 },
-  );
-  await page.waitForLoadState("networkidle");
+  await performLogin(page);
 
   await context.storageState({ path: AUTH_FILE });
 
@@ -129,4 +84,83 @@ async function loginAndSetup(page: Page, context: BrowserContext) {
       `[E2E] Could not create test calendar: ${res.status()} ${await res.text()}`,
     );
   }
+}
+
+/**
+ * Runs the Auth0 login, retrying once on a transient failure. The login ->
+ * callback -> app redirect is the flakiest step in CI (Auth0 latency, an
+ * occasional consent screen), so a single clean retry from the login page
+ * removes most of the flakiness.
+ */
+async function performLogin(page: Page) {
+  const MAX_ATTEMPTS = 2;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      await attemptLogin(page);
+      return;
+    } catch (err) {
+      if (attempt === MAX_ATTEMPTS) throw err;
+      console.warn(
+        `[E2E] login attempt ${attempt} failed, retrying: ${(err as Error).message}`,
+      );
+    }
+  }
+}
+
+/** A single Auth0 Universal Login attempt: email, password, then wait for the
+ *  redirect back to the app. */
+async function attemptLogin(page: Page) {
+  // Navigate to Auth0 login. The middleware redirects /auth/login to
+  // Auth0 Universal Login which hosts the email + password form.
+  await page.goto(`${BASE_URL}/auth/login`);
+
+  // Auth0 Universal Login is a small HTML shell that renders the login form
+  // via client-side JS. networkidle can fire before the form hydrates, so
+  // wait explicitly for any input element to appear in the DOM.
+  const emailInput = page
+    .locator('input[name="username"], input[name="email"], input[type="email"]')
+    .first();
+  await emailInput.waitFor({ state: "visible", timeout: 30_000 });
+  await emailInput.fill(process.env.E2E_TEST_EMAIL!);
+
+  // Some Auth0 flows show password on the same page; others require clicking
+  // "Continue" first. Handle both. Use exact name match to avoid hitting
+  // "Continue with Google" social login button.
+  const continueBtn = page.getByRole("button", { name: /^continue$/i });
+  if (await continueBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await continueBtn.click();
+  }
+
+  await page
+    .locator('input[type="password"]')
+    .fill(process.env.E2E_TEST_PASSWORD!);
+
+  // Target the submit button for the email/password form, not social login
+  // buttons like "Continue with Google". The form submit button typically
+  // says just "Continue" or "Log In".
+  await page
+    .getByRole("button", { name: /^(log in|sign in|continue)$/i })
+    .last()
+    .click();
+
+  // Some tenants show a consent / authorize screen on the way back; accept it
+  // so the redirect to the app can complete instead of stalling there.
+  const consentBtn = page.getByRole("button", {
+    name: /^(accept|allow|authorize)$/i,
+  });
+  if (await consentBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await consentBtn.click();
+  }
+
+  // Wait until Auth0 redirects back to the app AND the callback finishes
+  // processing. The callback URL is on localhost so we can't just check
+  // "hostname doesn't contain auth0" — that fires too early on /auth/callback
+  // before the session cookie is set. Wait for the final redirect to land on
+  // a non-callback page. Generous timeout: this hop is slow in CI.
+  await page.waitForURL(
+    (url) =>
+      !url.hostname.includes("auth0") && !url.pathname.startsWith("/auth/"),
+    { timeout: 45_000 },
+  );
+  await page.waitForLoadState("networkidle");
 }
