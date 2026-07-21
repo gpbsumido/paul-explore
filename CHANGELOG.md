@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.14
+
+- reworked the Campaign Manager demo: creating a campaign now runs through a stepped modal (basics, then targeting/schedule, then a review) with progressive disclosure and per-step gating, backed by a reducer, instead of the inline one-field form
+
 ## 2026-07-20 - version 0.25.13
 
 - marked the wallet/referral public exports (`ConnectWallet`, `useCreateReferral`, `useReferralStats`, `getReferral`) with `ts-prune-ignore-next` so the dead-code CI passes; the demos that consume them land in later phases
