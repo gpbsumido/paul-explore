@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-20 - version 0.25.7
+
+- removed the Economy & Financial Health demo from the work-portfolio catalog and registry; it overlapped too much with the other analytics demos to earn its slot in the revamp
+
 ## 2026-07-20 - version 0.25.6
 
 - gave the Work Portfolio hub card an animated mini dual-ticker preview (two rows of accent-dotted chips marqueeing in opposite directions, mirroring the real feature) so it stands out, with a static fallback under prefers-reduced-motion

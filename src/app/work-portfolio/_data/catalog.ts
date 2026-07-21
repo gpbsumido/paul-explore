@@ -220,18 +220,6 @@ export const FEATURES: WorkFeature[] = [
       mocked: "Titles are renamed to Game A, B, C; the switcher reskins one dashboard.",
     },
   },
-  {
-    slug: "economy-health",
-    projectId: "portal-v1",
-    title: "Economy & Financial Health",
-    tagline: "Token economy KPI views",
-    icon: "💹",
-    explainer: {
-      did: "Economy, payments, financial health, and comparative analytics pages for game economies.",
-      stack: "Next.js, ECharts, MUI",
-      mocked: "KPI values and comparisons are generated series.",
-    },
-  },
   // Platform Console
   {
     slug: "admin-suite",
