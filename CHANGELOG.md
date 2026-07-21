@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.22
+
+- removed unused `@dnd-kit/sortable` and `@dnd-kit/utilities`; the kanban only needs `@dnd-kit/core` (they can come back if a later drag demo needs sortable)
+
 ## 2026-07-21 - version 0.25.21
 
 - Character Sheets now has a roster of characters and a stepped create modal (identity, then class, then the stat-point budget) for adding new ones
