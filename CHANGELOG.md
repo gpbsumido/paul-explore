@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.48
+
+- LLM Assistant now shows the full set of agent-UI patterns (all simulated): an agent/chat mode toggle, a plan of steps that ticks off, the tool-call row running then done, streamed tokens, citation chips, and stop/retry controls
+
 ## 2026-07-21 - version 0.25.47
 
 - Workflow Editor is now editable: drag nodes around the graph, edit a node's label and config in place, and add or remove connections between nodes
