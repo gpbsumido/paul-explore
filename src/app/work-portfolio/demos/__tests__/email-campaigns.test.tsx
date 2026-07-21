@@ -9,9 +9,27 @@ describe("email campaigns demo", () => {
   it("adds a block to the email preview", () => {
     render(<EmailCampaignsDemo feature={feature} />);
     const preview = screen.getByLabelText("Email preview");
-    const before = within(preview).queryAllByText("Claim reward").length;
-    fireEvent.click(screen.getByRole("button", { name: "Button" }));
-    expect(within(preview).getAllByText("Claim reward").length).toBe(before + 1);
+    const count = () => within(preview).getAllByTestId("email-block").length;
+    const before = count();
+    fireEvent.click(screen.getByRole("button", { name: "Text" }));
+    expect(count()).toBe(before + 1);
+  });
+
+  it("edits a block inline", () => {
+    render(<EmailCampaignsDemo feature={feature} />);
+    const heading = screen.getByLabelText("Heading text");
+    fireEvent.change(heading, { target: { value: "Season 5 is live" } });
+    expect(heading).toHaveValue("Season 5 is live");
+  });
+
+  it("imports a local image as a data url", async () => {
+    render(<EmailCampaignsDemo feature={feature} />);
+    const file = new File(["banner-bytes"], "banner.png", { type: "image/png" });
+    fireEvent.change(screen.getByLabelText("Import image"), {
+      target: { files: [file] },
+    });
+    const img = await screen.findByRole("img");
+    expect(img.getAttribute("src")).toMatch(/^data:image\/png/);
   });
 
   it("shows the campaign table with statuses", () => {

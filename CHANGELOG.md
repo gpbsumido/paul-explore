@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-21 - version 0.25.46
+
+- Email Studio blocks are now editable in place (heading, body, button text type right in the preview) and image blocks import a local file straight to a data URL, no server
+
 ## 2026-07-21 - version 0.25.45
 
 - Dashboard Designer drag-drop reworked on dnd-kit: drag a widget by its title onto another to drop it into that slot, or onto a trailing zone to send it to the end, so it lands in empty cells reliably. move and resize buttons still work

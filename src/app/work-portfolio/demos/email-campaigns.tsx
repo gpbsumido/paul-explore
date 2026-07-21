@@ -7,16 +7,20 @@ import type { WorkFeature } from "../_data/types";
 const ACCENT = "var(--wp-accent, #60a5fa)";
 
 type Block =
-  | { kind: "heading"; text: string }
-  | { kind: "text"; text: string }
-  | { kind: "button"; text: string }
-  | { kind: "image" };
+  | { id: number; kind: "heading"; text: string }
+  | { id: number; kind: "text"; text: string }
+  | { id: number; kind: "button"; text: string }
+  | { id: number; kind: "image"; src?: string };
+
+// Omit that distributes over the block union, so each variant keeps its own props.
+type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never;
+type BlockDraft = DistributiveOmit<Block, "id">;
 
 const INITIAL: Block[] = [
-  { kind: "heading", text: "Season 4 is live" },
-  { kind: "image" },
-  { kind: "text", text: "New map, new rewards. Log in this week for a launch bonus." },
-  { kind: "button", text: "Play now" },
+  { id: 1, kind: "heading", text: "Season 4 is live" },
+  { id: 2, kind: "image" },
+  { id: 3, kind: "text", text: "New map, new rewards. Log in this week for a launch bonus." },
+  { id: 4, kind: "button", text: "Play now" },
 ];
 
 const CAMPAIGNS = [
@@ -31,28 +35,75 @@ const STATUS_TINT: Record<string, string> = {
   Scheduled: "#f59e0b",
 };
 
-/** Render a single email block in the preview. */
-function BlockView({ block }: { block: Block }) {
+/** One editable email block: text blocks type in place, image blocks import a local file. */
+function EditableBlock({
+  block,
+  onText,
+  onImport,
+}: {
+  block: Block;
+  onText: (text: string) => void;
+  onImport: (file: File) => void;
+}) {
   switch (block.kind) {
     case "heading":
-      return <p className="text-base font-bold text-foreground">{block.text}</p>;
+      return (
+        <input
+          aria-label="Heading text"
+          value={block.text}
+          onChange={(e) => onText(e.target.value)}
+          className="w-full bg-transparent text-base font-bold text-foreground outline-none"
+        />
+      );
     case "text":
-      return <p className="text-[12px] text-muted">{block.text}</p>;
+      return (
+        <textarea
+          aria-label="Body text"
+          value={block.text}
+          onChange={(e) => onText(e.target.value)}
+          rows={2}
+          className="w-full resize-none bg-transparent text-[12px] text-muted outline-none"
+        />
+      );
     case "button":
       return (
-        <span
-          className="inline-block rounded-md px-3 py-1.5 text-[12px] font-medium text-white"
+        <input
+          aria-label="Button label"
+          value={block.text}
+          onChange={(e) => onText(e.target.value)}
+          className="rounded-md px-3 py-1.5 text-center text-[12px] font-medium text-white outline-none"
           style={{ backgroundColor: ACCENT }}
-        >
-          {block.text}
-        </span>
+        />
       );
     case "image":
       return (
-        <div
-          className="h-16 rounded-md"
-          style={{ background: `linear-gradient(120deg, ${"var(--wp-accent,#60a5fa)"}, transparent)` }}
-        />
+        <div className="space-y-1">
+          {block.src ? (
+            <img
+              src={block.src}
+              alt="email banner"
+              className="h-16 w-full rounded-md object-cover"
+            />
+          ) : (
+            <div
+              className="h-16 rounded-md"
+              style={{ background: `linear-gradient(120deg, ${"var(--wp-accent,#60a5fa)"}, transparent)` }}
+            />
+          )}
+          <label className="block cursor-pointer text-[10px] text-muted underline">
+            Import image
+            <input
+              type="file"
+              accept="image/*"
+              aria-label="Import image"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onImport(file);
+              }}
+            />
+          </label>
+        </div>
       );
   }
 }
@@ -63,8 +114,24 @@ function BlockView({ block }: { block: Block }) {
  */
 export default function EmailCampaignsDemo({ feature }: { feature: WorkFeature }) {
   const [blocks, setBlocks] = useState<Block[]>(INITIAL);
+  const [nextId, setNextId] = useState(5);
 
-  const add = (block: Block) => setBlocks((b) => [...b, block]);
+  const add = (block: BlockDraft) => {
+    setBlocks((b) => [...b, { ...block, id: nextId }]);
+    setNextId((n) => n + 1);
+  };
+
+  const setText = (id: number, text: string) =>
+    setBlocks((b) => b.map((x) => (x.id === id ? { ...x, text } : x)));
+
+  const importImage = (id: number, file: File) => {
+    const reader = new FileReader();
+    reader.onload = () =>
+      setBlocks((b) =>
+        b.map((x) => (x.id === id ? { ...x, src: String(reader.result) } : x)),
+      );
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
@@ -82,9 +149,13 @@ export default function EmailCampaignsDemo({ feature }: { feature: WorkFeature }
             aria-label="Email preview"
             className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded-lg border border-border bg-background p-3"
           >
-            {blocks.map((block, i) => (
-              <div key={i}>
-                <BlockView block={block} />
+            {blocks.map((block) => (
+              <div key={block.id} data-testid="email-block">
+                <EditableBlock
+                  block={block}
+                  onText={(text) => setText(block.id, text)}
+                  onImport={(file) => importImage(block.id, file)}
+                />
               </div>
             ))}
           </div>
