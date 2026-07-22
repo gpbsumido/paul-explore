@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.58
+
+- added a "React Doctor" dev-thoughts page documenting the full journey of the static-analysis pass: the fixes that landed, the fix that fought back (and got reverted), the false positives, what was deferred and why, and what the tool got right and wrong
+
 ## 2026-07-22 - version 0.25.57
 
 - react-doctor fixes: check response.ok before reading the body on the /api/me and calendar-cards fetches (fetch does not reject on 4xx/5xx), and guard the graphql proxy's json parse so a non-JSON upstream error can't throw

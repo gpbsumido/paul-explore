@@ -142,6 +142,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "React Doctor",
+    href: "/thoughts/react-doctor",
+    preview:
+      "Working a static-analysis pass: real fixes, the fix that fought back, false positives, and why severity isn't priority",
+    color: "#f43f5e",
+  },
+  {
     title: "Styling Decisions",
     href: "/thoughts/styling",
     preview: "CSS Modules vs Tailwind v4 and design tokens",
