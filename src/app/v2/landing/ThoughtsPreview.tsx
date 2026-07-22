@@ -9,6 +9,7 @@ import {
   instantTransition,
 } from "@/lib/animations";
 import { THOUGHTS } from "@/app/_shared/featureData";
+import { groupThoughts } from "@/app/_shared/thoughtCategories";
 
 export default function ThoughtsPreview() {
   const prefersReduced = useReducedMotion();
@@ -33,33 +34,46 @@ export default function ThoughtsPreview() {
         </p>
       </motion.div>
 
-      {/* Card grid */}
-      <motion.div
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        variants={staggerContainer(0.05)}
-        initial={skip ? false : "hidden"}
-        whileInView="visible"
-        viewport={{ once: true, margin: "-10%" }}
-      >
-        {THOUGHTS.map((thought) => (
-          <motion.div
-            key={thought.href}
-            variants={fadeInUp}
-            transition={skip ? instantTransition : spring.smooth}
-          >
-            <Link
-              href={thought.href}
-              className="flex h-full items-start gap-3 rounded-xl border border-border p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
-              style={{ borderLeftWidth: 3, borderLeftColor: thought.color }}
+      {/* Card grid, grouped by category */}
+      <div className="space-y-12">
+        {groupThoughts(THOUGHTS).map((group) => (
+          <div key={group.name}>
+            <h3 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
+              {group.name}
+            </h3>
+            <motion.div
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+              variants={staggerContainer(0.05)}
+              initial={skip ? false : "hidden"}
+              whileInView="visible"
+              viewport={{ once: true, margin: "-10%" }}
             >
-              <div className="min-w-0">
-                <p className="font-semibold text-foreground">{thought.title}</p>
-                <p className="mt-1 text-sm text-muted">{thought.preview}</p>
-              </div>
-            </Link>
-          </motion.div>
+              {group.items.map((thought) => (
+                <motion.div
+                  key={thought.href}
+                  variants={fadeInUp}
+                  transition={skip ? instantTransition : spring.smooth}
+                >
+                  <Link
+                    href={thought.href}
+                    className="flex h-full items-start gap-3 rounded-xl border border-border p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
+                    style={{ borderLeftWidth: 3, borderLeftColor: thought.color }}
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground">
+                        {thought.title}
+                      </p>
+                      <p className="mt-1 text-sm text-muted">
+                        {thought.preview}
+                      </p>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 }
