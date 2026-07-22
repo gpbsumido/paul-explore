@@ -152,6 +152,7 @@ function Narration({ text }: { text: string }) {
 function TwoSumDemo() {
   const [target, setTarget] = useState(TWO_SUM_TARGETS[0]);
   const [stepIdx, setStepIdx] = useState(0);
+  const stepIdxRef = useRef(stepIdx);
   const [playing, setPlaying] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -167,13 +168,11 @@ function TwoSumDemo() {
   }, []);
 
   const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
+    if (stepIdxRef.current >= steps.length - 1) {
+      stop();
+      return;
+    }
+    setStepIdx((prev) => prev + 1);
   }, [steps.length, stop]);
 
   const play = useCallback(() => {
@@ -183,13 +182,11 @@ function TwoSumDemo() {
     setPlaying(true);
     intervalRef.current = setInterval(() => {
       if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
+      if (stepIdxRef.current >= steps.length - 1) {
+        stop();
+        return;
+      }
+      setStepIdx((prev) => prev + 1);
     }, 1200);
   }, [stepIdx, steps.length, stop]);
 
@@ -198,6 +195,10 @@ function TwoSumDemo() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    stepIdxRef.current = stepIdx;
+  }, [stepIdx]);
 
   const reset = useCallback(() => {
     stop();
