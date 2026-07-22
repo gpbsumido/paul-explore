@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.57
+
+- react-doctor fixes: check response.ok before reading the body on the /api/me and calendar-cards fetches (fetch does not reject on 4xx/5xx), and guard the graphql proxy's json parse so a non-JSON upstream error can't throw
+
 ## 2026-07-22 - version 0.25.56
 
 - react-doctor fixes: gave the NBA playoff auto-save effect a proper cleanup (aborts the in-flight save and clears the reset timer on unmount) so it can't set state after the component is gone
