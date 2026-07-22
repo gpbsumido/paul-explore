@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -289,7 +289,7 @@ function TwoSumDemo() {
 
           return (
             <div key={i} className="relative flex flex-col items-center">
-              <motion.div
+              <m.div
                 className={[
                   "flex h-10 w-10 items-center justify-center rounded-sm border font-mono text-sm sm:h-12 sm:w-12",
                   isFound
@@ -304,10 +304,10 @@ function TwoSumDemo() {
                 transition={hoverSpring}
               >
                 {val}
-              </motion.div>
+              </m.div>
               <AnimatePresence>
                 {isLeft && (
-                  <motion.span
+                  <m.span
                     key="L"
                     className="absolute -bottom-6 font-mono text-[11px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -316,10 +316,10 @@ function TwoSumDemo() {
                     transition={hoverSpring}
                   >
                     L
-                  </motion.span>
+                  </m.span>
                 )}
                 {isRight && (
-                  <motion.span
+                  <m.span
                     key="R"
                     className="absolute -bottom-6 font-mono text-[11px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -328,7 +328,7 @@ function TwoSumDemo() {
                     transition={hoverSpring}
                   >
                     R
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -351,7 +351,7 @@ function TwoSumDemo() {
 
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -364,7 +364,7 @@ function TwoSumDemo() {
                 Pair found.
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -442,7 +442,7 @@ function DedupDemo() {
 
           return (
             <div key={i} className="relative flex flex-col items-center">
-              <motion.div
+              <m.div
                 className={[
                   "flex h-10 w-10 items-center justify-center rounded-sm border font-mono text-sm sm:h-12 sm:w-12",
                   isRead || isWrite
@@ -453,10 +453,10 @@ function DedupDemo() {
                 transition={hoverSpring}
               >
                 {val}
-              </motion.div>
+              </m.div>
               <AnimatePresence>
                 {isWrite && (
-                  <motion.span
+                  <m.span
                     key="W"
                     className="absolute -bottom-6 font-mono text-[11px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -465,10 +465,10 @@ function DedupDemo() {
                     transition={hoverSpring}
                   >
                     W
-                  </motion.span>
+                  </m.span>
                 )}
                 {isRead && !isWrite && (
-                  <motion.span
+                  <m.span
                     key="R"
                     className="absolute -bottom-6 font-mono text-[11px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -477,10 +477,10 @@ function DedupDemo() {
                     transition={hoverSpring}
                   >
                     R
-                  </motion.span>
+                  </m.span>
                 )}
                 {isRead && isWrite && (
-                  <motion.span
+                  <m.span
                     key="WR"
                     className="absolute -bottom-6 font-mono text-[10px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -489,7 +489,7 @@ function DedupDemo() {
                     transition={hoverSpring}
                   >
                     W/R
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -512,7 +512,7 @@ function DedupDemo() {
 
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -525,7 +525,7 @@ function DedupDemo() {
                 Result: [{step.result.join(", ")}]
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -546,7 +546,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -555,7 +555,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

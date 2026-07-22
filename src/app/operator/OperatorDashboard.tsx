@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { fadeInUp, spring } from "@/lib/animations";
@@ -150,7 +150,7 @@ export default function OperatorDashboard() {
   }
 
   return (
-    <motion.main
+    <m.main
       className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6"
       variants={fadeInUp}
       initial="hidden"
@@ -246,7 +246,7 @@ export default function OperatorDashboard() {
           })}
         </div>
       )}
-    </motion.main>
+    </m.main>
   );
 }
 

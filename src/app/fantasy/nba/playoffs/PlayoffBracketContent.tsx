@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { queryKeys } from "@/lib/queryKeys";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -203,7 +203,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
 
   return (
     <AnimatePresence mode="wait">
-      <motion.span
+      <m.span
         key={status}
         initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
@@ -214,7 +214,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
         ].join(" ")}
       >
         {status === "saving" ? "Saving…" : "Saved"}
-      </motion.span>
+      </m.span>
     </AnimatePresence>
   );
 }
@@ -292,7 +292,7 @@ function ShareButton({ url }: { url: string }) {
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
       </svg>
       <AnimatePresence mode="wait">
-        <motion.span
+        <m.span
           key={copied ? "copied" : "share"}
           initial={{ opacity: 0, y: -3 }}
           animate={{ opacity: 1, y: 0 }}
@@ -300,7 +300,7 @@ function ShareButton({ url }: { url: string }) {
           transition={{ duration: 0.15 }}
         >
           {copied ? "Copied!" : "Share"}
-        </motion.span>
+        </m.span>
       </AnimatePresence>
     </button>
   );
@@ -327,7 +327,7 @@ function PickProgress({
         {picked}/{total}
       </span>
       <div className="h-1 w-16 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-        <motion.div
+        <m.div
           className="h-full rounded-full bg-orange-400/70"
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -359,7 +359,7 @@ function ChampionDisplay({
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         key={finalsPick.winner}
         initial={{ opacity: 0, scale: 0.85, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -380,7 +380,7 @@ function ChampionDisplay({
         }
       >
         {/* Trophy with wiggle */}
-        <motion.div
+        <m.div
           animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
           transition={{ duration: 1.6, ease: "easeInOut", delay: 0.4 }}
         >
@@ -392,11 +392,11 @@ function ChampionDisplay({
           >
             <path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z" />
           </svg>
-        </motion.div>
+        </m.div>
 
         {/* Logo */}
         {logoUrl && (
-          <motion.img
+          <m.img
             initial={{ scale: 0, rotate: -10 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{
@@ -427,7 +427,7 @@ function ChampionDisplay({
             Your Champion
           </p>
         </div>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }
@@ -454,7 +454,7 @@ function ViewModeBanner({
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 24 }}
@@ -497,7 +497,7 @@ function ViewModeBanner({
           </a>
         )}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -519,7 +519,7 @@ function RoundColumn({
   animVariant?: "left" | "right";
 }) {
   return (
-    <motion.div
+    <m.div
       variants={
         animVariant === "left"
           ? slideInLeft
@@ -553,7 +553,7 @@ function RoundColumn({
           );
         })}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -832,7 +832,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
 
         {/* View mode: unavailable state */}
         {isViewMode && viewPicksQuery.isError && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex flex-col items-center gap-2 py-12 text-center"
@@ -846,18 +846,18 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
             >
               Go back to the bracket →
             </a>
-          </motion.div>
+          </m.div>
         )}
 
         {bracket && (!isViewMode || !viewPicksQuery.isError) && (
-          <motion.div
+          <m.div
             variants={staggerContainer(0.08)}
             initial="hidden"
             animate="visible"
             className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_180px_1fr] lg:items-start lg:gap-4"
           >
             {/* ── East ── */}
-            <motion.div variants={slideInLeft}>
+            <m.div variants={slideInLeft}>
               <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted">
                 Eastern Conference
               </h2>
@@ -866,10 +866,10 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 <RoundColumn label="R2" matchups={eastR2} {...columnProps} />
                 <RoundColumn label="ECF" matchups={eastCF} {...columnProps} />
               </div>
-            </motion.div>
+            </m.div>
 
             {/* ── Finals ── */}
-            <motion.div
+            <m.div
               variants={fadeInUp}
               className="mx-auto w-full max-w-[260px] lg:mx-0 lg:max-w-none"
             >
@@ -900,10 +900,10 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                     </div>
                   );
                 })()}
-            </motion.div>
+            </m.div>
 
             {/* ── West ── */}
-            <motion.div variants={slideInRight}>
+            <m.div variants={slideInRight}>
               <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted">
                 Western Conference
               </h2>
@@ -913,8 +913,8 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 <RoundColumn label="R2" matchups={westR2} {...columnProps} />
                 <RoundColumn label="WCF" matchups={westCF} {...columnProps} />
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
 
         {/* ── Leaderboard ── */}

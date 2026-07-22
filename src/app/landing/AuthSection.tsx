@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import dynamic from "next/dynamic";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
 import ModelLazyMount from "./models/ModelLazyMount";
 import {
@@ -36,7 +36,7 @@ export default function AuthSection() {
         {/* left half: text + model stacked vertically */}
         <div className="flex min-w-0 flex-col gap-6">
           {/* text — slides in from the left */}
-          <motion.div
+          <m.div
             variants={slideInLeft}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
@@ -53,7 +53,7 @@ export default function AuthSection() {
               aria-hidden
             >
               {/* shackle arc draws first */}
-              <motion.path
+              <m.path
                 d="M8 11V6.5a4 4 0 0 1 8 0V11"
                 stroke="currentColor"
                 initial={{ pathLength: 0 }}
@@ -61,7 +61,7 @@ export default function AuthSection() {
                 transition={{ ...drawTransition, delay: 0 }}
               />
               {/* body outline draws after shackle */}
-              <motion.path
+              <m.path
                 d="M3 11h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V11z"
                 stroke="currentColor"
                 initial={{ pathLength: 0 }}
@@ -72,7 +72,7 @@ export default function AuthSection() {
                 }}
               />
               {/* keyhole dot fades in last */}
-              <motion.circle
+              <m.circle
                 cx="12"
                 cy="16"
                 r="1.5"
@@ -129,10 +129,10 @@ export default function AuthSection() {
                 </span>
               </li>
             </ul>
-          </motion.div>
+          </m.div>
 
           {/* lock model — fades/scales in after text */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.88 }}
             animate={
               inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.88 }
@@ -142,11 +142,11 @@ export default function AuthSection() {
             <ModelLazyMount style={{ width: "100%", height: "260px" }}>
               <AuthSectionCanvas />
             </ModelLazyMount>
-          </motion.div>
+          </m.div>
         </div>
 
         {/* right half: code snippet — slides in from the right */}
-        <motion.div
+        <m.div
           className="min-w-0"
           variants={slideInRight}
           initial="hidden"
@@ -173,7 +173,7 @@ export async function middleware(req) {
 }`}</code>
             </pre>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </Section>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import {
   fadeInUp,
   staggerContainer,
@@ -18,7 +18,7 @@ export default function ThoughtsPreview() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
       {/* Heading */}
-      <motion.div
+      <m.div
         className="mb-12 text-center"
         initial={skip ? false : { opacity: 0, y: 14 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -32,7 +32,7 @@ export default function ThoughtsPreview() {
           Deep-dives into architecture decisions, trade-offs, and lessons
           learned
         </p>
-      </motion.div>
+      </m.div>
 
       {/* Card grid, grouped by category */}
       <div className="space-y-12">
@@ -41,7 +41,7 @@ export default function ThoughtsPreview() {
             <h3 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
               {group.name}
             </h3>
-            <motion.div
+            <m.div
               className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
               variants={staggerContainer(0.05)}
               initial={skip ? false : "hidden"}
@@ -49,7 +49,7 @@ export default function ThoughtsPreview() {
               viewport={{ once: true, margin: "-10%" }}
             >
               {group.items.map((thought) => (
-                <motion.div
+                <m.div
                   key={thought.href}
                   variants={fadeInUp}
                   transition={skip ? instantTransition : spring.smooth}
@@ -68,9 +68,9 @@ export default function ThoughtsPreview() {
                       </p>
                     </div>
                   </Link>
-                </motion.div>
+                </m.div>
               ))}
-            </motion.div>
+            </m.div>
           </div>
         ))}
       </div>

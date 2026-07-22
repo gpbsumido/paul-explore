@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { fadeInUp } from "@/lib/animations";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/components/ui/Button";
@@ -85,7 +85,7 @@ export default function AgentPatternsContent() {
 
       <main className="max-w-4xl mx-auto px-4 py-12 space-y-16">
         {/* Intro */}
-        <motion.section {...fadeInUp} className="space-y-4">
+        <m.section {...fadeInUp} className="space-y-4">
           <h1 className="text-3xl font-bold tracking-tight">
             AI Agent UI Patterns
           </h1>
@@ -95,7 +95,7 @@ export default function AgentPatternsContent() {
             hit Run to see SSE parsing, tool calls, approval gates, and error
             recovery in action.
           </p>
-        </motion.section>
+        </m.section>
 
         {/* Scenario selector */}
         <section className="space-y-3">
@@ -195,7 +195,7 @@ export default function AgentPatternsContent() {
 
         {/* Explanatory sections */}
         {SECTIONS.map((section) => (
-          <motion.section
+          <m.section
             key={section.title}
             initial="hidden"
             whileInView="visible"
@@ -212,7 +212,7 @@ export default function AgentPatternsContent() {
                 <code>{section.code}</code>
               </pre>
             )}
-          </motion.section>
+          </m.section>
         ))}
       </main>
     </>

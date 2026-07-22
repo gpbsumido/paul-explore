@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { queryKeys } from "@/lib/queryKeys";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import type {
@@ -63,7 +63,7 @@ function EntryRow({
     : null;
 
   return (
-    <motion.tr
+    <m.tr
       variants={fadeInUp}
       data-current-user={isCurrentUser ? "true" : undefined}
       onClick={() => {
@@ -111,7 +111,7 @@ function EntryRow({
             {entry.score} / {entry.maxScore} pts
           </span>
           <div className="h-1 w-20 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-            <motion.div
+            <m.div
               className="h-full rounded-full bg-orange-500/60"
               initial={{ width: 0 }}
               animate={{ width: `${scorePct}%` }}
@@ -160,7 +160,7 @@ function EntryRow({
           </svg>
         </a>
       </td>
-    </motion.tr>
+    </m.tr>
   );
 }
 
@@ -225,7 +225,7 @@ export default function PlayoffLeaderboard({
             <th className="w-8 px-2 py-2" />
           </tr>
         </thead>
-        <motion.tbody
+        <m.tbody
           variants={staggerContainer(0.04)}
           initial="hidden"
           animate="visible"
@@ -238,7 +238,7 @@ export default function PlayoffLeaderboard({
               isViewedUser={entry.username === viewSub}
             />
           ))}
-        </motion.tbody>
+        </m.tbody>
       </table>
     </div>
   );

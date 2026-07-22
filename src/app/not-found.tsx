@@ -3,7 +3,7 @@
 import { useState, useEffect, useSyncExternalStore, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 
 // ---------------------------------------------------------------------------
 // 10 variants — each has a color, message, and animated visual
@@ -36,7 +36,7 @@ function ScatteredDigits({ color }: { color: string }) {
   return (
     <div className="relative flex h-32 items-center justify-center gap-2">
       {digits.map((digit, i) => (
-        <motion.span
+        <m.span
           key={i}
           className="font-mono text-6xl font-bold"
           style={{ color }}
@@ -45,7 +45,7 @@ function ScatteredDigits({ color }: { color: string }) {
           transition={{ ...spring, delay: digit.delay }}
         >
           {digit.d}
-        </motion.span>
+        </m.span>
       ))}
     </div>
   );
@@ -55,7 +55,7 @@ function PulsingRings({ color }: { color: string }) {
   return (
     <div className="relative flex h-32 items-center justify-center">
       {[0, 1, 2].map((i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute rounded-full border-2"
           style={{ borderColor: color }}
@@ -84,7 +84,7 @@ function BouncingDot({ color }: { color: string }) {
   return (
     <div className="flex h-32 items-end justify-center gap-6 pb-4">
       {[0, 1, 2].map((i) => (
-        <motion.div
+        <m.div
           key={i}
           className="h-5 w-5 rounded-full"
           style={{ backgroundColor: color }}
@@ -104,15 +104,15 @@ function BouncingDot({ color }: { color: string }) {
 function GlitchText({ color }: { color: string }) {
   return (
     <div className="relative flex h-32 items-center justify-center">
-      <motion.span
+      <m.span
         className="absolute font-mono text-6xl font-bold"
         style={{ color, opacity: 0.3 }}
         animate={{ x: [-2, 2, -1, 0], y: [1, -1, 0] }}
         transition={{ duration: 0.3, repeat: Infinity, repeatDelay: 2 }}
       >
         404
-      </motion.span>
-      <motion.span
+      </m.span>
+      <m.span
         className="absolute font-mono text-6xl font-bold"
         style={{ color, opacity: 0.3, filter: "blur(1px)" }}
         animate={{ x: [2, -2, 1, 0], y: [-1, 1, 0] }}
@@ -124,7 +124,7 @@ function GlitchText({ color }: { color: string }) {
         }}
       >
         404
-      </motion.span>
+      </m.span>
       <span className="relative font-mono text-6xl font-bold" style={{ color }}>
         404
       </span>
@@ -139,7 +139,7 @@ function OrbitingDots({ color }: { color: string }) {
         404
       </span>
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute h-2.5 w-2.5 rounded-full"
           style={{ backgroundColor: color, opacity: 0.6 - i * 0.08 }}
@@ -159,7 +159,7 @@ function OrbitingDots({ color }: { color: string }) {
               transform: "translateX(-50%)",
             }}
           />
-        </motion.div>
+        </m.div>
       ))}
     </div>
   );
@@ -169,7 +169,7 @@ function StackedCards({ color }: { color: string }) {
   return (
     <div className="relative flex h-32 items-center justify-center">
       {[2, 1, 0].map((i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute flex h-20 w-36 items-center justify-center rounded-lg border font-mono text-2xl font-bold"
           style={{
@@ -182,7 +182,7 @@ function StackedCards({ color }: { color: string }) {
           transition={{ ...spring, delay: (2 - i) * 0.1 }}
         >
           {i === 0 ? "404" : ""}
-        </motion.div>
+        </m.div>
       ))}
     </div>
   );
@@ -206,7 +206,7 @@ function TypewriterText({ color }: { color: string }) {
     <div className="flex h-32 items-center justify-center">
       <span className="font-mono text-3xl font-bold" style={{ color }}>
         {text.slice(0, charCount)}
-        <motion.span
+        <m.span
           animate={{ opacity: [1, 0] }}
           transition={{ duration: 0.6, repeat: Infinity }}
           className="ml-0.5 inline-block w-3 border-b-2"
@@ -222,7 +222,7 @@ function WavyDigits({ color }: { color: string }) {
   return (
     <div className="flex h-32 items-center justify-center gap-1">
       {chars.map((char, i) => (
-        <motion.span
+        <m.span
           key={i}
           className="font-mono text-6xl font-bold"
           style={{ color }}
@@ -235,7 +235,7 @@ function WavyDigits({ color }: { color: string }) {
           }}
         >
           {char}
-        </motion.span>
+        </m.span>
       ))}
     </div>
   );
@@ -244,13 +244,13 @@ function WavyDigits({ color }: { color: string }) {
 function SpinningSquare({ color }: { color: string }) {
   return (
     <div className="relative flex h-32 items-center justify-center">
-      <motion.div
+      <m.div
         className="absolute h-20 w-20 rounded-md border-2"
         style={{ borderColor: color }}
         animate={{ rotate: 360, scale: [1, 0.8, 1] }}
         transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
       />
-      <motion.div
+      <m.div
         className="absolute h-12 w-12 rounded-md border-2"
         style={{ borderColor: color, opacity: 0.5 }}
         animate={{ rotate: -360, scale: [0.8, 1, 0.8] }}
@@ -277,7 +277,7 @@ function ParticlesBurst({ color }: { color: string }) {
   return (
     <div className="relative flex h-32 items-center justify-center">
       {particles.map((p, i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute rounded-full"
           style={{ backgroundColor: color, width: p.size, height: p.size }}
@@ -295,7 +295,7 @@ function ParticlesBurst({ color }: { color: string }) {
           }}
         />
       ))}
-      <motion.span
+      <m.span
         className="relative font-mono text-4xl font-bold"
         style={{ color }}
         initial={{ scale: 0 }}
@@ -303,7 +303,7 @@ function ParticlesBurst({ color }: { color: string }) {
         transition={spring}
       >
         404
-      </motion.span>
+      </m.span>
     </div>
   );
 }
@@ -418,7 +418,7 @@ export default function NotFound() {
       {mounted && (
         <div className="max-w-sm text-center">
           <AnimatePresence>
-            <motion.div
+            <m.div
               key={variantIndex}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -426,25 +426,25 @@ export default function NotFound() {
             >
               {variant.visual(variant.color)}
 
-              <motion.h1
+              <m.h1
                 className="mt-4 text-2xl font-bold tracking-tight text-foreground"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...spring, delay: 0.2 }}
               >
                 {variant.heading}
-              </motion.h1>
+              </m.h1>
 
-              <motion.p
+              <m.p
                 className="mt-2 text-[14px] leading-relaxed text-muted"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...spring, delay: 0.3 }}
               >
                 {variant.message}
-              </motion.p>
+              </m.p>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...spring, delay: 0.4 }}
@@ -465,8 +465,8 @@ export default function NotFound() {
                 >
                   Home
                 </Link>
-              </motion.div>
-            </motion.div>
+              </m.div>
+            </m.div>
           </AnimatePresence>
         </div>
       )}

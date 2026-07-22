@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
 import { StreamingMarkdown } from "./StreamingMarkdown";
 import { ToolCallCard } from "./ToolCallCard";
@@ -72,17 +72,17 @@ export function AgentTimeline({
   onDeny,
 }: AgentTimelineProps) {
   return (
-    <motion.div
+    <m.div
       variants={staggerContainer()}
       initial="hidden"
       animate="visible"
       className="space-y-3"
     >
       {steps.map((step, i) => (
-        <motion.div key={i} variants={fadeInUp} data-step="">
+        <m.div key={i} variants={fadeInUp} data-step="">
           <StepRenderer step={step} onApprove={onApprove} onDeny={onDeny} />
-        </motion.div>
+        </m.div>
       ))}
-    </motion.div>
+    </m.div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { reveal } from "@/app/landing/Section";
 import { spring, cardFlipIn, instantTransition } from "@/lib/animations";
 import type { FeatureItem, ThoughtItem } from "@/types/hub";
@@ -960,7 +960,7 @@ export function LearnPreview() {
 
 // The work-portfolio card gets an animated mini dual-ticker so it stands out:
 // two rows of accent-dotted chips marquee in opposite directions, mirroring the
-// real feature. Falls back to a static strip under prefers-reduced-motion.
+// real feature. Falls back to a static strip under prefers-reduced-m.
 const WP_TOP = ["Content Engine", "Analytics Suite", "Portal v2", "Gamer Hub"];
 const WP_BOTTOM = ["Wallet Lookup", "LLM Assistant", "Dashboard", "Email Studio"];
 
@@ -978,7 +978,7 @@ function WpTickerRow({
   const keyframes = direction === "left" ? ["0%", "-50%"] : ["-50%", "0%"];
   return (
     <div className="flex overflow-hidden">
-      <motion.div
+      <m.div
         className="flex w-max shrink-0 gap-1.5"
         animate={reduced ? undefined : { x: keyframes }}
         transition={
@@ -1006,7 +1006,7 @@ function WpTickerRow({
             </span>
           </span>
         ))}
-      </motion.div>
+      </m.div>
     </div>
   );
 }
@@ -1085,7 +1085,7 @@ export function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
   const token = FEATURE_TOKEN[feature.id] ?? "--color-feature-nba";
 
   return (
-    <motion.div
+    <m.div
       variants={cardFlipIn}
       transition={prefersReduced ? instantTransition : { ...spring.smooth }}
       whileHover={{ y: -4, transition: { ...spring.snappy } }}
@@ -1156,7 +1156,7 @@ export function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
           )}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

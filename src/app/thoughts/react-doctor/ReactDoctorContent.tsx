@@ -535,8 +535,38 @@ useEffect(() => { setStr(date.toLocaleString()); }, [iso]); // ← flagged`}</Sn
                 and <code className="font-mono text-foreground/70">drag</code>, and
                 it has to stay <em className="text-foreground/80">non-strict</em>{" "}
                 so the ~50 files still on <code className="font-mono text-foreground/70">motion</code>{" "}
-                keep working during the migration. The real bundle win only lands
-                once the sweep is done; the sample just de-risks it.
+                kept working while the migration was in flight. That sweep has
+                since landed &mdash; all 50 remaining files are now on{" "}
+                <code className="font-mono text-foreground/70">m</code>.
+              </p>
+              <p className="mt-3 text-muted">
+                <span className="font-semibold text-foreground">Then I measured it, and the honest number is small.</span>{" "}
+                A production build before and after the sweep moves the total
+                client JS by about <code className="font-mono text-foreground/70">2.8&nbsp;KB</code>{" "}
+                gzipped &mdash; roughly 0.1%. That is not the win it looks like on
+                paper, and the reason is the interesting part:{" "}
+                <code className="font-mono text-foreground/70">domMax</code> is a{" "}
+                <em className="text-foreground/80">static</em> import in{" "}
+                <code className="font-mono text-foreground/70">providers.tsx</code>,
+                so the full feature set (layout projection, drag, gestures &mdash;
+                about <code className="font-mono text-foreground/70">38&nbsp;KB</code>{" "}
+                gzipped of Framer code) ships app-wide no matter what. Swapping{" "}
+                <code className="font-mono text-foreground/70">motion</code> for{" "}
+                <code className="font-mono text-foreground/70">m</code> only drops
+                the redundant component wrappers, not the features.
+              </p>
+              <p className="mt-3 text-muted">
+                So the sweep is not the payoff &mdash; it is the{" "}
+                <em className="text-foreground/80">prerequisite</em>. As long as a
+                single file statically imports the full{" "}
+                <code className="font-mono text-foreground/70">motion</code>,{" "}
+                <code className="font-mono text-foreground/70">domMax</code> cannot
+                move to a dynamic import. Now that nothing does, the real next
+                step &mdash; async-loading{" "}
+                <code className="font-mono text-foreground/70">domMax</code> so
+                that ~38&nbsp;KB loads only when an animated view actually mounts
+                &mdash; is finally unblocked. That is where the measurable win
+                lands, and it gets its own PR.
               </p>
               <Snippet label="Before" tone="before">{`import { motion } from "framer-motion";
 // ...

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -610,7 +610,7 @@ function TreeTraversalDemo() {
           <AnimatePresence>
             {TREE_EDGE_COORDS.map((e, i) =>
               traversedSet.has(i) ? (
-                <motion.line
+                <m.line
                   key={`fg-${i}`}
                   x1={e.x1}
                   y1={e.y1}
@@ -632,7 +632,7 @@ function TreeTraversalDemo() {
             const isActive = step.activeNode === node.id;
             return (
               <g key={node.id}>
-                <motion.circle
+                <m.circle
                   cx={node.x}
                   cy={node.y}
                   r={NODE_R}
@@ -675,7 +675,7 @@ function TreeTraversalDemo() {
             <div className="mt-2 flex min-h-[2rem] flex-col-reverse items-center gap-1">
               <AnimatePresence>
                 {step.dsValues.map((val, i) => (
-                  <motion.div
+                  <m.div
                     key={`stack-${val}`}
                     className={[
                       "flex h-7 w-10 items-center justify-center rounded-sm border font-mono text-[10px]",
@@ -689,7 +689,7 @@ function TreeTraversalDemo() {
                     transition={hoverSpring}
                   >
                     {val}
-                  </motion.div>
+                  </m.div>
                 ))}
               </AnimatePresence>
               {step.dsValues.length === 0 && stepIdx > 0 && (
@@ -705,7 +705,7 @@ function TreeTraversalDemo() {
               )}
               <AnimatePresence>
                 {step.dsValues.map((val) => (
-                  <motion.div
+                  <m.div
                     key={`queue-${val}`}
                     className="flex h-7 w-8 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
                     initial={{ opacity: 0, x: 12 }}
@@ -714,7 +714,7 @@ function TreeTraversalDemo() {
                     transition={hoverSpring}
                   >
                     {val}
-                  </motion.div>
+                  </m.div>
                 ))}
               </AnimatePresence>
               {step.dsValues.length === 0 && stepIdx > 0 && (
@@ -732,7 +732,7 @@ function TreeTraversalDemo() {
           <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
             <AnimatePresence>
               {step.visitOrder.map((val, i) => (
-                <motion.span
+                <m.span
                   key={`order-${val}`}
                   className={[
                     "inline-flex h-7 w-8 items-center justify-center rounded-sm border font-mono text-[10px]",
@@ -745,7 +745,7 @@ function TreeTraversalDemo() {
                   transition={hoverSpring}
                 >
                   {val}
-                </motion.span>
+                </m.span>
               ))}
             </AnimatePresence>
           </div>
@@ -769,7 +769,7 @@ function TreeTraversalDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -777,7 +777,7 @@ function TreeTraversalDemo() {
             transition={{ duration: 0.15 }}
           >
             <Narration text={step.narration} />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -930,7 +930,7 @@ function GraphBFSDemo() {
             {GRAPH_EDGE_COORDS.map((e, i) => {
               const isPath = pathEdgeSet.has(i);
               return exploredEdgeSet.has(i) ? (
-                <motion.line
+                <m.line
                   key={`fg-${i}`}
                   x1={e.x1}
                   y1={e.y1}
@@ -963,7 +963,7 @@ function GraphBFSDemo() {
                 style={{ cursor: node.id === start ? "default" : "pointer" }}
                 onClick={() => handleNodeClick(node.id)}
               >
-                <motion.circle
+                <m.circle
                   cx={node.x}
                   cy={node.y}
                   r={GRAPH_R}
@@ -1034,7 +1034,7 @@ function GraphBFSDemo() {
             )}
             <AnimatePresence>
               {step.queue.map((id) => (
-                <motion.div
+                <m.div
                   key={`gq-${id}`}
                   className="flex h-7 w-8 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
                   initial={{ opacity: 0, x: 12 }}
@@ -1043,7 +1043,7 @@ function GraphBFSDemo() {
                   transition={hoverSpring}
                 >
                   {GRAPH[id].label}
-                </motion.div>
+                </m.div>
               ))}
             </AnimatePresence>
             {step.queue.length === 0 && stepIdx > 0 && (
@@ -1059,7 +1059,7 @@ function GraphBFSDemo() {
           <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
             <AnimatePresence>
               {step.visitedSet.map((id) => (
-                <motion.span
+                <m.span
                   key={`gv-${id}`}
                   className="inline-flex h-7 w-8 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -1067,7 +1067,7 @@ function GraphBFSDemo() {
                   transition={hoverSpring}
                 >
                   {GRAPH[id].label}
-                </motion.span>
+                </m.span>
               ))}
             </AnimatePresence>
           </div>
@@ -1091,7 +1091,7 @@ function GraphBFSDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1105,7 +1105,7 @@ function GraphBFSDemo() {
                 {step.pathNodes.length - 1 === 1 ? "edge" : "edges"}
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -1126,7 +1126,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -1135,7 +1135,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

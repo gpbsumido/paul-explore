@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
   PROJECTS,
   FEATURES,
@@ -125,7 +125,7 @@ export default function WorkPortfolioContent() {
         <div className="h-full min-h-0 w-full overflow-y-auto">
           {/* keying by slug remounts on change, giving a quick fade-in
               without AnimatePresence exit-waits (which stall in jsdom) */}
-          <motion.div
+          <m.div
             key={selected ? selected.slug : "intro"}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -195,7 +195,7 @@ export default function WorkPortfolioContent() {
                   </div>
                 </div>
               )}
-          </motion.div>
+          </m.div>
         </div>
         <StageArrow dir="next" onClick={() => step(1)} />
       </main>
