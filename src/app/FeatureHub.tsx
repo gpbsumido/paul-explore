@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { m, useInView } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { reveal } from "@/app/landing/Section";
@@ -106,7 +106,7 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
         </div>
 
         {/* Feature grid — cards stagger in with cardFlipIn via Framer variants */}
-        <motion.div
+        <m.div
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
           style={{ perspective: "1000px" }}
           variants={staggerContainer(0.07)}
@@ -120,7 +120,7 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
               prefersReduced={prefersReduced}
             />
           ))}
-        </motion.div>
+        </m.div>
 
         {/* Dev notes — scroll-triggered */}
         <div ref={thoughtsRef} className="mt-14">

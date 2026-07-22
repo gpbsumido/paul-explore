@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import { staggerContainer } from "@/lib/animations";
@@ -104,7 +104,7 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
         </div>
 
         {/* Feature grid */}
-        <motion.div
+        <m.div
           key={active}
           className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
           style={{ perspective: "1000px" }}
@@ -119,7 +119,7 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
               prefersReduced={prefersReduced}
             />
           ))}
-        </motion.div>
+        </m.div>
 
         {/* Dev thoughts */}
         <div ref={thoughtsRef} className="mt-14">

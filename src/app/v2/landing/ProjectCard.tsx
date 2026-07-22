@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { spring, instantTransition } from "@/lib/animations";
 
 type ProjectCardProps = {
@@ -29,7 +29,7 @@ export default function ProjectCard({
   const skip = prefersReduced ?? false;
 
   return (
-    <motion.div
+    <m.div
       className={`group flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-surface/50 sm:flex-row ${
         reversed ? "sm:flex-row-reverse" : ""
       }`}
@@ -78,6 +78,6 @@ export default function ProjectCard({
           )}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

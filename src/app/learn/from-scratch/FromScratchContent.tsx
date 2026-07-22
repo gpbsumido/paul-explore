@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -51,7 +51,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -60,7 +60,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -579,7 +579,7 @@ function GuidedWalkthrough({
         <pre className="overflow-x-auto border-l-2 border-foreground/10 bg-foreground/[0.02] py-4 pl-4 pr-3 font-mono text-[13px] leading-relaxed">
           <AnimatePresence mode="popLayout">
             {challenge.lines.slice(0, revealedCount).map((line, i) => (
-              <motion.div
+              <m.div
                 key={`${challenge.name}-${i}`}
                 variants={fadeInUp}
                 initial="hidden"
@@ -597,7 +597,7 @@ function GuidedWalkthrough({
                     {line.annotation}
                   </span>
                 )}
-              </motion.div>
+              </m.div>
             ))}
           </AnimatePresence>
           {revealedCount === 0 && (
@@ -635,7 +635,7 @@ function GuidedWalkthrough({
             {challenge.tests.map((test, i) => {
               const passed = testResults[i];
               return (
-                <motion.div
+                <m.div
                   key={test.label}
                   variants={fadeInUp}
                   initial="hidden"
@@ -655,7 +655,7 @@ function GuidedWalkthrough({
                     {passed ? "✓" : "✗"}
                   </span>
                   <span className="text-[13px] text-muted">{test.label}</span>
-                </motion.div>
+                </m.div>
               );
             })}
           </AnimatePresence>
@@ -747,7 +747,7 @@ export default function FromScratchContent() {
               {/* active tab content */}
               <div className="mt-8">
                 <AnimatePresence mode="wait">
-                  <motion.div
+                  <m.div
                     key={CHALLENGES[activeTab].name}
                     variants={fadeInUp}
                     initial="hidden"
@@ -759,7 +759,7 @@ export default function FromScratchContent() {
                       challenge={CHALLENGES[activeTab]}
                       transition={itemT}
                     />
-                  </motion.div>
+                  </m.div>
                 </AnimatePresence>
               </div>
             </Section>

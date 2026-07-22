@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -57,7 +57,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -66,7 +66,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -172,7 +172,7 @@ function CacheVisualizerDemo() {
       {/* Progress bar */}
       {computing && (
         <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full border border-foreground/10">
-          <motion.div
+          <m.div
             className="h-full bg-foreground/10"
             style={{ width: `${progress * 100}%` }}
             transition={{ duration: 0 }}
@@ -184,7 +184,7 @@ function CacheVisualizerDemo() {
       <div className="mt-3 min-h-[1.5rem]">
         <AnimatePresence mode="wait">
           {status && (
-            <motion.p
+            <m.p
               key={status}
               className="text-[13px] leading-relaxed text-muted"
               initial={{ opacity: 0, y: 4 }}
@@ -201,7 +201,7 @@ function CacheVisualizerDemo() {
                   <span key={i}>{part}</span>
                 ),
               )}
-            </motion.p>
+            </m.p>
           )}
         </AnimatePresence>
       </div>
@@ -221,7 +221,7 @@ function CacheVisualizerDemo() {
             {/* Rows */}
             <AnimatePresence>
               {cache.map((entry) => (
-                <motion.div
+                <m.div
                   key={entry.input}
                   className={[
                     "flex border-b border-foreground/10 py-1.5 font-mono text-[13px] transition-colors",
@@ -233,7 +233,7 @@ function CacheVisualizerDemo() {
                 >
                   <span className="w-16 text-muted">{entry.input}</span>
                   <span className="text-foreground/70">{entry.result}</span>
-                </motion.div>
+                </m.div>
               ))}
             </AnimatePresence>
           </div>

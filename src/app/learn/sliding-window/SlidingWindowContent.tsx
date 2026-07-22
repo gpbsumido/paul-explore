@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -383,7 +383,7 @@ function MaxSumDemo() {
           className="relative flex items-center justify-center gap-1 sm:gap-1.5"
         >
           {overlayPos && (
-            <motion.div
+            <m.div
               className="pointer-events-none absolute inset-y-0 rounded-sm border border-foreground/20 bg-foreground/10"
               initial={false}
               animate={overlayPos}
@@ -419,7 +419,7 @@ function MaxSumDemo() {
 
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -432,7 +432,7 @@ function MaxSumDemo() {
                 Max sum: {step.maxSum}
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -553,7 +553,7 @@ function SubstringDemo() {
           className="relative flex items-center justify-center gap-1 sm:gap-1.5"
         >
           {overlayPos && (
-            <motion.div
+            <m.div
               className="pointer-events-none absolute inset-y-0 rounded-sm border border-foreground/20 bg-foreground/10"
               initial={false}
               animate={overlayPos}
@@ -580,7 +580,7 @@ function SubstringDemo() {
         </span>
         <AnimatePresence>
           {step.seen.map((char) => (
-            <motion.span
+            <m.span
               key={char}
               className="inline-flex h-6 items-center rounded-sm border border-foreground/10 px-2 font-mono text-xs text-muted"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -589,7 +589,7 @@ function SubstringDemo() {
               transition={hoverSpring}
             >
               {char}
-            </motion.span>
+            </m.span>
           ))}
         </AnimatePresence>
       </div>
@@ -609,7 +609,7 @@ function SubstringDemo() {
 
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -622,7 +622,7 @@ function SubstringDemo() {
                 Longest: {step.longest} (&quot;{step.longestWindow}&quot;)
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -643,7 +643,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -652,7 +652,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

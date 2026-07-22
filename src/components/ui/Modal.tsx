@@ -8,7 +8,7 @@ import {
   type MouseEvent,
 } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { spring } from "@/lib/animations";
 
 interface ModalProps {
@@ -166,7 +166,7 @@ export default function Modal({
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div
+        <m.div
           key="modal-backdrop"
           className="fixed inset-0 flex items-center justify-center"
           style={{
@@ -181,7 +181,7 @@ export default function Modal({
           transition={{ duration: 0.18 }}
           onClick={handleBackdropClick}
         >
-          <motion.div
+          <m.div
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
@@ -209,8 +209,8 @@ export default function Modal({
             transition={spring.smooth}
           >
             {children}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>,
     document.body,

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -197,7 +197,7 @@ function StackQueueDemo() {
             {stackItems.map((item, i) => {
               const isTop = i === stackItems.length - 1;
               return (
-                <motion.div
+                <m.div
                   key={item}
                   className={[
                     "flex h-8 w-24 items-center justify-center rounded-sm border font-mono text-xs",
@@ -215,7 +215,7 @@ function StackQueueDemo() {
                   {isTop && (
                     <span className="ml-2 text-[10px] text-muted">← top</span>
                   )}
-                </motion.div>
+                </m.div>
               );
             })}
           </AnimatePresence>
@@ -239,7 +239,7 @@ function StackQueueDemo() {
             {queueItems.map((item, i) => {
               const isFront = i === 0;
               return (
-                <motion.div
+                <m.div
                   key={item}
                   className={[
                     "flex h-10 w-10 flex-col items-center justify-center rounded-sm border font-mono text-xs sm:h-12 sm:w-12",
@@ -257,7 +257,7 @@ function StackQueueDemo() {
                   {isFront && (
                     <span className="text-[9px] text-muted">front</span>
                   )}
-                </motion.div>
+                </m.div>
               );
             })}
           </AnimatePresence>
@@ -375,7 +375,7 @@ function ParensDemo() {
           const isError = isMismatch && isCurrent;
 
           return (
-            <motion.div
+            <m.div
               key={`${input}-${i}`}
               className={[
                 "flex h-10 w-10 items-center justify-center rounded-sm border font-mono text-sm",
@@ -391,7 +391,7 @@ function ParensDemo() {
               transition={hoverSpring}
             >
               {char}
-            </motion.div>
+            </m.div>
           );
         })}
       </div>
@@ -407,7 +407,7 @@ function ParensDemo() {
               const isTop = i === step.stack.length - 1;
               const justPushed = step.action === "push" && isTop;
               return (
-                <motion.span
+                <m.span
                   key={`${i}-${char}`}
                   className={[
                     "inline-flex h-7 w-7 items-center justify-center rounded-sm border font-mono text-xs",
@@ -423,7 +423,7 @@ function ParensDemo() {
                   transition={hoverSpring}
                 >
                   {char}
-                </motion.span>
+                </m.span>
               );
             })}
           </AnimatePresence>
@@ -450,7 +450,7 @@ function ParensDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -463,7 +463,7 @@ function ParensDemo() {
                 {step.valid ? "valid" : "invalid"}
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -484,7 +484,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -493,7 +493,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
-  motion,
+  m,
   AnimatePresence,
   useInView,
   useReducedMotion,
@@ -55,7 +55,7 @@ function AnimatedStat({
     return <span className={className}>{inView ? value : "—"}</span>;
   }
 
-  return <motion.span className={className}>{displayed}</motion.span>;
+  return <m.span className={className}>{displayed}</m.span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -84,7 +84,7 @@ function StatRow({
   const prefersReduced = useReducedMotion();
 
   return (
-    <motion.tr
+    <m.tr
       className={odd ? "bg-foreground/5" : ""}
       variants={slideInRight}
       initial="hidden"
@@ -110,7 +110,7 @@ function StatRow({
       <td className="px-3 py-2 text-right text-sm text-foreground">
         <AnimatedStat value={ast} inView={inView} />
       </td>
-    </motion.tr>
+    </m.tr>
   );
 }
 
@@ -165,7 +165,7 @@ export default function NbaSection() {
         {/* Left content — full width on mobile, 52% on desktop.
             Width (not padding) keeps the element out of the canvas hit area. */}
         <div className="relative z-10 md:w-[52%]">
-          <motion.h2
+          <m.h2
             className="text-3xl font-bold tracking-tight text-foreground md:text-4xl"
             variants={headingWipe}
             initial="hidden"
@@ -173,9 +173,9 @@ export default function NbaSection() {
             transition={transition ?? { ...spring.smooth }}
           >
             NBA Stats
-          </motion.h2>
+          </m.h2>
 
-          <motion.p
+          <m.p
             className="mt-3 max-w-sm text-foreground/70"
             variants={fadeUp}
             initial="hidden"
@@ -184,10 +184,10 @@ export default function NbaSection() {
           >
             Player stats, fantasy matchups, and shot charts built on the ESPN
             and NBA APIs with server-side proxying.
-          </motion.p>
+          </m.p>
 
           {/* mock table */}
-          <motion.div
+          <m.div
             className="mt-8 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5 shadow-xl backdrop-blur-sm"
             variants={fadeUp}
             initial="hidden"
@@ -223,10 +223,10 @@ export default function NbaSection() {
                 </tbody>
               </table>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Feature carousel — animated card + dot indicators */}
-          <motion.div
+          <m.div
             className="mt-6"
             variants={fadeUp}
             initial="hidden"
@@ -236,7 +236,7 @@ export default function NbaSection() {
             {/* Animated feature card */}
             <div className="relative min-h-[88px]">
               <AnimatePresence mode="wait">
-                <motion.div
+                <m.div
                   key={SLIDES[activeSlide].id}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -250,7 +250,7 @@ export default function NbaSection() {
                   <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/65">
                     {SLIDES[activeSlide].body}
                   </p>
-                </motion.div>
+                </m.div>
               </AnimatePresence>
             </div>
 
@@ -271,9 +271,9 @@ export default function NbaSection() {
                 />
               ))}
             </div>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             className="mt-8"
             variants={fadeUp}
             initial="hidden"
@@ -286,7 +286,7 @@ export default function NbaSection() {
             >
               View Fantasy NBA →
             </Link>
-          </motion.div>
+          </m.div>
         </div>
 
         {/* 3D canvas — right-aligned, bleeds off the right viewport edge.

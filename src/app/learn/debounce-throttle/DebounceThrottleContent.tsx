@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -51,7 +51,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -60,7 +60,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -87,7 +87,7 @@ function TimelineRow({
       <div className="relative mt-1 h-6 border-t border-foreground/10">
         <AnimatePresence>
           {dots.map((t) => (
-            <motion.div
+            <m.div
               key={t}
               className={[
                 "absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground",

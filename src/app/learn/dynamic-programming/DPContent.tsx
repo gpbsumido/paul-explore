@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -277,7 +277,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -286,7 +286,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -386,14 +386,14 @@ function FibBottomUpDemo() {
             >
               <AnimatePresence>
                 {isFilled && (
-                  <motion.span
+                  <m.span
                     key={`v-${i}`}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 0.8, scale: 1 }}
                     transition={hoverSpring}
                   >
                     {val}
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -418,7 +418,7 @@ function FibBottomUpDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -426,7 +426,7 @@ function FibBottomUpDemo() {
             transition={{ duration: 0.15 }}
           >
             <Narration text={step.narration} />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -560,7 +560,7 @@ function UniquePathsDemo() {
             >
               <AnimatePresence>
                 {isFilled && (
-                  <motion.span
+                  <m.span
                     key={`p-${key}`}
                     className={
                       isActive ? "text-foreground" : "text-foreground/60"
@@ -570,7 +570,7 @@ function UniquePathsDemo() {
                     transition={hoverSpring}
                   >
                     {grid[r][c]}
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -595,7 +595,7 @@ function UniquePathsDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -603,7 +603,7 @@ function UniquePathsDemo() {
             transition={{ duration: 0.15 }}
           >
             <Narration text={step.narration} />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -671,7 +671,7 @@ function ClimbingStairsDemo() {
         const cx = pad + i * stepW + stepW / 2;
         const cy = groundY - (i + 1) * stepH + stepH / 2 + 5;
         return (
-          <motion.text
+          <m.text
             key={`w-${i}`}
             x={cx}
             textAnchor="middle"
@@ -685,7 +685,7 @@ function ClimbingStairsDemo() {
             transition={{ ...hoverSpring, delay: i * 0.12 }}
           >
             {STAIR_WAYS[i + 1]}
-          </motion.text>
+          </m.text>
         );
       })}
 

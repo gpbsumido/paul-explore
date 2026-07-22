@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import {
   spring,
@@ -161,13 +161,13 @@ function TwoPointersMark({ h }: { h: boolean }) {
       />
       <polyline points="70,43 82,50 70,57" strokeOpacity="0.4" />
       <polyline points="90,43 78,50 90,57" strokeOpacity="0.4" />
-      <motion.circle
+      <m.circle
         cy="50"
         r="8"
         animate={{ cx: h ? 72 : 30 }}
         transition={hoverSpring}
       />
-      <motion.circle
+      <m.circle
         cy="50"
         r="8"
         animate={{ cx: h ? 88 : 130 }}
@@ -191,7 +191,7 @@ function SlidingWindowMark({ h }: { h: boolean }) {
           strokeWidth="1"
         />
       ))}
-      <motion.rect
+      <m.rect
         y="30"
         width="42"
         height="40"
@@ -215,7 +215,7 @@ function HashMapsMark({ h }: { h: boolean }) {
       <line x1="100" y1="40" x2="130" y2="40" strokeOpacity="0.12" />
       <line x1="100" y1="58" x2="130" y2="58" strokeOpacity="0.12" />
       {arrows.map((d, i) => (
-        <motion.path
+        <m.path
           key={i}
           d={d}
           animate={{ strokeOpacity: h ? 0.6 : 0.25 }}
@@ -229,7 +229,7 @@ function HashMapsMark({ h }: { h: boolean }) {
 function StacksQueuesMark({ h }: { h: boolean }) {
   return (
     <>
-      <motion.rect
+      <m.rect
         x="24"
         y={22}
         width="44"
@@ -250,13 +250,13 @@ function StacksQueuesMark({ h }: { h: boolean }) {
           strokeOpacity={0.5 - i * 0.1}
         />
       ))}
-      <motion.path
+      <m.path
         d="M46 16 L46 10"
         strokeOpacity="0.25"
         animate={{ opacity: h ? 0 : 1 }}
         transition={hoverSpring}
       />
-      <motion.polyline
+      <m.polyline
         points="42,14 46,8 50,14"
         strokeOpacity="0.25"
         animate={{ opacity: h ? 0 : 1 }}
@@ -275,7 +275,7 @@ function BinarySearchMark({ h }: { h: boolean }) {
       {[20, 34, 48, 62, 76, 90, 104, 118, 132].map((x, i) => {
         const isLeft = x <= 76;
         return isLeft ? (
-          <motion.line
+          <m.line
             key={x}
             x1={x}
             y1={70 - (i + 1) * 5}
@@ -286,7 +286,7 @@ function BinarySearchMark({ h }: { h: boolean }) {
             transition={hoverSpring}
           />
         ) : (
-          <motion.line
+          <m.line
             key={x}
             x1={x}
             y1={70 - (i + 1) * 5}
@@ -330,7 +330,7 @@ function TreesGraphsMark({ h }: { h: boolean }) {
       <line x1="107" y1="53" x2="98" y2="74" strokeOpacity="0.15" />
       <line x1="113" y1="53" x2="122" y2="74" strokeOpacity="0.15" />
       {levels.map((n) => (
-        <motion.circle
+        <m.circle
           key={`${n.cx}-${n.cy}`}
           cx={n.cx}
           cy={n.cy}
@@ -354,7 +354,7 @@ function RecursionMark({ h }: { h: boolean }) {
         d="M80 50 Q80 28 58 28 Q36 28 36 50 Q36 74 64 74 Q88 74 88 54 Q88 40 74 40"
         strokeOpacity="0.15"
       />
-      <motion.path
+      <m.path
         d="M80 50 Q80 28 58 28 Q36 28 36 50 Q36 74 64 74 Q88 74 88 54 Q88 40 74 40"
         strokeOpacity="0.5"
         strokeWidth="2"
@@ -362,7 +362,7 @@ function RecursionMark({ h }: { h: boolean }) {
         animate={{ pathLength: h ? 1 : 0 }}
         transition={{ type: "tween", duration: 0.6, ease: "easeOut" }}
       />
-      <motion.circle
+      <m.circle
         cx="74"
         cy="40"
         r="3"
@@ -384,7 +384,7 @@ function DPMark({ h }: { h: boolean }) {
         const col = i % 6;
         const shouldFill = row + col <= 4;
         return (
-          <motion.rect
+          <m.rect
             key={i}
             x={30 + col * 17}
             y={12 + row * 16}
@@ -423,7 +423,7 @@ function DebounceMark({ h }: { h: boolean }) {
       ))}
       <line x1="20" y1="65" x2="140" y2="65" strokeOpacity="0.08" />
       {[33, 62, 86, 114].map((x, i) => (
-        <motion.circle
+        <m.circle
           key={`t${x}`}
           cx={x}
           cy="65"
@@ -443,7 +443,7 @@ function DebounceMark({ h }: { h: boolean }) {
 function MemoizationMark({ h }: { h: boolean }) {
   return (
     <>
-      <motion.rect
+      <m.rect
         x="55"
         y="30"
         width="50"
@@ -454,7 +454,7 @@ function MemoizationMark({ h }: { h: boolean }) {
       />
       <path d="M40 43 L55 43" strokeOpacity="0.25" />
       <path d="M105 43 L120 43" strokeOpacity="0.25" />
-      <motion.path
+      <m.path
         d="M120 43 Q138 43 138 60 Q138 76 80 76 Q22 76 22 60 Q22 43 40 43"
         strokeDasharray="4 5"
         animate={{ strokeOpacity: h ? 0.5 : 0.2 }}
@@ -467,7 +467,7 @@ function MemoizationMark({ h }: { h: boolean }) {
 function EventDelegationMark({ h }: { h: boolean }) {
   return (
     <>
-      <motion.rect
+      <m.rect
         x="30"
         y="15"
         width="100"
@@ -476,7 +476,7 @@ function EventDelegationMark({ h }: { h: boolean }) {
         animate={{ strokeOpacity: h ? 0.35 : 0.12 }}
         transition={{ ...hoverSpring, delay: h ? 0.12 : 0 }}
       />
-      <motion.rect
+      <m.rect
         x="46"
         y="28"
         width="68"
@@ -485,7 +485,7 @@ function EventDelegationMark({ h }: { h: boolean }) {
         animate={{ strokeOpacity: h ? 0.5 : 0.2 }}
         transition={{ ...hoverSpring, delay: h ? 0.06 : 0 }}
       />
-      <motion.rect
+      <m.rect
         x="60"
         y="39"
         width="40"
@@ -494,7 +494,7 @@ function EventDelegationMark({ h }: { h: boolean }) {
         animate={{ strokeOpacity: h ? 0.65 : 0.3 }}
         transition={hoverSpring}
       />
-      <motion.circle
+      <m.circle
         cx="80"
         cy="50"
         fill="currentColor"
@@ -510,13 +510,13 @@ function AsyncMark({ h }: { h: boolean }) {
   return (
     <>
       <circle cx="80" cy="50" r="28" strokeOpacity="0.15" />
-      <motion.path
+      <m.path
         d="M80 22 A28 28 0 0 1 104 36"
         strokeWidth="2.5"
         animate={{ strokeOpacity: h ? 0.8 : 0.5 }}
         transition={hoverSpring}
       />
-      <motion.g animate={{ x: h ? 4 : 0 }} transition={hoverSpring}>
+      <m.g animate={{ x: h ? 4 : 0 }} transition={hoverSpring}>
         <path d="M108 50 L108 38 L120 38" strokeOpacity="0.2" />
         <rect
           x="120"
@@ -526,11 +526,11 @@ function AsyncMark({ h }: { h: boolean }) {
           rx="3"
           strokeOpacity="0.3"
         />
-      </motion.g>
-      <motion.g animate={{ x: h ? -4 : 0 }} transition={hoverSpring}>
+      </m.g>
+      <m.g animate={{ x: h ? -4 : 0 }} transition={hoverSpring}>
         <path d="M52 50 L52 62 L40 62" strokeOpacity="0.2" />
         <rect x="18" y="57" width="22" height="10" rx="3" strokeOpacity="0.3" />
-      </motion.g>
+      </m.g>
     </>
   );
 }
@@ -538,14 +538,14 @@ function AsyncMark({ h }: { h: boolean }) {
 function FromScratchMark({ h }: { h: boolean }) {
   return (
     <>
-      <motion.path
+      <m.path
         d="M50 22 L28 50 L50 78"
         strokeOpacity="0.4"
         strokeWidth="2.5"
         animate={{ x: h ? 10 : 0 }}
         transition={hoverSpring}
       />
-      <motion.path
+      <m.path
         d="M110 22 L132 50 L110 78"
         strokeOpacity="0.4"
         strokeWidth="2.5"
@@ -568,7 +568,7 @@ function AgentPatternsMark({ h }: { h: boolean }) {
   return (
     <>
       {/* streaming lines */}
-      <motion.line
+      <m.line
         x1="30"
         y1="35"
         x2="90"
@@ -578,7 +578,7 @@ function AgentPatternsMark({ h }: { h: boolean }) {
         animate={{ x2: h ? 110 : 90 }}
         transition={hoverSpring}
       />
-      <motion.line
+      <m.line
         x1="30"
         y1="50"
         x2="75"
@@ -588,7 +588,7 @@ function AgentPatternsMark({ h }: { h: boolean }) {
         animate={{ x2: h ? 95 : 75 }}
         transition={hoverSpring}
       />
-      <motion.line
+      <m.line
         x1="30"
         y1="65"
         x2="60"
@@ -599,7 +599,7 @@ function AgentPatternsMark({ h }: { h: boolean }) {
         transition={hoverSpring}
       />
       {/* cursor */}
-      <motion.rect
+      <m.rect
         x="62"
         y="60"
         width="2"
@@ -684,7 +684,7 @@ function TopicCard({
   const [hovered, setHovered] = useState(false);
 
   return (
-    <motion.div variants={cardVariants} transition={transition}>
+    <m.div variants={cardVariants} transition={transition}>
       <Link
         href={`/learn/${topic.id}`}
         className="group block"
@@ -709,7 +709,7 @@ function TopicCard({
           <DifficultyDots level={topic.difficulty} />
         </div>
       </Link>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -739,7 +739,7 @@ export default function LearnHub() {
         />
 
         <div className="relative">
-          <motion.h1
+          <m.h1
             className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
             variants={fadeInUp}
             initial="hidden"
@@ -747,8 +747,8 @@ export default function LearnHub() {
             transition={t}
           >
             Learn
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             className="mt-4 max-w-lg text-[15px] leading-relaxed text-muted"
             variants={fadeInUp}
             initial="hidden"
@@ -762,13 +762,13 @@ export default function LearnHub() {
             These aren&apos;t reference docs. Each topic starts with something
             you can poke at — an interactive demo that builds the intuition
             before any code appears. Pick one and give it five minutes.
-          </motion.p>
+          </m.p>
 
           {CATEGORIES.map((category, catIdx) => {
             const topics = TOPICS.filter((t) => t.category === category);
             return (
               <section key={category} className="mt-16">
-                <motion.h2
+                <m.h2
                   className="mb-8 text-[11px] font-bold uppercase tracking-[0.2em] text-muted"
                   variants={fadeInUp}
                   initial="hidden"
@@ -780,8 +780,8 @@ export default function LearnHub() {
                   }
                 >
                   {category}
-                </motion.h2>
-                <motion.div
+                </m.h2>
+                <m.div
                   className="grid gap-x-10 gap-y-14 sm:grid-cols-2"
                   variants={staggerContainer(0.06, 0.2 + catIdx * 0.25)}
                   initial="hidden"
@@ -801,7 +801,7 @@ export default function LearnHub() {
                       />
                     );
                   })}
-                </motion.div>
+                </m.div>
               </section>
             );
           })}

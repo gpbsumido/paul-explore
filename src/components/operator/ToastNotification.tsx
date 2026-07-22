@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useToast } from "@/contexts/ToastContext";
 import type { ToastVariant } from "@/lib/operator-toast";
 
@@ -27,7 +27,7 @@ export default function ToastNotification() {
     >
       <AnimatePresence>
         {toasts.map((toast) => (
-          <motion.button
+          <m.button
             key={toast.id}
             type="button"
             onClick={() => removeToast(toast.id)}
@@ -38,7 +38,7 @@ export default function ToastNotification() {
             transition={{ duration: 0.2 }}
           >
             {toast.message}
-          </motion.button>
+          </m.button>
         ))}
       </AnimatePresence>
     </div>
