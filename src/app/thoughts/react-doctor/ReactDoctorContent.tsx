@@ -361,6 +361,35 @@ setStepIdx((prev) => prev + 1);`}</Snippet>
 );
 
 return <ToastContext.Provider value={value}>{children}</ToastContext.Provider>;`}</Snippet>
+              <p className="mt-4 text-muted">
+                <span className="font-semibold text-foreground">toLocaleString() in render.</span>{" "}
+                Two operator components formatted a timestamp with{" "}
+                <code className="font-mono text-foreground/70">toLocaleString()</code>{" "}
+                during render &mdash; but locale and timezone differ between the
+                server and the browser, so that&rsquo;s a hydration mismatch. The
+                interesting part is the fix hit the{" "}
+                <em className="text-foreground/80">same tension as the stepper</em>:
+                the obvious &ldquo;format after mount&rdquo; needs a{" "}
+                <code className="font-mono text-foreground/70">setState</code> in
+                an effect, which React Doctor flags. The clean answer that
+                satisfies both rules is{" "}
+                <code className="font-mono text-foreground/70">useSyncExternalStore</code>{" "}
+                with a server snapshot &mdash; render an empty string on the
+                server, the formatted value on the client, no effect and no
+                mismatch.
+              </p>
+              <Snippet label="Before — formats during render (hydration mismatch)" tone="before">{`<span title={date.toLocaleString()}>
+  {formatDistanceToNow(date, { addSuffix: true })}
+</span>`}</Snippet>
+              <Snippet label="Attempt — clears the mismatch, but setState in an effect" tone="attempt">{`const [str, setStr] = useState("");
+useEffect(() => { setStr(date.toLocaleString()); }, [iso]); // ← flagged`}</Snippet>
+              <Snippet label="After — server snapshot, no effect, no mismatch" tone="after">{`export function useLocaleDateTime(iso: string): string {
+  return useSyncExternalStore(
+    () => () => {},
+    () => new Date(iso).toLocaleString(), // client
+    () => "",                             // server
+  );
+}`}</Snippet>
             </section>
 
             <section>

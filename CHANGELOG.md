@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.61
+
+- react-doctor fixes: moved two operator timestamps' toLocaleString() out of render into a useSyncExternalStore hook (server renders empty, client fills in) so there's no hydration mismatch and no setState-in-effect. documented the fix on the thoughts page
+
 ## 2026-07-22 - version 0.25.60
 
 - react-doctor fixes: memoized the Theme and Toast context values so consumers stop re-rendering on every provider render
