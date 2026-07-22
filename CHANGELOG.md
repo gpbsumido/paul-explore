@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-07-22 - version 0.25.53
+## 2026-07-22 - version 0.25.54
 
 - fixed NFT transfer-mode drag the same way as the Post Queue board: the dragged chip now follows the cursor across both wallet panes (drawn in a drag overlay instead of clipped inside its own pane) and drops wherever the pointer is
 
