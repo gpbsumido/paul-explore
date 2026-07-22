@@ -550,6 +550,57 @@ import { m } from "framer-motion";
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">Following up on a deferred rule: the array-index keys</h2>
+              <p className="text-muted">
+                One of the deferred rules was{" "}
+                <code className="font-mono text-foreground/70">no-array-index-as-key</code>{" "}
+                &mdash; 65 hits across the codebase. Rather than sweep-edit or
+                keep ignoring it, I actually read all 65. Every single one falls
+                into a safe bucket: a static or append-only list that never
+                reorders, an idiomatic recharts{" "}
+                <code className="font-mono text-foreground/70">&lt;Cell&gt;</code>{" "}
+                inside a <code className="font-mono text-foreground/70">.map</code>,
+                or a pure-render list with no local state to mis-associate. The
+                lists that <em className="text-foreground/80">do</em> reorder
+                (drag-and-drop boards, editable rows) were already keyed by
+                stable ids. So the rule was firing 65 times with a real-world
+                harm of zero.
+              </p>
+              <p className="mt-3 text-muted">
+                Index keys only bite when a list is reordered or has items
+                inserted in the middle: React reuses the wrong DOM node and any
+                per-item local state (focus, an open menu, an animation)
+                attaches to the wrong row. None of that applies to an
+                append-only or never-changing list &mdash; there the index{" "}
+                <em className="text-foreground/80">is</em> a stable identity.
+              </p>
+              <p className="mt-3 text-muted">
+                So the right move was to mute the rule, not edit 65 files. React
+                Doctor takes a{" "}
+                <code className="font-mono text-foreground/70">doctor.config.json</code>{" "}
+                with per-rule severities. One gotcha that cost me a few runs: the
+                rule key has to be the fully-qualified{" "}
+                <code className="font-mono text-foreground/70">react-doctor/no-array-index-as-key</code>{" "}
+                &mdash; the bare short name loads without error but silently
+                doesn&rsquo;t match, so the score never moves. With the prefix,
+                the 65 findings drop out and the score ticked up.
+              </p>
+              <Snippet label="doctor.config.json — mute a rule I audited as safe here" tone="after">{`{
+  "$schema": "https://react.doctor/schema/config.json",
+  "rules": {
+    // Audited all 65 hits: static/append-only lists, recharts <Cell>,
+    // pure-render maps. Reorderable lists already use stable ids.
+    "react-doctor/no-array-index-as-key": "off"
+  }
+}`}</Snippet>
+              <p className="mt-3 text-muted">
+                Config-as-suppression only earns its keep because the audit came
+                first. Muting a rule you haven&rsquo;t read is how you turn a
+                scanner into decoration.
+              </p>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What React Doctor got right, and wrong</h2>
               <p className="text-muted">
                 <span className="font-semibold text-foreground">Right:</span> the
@@ -620,6 +671,19 @@ import { m } from "framer-motion";
               already forwarded the status and caught parse errors.
             </Sent>
             <Sent pos="last">Read the file first, always.</Sent>
+
+            <Received pos="first">What about the array-index-key rule?</Received>
+            <Sent pos="first">
+              Read all 65 hits. Every one is a static/append-only list, a
+              recharts &lt;Cell&gt;, or a pure-render map. The lists that reorder
+              already use stable ids.
+            </Sent>
+            <Sent pos="middle">
+              So I muted it in <code>doctor.config.json</code> instead of editing
+              65 files. Gotcha: the key needs the{" "}
+              <code>react-doctor/</code> prefix or it silently no-ops.
+            </Sent>
+            <Sent pos="last">Audit first, then suppress. Not the other way around.</Sent>
 
             <Received pos="first">Verdict?</Received>
             <Sent pos="last">

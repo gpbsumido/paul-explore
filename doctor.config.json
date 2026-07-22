@@ -1,0 +1,10 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "rules": {
+    // Audited all 65 hits: every one is a static/append-only list, an
+    // idiomatic recharts <Cell>, or a pure-render map. Lists that actually
+    // reorder already use stable ids. Index keys are safe here, so we mute
+    // the rule instead of churning 65 files. See /thoughts/react-doctor.
+    "react-doctor/no-array-index-as-key": "off"
+  }
+}
