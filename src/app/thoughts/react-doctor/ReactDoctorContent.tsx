@@ -463,6 +463,36 @@ useEffect(() => { setStr(date.toLocaleString()); }, [iso]); // ← flagged`}</Sn
               <Snippet label="After" tone="after">{`<div className="relative h-16 w-full overflow-hidden rounded-md">
   <Image src={block.src} alt="email banner" fill unoptimized sizes="100vw" className="object-cover" />
 </div>`}</Snippet>
+              <p className="mt-4 text-muted">
+                <span className="font-semibold text-foreground">Framer Motion, sampled.</span>{" "}
+                The biggest deferred item is the full{" "}
+                <code className="font-mono text-foreground/70">framer-motion</code>{" "}
+                import across ~53 files &mdash; the fix is{" "}
+                <code className="font-mono text-foreground/70">LazyMotion</code>{" "}
+                plus the lighter{" "}
+                <code className="font-mono text-foreground/70">m</code> components.
+                Per the tool&rsquo;s own advice I did a <em className="text-foreground/80">sample</em>{" "}
+                first: mount the provider once and convert three files, to prove
+                the recipe before sweeping the rest. Two things it forced me to
+                get right &mdash; the bundle must be{" "}
+                <code className="font-mono text-foreground/70">domMax</code> (not
+                the smaller <code className="font-mono text-foreground/70">domAnimation</code>)
+                because the app animates <code className="font-mono text-foreground/70">layout</code>{" "}
+                and <code className="font-mono text-foreground/70">drag</code>, and
+                it has to stay <em className="text-foreground/80">non-strict</em>{" "}
+                so the ~50 files still on <code className="font-mono text-foreground/70">motion</code>{" "}
+                keep working during the migration. The real bundle win only lands
+                once the sweep is done; the sample just de-risks it.
+              </p>
+              <Snippet label="Before" tone="before">{`import { motion } from "framer-motion";
+// ...
+<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} />`}</Snippet>
+              <Snippet label="After" tone="after">{`// providers.tsx — once, app-wide
+<LazyMotion features={domMax}>{children}</LazyMotion>
+
+// a converted component
+import { m } from "framer-motion";
+<m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} />`}</Snippet>
             </section>
 
             <section>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { scaleIn } from "@/lib/animations";
 import Button from "@/components/ui/Button";
 
@@ -29,7 +29,7 @@ export function ApprovalGate({
   const descId = `${id}-desc`;
 
   return (
-    <motion.div
+    <m.div
       role="alertdialog"
       aria-labelledby={titleId}
       aria-describedby={descId}
@@ -59,6 +59,6 @@ export function ApprovalGate({
           {status === "approved" ? "Approved" : "Denied"}
         </p>
       )}
-    </motion.div>
+    </m.div>
   );
 }

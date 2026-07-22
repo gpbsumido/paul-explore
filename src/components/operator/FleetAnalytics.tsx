@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import type { Store, AlertTrendBucket } from "@/types/operator";
 import FleetHealthChart from "./FleetHealthChart";
 import AlertTrendChart from "./AlertTrendChart";
@@ -75,7 +75,7 @@ export default function FleetAnalytics({
 
       <AnimatePresence initial={false}>
         {!collapsed && (
-          <motion.div
+          <m.div
             key="fleet-analytics-content"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -90,7 +90,7 @@ export default function FleetAnalytics({
                 <InventoryComparisonChart data={inventoryComparison} />
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </section>

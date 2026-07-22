@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.67
+
+- react-doctor follow-up (framer-motion sample): mounted a LazyMotion provider app-wide (domMax features, non-strict) and converted three components from motion to the lighter m — proves the recipe before sweeping the remaining ~50 files. verified the converted components still animate. documented on the thoughts page
+
 ## 2026-07-22 - version 0.25.63
 
 - Email Studio: swapped the imported-image preview from a raw <img> to next/image (fill + unoptimized, since it's a local data URL), clearing the last lint warning. documented on the thoughts page
