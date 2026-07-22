@@ -35,7 +35,7 @@ const CSP = [
   `img-src 'self' blob: data: https://assets.tcgdex.net https://raw.githubusercontent.com https://a.espncdn.com https://explorer-api.walletconnect.com`,
   `font-src 'self'`,
   `connect-src 'self' blob: https://vitals.vercel-insights.com https://vercel.live https://api.open-meteo.com https://api.paulsumido.com https://ethereum-rpc.publicnode.com https://ethereum-sepolia-rpc.publicnode.com wss://relay.walletconnect.org https://relay.walletconnect.org https://explorer-api.walletconnect.com https://api.web3modal.org https://pulse.walletconnect.org`,
-  `frame-src https://vercel.live`,
+  `frame-src https://vercel.live https://verify.walletconnect.org https://verify.walletconnect.com`,
   `object-src 'none'`,
   `base-uri 'self'`,
   `form-action 'self'`,
