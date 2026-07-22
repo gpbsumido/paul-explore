@@ -347,6 +347,60 @@ setStepIdx((prev) => prev + 1);`}</Snippet>
                 &mdash; idempotent impurity in a demo is a different priority
                 than a real leak in a save path.
               </p>
+              <p className="mt-3 text-muted">
+                <span className="font-semibold text-foreground">Update &mdash; came back and did it.</span>{" "}
+                In a follow-up I applied the correct fix across all ten steppers:
+                a ref mirrors the current step (a ref write in an effect, which
+                is allowed), and play/advance check that ref and{" "}
+                <code className="font-mono text-foreground/70">stop()</code> from
+                the interval or the click handler, leaving the updater pure. That
+                cleared every impure-updater finding in{" "}
+                <code className="font-mono text-foreground/70">learn/</code> (30
+                to 0, twice over) with zero new setState-in-effect &mdash; the
+                proof the recipe was right all along, just in the wrong place the
+                first time. Playback, single-step, and reset behave exactly as
+                before.
+              </p>
+              <Snippet label="Correct — now shipped" tone="after">{`const stepIdxRef = useRef(stepIdx);
+useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]); // ref write, allowed
+
+const advance = useCallback(() => {
+  if (stepIdxRef.current >= steps.length - 1) { stop(); return; } // in the handler
+  setStepIdx((prev) => prev + 1);                                  // pure updater
+}, [steps.length, stop]);`}</Snippet>
+              <p className="mt-4 text-muted">
+                <span className="font-semibold text-foreground">Then the tests caught it out.</span>{" "}
+                Writing a test that clicks Play and advances fake timers past the
+                end &mdash; the exact thing you&rsquo;d write to lock the behavior
+                in &mdash; blew up with{" "}
+                <code className="font-mono text-foreground/70">Cannot read properties of undefined</code>.
+                The guard reads{" "}
+                <code className="font-mono text-foreground/70">stepIdxRef.current</code>,
+                but that ref is only refreshed by an effect{" "}
+                <em className="text-foreground/80">after</em> React commits. At a
+                real 800ms cadence the effect always flushes between ticks, so it
+                looked correct. Batched timers fire many ticks in one go with no
+                commit in between, so the ref stays stale, the guard never trips,
+                and <code className="font-mono text-foreground/70">stepIdx</code>{" "}
+                runs off the end of the array.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix is to stop leaning on the effect for the value the loop
+                depends on: write the ref synchronously in the same callback that
+                advances the step. The effect stays (it still catches Step and
+                Reset), but the interval no longer races it. Lesson: a fix that
+                &ldquo;works&rdquo; because of a timing gap isn&rsquo;t done until
+                a test closes the gap &mdash; and the test is what found it.
+              </p>
+              <Snippet label="Fragile — guard reads a ref an effect updates a beat later" tone="attempt">{`intervalRef.current = setInterval(() => {
+  if (stepIdxRef.current >= steps.length - 1) { stop(); return; } // stale under batched ticks
+  setStepIdx((prev) => prev + 1); // ref only catches up after commit
+}, 800);`}</Snippet>
+              <Snippet label="Robust — the callback writes the ref itself" tone="after">{`intervalRef.current = setInterval(() => {
+  if (stepIdxRef.current >= steps.length - 1) { stop(); return; }
+  stepIdxRef.current += 1;            // authoritative, synchronous
+  setStepIdx(stepIdxRef.current);
+}, 800);`}</Snippet>
             </section>
 
             <section>
@@ -463,6 +517,36 @@ useEffect(() => { setStr(date.toLocaleString()); }, [iso]); // ← flagged`}</Sn
               <Snippet label="After" tone="after">{`<div className="relative h-16 w-full overflow-hidden rounded-md">
   <Image src={block.src} alt="email banner" fill unoptimized sizes="100vw" className="object-cover" />
 </div>`}</Snippet>
+              <p className="mt-4 text-muted">
+                <span className="font-semibold text-foreground">Framer Motion, sampled.</span>{" "}
+                The biggest deferred item is the full{" "}
+                <code className="font-mono text-foreground/70">framer-motion</code>{" "}
+                import across ~53 files &mdash; the fix is{" "}
+                <code className="font-mono text-foreground/70">LazyMotion</code>{" "}
+                plus the lighter{" "}
+                <code className="font-mono text-foreground/70">m</code> components.
+                Per the tool&rsquo;s own advice I did a <em className="text-foreground/80">sample</em>{" "}
+                first: mount the provider once and convert three files, to prove
+                the recipe before sweeping the rest. Two things it forced me to
+                get right &mdash; the bundle must be{" "}
+                <code className="font-mono text-foreground/70">domMax</code> (not
+                the smaller <code className="font-mono text-foreground/70">domAnimation</code>)
+                because the app animates <code className="font-mono text-foreground/70">layout</code>{" "}
+                and <code className="font-mono text-foreground/70">drag</code>, and
+                it has to stay <em className="text-foreground/80">non-strict</em>{" "}
+                so the ~50 files still on <code className="font-mono text-foreground/70">motion</code>{" "}
+                keep working during the migration. The real bundle win only lands
+                once the sweep is done; the sample just de-risks it.
+              </p>
+              <Snippet label="Before" tone="before">{`import { motion } from "framer-motion";
+// ...
+<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} />`}</Snippet>
+              <Snippet label="After" tone="after">{`// providers.tsx — once, app-wide
+<LazyMotion features={domMax}>{children}</LazyMotion>
+
+// a converted component
+import { m } from "framer-motion";
+<m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} />`}</Snippet>
             </section>
 
             <section>
