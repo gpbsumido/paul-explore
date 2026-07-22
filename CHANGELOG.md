@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.59
+
+- added before/after code snippets to each fix on the React Doctor thoughts page, including the before/attempt/correct triptych for the stepper fix that fought back
+
 ## 2026-07-22 - version 0.25.58
 
 - added a "React Doctor" dev-thoughts page documenting the full journey of the static-analysis pass: the fixes that landed, the fix that fought back (and got reverted), the false positives, what was deferred and why, and what the tool got right and wrong

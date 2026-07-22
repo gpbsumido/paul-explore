@@ -6,6 +6,32 @@ import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
 import ViewToggle from "@/app/thoughts/ViewToggle";
 
+/** A labelled code block for a before/after (or before/attempt/correct) pair. */
+function Snippet({
+  label,
+  tone,
+  children,
+}: {
+  label: string;
+  tone: "before" | "after" | "attempt";
+  children: string;
+}) {
+  const color =
+    tone === "before"
+      ? "text-rose-400"
+      : tone === "attempt"
+        ? "text-amber-400"
+        : "text-emerald-400";
+  return (
+    <div className="mt-3">
+      <p className={`mb-1 text-[11px] font-bold uppercase tracking-wider ${color}`}>
+        {label}
+      </p>
+      <div className={styles.codeBubble}>{children}</div>
+    </div>
+  );
+}
+
 /** Dev-notes write-up for the react-doctor pass: the fixes, the dead ends, and what the tool got right and wrong. */
 export default function ReactDoctorContent() {
   const [view, setView] = useState<"summary" | "chat">("summary");
@@ -103,6 +129,34 @@ export default function ReactDoctorContent() {
                 <code className="font-mono text-foreground/70">AbortController</code>{" "}
                 and a cleared timer, plus ignoring the resulting abort error.
               </p>
+              <Snippet label="Before" tone="before">{`useEffect(() => {
+  if (!autoSave || !userHasPickedRef.current || isViewMode) return;
+  fetch("/api/nba/playoffs/picks", { method: "PUT", /* ... */ })
+    .then((res) => {
+      if (res.ok) {
+        setSaveStatus("saved");
+        setTimeout(() => setSaveStatus("idle"), 2000); // leaks on unmount
+      }
+    })
+    .catch(() => setSaveStatus("idle"));
+}, [autoSave, debouncedPicks, isViewMode, meQuery.data?.name]);`}</Snippet>
+              <Snippet label="After" tone="after">{`useEffect(() => {
+  if (!autoSave || !userHasPickedRef.current || isViewMode) return;
+  const controller = new AbortController();
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+  fetch("/api/nba/playoffs/picks", { method: "PUT", signal: controller.signal, /* ... */ })
+    .then((res) => {
+      if (res.ok) {
+        setSaveStatus("saved");
+        idleTimer = setTimeout(() => setSaveStatus("idle"), 2000);
+      }
+    })
+    .catch((err: unknown) => {
+      const aborted = err instanceof DOMException && err.name === "AbortError";
+      if (!aborted) setSaveStatus("idle");
+    });
+  return () => { controller.abort(); if (idleTimer) clearTimeout(idleTimer); };
+}, [autoSave, debouncedPicks, isViewMode, meQuery.data?.name]);`}</Snippet>
               <p className="mt-3 text-muted">
                 <span className="font-semibold text-foreground">Side effects in state updaters.</span>{" "}
                 The core rule here is that React may call an updater function more
@@ -116,6 +170,40 @@ export default function ReactDoctorContent() {
                 effect keyed on the value; the calendar&rsquo;s infinite scroll
                 captures scroll height before the prepend rather than during it.
               </p>
+              <Snippet label="Before — updater does the transition" tone="before">{`setProgress((p) => {
+  const next = p + 9 + Math.random() * 11;
+  if (next >= 100) {
+    clearInterval(timer);
+    setScore(0); setTimeLeft(ROUND_SECONDS);
+    setTarget(spawn(1)); setPhase("playing"); // side effects in the updater
+    return 100;
+  }
+  return next;
+});`}</Snippet>
+              <Snippet label="After — transition in the interval, via a ref" tone="after">{`const next = progressRef.current + 9 + Math.random() * 11;
+if (next >= 100) {
+  clearInterval(timer);
+  progressRef.current = 100; setProgress(100);
+  setScore(0); setTimeLeft(ROUND_SECONDS);
+  setTarget(spawn(1)); setPhase("playing");
+} else {
+  progressRef.current = next; setProgress(next);
+}`}</Snippet>
+              <p className="mt-4 text-muted">
+                The toggle case is even simpler &mdash; the updater just computes
+                the next value, and persistence moves to an effect keyed on it:
+              </p>
+              <Snippet label="Before" tone="before">{`const toggle = useCallback(() =>
+  setEnabled((v) => {
+    const next = !v;
+    localStorage.setItem("weather-fx-enabled", String(next)); // in the updater
+    return next;
+  }), []);`}</Snippet>
+              <Snippet label="After" tone="after">{`const toggle = useCallback(() => setEnabled((v) => !v), []);
+
+useEffect(() => {
+  localStorage.setItem("weather-fx-enabled", String(enabled));
+}, [enabled]);`}</Snippet>
               <p className="mt-3 text-muted">
                 <span className="font-semibold text-foreground">Button types.</span>{" "}
                 48 buttons across 30 files had no explicit{" "}
@@ -129,6 +217,8 @@ export default function ReactDoctorContent() {
                 instead. Then a small codemod added the attribute to exactly the
                 flagged lines.
               </p>
+              <Snippet label="Before" tone="before">{`<button onClick={() => onMove(post.id, -1)}>‹</button>`}</Snippet>
+              <Snippet label="After" tone="after">{`<button type="button" onClick={() => onMove(post.id, -1)}>‹</button>`}</Snippet>
               <p className="mt-3 text-muted">
                 <span className="font-semibold text-foreground">Fetch status checks.</span>{" "}
                 <code className="font-mono text-foreground/70">fetch()</code> does
@@ -138,6 +228,12 @@ export default function ReactDoctorContent() {
                 <code className="font-mono text-foreground/70">if (!res.ok) throw</code>{" "}
                 before the reads that lacked it.
               </p>
+              <Snippet label="Before" tone="before">{`queryFn: () => fetch("/api/me").then((r) => r.json()),`}</Snippet>
+              <Snippet label="After" tone="after">{`queryFn: () =>
+  fetch("/api/me").then((r) => {
+    if (!r.ok) throw new Error("Failed to load user");
+    return r.json();
+  }),`}</Snippet>
             </section>
 
             <section>
@@ -152,6 +248,13 @@ export default function ReactDoctorContent() {
                 <code className="font-mono text-foreground/70">setStepIdx</code>{" "}
                 updater. Textbook impure updater.
               </p>
+              <Snippet label="Before — the impure updater" tone="before">{`setStepIdx((prev) => {
+  if (prev >= steps.length - 1) {
+    stop(); // clearInterval + setPlaying(false), inside the updater
+    return prev;
+  }
+  return prev + 1;
+});`}</Snippet>
               <p className="mt-3 text-muted">
                 My first instinct: make the updater pure and move the stop into a
                 small &ldquo;when we reach the last step, stop&rdquo; effect. It
@@ -161,6 +264,11 @@ export default function ReactDoctorContent() {
                 synchronously inside an effect body causes cascading renders. I
                 had traded one finding for another &mdash; whack-a-mole.
               </p>
+              <Snippet label="Attempt — pure updater, but setState in an effect" tone="attempt">{`setStepIdx((prev) => (prev >= steps.length - 1 ? prev : prev + 1));
+
+useEffect(() => {
+  if (playing && stepIdx >= steps.length - 1) stop(); // ← flagged: setState in effect
+}, [playing, stepIdx, steps.length, stop]);`}</Snippet>
               <p className="mt-3 text-muted">
                 The genuinely correct fix is neither the updater nor an effect:
                 the side effect belongs in the event that drives the change (the
@@ -174,6 +282,12 @@ export default function ReactDoctorContent() {
                 stepper batch and left it as a focused follow-up rather than
                 bloat this PR with a risky, low-value ten-file rewrite.
               </p>
+              <Snippet label="Correct (deferred) — side effect in the callback, via a ref" tone="after">{`// in the interval tick / click handler — not the updater, not an effect
+if (stepIdxRef.current >= steps.length - 1) {
+  stop();
+  return;
+}
+setStepIdx((prev) => prev + 1);`}</Snippet>
               <p className="mt-3 text-muted">
                 The lesson that stuck: a &ldquo;fix&rdquo; that only relocates a
                 side effect from one disallowed place to another isn&rsquo;t a
