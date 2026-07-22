@@ -12,6 +12,15 @@ async function freezeAnimations(page: import("@playwright/test").Page) {
 }
 
 test.describe("work portfolio", () => {
+  // The tickers auto-scroll via requestAnimationFrame, so under normal motion a
+  // chip never settles long enough for Playwright to click it. Under reduced
+  // motion the app renders a static, scrollable ticker, so emulate it before
+  // each navigation. (Set here, not in the config's use block, which did not
+  // apply to matchMedia in this setup.)
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+  });
+
   test("opens on the intro and both tickers are present", async ({ page }) => {
     await page.goto("/work-portfolio");
     await expect(page.getByRole("region", { name: "Projects ticker" })).toBeVisible();
