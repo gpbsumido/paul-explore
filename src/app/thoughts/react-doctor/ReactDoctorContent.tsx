@@ -368,6 +368,39 @@ const advance = useCallback(() => {
   if (stepIdxRef.current >= steps.length - 1) { stop(); return; } // in the handler
   setStepIdx((prev) => prev + 1);                                  // pure updater
 }, [steps.length, stop]);`}</Snippet>
+              <p className="mt-4 text-muted">
+                <span className="font-semibold text-foreground">Then the tests caught it out.</span>{" "}
+                Writing a test that clicks Play and advances fake timers past the
+                end &mdash; the exact thing you&rsquo;d write to lock the behavior
+                in &mdash; blew up with{" "}
+                <code className="font-mono text-foreground/70">Cannot read properties of undefined</code>.
+                The guard reads{" "}
+                <code className="font-mono text-foreground/70">stepIdxRef.current</code>,
+                but that ref is only refreshed by an effect{" "}
+                <em className="text-foreground/80">after</em> React commits. At a
+                real 800ms cadence the effect always flushes between ticks, so it
+                looked correct. Batched timers fire many ticks in one go with no
+                commit in between, so the ref stays stale, the guard never trips,
+                and <code className="font-mono text-foreground/70">stepIdx</code>{" "}
+                runs off the end of the array.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix is to stop leaning on the effect for the value the loop
+                depends on: write the ref synchronously in the same callback that
+                advances the step. The effect stays (it still catches Step and
+                Reset), but the interval no longer races it. Lesson: a fix that
+                &ldquo;works&rdquo; because of a timing gap isn&rsquo;t done until
+                a test closes the gap &mdash; and the test is what found it.
+              </p>
+              <Snippet label="Fragile — guard reads a ref an effect updates a beat later" tone="attempt">{`intervalRef.current = setInterval(() => {
+  if (stepIdxRef.current >= steps.length - 1) { stop(); return; } // stale under batched ticks
+  setStepIdx((prev) => prev + 1); // ref only catches up after commit
+}, 800);`}</Snippet>
+              <Snippet label="Robust — the callback writes the ref itself" tone="after">{`intervalRef.current = setInterval(() => {
+  if (stepIdxRef.current >= steps.length - 1) { stop(); return; }
+  stepIdxRef.current += 1;            // authoritative, synchronous
+  setStepIdx(stepIdxRef.current);
+}, 800);`}</Snippet>
             </section>
 
             <section>
