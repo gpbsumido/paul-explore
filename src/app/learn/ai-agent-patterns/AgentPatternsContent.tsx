@@ -104,7 +104,7 @@ export default function AgentPatternsContent() {
           </h2>
           <div className="flex flex-wrap gap-2">
             {SCENARIOS.map((s) => (
-              <button
+              <button type="button"
                 key={s.id}
                 onClick={() => {
                   if (isBusy) return;
@@ -183,7 +183,7 @@ export default function AgentPatternsContent() {
           {/* Scroll to bottom */}
           {!isAtBottom && state.status !== "idle" && (
             <div className="flex justify-center p-2 border-t border-border">
-              <button
+              <button type="button"
                 onClick={scrollToBottom}
                 className="text-xs text-primary-500 hover:text-primary-600 cursor-pointer"
               >

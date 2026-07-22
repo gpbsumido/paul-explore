@@ -4,6 +4,7 @@
 
 - react-doctor fixes: gave the NBA playoff auto-save effect a proper cleanup (aborts the in-flight save and clears the reset timer on unmount) so it can't set state after the component is gone
 - moved side effects out of state updater functions (which React may replay) in the game demo, weather + fleet-analytics preference toggles, the landing GraphQL typewriter, and the infinite calendar scroll — updaters are now pure, with the persistence/timer/scroll work done in effects or handlers
+- added an explicit type="button" to 48 buttons across 30 files (none in forms) so none of them can accidentally act as a submit
 
 ## 2026-07-22 - version 0.25.55
 

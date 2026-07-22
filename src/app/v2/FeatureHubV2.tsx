@@ -84,7 +84,7 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
           style={{ scrollbarWidth: "none" }}
         >
           {CATEGORIES.map((cat, i) => (
-            <button
+            <button type="button"
               key={cat.label}
               onClick={() => setActive(i)}
               className={[

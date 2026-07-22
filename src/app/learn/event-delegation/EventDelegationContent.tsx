@@ -27,7 +27,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -184,7 +184,7 @@ function CostComparisonDemo() {
         </span>
         <div className="mt-2 max-h-52 overflow-y-auto border border-foreground/10 rounded-sm">
           {Array.from({ length: 50 }, (_, i) => (
-            <button
+            <button type="button"
               key={i}
               onClick={() => flashItem(setFlashIdx50, i)}
               className={[
