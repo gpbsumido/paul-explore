@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.66
+
+- added tests for the learn-page steppers: a parameterized suite over all nine pages that locks in the play/step/reset contract (stepping advances the counter, reset returns to the start, play runs to the last step and stops) — the behavior the recent react-doctor refactor touched, previously untested
+- added matchMedia, IntersectionObserver, and ResizeObserver polyfills to the shared test setup so component tests can render pages that use them
+
 ## 2026-07-22 - version 0.25.63
 
 - Email Studio: swapped the imported-image preview from a raw <img> to next/image (fill + unoptimized, since it's a local data URL), clearing the last lint warning. documented on the thoughts page
