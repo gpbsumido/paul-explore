@@ -103,7 +103,10 @@ export default function EventModal({
     queryKey: queryKeys.calendar.eventCards(event?.id ?? ""),
     queryFn: () =>
       fetch(`/api/calendar/events/${event!.id}/cards`)
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) throw new Error("Failed to load cards");
+          return r.json();
+        })
         .then((d) => d.cards as EventCard[]),
     enabled: !!event?.id,
     staleTime: 0,

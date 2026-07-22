@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Store, AlertTrendBucket } from "@/types/operator";
 import FleetHealthChart from "./FleetHealthChart";
@@ -47,17 +47,17 @@ export default function FleetAnalytics({
 }: FleetAnalyticsProps) {
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
-  const toggle = useCallback(() => {
-    setCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(STORAGE_KEY, String(next));
-      } catch {
-        // storage full or unavailable -- no-op
-      }
-      return next;
-    });
-  }, []);
+  const toggle = useCallback(() => setCollapsed((prev) => !prev), []);
+
+  // Persist the collapsed preference as a side effect of the state change,
+  // rather than inside the updater (which React may replay).
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(collapsed));
+    } catch {
+      // storage full or unavailable -- no-op
+    }
+  }, [collapsed]);
 
   return (
     <section className="rounded-xl border border-border bg-surface">

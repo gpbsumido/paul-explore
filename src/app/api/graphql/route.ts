@@ -38,8 +38,10 @@ export async function POST(request: Request) {
     body: JSON.stringify(body),
   });
 
-  const data = await upstream.json();
-  return Response.json(data, {
+  // Forward the upstream status transparently; guard the parse so a non-JSON
+  // error body from upstream doesn't throw here.
+  const data = await upstream.json().catch(() => null);
+  return Response.json(data ?? { error: "Upstream error" }, {
     status: upstream.status,
     headers: { "Cache-Control": CACHE_CONTROL },
   });

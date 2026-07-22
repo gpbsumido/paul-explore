@@ -5,6 +5,7 @@ import {
   getFreshnessLevel,
   type FreshnessLevel,
 } from "@/lib/operator-freshness";
+import { useLocaleDateTime } from "@/hooks/useLocaleDateTime";
 
 interface FreshnessLabelProps {
   lastPing: string;
@@ -26,11 +27,12 @@ export default function FreshnessLabel({ lastPing }: FreshnessLabelProps) {
   const level = getFreshnessLevel(lastPing);
   const { text, dot } = LEVEL_CONFIG[level];
   const isFresh = level === "fresh";
+  const exactTime = useLocaleDateTime(lastPing);
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 text-xs ${text}`}
-      title={date.toLocaleString()}
+      title={exactTime || undefined}
     >
       <span
         className={`inline-block h-1.5 w-1.5 rounded-full ${dot} ${isFresh ? "animate-pulse" : ""}`}

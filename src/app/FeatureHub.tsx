@@ -33,7 +33,11 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
-    queryFn: (): Promise<MeData> => fetch("/api/me").then((r) => r.json()),
+    queryFn: (): Promise<MeData> =>
+      fetch("/api/me").then((r) => {
+        if (!r.ok) throw new Error("Failed to load user");
+        return r.json();
+      }),
     initialData: initialMe,
     staleTime: 5 * 60_000,
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import type { WorkFeature } from "../_data/types";
 
@@ -28,39 +28,39 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
   const [timeLeft, setTimeLeft] = useState(ROUND_SECONDS);
   const [target, setTarget] = useState<Target | null>(null);
   const [best, setBest] = usePersistentState("wp-game-best", 0);
+  // Mirrors the loading progress so the interval can decide when to finish
+  // without doing side effects inside the setProgress updater.
+  const progressRef = useRef(0);
 
   const over = phase === "playing" && timeLeft === 0;
 
   const start = () => {
     setPhase("loading");
     setProgress(0);
+    progressRef.current = 0;
     const timer = setInterval(() => {
-      setProgress((p) => {
-        const next = p + 9 + Math.random() * 11;
-        if (next >= 100) {
-          clearInterval(timer);
-          setScore(0);
-          setTimeLeft(ROUND_SECONDS);
-          setTarget(spawn(1));
-          setPhase("playing");
-          return 100;
-        }
-        return next;
-      });
+      const next = progressRef.current + 9 + Math.random() * 11;
+      if (next >= 100) {
+        clearInterval(timer);
+        progressRef.current = 100;
+        setProgress(100);
+        setScore(0);
+        setTimeLeft(ROUND_SECONDS);
+        setTarget(spawn(1));
+        setPhase("playing");
+      } else {
+        progressRef.current = next;
+        setProgress(next);
+      }
     }, 120);
   };
 
   // Round countdown while playing; the "over" state is derived from timeLeft.
+  // The updater stays pure (clamps at 0); cleanup stops the interval.
   useEffect(() => {
     if (phase !== "playing") return;
     const timer = setInterval(() => {
-      setTimeLeft((tl) => {
-        if (tl <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return tl - 1;
-      });
+      setTimeLeft((tl) => (tl <= 1 ? 0 : tl - 1));
     }, 1000);
     return () => clearInterval(timer);
   }, [phase]);

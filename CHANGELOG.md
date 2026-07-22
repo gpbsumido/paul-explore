@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.63
+
+- Email Studio: swapped the imported-image preview from a raw <img> to next/image (fill + unoptimized, since it's a local data URL), clearing the last lint warning. documented on the thoughts page
+
+## 2026-07-22 - version 0.25.62
+
+- filled in the remaining before/after snippets on the React Doctor thoughts page (GraphQL typewriter, infinite calendar scroll, and the graphql proxy guard) so every fix on the PR has one
+
+## 2026-07-22 - version 0.25.61
+
+- react-doctor fixes: moved two operator timestamps' toLocaleString() out of render into a useSyncExternalStore hook (server renders empty, client fills in) so there's no hydration mismatch and no setState-in-effect. documented the fix on the thoughts page
+
+## 2026-07-22 - version 0.25.60
+
+- react-doctor fixes: memoized the Theme and Toast context values so consumers stop re-rendering on every provider render
+
+## 2026-07-22 - version 0.25.59
+
+- added before/after code snippets to each fix on the React Doctor thoughts page, including the before/attempt/correct triptych for the stepper fix that fought back
+
+## 2026-07-22 - version 0.25.58
+
+- added a "React Doctor" dev-thoughts page documenting the full journey of the static-analysis pass: the fixes that landed, the fix that fought back (and got reverted), the false positives, what was deferred and why, and what the tool got right and wrong
+
+## 2026-07-22 - version 0.25.57
+
+- react-doctor fixes: check response.ok before reading the body on the /api/me and calendar-cards fetches (fetch does not reject on 4xx/5xx), and guard the graphql proxy's json parse so a non-JSON upstream error can't throw
+
+## 2026-07-22 - version 0.25.56
+
+- react-doctor fixes: gave the NBA playoff auto-save effect a proper cleanup (aborts the in-flight save and clears the reset timer on unmount) so it can't set state after the component is gone
+- moved side effects out of state updater functions (which React may replay) in the game demo, weather + fleet-analytics preference toggles, the landing GraphQL typewriter, and the infinite calendar scroll — updaters are now pure, with the persistence/timer/scroll work done in effects or handlers
+- added an explicit type="button" to 48 buttons across 30 files (none in forms) so none of them can accidentally act as a submit
+
 ## 2026-07-22 - version 0.25.55
 
 - work-portfolio now keeps both tickers pinned to the viewport and scrolls the demo area between them when it needs more height, instead of the page growing and pushing a ticker off screen

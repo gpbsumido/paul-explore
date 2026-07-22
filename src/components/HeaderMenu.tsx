@@ -160,7 +160,10 @@ export default function HeaderMenu({
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
     queryFn: (): Promise<{ sub: string | null }> =>
-      fetch("/api/me").then((r) => r.json()),
+      fetch("/api/me").then((r) => {
+        if (!r.ok) throw new Error("Failed to load user");
+        return r.json();
+      }),
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: "always",
     enabled: showLogout,

@@ -73,7 +73,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
         {SEVERITY_FILTERS.map((f) => {
           const isActive = f.value === severityFilter;
           return (
-            <button
+            <button type="button"
               key={f.value}
               onClick={() => setSeverityFilter(f.value)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
