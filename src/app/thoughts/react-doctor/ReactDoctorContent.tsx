@@ -204,6 +204,50 @@ if (next >= 100) {
 useEffect(() => {
   localStorage.setItem("weather-fx-enabled", String(enabled));
 }, [enabled]);`}</Snippet>
+              <p className="mt-4 text-muted">
+                Two more from the same batch. The landing GraphQL typewriter
+                cleared its interval from inside the updater; now the updater is
+                pure and a small effect stops the interval at the end &mdash; and
+                that effect only calls{" "}
+                <code className="font-mono text-foreground/70">clearInterval</code>,
+                never <code className="font-mono text-foreground/70">setState</code>,
+                so it stays clear of the rule that bit the stepper:
+              </p>
+              <Snippet label="Before" tone="before">{`setCount((prev) => {
+  if (prev >= query.length) {
+    clearInterval(intervalRef.current!); // side effect in the updater
+    return prev;
+  }
+  return prev + 1;
+});`}</Snippet>
+              <Snippet label="After" tone="after">{`setCount((prev) => (prev >= query.length ? prev : prev + 1));
+
+useEffect(() => {
+  if (count >= query.length && intervalRef.current) {
+    clearInterval(intervalRef.current); // clearInterval only, no setState
+    intervalRef.current = null;
+  }
+}, [count, query.length]);`}</Snippet>
+              <p className="mt-4 text-muted">
+                And the infinite calendar scroll wrote a ref (the scroll height to
+                restore after a prepend) from inside its updater; that read moves
+                out ahead of the state update, using a ref that mirrors the
+                current periods:
+              </p>
+              <Snippet label="Before" tone="before">{`setPeriods((prev) => {
+  const prevPeriod = getPrevPeriod(prev[0]);
+  const key = getPeriodKey(prevPeriod);
+  if (prev.some((d) => getPeriodKey(d) === key)) return prev;
+  if (scrollRef.current) prependHeightRef.current = scrollRef.current.scrollHeight; // ref write
+  return [prevPeriod, ...prev];
+});`}</Snippet>
+              <Snippet label="After" tone="after">{`const current = periodsRef.current; // synced to periods in an effect
+const prevPeriod = getPrevPeriod(current[0]);
+const key = getPeriodKey(prevPeriod);
+if (current.some((d) => getPeriodKey(d) === key)) return;
+if (scrollRef.current) prependHeightRef.current = scrollRef.current.scrollHeight;
+setPeriods((prev) =>
+  prev.some((d) => getPeriodKey(d) === key) ? prev : [prevPeriod, ...prev]);`}</Snippet>
               <p className="mt-3 text-muted">
                 <span className="font-semibold text-foreground">Button types.</span>{" "}
                 48 buttons across 30 files had no explicit{" "}
@@ -234,6 +278,14 @@ useEffect(() => {
     if (!r.ok) throw new Error("Failed to load user");
     return r.json();
   }),`}</Snippet>
+              <p className="mt-4 text-muted">
+                One in this batch was a proxy, not a client read: the graphql
+                route forwards the upstream status, so the fix isn&rsquo;t to
+                throw on a bad status &mdash; it&rsquo;s to guard the parse so a
+                non-JSON upstream error can&rsquo;t throw:
+              </p>
+              <Snippet label="Before" tone="before">{`const data = await upstream.json();`}</Snippet>
+              <Snippet label="After" tone="after">{`const data = await upstream.json().catch(() => null);`}</Snippet>
             </section>
 
             <section>

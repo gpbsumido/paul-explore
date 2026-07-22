@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.62
+
+- filled in the remaining before/after snippets on the React Doctor thoughts page (GraphQL typewriter, infinite calendar scroll, and the graphql proxy guard) so every fix on the PR has one
+
 ## 2026-07-22 - version 0.25.61
 
 - react-doctor fixes: moved two operator timestamps' toLocaleString() out of render into a useSyncExternalStore hook (server renders empty, client fills in) so there's no hydration mismatch and no setState-in-effect. documented the fix on the thoughts page
