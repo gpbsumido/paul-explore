@@ -14,6 +14,7 @@ import {
   FeatureCard,
   ThoughtCard,
 } from "@/app/_shared/featureData";
+import { groupThoughts } from "@/app/_shared/thoughtCategories";
 
 // ---- FeatureHub ----
 
@@ -132,15 +133,29 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
           >
             Dev notes
           </h2>
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-            {THOUGHTS.map((thought, i) => (
-              <ThoughtCard
-                key={thought.href}
-                thought={thought}
-                delayMs={i * 75}
-                visible={thoughtsVisible}
-              />
-            ))}
+          <div className="space-y-8">
+            {groupThoughts(THOUGHTS).map((group, gi, all) => {
+              const startIndex = all
+                .slice(0, gi)
+                .reduce((n, g) => n + g.items.length, 0);
+              return (
+                <div key={group.name}>
+                  <h3 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted/80">
+                    {group.name}
+                  </h3>
+                  <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                    {group.items.map((thought, j) => (
+                      <ThoughtCard
+                        key={thought.href}
+                        thought={thought}
+                        delayMs={(startIndex + j) * 75}
+                        visible={thoughtsVisible}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </main>
