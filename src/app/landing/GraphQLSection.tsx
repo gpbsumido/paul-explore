@@ -62,18 +62,20 @@ function TypewriterQuery({
       return () => clearTimeout(id);
     }
     intervalRef.current = setInterval(() => {
-      setCount((prev) => {
-        if (prev >= query.length) {
-          clearInterval(intervalRef.current!);
-          return prev;
-        }
-        return prev + 1;
-      });
+      setCount((prev) => (prev >= query.length ? prev : prev + 1));
     }, 18);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [inView, query.length, prefersReduced]);
+
+  // Stop the typing interval once it reaches the end, outside the updater.
+  useEffect(() => {
+    if (count >= query.length && intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, [count, query.length]);
 
   return (
     <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-emerald-300 sm:text-xs">
