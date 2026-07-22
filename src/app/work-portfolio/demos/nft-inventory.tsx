@@ -3,12 +3,15 @@
 import { useState } from "react";
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
   useDraggable,
   useDroppable,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import Modal from "@/components/ui/Modal";
 import Web3Provider from "@/components/Web3Provider";
@@ -152,17 +155,16 @@ function AssetDetail({ asset, onClose }: { asset: Asset; onClose: () => void }) 
 
 /** One draggable asset chip inside a transfer pane, with a keyboard-friendly send button. */
 function TransferChip({ asset, onSend }: { asset: Asset; onSend: (id: number) => void }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: asset.id,
   });
   const other = asset.wallet === "me" ? "Recipient" : "You";
   return (
     <li
       ref={setNodeRef}
-      style={{
-        transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-        opacity: isDragging ? 0.4 : 1,
-      }}
+      // The moving chip is drawn by the DragOverlay (which follows the pointer
+      // across panes), so the source just dims in place as a placeholder.
+      style={{ opacity: isDragging ? 0.4 : 1 }}
       className="flex items-center justify-between gap-1 rounded-md border border-border bg-background/60 p-1.5"
     >
       <button
@@ -236,12 +238,17 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
   const [selected, setSelected] = useState<Asset | null>(null);
   const [transferMode, setTransferMode] = useState(false);
   const [assets, setAssets] = useState<Asset[]>(inventory);
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const activeAsset = assets.find((a) => a.id === activeId) ?? null;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const send = (id: number, to: WalletSide) =>
     setAssets((prev) => transferAsset(prev, id, to));
 
+  const onDragStart = (e: DragStartEvent) => setActiveId(Number(e.active.id));
+
   const onDragEnd = (e: DragEndEvent) => {
+    setActiveId(null);
     const target = e.over?.id;
     if (target === "me" || target === "them") {
       send(Number(e.active.id), target);
@@ -294,7 +301,13 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
           </p>
         </div>
       ) : transferMode ? (
-        <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={pointerWithin}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => setActiveId(null)}
+        >
           <div className="flex min-h-0 flex-1 gap-2">
             {PANES.map((pane) => (
               <WalletPane
@@ -306,6 +319,14 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
               />
             ))}
           </div>
+          <DragOverlay dropAnimation={null}>
+            {activeAsset ? (
+              <div className="flex cursor-grabbing items-center gap-1.5 rounded-md border border-border bg-background/90 p-1.5 shadow-lg">
+                <span className="h-4 w-4 shrink-0 rounded" style={{ backgroundColor: `hsl(${activeAsset.hue} 55% 55%)` }} />
+                <span className="truncate text-[10px] font-medium text-foreground">{activeAsset.name}</span>
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       ) : (
         <div
