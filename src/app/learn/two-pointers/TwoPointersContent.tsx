@@ -197,6 +197,7 @@ function Narration({ text }: { text: string }) {
 function TwoSumDemo() {
   const [target, setTarget] = useState(TWO_SUM_TARGETS[0]);
   const [stepIdx, setStepIdx] = useState(0);
+  const stepIdxRef = useRef(stepIdx);
   const [playing, setPlaying] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const steps = computeTwoSumSteps(target);
@@ -211,37 +212,40 @@ function TwoSumDemo() {
   }, []);
 
   const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
+    if (stepIdxRef.current >= steps.length - 1) {
+      stop();
+      return;
+    }
+    stepIdxRef.current += 1;
+    setStepIdx(stepIdxRef.current);
   }, [steps.length, stop]);
 
   const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) {
+    if (stepIdxRef.current >= steps.length - 1) {
+      stepIdxRef.current = 0;
       setStepIdx(0);
     }
     setPlaying(true);
     intervalRef.current = setInterval(() => {
       if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
+      if (stepIdxRef.current >= steps.length - 1) {
+        stop();
+        return;
+      }
+      stepIdxRef.current += 1;
+      setStepIdx(stepIdxRef.current);
     }, 800);
-  }, [stepIdx, steps.length, stop]);
+  }, [steps.length, stop]);
 
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    stepIdxRef.current = stepIdx;
+  }, [stepIdx]);
 
   const reset = useCallback(() => {
     stop();
@@ -373,6 +377,7 @@ function TwoSumDemo() {
 
 function DedupDemo() {
   const [stepIdx, setStepIdx] = useState(0);
+  const stepIdxRef = useRef(stepIdx);
   const [playing, setPlaying] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const step = DEDUP_STEPS[stepIdx];
@@ -391,13 +396,12 @@ function DedupDemo() {
   }, [stop]);
 
   const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= DEDUP_STEPS.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
+    if (stepIdxRef.current >= DEDUP_STEPS.length - 1) {
+      stop();
+      return;
+    }
+    stepIdxRef.current += 1;
+    setStepIdx(stepIdxRef.current);
   }, [stop]);
 
   const play = useCallback(() => {
@@ -407,13 +411,12 @@ function DedupDemo() {
     setPlaying(true);
     intervalRef.current = setInterval(() => {
       if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= DEDUP_STEPS.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
+      if (stepIdxRef.current >= DEDUP_STEPS.length - 1) {
+        stop();
+        return;
+      }
+      stepIdxRef.current += 1;
+      setStepIdx(stepIdxRef.current);
     }, 800);
   }, [stepIdx, stop]);
 
@@ -422,6 +425,10 @@ function DedupDemo() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    stepIdxRef.current = stepIdx;
+  }, [stepIdx]);
 
   const isLast = stepIdx >= DEDUP_STEPS.length - 1;
 
