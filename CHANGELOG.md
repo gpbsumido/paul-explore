@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.63
+
+- Email Studio: swapped the imported-image preview from a raw <img> to next/image (fill + unoptimized, since it's a local data URL), clearing the last lint warning. documented on the thoughts page
+
 ## 2026-07-22 - version 0.25.62
 
 - filled in the remaining before/after snippets on the React Doctor thoughts page (GraphQL typewriter, infinite calendar scroll, and the graphql proxy guard) so every fix on the PR has one

@@ -442,6 +442,27 @@ useEffect(() => { setStr(date.toLocaleString()); }, [iso]); // ← flagged`}</Sn
     () => "",                             // server
   );
 }`}</Snippet>
+              <p className="mt-4 text-muted">
+                <span className="font-semibold text-foreground">&lt;img&gt; to next/image.</span>{" "}
+                The &ldquo;use next/image&rdquo; rule is mostly a defer &mdash;
+                but the email-studio demo&rsquo;s image block is a real case worth
+                doing. It renders a{" "}
+                <code className="font-mono text-foreground/70">data:</code> URL
+                from a local file import, so there&rsquo;s nothing for the
+                optimizer to actually do; the fix is{" "}
+                <code className="font-mono text-foreground/70">next/image</code>{" "}
+                with <code className="font-mono text-foreground/70">fill</code>{" "}
+                and <code className="font-mono text-foreground/70">unoptimized</code>,
+                which clears the lint and keeps the exact same output.
+              </p>
+              <Snippet label="Before" tone="before">{`<img
+  src={block.src}
+  alt="email banner"
+  className="h-16 w-full rounded-md object-cover"
+/>`}</Snippet>
+              <Snippet label="After" tone="after">{`<div className="relative h-16 w-full overflow-hidden rounded-md">
+  <Image src={block.src} alt="email banner" fill unoptimized sizes="100vw" className="object-cover" />
+</div>`}</Snippet>
             </section>
 
             <section>
