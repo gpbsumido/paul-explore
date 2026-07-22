@@ -654,6 +654,9 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
   useEffect(() => {
     if (!autoSave || !userHasPickedRef.current || isViewMode) return;
 
+    const controller = new AbortController();
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+
     fetch("/api/nba/playoffs/picks", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -661,14 +664,25 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
         picks: debouncedPicks,
         displayName: meQuery.data?.name,
       }),
+      signal: controller.signal,
     })
       .then((res) => {
         if (res.ok) {
           setSaveStatus("saved");
-          setTimeout(() => setSaveStatus("idle"), 2000);
+          idleTimer = setTimeout(() => setSaveStatus("idle"), 2000);
         }
       })
-      .catch(() => setSaveStatus("idle"));
+      .catch((err: unknown) => {
+        const aborted = err instanceof DOMException && err.name === "AbortError";
+        if (!aborted) setSaveStatus("idle");
+      });
+
+    // Cancel the in-flight save and the reset timer if this re-runs or unmounts,
+    // so neither fires setSaveStatus after the component is gone.
+    return () => {
+      controller.abort();
+      if (idleTimer) clearTimeout(idleTimer);
+    };
   }, [autoSave, debouncedPicks, isViewMode, meQuery.data?.name]);
 
   function handlePick(matchupId: string, pick: PlayoffSeriesPick | FinalsPick) {

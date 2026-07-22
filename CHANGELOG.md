@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.56
+
+- react-doctor fixes: gave the NBA playoff auto-save effect a proper cleanup (aborts the in-flight save and clears the reset timer on unmount) so it can't set state after the component is gone
+
 ## 2026-07-22 - version 0.25.55
 
 - work-portfolio now keeps both tickers pinned to the viewport and scrolls the demo area between them when it needs more height, instead of the page growing and pushing a ticker off screen
