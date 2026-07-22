@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.64
+
+- added a doctor.config.json that mutes react-doctor's no-array-index-as-key rule after auditing all 65 hits (all static/append-only lists, recharts Cells, or pure-render maps; the reorderable lists already use stable ids). the rule key needs the react-doctor/ prefix or it silently no-ops. wrote up the audit and the config gotcha on the thoughts page
+
 ## 2026-07-22 - version 0.25.63
 
 - Email Studio: swapped the imported-image preview from a raw <img> to next/image (fill + unoptimized, since it's a local data URL), clearing the last lint warning. documented on the thoughts page
