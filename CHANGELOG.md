@@ -1,11 +1,17 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.55
+
+- work-portfolio now keeps both tickers pinned to the viewport and scrolls the demo area between them when it needs more height, instead of the page growing and pushing a ticker off screen
+- drove the ticker's ambient loop with scrollLeft instead of a CSS transform, which fixes the empty space you could scroll into (the transform had shifted the content out from under the scroll area)
+
 ## 2026-07-22 - version 0.25.54
 
 - fixed NFT transfer-mode drag the same way as the Post Queue board: the dragged chip now follows the cursor across both wallet panes (drawn in a drag overlay instead of clipped inside its own pane) and drops wherever the pointer is
 
 ## 2026-07-22 - version 0.25.53
 
+- work-portfolio tickers are now real horizontal scroll containers, so every project and feature chip is reachable by scrolling (wheel, trackpad, drag, or touch) instead of only appearing as the marquee passes. the ambient auto-scroll still runs and pauses on hover/touch; scrollbar is hidden
 - fixed the WalletConnect connect flow in the gamer-hub demo: allowed the WalletConnect verify iframe in the CSP frame-src, and patched the QR library (cuer's `qr` dep rejected the `border: 0` it is called with) so the connect QR renders instead of crashing the modal
 
 ## 2026-07-22 - version 0.25.52

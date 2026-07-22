@@ -120,7 +120,9 @@ export default function WorkPortfolioContent() {
         aria-label="Demo stage"
       >
         <StageArrow dir="prev" onClick={() => step(-1)} />
-        <div className="h-full min-h-0 w-full overflow-hidden">
+        {/* scroll the demo area when it needs more height than the space between
+            the tickers, so both tickers stay pinned and visible */}
+        <div className="h-full min-h-0 w-full overflow-y-auto">
           {/* keying by slug remounts on change, giving a quick fade-in
               without AnimatePresence exit-waits (which stall in jsdom) */}
           <motion.div

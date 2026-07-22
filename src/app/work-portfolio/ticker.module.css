@@ -1,37 +1,11 @@
-/* Marquee for the work-portfolio tickers. Two copies of the strip sit side
-   by side and the track slides one copy-width, so the loop is seamless. */
-
-.track {
-  display: flex;
-  width: max-content;
-  animation: scroll-left 45s linear infinite;
+/* The work-portfolio tickers are horizontal scroll containers so every chip is
+   reachable by scrolling; the ambient loop is driven in JS via scrollLeft (see
+   Ticker.tsx). This class hides the scrollbar without disabling the scroll. */
+.noScrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge */
 }
 
-.trackRight {
-  animation-name: scroll-right;
-}
-
-/* Hover anywhere on the strip freezes it so chips can be clicked. Touch
-   devices get the same freeze via the paused class from a touchstart. */
-.track:hover,
-.paused {
-  animation-play-state: paused;
-}
-
-@keyframes scroll-left {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes scroll-right {
-  from {
-    transform: translateX(-50%);
-  }
-  to {
-    transform: translateX(0);
-  }
+.noScrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }
