@@ -390,6 +390,7 @@ const SNIPPETS: readonly Snippet[] = [
 function EventLoopSimulator() {
   const [snippetIdx, setSnippetIdx] = useState(0);
   const [step, setStep] = useState(0);
+  const stepRef = useRef(step);
   const [playing, setPlaying] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reduced = useHubReducedMotion();
@@ -409,13 +410,11 @@ function EventLoopSimulator() {
   }, []);
 
   const handleStep = useCallback(() => {
-    setStep((s) => {
-      if (s >= maxStep) {
-        stopPlay();
-        return s;
-      }
-      return s + 1;
-    });
+    if (stepRef.current >= maxStep) {
+      stopPlay();
+      return;
+    }
+    setStep((s) => s + 1);
   }, [maxStep, stopPlay]);
 
   const handlePlay = useCallback(() => {
@@ -426,13 +425,11 @@ function EventLoopSimulator() {
     setPlaying(true);
     intervalRef.current = setInterval(() => {
       if (document.hidden) return;
-      setStep((s) => {
-        if (s >= maxStep) {
-          stopPlay();
-          return s;
-        }
-        return s + 1;
-      });
+      if (stepRef.current >= maxStep) {
+        stopPlay();
+        return;
+      }
+      setStep((s) => s + 1);
     }, 800);
   }, [playing, maxStep, stopPlay]);
 
@@ -455,6 +452,10 @@ function EventLoopSimulator() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
 
   const getItemsForLocation = (loc: "callstack" | "microtask" | "macrotask") =>
     currentItems.filter((item) => item.location === loc);

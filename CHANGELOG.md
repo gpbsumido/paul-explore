@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.64
+
+- react-doctor fixes: reworked the ten learn-page steppers so the play/advance controls stop the run from the interval/handler (via a synced ref) instead of calling stop() inside the setStepIdx updater — clears every impure-updater finding there with no setState-in-effect, and playback/step/reset behavior is unchanged
+
 ## 2026-07-22 - version 0.25.63
 
 - Email Studio: swapped the imported-image preview from a raw <img> to next/image (fill + unoptimized, since it's a local data URL), clearing the last lint warning. documented on the thoughts page
