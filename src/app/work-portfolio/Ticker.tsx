@@ -59,7 +59,7 @@ export default function Ticker({
     return (
       <section
         aria-label={label}
-        className={`w-full overflow-x-auto ${borderSide} border-border bg-surface/30`}
+        className={`w-full overflow-x-auto ${styles.noScrollbar} ${borderSide} border-border bg-surface/30`}
       >
         <div className="flex w-max items-center gap-2 px-4 py-2.5">
           {children}
@@ -79,7 +79,11 @@ export default function Ticker({
   return (
     <section
       aria-label={label}
-      className={`w-full overflow-hidden ${borderSide} border-border bg-surface/30`}
+      // overflow-x-auto (not hidden) so the marquee is also a scroll container:
+      // the auto-scroll pauses on hover/touch and the user can scroll to any
+      // chip. The duplicated track means every chip is reachable whatever the
+      // marquee's current offset. Scrollbar hidden to keep the strip clean.
+      className={`w-full overflow-x-auto overflow-y-hidden ${styles.noScrollbar} ${borderSide} border-border bg-surface/30`}
       onTouchStart={onTouchStart}
     >
       <div

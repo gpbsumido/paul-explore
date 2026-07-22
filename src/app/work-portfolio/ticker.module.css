@@ -1,5 +1,15 @@
 /* Marquee for the work-portfolio tickers. Two copies of the strip sit side
-   by side and the track slides one copy-width, so the loop is seamless. */
+   by side and the track slides one copy-width, so the loop is seamless. The
+   strip is also a real horizontal scroll container so every chip is reachable
+   by scrolling; this class hides the scrollbar without disabling the scroll. */
+.noScrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge */
+}
+
+.noScrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
 
 .track {
   display: flex;
