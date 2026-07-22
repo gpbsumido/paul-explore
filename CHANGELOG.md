@@ -2,6 +2,7 @@
 
 ## 2026-07-22 - version 0.25.67
 
+- react-doctor follow-up (framer-motion sample): mounted a LazyMotion provider app-wide (domMax features, non-strict) and converted three components from motion to the lighter m — proves the recipe before sweeping the remaining ~50 files. verified the converted components still animate. documented on the thoughts page
 - fixed a stepper overrun the new tests caught: the play/advance guard read stepIdxRef, but that ref is only refreshed by an effect after commit, so batched interval ticks read a stale value and ran stepIdx off the end of the steps array (crash). now the callbacks write the ref synchronously, so back-to-back ticks stop at the last step. also reset the ref on replay-from-end. applies to all nine learn steppers. wrote up the timing gap on the thoughts page
 
 ## 2026-07-22 - version 0.25.66
