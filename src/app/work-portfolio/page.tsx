@@ -30,7 +30,7 @@ export const revalidate = 86400;
 
 export default function WorkPortfolioPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
