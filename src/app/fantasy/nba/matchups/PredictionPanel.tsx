@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { queryKeys } from "@/lib/queryKeys";
 import type {
   ESPNTeam,
@@ -458,7 +458,7 @@ export default function PredictionPanel({
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -675,7 +675,7 @@ export default function PredictionPanel({
         <p className="text-center text-[11px] font-mono text-muted">
           Based on season averages and opponent rankings
         </p>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }

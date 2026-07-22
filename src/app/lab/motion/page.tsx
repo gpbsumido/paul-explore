@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import {
-  motion,
+  m,
   AnimatePresence,
   LayoutGroup,
   Reorder,
@@ -117,7 +117,7 @@ function SpringPlayground() {
           <div className="h-px w-8 bg-white" />
           <div className="absolute h-8 w-px bg-white" />
         </div>
-        <motion.div
+        <m.div
           drag
           dragSnapToOrigin
           dragElastic={0.3}
@@ -128,7 +128,7 @@ function SpringPlayground() {
           <span className="pointer-events-none select-none text-[9px] font-bold text-white/70">
             drag
           </span>
-        </motion.div>
+        </m.div>
       </div>
       {/* Sliders */}
       <div className="grid gap-3 sm:grid-cols-3">
@@ -184,7 +184,7 @@ function StaggerGrid() {
       tag="stagger"
       description="12 tiles cascade in one by one. Adjust the per-tile delay and replay."
     >
-      <motion.div
+      <m.div
         key={gridKey}
         className="mb-5 grid grid-cols-6 gap-2"
         variants={{ visible: { transition: { staggerChildren: staggerDelay } } }}
@@ -192,7 +192,7 @@ function StaggerGrid() {
         animate="visible"
       >
         {TILE_COLORS.map((color, i) => (
-          <motion.div
+          <m.div
             key={i}
             variants={{
               hidden: { opacity: 0, scale: 0.3, y: 10 },
@@ -203,7 +203,7 @@ function StaggerGrid() {
             style={{ backgroundColor: color }}
           />
         ))}
-      </motion.div>
+      </m.div>
       <div className="flex items-end gap-4">
         <div className="flex-1">
           <ControlSlider
@@ -299,28 +299,28 @@ function ScrollParallax() {
       >
         <div className="relative h-[480px]">
           {/* Back — slow drift */}
-          <motion.div
+          <m.div
             style={{ y: yBack, opacity }}
             className="absolute inset-0 flex items-center justify-center"
           >
             <div className="h-32 w-44 rounded-2xl bg-indigo-950/80 border border-indigo-800/40" />
-          </motion.div>
+          </m.div>
 
           {/* Mid — faster drift + scales up */}
-          <motion.div
+          <m.div
             style={{ y: yMid, scale }}
             className="absolute inset-0 flex items-center justify-center"
           >
             <div className="h-20 w-28 rounded-xl bg-violet-700/70" />
-          </motion.div>
+          </m.div>
 
           {/* Front — rotates */}
-          <motion.div
+          <m.div
             style={{ rotate }}
             className="absolute inset-0 flex items-center justify-center"
           >
             <div className="h-12 w-12 rounded-lg bg-white/20 shadow-lg" />
-          </motion.div>
+          </m.div>
 
           <div className="absolute bottom-6 right-4 animate-bounce text-[10px] text-white/25">
             scroll ↓
@@ -361,7 +361,7 @@ function GestureCard() {
       description="Hover, tap, and drag the card. The state panel updates in real time."
     >
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-        <motion.div
+        <m.div
           drag
           dragSnapToOrigin
           dragElastic={0.2}
@@ -383,7 +383,7 @@ function GestureCard() {
           <span className="pointer-events-none select-none text-[11px] font-semibold text-white/80">
             {state}
           </span>
-        </motion.div>
+        </m.div>
 
         {/* Live state panel */}
         <div className="w-full flex-1 rounded-xl border border-white/10 bg-white/5 p-4">
@@ -391,7 +391,7 @@ function GestureCard() {
             Live State
           </p>
           <div className="flex items-center gap-2">
-            <motion.div
+            <m.div
               key={state}
               className="h-2 w-2 rounded-full"
               style={{ backgroundColor: GESTURE_COLORS[state] }}
@@ -473,7 +473,7 @@ function SharedLayout() {
                   style={{ background: `${item.color}18` }}
                 />
               ) : (
-                <motion.div
+                <m.div
                   key={item.id}
                   layoutId={item.id}
                   onClick={() => setSelected(item.id)}
@@ -482,20 +482,20 @@ function SharedLayout() {
                   whileHover={{ scale: 1.04 }}
                   transition={{ ...spring.smooth }}
                 >
-                  <motion.span
+                  <m.span
                     layoutId={`title-${item.id}`}
                     className="text-[11px] font-bold text-white"
                   >
                     {item.label}
-                  </motion.span>
-                </motion.div>
+                  </m.span>
+                </m.div>
               ),
             )}
           </div>
 
           <AnimatePresence>
             {selected && selectedItem && (
-              <motion.div
+              <m.div
                 key="expanded"
                 layoutId={selected}
                 className="absolute inset-0 z-10 cursor-pointer rounded-2xl p-5"
@@ -507,29 +507,29 @@ function SharedLayout() {
                 onClick={() => setSelected(null)}
                 transition={{ ...spring.smooth }}
               >
-                <motion.p
+                <m.p
                   layoutId={`title-${selected}`}
                   className="text-lg font-bold text-white"
                 >
                   {selectedItem.label}
-                </motion.p>
-                <motion.p
+                </m.p>
+                <m.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, transition: { delay: 0.18 } }}
                   exit={{ opacity: 0 }}
                   className="mt-2 text-[13px] leading-relaxed text-white/80"
                 >
                   {selectedItem.desc}
-                </motion.p>
-                <motion.p
+                </m.p>
+                <m.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, transition: { delay: 0.26 } }}
                   exit={{ opacity: 0 }}
                   className="mt-3 text-[10px] text-white/40"
                 >
                   tap to collapse ↩
-                </motion.p>
-              </motion.div>
+                </m.p>
+              </m.div>
             )}
           </AnimatePresence>
         </div>

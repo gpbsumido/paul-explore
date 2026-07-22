@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { m, useSpring, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui";
@@ -88,11 +88,11 @@ function WinBar({ leftPct, animate }: { leftPct: number; animate: boolean }) {
 
   return (
     <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-black/5 dark:bg-white/5">
-      <motion.div
+      <m.div
         className="rounded-l-full bg-[#FF6B35]"
         style={{ width: leftWidth }}
       />
-      <motion.div
+      <m.div
         className="rounded-r-full bg-[#00D4FF]"
         style={{ width: rightWidth }}
       />

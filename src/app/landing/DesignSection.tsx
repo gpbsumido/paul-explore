@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
 import {
   spring,
@@ -34,7 +34,7 @@ export default function DesignSection() {
   return (
     <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-motion) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
-        <motion.h2
+        <m.h2
           className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
@@ -42,9 +42,9 @@ export default function DesignSection() {
           transition={transition ?? { ...spring.smooth }}
         >
           Design System
-        </motion.h2>
+        </m.h2>
 
-        <motion.p
+        <m.p
           className="mx-auto mt-3 max-w-lg text-center text-white/70"
           variants={fadeUp}
           initial="hidden"
@@ -53,12 +53,12 @@ export default function DesignSection() {
         >
           A token-driven palette with semantic color aliases, consistent
           spacing, and theme toggling.
-        </motion.p>
+        </m.p>
 
         {/* color swatches — each scatters in from a deterministic offset */}
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           {SWATCHES.map(([bg, label], i) => (
-            <motion.div
+            <m.div
               key={label}
               className="flex flex-col items-center gap-1"
               initial={
@@ -85,12 +85,12 @@ export default function DesignSection() {
             >
               <div className={`h-10 w-10 rounded-lg ${bg} shadow-sm`} />
               <span className="text-[10px] text-foreground/50">{label}</span>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 
         {/* button variants */}
-        <motion.div
+        <m.div
           className="mt-10 flex flex-wrap justify-center gap-3"
           variants={fadeUp}
           initial="hidden"
@@ -109,10 +109,10 @@ export default function DesignSection() {
           <span className="inline-flex items-center rounded-full bg-error-500 px-5 py-2 text-sm font-medium text-white">
             Destructive
           </span>
-        </motion.div>
+        </m.div>
 
         {/* radius demo */}
-        <motion.div
+        <m.div
           className="mt-10 flex flex-wrap justify-center gap-4"
           variants={fadeUp}
           initial="hidden"
@@ -127,7 +127,7 @@ export default function DesignSection() {
               {r}
             </div>
           ))}
-        </motion.div>
+        </m.div>
       </div>
     </Section>
   );

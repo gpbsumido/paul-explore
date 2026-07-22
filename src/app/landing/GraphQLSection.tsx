@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import ModelLazyMount from "./models/ModelLazyMount";
 import {
   spring,
@@ -81,7 +81,7 @@ function TypewriterQuery({
     <pre className="whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-emerald-300 sm:text-xs">
       {query.slice(0, count)}
       {!done && (
-        <motion.span
+        <m.span
           animate={{ opacity: [1, 1, 0, 0] }}
           transition={{
             duration: 0.8,
@@ -92,7 +92,7 @@ function TypewriterQuery({
           aria-hidden
         >
           |
-        </motion.span>
+        </m.span>
       )}
     </pre>
   );
@@ -162,7 +162,7 @@ export default function GraphQLSection() {
       {/* Content — sits above canvas and glow */}
       <div className="relative z-[4] mx-auto max-w-[1000px] px-6 py-24 md:py-32">
         <div ref={ref}>
-          <motion.h2
+          <m.h2
             className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
             variants={headingWipe}
             initial="hidden"
@@ -170,9 +170,9 @@ export default function GraphQLSection() {
             transition={transition ?? { ...spring.smooth }}
           >
             GraphQL Pokédex
-          </motion.h2>
+          </m.h2>
 
-          <motion.p
+          <m.p
             className="mx-auto mt-3 max-w-lg text-center text-foreground/70"
             variants={fadeUp}
             initial="hidden"
@@ -181,10 +181,10 @@ export default function GraphQLSection() {
           >
             Browse 1,000+ Pokémon via a Hasura GraphQL endpoint — typed queries,
             field selection, and a live query inspector. Plain fetch, no Apollo.
-          </motion.p>
+          </m.p>
 
           {/* Mock query inspector — two-panel layout */}
-          <motion.div
+          <m.div
             className="mt-10 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5 shadow-xl backdrop-blur-sm"
             variants={fadeUp}
             initial="hidden"
@@ -224,7 +224,7 @@ export default function GraphQLSection() {
                 </p>
                 <ul className="space-y-1.5">
                   {MOCK_RESULTS.map((p, i) => (
-                    <motion.li
+                    <m.li
                       key={p.id}
                       className="flex items-center gap-2 font-mono text-[11px] sm:text-xs"
                       initial={{ opacity: 0, x: 10 }}
@@ -238,15 +238,15 @@ export default function GraphQLSection() {
                       <span className="text-foreground/30">#{p.id}</span>
                       <span className="text-foreground/80">{p.name}</span>
                       <span className={`ml-auto ${p.color}`}>{p.type}</span>
-                    </motion.li>
+                    </m.li>
                   ))}
                 </ul>
               </div>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Feature highlights */}
-          <motion.div
+          <m.div
             className="mt-8 grid gap-4 md:grid-cols-3"
             variants={fadeUp}
             initial="hidden"
@@ -271,9 +271,9 @@ export default function GraphQLSection() {
                 </p>
               </div>
             ))}
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             className="mt-8 flex justify-center"
             variants={fadeUp}
             initial="hidden"
@@ -291,7 +291,7 @@ export default function GraphQLSection() {
             >
               Open GraphQL Pokédex →
             </Link>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

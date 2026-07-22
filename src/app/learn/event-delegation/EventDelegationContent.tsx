@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -51,7 +51,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -60,7 +60,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -112,7 +112,7 @@ function BubblingDemo() {
         const isActive = activeLayers.has(i);
         const isInnermost = i === DOM_LAYERS.length - 1;
         return (
-          <motion.div
+          <m.div
             key={label}
             className={[
               "rounded-sm border p-3 transition-colors sm:p-4",
@@ -133,7 +133,7 @@ function BubblingDemo() {
               </span>
               <AnimatePresence>
                 {isActive && (
-                  <motion.span
+                  <m.span
                     className="font-mono text-[11px] text-muted"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -141,7 +141,7 @@ function BubblingDemo() {
                     transition={{ duration: 0.1 }}
                   >
                     event received!
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -152,7 +152,7 @@ function BubblingDemo() {
             ) : (
               children
             )}
-          </motion.div>
+          </m.div>
         );
       }, null as React.ReactNode)}
     </div>
@@ -303,7 +303,7 @@ function DynamicListDemo() {
       >
         <AnimatePresence>
           {items.map((id) => (
-            <motion.div
+            <m.div
               key={id}
               data-item-id={id}
               className={[
@@ -323,7 +323,7 @@ function DynamicListDemo() {
                   added dynamically
                 </span>
               )}
-            </motion.div>
+            </m.div>
           ))}
         </AnimatePresence>
       </div>
