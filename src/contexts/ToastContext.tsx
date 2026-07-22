@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useMemo,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -40,16 +41,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     () => [] as readonly Toast[],
   );
 
+  // Memoize so context consumers only re-render when the toast list changes,
+  // not on every provider render (the store fns are stable module-level refs).
+  const value = useMemo(
+    () => ({
+      toasts,
+      addToast: toastStore.addToast,
+      removeToast: toastStore.removeToast,
+    }),
+    [toasts],
+  );
+
   return (
-    <ToastContext.Provider
-      value={{
-        toasts,
-        addToast: toastStore.addToast,
-        removeToast: toastStore.removeToast,
-      }}
-    >
-      {children}
-    </ToastContext.Provider>
+    <ToastContext.Provider value={value}>{children}</ToastContext.Provider>
   );
 }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.60
+
+- react-doctor fixes: memoized the Theme and Toast context values so consumers stop re-rendering on every provider render
+
 ## 2026-07-22 - version 0.25.59
 
 - added before/after code snippets to each fix on the React Doctor thoughts page, including the before/attempt/correct triptych for the stepper fix that fought back

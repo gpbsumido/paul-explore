@@ -330,6 +330,40 @@ setStepIdx((prev) => prev + 1);`}</Snippet>
             </section>
 
             <section>
+              <h2 className="mb-3 text-lg font-bold">A second pass: render &amp; layout work</h2>
+              <p className="text-muted">
+                Coming back for a second batch, this time performance rules that
+                were real and safe (as opposed to the migration-scale ones).
+              </p>
+              <p className="mt-3 text-muted">
+                <span className="font-semibold text-foreground">Unmemoized context values.</span>{" "}
+                Two providers built their context{" "}
+                <code className="font-mono text-foreground/70">value</code> inline,
+                so a brand-new object every render &mdash; which makes{" "}
+                <em className="text-foreground/80">every</em> consumer of that
+                context re-render even when nothing it cares about changed. The
+                fix is a <code className="font-mono text-foreground/70">useMemo</code>{" "}
+                keyed on the values that actually change (the store functions are
+                already stable module-level refs).
+              </p>
+              <Snippet label="Before" tone="before">{`<ToastContext.Provider
+  value={{
+    toasts,
+    addToast: toastStore.addToast,
+    removeToast: toastStore.removeToast,
+  }}
+>
+  {children}
+</ToastContext.Provider>`}</Snippet>
+              <Snippet label="After" tone="after">{`const value = useMemo(
+  () => ({ toasts, addToast: toastStore.addToast, removeToast: toastStore.removeToast }),
+  [toasts],
+);
+
+return <ToastContext.Provider value={value}>{children}</ToastContext.Provider>;`}</Snippet>
+            </section>
+
+            <section>
               <h2 className="mb-3 text-lg font-bold">What React Doctor got right, and wrong</h2>
               <p className="text-muted">
                 <span className="font-semibold text-foreground">Right:</span> the
