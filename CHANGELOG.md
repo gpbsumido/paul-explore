@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-07-22 - version 0.25.54
+## 2026-07-22 - version 0.25.55
 
 - work-portfolio now keeps both tickers pinned to the viewport and scrolls the demo area between them when it needs more height, instead of the page growing and pushing a ticker off screen
 - drove the ticker's ambient loop with scrollLeft instead of a CSS transform, which fixes the empty space you could scroll into (the transform had shifted the content out from under the scroll area)
