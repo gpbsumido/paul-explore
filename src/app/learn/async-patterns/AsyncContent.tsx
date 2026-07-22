@@ -414,7 +414,8 @@ function EventLoopSimulator() {
       stopPlay();
       return;
     }
-    setStep((s) => s + 1);
+    stepRef.current += 1;
+    setStep(stepRef.current);
   }, [maxStep, stopPlay]);
 
   const handlePlay = useCallback(() => {
@@ -429,7 +430,8 @@ function EventLoopSimulator() {
         stopPlay();
         return;
       }
-      setStep((s) => s + 1);
+      stepRef.current += 1;
+      setStep(stepRef.current);
     }, 800);
   }, [playing, maxStep, stopPlay]);
 

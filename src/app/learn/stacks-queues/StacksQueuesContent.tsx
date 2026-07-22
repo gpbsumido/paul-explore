@@ -301,11 +301,13 @@ function ParensDemo() {
       stop();
       return;
     }
-    setStepIdx((prev) => prev + 1);
+    stepIdxRef.current += 1;
+    setStepIdx(stepIdxRef.current);
   }, [steps.length, stop]);
 
   const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) {
+    if (stepIdxRef.current >= steps.length - 1) {
+      stepIdxRef.current = 0;
       setStepIdx(0);
     }
     setPlaying(true);
@@ -315,9 +317,10 @@ function ParensDemo() {
         stop();
         return;
       }
-      setStepIdx((prev) => prev + 1);
+      stepIdxRef.current += 1;
+      setStepIdx(stepIdxRef.current);
     }, 800);
-  }, [stepIdx, steps.length, stop]);
+  }, [steps.length, stop]);
 
   useEffect(() => {
     return () => {
