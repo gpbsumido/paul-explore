@@ -273,6 +273,7 @@ function useWindowOverlay(
 function MaxSumDemo() {
   const [k, setK] = useState(WINDOW_SIZES[0]);
   const [stepIdx, setStepIdx] = useState(0);
+  const stepIdxRef = useRef(stepIdx);
   const [playing, setPlaying] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -297,13 +298,11 @@ function MaxSumDemo() {
   }, []);
 
   const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
+    if (stepIdxRef.current >= steps.length - 1) {
+      stop();
+      return;
+    }
+    setStepIdx((prev) => prev + 1);
   }, [steps.length, stop]);
 
   const play = useCallback(() => {
@@ -313,13 +312,11 @@ function MaxSumDemo() {
     setPlaying(true);
     intervalRef.current = setInterval(() => {
       if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
+      if (stepIdxRef.current >= steps.length - 1) {
+        stop();
+        return;
+      }
+      setStepIdx((prev) => prev + 1);
     }, 800);
   }, [stepIdx, steps.length, stop]);
 
@@ -328,6 +325,13 @@ function MaxSumDemo() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  // Mirror stepIdx into a ref so the interval and handlers can read the current
+  // step and stop outside the updater (ref writes in an effect are fine; a
+  // setState there is not).
+  useEffect(() => {
+    stepIdxRef.current = stepIdx;
+  }, [stepIdx]);
 
   const reset = useCallback(() => {
     stop();
@@ -439,6 +443,7 @@ function MaxSumDemo() {
 function SubstringDemo() {
   const [input, setInput] = useState(SUBSTR_PRESETS[0]);
   const [stepIdx, setStepIdx] = useState(0);
+  const stepIdxRef = useRef(stepIdx);
   const [playing, setPlaying] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -463,13 +468,11 @@ function SubstringDemo() {
   }, []);
 
   const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
+    if (stepIdxRef.current >= steps.length - 1) {
+      stop();
+      return;
+    }
+    setStepIdx((prev) => prev + 1);
   }, [steps.length, stop]);
 
   const play = useCallback(() => {
@@ -479,13 +482,11 @@ function SubstringDemo() {
     setPlaying(true);
     intervalRef.current = setInterval(() => {
       if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
+      if (stepIdxRef.current >= steps.length - 1) {
+        stop();
+        return;
+      }
+      setStepIdx((prev) => prev + 1);
     }, 800);
   }, [stepIdx, steps.length, stop]);
 
@@ -494,6 +495,13 @@ function SubstringDemo() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  // Mirror stepIdx into a ref so the interval and handlers can read the current
+  // step and stop outside the updater (ref writes in an effect are fine; a
+  // setState there is not).
+  useEffect(() => {
+    stepIdxRef.current = stepIdx;
+  }, [stepIdx]);
 
   const reset = useCallback(() => {
     stop();

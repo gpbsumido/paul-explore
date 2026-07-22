@@ -347,6 +347,27 @@ setStepIdx((prev) => prev + 1);`}</Snippet>
                 &mdash; idempotent impurity in a demo is a different priority
                 than a real leak in a save path.
               </p>
+              <p className="mt-3 text-muted">
+                <span className="font-semibold text-foreground">Update &mdash; came back and did it.</span>{" "}
+                In a follow-up I applied the correct fix across all ten steppers:
+                a ref mirrors the current step (a ref write in an effect, which
+                is allowed), and play/advance check that ref and{" "}
+                <code className="font-mono text-foreground/70">stop()</code> from
+                the interval or the click handler, leaving the updater pure. That
+                cleared every impure-updater finding in{" "}
+                <code className="font-mono text-foreground/70">learn/</code> (30
+                to 0, twice over) with zero new setState-in-effect &mdash; the
+                proof the recipe was right all along, just in the wrong place the
+                first time. Playback, single-step, and reset behave exactly as
+                before.
+              </p>
+              <Snippet label="Correct — now shipped" tone="after">{`const stepIdxRef = useRef(stepIdx);
+useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]); // ref write, allowed
+
+const advance = useCallback(() => {
+  if (stepIdxRef.current >= steps.length - 1) { stop(); return; } // in the handler
+  setStepIdx((prev) => prev + 1);                                  // pure updater
+}, [steps.length, stop]);`}</Snippet>
             </section>
 
             <section>

@@ -4,6 +4,13 @@
 
 - added tests for the learn-page steppers: a parameterized suite over all nine pages that locks in the play/step/reset contract (stepping advances the counter, reset returns to the start, play runs to the last step and stops) — the behavior the recent react-doctor refactor touched, previously untested
 - added matchMedia, IntersectionObserver, and ResizeObserver polyfills to the shared test setup so component tests can render pages that use them
+## 2026-07-22 - version 0.25.65
+
+- updated the React Doctor thoughts page to close the loop on the stepper story: the "fought back" section now shows the correct fix shipped across all ten steppers, with a before/after
+
+## 2026-07-22 - version 0.25.64
+
+- react-doctor fixes: reworked the ten learn-page steppers so the play/advance controls stop the run from the interval/handler (via a synced ref) instead of calling stop() inside the setStepIdx updater — clears every impure-updater finding there with no setState-in-effect, and playback/step/reset behavior is unchanged
 
 ## 2026-07-22 - version 0.25.63
 
