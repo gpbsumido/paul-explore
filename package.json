@@ -82,5 +82,10 @@
     "typescript": "^5.9.3",
     "vitest": "^4.1.2",
     "vitest-axe": "^0.1.0"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "qr@0.6.0": "patches/qr@0.6.0.patch"
+    }
   }
 }
