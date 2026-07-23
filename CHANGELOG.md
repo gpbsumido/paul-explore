@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 0.25.77
+
+- v3 force-graph now has unit coverage (21 tests). The pure helpers were the riskiest, most-reused, least-tested code in the repo — `simulation.ts` and `graphData.ts` take plain data in and out but had no tests. Covers: the graph-data wiring (a node per feature/write-up, unique ids, every edge resolves, a bridge for every `thoughtsHref`, root wired to hub + categories) and the layered layout; and the physics — the root pins at the origin, forces behave (overlapping nodes repel, connected far-apart nodes spring together, lone nodes fall toward centre), alpha decays to its floor with finite positions, settled nodes never stack on one point, `reheat` only ever raises alpha, and the reduced-motion radial layout spreads to distinct points
+
 ## 2026-07-23 - version 0.25.76
 
 - added `/thoughts/project-review`: an evidence-backed review of the whole codebase, gathered from an axe scan across every route, a lines-of-code/duplication census, a production build, and a test-file census. Findings, each with why-we-looked, pros/cons, and the expected gain: ~37% of `src` (~35,500 lines) is prose authored as React with no shared layout (highest-leverage refactor → MDX + a shared ThoughtLayout); the fantasy filter bar is copy-pasted 5× (7 duplicate selects); the v3 physics engine (1,503 lines, pure and load-bearing) has zero tests; BFF error handling is inconsistent (35/46 routes); the v3 landing carries product-grade engineering for a page most visitors skim (the honest answer to "did we overfit"); plus a per-feature UX pass and an ROI-ordered roadmap. Includes the one place with real before/after numbers — the accessibility work (2 → 14+3 scanned routes, AA → AA+best-practice, ~120 contrast + ~10 landmark violations → 0). registered it in the graph + thoughts index
