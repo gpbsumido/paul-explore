@@ -228,7 +228,12 @@ export default function WorkPortfolioContent() {
         <ExplainerWindow
           subject={explainer.subject}
           edge={explainer.edge}
-          onClose={() => setExplainer(null)}
+          onClose={() => {
+            // Cancel any pending hover-to-open timer so a still-hovering
+            // pointer can't immediately reopen what the user just closed.
+            if (hoverTimer.current) clearTimeout(hoverTimer.current);
+            setExplainer(null);
+          }}
         />
       )}
       {/* announces selection changes to screen readers without stealing focus */}

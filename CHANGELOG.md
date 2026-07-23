@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-23 - version 0.25.79
+
+- fixed the work-portfolio explainer dialog so it reliably closes on Escape. Two real bugs: Escape only closed the dialog when focus had already landed inside it (which raced the focus effect, and left mouse users — whose focus is still on the trigger — unable to close it at all), and a pending 350ms hover-to-open timer could immediately reopen what you just closed. Escape now closes it whenever it's open, and closing cancels the hover timer. The previously-flaky e2e is now deterministic (4/4)
+- added a one-line "what am I looking at" intro to the operator fleet dashboard so a cold visitor gets context before the dense grid
+
 ## 2026-07-23 - version 0.25.78
 
 - de-duplicated the fantasy filter bars into two shared components. The four fantasy pages each hand-rolled the same `<section>` + styled `<select>` (7 copied selects, a per-file `selectChevron`/`selectStyle` pair) — the accessibility pass had to fix each one individually. Extracted a `LabelledSelect` UI primitive (label span + accessible name + the shared chevron styling, once) and a `FilterBar` wrapper (the named landmark + centered row) and moved court-vision, player-stats, matchups, and league-history onto them. The copied styles are gone; the next filter/a11y change is a one-file edit. Verified: the fantasy a11y e2e still pass

@@ -39,7 +39,10 @@ export default function ExplainerWindow({
       if (!panel) return;
       const inside =
         document.activeElement && panel.contains(document.activeElement);
-      if (e.key === "Escape" && inside) {
+      // Escape closes the dialog whenever it's open — not only when focus has
+      // landed inside it. Gating on `inside` raced the focus effect (and left
+      // mouse users, whose focus is still on the trigger, unable to close it).
+      if (e.key === "Escape") {
         onClose();
         return;
       }
