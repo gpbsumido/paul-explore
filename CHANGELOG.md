@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 1.0.0
+
+- extracted the shared dev-notes scaffold every thoughts write-up had been repeating by hand into a single `ThoughtLayout` component. The page shell, the breadcrumb header (with the optional summary/chat toggle), and the "Dev notes" eyebrow + heading + intro of the summary view now live in one place, so a cross-cutting fix to any of them lands everywhere instead of being copy-pasted across pages. Migrated the two summary-only write-ups (`v3-redesign`, `project-review`) onto it as the pilot; the toggle-mode adoption for the remaining chat-style pages follows incrementally since each wires its own conversation content. Also caught a pre-existing contrast miss while in there — the "notes" tag on the v3 write-up was `text-muted` at 10px (3.8:1), now `text-foreground/70` — so both pages pass the axe scan at WCAG 2.1 AA and best-practice with zero violations. Ships as 1.0.0
+
 ## 2026-07-23 - version 0.25.82
 
 - extracted the learn-page step player into a shared `useStepPlayer` hook. Each of the 14 lessons hand-rolled the same ~40-line play/step/reset engine — and the same play/advance off-by-one bug (a batched interval tick reading a stale index and overrunning the steps array) had to be fixed in every one of them. The hook owns that logic once, keeping the crucial detail: the step index is written to a ref synchronously inside advance/play, so ticks read a fresh value and stop exactly at the last step. It also adds the keyboard control the review wanted — an `onKeyDown` handler (arrows to step, space to play/pause) a focusable container can spread on. Unit-tested (6 tests: advance/back bounds, reset, play-to-end without overrun, replay-from-end, keys). The per-lesson migration onto the hook follows incrementally, since each lesson wires its own animation refs
