@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -295,62 +296,13 @@ function Section({
 // ---------------------------------------------------------------------------
 
 function FibBottomUpDemo() {
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = FIB_TABLE_STEPS;
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 600 },
+  );
   const step = steps[stepIdx];
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 600);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   return (
     <div>
@@ -446,74 +398,24 @@ const GRID_PRESETS = [
 
 function UniquePathsDemo() {
   const [presetIdx, setPresetIdx] = useState(1);
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { rows, cols } = GRID_PRESETS[presetIdx];
   const grid = useMemo(() => computeGrid(rows, cols), [rows, cols]);
   const steps = useMemo(() => computePathsSteps(rows, cols), [rows, cols]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 400 },
+  );
   const step = steps[stepIdx];
 
   const filledSet = useMemo(() => new Set(step.filled), [step.filled]);
 
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 400);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
-
   const handlePreset = useCallback(
     (idx: number) => {
-      stop();
-      setStepIdx(0);
+      reset();
       setPresetIdx(idx);
     },
-    [stop],
+    [reset],
   );
 
   return (

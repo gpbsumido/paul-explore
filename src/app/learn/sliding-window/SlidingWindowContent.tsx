@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -272,14 +273,14 @@ function useWindowOverlay(
 
 function MaxSumDemo() {
   const [k, setK] = useState(WINDOW_SIZES[0]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const steps = useMemo(() => computeMaxSumSteps(k), [k]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 800 },
+  );
   const step = steps[stepIdx];
 
   const overlayPos = useWindowOverlay(
@@ -288,58 +289,6 @@ function MaxSumDemo() {
     step.windowStart,
     step.windowEnd,
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 800);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  // Mirror stepIdx into a ref so the interval and handlers can read the current
-  // step and stop outside the updater (ref writes in an effect are fine; a
-  // setState there is not).
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleKChange = useCallback(
     (newK: number) => {
@@ -445,14 +394,14 @@ function MaxSumDemo() {
 
 function SubstringDemo() {
   const [input, setInput] = useState(SUBSTR_PRESETS[0]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const steps = useMemo(() => computeSubstrSteps(input), [input]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 800 },
+  );
   const step = steps[stepIdx];
 
   const overlayPos = useWindowOverlay(
@@ -461,58 +410,6 @@ function SubstringDemo() {
     step.left,
     step.right,
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 800);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  // Mirror stepIdx into a ref so the interval and handlers can read the current
-  // step and stop outside the updater (ref writes in an effect are fine; a
-  // setState there is not).
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleInputChange = useCallback(
     (newInput: string) => {

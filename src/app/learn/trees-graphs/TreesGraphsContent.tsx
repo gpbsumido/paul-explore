@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -495,12 +496,12 @@ const MODE_LABELS: Record<TraversalMode, string> = {
 
 function TreeTraversalDemo() {
   const [mode, setMode] = useState<TraversalMode>("pre");
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = useMemo(() => computeTreeSteps(mode), [mode]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 900 },
+  );
   const step = steps[stepIdx];
 
   const visitedSet = useMemo(() => new Set(step.visited), [step.visited]);
@@ -508,55 +509,6 @@ function TreeTraversalDemo() {
     () => new Set(step.traversedEdges),
     [step.traversedEdges],
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 900);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleModeChange = useCallback(
     (newMode: TraversalMode) => {
@@ -791,14 +743,13 @@ function TreeTraversalDemo() {
 function GraphBFSDemo() {
   const [start, setStart] = useState(GRAPH_PRESETS[0][0]);
   const [target, setTarget] = useState(GRAPH_PRESETS[0][1]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = useMemo(
     () => computeGraphBFSSteps(start, target),
     [start, target],
+  );
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
   );
   const step = steps[stepIdx];
 
@@ -809,55 +760,6 @@ function GraphBFSDemo() {
   );
   const pathNodeSet = useMemo(() => new Set(step.pathNodes), [step.pathNodes]);
   const pathEdgeSet = useMemo(() => new Set(step.pathEdges), [step.pathEdges]);
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 1000);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handlePreset = useCallback(
     (s: number, t: number) => {

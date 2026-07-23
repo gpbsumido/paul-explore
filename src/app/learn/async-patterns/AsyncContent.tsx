@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { m, AnimatePresence, useInView } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -389,75 +390,29 @@ const SNIPPETS: readonly Snippet[] = [
 
 function EventLoopSimulator() {
   const [snippetIdx, setSnippetIdx] = useState(0);
-  const [step, setStep] = useState(0);
-  const stepRef = useRef(step);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reduced = useHubReducedMotion();
   const t = reduced ? instantTransition : hoverSpring;
 
   const snippet = SNIPPETS[snippetIdx];
+  const {
+    stepIdx: step,
+    playing,
+    advance: handleStep,
+    toggle: handlePlay,
+    reset: handleReset,
+  } = useStepPlayer(snippet.steps.length, { intervalMs: 800 });
+
   const currentItems = snippet.steps[step];
   const narration = snippet.narrations[step];
   const maxStep = snippet.steps.length - 1;
 
-  const stopPlay = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const handleStep = useCallback(() => {
-    if (stepRef.current >= maxStep) {
-      stopPlay();
-      return;
-    }
-    stepRef.current += 1;
-    setStep(stepRef.current);
-  }, [maxStep, stopPlay]);
-
-  const handlePlay = useCallback(() => {
-    if (playing) {
-      stopPlay();
-      return;
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepRef.current >= maxStep) {
-        stopPlay();
-        return;
-      }
-      stepRef.current += 1;
-      setStep(stepRef.current);
-    }, 800);
-  }, [playing, maxStep, stopPlay]);
-
-  const handleReset = useCallback(() => {
-    stopPlay();
-    setStep(0);
-  }, [stopPlay]);
-
   const selectSnippet = useCallback(
     (idx: number) => {
-      stopPlay();
+      handleReset();
       setSnippetIdx(idx);
-      setStep(0);
     },
-    [stopPlay],
+    [handleReset],
   );
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepRef.current = step;
-  }, [step]);
 
   const getItemsForLocation = (loc: "callstack" | "microtask" | "macrotask") =>
     currentItems.filter((item) => item.location === loc);

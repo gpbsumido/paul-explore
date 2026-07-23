@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -506,16 +507,16 @@ function Narration({ text }: { text: string }) {
 function FibonacciDemo() {
   const [n, setN] = useState<number>(5);
   const [memoEnabled, setMemoEnabled] = useState(false);
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const tree = FIB_TREES[n];
   const edgeCoords = FIB_EDGE_COORDS[n];
   const steps = useMemo(
     () => computeFibSteps(n, memoEnabled),
     [n, memoEnabled],
+  );
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 800 },
   );
   const step = steps[stepIdx];
 
@@ -537,55 +538,6 @@ function FibonacciDemo() {
   }, [n, memoEnabled, tree.nodes, tree.edges]);
 
   const memoNodeCount = useMemo(() => getVisibleWithMemo(n).nodes.size, [n]);
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 800);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handlePreset = useCallback(
     (newN: number) => {
@@ -844,12 +796,12 @@ function FibonacciDemo() {
 // ---------------------------------------------------------------------------
 
 function SubsetsDemo() {
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = SUBSET_STEPS;
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 900 },
+  );
   const step = steps[stepIdx];
 
   const activePathSet = useMemo(
@@ -868,55 +820,6 @@ function SubsetsDemo() {
     () => new Set(step.backtrackedEdges),
     [step.backtrackedEdges],
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 900);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   return (
     <div>

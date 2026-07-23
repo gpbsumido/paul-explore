@@ -6,6 +6,7 @@ import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -296,14 +297,14 @@ function useCellCenters(
 
 function ClassicSearchDemo() {
   const [target, setTarget] = useState(TARGET_PRESETS[0]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const steps = useMemo(() => computeBSearchSteps(target), [target]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 1000 },
+  );
   const step = steps[stepIdx];
   const cellCenters = useCellCenters(containerRef, cellRefs);
 
@@ -311,55 +312,6 @@ function ClassicSearchDemo() {
     () => new Set(step.eliminated),
     [step.eliminated],
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 1000);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleTargetChange = useCallback(
     (newTarget: number) => {
@@ -500,14 +452,14 @@ function ClassicSearchDemo() {
 // ---------------------------------------------------------------------------
 
 function CapacityDemo() {
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(stepIdx);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const steps = useMemo(() => computeCapacitySteps(), []);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 1200 },
+  );
   const step = steps[stepIdx];
   const cellCenters = useCellCenters(containerRef, cellRefs);
 
@@ -515,55 +467,6 @@ function CapacityDemo() {
     () => new Set(step.eliminated),
     [step.eliminated],
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stop();
-      return;
-    }
-    stepIdxRef.current += 1;
-    setStepIdx(stepIdxRef.current);
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdxRef.current >= steps.length - 1) {
-      stepIdxRef.current = 0;
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      if (stepIdxRef.current >= steps.length - 1) {
-        stop();
-        return;
-      }
-      stepIdxRef.current += 1;
-      setStepIdx(stepIdxRef.current);
-    }, 1200);
-  }, [steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    stepIdxRef.current = stepIdx;
-  }, [stepIdx]);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const isLast = stepIdx >= steps.length - 1;
 
