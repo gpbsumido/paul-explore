@@ -3,8 +3,11 @@
 import { useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { useCreateReferral, useReferralStats } from "@/hooks/useReferrals";
-import { recordReferralClick } from "@/lib/referrals";
+import {
+  useCreateReferral,
+  useReferralStats,
+  useRecordReferralClick,
+} from "@/hooks/useReferrals";
 import type { WorkFeature } from "../_data/types";
 
 const ACCENT = "var(--wp-accent, #fb7185)";
@@ -28,6 +31,7 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
   const create = useCreateReferral();
   const created = create.data ?? null;
   const stats = useReferralStats(created?.slug ?? null);
+  const recordClick = useRecordReferralClick();
 
   const submit = () => {
     setCopied(false);
@@ -44,11 +48,11 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
     setTimeout(() => setCopied(false), 1200);
   };
 
-  // Simulate someone opening the link, then refetch so the count moves live.
-  const recordVisit = async () => {
+  // Simulate someone opening the link; the mutation invalidates the stats query
+  // on success, so the count moves live without a manual refetch here.
+  const recordVisit = () => {
     if (!created) return;
-    await recordReferralClick(created.slug).catch(() => {});
-    stats.refetch();
+    recordClick.mutate(created.slug);
   };
 
   return (
