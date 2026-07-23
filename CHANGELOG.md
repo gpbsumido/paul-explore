@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 0.25.80
+
+- added a `withBackend()` wrapper so the authenticated BFF proxy routes stop repeating their auth + failure plumbing. Each proxy route hand-rolled the same shape: resolve the token (401 on failure), fetch the backend, catch a thrown network error into a 502, log. `withBackend(label, handler)` owns the auth and the 502-on-throw with consistent logging; routes keep only their own fetch + status mapping. Adopted it across the calendar event routes (calendars, events, events/[id]) — covering GET/POST/PUT/DELETE and dynamic params — as the proven pattern; the remaining proxy routes can move over incrementally. (The operator/tcg routes flagged in the review aren't proxies — local mock data / an SDK — so they don't need it.) Unit-tested: 401 when the token can't resolve, a clean 502 when the handler throws, and passthrough on success
+
 ## 2026-07-23 - version 0.25.79
 
 - fixed the work-portfolio explainer dialog so it reliably closes on Escape. Two real bugs: Escape only closed the dialog when focus had already landed inside it (which raced the focus effect, and left mouse users — whose focus is still on the trigger — unable to close it at all), and a pending 350ms hover-to-open timer could immediately reopen what you just closed. Escape now closes it whenever it's open, and closing cancels the hover timer. The previously-flaky e2e is now deterministic (4/4)
