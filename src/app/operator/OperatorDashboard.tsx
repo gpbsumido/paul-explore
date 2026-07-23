@@ -158,6 +158,12 @@ export default function OperatorDashboard() {
       transition={spring.smooth}
     >
       <h1 className="sr-only">Fleet Dashboard</h1>
+      {/* One-line orientation for a cold visitor landing on a dense dashboard */}
+      <p className="text-sm text-muted">
+        A demo of running a smart-store fleet &mdash; live-style status, alerts,
+        inventory health, and analytics. Filter the stores below, or click one to
+        drill in.
+      </p>
       {/* Global refresh bar */}
       <RefreshBar />
 
