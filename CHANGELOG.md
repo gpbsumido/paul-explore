@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.73
+
+- raised the automated accessibility bar in the shared `checkA11y` e2e helper from WCAG 2.1 A/AA to AA + axe best-practice (a single main landmark, all content contained by landmarks, a top-level heading, non-redundant alt text, heading order), and fixed the routes it flagged: wrapped `/tcg/pokemon` (browse), `/tcg/pokemon/card/[cardId]` (detail), and `/calendar` content in `<main>`, and marked the browse card image decorative (`alt=""`) since the card name is already the link's visible text (`image-redundant-alt`). `/vitals` and `/settings` already had a main + heading. verified against the public landmark + axe e2e
+
 ## 2026-07-22 - version 0.25.72
 
 - v3 landing: replaced the scrolling landing/hub with an interactive node graph of every feature and write-up, wired by category and by each feature's own notes (the existing `thoughtsHref`). two views toggled by a switch in the header — a draggable force-directed graph and a flat grouped-column layout. the force layout is a hand-rolled physics sim (repulsion, springs, gravity, collision) that runs in a rAF loop and is written straight to the DOM; it runs in an abstract coordinate space and the renderer fits-and-scales it to the viewport every frame, so "lay out" and "use the available space" are decoupled. on phones the flat view becomes a stacked, grouped list. GSAP for the intro reveal and click sparks; an animated aurora backdrop. wired into `page.tsx`'s `VERSIONS` registry as the current version — v1/v2 stay reachable via `?version=` and show a version-aware banner. new dependency: gsap
