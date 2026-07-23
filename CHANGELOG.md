@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 1.0.2
+
+- moved the learn-page demos off their hand-rolled play/step engines and onto the shared `useStepPlayer` hook. Fifteen widgets across nine lessons (two-pointers, binary-search, sliding-window, hash-maps, stacks-queues, dynamic-programming, recursion-backtracking, trees-graphs, async-patterns) each carried their own ~40-line copy of the same stepIdx + interval logic — the exact duplication the hook was extracted to kill. They now destructure `advance`, `play`, `stop`, `reset` from the hook and keep only their own bits: the visualization, and the target/preset/snippet pickers that reset the player before swapping data. Behavior is unchanged — the hook keeps the synchronous ref write so batched interval ticks stop exactly on the last step. Verified page by page: `tsc`, `eslint`, `next build` (all 14 learn routes prerender static), the hook's 6 unit tests, and a click-through of Play/Step/Reset on the migrated demos. That closes the second follow-up noted in 1.0.0
+
 ## 2026-07-23 - version 1.0.1
 
 - finished the `ThoughtLayout` rollout: moved the remaining 33 chat-style write-ups off their hand-rolled scaffold and onto the shared component, using its toggle mode. Each page kept its own `useState` view flag, breadcrumb header, "Dev notes" eyebrow + heading + intro, and the summary/chat branch inline — now they pass `breadcrumb`, `title`, `intro`, `chat`, and their sections and let `ThoughtLayout` own the shell and the summary/chat toggle. Purely structural: the section and conversation content moved across verbatim (only the wrapper and its indentation changed), so nothing about how the pages read or render changed. One incidental tidy — `api-backend-overhaul` had used `space-y-12` for its section stack where every other page used `space-y-10`, so it now matches. That closes the follow-up noted in 1.0.0; the whole `/thoughts` section is on one layout, so a fix to the shell lands everywhere at once
