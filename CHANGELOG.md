@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 0.25.81
+
+- audited the direct `fetch()` calls in client components (the review flagged ~26 as possibly bypassing TanStack Query). The audit found the count was misleading: almost all are legitimate — inside a query/mutation `queryFn`, the fire-and-forget Web Vitals beacon (which must not be a Query), or lesson demos that are literally *about* `fetch`. The one genuine bypass was the referral-links demo recording a click with a raw lib call plus a manual `stats.refetch()`. Added a `useRecordReferralClick` mutation that invalidates the stats query on success, and moved the demo onto it — so the count updates through the cache, no manual refetch
+
 ## 2026-07-23 - version 0.25.80
 
 - added a `withBackend()` wrapper so the authenticated BFF proxy routes stop repeating their auth + failure plumbing. Each proxy route hand-rolled the same shape: resolve the token (401 on failure), fetch the backend, catch a thrown network error into a 502, log. `withBackend(label, handler)` owns the auth and the 502-on-throw with consistent logging; routes keep only their own fetch + status mapping. Adopted it across the calendar event routes (calendars, events, events/[id]) — covering GET/POST/PUT/DELETE and dynamic params — as the proven pattern; the remaining proxy routes can move over incrementally. (The operator/tcg routes flagged in the review aren't proxies — local mock data / an SDK — so they don't need it.) Unit-tested: 401 when the token can't resolve, a clean 502 when the handler throws, and passthrough on success
