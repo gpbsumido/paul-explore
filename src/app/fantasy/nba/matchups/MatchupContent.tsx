@@ -5,10 +5,11 @@ import { m, useSpring, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui";
-import { selectChevron } from "@/assets/icons";
+import LabelledSelect from "@/components/ui/LabelledSelect";
 import { queryKeys } from "@/lib/queryKeys";
 import { useCountUp } from "@/hooks/useCountUp";
 import FantasyNav from "../FantasyNav";
+import FilterBar from "../FilterBar";
 import PredictionPanel from "./PredictionPanel";
 import type {
   ESPNScoreboardResponse,
@@ -343,18 +344,9 @@ export default function MatchupContent() {
       <FantasyNav />
 
       {/* Season + week selector */}
-      <section aria-label="Matchup filters" className="border-b border-border">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
-          <span className="text-[13px] text-muted shrink-0">Season</span>
-          <select
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
-            aria-label="Season"
+      <FilterBar label="Matchup filters">
+          <LabelledSelect
+            label="Season"
             value={season}
             onChange={handleSeasonChange}
           >
@@ -363,18 +355,10 @@ export default function MatchupContent() {
                 {yr - 1}–{yr}
               </option>
             ))}
-          </select>
+          </LabelledSelect>
 
-          <span className="text-[13px] text-muted shrink-0">Week</span>
-          <select
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
-            aria-label="Week"
+          <LabelledSelect
+            label="Week"
             value={activeWeek}
             onChange={handleWeekChange}
             disabled={!data}
@@ -388,21 +372,12 @@ export default function MatchupContent() {
                 </option>
               );
             })}
-          </select>
+          </LabelledSelect>
 
           {/* Prediction for picker for predictions */}
-          <span className="text-[13px] text-muted shrink-0 ml-auto sm:ml-0">
-            Prediction for
-          </span>
-          <select
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
-            aria-label="Prediction for team"
+          <LabelledSelect
+            label="Prediction for"
+            labelClassName="ml-auto sm:ml-0"
             value={myTeamId ?? ""}
             onChange={(e) => {
               const id = Number(e.target.value) || null;
@@ -425,7 +400,7 @@ export default function MatchupContent() {
                 {t.name}
               </option>
             ))}
-          </select>
+          </LabelledSelect>
 
           {/* Week navigation arrows */}
           <div className="flex items-center gap-1 sm:ml-auto">
@@ -472,8 +447,7 @@ export default function MatchupContent() {
               </svg>
             </button>
           </div>
-        </div>
-      </section>
+      </FilterBar>
 
       {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">

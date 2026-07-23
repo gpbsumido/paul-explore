@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 0.25.78
+
+- de-duplicated the fantasy filter bars into two shared components. The four fantasy pages each hand-rolled the same `<section>` + styled `<select>` (7 copied selects, a per-file `selectChevron`/`selectStyle` pair) — the accessibility pass had to fix each one individually. Extracted a `LabelledSelect` UI primitive (label span + accessible name + the shared chevron styling, once) and a `FilterBar` wrapper (the named landmark + centered row) and moved court-vision, player-stats, matchups, and league-history onto them. The copied styles are gone; the next filter/a11y change is a one-file edit. Verified: the fantasy a11y e2e still pass
+
 ## 2026-07-23 - version 0.25.77
 
 - v3 force-graph now has unit coverage (21 tests). The pure helpers were the riskiest, most-reused, least-tested code in the repo — `simulation.ts` and `graphData.ts` take plain data in and out but had no tests. Covers: the graph-data wiring (a node per feature/write-up, unique ids, every edge resolves, a bridge for every `thoughtsHref`, root wired to hub + categories) and the layered layout; and the physics — the root pins at the origin, forces behave (overlapping nodes repel, connected far-apart nodes spring together, lone nodes fall toward centre), alpha decays to its floor with finite positions, settled nodes never stack on one point, `reheat` only ever raises alpha, and the reduced-motion radial layout spreads to distinct points
