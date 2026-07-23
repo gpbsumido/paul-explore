@@ -29,9 +29,6 @@ export const revalidate = 3600;
 
 export default function MatchupsPage() {
   return (
-    <>
-      <h1 className="sr-only">Matchup Predictions</h1>
-      <MatchupContent />
-    </>
+    <MatchupContent />
   );
 }

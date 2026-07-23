@@ -12,8 +12,8 @@ interface FreshnessLabelProps {
 }
 
 const LEVEL_CONFIG: Record<FreshnessLevel, { text: string; dot: string }> = {
-  fresh: { text: "text-success-500", dot: "bg-success-500" },
-  aging: { text: "text-warning-500 font-medium", dot: "bg-warning-500" },
+  fresh: { text: "text-success-700 dark:text-success-500", dot: "bg-success-500" },
+  aging: { text: "text-warning-700 dark:text-warning-500 font-medium", dot: "bg-warning-500" },
   stale: { text: "text-error-500 font-medium", dot: "bg-error-500" },
 };
 

@@ -33,9 +33,6 @@ type Props = {
 export default async function PlayoffsPage({ searchParams }: Props) {
   const { view } = await searchParams;
   return (
-    <>
-      <h1 className="sr-only">Playoff Bracket</h1>
-      <PlayoffBracketContent viewUsername={view ?? null} />
-    </>
+    <PlayoffBracketContent viewUsername={view ?? null} />
   );
 }

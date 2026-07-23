@@ -121,7 +121,7 @@ function CategoryRow({
     <tr className="border-b border-border/50 last:border-b-0">
       <td
         className={`px-3 py-2 text-right text-[13px] font-mono tabular-nums ${
-          awayWins && !tied ? "font-bold text-[#FF6B35]" : "text-muted"
+          awayWins && !tied ? "font-bold text-[#c2410c] dark:text-[#FF6B35]" : "text-muted"
         }`}
       >
         {Number.isInteger(awayVal) ? awayVal : awayVal.toFixed(1)}
@@ -131,7 +131,7 @@ function CategoryRow({
       </td>
       <td
         className={`px-3 py-2 text-left text-[13px] font-mono tabular-nums ${
-          homeWins && !tied ? "font-bold text-[#00D4FF]" : "text-muted"
+          homeWins && !tied ? "font-bold text-[#0e7490] dark:text-[#00D4FF]" : "text-muted"
         }`}
       >
         {Number.isInteger(homeVal) ? homeVal : homeVal.toFixed(1)}
@@ -188,14 +188,14 @@ function MatchupCard({
           <div className="flex items-baseline gap-2">
             <CountUpScore
               value={awayPts}
-              className="text-lg font-bold font-mono tabular-nums text-[#FF6B35]"
+              className="text-lg font-bold font-mono tabular-nums text-[#c2410c] dark:text-[#FF6B35]"
             />
             <span className="text-[10px] font-semibold uppercase tracking-widest text-muted">
               vs
             </span>
             <CountUpScore
               value={homePts}
-              className="text-lg font-bold font-mono tabular-nums text-[#00D4FF]"
+              className="text-lg font-bold font-mono tabular-nums text-[#0e7490] dark:text-[#00D4FF]"
             />
           </div>
           <span className="text-[10px] font-medium text-muted tabular-nums">
@@ -343,7 +343,7 @@ export default function MatchupContent() {
       <FantasyNav />
 
       {/* Season + week selector */}
-      <div className="border-b border-border">
+      <section aria-label="Matchup filters" className="border-b border-border">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
           <span className="text-[13px] text-muted shrink-0">Season</span>
           <select
@@ -354,6 +354,7 @@ export default function MatchupContent() {
               backgroundPosition: "right 10px center",
               paddingRight: "28px",
             }}
+            aria-label="Season"
             value={season}
             onChange={handleSeasonChange}
           >
@@ -373,6 +374,7 @@ export default function MatchupContent() {
               backgroundPosition: "right 10px center",
               paddingRight: "28px",
             }}
+            aria-label="Week"
             value={activeWeek}
             onChange={handleWeekChange}
             disabled={!data}
@@ -400,6 +402,7 @@ export default function MatchupContent() {
               backgroundPosition: "right 10px center",
               paddingRight: "28px",
             }}
+            aria-label="Prediction for team"
             value={myTeamId ?? ""}
             onChange={(e) => {
               const id = Number(e.target.value) || null;
@@ -470,10 +473,11 @@ export default function MatchupContent() {
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">
+        <h1 className="sr-only">Matchup Predictions</h1>
         {scoreboardQuery.isLoading && (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -506,7 +510,7 @@ export default function MatchupContent() {
               {(playoffRound > 0 || allZero) && (
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                   {playoffRound > 0 && (
-                    <span className="inline-flex items-center rounded-full bg-orange-500/15 px-3 py-1 text-[12px] font-semibold text-orange-400">
+                    <span className="inline-flex items-center rounded-full bg-orange-500/15 px-3 py-1 text-[12px] font-semibold text-orange-800 dark:text-orange-400">
                       Playoff Round {playoffRound}
                     </span>
                   )}

@@ -157,6 +157,7 @@ export default function OperatorDashboard() {
       animate="visible"
       transition={spring.smooth}
     >
+      <h1 className="sr-only">Fleet Dashboard</h1>
       {/* Global refresh bar */}
       <RefreshBar />
 
