@@ -63,6 +63,32 @@ export default function NodeGraph({ reducedMotion }: Props) {
     return { edgeEnds: ends, nodeEdges: byNode };
   }, [data]);
 
+  // Neighbour node indices per node, and the indices always showing a label.
+  const neighborIdx = useMemo(() => {
+    const arr: number[][] = data.nodes.map(() => []);
+    edgeEnds.forEach((e) => {
+      arr[e.a].push(e.b);
+      arr[e.b].push(e.a);
+    });
+    return arr;
+  }, [data, edgeEnds]);
+
+  const alwaysLabeledIdx = useMemo(
+    () =>
+      data.nodes
+        .map((_, i) => i)
+        .filter((i) =>
+          ["root", "hub", "category"].includes(data.nodes[i].kind),
+        ),
+    [data],
+  );
+
+  /** Nodes whose labels are showing: the always-labelled set plus a focus + its neighbours. */
+  const labeledSet = (focusIndex: number | null): Set<number> =>
+    focusIndex == null
+      ? new Set(alwaysLabeledIdx)
+      : new Set([focusIndex, ...neighborIdx[focusIndex], ...alwaysLabeledIdx]);
+
   /**
    * Ease the fit (scale + sim-space centre) toward one that frames the whole
    * layout inside the container with padding. Cheap and DOM-free, so warmup can
@@ -72,10 +98,10 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const sim = simRef.current;
     const container = containerRef.current;
     if (!sim || !container) return;
-    // Freeze the fit while dragging so the coordinate mapping stays stable and
-    // the dragged node tracks the cursor exactly instead of the whole graph
-    // rescaling out from under it.
-    if (dragRef.current) return;
+    // Freeze the fit while dragging or focusing so the coordinate mapping stays
+    // stable — otherwise neighbours spreading out grows the bbox, rescales the
+    // graph, and slides the hovered/dragged node out from under the cursor.
+    if (dragRef.current || sim.focus != null) return;
     const W = container.clientWidth;
     const H = container.clientHeight;
 
@@ -254,6 +280,7 @@ export default function NodeGraph({ reducedMotion }: Props) {
     // Give the dragged node extra clearance so it shoulders other nodes out of
     // the way as it moves through the graph.
     sim.focus = i;
+    sim.labeled = labeledSet(i);
     reheat(sim, 0.6);
     ensureRunning();
   };
@@ -285,7 +312,10 @@ export default function NodeGraph({ reducedMotion }: Props) {
     e.currentTarget.releasePointerCapture?.(e.pointerId);
     // Root stays pinned at centre; everything else rejoins the physics.
     if (i !== 0) sim.nodes[i].pinned = false;
-    if (sim.focus === i) sim.focus = null;
+    if (sim.focus === i) {
+      sim.focus = null;
+      sim.labeled = labeledSet(null);
+    }
     dragRef.current = null;
     reheat(sim, 0.4);
     ensureRunning();
@@ -397,6 +427,7 @@ export default function NodeGraph({ reducedMotion }: Props) {
                   // Pin the focused node so it holds under the cursor while its
                   // neighbours get pushed away (collision reacts on both nodes).
                   sim.nodes[i].pinned = true;
+                  sim.labeled = labeledSet(i);
                   reheat(sim, 0.25);
                   ensureRunning();
                 }
@@ -408,6 +439,7 @@ export default function NodeGraph({ reducedMotion }: Props) {
               const sim = simRef.current;
               if (sim && sim.focus === i) {
                 sim.focus = null;
+                sim.labeled = labeledSet(null);
                 // Release the pin unless it's the root (root stays centred).
                 if (i !== 0 && !dragRef.current) sim.nodes[i].pinned = false;
                 reheat(sim, 0.2);
@@ -533,7 +565,7 @@ function NodeEl({
       />
       <span
         className={[
-          "pointer-events-none absolute left-1/2 top-full mt-1.5 -translate-x-1/2 whitespace-nowrap transition-opacity duration-150",
+          "pointer-events-none absolute left-1/2 top-full mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-background/70 px-1.5 py-0.5 ring-1 ring-border/60 backdrop-blur-sm transition-opacity duration-150",
           labelClass,
           labelVisible ? "opacity-95" : "opacity-0",
         ].join(" ")}

@@ -95,8 +95,15 @@ export default function GraphShell({
         )}
       </div>
 
-      {/* Header */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-4 sm:p-6">
+      {/* Header — glassy in flat view so scrolling cards don't show through it */}
+      <div
+        className={[
+          "pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-4 sm:p-6",
+          mode === "flat"
+            ? "border-b border-border bg-background/80 backdrop-blur-md"
+            : "",
+        ].join(" ")}
+      >
         <div className="pointer-events-auto min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-base font-bold tracking-tight text-foreground sm:text-lg">
@@ -116,6 +123,11 @@ export default function GraphShell({
           {action}
         </div>
       </div>
+
+      {/* Glassy footer bar in flat view, behind the legend / hint / nav */}
+      {mode === "flat" ? (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-14 border-t border-border bg-background/80 backdrop-blur-md" />
+      ) : null}
 
       {/* Legend */}
       <div className="pointer-events-none absolute bottom-5 left-5 z-40 hidden flex-wrap gap-2 sm:flex">

@@ -13,6 +13,8 @@ export type SimNode = {
   vy: number;
   /** On-screen render radius (px), used by collision so nodes never overlap. */
   radius: number;
+  /** Estimated half-width (px) of the node's label box, for label-aware collision. */
+  labelHalf: number;
   /** Heavier nodes (hubs) drift less under the same force. */
   mass: number;
   /** Pinned nodes hold position: the root anchor, or a node being dragged. */
@@ -29,6 +31,8 @@ export type SimState = {
   alpha: number;
   /** Index of the hovered node, whose collision radius inflates to clear space around it. */
   focus: number | null;
+  /** Indices of nodes currently showing a label, which collide by label width so labels don't overlap. */
+  labeled: Set<number>;
 };
 
 export type SimParams = {
@@ -81,6 +85,10 @@ function massFor(radius: number): number {
 export function createSimState(data: GraphData): SimState {
   const rng = mulberry32(0x9e3779b9);
 
+  // Rough per-kind character width so we can size labels without measuring DOM.
+  const charW = (kind: string) =>
+    kind === "root" ? 8 : kind === "hub" || kind === "category" ? 7 : 6.2;
+
   const nodes: SimNode[] = data.nodes.map((node, i) => {
     const isRoot = node.kind === "root";
     const angle = i * 2.399963; // golden angle
@@ -92,6 +100,7 @@ export function createSimState(data: GraphData): SimState {
       vx: 0,
       vy: 0,
       radius: node.radius,
+      labelHalf: (node.label.length * charW(node.kind)) / 2 + 10,
       mass: massFor(node.radius),
       pinned: isRoot,
     };
@@ -104,7 +113,16 @@ export function createSimState(data: GraphData): SimState {
     rest: e.rest,
   }));
 
-  return { nodes, edges, index, alpha: 1, focus: null };
+  // Hubs, categories and the root are labelled at rest, so they collide by
+  // label width from the start.
+  const labeled = new Set<number>();
+  data.nodes.forEach((n, i) => {
+    if (n.kind === "root" || n.kind === "hub" || n.kind === "category") {
+      labeled.add(i);
+    }
+  });
+
+  return { nodes, edges, index, alpha: 1, focus: null, labeled };
 }
 
 /** Nudge the temperature back up so the layout re-settles after interaction. */
@@ -129,6 +147,16 @@ export function stepSimulation(
   const fx = new Float64Array(n);
   const fy = new Float64Array(n);
 
+  // Effective collision radius per node (screen px): a labelled node claims its
+  // label half-width so label boxes don't overlap; the focused node claims extra.
+  const eff = new Float64Array(n);
+  for (let k = 0; k < n; k++) {
+    const base = state.labeled.has(k)
+      ? Math.max(nodes[k].radius, nodes[k].labelHalf)
+      : nodes[k].radius;
+    eff[k] = base + (k === state.focus ? params.focusRadius : 0);
+  }
+
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       let dx = nodes[i].x - nodes[j].x;
@@ -149,16 +177,9 @@ export function stepSimulation(
       fx[j] -= ux * force;
       fy[j] -= uy * force;
 
-      // Collision: keep nodes from overlapping on screen. Screen radii are
-      // converted to sim units via the current fit scale so it holds at any
-      // zoom. The focused (hovered) node claims extra clearance so its
-      // neighbours are pushed clear of it.
-      const focusBonus =
-        (i === state.focus ? params.focusRadius : 0) +
-        (j === state.focus ? params.focusRadius : 0);
-      const minDist =
-        (nodes[i].radius + nodes[j].radius + params.collisionPad + focusBonus) /
-        screenScale;
+      // Collision: keep nodes (and their labels) from overlapping on screen.
+      // Screen radii convert to sim units via the fit scale so it holds at any zoom.
+      const minDist = (eff[i] + eff[j] + params.collisionPad) / screenScale;
       if (dist < minDist) {
         const push = (minDist - dist) * params.collision;
         fx[i] += ux * push;
