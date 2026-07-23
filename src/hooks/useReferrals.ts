@@ -1,9 +1,10 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createReferral,
   getReferralStats,
+  recordReferralClick,
   type CreateReferralInput,
   type Referral,
   type ReferralStats,
@@ -26,5 +27,20 @@ export function useReferralStats(slug: string | null) {
     queryFn: () => getReferralStats(slug as string),
     enabled: Boolean(slug),
     refetchInterval: 10_000,
+  });
+}
+
+/**
+ * Record a click on a referral link. On success it invalidates that link's
+ * stats query so the count moves live — no manual refetch from the caller.
+ */
+export function useRecordReferralClick() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (slug: string) => recordReferralClick(slug),
+    onSuccess: (_data, slug) =>
+      queryClient.invalidateQueries({
+        queryKey: ["referrals", "stats", slug],
+      }),
   });
 }
