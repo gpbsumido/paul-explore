@@ -1,37 +1,25 @@
 "use client";
 
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 
 /** Dev-notes write-up for the v3 node-graph landing: the design, the physics, and the audit. */
 export default function V3RedesignContent() {
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "V3 Redesign" }]}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-        <header className="mb-10">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            Dev notes
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            V3 Redesign: the whole site as a graph
-          </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">
-            v3 drops the scrolling landing for a single interactive node graph:
-            every feature and every write-up as a node, wired by category and by
-            each feature&rsquo;s own notes. Two views &mdash; a draggable
-            force-directed graph and a flat layered one &mdash; and an audit
-            pass across performance, engineering, and accessibility.
-          </p>
-        </header>
-
-        <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-          <section>
-            <h2 className="mb-3 text-lg font-bold">The shape of it</h2>
+    <ThoughtLayout
+      breadcrumb="V3 Redesign"
+      title="V3 Redesign: the whole site as a graph"
+      intro={
+        <>
+          v3 drops the scrolling landing for a single interactive node graph:
+          every feature and every write-up as a node, wired by category and by
+          each feature&rsquo;s own notes. Two views &mdash; a draggable
+          force-directed graph and a flat layered one &mdash; and an audit pass
+          across performance, engineering, and accessibility.
+        </>
+      }
+    >
+      <section>
+        <h2 className="mb-3 text-lg font-bold">The shape of it</h2>
             <p className="text-muted">
               A central <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">paul-explore</code>{" "}
               root, an <span className="font-semibold text-foreground">Apps</span>{" "}
@@ -200,7 +188,7 @@ export default function V3RedesignContent() {
               Since a feature and its write-up often share a name (there&rsquo;s a{" "}
               <span className="font-semibold text-foreground">Calendar</span>{" "}
               feature and a Calendar write-up), the write-ups wear a{" "}
-              <span className="rounded-sm bg-foreground/10 px-1 text-[10px] font-semibold uppercase tracking-wide text-muted">
+              <span className="rounded-sm bg-foreground/10 px-1 text-[10px] font-semibold uppercase tracking-wide text-foreground/70">
                 notes
               </span>{" "}
               tag so they don&rsquo;t read as duplicates.
@@ -216,8 +204,6 @@ export default function V3RedesignContent() {
               holds the higher bar now, not just this page.
             </p>
           </section>
-        </div>
-      </main>
-    </div>
+    </ThoughtLayout>
   );
 }

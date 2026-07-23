@@ -1,6 +1,6 @@
 "use client";
 
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 
 /** A section heading with a short "why we looked" line under it. */
 function Finding({
@@ -47,32 +47,20 @@ const C = ({ children }: { children: React.ReactNode }) => (
 /** Whole-project engineering / system-design / UX review. */
 export default function ProjectReviewContent() {
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Review" }]}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-        <header className="mb-10">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            Dev notes
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            A review of the whole project
-          </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">
-            An honest, evidence-backed pass over the codebase &mdash; where the
-            engineering is weak, where the system design doesn&rsquo;t hold up,
-            where architecture was overfit to a single feature, and where a
-            feature could be a better experience. Every finding says why it was
-            worth looking at, the trade-offs, and the gain from fixing it, with
-            numbers where they exist.
-          </p>
-        </header>
-
-        <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
+    <ThoughtLayout
+      breadcrumb="Review"
+      title="A review of the whole project"
+      intro={
+        <>
+          An honest, evidence-backed pass over the codebase &mdash; where the
+          engineering is weak, where the system design doesn&rsquo;t hold up,
+          where architecture was overfit to a single feature, and where a feature
+          could be a better experience. Every finding says why it was worth
+          looking at, the trade-offs, and the gain from fixing it, with numbers
+          where they exist.
+        </>
+      }
+    >
           {/* METHOD */}
           <section>
             <h2 className="mb-3 text-lg font-bold">How I looked</h2>
@@ -625,8 +613,6 @@ export default function ProjectReviewContent() {
               and prioritised.
             </p>
           </section>
-        </div>
-      </main>
-    </div>
+    </ThoughtLayout>
   );
 }
