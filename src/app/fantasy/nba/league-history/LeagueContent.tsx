@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui";
-import { selectChevron } from "@/assets/icons";
+import LabelledSelect from "@/components/ui/LabelledSelect";
 import { queryKeys } from "@/lib/queryKeys";
 import FantasyNav from "../FantasyNav";
+import FilterBar from "../FilterBar";
 import type { ESPNLeagueResponse, ESPNTeam, ESPNMember } from "@/types/espn";
 
 const POSITION_MAP: Record<number, string> = {
@@ -175,29 +176,19 @@ export default function LeagueContent() {
       <FantasyNav />
 
       {/* ---- Season selector ---- */}
-      <section aria-label="Season filter" className="border-b border-border">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex items-center gap-3">
-          <span className="text-[13px] text-muted shrink-0">Season</span>
-          <select
-            aria-label="Season"
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
-            value={season}
-            onChange={handleSeasonChange}
-          >
-            {SEASONS.map((yr) => (
-              <option key={yr} value={yr}>
-                {yr - 1}–{yr} Season
-              </option>
-            ))}
-          </select>
-        </div>
-      </section>
+      <FilterBar label="Season filter">
+        <LabelledSelect
+          label="Season"
+          value={season}
+          onChange={handleSeasonChange}
+        >
+          {SEASONS.map((yr) => (
+            <option key={yr} value={yr}>
+              {yr - 1}–{yr} Season
+            </option>
+          ))}
+        </LabelledSelect>
+      </FilterBar>
 
       {/* ---- Content ---- */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6">
