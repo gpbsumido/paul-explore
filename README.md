@@ -66,6 +66,16 @@ The landing page and authenticated hub were redesigned from scratch in v2, inspi
 
 **What changed**: the landing page is now an editorial scroll — NavBar with frosted-glass scroll effect, a CSS gradient hero with staggered word reveal, grouped project cards with zig-zag layout, a count-up stats strip, a thoughts preview grid, and a minimal footer. The authenticated hub has category filter tabs, a personalized greeting, and inline stats. No feature pages were touched — only the landing and hub components changed.
 
+### V3 Redesign
+
+v3 is the current landing: the whole site as an interactive node graph. Every feature and every write-up is a node, wired by category and by each feature's own notes (a dashed "bridge" from a feature to its write-up). A switch in the header flips between two views of the same data — a **force** view (draggable, animated, a hand-rolled physics simulation) and a **flat** view (a tidy grouped-column layout that fits on a screen; a stacked list on phones).
+
+The force simulation is ~150 lines of pure functions (repulsion, springs, gravity, collision) run in a `requestAnimationFrame` loop and written straight to the DOM — no graph library, and no per-frame React render. It runs in an abstract coordinate space that the renderer fits-and-scales to the viewport each frame, so the layout always uses the available room. The only new dependency is GSAP, for the intro reveal and click sparks.
+
+Accessibility was audited: real `main`/`header`/`nav` landmarks, a single `h1`, focus rings on keyboard-openable nodes, `aria-hidden` decorative layers, and a static `prefers-reduced-motion` layout — zero axe WCAG 2.1 AA violations. The full write-up is at [`/thoughts/v3-redesign`](/thoughts/v3-redesign).
+
+**Versioning**: v3 is now the default. `?version=v2` and `?version=v1` still serve the earlier experiences (v1's Three.js/R3F chunks stay behind `next/dynamic`), and older versions show a version-aware banner prompting a switch to current.
+
 ### 🧪 Lab (`/lab`)
 
 A route group for interactive technical experiments. The sticky nav mirrors the hub with a "Lab" badge and a back link. Each lab page handles its own full-viewport layout.
