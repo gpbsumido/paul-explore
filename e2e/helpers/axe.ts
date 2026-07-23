@@ -3,16 +3,17 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 /**
- * Run an axe accessibility scan against the current page state and assert
- * zero WCAG 2.x AA violations. Throws with a readable diff of each violation
- * (impact, rule, element, description) when the assertion fails.
+ * Run an axe accessibility scan against the current page state and assert zero
+ * violations across WCAG 2.x A/AA plus axe's best-practice rules (landmark
+ * completeness, a single main, a top-level heading, heading order, etc.).
+ * Throws with a readable diff of each violation when the assertion fails.
  *
  * @param page - Playwright Page object (already navigated to the target URL)
  * @param label - Short description of the scan context, used in the failure message
  */
 export async function checkA11y(page: Page, label: string) {
   const results = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"])
     .analyze();
 
   const formatted = results.violations.map((v) => ({

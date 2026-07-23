@@ -85,11 +85,13 @@ export default function PokemonTcgPage() {
         }
       />
 
-      <h1 className="sr-only">Pokémon Card Browser</h1>
+      <main>
+        <h1 className="sr-only">Pokémon Card Browser</h1>
 
-      <Suspense fallback={<BrowseSkeleton />}>
-        <BrowseWithData />
-      </Suspense>
+        <Suspense fallback={<BrowseSkeleton />}>
+          <BrowseWithData />
+        </Suspense>
+      </main>
     </div>
   );
 }
