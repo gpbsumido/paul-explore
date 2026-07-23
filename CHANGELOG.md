@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-22 - version 0.25.72
+
+- v3 landing: replaced the scrolling landing/hub with an interactive node graph of every feature and write-up, wired by category and by each feature's own notes (the existing `thoughtsHref`). two views toggled by a switch in the header — a draggable force-directed graph and a flat grouped-column layout. the force layout is a hand-rolled physics sim (repulsion, springs, gravity, collision) that runs in a rAF loop and is written straight to the DOM; it runs in an abstract coordinate space and the renderer fits-and-scales it to the viewport every frame, so "lay out" and "use the available space" are decoupled. on phones the flat view becomes a stacked, grouped list. GSAP for the intro reveal and click sparks; an animated aurora backdrop. wired into `page.tsx`'s `VERSIONS` registry as the current version — v1/v2 stay reachable via `?version=` and show a version-aware banner. new dependency: gsap
+- v3 interaction hardening: disabled native link drag (the nodes are anchors) so dragging actually works; freeze the viewport fit while dragging/focusing and pin the focused node so it stays under the cursor as neighbours push away; label-aware collision so label boxes (not just dots) never overlap; the neighbour push is delayed ~0.5s so the highlight locks in first
+- v3 accessibility: real `main` / `header` / `nav` landmarks and a single `h1`, a visible focus ring on every node with keyboard-openable links, `aria-hidden` on decorative layers, and a static reduced-motion layout — passes the axe WCAG 2.1 AA scan with zero violations
+- v3 performance: the rAF loop sleeps when the graph settles, positions are written to the DOM instead of through React state (no per-frame re-render), force/radius buffers are reused instead of allocated each frame, GSAP tweens are killed on unmount, and the flat view is dynamically imported so its code stays out of the initial bundle
+- added the `/thoughts/v3-redesign` write-up (design, the hand-rolled physics, the interaction bugs, the audit) and registered it in the graph + thoughts index
+
 ## 2026-07-22 - version 0.25.68
 
 - added a doctor.config.json that mutes react-doctor's no-array-index-as-key rule after auditing all 65 hits (all static/append-only lists, recharts Cells, or pure-render maps; the reorderable lists already use stable ids). the rule key needs the react-doctor/ prefix or it silently no-ops. wrote up the audit and the config gotcha on the thoughts page

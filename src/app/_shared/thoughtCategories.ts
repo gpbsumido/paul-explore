@@ -26,6 +26,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "landing-page",
       "ui-redesign",
       "v2-redesign",
+      "v3-redesign",
       "accessibility",
     ],
   },
