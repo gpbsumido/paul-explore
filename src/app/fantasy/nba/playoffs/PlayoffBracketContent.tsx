@@ -244,7 +244,7 @@ function SubmitButton({
           ? "bg-green-500/20 text-green-400 cursor-default"
           : isDisabled
             ? "bg-orange-500/10 text-orange-400/40 cursor-not-allowed"
-            : "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30",
+            : "bg-orange-500/20 text-orange-800 dark:text-orange-400 hover:bg-orange-500/30",
       ].join(" ")}
     >
       {status === "submitting"
@@ -462,7 +462,7 @@ function ViewModeBanner({
       className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/8 px-4 py-3"
     >
       <svg
-        className="h-4 w-4 shrink-0 text-blue-400"
+        className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -782,6 +782,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
       <FantasyNav />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+        <h1 className="sr-only">Playoff Bracket</h1>
         {/* View mode banner */}
         <AnimatePresence>
           {isViewMode && (
@@ -842,7 +843,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
             </p>
             <a
               href="/fantasy/nba/playoffs"
-              className="text-[12px] text-orange-400 hover:underline"
+              className="text-[12px] text-orange-700 dark:text-orange-400 hover:underline"
             >
               Go back to the bracket →
             </a>
@@ -969,7 +970,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                       className="border-b border-border/50 last:border-b-0"
                     >
                       <td className="px-4 py-2.5 text-foreground">{round}</td>
-                      <td className="px-4 py-2.5 text-right font-mono text-orange-400">
+                      <td className="px-4 py-2.5 text-right font-mono text-orange-700 dark:text-orange-400">
                         +{winner} pt{winner !== 1 ? "s" : ""}
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono text-muted">
@@ -987,7 +988,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 <span className="text-foreground">
                   Finals MVP (correct name)
                 </span>
-                <span className="font-mono text-orange-400">+5 pts</span>
+                <span className="font-mono text-orange-700 dark:text-orange-400">+5 pts</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5">
                 <span className="text-foreground">

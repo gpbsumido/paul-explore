@@ -2,13 +2,10 @@ import { test } from "@playwright/test";
 import { checkA11y } from "../helpers/axe";
 
 /**
- * Accessibility coverage for the public routes whose only issues were
- * structural (missing landmark, unnamed control, non-focusable region) and are
- * now fixed. Each is scanned at WCAG 2.1 AA + axe best-practice via checkA11y.
- *
- * Routes that also have colour-contrast work pending (graphql, operator,
- * lab/motion, some fantasy pages) are intentionally not here yet — they land
- * once the contrast pass ships.
+ * Accessibility coverage for the public routes, scanned at WCAG 2.1 AA + axe
+ * best-practice via checkA11y. Structural fixes (landmarks, control names,
+ * focusable regions) plus the colour-contrast pass mean every public route
+ * here is clean.
  */
 const ROUTES = [
   "/learn",
@@ -17,8 +14,14 @@ const ROUTES = [
   "/tcg/pocket",
   "/tcg/pokemon/sets",
   "/lab/particles",
+  "/lab/motion",
+  "/graphql",
+  "/operator",
   "/fantasy/nba/court-vision",
   "/fantasy/nba/player/stats",
+  "/fantasy/nba/matchups",
+  "/fantasy/nba/league-history",
+  "/fantasy/nba/playoffs",
 ];
 
 test.describe("Public route accessibility", () => {

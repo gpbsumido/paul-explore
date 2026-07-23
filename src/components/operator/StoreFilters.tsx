@@ -43,7 +43,7 @@ export default function StoreFilters({
             onClick={() => onStatusChange(opt.value)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
               status === opt.value
-                ? "bg-primary-500 text-white"
+                ? "bg-primary-600 text-white"
                 : "bg-surface-raised text-muted hover:text-foreground"
             }`}
           >

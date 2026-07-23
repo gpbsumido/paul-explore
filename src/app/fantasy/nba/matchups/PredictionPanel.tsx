@@ -615,11 +615,11 @@ export default function PredictionPanel({
                 </div>
                 {(outlook.userProj > 0 || outlook.oppProj > 0) && (
                   <div className="flex items-center gap-2 text-[12px] font-mono tabular-nums">
-                    <span className="text-[#FF6B35] font-semibold">
+                    <span className="text-[#c2410c] dark:text-[#FF6B35] font-semibold">
                       {outlook.userProj}
                     </span>
                     <span className="text-muted">vs</span>
-                    <span className="text-[#00D4FF] font-semibold">
+                    <span className="text-[#0e7490] dark:text-[#00D4FF] font-semibold">
                       {outlook.oppProj}
                     </span>
                     <span className="text-[10px] text-muted font-sans">

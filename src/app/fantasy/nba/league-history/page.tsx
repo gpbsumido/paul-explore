@@ -29,9 +29,6 @@ export const revalidate = 3600;
 
 export default function LeagueHistoryPage() {
   return (
-    <>
-      <h1 className="sr-only">League History</h1>
-      <LeagueContent />
-    </>
+    <LeagueContent />
   );
 }

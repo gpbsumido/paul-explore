@@ -42,7 +42,7 @@ function DemoSection({
       <div className="border-b border-white/8 px-6 py-4">
         <div className="flex items-baseline gap-2">
           <h2 className="text-[15px] font-semibold text-white">{title}</h2>
-          <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/40">
+          <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/70">
             {tag}
           </span>
         </div>
@@ -77,13 +77,14 @@ function ControlSlider({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70">
           {label}
         </span>
         <span className="font-mono text-[10px] text-white/60">{display}</span>
       </div>
       <input
         type="range"
+        aria-label={label}
         min={min}
         max={max}
         step={step}
@@ -264,7 +265,7 @@ function ReorderList() {
               style={{ backgroundColor: item.color }}
             />
             <span className="flex-1">{item.label}</span>
-            <span className="shrink-0 select-none text-[12px] text-white/20">⠿</span>
+            <span className="shrink-0 select-none text-[12px] text-white/70">⠿</span>
           </Reorder.Item>
         ))}
       </Reorder.Group>
@@ -294,7 +295,12 @@ function ScrollParallax() {
     >
       <div
         ref={containerRef}
-        className="relative h-52 overflow-y-scroll rounded-xl bg-black/30"
+        // Keyboard users need to focus the scroll container to scroll it
+        // (axe scrollable-region-focusable); role="region" + a label justify the tabindex.
+        role="region"
+        aria-label="Scrollable parallax demo"
+        tabIndex={0}
+        className="relative h-52 overflow-y-scroll rounded-xl bg-black/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/50"
         style={{ scrollbarWidth: "none" }}
       >
         <div className="relative h-[480px]">
@@ -322,7 +328,7 @@ function ScrollParallax() {
             <div className="h-12 w-12 rounded-lg bg-white/20 shadow-lg" />
           </m.div>
 
-          <div className="absolute bottom-6 right-4 animate-bounce text-[10px] text-white/25">
+          <div className="absolute bottom-6 right-4 animate-bounce text-[10px] text-white/70">
             scroll ↓
           </div>
         </div>
@@ -337,11 +343,13 @@ function ScrollParallax() {
 
 type GestureState = "idle" | "hover" | "tap" | "drag";
 
+// Deepened one step from the indigo/violet palette so white label text clears
+// AA contrast on every state (the lighter originals failed for small text).
 const GESTURE_COLORS: Record<GestureState, string> = {
-  idle:  "#6366f1",
-  hover: "#8b5cf6",
-  tap:   "#a855f7",
-  drag:  "#7c3aed",
+  idle:  "#4f46e5",
+  hover: "#7c3aed",
+  tap:   "#9333ea",
+  drag:  "#6d28d9",
 };
 
 const GESTURE_LABELS: Record<GestureState, string> = {
@@ -380,14 +388,14 @@ function GestureCard() {
           style={{ background: GESTURE_COLORS[state] }}
           aria-label="Gesture demo card"
         >
-          <span className="pointer-events-none select-none text-[11px] font-semibold text-white/80">
+          <span className="pointer-events-none select-none text-[11px] font-semibold text-white">
             {state}
           </span>
         </m.div>
 
         {/* Live state panel */}
         <div className="w-full flex-1 rounded-xl border border-white/10 bg-white/5 p-4">
-          <p className="mb-3 text-[9px] font-bold uppercase tracking-widest text-white/30">
+          <p className="mb-3 text-[9px] font-bold uppercase tracking-widest text-white/70">
             Live State
           </p>
           <div className="flex items-center gap-2">
@@ -400,13 +408,13 @@ function GestureCard() {
             />
             <span className="font-mono text-sm font-semibold text-white">{state}</span>
           </div>
-          <p className="mt-1 text-[12px] text-white/40">{GESTURE_LABELS[state]}</p>
+          <p className="mt-1 text-[12px] text-white/70">{GESTURE_LABELS[state]}</p>
           <div className="mt-4 grid grid-cols-2 gap-1.5">
             {(Object.keys(GESTURE_COLORS) as GestureState[]).map((s) => (
               <div
                 key={s}
                 className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] transition-colors ${
-                  state === s ? "bg-white/10 text-white" : "text-white/25"
+                  state === s ? "bg-white/10 text-white" : "text-white/70"
                 }`}
               >
                 <div
@@ -525,7 +533,7 @@ function SharedLayout() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, transition: { delay: 0.26 } }}
                   exit={{ opacity: 0 }}
-                  className="mt-3 text-[10px] text-white/40"
+                  className="mt-3 text-[10px] text-white/70"
                 >
                   tap to collapse ↩
                 </m.p>
@@ -545,7 +553,7 @@ function SharedLayout() {
 export default function MotionPage() {
   return (
     <div className="min-h-dvh bg-neutral-950 text-neutral-50">
-      <div className="mx-auto max-w-3xl space-y-8 px-4 py-10 sm:px-6">
+      <main className="mx-auto max-w-3xl space-y-8 px-4 py-10 sm:px-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Motion Lab</h1>
           <p className="mt-1.5 text-[14px] text-neutral-400">
@@ -560,7 +568,7 @@ export default function MotionPage() {
         <ScrollParallax />
         <GestureCard />
         <SharedLayout />
-      </div>
+      </main>
     </div>
   );
 }

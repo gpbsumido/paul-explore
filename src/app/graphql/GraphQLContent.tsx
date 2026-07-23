@@ -154,7 +154,8 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
         ]}
       />
 
-      <div className="mx-auto max-w-5xl px-4 py-6 space-y-5">
+      <main className="mx-auto max-w-5xl px-4 py-6 space-y-5">
+        <h1 className="sr-only">GraphQL Explorer</h1>
         {/* ── search ── */}
         <Input
           label="Search"
@@ -287,7 +288,7 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
 
         {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
         <div ref={sentinelRef} className="h-8" />
-      </div>
+      </main>
     </div>
   );
 }

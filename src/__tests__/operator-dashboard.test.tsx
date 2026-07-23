@@ -150,7 +150,7 @@ describe("OperatorDashboard", () => {
     const grid = screen
       .getByText("Gamma Outlet")
       .closest(".grid") as HTMLElement;
-    const headings = within(grid).getAllByRole("heading", { level: 3 });
+    const headings = within(grid).getAllByRole("heading", { level: 2 });
     const order = headings.map((h) => h.textContent);
 
     // offline (score 0) > degraded with alerts (score 0.5) > online (score 2)

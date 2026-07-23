@@ -52,12 +52,9 @@ async function PokemonWithData() {
 
 export default function GraphQLPage() {
   return (
-    <>
-      <h1 className="sr-only">GraphQL Explorer</h1>
-      <Suspense fallback={<GraphQLSkeleton />}>
-        <PokemonWithData />
-      </Suspense>
-    </>
+    <Suspense fallback={<GraphQLSkeleton />}>
+      <PokemonWithData />
+    </Suspense>
   );
 }
 

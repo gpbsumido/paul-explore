@@ -94,9 +94,9 @@ function EntryRow({
           className={[
             "text-[13px] font-medium",
             isCurrentUser
-              ? "text-orange-400"
+              ? "text-orange-700 dark:text-orange-400"
               : isViewedUser
-                ? "text-blue-400"
+                ? "text-blue-600 dark:text-blue-400"
                 : "text-foreground",
           ].join(" ")}
         >
@@ -222,7 +222,9 @@ export default function PlayoffLeaderboard({
             <th className="hidden px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted sm:table-cell">
               Breakdown
             </th>
-            <th className="w-8 px-2 py-2" />
+            <th className="w-8 px-2 py-2">
+              <span className="sr-only">Expand</span>
+            </th>
           </tr>
         </thead>
         <m.tbody
