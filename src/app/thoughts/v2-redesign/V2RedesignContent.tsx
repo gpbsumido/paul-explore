@@ -1,40 +1,365 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Sent, Received, Timestamp } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function V2RedesignContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "V2 Redesign" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              V2 Redesign
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              URL-based version routing, bundle splitting with next/dynamic, and
+    <ThoughtLayout
+      breadcrumb="V2 Redesign"
+      title="V2 Redesign"
+      intro={
+        <>
+          URL-based version routing, bundle splitting with next/dynamic, and
               a clean slate for v2 without touching a single line of v1 code.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 2:00 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">
+                you&apos;re doing a v2 of the landing page and hub
+              </Received>
+              <Received pos="last">why not just redesign in place</Received>
+
+              <Sent pos="first">
+                the current landing page pulls in Three.js, R3F, drei,
+                shader-gradient, and a custom WeatherCanvas. that&apos;s a lot
+                of JS that loads on the default path
+              </Sent>
+              <Sent pos="last">
+                redesigning in place means either maintaining two code paths in
+                the same files or doing a big-bang swap where you hope nothing
+                breaks. version routing avoids both
+              </Sent>
+
+              <Received>how does the version routing work</Received>
+
+              <Sent pos="first">
+                URL parameter. <code>?version=v1</code> gives you the original
+                experience -- Three.js hero, ShaderGradient, the whole thing. no
+                param or any other value gives you v2
+              </Sent>
+              <Sent pos="last">
+                the server component reads <code>searchParams.version</code> and
+                branches. no middleware, no cookies, no feature flag service.
+                just a query string
+              </Sent>
+
+              <Received>
+                and the bundle splitting -- how does that save bytes
+              </Received>
+
+              <Sent pos="first">
+                the v1 components are wrapped in <code>next/dynamic</code>.
+                their chunks only load when the URL says{" "}
+                <code>?version=v1</code>. the v2 components are statically
+                imported because they have no heavy deps
+              </Sent>
+              <Sent pos="last">
+                default path ships zero Three.js bytes. that&apos;s the whole
+                point -- the 3D stuff becomes opt-in instead of mandatory
+              </Sent>
+
+              <Timestamp>2:08 PM</Timestamp>
+
+              <Received>
+                why a URL param instead of a cookie or feature flag
+              </Received>
+
+              <Sent pos="first">
+                URL params are transparent. you can send someone a link to v1
+                and they see exactly what you see. cookies are invisible and
+                sticky -- &quot;it works for me&quot; is literally true because
+                your cookie differs
+              </Sent>
+              <Sent pos="last">
+                feature flags add infrastructure for what is fundamentally a
+                boolean. a query string is the simplest thing that works
+              </Sent>
+
+              <Received>and v1 code is completely untouched</Received>
+
+              <Sent pos="first">
+                not a single line changed in LandingContent.tsx or
+                FeatureHub.tsx. they&apos;re just loaded through{" "}
+                <code>next/dynamic</code> now instead of a static import
+              </Sent>
+              <Sent pos="last">
+                v2 lives in its own <code>src/app/v2/</code> directory. no
+                shared state, no conditional rendering inside components. a
+                change to v2 can&apos;t break v1
+              </Sent>
+
+              <Timestamp>2:15 PM</Timestamp>
+
+              <Received>what about the nav</Received>
+
+              <Sent pos="first">
+                fixed bar, starts transparent. once you scroll past 50px it
+                picks up a frosted-glass background --{" "}
+                <code>backdrop-blur-xl</code> and <code>bg-background/80</code>.
+                the transition is 300ms so it fades in instead of snapping
+              </Sent>
+              <Sent pos="last">
+                right side is auth-aware. guests see a &quot;Log in&quot; link,
+                authenticated users see a gear icon to <code>/settings</code>.
+                the server component passes an <code>authenticated</code>{" "}
+                boolean so the client never needs to check auth itself
+              </Sent>
+
+              <Received>what about the hero</Received>
+
+              <Sent pos="first">
+                CSS-only background. two overlapping radial gradients -- violet
+                and blue tints -- on a <code>background-size: 400% 400%</code>{" "}
+                canvas that drifts on a 20-second keyframe loop. no canvas, no
+                WebGL, no JS for the background at all
+              </Sent>
+              <Sent pos="last">
+                the headline staggers each word in with{" "}
+                <code>spring.wordReveal</code>. subtitle and CTA fade in after.
+                uses the same <code>useSyncExternalStore</code> mounted flag as
+                v1 for LCP safety -- SSR renders text visible, animation only
+                runs after hydration
+              </Sent>
+
+              <Received>and the project cards</Received>
+
+              <Sent pos="first">
+                each project gets a full-width card with a 60/40 split --
+                preview on one side, text on the other. the{" "}
+                <code>reversed</code> prop swaps them so the cards zigzag down
+                the page. on mobile they just stack
+              </Sent>
+              <Sent pos="middle">
+                the preview area is tinted with the feature&apos;s color at ~5%
+                opacity. text side has a category dot, title, description, and
+                links. the card accepts a <code>preview</code> ReactNode so it
+                can reuse the same mini-preview components from v1
+              </Sent>
+              <Sent pos="last">
+                animation is <code>whileInView</code> with stagger delay per
+                index. hover lifts 4px. all guarded by{" "}
+                <code>useReducedMotion()</code>
+              </Sent>
+
+              <Received>what about the authenticated hub</Received>
+
+              <Sent pos="first">
+                same NavBar but with <code>authenticated=&#123;true&#125;</code>
+                . hero header with &quot;Hey &#123;firstName&#125;.&quot; and
+                inline stats. same <code>useQuery</code> pattern as v1 --
+                server-seeded <code>initialMe</code> so the name renders on
+                first paint
+              </Sent>
+              <Sent pos="middle">
+                category filter tabs below the header -- All, NBA, Pokemon,
+                Calendar, Engineering, Labs. pill-shaped buttons, active gets{" "}
+                <code>bg-foreground text-background</code>. horizontal scroll on
+                mobile with hidden scrollbar
+              </Sent>
+              <Sent pos="last">
+                the filtered grid re-staggers when you switch categories via a
+                Framer Motion <code>key</code> swap. dev thoughts section reuses
+                ThoughtCard and scroll-triggered reveal from v1
+              </Sent>
+
+              <Received>so the landing page is fully wired up now</Received>
+
+              <Sent pos="first">
+                LandingContentV2 composes all six sections: NavBar, Hero,
+                Projects, StatsStrip, ThoughtsPreview, Footer. the wrapper div
+                adds <code>scroll-smooth</code> so anchor links animate across
+                the whole page
+              </Sent>
+              <Sent pos="last">
+                page.tsx already rendered it for unauthenticated non-v1 visitors
+                so no routing changes. the hero is full-viewport height so the
+                fixed nav overlaps it naturally
+              </Sent>
+
+              <Received>and the footer</Received>
+
+              <Sent pos="first">
+                server component, no client JS at all. wordmark on the left,
+                copyright year in the center, links on the right -- GitHub,
+                Thoughts index, and a &quot;View v1&quot; link that adds{" "}
+                <code>?version=v1</code> to the URL
+              </Sent>
+              <Sent pos="last">
+                stacks vertically on mobile, single row on desktop. just{" "}
+                <code>border-t border-border</code> for separation. dark mode
+                aware through the design tokens, no extra work needed
+              </Sent>
+
+              <Received>and the thoughts preview</Received>
+
+              <Sent pos="first">
+                a &quot;How it&apos;s built&quot; section with every dev
+                write-up in a responsive grid -- 1 column on mobile, 2 on
+                tablet, 3 on desktop. each card has a colored left accent
+                border, bold title, and preview text
+              </Sent>
+              <Sent pos="last">
+                entrance is a staggered fade-up with 50ms between cards,
+                triggered by <code>whileInView</code>. imports the THOUGHTS
+                array from the same shared module as the project cards
+              </Sent>
+
+              <Received>what about the stats strip</Received>
+
+              <Sent pos="first">
+                full-bleed band with four numbers: 14 features, 108+ tests, 17
+                write-ups, 5 CWV metrics tracked. they count up from 0 when you
+                scroll to them -- 1.5 seconds with ease-out cubic
+              </Sent>
+              <Sent pos="last">
+                the existing <code>useCountUp</code> hook got a new{" "}
+                <code>inView</code> param so it waits for scroll intersection.
+                SSR renders the final values via the{" "}
+                <code>useSyncExternalStore</code> mounted flag so there is no
+                hydration mismatch. reduced-motion users see the numbers
+                immediately
+              </Sent>
+
+              <Received>how does the projects section work</Received>
+
+              <Sent pos="first">
+                all 14 features rendered as ProjectCards, grouped into six
+                categories -- Fantasy &amp; NBA, Pok&eacute;mon, Productivity,
+                Engineering, Labs &amp; Learning, and Social. each group gets a
+                sticky label that stays at the top of the viewport as you scroll
+                through its cards
+              </Sent>
+              <Sent pos="last">
+                cards alternate the <code>reversed</code> prop so the
+                preview/text sides zig-zag. features are looked up by ID from
+                the shared FEATURES array so the display order is defined by the
+                GROUPS config, not the array order
+              </Sent>
+
+              <Received>
+                you mentioned sharing preview components between v1 and v2
+              </Received>
+
+              <Sent pos="first">
+                everything that was inline in FeatureHub.tsx -- the FEATURES
+                array, THOUGHTS array, all 14 mini-preview components, the
+                preview data, FEATURE_TOKEN, PREVIEW_MAP, FeatureCard,
+                ThoughtCard -- moved into{" "}
+                <code>src/app/_shared/featureData.tsx</code>
+              </Sent>
+              <Sent pos="last">
+                FeatureHub just imports from there now. same behavior, different
+                import path. v2 can import the same stuff without duplicating
+                ~1000 lines of preview components
+              </Sent>
+
+              <Timestamp>2:34 PM</Timestamp>
+
+              <Received>what&apos;s the v2 plan</Received>
+
+              <Sent pos="first">
+                right now v2 is just placeholder divs. the plan is to build it
+                incrementally -- landing first, then the hub. each piece gets
+                built and tested independently
+              </Sent>
+              <Sent pos="last">
+                once v2 is solid, flip the default. v1 becomes the escape hatch
+                at <code>?version=v1</code> instead of the main path. eventually
+                remove it entirely
+              </Sent>
+
+              <Timestamp>3:10 PM</Timestamp>
+
+              <Received>
+                did you audit dark mode and responsive across all the v2
+                components
+              </Received>
+
+              <Sent pos="first">
+                every file in <code>src/app/v2/</code> checked. all colors use
+                token classes -- <code>text-foreground</code>,{" "}
+                <code>bg-background</code>, <code>border-border</code>, etc. no
+                hardcoded hex for theme-dependent colors
+              </Sent>
+              <Sent pos="last">
+                responsive breakpoints confirmed at 375px, 768px, 1280px. hero
+                text scales, cards stack, stats go 2x2, thoughts go
+                single-column, footer stacks. gradient has a dark variant with
+                higher opacity. nav blur uses <code>bg-background/80</code> so
+                it tints correctly in both themes
+              </Sent>
+
+              <Received>did everything pass the quality gate</Received>
+
+              <Sent pos="first">
+                seven checks, all green. every Framer animation has a{" "}
+                <code>useReducedMotion()</code> guard. build passes with zero
+                errors. zero 3D imports in <code>src/app/v2/</code> -- the 19
+                Three.js chunks only load on <code>?version=v1</code>
+              </Sent>
+              <Sent pos="last">
+                hydration is safe -- HeroSection and StatsStrip use the{" "}
+                <code>useSyncExternalStore</code> mounted flag, below-fold stuff
+                uses <code>whileInView</code>. hero H1 visible in SSR for LCP.
+                no layout shift. 421 tests passing across 36 files
+              </Sent>
+
+              <Received>
+                what happens when someone visits with <code>?version=v1</code>
+              </Received>
+
+              <Sent pos="first">
+                a thin amber banner sticks to the top of the page:
+                &quot;You&apos;re viewing v1 — switch to current ↗&quot;. links
+                to <code>/</code> with no version param so it loads v2
+              </Sent>
+              <Sent pos="last">
+                server component, z-50 so it sits above the v1 nav. the v1
+                content gets a <code>pt-8</code> wrapper to push it below the
+                banner. dark mode flips the text to amber-300
+              </Sent>
+
+              <Received>
+                what if there&apos;s a v3 later -- will the routing code get
+                messy
+              </Received>
+
+              <Sent pos="first">
+                refactored page.tsx into a version registry. a{" "}
+                <code>VERSIONS</code> object maps each version key to its
+                Landing and Hub components. <code>CURRENT_VERSION</code>{" "}
+                controls the default, <code>resolveVersion()</code> validates
+                the URL param against the registry
+              </Sent>
+              <Sent pos="last">
+                adding a v3 is one entry in the object -- no branching logic to
+                touch. the rendering path is a single flow: look up version,
+                destructure components, render based on auth, wrap with banner
+                if it&apos;s old. <code>satisfies</code> catches type mismatches
+                at compile time
+              </Sent>
+
+              <div className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">The problem</h2>
               <p className="text-muted">
                 The landing page and feature hub depend on Three.js, R3F, drei,
@@ -624,351 +949,6 @@ export default function V2RedesignContent() {
                 . The banner is a server component — no JS needed.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 2:00 PM</Timestamp>
-
-              <Received pos="first">
-                you&apos;re doing a v2 of the landing page and hub
-              </Received>
-              <Received pos="last">why not just redesign in place</Received>
-
-              <Sent pos="first">
-                the current landing page pulls in Three.js, R3F, drei,
-                shader-gradient, and a custom WeatherCanvas. that&apos;s a lot
-                of JS that loads on the default path
-              </Sent>
-              <Sent pos="last">
-                redesigning in place means either maintaining two code paths in
-                the same files or doing a big-bang swap where you hope nothing
-                breaks. version routing avoids both
-              </Sent>
-
-              <Received>how does the version routing work</Received>
-
-              <Sent pos="first">
-                URL parameter. <code>?version=v1</code> gives you the original
-                experience -- Three.js hero, ShaderGradient, the whole thing. no
-                param or any other value gives you v2
-              </Sent>
-              <Sent pos="last">
-                the server component reads <code>searchParams.version</code> and
-                branches. no middleware, no cookies, no feature flag service.
-                just a query string
-              </Sent>
-
-              <Received>
-                and the bundle splitting -- how does that save bytes
-              </Received>
-
-              <Sent pos="first">
-                the v1 components are wrapped in <code>next/dynamic</code>.
-                their chunks only load when the URL says{" "}
-                <code>?version=v1</code>. the v2 components are statically
-                imported because they have no heavy deps
-              </Sent>
-              <Sent pos="last">
-                default path ships zero Three.js bytes. that&apos;s the whole
-                point -- the 3D stuff becomes opt-in instead of mandatory
-              </Sent>
-
-              <Timestamp>2:08 PM</Timestamp>
-
-              <Received>
-                why a URL param instead of a cookie or feature flag
-              </Received>
-
-              <Sent pos="first">
-                URL params are transparent. you can send someone a link to v1
-                and they see exactly what you see. cookies are invisible and
-                sticky -- &quot;it works for me&quot; is literally true because
-                your cookie differs
-              </Sent>
-              <Sent pos="last">
-                feature flags add infrastructure for what is fundamentally a
-                boolean. a query string is the simplest thing that works
-              </Sent>
-
-              <Received>and v1 code is completely untouched</Received>
-
-              <Sent pos="first">
-                not a single line changed in LandingContent.tsx or
-                FeatureHub.tsx. they&apos;re just loaded through{" "}
-                <code>next/dynamic</code> now instead of a static import
-              </Sent>
-              <Sent pos="last">
-                v2 lives in its own <code>src/app/v2/</code> directory. no
-                shared state, no conditional rendering inside components. a
-                change to v2 can&apos;t break v1
-              </Sent>
-
-              <Timestamp>2:15 PM</Timestamp>
-
-              <Received>what about the nav</Received>
-
-              <Sent pos="first">
-                fixed bar, starts transparent. once you scroll past 50px it
-                picks up a frosted-glass background --{" "}
-                <code>backdrop-blur-xl</code> and <code>bg-background/80</code>.
-                the transition is 300ms so it fades in instead of snapping
-              </Sent>
-              <Sent pos="last">
-                right side is auth-aware. guests see a &quot;Log in&quot; link,
-                authenticated users see a gear icon to <code>/settings</code>.
-                the server component passes an <code>authenticated</code>{" "}
-                boolean so the client never needs to check auth itself
-              </Sent>
-
-              <Received>what about the hero</Received>
-
-              <Sent pos="first">
-                CSS-only background. two overlapping radial gradients -- violet
-                and blue tints -- on a <code>background-size: 400% 400%</code>{" "}
-                canvas that drifts on a 20-second keyframe loop. no canvas, no
-                WebGL, no JS for the background at all
-              </Sent>
-              <Sent pos="last">
-                the headline staggers each word in with{" "}
-                <code>spring.wordReveal</code>. subtitle and CTA fade in after.
-                uses the same <code>useSyncExternalStore</code> mounted flag as
-                v1 for LCP safety -- SSR renders text visible, animation only
-                runs after hydration
-              </Sent>
-
-              <Received>and the project cards</Received>
-
-              <Sent pos="first">
-                each project gets a full-width card with a 60/40 split --
-                preview on one side, text on the other. the{" "}
-                <code>reversed</code> prop swaps them so the cards zigzag down
-                the page. on mobile they just stack
-              </Sent>
-              <Sent pos="middle">
-                the preview area is tinted with the feature&apos;s color at ~5%
-                opacity. text side has a category dot, title, description, and
-                links. the card accepts a <code>preview</code> ReactNode so it
-                can reuse the same mini-preview components from v1
-              </Sent>
-              <Sent pos="last">
-                animation is <code>whileInView</code> with stagger delay per
-                index. hover lifts 4px. all guarded by{" "}
-                <code>useReducedMotion()</code>
-              </Sent>
-
-              <Received>what about the authenticated hub</Received>
-
-              <Sent pos="first">
-                same NavBar but with <code>authenticated=&#123;true&#125;</code>
-                . hero header with &quot;Hey &#123;firstName&#125;.&quot; and
-                inline stats. same <code>useQuery</code> pattern as v1 --
-                server-seeded <code>initialMe</code> so the name renders on
-                first paint
-              </Sent>
-              <Sent pos="middle">
-                category filter tabs below the header -- All, NBA, Pokemon,
-                Calendar, Engineering, Labs. pill-shaped buttons, active gets{" "}
-                <code>bg-foreground text-background</code>. horizontal scroll on
-                mobile with hidden scrollbar
-              </Sent>
-              <Sent pos="last">
-                the filtered grid re-staggers when you switch categories via a
-                Framer Motion <code>key</code> swap. dev thoughts section reuses
-                ThoughtCard and scroll-triggered reveal from v1
-              </Sent>
-
-              <Received>so the landing page is fully wired up now</Received>
-
-              <Sent pos="first">
-                LandingContentV2 composes all six sections: NavBar, Hero,
-                Projects, StatsStrip, ThoughtsPreview, Footer. the wrapper div
-                adds <code>scroll-smooth</code> so anchor links animate across
-                the whole page
-              </Sent>
-              <Sent pos="last">
-                page.tsx already rendered it for unauthenticated non-v1 visitors
-                so no routing changes. the hero is full-viewport height so the
-                fixed nav overlaps it naturally
-              </Sent>
-
-              <Received>and the footer</Received>
-
-              <Sent pos="first">
-                server component, no client JS at all. wordmark on the left,
-                copyright year in the center, links on the right -- GitHub,
-                Thoughts index, and a &quot;View v1&quot; link that adds{" "}
-                <code>?version=v1</code> to the URL
-              </Sent>
-              <Sent pos="last">
-                stacks vertically on mobile, single row on desktop. just{" "}
-                <code>border-t border-border</code> for separation. dark mode
-                aware through the design tokens, no extra work needed
-              </Sent>
-
-              <Received>and the thoughts preview</Received>
-
-              <Sent pos="first">
-                a &quot;How it&apos;s built&quot; section with every dev
-                write-up in a responsive grid -- 1 column on mobile, 2 on
-                tablet, 3 on desktop. each card has a colored left accent
-                border, bold title, and preview text
-              </Sent>
-              <Sent pos="last">
-                entrance is a staggered fade-up with 50ms between cards,
-                triggered by <code>whileInView</code>. imports the THOUGHTS
-                array from the same shared module as the project cards
-              </Sent>
-
-              <Received>what about the stats strip</Received>
-
-              <Sent pos="first">
-                full-bleed band with four numbers: 14 features, 108+ tests, 17
-                write-ups, 5 CWV metrics tracked. they count up from 0 when you
-                scroll to them -- 1.5 seconds with ease-out cubic
-              </Sent>
-              <Sent pos="last">
-                the existing <code>useCountUp</code> hook got a new{" "}
-                <code>inView</code> param so it waits for scroll intersection.
-                SSR renders the final values via the{" "}
-                <code>useSyncExternalStore</code> mounted flag so there is no
-                hydration mismatch. reduced-motion users see the numbers
-                immediately
-              </Sent>
-
-              <Received>how does the projects section work</Received>
-
-              <Sent pos="first">
-                all 14 features rendered as ProjectCards, grouped into six
-                categories -- Fantasy &amp; NBA, Pok&eacute;mon, Productivity,
-                Engineering, Labs &amp; Learning, and Social. each group gets a
-                sticky label that stays at the top of the viewport as you scroll
-                through its cards
-              </Sent>
-              <Sent pos="last">
-                cards alternate the <code>reversed</code> prop so the
-                preview/text sides zig-zag. features are looked up by ID from
-                the shared FEATURES array so the display order is defined by the
-                GROUPS config, not the array order
-              </Sent>
-
-              <Received>
-                you mentioned sharing preview components between v1 and v2
-              </Received>
-
-              <Sent pos="first">
-                everything that was inline in FeatureHub.tsx -- the FEATURES
-                array, THOUGHTS array, all 14 mini-preview components, the
-                preview data, FEATURE_TOKEN, PREVIEW_MAP, FeatureCard,
-                ThoughtCard -- moved into{" "}
-                <code>src/app/_shared/featureData.tsx</code>
-              </Sent>
-              <Sent pos="last">
-                FeatureHub just imports from there now. same behavior, different
-                import path. v2 can import the same stuff without duplicating
-                ~1000 lines of preview components
-              </Sent>
-
-              <Timestamp>2:34 PM</Timestamp>
-
-              <Received>what&apos;s the v2 plan</Received>
-
-              <Sent pos="first">
-                right now v2 is just placeholder divs. the plan is to build it
-                incrementally -- landing first, then the hub. each piece gets
-                built and tested independently
-              </Sent>
-              <Sent pos="last">
-                once v2 is solid, flip the default. v1 becomes the escape hatch
-                at <code>?version=v1</code> instead of the main path. eventually
-                remove it entirely
-              </Sent>
-
-              <Timestamp>3:10 PM</Timestamp>
-
-              <Received>
-                did you audit dark mode and responsive across all the v2
-                components
-              </Received>
-
-              <Sent pos="first">
-                every file in <code>src/app/v2/</code> checked. all colors use
-                token classes -- <code>text-foreground</code>,{" "}
-                <code>bg-background</code>, <code>border-border</code>, etc. no
-                hardcoded hex for theme-dependent colors
-              </Sent>
-              <Sent pos="last">
-                responsive breakpoints confirmed at 375px, 768px, 1280px. hero
-                text scales, cards stack, stats go 2x2, thoughts go
-                single-column, footer stacks. gradient has a dark variant with
-                higher opacity. nav blur uses <code>bg-background/80</code> so
-                it tints correctly in both themes
-              </Sent>
-
-              <Received>did everything pass the quality gate</Received>
-
-              <Sent pos="first">
-                seven checks, all green. every Framer animation has a{" "}
-                <code>useReducedMotion()</code> guard. build passes with zero
-                errors. zero 3D imports in <code>src/app/v2/</code> -- the 19
-                Three.js chunks only load on <code>?version=v1</code>
-              </Sent>
-              <Sent pos="last">
-                hydration is safe -- HeroSection and StatsStrip use the{" "}
-                <code>useSyncExternalStore</code> mounted flag, below-fold stuff
-                uses <code>whileInView</code>. hero H1 visible in SSR for LCP.
-                no layout shift. 421 tests passing across 36 files
-              </Sent>
-
-              <Received>
-                what happens when someone visits with <code>?version=v1</code>
-              </Received>
-
-              <Sent pos="first">
-                a thin amber banner sticks to the top of the page:
-                &quot;You&apos;re viewing v1 — switch to current ↗&quot;. links
-                to <code>/</code> with no version param so it loads v2
-              </Sent>
-              <Sent pos="last">
-                server component, z-50 so it sits above the v1 nav. the v1
-                content gets a <code>pt-8</code> wrapper to push it below the
-                banner. dark mode flips the text to amber-300
-              </Sent>
-
-              <Received>
-                what if there&apos;s a v3 later -- will the routing code get
-                messy
-              </Received>
-
-              <Sent pos="first">
-                refactored page.tsx into a version registry. a{" "}
-                <code>VERSIONS</code> object maps each version key to its
-                Landing and Hub components. <code>CURRENT_VERSION</code>{" "}
-                controls the default, <code>resolveVersion()</code> validates
-                the URL param against the registry
-              </Sent>
-              <Sent pos="last">
-                adding a v3 is one entry in the object -- no branching logic to
-                touch. the rendering path is a single flow: look up version,
-                destructure components, render based on auth, wrap with banner
-                if it&apos;s old. <code>satisfies</code> catches type mismatches
-                at compile time
-              </Sent>
-
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

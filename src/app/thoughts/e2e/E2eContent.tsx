@@ -1,42 +1,263 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function E2eContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "E2E Testing" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              End-to-End Testing
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Playwright covering three user flows — auth redirects, TCG card
+    <ThoughtLayout
+      breadcrumb="E2E Testing"
+      title="End-to-End Testing"
+      intro={
+        <>
+          Playwright covering three user flows — auth redirects, TCG card
               browsing, and calendar CRUD — with axe-core accessibility scans
               wired into every public route test and a dedicated test calendar
               that gets created and deleted automatically around every run.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 2:00 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">
+                the testing page says playwright is next
+              </Received>
+              <Received pos="last">so what actually got built</Received>
+
+              <Sent pos="first">
+                three suites: auth redirects, TCG browsing, and calendar CRUD.
+                plus a globalSetup that logs into Auth0 once and reuses the
+                session across every test that needs auth
+              </Sent>
+              <Sent pos="last">
+                and a dedicated test calendar that gets created at the start of
+                the run and deleted at the end so no test data ends up in the
+                real account
+              </Sent>
+
+              <Received>why not just mock the auth</Received>
+
+              <Sent pos="first">
+                Auth0 v4 signs the session cookie with a secret. you can&apos;t
+                forge it without knowing the key, and even if you did, the
+                middleware would have to skip its own verification to accept it
+              </Sent>
+              <Sent pos="middle">
+                so the options are: do a real login once and cache the cookie,
+                add a test bypass to the middleware, or skip auth tests entirely
+              </Sent>
+              <Sent pos="last">
+                doing a real login once is cleanest. globalSetup launches a
+                headless browser, navigates to /auth/login, fills the
+                credentials, waits for the redirect back to the app, and saves
+                the storage state. the whole thing takes a few seconds and every
+                authenticated test that follows starts already logged in
+              </Sent>
+
+              <Timestamp>2:07 PM</Timestamp>
+
+              <Received pos="first">
+                how does the test calendar isolation work
+              </Received>
+              <Received pos="last">
+                what stops test events from showing up next to real ones
+              </Received>
+
+              <Sent pos="first">
+                after saving the session, globalSetup calls POST
+                /api/calendar/calendars with the auth context. it creates a
+                calendar named [E2E] Test Calendar and saves the id to
+                e2e/.auth/test-state.json
+              </Sent>
+              <Sent pos="middle">
+                the calendar tests read that id and scope all their events to
+                that calendar. globalTeardown reads the same file and deletes
+                the calendar when the suite finishes
+              </Sent>
+              <Sent pos="last">
+                deleting the calendar deletes all its events too, so cleanup is
+                one DELETE call regardless of how many tests ran or whether any
+                of them failed
+              </Sent>
+
+              <Timestamp>2:13 PM</Timestamp>
+
+              <Received>what about when credentials are not set</Received>
+
+              <Sent pos="first">
+                globalSetup writes an empty storageState file so the config
+                stays valid — playwright requires the file to exist even if it
+                has no cookies
+              </Sent>
+              <Sent pos="last">
+                the calendar tests check for E2E_TEST_EMAIL at the top of the
+                describe block and call test.skip if it&apos;s missing. the
+                public tests run regardless. CI stays green in both
+                configurations
+              </Sent>
+
+              <Timestamp>2:18 PM</Timestamp>
+
+              <Received>how does the infinite scroll test work</Received>
+
+              <Sent pos="first">
+                the TCG page uses an IntersectionObserver on a sentinel div at
+                the bottom of the card grid. when the sentinel enters the
+                viewport, fetchNextPage fires
+              </Sent>
+              <Sent pos="middle">
+                playwright can&apos;t trigger IntersectionObserver events
+                directly, but scrollIntoViewIfNeeded on the sentinel does
+                exactly what the browser does naturally. the test calls that,
+                then waits for the card count to increase
+              </Sent>
+              <Sent pos="last">
+                no mocks, no synthetic events. just the real mechanism
+              </Sent>
+
+              <Timestamp>2:24 PM</Timestamp>
+
+              <Received>what does this actually improve</Received>
+
+              <Sent pos="first">
+                the unit tests cover individual functions well. they can&apos;t
+                catch a broken modal interaction, a missing query invalidation
+                after a delete, or a redirect that puts you on the wrong page
+                after login
+              </Sent>
+              <Sent pos="middle">
+                the calendar spec in particular reads like a manual QA script.
+                open the modal, fill the title, save, check the chip appears,
+                click it, delete, confirm, check it&apos;s gone. that&apos;s the
+                flow a user actually runs and unit tests can&apos;t describe it
+                at that level
+              </Sent>
+              <Sent pos="last">
+                it also gives you a place to put regression tests when a bug
+                shows up. reproduce it in a spec, fix it, watch the spec pass
+              </Sent>
+
+              <Timestamp>2:30 PM</Timestamp>
+
+              <Received pos="first">you added axe to the tests</Received>
+              <Received pos="last">why not a separate audit tool</Received>
+
+              <Sent pos="first">
+                because a separate audit is a one-time check. axe in playwright
+                runs on every PR, against the real rendered DOM, with actual
+                computed styles. it catches regressions, not just the starting
+                state
+              </Sent>
+              <Sent pos="last">
+                unit tests can&apos;t evaluate contrast ratios because they
+                don&apos;t compute CSS. lighthouse can check contrast but
+                it&apos;s not part of a failing test — it&apos;s a score. axe in
+                playwright is a hard gate
+              </Sent>
+
+              <Timestamp>2:33 PM</Timestamp>
+
+              <Received>what did it actually catch</Received>
+
+              <Sent pos="first">
+                four things. a landing page heading was missing text-white —
+                every other section heading has it, this one didn&apos;t. axe
+                traced the text color up through the DOM and hit the white page
+                background, not the dark section overlay, because the overlay is
+                a sibling div not a parent. easy to miss visually because the
+                overlay is there, but the CSS cascade doesn&apos;t see it
+              </Sent>
+              <Sent pos="middle">
+                a scrollable table in the NBA section was missing tabIndex=0 so
+                keyboard users couldn&apos;t reach it. the type badge colors
+                across the TCG pages used light /300 palette text on
+                semi-transparent backgrounds — borderline against white, and
+                axe&apos;s implementation calculated them as failing
+              </Sent>
+              <Sent pos="last">
+                the fix for the badges was to switch from translucent to solid
+                -100 backgrounds with -900 text and dark: counterparts. more
+                readable and definitively compliant
+              </Sent>
+
+              <Timestamp>2:38 PM</Timestamp>
+
+              <Received pos="first">
+                there was also a hydration warning
+              </Received>
+              <Received pos="last">different issue?</Received>
+
+              <Sent pos="first">
+                yeah, separate. the anti-FOUC script sets data-theme on the html
+                element in the browser before react hydrates. react sees the
+                server HTML (no attribute) and the DOM (attribute set by the
+                script) and logs a mismatch
+              </Sent>
+              <Sent pos="last">
+                suppressHydrationWarning on the html element tells react the
+                element is intentionally touched by an inline script. standard
+                pattern for any element the script layer owns before the
+                framework boots
+              </Sent>
+
+              <Timestamp>2:45 PM</Timestamp>
+
+              <Received pos="first">
+                did you actually run the authenticated tests recently
+              </Received>
+              <Received pos="last">
+                they&apos;re supposed to run with real Auth0 credentials right
+              </Received>
+
+              <Sent pos="first">
+                yeah, finally ran them and three things broke. the first was the
+                dumbest — globalSetup was clicking &quot;Continue with
+                Google&quot; instead of the database login button because the
+                regex /continue/i matched both
+              </Sent>
+              <Sent pos="middle">
+                the fix was tightening to /^continue$/i and making a dedicated
+                Auth0 database user so the login flow doesn&apos;t go through
+                Google OAuth at all
+              </Sent>
+              <Sent pos="last">
+                second, the calendar creation response is wrapped in{" "}
+                {"{ calendar: { id } }"} but the setup was parsing it as{" "}
+                {"{ id }"} directly. calendar ID was undefined so every CRUD
+                test silently failed
+              </Sent>
+
+              <Received>what about the a11y tests</Received>
+
+              <Sent pos="first">
+                two real violations on the calendar page. out-of-month day
+                numbers were at opacity-25 which tanks the contrast ratio below
+                4.5:1. and the infinite scroll container was scrollable but not
+                keyboard-accessible — needed tabIndex and role=region
+              </Sent>
+              <Sent pos="last">
+                the settings test also had a brittle locator that matched both
+                main and h1. switched to getByRole heading with the exact name
+              </Sent>
+
+              <div className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">
                 Why unit tests miss this
               </h2>
@@ -484,247 +705,6 @@ export default function E2eContent() {
                 green in both configurations.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 2:00 PM</Timestamp>
-
-              <Received pos="first">
-                the testing page says playwright is next
-              </Received>
-              <Received pos="last">so what actually got built</Received>
-
-              <Sent pos="first">
-                three suites: auth redirects, TCG browsing, and calendar CRUD.
-                plus a globalSetup that logs into Auth0 once and reuses the
-                session across every test that needs auth
-              </Sent>
-              <Sent pos="last">
-                and a dedicated test calendar that gets created at the start of
-                the run and deleted at the end so no test data ends up in the
-                real account
-              </Sent>
-
-              <Received>why not just mock the auth</Received>
-
-              <Sent pos="first">
-                Auth0 v4 signs the session cookie with a secret. you can&apos;t
-                forge it without knowing the key, and even if you did, the
-                middleware would have to skip its own verification to accept it
-              </Sent>
-              <Sent pos="middle">
-                so the options are: do a real login once and cache the cookie,
-                add a test bypass to the middleware, or skip auth tests entirely
-              </Sent>
-              <Sent pos="last">
-                doing a real login once is cleanest. globalSetup launches a
-                headless browser, navigates to /auth/login, fills the
-                credentials, waits for the redirect back to the app, and saves
-                the storage state. the whole thing takes a few seconds and every
-                authenticated test that follows starts already logged in
-              </Sent>
-
-              <Timestamp>2:07 PM</Timestamp>
-
-              <Received pos="first">
-                how does the test calendar isolation work
-              </Received>
-              <Received pos="last">
-                what stops test events from showing up next to real ones
-              </Received>
-
-              <Sent pos="first">
-                after saving the session, globalSetup calls POST
-                /api/calendar/calendars with the auth context. it creates a
-                calendar named [E2E] Test Calendar and saves the id to
-                e2e/.auth/test-state.json
-              </Sent>
-              <Sent pos="middle">
-                the calendar tests read that id and scope all their events to
-                that calendar. globalTeardown reads the same file and deletes
-                the calendar when the suite finishes
-              </Sent>
-              <Sent pos="last">
-                deleting the calendar deletes all its events too, so cleanup is
-                one DELETE call regardless of how many tests ran or whether any
-                of them failed
-              </Sent>
-
-              <Timestamp>2:13 PM</Timestamp>
-
-              <Received>what about when credentials are not set</Received>
-
-              <Sent pos="first">
-                globalSetup writes an empty storageState file so the config
-                stays valid — playwright requires the file to exist even if it
-                has no cookies
-              </Sent>
-              <Sent pos="last">
-                the calendar tests check for E2E_TEST_EMAIL at the top of the
-                describe block and call test.skip if it&apos;s missing. the
-                public tests run regardless. CI stays green in both
-                configurations
-              </Sent>
-
-              <Timestamp>2:18 PM</Timestamp>
-
-              <Received>how does the infinite scroll test work</Received>
-
-              <Sent pos="first">
-                the TCG page uses an IntersectionObserver on a sentinel div at
-                the bottom of the card grid. when the sentinel enters the
-                viewport, fetchNextPage fires
-              </Sent>
-              <Sent pos="middle">
-                playwright can&apos;t trigger IntersectionObserver events
-                directly, but scrollIntoViewIfNeeded on the sentinel does
-                exactly what the browser does naturally. the test calls that,
-                then waits for the card count to increase
-              </Sent>
-              <Sent pos="last">
-                no mocks, no synthetic events. just the real mechanism
-              </Sent>
-
-              <Timestamp>2:24 PM</Timestamp>
-
-              <Received>what does this actually improve</Received>
-
-              <Sent pos="first">
-                the unit tests cover individual functions well. they can&apos;t
-                catch a broken modal interaction, a missing query invalidation
-                after a delete, or a redirect that puts you on the wrong page
-                after login
-              </Sent>
-              <Sent pos="middle">
-                the calendar spec in particular reads like a manual QA script.
-                open the modal, fill the title, save, check the chip appears,
-                click it, delete, confirm, check it&apos;s gone. that&apos;s the
-                flow a user actually runs and unit tests can&apos;t describe it
-                at that level
-              </Sent>
-              <Sent pos="last">
-                it also gives you a place to put regression tests when a bug
-                shows up. reproduce it in a spec, fix it, watch the spec pass
-              </Sent>
-
-              <Timestamp>2:30 PM</Timestamp>
-
-              <Received pos="first">you added axe to the tests</Received>
-              <Received pos="last">why not a separate audit tool</Received>
-
-              <Sent pos="first">
-                because a separate audit is a one-time check. axe in playwright
-                runs on every PR, against the real rendered DOM, with actual
-                computed styles. it catches regressions, not just the starting
-                state
-              </Sent>
-              <Sent pos="last">
-                unit tests can&apos;t evaluate contrast ratios because they
-                don&apos;t compute CSS. lighthouse can check contrast but
-                it&apos;s not part of a failing test — it&apos;s a score. axe in
-                playwright is a hard gate
-              </Sent>
-
-              <Timestamp>2:33 PM</Timestamp>
-
-              <Received>what did it actually catch</Received>
-
-              <Sent pos="first">
-                four things. a landing page heading was missing text-white —
-                every other section heading has it, this one didn&apos;t. axe
-                traced the text color up through the DOM and hit the white page
-                background, not the dark section overlay, because the overlay is
-                a sibling div not a parent. easy to miss visually because the
-                overlay is there, but the CSS cascade doesn&apos;t see it
-              </Sent>
-              <Sent pos="middle">
-                a scrollable table in the NBA section was missing tabIndex=0 so
-                keyboard users couldn&apos;t reach it. the type badge colors
-                across the TCG pages used light /300 palette text on
-                semi-transparent backgrounds — borderline against white, and
-                axe&apos;s implementation calculated them as failing
-              </Sent>
-              <Sent pos="last">
-                the fix for the badges was to switch from translucent to solid
-                -100 backgrounds with -900 text and dark: counterparts. more
-                readable and definitively compliant
-              </Sent>
-
-              <Timestamp>2:38 PM</Timestamp>
-
-              <Received pos="first">
-                there was also a hydration warning
-              </Received>
-              <Received pos="last">different issue?</Received>
-
-              <Sent pos="first">
-                yeah, separate. the anti-FOUC script sets data-theme on the html
-                element in the browser before react hydrates. react sees the
-                server HTML (no attribute) and the DOM (attribute set by the
-                script) and logs a mismatch
-              </Sent>
-              <Sent pos="last">
-                suppressHydrationWarning on the html element tells react the
-                element is intentionally touched by an inline script. standard
-                pattern for any element the script layer owns before the
-                framework boots
-              </Sent>
-
-              <Timestamp>2:45 PM</Timestamp>
-
-              <Received pos="first">
-                did you actually run the authenticated tests recently
-              </Received>
-              <Received pos="last">
-                they&apos;re supposed to run with real Auth0 credentials right
-              </Received>
-
-              <Sent pos="first">
-                yeah, finally ran them and three things broke. the first was the
-                dumbest — globalSetup was clicking &quot;Continue with
-                Google&quot; instead of the database login button because the
-                regex /continue/i matched both
-              </Sent>
-              <Sent pos="middle">
-                the fix was tightening to /^continue$/i and making a dedicated
-                Auth0 database user so the login flow doesn&apos;t go through
-                Google OAuth at all
-              </Sent>
-              <Sent pos="last">
-                second, the calendar creation response is wrapped in{" "}
-                {"{ calendar: { id } }"} but the setup was parsing it as{" "}
-                {"{ id }"} directly. calendar ID was undefined so every CRUD
-                test silently failed
-              </Sent>
-
-              <Received>what about the a11y tests</Received>
-
-              <Sent pos="first">
-                two real violations on the calendar page. out-of-month day
-                numbers were at opacity-25 which tanks the contrast ratio below
-                4.5:1. and the infinite scroll container was scrollable but not
-                keyboard-accessible — needed tabIndex and role=region
-              </Sent>
-              <Sent pos="last">
-                the settings test also had a brittle locator that matched both
-                main and h1. switched to getByRole heading with the exact name
-              </Sent>
-
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }
