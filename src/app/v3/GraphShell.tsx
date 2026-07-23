@@ -96,21 +96,22 @@ export default function GraphShell({
       </div>
 
       {/* Header */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-4 p-5 sm:p-6">
-        <div className="pointer-events-auto">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-4 sm:p-6">
+        <div className="pointer-events-auto min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold tracking-tight text-foreground">
+            <span className="text-base font-bold tracking-tight text-foreground sm:text-lg">
               paul-explore
             </span>
             <span className="rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted backdrop-blur">
               v3
             </span>
           </div>
-          <p className="mt-1 max-w-[16rem] text-sm text-muted sm:max-w-xs">
+          {/* Subtitle is noise on a phone where space is tight. */}
+          <p className="mt-1 hidden max-w-xs text-sm text-muted sm:block">
             {greeting}
           </p>
         </div>
-        <div className="pointer-events-auto flex items-center gap-3">
+        <div className="pointer-events-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <LayoutSwitch mode={mode} onChange={setMode} />
           {action}
         </div>
@@ -137,8 +138,8 @@ export default function GraphShell({
         </span>
       </div>
 
-      {/* Interaction hint */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-5 z-30 flex justify-center">
+      {/* Interaction hint — hidden on phones where it would crowd the nav */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-5 z-30 hidden justify-center sm:flex">
         <span className="rounded-full border border-border bg-surface/70 px-3 py-1 text-xs text-muted backdrop-blur">
           {mode === "force"
             ? "Drag the nodes · click one to open it"

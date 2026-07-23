@@ -12,7 +12,7 @@ export default function FeatureHubV3({ initialMe }: { initialMe?: MeData }) {
 
   return (
     <GraphShell
-      greeting={`Hey ${firstName} — everything you've got, mapped by how it connects. Drag to explore.`}
+      greeting={`Hey ${firstName} — everything you've got, mapped by how it connects.`}
       action={
         <div className="flex items-center gap-2">
           <Link

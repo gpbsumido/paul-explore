@@ -249,8 +249,12 @@ export default function NodeGraph({ reducedMotion }: Props) {
     e.currentTarget.setPointerCapture?.(e.pointerId);
     const p = pointFromEvent(e);
     dragRef.current = { i, moved: false, sx: p.x, sy: p.y };
+    if (focusTimer.current) clearTimeout(focusTimer.current);
     sim.nodes[i].pinned = true;
-    reheat(sim, 0.5);
+    // Give the dragged node extra clearance so it shoulders other nodes out of
+    // the way as it moves through the graph.
+    sim.focus = i;
+    reheat(sim, 0.6);
     ensureRunning();
   };
 
@@ -281,8 +285,9 @@ export default function NodeGraph({ reducedMotion }: Props) {
     e.currentTarget.releasePointerCapture?.(e.pointerId);
     // Root stays pinned at centre; everything else rejoins the physics.
     if (i !== 0) sim.nodes[i].pinned = false;
+    if (sim.focus === i) sim.focus = null;
     dragRef.current = null;
-    reheat(sim, 0.3);
+    reheat(sim, 0.4);
     ensureRunning();
   };
 
@@ -539,6 +544,10 @@ function NodeEl({
   );
 
   const common = {
+    // Disable native link drag-and-drop, which would otherwise hijack the
+    // pointer gesture and stop the node from following the cursor.
+    draggable: false,
+    onDragStart: (e: React.DragEvent) => e.preventDefault(),
     className: [
       "group absolute left-0 top-0 z-20 flex cursor-grab touch-none select-none items-center justify-center p-2 transition-opacity hover:z-50 active:cursor-grabbing",
       dimmed ? "opacity-30" : "opacity-100",
@@ -546,6 +555,7 @@ function NodeEl({
     onPointerDown,
     onPointerMove,
     onPointerUp,
+    onPointerCancel: onPointerUp,
     onPointerEnter: onHoverStart,
     onPointerLeave: onHoverEnd,
     onClick,

@@ -7,7 +7,7 @@ import GraphShell from "./GraphShell";
 export default function LandingContentV3() {
   return (
     <GraphShell
-      greeting="Every feature and write-up, wired by how they connect. Drag to explore."
+      greeting="Every feature and write-up, wired by how they connect."
       action={
         <AuthButton
           loggedIn={false}

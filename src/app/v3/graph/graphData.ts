@@ -147,16 +147,17 @@ export type LayeredLayout = {
 
 /** Node-box height in the flat view (width is per-kind, see FlatGraph). */
 export const FLAT_NODE_H = 34;
-const FLAT_LEVEL_GAP = 132; // vertical gap between depth levels
-const FLAT_LEAF_GAP = 188; // horizontal gap between leaves
-const FLAT_PAD = 90;
+const FLAT_COL_W = 170; // column pitch
+const FLAT_ROW_H = 40; // vertical pitch within a column
+const FLAT_HEADER_Y = 150; // y of the hub/category header row
+const FLAT_PAD = 36;
 
 /**
- * A tidy top-down layered (tree) layout for the flat view: root at the top,
- * hubs/categories on the next level, their items below. Parents are centred
- * over their children. Positions are node centres in px; the flat view scrolls
- * horizontally if the leaf row is wider than the viewport, so nodes never
- * overlap.
+ * A compact grouped-column layout for the flat view: the root sits at the top,
+ * each hub/category is a column header directly below it, and that group's
+ * items stack vertically under their header. This keeps the whole graph a few
+ * columns wide (readable, mostly on-screen) instead of one enormous row.
+ * Positions are node centres in px.
  */
 export function buildLayeredLayout(data: GraphData): LayeredLayout {
   const children = new Map<string, string[]>();
@@ -167,42 +168,27 @@ export function buildLayeredLayout(data: GraphData): LayeredLayout {
     else children.set(e.source, [e.target]);
   }
 
-  const depth = new Map<string, number>();
-  const cx = new Map<string, number>();
-  let nextLeaf = 0;
-
-  // DFS: leaves take the next horizontal slot; parents centre over their kids.
-  const dfs = (id: string, d: number): number => {
-    depth.set(id, d);
-    const kids = children.get(id) ?? [];
-    let x: number;
-    if (kids.length === 0) {
-      x = nextLeaf++ * FLAT_LEAF_GAP;
-    } else {
-      const kidX = kids.map((k) => dfs(k, d + 1));
-      x = kidX.reduce((a, b) => a + b, 0) / kidX.length;
-    }
-    cx.set(id, x);
-    return x;
-  };
-  dfs("root", 0);
-
-  let maxDepth = 0;
-  for (const d of depth.values()) maxDepth = Math.max(maxDepth, d);
-
   const positions = new Map<string, { x: number; y: number }>();
-  for (const n of data.nodes) {
-    const d = depth.get(n.id) ?? 0;
-    const x = cx.get(n.id) ?? 0;
-    positions.set(n.id, {
-      x: FLAT_PAD + x,
-      y: FLAT_PAD + d * FLAT_LEVEL_GAP,
+  const groups = children.get("root") ?? [];
+  let maxRows = 0;
+
+  groups.forEach((groupId, i) => {
+    const colX = FLAT_PAD + FLAT_COL_W / 2 + i * FLAT_COL_W;
+    positions.set(groupId, { x: colX, y: FLAT_HEADER_Y });
+    const kids = children.get(groupId) ?? [];
+    maxRows = Math.max(maxRows, kids.length);
+    kids.forEach((kid, j) => {
+      positions.set(kid, { x: colX, y: FLAT_HEADER_Y + (j + 1) * FLAT_ROW_H });
     });
-  }
+  });
+
+  const firstX = FLAT_PAD + FLAT_COL_W / 2;
+  const lastX = FLAT_PAD + FLAT_COL_W / 2 + (groups.length - 1) * FLAT_COL_W;
+  positions.set("root", { x: (firstX + lastX) / 2, y: FLAT_PAD + 16 });
 
   return {
     positions,
-    width: FLAT_PAD * 2 + Math.max(nextLeaf - 1, 0) * FLAT_LEAF_GAP + 60,
-    height: FLAT_PAD * 2 + maxDepth * FLAT_LEVEL_GAP + FLAT_NODE_H,
+    width: FLAT_PAD * 2 + groups.length * FLAT_COL_W,
+    height: FLAT_HEADER_Y + (maxRows + 1) * FLAT_ROW_H + FLAT_PAD,
   };
 }

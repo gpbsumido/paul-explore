@@ -12,11 +12,9 @@ import {
 
 type Props = { reducedMotion: boolean };
 
-/** Fixed node-box width per kind, kept under the leaf gap so cards never touch. */
+/** Uniform card width, kept under the column pitch so columns never touch. */
 function widthFor(node: GraphNode): number {
-  if (node.kind === "root") return 150;
-  if (node.kind === "hub" || node.kind === "category") return 166;
-  return 170;
+  return node.kind === "root" ? 148 : 150;
 }
 
 /**
@@ -30,8 +28,34 @@ export default function FlatGraph({ reducedMotion }: Props) {
   const data = useMemo(() => buildGraphData(), []);
   const layout = useMemo(() => buildLayeredLayout(data), [data]);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [compact, setCompact] = useState(false);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  // On phones the column graph is unreadable, so fall back to a stacked list.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setCompact(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  // Root's children as groups (Apps + each category), each with its items.
+  const groups = useMemo(() => {
+    const childMap = new Map<string, string[]>();
+    for (const e of data.edges) {
+      if (e.bridge) continue;
+      const list = childMap.get(e.source);
+      if (list) list.push(e.target);
+      else childMap.set(e.source, [e.target]);
+    }
+    const byId = new Map(data.nodes.map((n) => [n.id, n]));
+    return (childMap.get("root") ?? []).map((gid) => ({
+      node: byId.get(gid)!,
+      items: (childMap.get(gid) ?? []).map((id) => byId.get(id)!),
+    }));
+  }, [data]);
 
   const center = (id: string) =>
     layout.positions.get(id) ?? { x: 0, y: 0 };
@@ -89,6 +113,40 @@ export default function FlatGraph({ reducedMotion }: Props) {
 
   const halfH = FLAT_NODE_H / 2;
 
+  // Mobile: a stacked, grouped list — the columns become sections. Padded clear
+  // of the fixed header (top) and corner nav (bottom); the root is already the
+  // header wordmark, so it isn't repeated here.
+  if (compact) {
+    return (
+      <div className="h-full w-full overflow-auto px-4 pb-20 pt-20">
+        <div className="mx-auto max-w-md space-y-7">
+          {groups.map((g) => (
+            <section key={g.node.id}>
+              <div className="mb-2 flex items-center gap-2">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{
+                    background: g.node.color,
+                    boxShadow: `0 0 10px ${g.node.color}`,
+                  }}
+                />
+                <h3 className="text-sm font-semibold text-foreground">
+                  {g.node.label}
+                </h3>
+                <span className="text-xs text-muted">{g.items.length}</span>
+              </div>
+              <div className="space-y-1.5">
+                {g.items.map((item) => (
+                  <FlatRow key={item.id} node={item} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div ref={scrollerRef} className="h-full w-full overflow-auto">
       <div
@@ -117,13 +175,17 @@ export default function FlatGraph({ reducedMotion }: Props) {
             const color = colorOf.get(edge.source);
             let d: string;
             if (edge.bridge) {
-              // Same-level cross-link: arc downward beneath the row.
-              const arc = 46;
-              d = `M${a.x},${a.y + halfH} C${a.x},${a.y + halfH + arc} ${b.x},${b.y + halfH + arc} ${b.x},${b.y + halfH}`;
-            } else {
-              // Parent (above) to child (below): vertical S-curve.
+              // Cross-column link (feature to its write-up): gentle S between
+              // the two columns.
+              const my = (a.y + b.y) / 2;
+              d = `M${a.x},${a.y} C${a.x},${my} ${b.x},${my} ${b.x},${b.y}`;
+            } else if (edge.source === "root") {
+              // Root fans out to each column header below it.
               const my = (a.y + b.y) / 2;
               d = `M${a.x},${a.y + halfH} C${a.x},${my} ${b.x},${my} ${b.x},${b.y - halfH}`;
+            } else {
+              // Header to a stacked child: a straight spine down the column.
+              d = `M${a.x},${a.y + halfH} L${b.x},${b.y - halfH}`;
             }
             return (
               <path
@@ -162,6 +224,46 @@ export default function FlatGraph({ reducedMotion }: Props) {
       </div>
     </div>
   );
+}
+
+/** A full-width row card for the mobile stacked list. */
+function FlatRow({ node }: { node: GraphNode }) {
+  const common = {
+    className:
+      "flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 transition-colors hover:border-foreground/20",
+    style: { borderLeftColor: node.color, borderLeftWidth: 3 } as React.CSSProperties,
+  };
+  const content = (
+    <>
+      <span
+        className="h-2 w-2 shrink-0 rounded-full"
+        style={{ background: node.color, boxShadow: `0 0 8px ${node.color}` }}
+      />
+      <span className="truncate text-sm font-medium text-foreground">
+        {node.label}
+      </span>
+      {node.kind === "thought" ? (
+        <span className="ml-auto shrink-0 rounded-sm bg-foreground/10 px-1 text-[9px] font-semibold uppercase tracking-wide text-muted">
+          notes
+        </span>
+      ) : null}
+    </>
+  );
+  if (node.href && node.external) {
+    return (
+      <a {...common} href={node.href} target="_blank" rel="noopener noreferrer">
+        {content}
+      </a>
+    );
+  }
+  if (node.href) {
+    return (
+      <Link {...common} href={node.href}>
+        {content}
+      </Link>
+    );
+  }
+  return <div {...common}>{content}</div>;
 }
 
 type FlatNodeProps = {

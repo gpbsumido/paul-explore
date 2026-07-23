@@ -47,12 +47,12 @@ export type SimParams = {
 };
 
 export const DEFAULT_PARAMS: SimParams = {
-  repulsion: 9000,
+  repulsion: 10000,
   spring: 0.05,
   gravity: 0.02,
-  collision: 0.7,
-  collisionPad: 24,
-  focusRadius: 54,
+  collision: 0.9,
+  collisionPad: 32,
+  focusRadius: 70,
   velocityDecay: 0.86,
   alphaDecay: 0.012,
   minAlpha: 0.004,
