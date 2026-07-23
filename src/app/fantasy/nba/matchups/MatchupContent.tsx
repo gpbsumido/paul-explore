@@ -4,12 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { m, useSpring, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui";
-import LabelledSelect from "@/components/ui/LabelledSelect";
+import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import { useCountUp } from "@/hooks/useCountUp";
 import FantasyNav from "../FantasyNav";
-import FilterBar from "../FilterBar";
 import PredictionPanel from "./PredictionPanel";
 import type {
   ESPNScoreboardResponse,
@@ -345,7 +343,7 @@ export default function MatchupContent() {
 
       {/* Season + week selector */}
       <FilterBar label="Matchup filters">
-          <LabelledSelect
+          <Select
             label="Season"
             value={season}
             onChange={handleSeasonChange}
@@ -355,9 +353,9 @@ export default function MatchupContent() {
                 {yr - 1}–{yr}
               </option>
             ))}
-          </LabelledSelect>
+          </Select>
 
-          <LabelledSelect
+          <Select
             label="Week"
             value={activeWeek}
             onChange={handleWeekChange}
@@ -372,12 +370,13 @@ export default function MatchupContent() {
                 </option>
               );
             })}
-          </LabelledSelect>
+          </Select>
 
-          {/* Prediction for picker for predictions */}
-          <LabelledSelect
+          {/* Prediction picker, pushed to the right on mobile so it sits apart
+              from the season/week controls */}
+          <div className="ml-auto sm:ml-0">
+          <Select
             label="Prediction for"
-            labelClassName="ml-auto sm:ml-0"
             value={myTeamId ?? ""}
             onChange={(e) => {
               const id = Number(e.target.value) || null;
@@ -400,7 +399,8 @@ export default function MatchupContent() {
                 {t.name}
               </option>
             ))}
-          </LabelledSelect>
+          </Select>
+          </div>
 
           {/* Week navigation arrows */}
           <div className="flex items-center gap-1 sm:ml-auto">
