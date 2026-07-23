@@ -200,7 +200,11 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const sim = createSimState(data);
     simRef.current = sim;
 
-    const inners = innerEls.current.filter(Boolean) as HTMLElement[];
+    // Capture the ref arrays so cleanup uses a stable variable, not ref.current.
+    const innerArr = innerEls.current;
+    const edgeArr = edgeEls.current;
+
+    const inners = innerArr.filter(Boolean) as HTMLElement[];
     if (reducedMotion) {
       radialLayout(sim, data);
       paint();
@@ -256,6 +260,8 @@ export default function NodeGraph({ reducedMotion }: Props) {
       ro.disconnect();
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       if (focusTimer.current) clearTimeout(focusTimer.current);
+      gsap.killTweensOf(innerArr.filter(Boolean));
+      gsap.killTweensOf(edgeArr.filter(Boolean));
       runningRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -327,7 +333,9 @@ export default function NodeGraph({ reducedMotion }: Props) {
       e.preventDefault();
       return;
     }
-    spark(e.clientX, e.clientY);
+    // e.detail === 0 means the click came from the keyboard (Enter), where
+    // clientX/Y are 0 — skip the spark so it doesn't fire in the corner.
+    if (e.detail !== 0) spark(e.clientX, e.clientY);
   };
 
   /** React Bits-style burst of sparks at a click point. */
@@ -363,6 +371,11 @@ export default function NodeGraph({ reducedMotion }: Props) {
     [hovered, nodeEdges],
   );
 
+  const hoveredNeighbors = useMemo(
+    () => (hovered == null ? null : new Set(neighborIdx[hovered])),
+    [hovered, neighborIdx],
+  );
+
   return (
     <div ref={containerRef} className="relative h-full w-full touch-none">
       <svg className="absolute inset-0 h-full w-full" aria-hidden>
@@ -395,7 +408,8 @@ export default function NodeGraph({ reducedMotion }: Props) {
       {data.nodes.map((node, i) => {
         const anyHover = hovered != null;
         const isSelf = hovered === i;
-        const neighbor = anyHover && isNeighbor(hovered, i, edgeEnds);
+        // O(1) neighbour test via the precomputed set, not an O(edges) scan per node.
+        const neighbor = hoveredNeighbors?.has(i) ?? false;
         return (
           <NodeEl
             key={node.id}
@@ -452,13 +466,17 @@ export default function NodeGraph({ reducedMotion }: Props) {
 
       <div
         data-spark-layer
+        aria-hidden
         className="pointer-events-none absolute inset-0 z-40"
       />
 
       {/* Fixed detail panel for the hovered node — kept out of the graph so it
           never covers the highlighted cluster or runs off the screen edge. */}
       {hovered != null && data.nodes[hovered]?.blurb ? (
-        <div className="pointer-events-none absolute left-1/2 top-24 z-30 w-[min(22rem,82vw)] -translate-x-1/2 rounded-xl border border-border bg-surface/95 px-4 py-3 text-center shadow-xl ring-1 ring-black/5 backdrop-blur">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-24 z-30 w-[min(22rem,82vw)] -translate-x-1/2 rounded-xl border border-border bg-surface/95 px-4 py-3 text-center shadow-xl ring-1 ring-black/5 backdrop-blur"
+        >
           <p
             className="text-sm font-semibold"
             style={{ color: data.nodes[hovered].color }}
@@ -471,17 +489,6 @@ export default function NodeGraph({ reducedMotion }: Props) {
         </div>
       ) : null}
     </div>
-  );
-}
-
-/** True when nodes a and b share an edge. */
-function isNeighbor(
-  a: number,
-  b: number,
-  edges: { a: number; b: number }[],
-): boolean {
-  return edges.some(
-    (e) => (e.a === a && e.b === b) || (e.a === b && e.b === a),
   );
 }
 
@@ -581,7 +588,7 @@ function NodeEl({
     draggable: false,
     onDragStart: (e: React.DragEvent) => e.preventDefault(),
     className: [
-      "group absolute left-0 top-0 z-20 flex cursor-grab touch-none select-none items-center justify-center p-2 transition-opacity hover:z-50 active:cursor-grabbing",
+      "group absolute left-0 top-0 z-20 flex cursor-grab touch-none select-none items-center justify-center rounded-full p-2 outline-none transition-opacity hover:z-50 focus-visible:z-50 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background active:cursor-grabbing",
       dimmed ? "opacity-30" : "opacity-100",
     ].join(" "),
     onPointerDown,

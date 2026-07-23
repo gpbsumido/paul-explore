@@ -289,6 +289,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#e879f9",
   },
   {
+    title: "V3 Redesign",
+    href: "/thoughts/v3-redesign",
+    preview:
+      "The whole site as a node graph — a hand-rolled force sim, fit-to-viewport rendering, the drag/hover bugs, and an a11y audit",
+    color: "#8b5cf6",
+  },
+  {
     title: "AI Security & Bare Repo Attacks",
     href: "/thoughts/ai-security",
     preview:

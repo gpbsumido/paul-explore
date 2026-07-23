@@ -33,6 +33,10 @@ export type SimState = {
   focus: number | null;
   /** Indices of nodes currently showing a label, which collide by label width so labels don't overlap. */
   labeled: Set<number>;
+  /** Reusable per-tick force/radius buffers, to avoid allocating every frame. */
+  fx: Float64Array;
+  fy: Float64Array;
+  eff: Float64Array;
 };
 
 export type SimParams = {
@@ -122,7 +126,18 @@ export function createSimState(data: GraphData): SimState {
     }
   });
 
-  return { nodes, edges, index, alpha: 1, focus: null, labeled };
+  const n = nodes.length;
+  return {
+    nodes,
+    edges,
+    index,
+    alpha: 1,
+    focus: null,
+    labeled,
+    fx: new Float64Array(n),
+    fy: new Float64Array(n),
+    eff: new Float64Array(n),
+  };
 }
 
 /** Nudge the temperature back up so the layout re-settles after interaction. */
@@ -141,15 +156,14 @@ export function stepSimulation(
   params: SimParams,
   screenScale = 1,
 ): void {
-  const { nodes, edges, alpha } = state;
+  const { nodes, edges, alpha, fx, fy, eff } = state;
   const n = nodes.length;
 
-  const fx = new Float64Array(n);
-  const fy = new Float64Array(n);
+  fx.fill(0);
+  fy.fill(0);
 
   // Effective collision radius per node (screen px): a labelled node claims its
   // label half-width so label boxes don't overlap; the focused node claims extra.
-  const eff = new Float64Array(n);
   for (let k = 0; k < n; k++) {
     const base = state.labeled.has(k)
       ? Math.max(nodes[k].radius, nodes[k].labelHalf)

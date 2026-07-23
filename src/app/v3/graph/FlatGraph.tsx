@@ -109,6 +109,10 @@ export default function FlatGraph({ reducedMotion }: Props) {
       { opacity: 0 },
       { opacity: 1, duration: 0.6, delay: 0.15, stagger: 0.006 },
     );
+    return () => {
+      gsap.killTweensOf(boxes);
+      gsap.killTweensOf(paths);
+    };
   }, [reducedMotion]);
 
   const halfH = FLAT_NODE_H / 2;
@@ -230,7 +234,7 @@ export default function FlatGraph({ reducedMotion }: Props) {
 function FlatRow({ node }: { node: GraphNode }) {
   const common = {
     className:
-      "flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 transition-colors hover:border-foreground/20",
+      "flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 outline-none transition-colors hover:border-foreground/20 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
     style: { borderLeftColor: node.color, borderLeftWidth: 3 } as React.CSSProperties,
   };
   const content = (
@@ -290,7 +294,7 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
     onPointerEnter: onEnter,
     onPointerLeave: onLeave,
     className: [
-      "absolute flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-surface px-2.5 shadow-sm transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md",
+      "absolute flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-surface px-2.5 shadow-sm outline-none transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
       dim ? "opacity-30" : "opacity-100",
     ].join(" "),
     style: {

@@ -2,10 +2,14 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useReducedMotion } from "framer-motion";
 import GraphBackground from "./graph/GraphBackground";
 import NodeGraph from "./graph/NodeGraph";
-import FlatGraph from "./graph/FlatGraph";
+
+// The flat view is only shown when the visitor toggles to it, so keep its code
+// out of the initial bundle and load it on demand.
+const FlatGraph = dynamic(() => import("./graph/FlatGraph"), { ssr: false });
 
 type LayoutMode = "force" | "flat";
 
@@ -87,16 +91,19 @@ export default function GraphShell({
     <div className="relative h-dvh w-full overflow-hidden bg-background text-foreground">
       <GraphBackground />
 
-      <div className="absolute inset-0">
+      <main
+        aria-label="Graph of features and write-ups, and how they connect"
+        className="absolute inset-0"
+      >
         {mode === "force" ? (
           <NodeGraph reducedMotion={reduced} />
         ) : (
           <FlatGraph reducedMotion={reduced} />
         )}
-      </div>
+      </main>
 
       {/* Header — glassy in flat view so scrolling cards don't show through it */}
-      <div
+      <header
         className={[
           "pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-4 sm:p-6",
           mode === "flat"
@@ -106,9 +113,9 @@ export default function GraphShell({
       >
         <div className="pointer-events-auto min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold tracking-tight text-foreground sm:text-lg">
+            <h1 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
               paul-explore
-            </span>
+            </h1>
             <span className="rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted backdrop-blur">
               v3
             </span>
@@ -122,15 +129,22 @@ export default function GraphShell({
           <LayoutSwitch mode={mode} onChange={setMode} />
           {action}
         </div>
-      </div>
+      </header>
 
       {/* Glassy footer bar in flat view, behind the legend / hint / nav */}
       {mode === "flat" ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-14 border-t border-border bg-background/80 backdrop-blur-md" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-14 border-t border-border bg-background/80 backdrop-blur-md"
+        />
       ) : null}
 
-      {/* Legend */}
-      <div className="pointer-events-none absolute bottom-5 left-5 z-40 hidden flex-wrap gap-2 sm:flex">
+      {/* Legend — a visual key; nodes carry their own text labels, so it's
+          supplementary and hidden from assistive tech. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-5 left-5 z-40 hidden flex-wrap gap-2 sm:flex"
+      >
         {LEGEND.map((item) => (
           <LegendPill key={item.label} {...item} />
         ))}
@@ -151,7 +165,10 @@ export default function GraphShell({
       </div>
 
       {/* Interaction hint — hidden on phones where it would crowd the nav */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-5 z-30 hidden justify-center sm:flex">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-5 z-30 hidden justify-center sm:flex"
+      >
         <span className="rounded-full border border-border bg-surface/70 px-3 py-1 text-xs text-muted backdrop-blur">
           {mode === "force"
             ? "Drag the nodes · click one to open it"
@@ -160,7 +177,10 @@ export default function GraphShell({
       </div>
 
       {/* Corner nav */}
-      <div className="pointer-events-auto absolute bottom-5 right-5 z-40 flex items-center gap-3 text-xs text-muted">
+      <nav
+        aria-label="Site"
+        className="pointer-events-auto absolute bottom-5 right-5 z-40 flex items-center gap-3 text-xs text-muted"
+      >
         <Link href="/thoughts" className="transition-colors hover:text-foreground">
           Thoughts
         </Link>
@@ -178,7 +198,7 @@ export default function GraphShell({
         >
           v2 ↗
         </Link>
-      </div>
+      </nav>
     </div>
   );
 }

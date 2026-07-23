@@ -19,7 +19,10 @@ export default function GraphBackground() {
         };
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 overflow-hidden"
+    >
       {/* Dotted grid, fading out toward the edges. */}
       <div
         className="absolute inset-0 opacity-[0.35] dark:opacity-25"
