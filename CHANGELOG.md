@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 0.25.82
+
+- extracted the learn-page step player into a shared `useStepPlayer` hook. Each of the 14 lessons hand-rolled the same ~40-line play/step/reset engine — and the same play/advance off-by-one bug (a batched interval tick reading a stale index and overrunning the steps array) had to be fixed in every one of them. The hook owns that logic once, keeping the crucial detail: the step index is written to a ref synchronously inside advance/play, so ticks read a fresh value and stop exactly at the last step. It also adds the keyboard control the review wanted — an `onKeyDown` handler (arrows to step, space to play/pause) a focusable container can spread on. Unit-tested (6 tests: advance/back bounds, reset, play-to-end without overrun, replay-from-end, keys). The per-lesson migration onto the hook follows incrementally, since each lesson wires its own animation refs
+
 ## 2026-07-23 - version 0.25.81
 
 - audited the direct `fetch()` calls in client components (the review flagged ~26 as possibly bypassing TanStack Query). The audit found the count was misleading: almost all are legitimate — inside a query/mutation `queryFn`, the fire-and-forget Web Vitals beacon (which must not be a Query), or lesson demos that are literally *about* `fetch`. The one genuine bypass was the referral-links demo recording a click with a raw lib call plus a manual `stats.refetch()`. Added a `useRecordReferralClick` mutation that invalidates the stats query on success, and moved the demo onto it — so the count updates through the cache, no manual refetch
