@@ -163,10 +163,11 @@ export default function StatsContent() {
       <FantasyNav />
 
       {/* ---- Team selector ---- */}
-      <div className="border-b border-border">
+      <section aria-label="Team filter" className="border-b border-border">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex items-center gap-3">
           <span className="text-[13px] text-muted shrink-0">Team</span>
           <select
+            aria-label="Team"
             className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
             style={{
               backgroundImage: selectChevron,
@@ -216,10 +217,11 @@ export default function StatsContent() {
             </button>
           )}
         </div>
-      </div>
+      </section>
 
       {/* ---- Content ---- */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">
+        <h1 className="sr-only">Player Stats</h1>
         {topLevelError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
             <span>{topLevelErrorMessage}</span>

@@ -92,10 +92,11 @@ export default function CourtVisionContent() {
       <FantasyNav />
 
       {/* Team + player selector */}
-      <div className="border-b border-border">
+      <section aria-label="Team and player filters" className="border-b border-border">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
           <span className="text-[13px] text-muted shrink-0">Team</span>
           <select
+            aria-label="Team"
             className={selectClass}
             style={selectStyle}
             value={selectedTeamId ?? ""}
@@ -111,6 +112,7 @@ export default function CourtVisionContent() {
 
           <span className="text-[13px] text-muted shrink-0">Player</span>
           <select
+            aria-label="Player"
             className={selectClass}
             style={selectStyle}
             value={playerId ?? ""}
@@ -125,10 +127,11 @@ export default function CourtVisionContent() {
             ))}
           </select>
         </div>
-      </div>
+      </section>
 
       {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8" aria-live="polite">
+        <h1 className="sr-only">Court Vision</h1>
         <div className="mb-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-[13px] text-amber-400/80">
           This page is a work in progress. Shot data is currently mock data and
           doesn&apos;t reflect real shooting numbers yet.

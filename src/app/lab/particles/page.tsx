@@ -90,6 +90,7 @@ function Slider({
       </div>
       <input
         type="range"
+        aria-label={label}
         min={min}
         max={max}
         step={step}
@@ -137,7 +138,7 @@ export default function ParticlesPage() {
   }
 
   return (
-    <div
+    <main
       className="relative bg-black"
       style={{ height: "calc(100dvh - 3.5rem)" }}
       onPointerMove={handlePointerMove}
@@ -221,6 +222,7 @@ export default function ParticlesPage() {
               Mouse Attraction
             </span>
             <button type="button"
+              aria-label="Mouse Attraction"
               onClick={() => setMouseAttraction((v) => !v)}
               className="flex h-5 w-9 items-center rounded-full transition-colors"
               style={{
@@ -242,6 +244,6 @@ export default function ParticlesPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
