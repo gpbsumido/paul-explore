@@ -1,218 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function TcgContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Pokémon TCG" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Pokémon TCG
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A card browser with debounced filtering, sets index, per-set
+    <ThoughtLayout
+      breadcrumb="Pokémon TCG"
+      title="Pokémon TCG"
+      intro={
+        <>
+          A card browser with debounced filtering, sets index, per-set
               grids, and full card detail pages — built on the TCGdex SDK behind
               a same-origin proxy.
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                API proxy and ISR caching
-              </h2>
-              <p className="text-muted">
-                The app&apos;s CSP locks{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  connect-src
-                </code>{" "}
-                to same-origin, so the browser can&apos;t reach{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  api.tcgdex.net
-                </code>{" "}
-                directly. Every SDK call lives in a Next.js API route — the
-                browser talks to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /api/tcg/cards
-                </code>
-                , the route calls the SDK, returns plain JSON. The SDK also
-                carries a circular{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  sdk
-                </code>{" "}
-                property on model instances — a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  toPlain()
-                </code>{" "}
-                helper strips those keys before serialization.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Server / client split</h2>
-              <p className="text-muted">
-                The set detail page is a server component — it calls the SDK at
-                render time for metadata, logo, release year, and legality. The
-                card grid needs pagination so it&apos;s a client component
-                calling the API route. The set detail server component wraps the
-                grid in a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  Suspense
-                </code>{" "}
-                boundary, which is required by Next.js App Router for any client
-                component that calls{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useSearchParams
-                </code>{" "}
-                during server rendering.
-              </p>
-              <p className="mt-3 text-muted">
-                The browse page fetches page 1 server-side — one module-level
-                TCGdex SDK instance per server process, same as the API route. A{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  BrowseSkeleton
-                </code>{" "}
-                wraps it in a Suspense boundary so the skeleton streams
-                immediately while the fetch resolves.{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  BrowseContent
-                </code>{" "}
-                gets{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  initialCards
-                </code>{" "}
-                as a prop and skips the page-1 fetch — but only when the URL has
-                no active filters.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Infinite scroll</h2>
-              <p className="text-muted">
-                A sentinel div at the bottom of the list is watched by an
-                IntersectionObserver. The tricky part: observers only fire on
-                intersection state changes. On a wide screen the sentinel might
-                already be visible after the first load — the state never
-                changes, so it never fires again. The fix: add{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  cards.length
-                </code>{" "}
-                to the observer effect&apos;s dependency array. That reconnects
-                the observer after every fetch, which calls{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  observe()
-                </code>{" "}
-                fresh and immediately reports current intersection state.
-              </p>
-              <p className="mt-3 text-muted">
-                After converting to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useInfiniteQuery
-                </code>
-                , manual{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  AbortController
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  loadedPages
-                </code>{" "}
-                state, and the scroll restore loop are all gone.{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  initialPageParam
-                </code>{" "}
-                reads{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ?page=N
-                </code>{" "}
-                from the URL on mount,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  getNextPageParam
-                </code>{" "}
-                increments from there, and the sentinel observer calls{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  fetchNextPage()
-                </code>{" "}
-                guarded by{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  hasNextPage
-                </code>
-                .
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                URL-driven filter state
-              </h2>
-              <p className="text-muted">
-                Search, type filter, and page number all live in the URL as
-                query params. On mount the component reads the URL to initialize
-                state. As the user types or scrolls, the URL updates with{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  router.replace(..., {"{"} scroll: false {"}"})
-                </code>
-                . Back and forward navigation changes the URL, which syncs back
-                into state. Sharing{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ?q=pikachu&type=Psychic&page=4
-                </code>{" "}
-                restores exactly that view.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Race condition fix</h2>
-              <p className="text-muted">
-                Rapid filter changes can cause a race — an old fetch resolving
-                after the new one starts overwrites the results. The original
-                fix was an{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  AbortController
-                </code>{" "}
-                pattern where each fetch aborts the previous one before
-                starting, with{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  AbortError
-                </code>{" "}
-                caught and silently ignored. After converting to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useInfiniteQuery
-                </code>
-                , TanStack handles this automatically — when the query key
-                changes it cancels the in-flight request via its own abort
-                signal. No more{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  abortRef
-                </code>{" "}
-                or{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  AbortError
-                </code>{" "}
-                catch needed.
-              </p>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         <div className="flex justify-center">
           <div
             className={styles.phone}
@@ -778,7 +582,183 @@ onScrollRef.current = () => {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">
+                API proxy and ISR caching
+              </h2>
+              <p className="text-muted">
+                The app&apos;s CSP locks{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  connect-src
+                </code>{" "}
+                to same-origin, so the browser can&apos;t reach{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  api.tcgdex.net
+                </code>{" "}
+                directly. Every SDK call lives in a Next.js API route — the
+                browser talks to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/tcg/cards
+                </code>
+                , the route calls the SDK, returns plain JSON. The SDK also
+                carries a circular{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  sdk
+                </code>{" "}
+                property on model instances — a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  toPlain()
+                </code>{" "}
+                helper strips those keys before serialization.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Server / client split</h2>
+              <p className="text-muted">
+                The set detail page is a server component — it calls the SDK at
+                render time for metadata, logo, release year, and legality. The
+                card grid needs pagination so it&apos;s a client component
+                calling the API route. The set detail server component wraps the
+                grid in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Suspense
+                </code>{" "}
+                boundary, which is required by Next.js App Router for any client
+                component that calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useSearchParams
+                </code>{" "}
+                during server rendering.
+              </p>
+              <p className="mt-3 text-muted">
+                The browse page fetches page 1 server-side — one module-level
+                TCGdex SDK instance per server process, same as the API route. A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  BrowseSkeleton
+                </code>{" "}
+                wraps it in a Suspense boundary so the skeleton streams
+                immediately while the fetch resolves.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  BrowseContent
+                </code>{" "}
+                gets{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialCards
+                </code>{" "}
+                as a prop and skips the page-1 fetch — but only when the URL has
+                no active filters.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Infinite scroll</h2>
+              <p className="text-muted">
+                A sentinel div at the bottom of the list is watched by an
+                IntersectionObserver. The tricky part: observers only fire on
+                intersection state changes. On a wide screen the sentinel might
+                already be visible after the first load — the state never
+                changes, so it never fires again. The fix: add{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  cards.length
+                </code>{" "}
+                to the observer effect&apos;s dependency array. That reconnects
+                the observer after every fetch, which calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  observe()
+                </code>{" "}
+                fresh and immediately reports current intersection state.
+              </p>
+              <p className="mt-3 text-muted">
+                After converting to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>
+                , manual{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AbortController
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  loadedPages
+                </code>{" "}
+                state, and the scroll restore loop are all gone.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialPageParam
+                </code>{" "}
+                reads{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?page=N
+                </code>{" "}
+                from the URL on mount,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  getNextPageParam
+                </code>{" "}
+                increments from there, and the sentinel observer calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  fetchNextPage()
+                </code>{" "}
+                guarded by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  hasNextPage
+                </code>
+                .
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                URL-driven filter state
+              </h2>
+              <p className="text-muted">
+                Search, type filter, and page number all live in the URL as
+                query params. On mount the component reads the URL to initialize
+                state. As the user types or scrolls, the URL updates with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  router.replace(..., {"{"} scroll: false {"}"})
+                </code>
+                . Back and forward navigation changes the URL, which syncs back
+                into state. Sharing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?q=pikachu&type=Psychic&page=4
+                </code>{" "}
+                restores exactly that view.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Race condition fix</h2>
+              <p className="text-muted">
+                Rapid filter changes can cause a race — an old fetch resolving
+                after the new one starts overwrites the results. The original
+                fix was an{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AbortController
+                </code>{" "}
+                pattern where each fetch aborts the previous one before
+                starting, with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AbortError
+                </code>{" "}
+                caught and silently ignored. After converting to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>
+                , TanStack handles this automatically — when the query key
+                changes it cancels the in-flight request via its own abort
+                signal. No more{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  abortRef
+                </code>{" "}
+                or{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AbortError
+                </code>{" "}
+                catch needed.
+              </p>
+            </section>
+    </ThoughtLayout>
   );
 }

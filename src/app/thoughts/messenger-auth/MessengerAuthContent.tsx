@@ -1,45 +1,132 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function MessengerAuthContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "Messenger Auth Bug" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Messenger Auth Bug
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A user reported seeing the feature hub when opening the site from
+    <ThoughtLayout
+      breadcrumb="Messenger Auth Bug"
+      title="Messenger Auth Bug"
+      intro={
+        <>
+          A user reported seeing the feature hub when opening the site from
               Facebook Messenger on mobile, even though they had never logged
               in. Two independent root causes — one about caching, one about
               session validation — that produced the same visible symptom.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 11:22 AM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">
+                someone says they see the hub when they open the site from
+                facebook messenger
+              </Received>
+              <Received pos="last">they never logged in</Received>
+
+              <Sent pos="first">
+                two separate things that can both produce that. first: the root
+                page was missing force-dynamic
+              </Sent>
+              <Sent pos="middle">
+                auth0.getSession() calls cookies() from next/headers internally,
+                but that call is inside the Auth0 library. if Next.js missed the
+                indirect usage, the page could be treated as statically
+                renderable and cached at the edge
+              </Sent>
+              <Sent pos="last">
+                cached means the first logged-in user&apos;s hub HTML gets
+                served to everyone after that — including someone with no
+                session at all. hub renders, hydrates, looks real, but
+                there&apos;s nothing behind it
+              </Sent>
+
+              <Timestamp>11:26 AM</Timestamp>
+
+              <Received>what&apos;s the fix for that one</Received>
+
+              <Sent>
+                one line: export const dynamic = &quot;force-dynamic&quot; in
+                page.tsx. explicit opt-out from caching. every request gets a
+                fresh server render against the actual session cookie
+              </Sent>
+
+              <Timestamp>11:28 AM</Timestamp>
+
+              <Received>you said two things</Received>
+
+              <Sent pos="first">
+                second one: the root route never called auth0.middleware().
+                protected routes like /calendar and /vitals do — that&apos;s
+                what validates the token and refreshes it. but / just passed
+                straight through
+              </Sent>
+              <Sent pos="middle">
+                getSession() reads and decrypts the cookie but does not hit
+                Auth0 to check if the underlying token is still valid. if
+                someone logged in weeks ago and their refresh token expired, the
+                cookie still decrypts fine. getSession() says session exists,
+                hub renders
+              </Sent>
+              <Sent pos="last">
+                then they click on calendar, that route calls
+                auth0.middleware(), token refresh fails, cookie gets cleared,
+                redirect to login. hub looked real but was a ghost
+              </Sent>
+
+              <Timestamp>11:32 AM</Timestamp>
+
+              <Received>why does messenger specifically trigger it</Received>
+
+              <Sent pos="first">
+                messenger on iOS uses SFSafariViewController which shares the
+                cookie jar with Safari. on Android it opens in Chrome Custom
+                Tabs which shares with Chrome
+              </Sent>
+              <Sent pos="last">
+                so if the user ever logged in on their main browser — even weeks
+                ago — that old cookie is visible in the in-app browser. it
+                passes getSession() without being validated and the ghost hub
+                shows
+              </Sent>
+
+              <Timestamp>11:35 AM</Timestamp>
+
+              <Received>fix for the second one</Received>
+
+              <Sent pos="first">
+                in proxy.ts, when the root route has a session cookie, run
+                auth0.middleware() before the page renders. valid token gets
+                refreshed and hub works. expired token gets cleared and page.tsx
+                sees no session, landing page renders instead
+              </Sent>
+              <Sent pos="last">
+                also: the email line in the hub header was conditionally
+                rendered — hidden when null. users who logged in via Facebook or
+                Apple without sharing email got a header with no identity info.
+                changed it to always render, shows &quot;no email on file&quot;
+                as fallback so it&apos;s clear rather than just empty
+              </Sent>
+
+              <div className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">What the user saw</h2>
               <p className="text-muted">
                 The site has two top-level views: a public landing page for
@@ -226,116 +313,6 @@ export default function MessengerAuthContent() {
                 wondering why the header feels incomplete.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 11:22 AM</Timestamp>
-
-              <Received pos="first">
-                someone says they see the hub when they open the site from
-                facebook messenger
-              </Received>
-              <Received pos="last">they never logged in</Received>
-
-              <Sent pos="first">
-                two separate things that can both produce that. first: the root
-                page was missing force-dynamic
-              </Sent>
-              <Sent pos="middle">
-                auth0.getSession() calls cookies() from next/headers internally,
-                but that call is inside the Auth0 library. if Next.js missed the
-                indirect usage, the page could be treated as statically
-                renderable and cached at the edge
-              </Sent>
-              <Sent pos="last">
-                cached means the first logged-in user&apos;s hub HTML gets
-                served to everyone after that — including someone with no
-                session at all. hub renders, hydrates, looks real, but
-                there&apos;s nothing behind it
-              </Sent>
-
-              <Timestamp>11:26 AM</Timestamp>
-
-              <Received>what&apos;s the fix for that one</Received>
-
-              <Sent>
-                one line: export const dynamic = &quot;force-dynamic&quot; in
-                page.tsx. explicit opt-out from caching. every request gets a
-                fresh server render against the actual session cookie
-              </Sent>
-
-              <Timestamp>11:28 AM</Timestamp>
-
-              <Received>you said two things</Received>
-
-              <Sent pos="first">
-                second one: the root route never called auth0.middleware().
-                protected routes like /calendar and /vitals do — that&apos;s
-                what validates the token and refreshes it. but / just passed
-                straight through
-              </Sent>
-              <Sent pos="middle">
-                getSession() reads and decrypts the cookie but does not hit
-                Auth0 to check if the underlying token is still valid. if
-                someone logged in weeks ago and their refresh token expired, the
-                cookie still decrypts fine. getSession() says session exists,
-                hub renders
-              </Sent>
-              <Sent pos="last">
-                then they click on calendar, that route calls
-                auth0.middleware(), token refresh fails, cookie gets cleared,
-                redirect to login. hub looked real but was a ghost
-              </Sent>
-
-              <Timestamp>11:32 AM</Timestamp>
-
-              <Received>why does messenger specifically trigger it</Received>
-
-              <Sent pos="first">
-                messenger on iOS uses SFSafariViewController which shares the
-                cookie jar with Safari. on Android it opens in Chrome Custom
-                Tabs which shares with Chrome
-              </Sent>
-              <Sent pos="last">
-                so if the user ever logged in on their main browser — even weeks
-                ago — that old cookie is visible in the in-app browser. it
-                passes getSession() without being validated and the ghost hub
-                shows
-              </Sent>
-
-              <Timestamp>11:35 AM</Timestamp>
-
-              <Received>fix for the second one</Received>
-
-              <Sent pos="first">
-                in proxy.ts, when the root route has a session cookie, run
-                auth0.middleware() before the page renders. valid token gets
-                refreshed and hub works. expired token gets cleared and page.tsx
-                sees no session, landing page renders instead
-              </Sent>
-              <Sent pos="last">
-                also: the email line in the hub header was conditionally
-                rendered — hidden when null. users who logged in via Facebook or
-                Apple without sharing email got a header with no identity info.
-                changed it to always render, shows &quot;no email on file&quot;
-                as fallback so it&apos;s clear rather than just empty
-              </Sent>
-
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

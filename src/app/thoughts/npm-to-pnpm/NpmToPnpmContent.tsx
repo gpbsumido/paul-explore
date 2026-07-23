@@ -1,43 +1,106 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function NpmToPnpmContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "npm to pnpm" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              npm to pnpm
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Switching package managers, what broke, and what it told us about
+    <ThoughtLayout
+      breadcrumb="npm to pnpm"
+      title="npm to pnpm"
+      intro={
+        <>
+          Switching package managers, what broke, and what it told us about
               the dependency graph.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 3:30 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received>why pnpm over npm</Received>
+
+              <Sent pos="first">
+                strict dependency resolution. npm hoists everything flat so you
+                can import packages you never declared. pnpm only exposes
+                what&apos;s in your package.json
+              </Sent>
+              <Sent pos="last">
+                the speed is a bonus but the strictness is the real point
+              </Sent>
+
+              <Timestamp>3:33 PM</Timestamp>
+
+              <Received>did it just work</Received>
+
+              <Sent pos="first">
+                nope. pnpm resolved our loose ranges to their actual minimums.
+                eslint ^9 became 9.0.0, typescript ^5 became 5.0.2, @types/node
+                ^20 became 20.0.0. all too low for what the codebase actually
+                uses
+              </Sent>
+              <Sent pos="last">
+                none of them were real bugs though. just ranges that said
+                &quot;anything from X.0.0&quot; when the code actually needs
+                X.15+. tightened the minimums and it was fine
+              </Sent>
+
+              <Timestamp>3:37 PM</Timestamp>
+
+              <Received>what about lint</Received>
+
+              <Sent pos="first">
+                bumping eslint to 9.39 pulled in new react-hooks rules.
+                react-hooks/refs flagged ref assignments during render in the
+                particle scene. moved them into useEffect
+              </Sent>
+              <Sent pos="last">
+                had to suppress two false positives. R3F&apos;s useFrame
+                intentionally mutates THREE objects every frame, and URL param
+                syncing with useEffect + setState is a standard pattern the new
+                rule can&apos;t distinguish from the problematic cases
+              </Sent>
+
+              <Timestamp>3:40 PM</Timestamp>
+
+              <Received>what about CI and deployment</Received>
+
+              <Sent pos="first">
+                CI was straightforward. add pnpm/action-setup before
+                actions/setup-node, change cache from npm to pnpm, swap npm ci
+                for pnpm install --frozen-lockfile, and replace npx with pnpm
+                exec
+              </Sent>
+              <Sent pos="last">
+                Vercel auto-detects pnpm when it sees pnpm-lock.yaml. zero
+                config changes. didn&apos;t even need to touch vercel.json
+              </Sent>
+
+              <Timestamp>3:42 PM</Timestamp>
+
+              <Received>takeaway</Received>
+
+              <Sent pos="first">
+                the swap itself is trivial. the real work is the version
+                resolution differences it exposes
+              </Sent>
+              <Sent pos="last">
+                if you&apos;ve been running loose semver ranges, pnpm will tell
+                you exactly where the floor actually is. every issue we hit was
+                a real inconsistency that npm just never surfaced
+              </Sent>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">Why switch</h2>
               <p className="text-muted">
                 npm was fine. Nothing was broken. The motivation was pnpm&apos;s
@@ -248,92 +311,6 @@ export default function NpmToPnpmContent() {
                 or muscle memory will generate one and confuse the next deploy.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 3:30 PM</Timestamp>
-
-              <Received>why pnpm over npm</Received>
-
-              <Sent pos="first">
-                strict dependency resolution. npm hoists everything flat so you
-                can import packages you never declared. pnpm only exposes
-                what&apos;s in your package.json
-              </Sent>
-              <Sent pos="last">
-                the speed is a bonus but the strictness is the real point
-              </Sent>
-
-              <Timestamp>3:33 PM</Timestamp>
-
-              <Received>did it just work</Received>
-
-              <Sent pos="first">
-                nope. pnpm resolved our loose ranges to their actual minimums.
-                eslint ^9 became 9.0.0, typescript ^5 became 5.0.2, @types/node
-                ^20 became 20.0.0. all too low for what the codebase actually
-                uses
-              </Sent>
-              <Sent pos="last">
-                none of them were real bugs though. just ranges that said
-                &quot;anything from X.0.0&quot; when the code actually needs
-                X.15+. tightened the minimums and it was fine
-              </Sent>
-
-              <Timestamp>3:37 PM</Timestamp>
-
-              <Received>what about lint</Received>
-
-              <Sent pos="first">
-                bumping eslint to 9.39 pulled in new react-hooks rules.
-                react-hooks/refs flagged ref assignments during render in the
-                particle scene. moved them into useEffect
-              </Sent>
-              <Sent pos="last">
-                had to suppress two false positives. R3F&apos;s useFrame
-                intentionally mutates THREE objects every frame, and URL param
-                syncing with useEffect + setState is a standard pattern the new
-                rule can&apos;t distinguish from the problematic cases
-              </Sent>
-
-              <Timestamp>3:40 PM</Timestamp>
-
-              <Received>what about CI and deployment</Received>
-
-              <Sent pos="first">
-                CI was straightforward. add pnpm/action-setup before
-                actions/setup-node, change cache from npm to pnpm, swap npm ci
-                for pnpm install --frozen-lockfile, and replace npx with pnpm
-                exec
-              </Sent>
-              <Sent pos="last">
-                Vercel auto-detects pnpm when it sees pnpm-lock.yaml. zero
-                config changes. didn&apos;t even need to touch vercel.json
-              </Sent>
-
-              <Timestamp>3:42 PM</Timestamp>
-
-              <Received>takeaway</Received>
-
-              <Sent pos="first">
-                the swap itself is trivial. the real work is the version
-                resolution differences it exposes
-              </Sent>
-              <Sent pos="last">
-                if you&apos;ve been running loose semver ranges, pnpm will tell
-                you exactly where the floor actually is. every issue we hit was
-                a real inconsistency that npm just never surfaced
-              </Sent>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

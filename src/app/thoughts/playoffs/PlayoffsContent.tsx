@@ -1,44 +1,264 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function PlayoffsContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "NBA Playoffs Bracket" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              NBA Playoffs Bracket
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              An interactive bracket picker with debounced saves, TBD team
+    <ThoughtLayout
+      breadcrumb="NBA Playoffs Bracket"
+      title="NBA Playoffs Bracket"
+      intro={
+        <>
+          An interactive bracket picker with debounced saves, TBD team
               resolution, a public leaderboard, and responsive layout — built
               test-first with Vitest, Testing Library, and MSW.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 11:00 AM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">what is the playoffs bracket page</Received>
+              <Received pos="last">like what does it actually do</Received>
+
+              <Sent pos="first">
+                you pick the winner of every playoff series before the season
+                starts. winner, series length, how many games. the Finals card
+                adds a combined score for the last game and an MVP pick
+              </Sent>
+              <Sent pos="last">
+                your picks get saved automatically and a leaderboard shows how
+                everyone scored once results come in
+              </Sent>
+
+              <Received>where does the bracket data come from</Received>
+
+              <Sent pos="first">
+                ESPN has a public endpoint for the playoff bracket. a BFF proxy
+                route fetches it and normalizes the structure into typed
+                matchups with seeds, abbreviations, and conference
+              </Sent>
+              <Sent pos="last">
+                picks live in the portfolio API per user. both queries run in
+                parallel on mount — bracket structure and your saved picks
+                don&apos;t wait on each other
+              </Sent>
+
+              <Timestamp>11:04 AM</Timestamp>
+
+              <Received>
+                how do you merge server picks with local edits
+              </Received>
+
+              <Sent pos="first">
+                separate state objects. server picks come from the TanStack
+                Query cache. local edits are their own state that starts empty
+              </Sent>
+              <Sent pos="middle">
+                a useMemo merges them:{" "}
+                <code className="rounded bg-surface/60 px-1 py-0.5 text-[12px] font-mono">
+                  {"{ ...(serverPicks ?? {}), ...userEdits }"}
+                </code>{" "}
+                — server data is the base, every click layers on top
+              </Sent>
+              <Sent pos="last">
+                when the server picks land the memo recomputes automatically. no
+                effect needed, no second render from calling setState in an
+                effect
+              </Sent>
+
+              <Timestamp>11:08 AM</Timestamp>
+
+              <Received pos="first">
+                why not just initialize picks state from the server response in
+                a useEffect
+              </Received>
+              <Received pos="last">that seems simpler</Received>
+
+              <Sent pos="first">
+                ESLint flags it. react-hooks/set-state-in-effect catches any
+                setState call that runs synchronously inside an effect body — it
+                can trigger cascading renders
+              </Sent>
+              <Sent pos="middle">
+                more importantly it&apos;s the wrong model. the server data
+                isn&apos;t something you copy once — it updates whenever the
+                query refreshes. copying it to state creates a stale fork
+              </Sent>
+              <Sent pos="last">
+                the useMemo pattern means the component always sees the latest
+                server data merged with the latest user edits. one source of
+                truth each, combined at read time
+              </Sent>
+
+              <Timestamp>11:13 AM</Timestamp>
+
+              <Received>what are TBD teams</Received>
+
+              <Sent pos="first">
+                later rounds have teams listed as TBD — the winner of an earlier
+                series that hasn&apos;t been decided yet
+              </Sent>
+              <Sent pos="middle">
+                a PRECEDING map encodes which earlier matchup feeds each TBD
+                slot. resolveTeam looks up the right entry, reads the
+                user&apos;s pick for that matchup, and returns the winner
+                abbreviation
+              </Sent>
+              <Sent pos="last">
+                if you haven&apos;t picked that earlier series yet it shows
+                &quot;?&quot; and the button is disabled. you can&apos;t pick a
+                winner before you&apos;ve picked who they&apos;re playing
+                against
+              </Sent>
+
+              <Timestamp>11:17 AM</Timestamp>
+
+              <Received>how do saves work</Received>
+
+              <Sent pos="first">
+                debounced effect on the merged picks object. waits 800ms after
+                the last change then fires a PUT. fast enough to feel
+                responsive, slow enough to batch rapid clicks into one request
+              </Sent>
+              <Sent pos="middle">
+                a ref starts false and flips on first user interaction. the save
+                effect bails early until that flag is set — loading server picks
+                on mount doesn&apos;t accidentally write them back to the
+                backend
+              </Sent>
+              <Sent pos="last">
+                a SaveIndicator shows &quot;Saving...&quot; during the request
+                and &quot;Saved&quot; after it settles. quiet enough to ignore,
+                visible enough to confirm your picks are persisting
+              </Sent>
+
+              <Timestamp>11:22 AM</Timestamp>
+
+              <Received>how does the responsive layout work</Received>
+
+              <Sent pos="first">
+                three-column grid at lg: — East rounds, Finals, West rounds.
+                below that, each conference is a horizontally scrollable row
+                that bleeds edge-to-edge with negative margin
+              </Sent>
+              <Sent pos="middle">
+                the West side uses lg:flex-row-reverse to mirror its column
+                order. on mobile R1→R2→WCF reads left to right for natural
+                scrolling. at lg: it flips so WCF is closest to the Finals
+                column in the center
+              </Sent>
+              <Sent pos="last">
+                the bracket feels like a real bracket on desktop. on mobile it
+                scrolls like a card list, which is fine — picking a series
+                doesn&apos;t require seeing the whole bracket at once
+              </Sent>
+
+              <Timestamp>11:27 AM</Timestamp>
+
+              <Received>tell me about the leaderboard</Received>
+
+              <Sent pos="first">
+                public — no auth needed to view. the portfolio API scores all
+                submitted picks against actual results and returns ranked
+                entries with a per-round breakdown showing earned vs max points
+                for each round
+              </Sent>
+              <Sent pos="middle">
+                the component receives the current user&apos;s sub from /api/me
+                and matches it against entry.sub to highlight your row in
+                orange. if you&apos;re not logged in the leaderboard still
+                renders, just with no highlight
+              </Sent>
+              <Sent pos="last">
+                cached at s-maxage=300 on the BFF route. fresh enough to reflect
+                new results within a few minutes, not so fresh that it hammers
+                the backend during busy playoff nights
+              </Sent>
+
+              <Timestamp>11:31 AM</Timestamp>
+
+              <Received>how were the components tested</Received>
+
+              <Sent pos="first">
+                SeriesPickCard, FinalsCard, and PlayoffLeaderboard each have a
+                test file. render the component, fire user events, assert on DOM
+                state — no implementation details
+              </Sent>
+              <Sent pos="middle">
+                the leaderboard tests use MSW to intercept the leaderboard
+                endpoint. loading test uses infinite delay to prove the skeleton
+                renders. success test checks rank medals, score display, round
+                badges, and the current user row highlight
+              </Sent>
+              <Sent pos="last">
+                each test gets a fresh QueryClient with retry: false so errors
+                surface immediately instead of TanStack retrying three times and
+                making the test wait
+              </Sent>
+
+              <Timestamp>11:36 AM</Timestamp>
+
+              <Received>why is there a submit button AND auto-save</Received>
+
+              <Sent pos="first">
+                the debounced auto-save is opt-in and off by default. submit is
+                the primary way to commit your bracket — it matches how most
+                pick contests work. you fill it out, then lock it in
+              </Sent>
+              <Sent pos="middle">
+                the two modes are mutually exclusive. when auto-save is on,
+                submit is disabled. no double-writing, no ambiguity about which
+                one is in charge
+              </Sent>
+              <Sent pos="last">
+                on a successful submit, any lingering &quot;Saving...&quot; from
+                a pending debounce gets cleared immediately. the save indicator
+                resets to idle so the UI doesn&apos;t show stale state after the
+                request settles
+              </Sent>
+
+              <Timestamp>11:41 AM</Timestamp>
+
+              <Received>
+                why does the leaderboard show before any results are in
+              </Received>
+
+              <Sent pos="first">
+                the leaderboard is part of the social contract. people want to
+                see who else submitted even before game one tips off — it
+                confirms participation and creates anticipation
+              </Sent>
+              <Sent pos="middle">
+                0-score entries are shown and sorted by submission date
+                ascending. earlier submissions rank higher, which is a mild
+                incentive to lock in picks before the season starts
+              </Sent>
+              <Sent pos="last">
+                the backend change was straightforward — remove the early return
+                that checked for results and add updatedAt as a tiebreaker. the
+                BFF needed a transform layer because the portfolio API field
+                names don&apos;t match the frontend types
+              </Sent>
+
+              <div className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">Data flow</h2>
               <p className="text-muted">
                 The bracket data comes from ESPN via a BFF proxy route. Picks
@@ -351,249 +571,6 @@ export default function PlayoffsContent() {
                 array).
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 11:00 AM</Timestamp>
-
-              <Received pos="first">what is the playoffs bracket page</Received>
-              <Received pos="last">like what does it actually do</Received>
-
-              <Sent pos="first">
-                you pick the winner of every playoff series before the season
-                starts. winner, series length, how many games. the Finals card
-                adds a combined score for the last game and an MVP pick
-              </Sent>
-              <Sent pos="last">
-                your picks get saved automatically and a leaderboard shows how
-                everyone scored once results come in
-              </Sent>
-
-              <Received>where does the bracket data come from</Received>
-
-              <Sent pos="first">
-                ESPN has a public endpoint for the playoff bracket. a BFF proxy
-                route fetches it and normalizes the structure into typed
-                matchups with seeds, abbreviations, and conference
-              </Sent>
-              <Sent pos="last">
-                picks live in the portfolio API per user. both queries run in
-                parallel on mount — bracket structure and your saved picks
-                don&apos;t wait on each other
-              </Sent>
-
-              <Timestamp>11:04 AM</Timestamp>
-
-              <Received>
-                how do you merge server picks with local edits
-              </Received>
-
-              <Sent pos="first">
-                separate state objects. server picks come from the TanStack
-                Query cache. local edits are their own state that starts empty
-              </Sent>
-              <Sent pos="middle">
-                a useMemo merges them:{" "}
-                <code className="rounded bg-surface/60 px-1 py-0.5 text-[12px] font-mono">
-                  {"{ ...(serverPicks ?? {}), ...userEdits }"}
-                </code>{" "}
-                — server data is the base, every click layers on top
-              </Sent>
-              <Sent pos="last">
-                when the server picks land the memo recomputes automatically. no
-                effect needed, no second render from calling setState in an
-                effect
-              </Sent>
-
-              <Timestamp>11:08 AM</Timestamp>
-
-              <Received pos="first">
-                why not just initialize picks state from the server response in
-                a useEffect
-              </Received>
-              <Received pos="last">that seems simpler</Received>
-
-              <Sent pos="first">
-                ESLint flags it. react-hooks/set-state-in-effect catches any
-                setState call that runs synchronously inside an effect body — it
-                can trigger cascading renders
-              </Sent>
-              <Sent pos="middle">
-                more importantly it&apos;s the wrong model. the server data
-                isn&apos;t something you copy once — it updates whenever the
-                query refreshes. copying it to state creates a stale fork
-              </Sent>
-              <Sent pos="last">
-                the useMemo pattern means the component always sees the latest
-                server data merged with the latest user edits. one source of
-                truth each, combined at read time
-              </Sent>
-
-              <Timestamp>11:13 AM</Timestamp>
-
-              <Received>what are TBD teams</Received>
-
-              <Sent pos="first">
-                later rounds have teams listed as TBD — the winner of an earlier
-                series that hasn&apos;t been decided yet
-              </Sent>
-              <Sent pos="middle">
-                a PRECEDING map encodes which earlier matchup feeds each TBD
-                slot. resolveTeam looks up the right entry, reads the
-                user&apos;s pick for that matchup, and returns the winner
-                abbreviation
-              </Sent>
-              <Sent pos="last">
-                if you haven&apos;t picked that earlier series yet it shows
-                &quot;?&quot; and the button is disabled. you can&apos;t pick a
-                winner before you&apos;ve picked who they&apos;re playing
-                against
-              </Sent>
-
-              <Timestamp>11:17 AM</Timestamp>
-
-              <Received>how do saves work</Received>
-
-              <Sent pos="first">
-                debounced effect on the merged picks object. waits 800ms after
-                the last change then fires a PUT. fast enough to feel
-                responsive, slow enough to batch rapid clicks into one request
-              </Sent>
-              <Sent pos="middle">
-                a ref starts false and flips on first user interaction. the save
-                effect bails early until that flag is set — loading server picks
-                on mount doesn&apos;t accidentally write them back to the
-                backend
-              </Sent>
-              <Sent pos="last">
-                a SaveIndicator shows &quot;Saving...&quot; during the request
-                and &quot;Saved&quot; after it settles. quiet enough to ignore,
-                visible enough to confirm your picks are persisting
-              </Sent>
-
-              <Timestamp>11:22 AM</Timestamp>
-
-              <Received>how does the responsive layout work</Received>
-
-              <Sent pos="first">
-                three-column grid at lg: — East rounds, Finals, West rounds.
-                below that, each conference is a horizontally scrollable row
-                that bleeds edge-to-edge with negative margin
-              </Sent>
-              <Sent pos="middle">
-                the West side uses lg:flex-row-reverse to mirror its column
-                order. on mobile R1→R2→WCF reads left to right for natural
-                scrolling. at lg: it flips so WCF is closest to the Finals
-                column in the center
-              </Sent>
-              <Sent pos="last">
-                the bracket feels like a real bracket on desktop. on mobile it
-                scrolls like a card list, which is fine — picking a series
-                doesn&apos;t require seeing the whole bracket at once
-              </Sent>
-
-              <Timestamp>11:27 AM</Timestamp>
-
-              <Received>tell me about the leaderboard</Received>
-
-              <Sent pos="first">
-                public — no auth needed to view. the portfolio API scores all
-                submitted picks against actual results and returns ranked
-                entries with a per-round breakdown showing earned vs max points
-                for each round
-              </Sent>
-              <Sent pos="middle">
-                the component receives the current user&apos;s sub from /api/me
-                and matches it against entry.sub to highlight your row in
-                orange. if you&apos;re not logged in the leaderboard still
-                renders, just with no highlight
-              </Sent>
-              <Sent pos="last">
-                cached at s-maxage=300 on the BFF route. fresh enough to reflect
-                new results within a few minutes, not so fresh that it hammers
-                the backend during busy playoff nights
-              </Sent>
-
-              <Timestamp>11:31 AM</Timestamp>
-
-              <Received>how were the components tested</Received>
-
-              <Sent pos="first">
-                SeriesPickCard, FinalsCard, and PlayoffLeaderboard each have a
-                test file. render the component, fire user events, assert on DOM
-                state — no implementation details
-              </Sent>
-              <Sent pos="middle">
-                the leaderboard tests use MSW to intercept the leaderboard
-                endpoint. loading test uses infinite delay to prove the skeleton
-                renders. success test checks rank medals, score display, round
-                badges, and the current user row highlight
-              </Sent>
-              <Sent pos="last">
-                each test gets a fresh QueryClient with retry: false so errors
-                surface immediately instead of TanStack retrying three times and
-                making the test wait
-              </Sent>
-
-              <Timestamp>11:36 AM</Timestamp>
-
-              <Received>why is there a submit button AND auto-save</Received>
-
-              <Sent pos="first">
-                the debounced auto-save is opt-in and off by default. submit is
-                the primary way to commit your bracket — it matches how most
-                pick contests work. you fill it out, then lock it in
-              </Sent>
-              <Sent pos="middle">
-                the two modes are mutually exclusive. when auto-save is on,
-                submit is disabled. no double-writing, no ambiguity about which
-                one is in charge
-              </Sent>
-              <Sent pos="last">
-                on a successful submit, any lingering &quot;Saving...&quot; from
-                a pending debounce gets cleared immediately. the save indicator
-                resets to idle so the UI doesn&apos;t show stale state after the
-                request settles
-              </Sent>
-
-              <Timestamp>11:41 AM</Timestamp>
-
-              <Received>
-                why does the leaderboard show before any results are in
-              </Received>
-
-              <Sent pos="first">
-                the leaderboard is part of the social contract. people want to
-                see who else submitted even before game one tips off — it
-                confirms participation and creates anticipation
-              </Sent>
-              <Sent pos="middle">
-                0-score entries are shown and sorted by submission date
-                ascending. earlier submissions rank higher, which is a mild
-                incentive to lock in picks before the season starts
-              </Sent>
-              <Sent pos="last">
-                the backend change was straightforward — remove the early return
-                that checked for results and add updatedAt as a tiebreaker. the
-                BFF needed a transform layer because the portfolio API field
-                names don&apos;t match the frontend types
-              </Sent>
-
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

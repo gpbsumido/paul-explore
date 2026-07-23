@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -34,35 +32,92 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function WorkPortfolioThoughtsContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Work Portfolio" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Work Portfolio
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              How I turned 11 old jobs into a single interactive page, and the
+    <ThoughtLayout
+      breadcrumb="Work Portfolio"
+      title="Work Portfolio"
+      intro={
+        <>
+          How I turned 11 old jobs into a single interactive page, and the
               handful of decisions that made it buildable without turning into a
               museum of dead apps.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div className={styles.phone} style={{ minHeight: "calc(100dvh - 56px)" }}>
+            <div className={styles.chat}>
+              <Timestamp>Today 11:02 AM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <Section title="The problem with a work portfolio">
+              <Received pos="first">saw the work portfolio page</Received>
+              <Received pos="last">are those the real apps running?</Received>
+
+              <Sent pos="first">
+                no, and that&apos;s on purpose. the real ones have dead backends,
+                retired auth, paid licenses, client names i can&apos;t show. a
+                portfolio of those is just dead links
+              </Sent>
+              <Sent pos="last">
+                so each feature is rebuilt from scratch as a little
+                self-contained demo with fake data. reconstruction, not the old
+                app on life support
+              </Sent>
+
+              <Received>how do you show client work without showing clients</Received>
+
+              <Sent pos="first">
+                nothing real ships, no company, no game names, no wallets.
+                everything gets a codename. and it&apos;s not just discipline,
+                there&apos;s a test that greps the whole feature for banned names
+                and fails the build if one slips
+              </Sent>
+              <Sent pos="last">
+                the funny part is the test&apos;s own banned list is the one place
+                those words are allowed, so it skips scanning itself
+              </Sent>
+
+              <Received>bet you pulled in a ton of chart libs to rebuild them</Received>
+
+              <Sent pos="first">
+                opposite. hard rule: no new deps. the originals used MUI, ECharts,
+                a node-graph lib, gridstack. i rebuilt all of it on what was
+                already here, tailwind, framer, recharts
+              </Sent>
+              <Sent pos="last">
+                the drag-drop dashboard is just css grid, the node graph is
+                hand-drawn svg. and every demo is a lazy chunk so the page only
+                loads the one you&apos;re looking at
+              </Sent>
+
+              <Received>the two scrolling bars are cool but hard to click a moving thing</Received>
+
+              <Sent pos="first">
+                yeah that was the main risk. hover pauses it, touch freezes it,
+                and there&apos;s always arrows + keyboard + deep links as the
+                stable path. reduced-motion kills the scroll entirely
+              </Sent>
+              <Sent pos="last">
+                and every chip has an info button that tells you what was real vs
+                mocked. i&apos;d rather be upfront that it&apos;s a rebuild
+              </Sent>
+
+              <Received>how&apos;d you ship something this big</Received>
+
+              <Sent pos="first">
+                one base PR with all the plumbing and placeholders, then each
+                batch of demos as its own PR that only touches its own files. they
+                merge in any order once the base is in
+              </Sent>
+              <Sent pos="last">
+                turns one scary 24-demo feature into a dozen small reviewable
+                ones. that&apos;s the whole trick really
+              </Sent>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <Section title="The problem with a work portfolio">
               <p className="mb-3 text-muted">
                 Past work rots. The apps have dead backends, retired auth, paid
                 licenses, and client names you can&apos;t show. A list of
@@ -182,81 +237,6 @@ export default function WorkPortfolioThoughtsContent() {
                 </Bullet>
               </ul>
             </Section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div className={styles.phone} style={{ minHeight: "calc(100dvh - 56px)" }}>
-            <div className={styles.chat}>
-              <Timestamp>Today 11:02 AM</Timestamp>
-
-              <Received pos="first">saw the work portfolio page</Received>
-              <Received pos="last">are those the real apps running?</Received>
-
-              <Sent pos="first">
-                no, and that&apos;s on purpose. the real ones have dead backends,
-                retired auth, paid licenses, client names i can&apos;t show. a
-                portfolio of those is just dead links
-              </Sent>
-              <Sent pos="last">
-                so each feature is rebuilt from scratch as a little
-                self-contained demo with fake data. reconstruction, not the old
-                app on life support
-              </Sent>
-
-              <Received>how do you show client work without showing clients</Received>
-
-              <Sent pos="first">
-                nothing real ships, no company, no game names, no wallets.
-                everything gets a codename. and it&apos;s not just discipline,
-                there&apos;s a test that greps the whole feature for banned names
-                and fails the build if one slips
-              </Sent>
-              <Sent pos="last">
-                the funny part is the test&apos;s own banned list is the one place
-                those words are allowed, so it skips scanning itself
-              </Sent>
-
-              <Received>bet you pulled in a ton of chart libs to rebuild them</Received>
-
-              <Sent pos="first">
-                opposite. hard rule: no new deps. the originals used MUI, ECharts,
-                a node-graph lib, gridstack. i rebuilt all of it on what was
-                already here, tailwind, framer, recharts
-              </Sent>
-              <Sent pos="last">
-                the drag-drop dashboard is just css grid, the node graph is
-                hand-drawn svg. and every demo is a lazy chunk so the page only
-                loads the one you&apos;re looking at
-              </Sent>
-
-              <Received>the two scrolling bars are cool but hard to click a moving thing</Received>
-
-              <Sent pos="first">
-                yeah that was the main risk. hover pauses it, touch freezes it,
-                and there&apos;s always arrows + keyboard + deep links as the
-                stable path. reduced-motion kills the scroll entirely
-              </Sent>
-              <Sent pos="last">
-                and every chip has an info button that tells you what was real vs
-                mocked. i&apos;d rather be upfront that it&apos;s a rebuild
-              </Sent>
-
-              <Received>how&apos;d you ship something this big</Received>
-
-              <Sent pos="first">
-                one base PR with all the plumbing and placeholders, then each
-                batch of demos as its own PR that only touches its own files. they
-                merge in any order once the base is in
-              </Sent>
-              <Sent pos="last">
-                turns one scary 24-demo feature into a dozen small reviewable
-                ones. that&apos;s the whole trick really
-              </Sent>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

@@ -1,255 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function BundleContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "Bundle Analysis" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Bundle Analysis
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              How @next/bundle-analyzer exposed Auth0&apos;s client SDK shipping
+    <ThoughtLayout
+      breadcrumb="Bundle Analysis"
+      title="Bundle Analysis"
+      intro={
+        <>
+          How @next/bundle-analyzer exposed Auth0&apos;s client SDK shipping
               to the browser for no reason.
-            </p>
-          </header>
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">How the analyzer works</h2>
-              <ul className="mt-2 space-y-2 text-muted">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    Install{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      @next/bundle-analyzer
-                    </code>
-                    , wrap{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      next.config.ts
-                    </code>
-                    , run{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      ANALYZE=true next build --webpack
-                    </code>
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    Opens an HTML treemap — each rectangle is a module, sized by
-                    its byte contribution
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    The{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      --webpack
-                    </code>{" "}
-                    flag is required; Next.js 16 defaults to Turbopack which the
-                    analyzer doesn&apos;t support
-                  </span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">What it found</h2>
-              <ul className="mt-2 space-y-2 text-muted">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    Three things stood out: a large{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      proxy.js
-                    </code>{" "}
-                    edge bundle, Auth0 packages in the client bundle, and{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      date-fns
-                    </code>{" "}
-                    at 24 modules
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    Only Auth0 was a problem — the other two were expected
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      proxy.js
-                    </code>{" "}
-                    is the middleware (intentionally large: it runs auth and CSP
-                    on every request).{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      date-fns
-                    </code>{" "}
-                    at 24 modules is correct tree-shaking — only the
-                    calendar&apos;s named imports are included
-                  </span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                The real problem: Auth0Provider
-              </h2>
-              <p className="text-muted">
-                Root layout wrapped the whole app in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  &lt;Auth0Provider&gt;
-                </code>
-                , a React context so client components could call{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useUser()
-                </code>
-                .
-              </p>
-              <p className="mt-3 text-muted">
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useUser()
-                </code>{" "}
-                had zero call sites in the entire codebase.{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  Auth0Provider
-                </code>{" "}
-                pulled in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  jose
-                </code>{" "}
-                (JWT parsing, hundreds of KB),{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  oauth4webapi
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  openid-client
-                </code>
-                , and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  swr
-                </code>{" "}
-                — server-only libraries with no business in a browser bundle.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">The fix</h2>
-              <ul className="mt-2 space-y-2 text-muted">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    Remove{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      Auth0Provider
-                    </code>{" "}
-                    from{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      layout.tsx
-                    </code>{" "}
-                    — three lines deleted, layout became a synchronous function
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      jose
-                    </code>
-                    ,{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      oauth4webapi
-                    </code>
-                    ,{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      openid-client
-                    </code>
-                    , and{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      swr
-                    </code>{" "}
-                    disappeared from the client bundle entirely
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    Auth still works: middleware gates every route server-side
-                    before React runs; server components call{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      auth0.getSession()
-                    </code>{" "}
-                    directly; API routes call{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      auth0.getAccessToken()
-                    </code>
-                  </span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">The takeaway</h2>
-              <ul className="mt-2 space-y-2 text-muted">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    The analyzer is most useful for finding things that
-                    shouldn&apos;t be in a bundle, not just things that are too
-                    large
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    Pattern to watch for: server-only libraries (crypto, JWT
-                    parsers, DB drivers) appearing in the client or edge bundle
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    A quick grep for{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      useUser
-                    </code>{" "}
-                    — zero results — confirmed the removal was safe before
-                    shipping
-                  </span>
-                </li>
-              </ul>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         /* Chat view: shared nav already rendered above, phone frame has no topBar */
         <div className="flex justify-center">
           <div
@@ -531,7 +297,219 @@ const { token } = await auth0.getAccessToken();
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">How the analyzer works</h2>
+              <ul className="mt-2 space-y-2 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    Install{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      @next/bundle-analyzer
+                    </code>
+                    , wrap{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      next.config.ts
+                    </code>
+                    , run{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      ANALYZE=true next build --webpack
+                    </code>
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    Opens an HTML treemap — each rectangle is a module, sized by
+                    its byte contribution
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    The{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      --webpack
+                    </code>{" "}
+                    flag is required; Next.js 16 defaults to Turbopack which the
+                    analyzer doesn&apos;t support
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">What it found</h2>
+              <ul className="mt-2 space-y-2 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    Three things stood out: a large{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      proxy.js
+                    </code>{" "}
+                    edge bundle, Auth0 packages in the client bundle, and{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      date-fns
+                    </code>{" "}
+                    at 24 modules
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    Only Auth0 was a problem — the other two were expected
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      proxy.js
+                    </code>{" "}
+                    is the middleware (intentionally large: it runs auth and CSP
+                    on every request).{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      date-fns
+                    </code>{" "}
+                    at 24 modules is correct tree-shaking — only the
+                    calendar&apos;s named imports are included
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                The real problem: Auth0Provider
+              </h2>
+              <p className="text-muted">
+                Root layout wrapped the whole app in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &lt;Auth0Provider&gt;
+                </code>
+                , a React context so client components could call{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useUser()
+                </code>
+                .
+              </p>
+              <p className="mt-3 text-muted">
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useUser()
+                </code>{" "}
+                had zero call sites in the entire codebase.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Auth0Provider
+                </code>{" "}
+                pulled in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  jose
+                </code>{" "}
+                (JWT parsing, hundreds of KB),{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  oauth4webapi
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  openid-client
+                </code>
+                , and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  swr
+                </code>{" "}
+                — server-only libraries with no business in a browser bundle.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">The fix</h2>
+              <ul className="mt-2 space-y-2 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    Remove{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      Auth0Provider
+                    </code>{" "}
+                    from{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      layout.tsx
+                    </code>{" "}
+                    — three lines deleted, layout became a synchronous function
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      jose
+                    </code>
+                    ,{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      oauth4webapi
+                    </code>
+                    ,{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      openid-client
+                    </code>
+                    , and{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      swr
+                    </code>{" "}
+                    disappeared from the client bundle entirely
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    Auth still works: middleware gates every route server-side
+                    before React runs; server components call{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      auth0.getSession()
+                    </code>{" "}
+                    directly; API routes call{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      auth0.getAccessToken()
+                    </code>
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">The takeaway</h2>
+              <ul className="mt-2 space-y-2 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    The analyzer is most useful for finding things that
+                    shouldn&apos;t be in a bundle, not just things that are too
+                    large
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    Pattern to watch for: server-only libraries (crypto, JWT
+                    parsers, DB drivers) appearing in the client or edge bundle
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    A quick grep for{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      useUser
+                    </code>{" "}
+                    — zero results — confirmed the removal was safe before
+                    shipping
+                  </span>
+                </li>
+              </ul>
+            </section>
+    </ThoughtLayout>
   );
 }

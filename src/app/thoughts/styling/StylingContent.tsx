@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button, Input, Modal } from "@/components/ui";
 import styles from "./styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function StylingContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [inputError, setInputError] = useState("");
@@ -29,221 +27,16 @@ export default function StylingContent() {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "Styling Decisions" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Styling Decisions
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Four layers built on top of each other — design tokens, Tailwind
+    <ThoughtLayout
+      breadcrumb="Styling Decisions"
+      title="Styling Decisions"
+      intro={
+        <>
+          Four layers built on top of each other — design tokens, Tailwind
               v4, a theme switcher, and accessible component primitives.
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Layer 1: Design tokens</h2>
-              <p className="text-muted">
-                One{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  tokens.css
-                </code>{" "}
-                file with colors, spacing, and font sizes as CSS custom
-                properties. The palette shades (50–950) are the same in both
-                light and dark mode. The semantic aliases flip —{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  background
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  foreground
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  surface
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  border
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  muted
-                </code>
-                . Values are reusable everywhere and changing one token updates
-                every consumer. The downside: lots of CSS variables, and once
-                you name a token it&apos;s hard to rename.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Layer 2: Tailwind v4</h2>
-              <p className="text-muted">
-                A{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  @theme
-                </code>{" "}
-                block bridges the token CSS variables to Tailwind utility
-                classes —{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  bg-primary-600
-                </code>{" "}
-                and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  var(--color-primary-600)
-                </code>{" "}
-                resolve to the same value. The CSS Module files are legacy and
-                kept for backwards compatibility. A{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  @custom-variant
-                </code>{" "}
-                tells Tailwind to match{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  [data-theme=&quot;dark&quot;]
-                </code>{" "}
-                instead of the media query, so{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  dark:hover:bg-neutral-800
-                </code>{" "}
-                works with the toggle.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Layer 3: Theme switching
-              </h2>
-              <p className="text-muted">
-                A{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ThemeProvider
-                </code>{" "}
-                sets the{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  data-theme
-                </code>{" "}
-                attribute on the base{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  {"<html>"}
-                </code>{" "}
-                element. Instead of{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useState
-                </code>{" "}
-                with{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useEffect
-                </code>{" "}
-                (which triggers ESLint warnings about setState in effects), it
-                uses{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useSyncExternalStore
-                </code>{" "}
-                — one subscription for localStorage, one for matchMedia. The
-                theme is derived, never stored in state. Defaults to OS theme
-                but allows manual override.{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  data-theme
-                </code>{" "}
-                is used over a class because data attributes describe state
-                while classes describe styling, and it avoids collision with
-                Tailwind utility classes.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Layer 4: Component primitives
-              </h2>
-              <p className="text-muted">
-                Reusable{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  Button
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  Input
-                </code>
-                , and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  Modal
-                </code>{" "}
-                primitives built without Radix or Headless UI — for three
-                components it&apos;s reasonable to build by hand for zero
-                runtime deps, full DOM control, and hands-on focus management
-                experience.
-              </p>
-              <ul className="mt-3 space-y-2 text-muted">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">Button</strong> — the{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      loading
-                    </code>{" "}
-                    prop sets{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      aria-busy
-                    </code>
-                    , shows a spinner, and disables clicks. Focus rings use{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      focus-visible
-                    </code>{" "}
-                    so they only appear for keyboard users.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">Input</strong> — labels
-                    auto-associate via{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      useId()
-                    </code>
-                    . Errors use{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      role=&quot;alert&quot;
-                    </code>{" "}
-                    so screen readers announce them immediately.{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      aria-describedby
-                    </code>{" "}
-                    links the input to its error or helper text.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">Modal</strong> — built
-                    with{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      createPortal
-                    </code>{" "}
-                    to escape stacking contexts. Custom focus trap cycles Tab
-                    through focusable elements. On close, focus returns to
-                    whatever element opened it. No external dependencies.
-                  </span>
-                </li>
-              </ul>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         <div className="flex justify-center">
           <div
             className={styles.phone}
@@ -672,7 +465,193 @@ export default function StylingContent() {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">Layer 1: Design tokens</h2>
+              <p className="text-muted">
+                One{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  tokens.css
+                </code>{" "}
+                file with colors, spacing, and font sizes as CSS custom
+                properties. The palette shades (50–950) are the same in both
+                light and dark mode. The semantic aliases flip —{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  background
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  foreground
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  surface
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  border
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  muted
+                </code>
+                . Values are reusable everywhere and changing one token updates
+                every consumer. The downside: lots of CSS variables, and once
+                you name a token it&apos;s hard to rename.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Layer 2: Tailwind v4</h2>
+              <p className="text-muted">
+                A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @theme
+                </code>{" "}
+                block bridges the token CSS variables to Tailwind utility
+                classes —{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bg-primary-600
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  var(--color-primary-600)
+                </code>{" "}
+                resolve to the same value. The CSS Module files are legacy and
+                kept for backwards compatibility. A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @custom-variant
+                </code>{" "}
+                tells Tailwind to match{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  [data-theme=&quot;dark&quot;]
+                </code>{" "}
+                instead of the media query, so{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  dark:hover:bg-neutral-800
+                </code>{" "}
+                works with the toggle.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Layer 3: Theme switching
+              </h2>
+              <p className="text-muted">
+                A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ThemeProvider
+                </code>{" "}
+                sets the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data-theme
+                </code>{" "}
+                attribute on the base{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"<html>"}
+                </code>{" "}
+                element. Instead of{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useState
+                </code>{" "}
+                with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useEffect
+                </code>{" "}
+                (which triggers ESLint warnings about setState in effects), it
+                uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useSyncExternalStore
+                </code>{" "}
+                — one subscription for localStorage, one for matchMedia. The
+                theme is derived, never stored in state. Defaults to OS theme
+                but allows manual override.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  data-theme
+                </code>{" "}
+                is used over a class because data attributes describe state
+                while classes describe styling, and it avoids collision with
+                Tailwind utility classes.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Layer 4: Component primitives
+              </h2>
+              <p className="text-muted">
+                Reusable{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Button
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Input
+                </code>
+                , and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Modal
+                </code>{" "}
+                primitives built without Radix or Headless UI — for three
+                components it&apos;s reasonable to build by hand for zero
+                runtime deps, full DOM control, and hands-on focus management
+                experience.
+              </p>
+              <ul className="mt-3 space-y-2 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">Button</strong> — the{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      loading
+                    </code>{" "}
+                    prop sets{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      aria-busy
+                    </code>
+                    , shows a spinner, and disables clicks. Focus rings use{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      focus-visible
+                    </code>{" "}
+                    so they only appear for keyboard users.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">Input</strong> — labels
+                    auto-associate via{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      useId()
+                    </code>
+                    . Errors use{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      role=&quot;alert&quot;
+                    </code>{" "}
+                    so screen readers announce them immediately.{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      aria-describedby
+                    </code>{" "}
+                    links the input to its error or helper text.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">Modal</strong> — built
+                    with{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      createPortal
+                    </code>{" "}
+                    to escape stacking contexts. Custom focus trap cycles Tab
+                    through focusable elements. On close, focus returns to
+                    whatever element opened it. No external dependencies.
+                  </span>
+                </li>
+              </ul>
+            </section>
+    </ThoughtLayout>
   );
 }

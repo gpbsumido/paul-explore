@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -42,35 +40,156 @@ function Section({
 }
 
 export default function TreeShakingContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Tree Shaking" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Tree Shaking
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A methodical pass at dead weight. The interesting part was never
+    <ThoughtLayout
+      breadcrumb="Tree Shaking"
+      title="Tree Shaking"
+      intro={
+        <>
+          A methodical pass at dead weight. The interesting part was never
               the deletions — it was deciding what actually counts as dead, and
               which calls a tool is allowed to make for you.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        /* Chat view: shared nav already rendered above, phone frame has no topBar */
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 9:12 AM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <Section title="Three kinds of dead weight">
+              <Received pos="first">
+                you did a &quot;tree shaking&quot; pass right
+              </Received>
+              <Received pos="last">
+                how much smaller did the bundle get
+              </Received>
+
+              <Sent pos="first">
+                barely, and that&apos;s the honest answer. most of what people
+                call tree shaking doesn&apos;t touch the bundle at all
+              </Sent>
+              <Sent pos="last">
+                it splits into three buckets: stuff that ships to the browser,
+                stuff that only rides along on the deploy, and stuff that&apos;s
+                just messy source. only the first one is a perf win
+              </Sent>
+
+              <Received>wait explain the difference</Received>
+
+              <Sent pos="first">
+                say you delete an <code>export</code> nobody imports. feels like
+                a win. but the bundler already tree-shakes unused exports out —
+                it was never in the browser. so you changed exactly zero bytes at
+                runtime. it&apos;s cleaner code, not a faster page
+              </Sent>
+              <Sent pos="last">
+                deploy weight is different — like 256K of raw model files sitting
+                in <code>public/</code> that nothing loads. those ship on every
+                deploy. still not in the bundle, but real bytes on the artifact
+              </Sent>
+
+              <Received pos="first">
+                so what actually shrank the bundle
+              </Received>
+              <Received pos="last">anything?</Received>
+
+              <Sent pos="last">
+                one thing. two dead hero components from an old landing, and
+                deleting one let me drop <code>@shadergradient/react</code> — a
+                whole WebGL package it was the only importer of. that&apos;s the
+                single change that moved real browser bytes
+              </Sent>
+
+              <Timestamp>9:20 AM</Timestamp>
+
+              <Received>
+                and you found all this with a tool?
+              </Received>
+
+              <Sent pos="first">
+                tools <em>nominated</em> it. depcheck for unused deps, ts-prune
+                for dead exports. but every one of those is a heuristic with
+                blind spots, so nothing got deleted on the report alone — a grep
+                had to confirm it first
+              </Sent>
+              <Sent pos="last">
+                two findings looked identical to the tool and needed opposite
+                calls. that was the actual interesting part
+              </Sent>
+
+              <Received>like what</Received>
+
+              <Sent pos="first">
+                depcheck flagged <code>gltf-transform</code> as unused. but
+                it&apos;s a command-line tool for prepping 3D models — it strips
+                a compression format for a CSP reason. depcheck can&apos;t see
+                usage that isn&apos;t an <code>import</code>. deleting it would&apos;ve
+                broken a real pipeline to satisfy a false positive. so I kept it
+              </Sent>
+              <Sent pos="last">
+                same report also flagged two old landing components. those were{" "}
+                <em>actually</em> dead. so one flag → keep, the other → delete.
+                the tool couldn&apos;t tell them apart
+              </Sent>
+
+              <Received pos="first">
+                why not just keep the old components too, to be safe
+              </Received>
+              <Received pos="last">
+                the site keeps retired versions around doesn&apos;t it
+              </Received>
+
+              <Sent pos="first">
+                it does, and that was the real tension. but I was adding a{" "}
+                <em>blocking</em> dead-code check to CI at the same time. if I
+                keep known-dead code, I have to permanently suppress it in the
+                check
+              </Sent>
+              <Sent pos="last">
+                and suppressing dead code to make a dead-code check pass is
+                just... defeating the check. so they went. the write-up about
+                that hero still exists, so the history isn&apos;t lost
+              </Sent>
+
+              <Timestamp>9:31 AM</Timestamp>
+
+              <Received>
+                why blocking though, isn&apos;t that annoying
+              </Received>
+
+              <Sent pos="first">
+                advisory checks get ignored until they&apos;re background noise.
+                blocking means an unused import can&apos;t sneak through review.
+                the price is you maintain an ignore list for the false positives,
+                or the build cries wolf and someone turns it off
+              </Sent>
+              <Sent pos="last">
+                worth it. one caveat — ts-prune&apos;s error mode also fails on
+                exports used only inside their own file, which isn&apos;t dead,
+                just a stray keyword. a little wrapper script filters those so it
+                only fails on genuinely-unreferenced stuff
+              </Sent>
+
+              <Received>what&apos;s the one-line version</Received>
+
+              <Sent pos="first">
+                name the currency before you celebrate a deletion. cleaner source
+                isn&apos;t a faster page — know which one you actually did
+              </Sent>
+              <Sent pos="last">
+                and a tool&apos;s &quot;unused&quot; is a question, not an answer.
+                never suppress a real finding just to get a green check
+              </Sent>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <Section title="Three kinds of dead weight">
               <p className="mb-3 text-muted">
                 &quot;Tree shaking&quot; gets used as a catch-all, but the
                 cleanup splits into three buckets that pay off in completely
@@ -286,145 +405,6 @@ export default function TreeShakingContent() {
                 </Bullet>
               </ul>
             </Section>
-          </div>
-        </main>
-      ) : (
-        /* Chat view: shared nav already rendered above, phone frame has no topBar */
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 9:12 AM</Timestamp>
-
-              <Received pos="first">
-                you did a &quot;tree shaking&quot; pass right
-              </Received>
-              <Received pos="last">
-                how much smaller did the bundle get
-              </Received>
-
-              <Sent pos="first">
-                barely, and that&apos;s the honest answer. most of what people
-                call tree shaking doesn&apos;t touch the bundle at all
-              </Sent>
-              <Sent pos="last">
-                it splits into three buckets: stuff that ships to the browser,
-                stuff that only rides along on the deploy, and stuff that&apos;s
-                just messy source. only the first one is a perf win
-              </Sent>
-
-              <Received>wait explain the difference</Received>
-
-              <Sent pos="first">
-                say you delete an <code>export</code> nobody imports. feels like
-                a win. but the bundler already tree-shakes unused exports out —
-                it was never in the browser. so you changed exactly zero bytes at
-                runtime. it&apos;s cleaner code, not a faster page
-              </Sent>
-              <Sent pos="last">
-                deploy weight is different — like 256K of raw model files sitting
-                in <code>public/</code> that nothing loads. those ship on every
-                deploy. still not in the bundle, but real bytes on the artifact
-              </Sent>
-
-              <Received pos="first">
-                so what actually shrank the bundle
-              </Received>
-              <Received pos="last">anything?</Received>
-
-              <Sent pos="last">
-                one thing. two dead hero components from an old landing, and
-                deleting one let me drop <code>@shadergradient/react</code> — a
-                whole WebGL package it was the only importer of. that&apos;s the
-                single change that moved real browser bytes
-              </Sent>
-
-              <Timestamp>9:20 AM</Timestamp>
-
-              <Received>
-                and you found all this with a tool?
-              </Received>
-
-              <Sent pos="first">
-                tools <em>nominated</em> it. depcheck for unused deps, ts-prune
-                for dead exports. but every one of those is a heuristic with
-                blind spots, so nothing got deleted on the report alone — a grep
-                had to confirm it first
-              </Sent>
-              <Sent pos="last">
-                two findings looked identical to the tool and needed opposite
-                calls. that was the actual interesting part
-              </Sent>
-
-              <Received>like what</Received>
-
-              <Sent pos="first">
-                depcheck flagged <code>gltf-transform</code> as unused. but
-                it&apos;s a command-line tool for prepping 3D models — it strips
-                a compression format for a CSP reason. depcheck can&apos;t see
-                usage that isn&apos;t an <code>import</code>. deleting it would&apos;ve
-                broken a real pipeline to satisfy a false positive. so I kept it
-              </Sent>
-              <Sent pos="last">
-                same report also flagged two old landing components. those were{" "}
-                <em>actually</em> dead. so one flag → keep, the other → delete.
-                the tool couldn&apos;t tell them apart
-              </Sent>
-
-              <Received pos="first">
-                why not just keep the old components too, to be safe
-              </Received>
-              <Received pos="last">
-                the site keeps retired versions around doesn&apos;t it
-              </Received>
-
-              <Sent pos="first">
-                it does, and that was the real tension. but I was adding a{" "}
-                <em>blocking</em> dead-code check to CI at the same time. if I
-                keep known-dead code, I have to permanently suppress it in the
-                check
-              </Sent>
-              <Sent pos="last">
-                and suppressing dead code to make a dead-code check pass is
-                just... defeating the check. so they went. the write-up about
-                that hero still exists, so the history isn&apos;t lost
-              </Sent>
-
-              <Timestamp>9:31 AM</Timestamp>
-
-              <Received>
-                why blocking though, isn&apos;t that annoying
-              </Received>
-
-              <Sent pos="first">
-                advisory checks get ignored until they&apos;re background noise.
-                blocking means an unused import can&apos;t sneak through review.
-                the price is you maintain an ignore list for the false positives,
-                or the build cries wolf and someone turns it off
-              </Sent>
-              <Sent pos="last">
-                worth it. one caveat — ts-prune&apos;s error mode also fails on
-                exports used only inside their own file, which isn&apos;t dead,
-                just a stray keyword. a little wrapper script filters those so it
-                only fails on genuinely-unreferenced stuff
-              </Sent>
-
-              <Received>what&apos;s the one-line version</Received>
-
-              <Sent pos="first">
-                name the currency before you celebrate a deletion. cleaner source
-                isn&apos;t a faster page — know which one you actually did
-              </Sent>
-              <Sent pos="last">
-                and a tool&apos;s &quot;unused&quot; is a question, not an answer.
-                never suppress a real finding just to get a green check
-              </Sent>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

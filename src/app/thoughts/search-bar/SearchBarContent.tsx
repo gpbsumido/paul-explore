@@ -1,130 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Sent, Received, Timestamp } from "@/lib/threads";
 import SearchDemo from "./SearchDemo";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function SearchBarContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Search Bar" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Search Bar
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Making a search input interactive without converting the whole
+    <ThoughtLayout
+      breadcrumb="Search Bar"
+      title="Search Bar"
+      intro={
+        <>
+          Making a search input interactive without converting the whole
               page to a client component — pushing the client boundary as low as
               possible.
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">The problem</h2>
-              <p className="text-muted">
-                The hub page is a server component — it calls{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  await auth0.getSession()
-                </code>{" "}
-                to get the user session. Server components can&apos;t use{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useState
-                </code>{" "}
-                or handle user input, so the search input was just decoration.
-                Making it interactive required something to become a client
-                component.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">The boundary</h2>
-              <p className="text-muted">
-                Converting the whole page to a client component would mean
-                losing server-side auth —{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  auth0.getSession()
-                </code>{" "}
-                only works in server components, where it can read cookies from
-                the request. Instead, only the search bar and thread list were
-                extracted into a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ThreadList
-                </code>{" "}
-                client component.
-              </p>
-              <p className="mt-3 text-muted">
-                The page itself stays server-rendered: it fetches the session,
-                reads the user name and email, and renders the layout. It passes
-                the{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  threads
-                </code>{" "}
-                array down as a prop. The client component handles interactive
-                filtering. The principle: push client boundaries as low as
-                possible — only the leaf that needs interactivity gets{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  &quot;use client&quot;
-                </code>
-                .
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">The filter</h2>
-              <p className="text-muted">
-                Simple{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  .filter()
-                </code>{" "}
-                on every keystroke — case-insensitive{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  .includes()
-                </code>{" "}
-                check against three fields: name, href, and preview. With 4
-                threads this is instant. No debouncing, no fuzzy matching, no
-                external library needed.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Key insight</h2>
-              <p className="text-muted">
-                Server components are the default in Next.js for a reason — they
-                don&apos;t ship JS to the browser, they can access server-only
-                APIs directly, and they render on first paint without hydration
-                delay. Making the whole page a client component would have been
-                simpler to write, but it&apos;s a bad pattern to establish. The
-                right amount of complexity here is the minimum needed:{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  .filter()
-                </code>{" "}
-                and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  .includes()
-                </code>{" "}
-                over 4 items. No more.
-              </p>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         <div className="flex justify-center">
           <div
             className={styles.phone}
@@ -331,7 +224,94 @@ export default function ThreadList({ threads }) {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">The problem</h2>
+              <p className="text-muted">
+                The hub page is a server component — it calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  await auth0.getSession()
+                </code>{" "}
+                to get the user session. Server components can&apos;t use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useState
+                </code>{" "}
+                or handle user input, so the search input was just decoration.
+                Making it interactive required something to become a client
+                component.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">The boundary</h2>
+              <p className="text-muted">
+                Converting the whole page to a client component would mean
+                losing server-side auth —{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  auth0.getSession()
+                </code>{" "}
+                only works in server components, where it can read cookies from
+                the request. Instead, only the search bar and thread list were
+                extracted into a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ThreadList
+                </code>{" "}
+                client component.
+              </p>
+              <p className="mt-3 text-muted">
+                The page itself stays server-rendered: it fetches the session,
+                reads the user name and email, and renders the layout. It passes
+                the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  threads
+                </code>{" "}
+                array down as a prop. The client component handles interactive
+                filtering. The principle: push client boundaries as low as
+                possible — only the leaf that needs interactivity gets{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &quot;use client&quot;
+                </code>
+                .
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">The filter</h2>
+              <p className="text-muted">
+                Simple{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  .filter()
+                </code>{" "}
+                on every keystroke — case-insensitive{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  .includes()
+                </code>{" "}
+                check against three fields: name, href, and preview. With 4
+                threads this is instant. No debouncing, no fuzzy matching, no
+                external library needed.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Key insight</h2>
+              <p className="text-muted">
+                Server components are the default in Next.js for a reason — they
+                don&apos;t ship JS to the browser, they can access server-only
+                APIs directly, and they render on first paint without hydration
+                delay. Making the whole page a client component would have been
+                simpler to write, but it&apos;s a bad pattern to establish. The
+                right amount of complexity here is the minimum needed:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  .filter()
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  .includes()
+                </code>{" "}
+                over 4 items. No more.
+              </p>
+            </section>
+    </ThoughtLayout>
   );
 }

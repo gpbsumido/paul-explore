@@ -1,34 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import { Sent, Received, Timestamp } from "@/lib/threads";
 import styles from "@/app/thoughts/styling/styling.module.css";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function KetsupContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Ketsup" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Ketsup
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A social app for image and text posts — think Instagram but
+    <ThoughtLayout
+      breadcrumb="Ketsup"
+      title="Ketsup"
+      intro={
+        <>
+          A social app for image and text posts — think Instagram but
               simpler. Live at{" "}
               <a
                 href="https://ketsup.paulsumido.com"
@@ -39,11 +22,49 @@ export default function KetsupContent() {
                 ketsup.paulsumido.com
               </a>
               .
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
+          <div className={styles.chat}>
+            <Timestamp>Earlier</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+            <Received pos="first">so what is ketsup</Received>
+            <Received pos="last">instagram?</Received>
+
+            <Sent pos="first">kind of yeah, same idea</Sent>
+            <Sent pos="middle">you can post images or just text</Sent>
+            <Sent pos="last">both show up in the same feed</Sent>
+
+            <Received>what&apos;s the difference from instagram then</Received>
+
+            <Sent pos="first">
+              way simpler — no stories, no reels, no algorithm deciding what
+              you see
+            </Sent>
+            <Sent pos="last">just a chronological feed of posts</Sent>
+
+            <Received>makes sense, and it&apos;s live?</Received>
+
+            <Sent pos="first">yeah, ketsup.paulsumido.com</Sent>
+            <Sent pos="last">separate domain, own codebase, totally outside this repo</Sent>
+
+            <Received>why not just put it in paul-explore</Received>
+
+            <Sent pos="first">
+              it&apos;s meant to be a real product not just a demo
+            </Sent>
+            <Sent pos="last">
+              own domain felt right — cleaner to share, and it can grow without
+              being tied to whatever is going on in here
+            </Sent>
+
+            <Timestamp>Just now</Timestamp>
+          </div>
+        </main>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">What it is</h2>
               <p className="text-muted">
                 Ketsup is a social posting app. You can share image posts with
@@ -106,47 +127,6 @@ export default function KetsupContent() {
                 </a>
               </div>
             </section>
-          </div>
-        </main>
-      ) : (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <div className={styles.chat}>
-            <Timestamp>Earlier</Timestamp>
-
-            <Received pos="first">so what is ketsup</Received>
-            <Received pos="last">instagram?</Received>
-
-            <Sent pos="first">kind of yeah, same idea</Sent>
-            <Sent pos="middle">you can post images or just text</Sent>
-            <Sent pos="last">both show up in the same feed</Sent>
-
-            <Received>what&apos;s the difference from instagram then</Received>
-
-            <Sent pos="first">
-              way simpler — no stories, no reels, no algorithm deciding what
-              you see
-            </Sent>
-            <Sent pos="last">just a chronological feed of posts</Sent>
-
-            <Received>makes sense, and it&apos;s live?</Received>
-
-            <Sent pos="first">yeah, ketsup.paulsumido.com</Sent>
-            <Sent pos="last">separate domain, own codebase, totally outside this repo</Sent>
-
-            <Received>why not just put it in paul-explore</Received>
-
-            <Sent pos="first">
-              it&apos;s meant to be a real product not just a demo
-            </Sent>
-            <Sent pos="last">
-              own domain felt right — cleaner to share, and it can grow without
-              being tied to whatever is going on in here
-            </Sent>
-
-            <Timestamp>Just now</Timestamp>
-          </div>
-        </main>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

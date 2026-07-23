@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 1.0.1
+
+- finished the `ThoughtLayout` rollout: moved the remaining 33 chat-style write-ups off their hand-rolled scaffold and onto the shared component, using its toggle mode. Each page kept its own `useState` view flag, breadcrumb header, "Dev notes" eyebrow + heading + intro, and the summary/chat branch inline — now they pass `breadcrumb`, `title`, `intro`, `chat`, and their sections and let `ThoughtLayout` own the shell and the summary/chat toggle. Purely structural: the section and conversation content moved across verbatim (only the wrapper and its indentation changed), so nothing about how the pages read or render changed. One incidental tidy — `api-backend-overhaul` had used `space-y-12` for its section stack where every other page used `space-y-10`, so it now matches. That closes the follow-up noted in 1.0.0; the whole `/thoughts` section is on one layout, so a fix to the shell lands everywhere at once
+
 ## 2026-07-23 - version 1.0.0
 
 - extracted the shared dev-notes scaffold every thoughts write-up had been repeating by hand into a single `ThoughtLayout` component. The page shell, the breadcrumb header (with the optional summary/chat toggle), and the "Dev notes" eyebrow + heading + intro of the summary view now live in one place, so a cross-cutting fix to any of them lands everywhere instead of being copy-pasted across pages. Migrated the two summary-only write-ups (`v3-redesign`, `project-review`) onto it as the pilot; the toggle-mode adoption for the remaining chat-style pages follows incrementally since each wires its own conversation content. Also caught a pre-existing contrast miss while in there — the "notes" tag on the v3 write-up was `text-muted` at 10px (3.8:1), now `text-foreground/70` — so both pages pass the axe scan at WCAG 2.1 AA and best-practice with zero violations. Ships as 1.0.0

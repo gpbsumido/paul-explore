@@ -1,43 +1,264 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function PerfContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "Performance Improvements" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Performance Improvements
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A systematic pass through each Core Web Vital — what was wrong,
+    <ThoughtLayout
+      breadcrumb="Performance Improvements"
+      title="Performance Improvements"
+      intro={
+        <>
+          A systematic pass through each Core Web Vital — what was wrong,
               why, and what changed.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 2:00 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">
+                what did you actually change for the web vitals stuff
+              </Received>
+              <Received pos="last">
+                like what was broken and what did you do
+              </Received>
+
+              <Sent pos="first">
+                six things shipped across two separate passes
+              </Sent>
+              <Sent pos="last">
+                biggest one first: every dark mode user was seeing a flash on
+                every page load
+              </Sent>
+
+              <Received>what kind of flash</Received>
+
+              <Sent pos="first">
+                light background, then dark background. the whole page. every
+                time you navigate or hard reload
+              </Sent>
+              <Sent pos="middle">
+                the root cause is that <code>ThemeProvider</code> sets the{" "}
+                <code>data-theme</code> attribute on <code>&lt;html&gt;</code>{" "}
+                in a <code>useEffect</code>. that runs after the first paint. so
+                the browser paints the page once with light theme CSS, then the
+                effect fires, switches to dark, and repaints
+              </Sent>
+              <Sent pos="last">
+                this hurts FCP because there&apos;s a repaint cycle before the
+                meaningful content is stable. it also contributes to CLS if any
+                element dimensions differ between themes
+              </Sent>
+
+              <Received>how did you fix it</Received>
+
+              <Sent pos="first">
+                blocking inline script in <code>&lt;head&gt;</code>. runs
+                synchronously before CSS parses, before React hydrates, before
+                anything
+              </Sent>
+
+              <div className={styles.codeBubble}>
+                {`(function(){
+  try {
+    var p = localStorage.getItem('theme-preference') || 'system';
+    var t = p === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark' : 'light')
+      : p;
+    document.documentElement.setAttribute('data-theme', t);
+  } catch(e) {}
+})();`}
+              </div>
+
+              <Sent pos="first">
+                it reads the stored preference, resolves &apos;system&apos;
+                against <code>matchMedia</code>, and sets the attribute. the
+                try/catch handles private browsing where{" "}
+                <code>localStorage</code> throws
+              </Sent>
+              <Sent pos="last">
+                the <code>useEffect</code> in ThemeProvider still runs but
+                it&apos;s now a no-op — the attribute is already the right value
+                by the time React touches the DOM
+              </Sent>
+
+              <Timestamp>2:09 PM</Timestamp>
+
+              <Received>what else</Received>
+
+              <Sent pos="first">TTFB. two things there</Sent>
+              <Sent pos="middle">
+                first: fourteen thoughts pages and four fantasy pages had no
+                revalidation strategy. Next.js was re-rendering them on every
+                request even though their content never changes between deploys
+              </Sent>
+              <Sent pos="last">
+                added <code>export const revalidate = 86400</code> to all
+                thoughts pages and <code>3600</code> to the fantasy pages. now
+                the CDN serves cached HTML and the origin only rebuilds when the
+                interval expires
+              </Sent>
+
+              <Received>what about the api routes</Received>
+
+              <Sent pos="first">
+                TCG and GraphQL proxy routes already had{" "}
+                <code>Cache-Control</code> headers. the only one missing was the
+                geo route
+              </Sent>
+              <Sent pos="middle">
+                that route forwards IP geolocation requests to the backend for
+                the weather canvas on the landing page. a geo result for a given
+                IP doesn&apos;t change mid-session
+              </Sent>
+              <Sent pos="last">
+                added <code>private, max-age=300</code>. private so CDNs
+                don&apos;t share results between users, five minutes so the
+                browser reuses it within a session
+              </Sent>
+
+              <Timestamp>2:18 PM</Timestamp>
+
+              <Received pos="first">
+                you mentioned the landing page was the main LCP problem
+              </Received>
+              <Received pos="last">what was wrong there</Received>
+
+              <Sent pos="first">
+                the landing page imported all eleven sections eagerly.
+                HeroSection, FeaturesSection, AuthSection, and eight more — all
+                in the same initial JS chunk, all hydrating together
+              </Sent>
+              <Sent pos="middle">
+                the LCP element is the H1 in HeroSection. but the browser has to
+                download and execute the full bundle — including Framer Motion
+                variants for every section, the shader gradient, the canvas
+                weather effects — before it can evaluate LCP candidates
+              </Sent>
+              <Sent pos="last">
+                eleven sections competing for that first frame
+              </Sent>
+
+              <Received>what did you change</Received>
+
+              <Sent pos="first">
+                HeroSection stays as a regular import. the other ten get wrapped
+                in <code>next/dynamic</code>
+              </Sent>
+
+              <div className={styles.codeBubble}>
+                {`// before -- all in the same chunk
+import HeroSection from "./landing/HeroSection";
+import FeaturesSection from "./landing/FeaturesSection";
+import AuthSection from "./landing/AuthSection";
+// ... eight more
+
+// after -- only HeroSection is eager
+import HeroSection from "./landing/HeroSection";
+
+const FeaturesSection = dynamic(
+  () => import("./landing/FeaturesSection"),
+  { ssr: true }
+);
+// ... ten more wrapped the same way`}
+              </div>
+
+              <Sent pos="first">
+                <code>ssr: true</code> keeps the HTML in the server-rendered
+                stream so the sections are still present for SEO and the page
+                doesn&apos;t visually pop in
+              </Sent>
+              <Sent pos="last">
+                what changes is the JavaScript. those ten chunks load
+                asynchronously after the initial bundle. the hero renders, LCP
+                fires, and only then do the below-fold sections hydrate
+              </Sent>
+
+              <Timestamp>2:29 PM</Timestamp>
+
+              <Received>what about INP</Received>
+
+              <Sent pos="first">
+                INP came from the weather canvas. runs Phong rain simulation,
+                260-particle snow, animated fog bands at 60fps on the main
+                thread. every click had to wait for the current frame to finish
+              </Sent>
+              <Sent pos="last">
+                two fixes without moving to OffscreenCanvas
+              </Sent>
+
+              <Received>what were they</Received>
+
+              <Sent pos="first">
+                first: capped the loop at 30fps. it checks the timestamp against
+                a 33ms budget and skips frames that arrive too early. halves
+                main-thread load — no visible quality drop for a weather effect
+              </Sent>
+              <Sent pos="last">
+                second: <code>scheduler.isInputPending</code>. if the browser
+                has queued pointer or keyboard events, skip the frame entirely.
+                the browser dispatches the input immediately instead of queuing
+                it behind canvas work. Chrome-only but degrades gracefully
+              </Sent>
+
+              <Timestamp>2:38 PM</Timestamp>
+
+              <Received>and the hub skeleton thing</Received>
+
+              <Sent pos="first">
+                hub was fetching name and email from <code>/api/me</code> on the
+                client with no initial data. header showed skeleton bones on
+                every authenticated page load
+              </Sent>
+              <Sent pos="middle">
+                <code>page.tsx</code> already calls{" "}
+                <code>auth0.getSession()</code> to decide which page to render.
+                the name and email are right there in that session object
+              </Sent>
+              <Sent pos="last">
+                extracted them and passed down as <code>initialMe</code>. seeds
+                the TanStack Query cache, still refreshes after 5 minutes in the
+                background. user name on first paint, no skeleton
+              </Sent>
+
+              <Received>anything else</Received>
+
+              <Sent pos="first">
+                one bug fix. the pokemon browser syncs search filters to the URL
+                in a <code>useEffect</code> via <code>router.replace</code>
+              </Sent>
+              <Sent pos="middle">
+                clicking a card to navigate away would trigger that effect
+                concurrently with the Link navigation.{" "}
+                <code>router.replace</code> canceled the Link. card detail page
+                never loaded
+              </Sent>
+              <Sent pos="last">
+                guarded the effect with <code>usePathname</code>. if the path is
+                no longer <code>/tcg/pokemon</code>, early return and let the
+                navigation finish
+              </Sent>
+
+              <div className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">The five vitals</h2>
               <p className="text-muted">
                 Google measures web performance with five field metrics
@@ -389,250 +610,6 @@ export default function PerfContent() {
                 , the effect returns early and lets the navigation complete.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 2:00 PM</Timestamp>
-
-              <Received pos="first">
-                what did you actually change for the web vitals stuff
-              </Received>
-              <Received pos="last">
-                like what was broken and what did you do
-              </Received>
-
-              <Sent pos="first">
-                six things shipped across two separate passes
-              </Sent>
-              <Sent pos="last">
-                biggest one first: every dark mode user was seeing a flash on
-                every page load
-              </Sent>
-
-              <Received>what kind of flash</Received>
-
-              <Sent pos="first">
-                light background, then dark background. the whole page. every
-                time you navigate or hard reload
-              </Sent>
-              <Sent pos="middle">
-                the root cause is that <code>ThemeProvider</code> sets the{" "}
-                <code>data-theme</code> attribute on <code>&lt;html&gt;</code>{" "}
-                in a <code>useEffect</code>. that runs after the first paint. so
-                the browser paints the page once with light theme CSS, then the
-                effect fires, switches to dark, and repaints
-              </Sent>
-              <Sent pos="last">
-                this hurts FCP because there&apos;s a repaint cycle before the
-                meaningful content is stable. it also contributes to CLS if any
-                element dimensions differ between themes
-              </Sent>
-
-              <Received>how did you fix it</Received>
-
-              <Sent pos="first">
-                blocking inline script in <code>&lt;head&gt;</code>. runs
-                synchronously before CSS parses, before React hydrates, before
-                anything
-              </Sent>
-
-              <div className={styles.codeBubble}>
-                {`(function(){
-  try {
-    var p = localStorage.getItem('theme-preference') || 'system';
-    var t = p === 'system'
-      ? (window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark' : 'light')
-      : p;
-    document.documentElement.setAttribute('data-theme', t);
-  } catch(e) {}
-})();`}
-              </div>
-
-              <Sent pos="first">
-                it reads the stored preference, resolves &apos;system&apos;
-                against <code>matchMedia</code>, and sets the attribute. the
-                try/catch handles private browsing where{" "}
-                <code>localStorage</code> throws
-              </Sent>
-              <Sent pos="last">
-                the <code>useEffect</code> in ThemeProvider still runs but
-                it&apos;s now a no-op — the attribute is already the right value
-                by the time React touches the DOM
-              </Sent>
-
-              <Timestamp>2:09 PM</Timestamp>
-
-              <Received>what else</Received>
-
-              <Sent pos="first">TTFB. two things there</Sent>
-              <Sent pos="middle">
-                first: fourteen thoughts pages and four fantasy pages had no
-                revalidation strategy. Next.js was re-rendering them on every
-                request even though their content never changes between deploys
-              </Sent>
-              <Sent pos="last">
-                added <code>export const revalidate = 86400</code> to all
-                thoughts pages and <code>3600</code> to the fantasy pages. now
-                the CDN serves cached HTML and the origin only rebuilds when the
-                interval expires
-              </Sent>
-
-              <Received>what about the api routes</Received>
-
-              <Sent pos="first">
-                TCG and GraphQL proxy routes already had{" "}
-                <code>Cache-Control</code> headers. the only one missing was the
-                geo route
-              </Sent>
-              <Sent pos="middle">
-                that route forwards IP geolocation requests to the backend for
-                the weather canvas on the landing page. a geo result for a given
-                IP doesn&apos;t change mid-session
-              </Sent>
-              <Sent pos="last">
-                added <code>private, max-age=300</code>. private so CDNs
-                don&apos;t share results between users, five minutes so the
-                browser reuses it within a session
-              </Sent>
-
-              <Timestamp>2:18 PM</Timestamp>
-
-              <Received pos="first">
-                you mentioned the landing page was the main LCP problem
-              </Received>
-              <Received pos="last">what was wrong there</Received>
-
-              <Sent pos="first">
-                the landing page imported all eleven sections eagerly.
-                HeroSection, FeaturesSection, AuthSection, and eight more — all
-                in the same initial JS chunk, all hydrating together
-              </Sent>
-              <Sent pos="middle">
-                the LCP element is the H1 in HeroSection. but the browser has to
-                download and execute the full bundle — including Framer Motion
-                variants for every section, the shader gradient, the canvas
-                weather effects — before it can evaluate LCP candidates
-              </Sent>
-              <Sent pos="last">
-                eleven sections competing for that first frame
-              </Sent>
-
-              <Received>what did you change</Received>
-
-              <Sent pos="first">
-                HeroSection stays as a regular import. the other ten get wrapped
-                in <code>next/dynamic</code>
-              </Sent>
-
-              <div className={styles.codeBubble}>
-                {`// before -- all in the same chunk
-import HeroSection from "./landing/HeroSection";
-import FeaturesSection from "./landing/FeaturesSection";
-import AuthSection from "./landing/AuthSection";
-// ... eight more
-
-// after -- only HeroSection is eager
-import HeroSection from "./landing/HeroSection";
-
-const FeaturesSection = dynamic(
-  () => import("./landing/FeaturesSection"),
-  { ssr: true }
-);
-// ... ten more wrapped the same way`}
-              </div>
-
-              <Sent pos="first">
-                <code>ssr: true</code> keeps the HTML in the server-rendered
-                stream so the sections are still present for SEO and the page
-                doesn&apos;t visually pop in
-              </Sent>
-              <Sent pos="last">
-                what changes is the JavaScript. those ten chunks load
-                asynchronously after the initial bundle. the hero renders, LCP
-                fires, and only then do the below-fold sections hydrate
-              </Sent>
-
-              <Timestamp>2:29 PM</Timestamp>
-
-              <Received>what about INP</Received>
-
-              <Sent pos="first">
-                INP came from the weather canvas. runs Phong rain simulation,
-                260-particle snow, animated fog bands at 60fps on the main
-                thread. every click had to wait for the current frame to finish
-              </Sent>
-              <Sent pos="last">
-                two fixes without moving to OffscreenCanvas
-              </Sent>
-
-              <Received>what were they</Received>
-
-              <Sent pos="first">
-                first: capped the loop at 30fps. it checks the timestamp against
-                a 33ms budget and skips frames that arrive too early. halves
-                main-thread load — no visible quality drop for a weather effect
-              </Sent>
-              <Sent pos="last">
-                second: <code>scheduler.isInputPending</code>. if the browser
-                has queued pointer or keyboard events, skip the frame entirely.
-                the browser dispatches the input immediately instead of queuing
-                it behind canvas work. Chrome-only but degrades gracefully
-              </Sent>
-
-              <Timestamp>2:38 PM</Timestamp>
-
-              <Received>and the hub skeleton thing</Received>
-
-              <Sent pos="first">
-                hub was fetching name and email from <code>/api/me</code> on the
-                client with no initial data. header showed skeleton bones on
-                every authenticated page load
-              </Sent>
-              <Sent pos="middle">
-                <code>page.tsx</code> already calls{" "}
-                <code>auth0.getSession()</code> to decide which page to render.
-                the name and email are right there in that session object
-              </Sent>
-              <Sent pos="last">
-                extracted them and passed down as <code>initialMe</code>. seeds
-                the TanStack Query cache, still refreshes after 5 minutes in the
-                background. user name on first paint, no skeleton
-              </Sent>
-
-              <Received>anything else</Received>
-
-              <Sent pos="first">
-                one bug fix. the pokemon browser syncs search filters to the URL
-                in a <code>useEffect</code> via <code>router.replace</code>
-              </Sent>
-              <Sent pos="middle">
-                clicking a card to navigate away would trigger that effect
-                concurrently with the Link navigation.{" "}
-                <code>router.replace</code> canceled the Link. card detail page
-                never loaded
-              </Sent>
-              <Sent pos="last">
-                guarded the effect with <code>usePathname</code>. if the path is
-                no longer <code>/tcg/pokemon</code>, early return and let the
-                navigation finish
-              </Sent>
-
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

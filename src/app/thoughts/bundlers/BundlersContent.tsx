@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -42,36 +40,107 @@ function Section({
 }
 
 export default function BundlersContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Bundlers" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Bundlers
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Which one this project runs and why, whether it&apos;s the right
+    <ThoughtLayout
+      breadcrumb="Bundlers"
+      title="Bundlers"
+      intro={
+        <>
+          Which one this project runs and why, whether it&apos;s the right
               call, and the honest version of &quot;should we use something
               else?&quot; — because the interesting answer isn&apos;t a tool, it&apos;s
               knowing what actually forces the choice.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        /* Chat view: shared nav already rendered above, phone frame has no topBar */
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 2:41 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <Section title="What this project runs">
+              <Received pos="first">what bundler does the site use</Received>
+              <Received pos="last">and is that the best one</Received>
+
+              <Sent pos="first">
+                Turbopack. it&apos;s the default in Next 16 for both dev and
+                prod builds, and nothing overrides it. the only place webpack
+                shows up is the <code>analyze</code> script — the bundle
+                analyzer doesn&apos;t support Turbopack, so that one command
+                forces <code>--webpack</code>
+              </Sent>
+              <Sent pos="last">
+                and yeah, it&apos;s the right call. keep it
+              </Sent>
+
+              <Received>why not switch to something faster or newer</Received>
+
+              <Sent pos="first">
+                here&apos;s the thing people miss — inside Next you only get two
+                builders, Turbopack or webpack. you can&apos;t bolt Vite or
+                esbuild onto a Next app, the framework is married to its bundler
+              </Sent>
+              <Sent pos="last">
+                so &quot;switch bundlers&quot; is really three separate
+                questions. Turbopack vs webpack? Turbopack wins, it&apos;s way
+                faster and handles everything we do. Rspack? solves a problem we
+                don&apos;t have. leave Next entirely for Vite? multi-week
+                migration to lose SSR, middleware, ISR. no thanks
+              </Sent>
+
+              <Received>ok so when would you ever use a different one</Received>
+
+              <Sent pos="first">
+                when the <em>deliverable</em> changes. the biggest one: building
+                a library instead of an app. npm packages need clean ESM+CJS,
+                externalized deps, type declarations, real tree-shaking — that&apos;s
+                Rollup or tsup, never a Next builder
+              </Sent>
+              <Sent pos="last">
+                which actually applies to us. this site pulls in{" "}
+                <code>@paul-portfolio/css</code>, <code>/react</code>,{" "}
+                <code>/tokens</code>. whoever builds those packages should be on
+                a library bundler, not Turbopack. same monorepo, different tool,
+                because it&apos;s a different kind of thing being shipped
+              </Sent>
+
+              <Received>what are the other cases</Received>
+
+              <Sent pos="first">
+                a CLI or node service → esbuild, you just want a fast single
+                file. a giant legacy webpack config that&apos;s too slow but too
+                expensive to rewrite → Rspack, it&apos;s drop-in
+                webpack-compatible. micro-frontends with module federation →
+                webpack or Rspack, that&apos;s where it&apos;s mature
+              </Sent>
+              <Sent pos="last">
+                and honestly, most of the time the framework decides for you.
+                pick SvelteKit or Astro and you get Vite. the &quot;bundler
+                choice&quot; is usually just a framework choice wearing a
+                disguise
+              </Sent>
+
+              <Received>give me the one-liner</Received>
+
+              <Sent pos="first">
+                you don&apos;t pick a bundler in the abstract. name what
+                you&apos;re shipping and the constraint that hurts most, and the
+                tool falls out
+              </Sent>
+              <Sent pos="last">
+                for an app in a framework you inherit a good default and leave it
+                alone. the day you publish a package is the day you consciously
+                reach for Rollup. that&apos;s the whole skill
+              </Sent>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <Section title="What this project runs">
               <ul className="mt-2 space-y-2 text-muted">
                 <Bullet>
                   <strong className="text-foreground">Turbopack</strong>, the
@@ -274,95 +343,6 @@ export default function BundlersContent() {
                 </Bullet>
               </ul>
             </Section>
-          </div>
-        </main>
-      ) : (
-        /* Chat view: shared nav already rendered above, phone frame has no topBar */
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 2:41 PM</Timestamp>
-
-              <Received pos="first">what bundler does the site use</Received>
-              <Received pos="last">and is that the best one</Received>
-
-              <Sent pos="first">
-                Turbopack. it&apos;s the default in Next 16 for both dev and
-                prod builds, and nothing overrides it. the only place webpack
-                shows up is the <code>analyze</code> script — the bundle
-                analyzer doesn&apos;t support Turbopack, so that one command
-                forces <code>--webpack</code>
-              </Sent>
-              <Sent pos="last">
-                and yeah, it&apos;s the right call. keep it
-              </Sent>
-
-              <Received>why not switch to something faster or newer</Received>
-
-              <Sent pos="first">
-                here&apos;s the thing people miss — inside Next you only get two
-                builders, Turbopack or webpack. you can&apos;t bolt Vite or
-                esbuild onto a Next app, the framework is married to its bundler
-              </Sent>
-              <Sent pos="last">
-                so &quot;switch bundlers&quot; is really three separate
-                questions. Turbopack vs webpack? Turbopack wins, it&apos;s way
-                faster and handles everything we do. Rspack? solves a problem we
-                don&apos;t have. leave Next entirely for Vite? multi-week
-                migration to lose SSR, middleware, ISR. no thanks
-              </Sent>
-
-              <Received>ok so when would you ever use a different one</Received>
-
-              <Sent pos="first">
-                when the <em>deliverable</em> changes. the biggest one: building
-                a library instead of an app. npm packages need clean ESM+CJS,
-                externalized deps, type declarations, real tree-shaking — that&apos;s
-                Rollup or tsup, never a Next builder
-              </Sent>
-              <Sent pos="last">
-                which actually applies to us. this site pulls in{" "}
-                <code>@paul-portfolio/css</code>, <code>/react</code>,{" "}
-                <code>/tokens</code>. whoever builds those packages should be on
-                a library bundler, not Turbopack. same monorepo, different tool,
-                because it&apos;s a different kind of thing being shipped
-              </Sent>
-
-              <Received>what are the other cases</Received>
-
-              <Sent pos="first">
-                a CLI or node service → esbuild, you just want a fast single
-                file. a giant legacy webpack config that&apos;s too slow but too
-                expensive to rewrite → Rspack, it&apos;s drop-in
-                webpack-compatible. micro-frontends with module federation →
-                webpack or Rspack, that&apos;s where it&apos;s mature
-              </Sent>
-              <Sent pos="last">
-                and honestly, most of the time the framework decides for you.
-                pick SvelteKit or Astro and you get Vite. the &quot;bundler
-                choice&quot; is usually just a framework choice wearing a
-                disguise
-              </Sent>
-
-              <Received>give me the one-liner</Received>
-
-              <Sent pos="first">
-                you don&apos;t pick a bundler in the abstract. name what
-                you&apos;re shipping and the constraint that hurts most, and the
-                tool falls out
-              </Sent>
-              <Sent pos="last">
-                for an app in a framework you inherit a good default and leave it
-                alone. the day you publish a package is the day you consciously
-                reach for Rollup. that&apos;s the whole skill
-              </Sent>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

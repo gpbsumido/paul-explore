@@ -1,42 +1,274 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function ImprovementsContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "API Hardening" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              API Hardening
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Five gaps closed: runtime validation on every API route with Zod,
+    <ThoughtLayout
+      breadcrumb="API Hardening"
+      title="API Hardening"
+      intro={
+        <>
+          Five gaps closed: runtime validation on every API route with Zod,
               rate limiting on open endpoints, body size limits on every route
               that reads a request body, URL param validation, and consistent
               error response shapes across all routes.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 2:00 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">
+                what were the two p0s from the review
+              </Received>
+              <Received pos="last">the ones you just fixed</Received>
+
+              <Sent pos="first">
+                no runtime validation on any API route, and no rate limiting on
+                the open endpoints
+              </Sent>
+              <Sent pos="last">
+                every POST and PUT handler was calling{" "}
+                <code>request.json()</code> and forwarding whatever came in. and
+                the client-side helpers all used <code>data as SomeType</code>{" "}
+                casts — typescript only enforces those at compile time
+              </Sent>
+
+              <Timestamp>2:02 PM</Timestamp>
+
+              <Received>what does that actually break</Received>
+
+              <Sent pos="first">
+                if the backend schema changes, or someone sends a malformed
+                payload, the app either mishandles it silently or crashes in a
+                confusing way with no useful error
+              </Sent>
+              <Sent pos="last">
+                and on the client side, if a fetch returns the wrong shape, it
+                propagates through the whole react tree as if it were valid data
+              </Sent>
+
+              <Timestamp>2:04 PM</Timestamp>
+
+              <Received>how did you fix it</Received>
+
+              <Sent pos="first">
+                zod was already in the project. i added{" "}
+                <code>src/lib/schemas.ts</code> with schemas for every shape
+                that crosses a trust boundary — request bodies and response
+                wrappers for events, calendars, members, cards, countdowns, and
+                the graphql response envelope
+              </Sent>
+              <Sent pos="middle">
+                on API routes every POST and PUT now calls{" "}
+                <code>schema.safeParse(raw)</code> before forwarding. bad shape
+                gets a 400 with zod&apos;s issue list in the body, which is
+                actually useful to debug
+              </Sent>
+              <Sent pos="last">
+                on the client, all the <code>as Type</code> casts in{" "}
+                <code>calendar.ts</code>, <code>useCalendars.ts</code>, and{" "}
+                <code>graphql.ts</code> are replaced with{" "}
+                <code>schema.parse(await res.json())</code>. a backend shape
+                change throws a ZodError instead of silently passing bad data
+                through
+              </Sent>
+
+              <Timestamp>2:08 PM</Timestamp>
+
+              <Received pos="first">
+                why safeParse on the routes but parse on the clients
+              </Received>
+              <Received pos="last">why not both the same</Received>
+
+              <Sent pos="first">
+                on API routes, throwing would give you a 500 with no useful
+                body. you want control over the status code and message, so
+                safeParse lets you return a proper 400
+              </Sent>
+              <Sent pos="last">
+                on the client, the response comes from our own backend, so a
+                parse failure is genuinely unexpected. letting it throw and
+                surface as an error in react query is the right behavior there
+              </Sent>
+
+              <Timestamp>2:11 PM</Timestamp>
+
+              <Received>and the rate limiting</Received>
+
+              <Sent pos="first">
+                two routes had no auth at all — <code>/api/vitals</code> for web
+                vitals ingestion and <code>/api/graphql</code> as a pokeapi
+                proxy. both intentionally open, but nothing was stopping a loop
+                from flooding them
+              </Sent>
+              <Sent pos="middle">
+                i added a simple fixed-window counter in{" "}
+                <code>src/lib/rateLimit.ts</code> — a module-level Map keyed by
+                route and IP, reset after the window. three tiers: vitals POST
+                at 20 per minute, graphql POST at 60, everything else at 300 as
+                a backstop
+              </Sent>
+              <Sent pos="last">
+                lives in <code>proxy.ts</code> and runs before any auth or
+                session work, so a 429 never pays auth0 latency
+              </Sent>
+
+              <Timestamp>2:15 PM</Timestamp>
+
+              <Received pos="first">
+                in-memory feels like it doesn&apos;t actually work
+              </Received>
+              <Received pos="last">vercel runs multiple instances</Received>
+
+              <Sent pos="first">
+                it&apos;s per-instance, not globally coordinated. that&apos;s a
+                real limitation
+              </Sent>
+              <Sent pos="middle">
+                but for a personal portfolio with low traffic, a per-instance
+                limit still stops accidental loops and casual spam, which is the
+                actual threat here. a determined attacker with many IPs bypasses
+                any rate limit anyway — the real defense is the backend
+              </Sent>
+              <Sent pos="last">
+                swapping the Map for Vercel KV or Upstash Redis gives you
+                cross-instance coordination if traffic ever justifies it. the
+                interface is simple enough that it&apos;s a one-file change
+              </Sent>
+
+              <Timestamp>2:19 PM</Timestamp>
+
+              <Received>was there a third one</Received>
+
+              <Sent pos="first">
+                yeah — no body size limits anywhere. every route that called{" "}
+                <code>request.json()</code> would buffer the entire request
+                before looking at it. send a large enough payload and you can
+                exhaust memory
+              </Sent>
+              <Sent pos="last">
+                it&apos;s the kind of thing that&apos;s easy to overlook because
+                it doesn&apos;t break anything in normal use, but it&apos;s a
+                straightforward denial-of-service vector on open endpoints
+              </Sent>
+
+              <Timestamp>2:21 PM</Timestamp>
+
+              <Received>how did you fix it</Received>
+
+              <Sent pos="first">
+                added <code>src/lib/parseBody.ts</code> — a unified helper that
+                does the size check, body read, and zod parse in one call. two
+                layers: check the <code>Content-Length</code> header before
+                buffering anything, then check the actual byte count after
+                parsing to catch chunked transfers that skip the header
+              </Sent>
+              <Sent pos="middle">
+                all ten calendar routes now use it instead of the old inline
+                three-liner. the two open routes get inline guards with tighter
+                limits — vitals at 4 KB, graphql at 64 KB. authenticated routes
+                default to 64 KB
+              </Sent>
+              <Sent pos="last">
+                bad size returns a 413 before the body is ever forwarded to the
+                backend
+              </Sent>
+
+              <Timestamp>2:25 PM</Timestamp>
+
+              <Received pos="first">any other gaps</Received>
+              <Received pos="last">not just the body stuff</Received>
+
+              <Sent pos="first">
+                yeah — three routes were forwarding user-controlled URL params
+                into backend calls without any format check. dynamic route
+                segments and query strings are just as much of a trust boundary
+                as request bodies
+              </Sent>
+              <Sent pos="last">
+                the <code>season</code> segment in the NBA route goes straight
+                into an ESPN URL — added a <code>{"/^\\d{4}$/"}</code> check so
+                only valid years get through. the <code>origin</code> param in
+                the Google auth route ends up as a redirect target after OAuth —
+                needs to be a real http(s) URL or you can use it for open
+                redirect. the <code>cursor</code> param in countdowns is capped
+                at 512 chars and restricted to base64/alphanumeric characters
+              </Sent>
+
+              <Timestamp>2:27 PM</Timestamp>
+
+              <Received>
+                why not just let the backend reject bad params
+              </Received>
+
+              <Sent pos="first">
+                you could, but for the season param you&apos;re making an
+                unauthenticated request to a third-party API — better to reject
+                it before that happens
+              </Sent>
+              <Sent pos="last">
+                and for the origin param, if the backend ever passes it through
+                without validating, you&apos;ve got an open redirect straight to
+                wherever the attacker wants. defense in depth — validate at
+                every layer you own
+              </Sent>
+
+              <Timestamp>2:31 PM</Timestamp>
+
+              <Received pos="first">what was the last one</Received>
+              <Received pos="last">you said five</Received>
+
+              <Sent pos="first">
+                inconsistent error shapes. some routes returned 200 with empty
+                arrays on backend failures — the vitals by-version and versions
+                routes both did this. the tcg cards, series, and sets routes had
+                no error handling at all, so a thrown exception or null from the
+                sdk silently became an empty list
+              </Sent>
+              <Sent pos="middle">
+                the client-side hooks were already checking{" "}
+                <code>if (!res.ok) throw</code>, so they would surface errors
+                correctly — but they never got the chance because the routes
+                kept returning 200
+              </Sent>
+              <Sent pos="last">
+                now every route returns <code>{"{ error: string }"}</code> with
+                a proper status on any failure. 200 always means real data
+              </Sent>
+
+              <Timestamp>2:34 PM</Timestamp>
+
+              <Received>
+                why were the vitals ones returning empty arrays to begin with
+              </Received>
+
+              <Sent pos="first">
+                the comment said &quot;backend doesn&apos;t have this endpoint
+                yet — return empty gracefully&quot;. the idea was the selector
+                and chart just stay hidden instead of showing an error
+              </Sent>
+              <Sent pos="last">
+                but that&apos;s the wrong layer for that decision. the page
+                component already has its own fallback — it calls the backend
+                directly and returns empty arrays if the fetch fails. the BFF
+                route masking the error on top of that just makes it harder to
+                know when something&apos;s actually broken
+              </Sent>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">The problem</h2>
               <p className="text-muted">
                 Every API route was calling{" "}
@@ -351,258 +583,6 @@ export default function ImprovementsContent() {
                 empty state that looks like no results.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 2:00 PM</Timestamp>
-
-              <Received pos="first">
-                what were the two p0s from the review
-              </Received>
-              <Received pos="last">the ones you just fixed</Received>
-
-              <Sent pos="first">
-                no runtime validation on any API route, and no rate limiting on
-                the open endpoints
-              </Sent>
-              <Sent pos="last">
-                every POST and PUT handler was calling{" "}
-                <code>request.json()</code> and forwarding whatever came in. and
-                the client-side helpers all used <code>data as SomeType</code>{" "}
-                casts — typescript only enforces those at compile time
-              </Sent>
-
-              <Timestamp>2:02 PM</Timestamp>
-
-              <Received>what does that actually break</Received>
-
-              <Sent pos="first">
-                if the backend schema changes, or someone sends a malformed
-                payload, the app either mishandles it silently or crashes in a
-                confusing way with no useful error
-              </Sent>
-              <Sent pos="last">
-                and on the client side, if a fetch returns the wrong shape, it
-                propagates through the whole react tree as if it were valid data
-              </Sent>
-
-              <Timestamp>2:04 PM</Timestamp>
-
-              <Received>how did you fix it</Received>
-
-              <Sent pos="first">
-                zod was already in the project. i added{" "}
-                <code>src/lib/schemas.ts</code> with schemas for every shape
-                that crosses a trust boundary — request bodies and response
-                wrappers for events, calendars, members, cards, countdowns, and
-                the graphql response envelope
-              </Sent>
-              <Sent pos="middle">
-                on API routes every POST and PUT now calls{" "}
-                <code>schema.safeParse(raw)</code> before forwarding. bad shape
-                gets a 400 with zod&apos;s issue list in the body, which is
-                actually useful to debug
-              </Sent>
-              <Sent pos="last">
-                on the client, all the <code>as Type</code> casts in{" "}
-                <code>calendar.ts</code>, <code>useCalendars.ts</code>, and{" "}
-                <code>graphql.ts</code> are replaced with{" "}
-                <code>schema.parse(await res.json())</code>. a backend shape
-                change throws a ZodError instead of silently passing bad data
-                through
-              </Sent>
-
-              <Timestamp>2:08 PM</Timestamp>
-
-              <Received pos="first">
-                why safeParse on the routes but parse on the clients
-              </Received>
-              <Received pos="last">why not both the same</Received>
-
-              <Sent pos="first">
-                on API routes, throwing would give you a 500 with no useful
-                body. you want control over the status code and message, so
-                safeParse lets you return a proper 400
-              </Sent>
-              <Sent pos="last">
-                on the client, the response comes from our own backend, so a
-                parse failure is genuinely unexpected. letting it throw and
-                surface as an error in react query is the right behavior there
-              </Sent>
-
-              <Timestamp>2:11 PM</Timestamp>
-
-              <Received>and the rate limiting</Received>
-
-              <Sent pos="first">
-                two routes had no auth at all — <code>/api/vitals</code> for web
-                vitals ingestion and <code>/api/graphql</code> as a pokeapi
-                proxy. both intentionally open, but nothing was stopping a loop
-                from flooding them
-              </Sent>
-              <Sent pos="middle">
-                i added a simple fixed-window counter in{" "}
-                <code>src/lib/rateLimit.ts</code> — a module-level Map keyed by
-                route and IP, reset after the window. three tiers: vitals POST
-                at 20 per minute, graphql POST at 60, everything else at 300 as
-                a backstop
-              </Sent>
-              <Sent pos="last">
-                lives in <code>proxy.ts</code> and runs before any auth or
-                session work, so a 429 never pays auth0 latency
-              </Sent>
-
-              <Timestamp>2:15 PM</Timestamp>
-
-              <Received pos="first">
-                in-memory feels like it doesn&apos;t actually work
-              </Received>
-              <Received pos="last">vercel runs multiple instances</Received>
-
-              <Sent pos="first">
-                it&apos;s per-instance, not globally coordinated. that&apos;s a
-                real limitation
-              </Sent>
-              <Sent pos="middle">
-                but for a personal portfolio with low traffic, a per-instance
-                limit still stops accidental loops and casual spam, which is the
-                actual threat here. a determined attacker with many IPs bypasses
-                any rate limit anyway — the real defense is the backend
-              </Sent>
-              <Sent pos="last">
-                swapping the Map for Vercel KV or Upstash Redis gives you
-                cross-instance coordination if traffic ever justifies it. the
-                interface is simple enough that it&apos;s a one-file change
-              </Sent>
-
-              <Timestamp>2:19 PM</Timestamp>
-
-              <Received>was there a third one</Received>
-
-              <Sent pos="first">
-                yeah — no body size limits anywhere. every route that called{" "}
-                <code>request.json()</code> would buffer the entire request
-                before looking at it. send a large enough payload and you can
-                exhaust memory
-              </Sent>
-              <Sent pos="last">
-                it&apos;s the kind of thing that&apos;s easy to overlook because
-                it doesn&apos;t break anything in normal use, but it&apos;s a
-                straightforward denial-of-service vector on open endpoints
-              </Sent>
-
-              <Timestamp>2:21 PM</Timestamp>
-
-              <Received>how did you fix it</Received>
-
-              <Sent pos="first">
-                added <code>src/lib/parseBody.ts</code> — a unified helper that
-                does the size check, body read, and zod parse in one call. two
-                layers: check the <code>Content-Length</code> header before
-                buffering anything, then check the actual byte count after
-                parsing to catch chunked transfers that skip the header
-              </Sent>
-              <Sent pos="middle">
-                all ten calendar routes now use it instead of the old inline
-                three-liner. the two open routes get inline guards with tighter
-                limits — vitals at 4 KB, graphql at 64 KB. authenticated routes
-                default to 64 KB
-              </Sent>
-              <Sent pos="last">
-                bad size returns a 413 before the body is ever forwarded to the
-                backend
-              </Sent>
-
-              <Timestamp>2:25 PM</Timestamp>
-
-              <Received pos="first">any other gaps</Received>
-              <Received pos="last">not just the body stuff</Received>
-
-              <Sent pos="first">
-                yeah — three routes were forwarding user-controlled URL params
-                into backend calls without any format check. dynamic route
-                segments and query strings are just as much of a trust boundary
-                as request bodies
-              </Sent>
-              <Sent pos="last">
-                the <code>season</code> segment in the NBA route goes straight
-                into an ESPN URL — added a <code>{"/^\\d{4}$/"}</code> check so
-                only valid years get through. the <code>origin</code> param in
-                the Google auth route ends up as a redirect target after OAuth —
-                needs to be a real http(s) URL or you can use it for open
-                redirect. the <code>cursor</code> param in countdowns is capped
-                at 512 chars and restricted to base64/alphanumeric characters
-              </Sent>
-
-              <Timestamp>2:27 PM</Timestamp>
-
-              <Received>
-                why not just let the backend reject bad params
-              </Received>
-
-              <Sent pos="first">
-                you could, but for the season param you&apos;re making an
-                unauthenticated request to a third-party API — better to reject
-                it before that happens
-              </Sent>
-              <Sent pos="last">
-                and for the origin param, if the backend ever passes it through
-                without validating, you&apos;ve got an open redirect straight to
-                wherever the attacker wants. defense in depth — validate at
-                every layer you own
-              </Sent>
-
-              <Timestamp>2:31 PM</Timestamp>
-
-              <Received pos="first">what was the last one</Received>
-              <Received pos="last">you said five</Received>
-
-              <Sent pos="first">
-                inconsistent error shapes. some routes returned 200 with empty
-                arrays on backend failures — the vitals by-version and versions
-                routes both did this. the tcg cards, series, and sets routes had
-                no error handling at all, so a thrown exception or null from the
-                sdk silently became an empty list
-              </Sent>
-              <Sent pos="middle">
-                the client-side hooks were already checking{" "}
-                <code>if (!res.ok) throw</code>, so they would surface errors
-                correctly — but they never got the chance because the routes
-                kept returning 200
-              </Sent>
-              <Sent pos="last">
-                now every route returns <code>{"{ error: string }"}</code> with
-                a proper status on any failure. 200 always means real data
-              </Sent>
-
-              <Timestamp>2:34 PM</Timestamp>
-
-              <Received>
-                why were the vitals ones returning empty arrays to begin with
-              </Received>
-
-              <Sent pos="first">
-                the comment said &quot;backend doesn&apos;t have this endpoint
-                yet — return empty gracefully&quot;. the idea was the selector
-                and chart just stay hidden instead of showing an error
-              </Sent>
-              <Sent pos="last">
-                but that&apos;s the wrong layer for that decision. the page
-                component already has its own fallback — it calls the backend
-                directly and returns empty arrays if the fetch fails. the BFF
-                route masking the error on top of that just makes it harder to
-                know when something&apos;s actually broken
-              </Sent>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

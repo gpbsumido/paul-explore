@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 /** A labelled code block for a before/after (or before/attempt/correct) pair. */
 function Snippet({
@@ -34,41 +32,88 @@ function Snippet({
 
 /** Dev-notes write-up for the react-doctor pass: the fixes, the dead ends, and what the tool got right and wrong. */
 export default function ReactDoctorContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "React Doctor" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              A pass with React Doctor
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              React Doctor is a static analyzer that scores a React codebase and
+    <ThoughtLayout
+      breadcrumb="React Doctor"
+      title="A pass with React Doctor"
+      intro={
+        <>
+          React Doctor is a static analyzer that scores a React codebase and
               flags bugs, performance, accessibility, and maintainability
               issues. I ran it, it said 36/100, and I worked through the
               highest-ROI findings. This page is the honest version: what I
               fixed, one fix that fought back, the false positives, and what I
               chose not to touch.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
+          <div className={styles.chat}>
+            <Timestamp>React Doctor pass</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+            <Received pos="first">Ran react-doctor. Score?</Received>
+            <Sent pos="first">36 out of 100. 494 findings.</Sent>
+            <Sent pos="last">
+              487 in src. The other 7 were a Python venv and CI yaml. It scans
+              whatever you point it at.
+            </Sent>
+
+            <Received pos="first">What&rsquo;s worth fixing?</Received>
+            <Sent pos="first">
+              Real bugs + cheap wins: effect cleanups, side effects inside state
+              updaters, missing button types, fetches that skip the status check.
+            </Sent>
+            <Sent pos="last">
+              Deferred the migration-scale stuff &mdash; full framer-motion
+              import in 53 files, 40 giant components. Separate PRs.
+            </Sent>
+
+            <Received pos="first">Any fix backfire?</Received>
+            <Sent pos="first">
+              Yep. Moved a <code>stop()</code> out of a setState updater into an
+              effect. React Doctor then flagged the effect for calling setState
+              &mdash; different rule, same code. Whack-a-mole.
+            </Sent>
+            <Sent pos="middle">
+              Correct fix is a ref read in the interval callback, but it&rsquo;s a
+              10-file rewrite and those side effects are idempotent anyway.
+            </Sent>
+            <Sent pos="last">Reverted the batch, left it as a follow-up.</Sent>
+
+            <Received pos="first">False positives?</Received>
+            <Sent pos="first">
+              Two. A &ldquo;CSRF in a GET handler&rdquo; that was a read-only
+              query builder, and a &ldquo;fetch without status check&rdquo; that
+              already forwarded the status and caught parse errors.
+            </Sent>
+            <Sent pos="last">Read the file first, always.</Sent>
+
+            <Received pos="first">What about the array-index-key rule?</Received>
+            <Sent pos="first">
+              Read all 65 hits. Every one is a static/append-only list, a
+              recharts &lt;Cell&gt;, or a pure-render map. The lists that reorder
+              already use stable ids.
+            </Sent>
+            <Sent pos="middle">
+              So I muted it in <code>doctor.config.json</code> instead of editing
+              65 files. Gotcha: the key needs the{" "}
+              <code>react-doctor/</code> prefix or it silently no-ops.
+            </Sent>
+            <Sent pos="last">Audit first, then suppress. Not the other way around.</Sent>
+
+            <Received pos="first">Verdict?</Received>
+            <Sent pos="last">
+              Great hypothesis generator, terrible autopilot. Severity
+              isn&rsquo;t priority and one rule can flag the fix for another.
+              Useful if you read every finding.
+            </Sent>
+
+            <Timestamp>Delivered</Timestamp>
+          </div>
+        </main>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">The diagnosis</h2>
               <p className="text-muted">
                 One command, 494 findings, a score of 36/100 (&ldquo;Critical&rdquo;).
@@ -658,74 +703,6 @@ import { m } from "framer-motion";
                 which is the only way to use a tool like this.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <div className={styles.chat}>
-            <Timestamp>React Doctor pass</Timestamp>
-
-            <Received pos="first">Ran react-doctor. Score?</Received>
-            <Sent pos="first">36 out of 100. 494 findings.</Sent>
-            <Sent pos="last">
-              487 in src. The other 7 were a Python venv and CI yaml. It scans
-              whatever you point it at.
-            </Sent>
-
-            <Received pos="first">What&rsquo;s worth fixing?</Received>
-            <Sent pos="first">
-              Real bugs + cheap wins: effect cleanups, side effects inside state
-              updaters, missing button types, fetches that skip the status check.
-            </Sent>
-            <Sent pos="last">
-              Deferred the migration-scale stuff &mdash; full framer-motion
-              import in 53 files, 40 giant components. Separate PRs.
-            </Sent>
-
-            <Received pos="first">Any fix backfire?</Received>
-            <Sent pos="first">
-              Yep. Moved a <code>stop()</code> out of a setState updater into an
-              effect. React Doctor then flagged the effect for calling setState
-              &mdash; different rule, same code. Whack-a-mole.
-            </Sent>
-            <Sent pos="middle">
-              Correct fix is a ref read in the interval callback, but it&rsquo;s a
-              10-file rewrite and those side effects are idempotent anyway.
-            </Sent>
-            <Sent pos="last">Reverted the batch, left it as a follow-up.</Sent>
-
-            <Received pos="first">False positives?</Received>
-            <Sent pos="first">
-              Two. A &ldquo;CSRF in a GET handler&rdquo; that was a read-only
-              query builder, and a &ldquo;fetch without status check&rdquo; that
-              already forwarded the status and caught parse errors.
-            </Sent>
-            <Sent pos="last">Read the file first, always.</Sent>
-
-            <Received pos="first">What about the array-index-key rule?</Received>
-            <Sent pos="first">
-              Read all 65 hits. Every one is a static/append-only list, a
-              recharts &lt;Cell&gt;, or a pure-render map. The lists that reorder
-              already use stable ids.
-            </Sent>
-            <Sent pos="middle">
-              So I muted it in <code>doctor.config.json</code> instead of editing
-              65 files. Gotcha: the key needs the{" "}
-              <code>react-doctor/</code> prefix or it silently no-ops.
-            </Sent>
-            <Sent pos="last">Audit first, then suppress. Not the other way around.</Sent>
-
-            <Received pos="first">Verdict?</Received>
-            <Sent pos="last">
-              Great hypothesis generator, terrible autopilot. Severity
-              isn&rsquo;t priority and one rule can flag the fix for another.
-              Useful if you read every finding.
-            </Sent>
-
-            <Timestamp>Delivered</Timestamp>
-          </div>
-        </main>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }
