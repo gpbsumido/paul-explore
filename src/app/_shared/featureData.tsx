@@ -296,6 +296,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#8b5cf6",
   },
   {
+    title: "Project Review",
+    href: "/thoughts/project-review",
+    preview:
+      "An evidence-backed review of the whole codebase — engineering, system design, architecture overfit, and per-feature UX gains",
+    color: "#64748b",
+  },
+  {
     title: "AI Security & Bare Repo Attacks",
     href: "/thoughts/ai-security",
     preview:
