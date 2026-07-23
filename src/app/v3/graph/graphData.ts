@@ -33,7 +33,7 @@ export type GraphData = { nodes: GraphNode[]; edges: GraphEdge[] };
 
 /** Stable colour per category so its cluster reads as one group. */
 const CATEGORY_COLORS: Record<string, string> = {
-  Features: "#60a5fa",
+  Features: "#818cf8",
   "Design & UI": "#f472b6",
   Performance: "#34d399",
   "Architecture & Backend": "#a78bfa",
@@ -139,21 +139,24 @@ export function buildGraphData(): GraphData {
 }
 
 export type LayeredLayout = {
+  /** Node centre points in px. */
   positions: Map<string, { x: number; y: number }>;
   width: number;
   height: number;
 };
 
-/** Fixed node-box widths per depth column, so edges can route edge-to-edge. */
-export const FLAT_COL_WIDTH = 300;
-export const FLAT_ROW_HEIGHT = 46;
-const FLAT_PAD = 72;
+/** Node-box height in the flat view (width is per-kind, see FlatGraph). */
+export const FLAT_NODE_H = 34;
+const FLAT_LEVEL_GAP = 132; // vertical gap between depth levels
+const FLAT_LEAF_GAP = 188; // horizontal gap between leaves
+const FLAT_PAD = 90;
 
 /**
- * A tidy left-to-right layered (tree) layout for the flat view: root on the
- * left, hubs/categories next, their items on the right. Parents are centred on
- * their children. Positions are the top-left of each row in px; the flat view
- * scrolls if the result is taller than the viewport, so nodes never overlap.
+ * A tidy top-down layered (tree) layout for the flat view: root at the top,
+ * hubs/categories on the next level, their items below. Parents are centred
+ * over their children. Positions are node centres in px; the flat view scrolls
+ * horizontally if the leaf row is wider than the viewport, so nodes never
+ * overlap.
  */
 export function buildLayeredLayout(data: GraphData): LayeredLayout {
   const children = new Map<string, string[]>();
@@ -165,21 +168,22 @@ export function buildLayeredLayout(data: GraphData): LayeredLayout {
   }
 
   const depth = new Map<string, number>();
-  const row = new Map<string, number>();
+  const cx = new Map<string, number>();
   let nextLeaf = 0;
 
+  // DFS: leaves take the next horizontal slot; parents centre over their kids.
   const dfs = (id: string, d: number): number => {
     depth.set(id, d);
     const kids = children.get(id) ?? [];
-    let r: number;
+    let x: number;
     if (kids.length === 0) {
-      r = nextLeaf++;
+      x = nextLeaf++ * FLAT_LEAF_GAP;
     } else {
-      const kidRows = kids.map((k) => dfs(k, d + 1));
-      r = kidRows.reduce((a, b) => a + b, 0) / kidRows.length;
+      const kidX = kids.map((k) => dfs(k, d + 1));
+      x = kidX.reduce((a, b) => a + b, 0) / kidX.length;
     }
-    row.set(id, r);
-    return r;
+    cx.set(id, x);
+    return x;
   };
   dfs("root", 0);
 
@@ -189,16 +193,16 @@ export function buildLayeredLayout(data: GraphData): LayeredLayout {
   const positions = new Map<string, { x: number; y: number }>();
   for (const n of data.nodes) {
     const d = depth.get(n.id) ?? 0;
-    const r = row.get(n.id) ?? 0;
+    const x = cx.get(n.id) ?? 0;
     positions.set(n.id, {
-      x: FLAT_PAD + d * FLAT_COL_WIDTH,
-      y: FLAT_PAD + r * FLAT_ROW_HEIGHT,
+      x: FLAT_PAD + x,
+      y: FLAT_PAD + d * FLAT_LEVEL_GAP,
     });
   }
 
   return {
     positions,
-    width: FLAT_PAD * 2 + maxDepth * FLAT_COL_WIDTH + 260,
-    height: FLAT_PAD * 2 + Math.max(nextLeaf - 1, 0) * FLAT_ROW_HEIGHT + 40,
+    width: FLAT_PAD * 2 + Math.max(nextLeaf - 1, 0) * FLAT_LEAF_GAP + 60,
+    height: FLAT_PAD * 2 + maxDepth * FLAT_LEVEL_GAP + FLAT_NODE_H,
   };
 }

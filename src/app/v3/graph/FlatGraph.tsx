@@ -6,41 +6,35 @@ import { gsap } from "gsap";
 import {
   buildGraphData,
   buildLayeredLayout,
+  FLAT_NODE_H,
   type GraphNode,
 } from "./graphData";
 
 type Props = { reducedMotion: boolean };
 
-/** Fixed node-box width per kind so edges can route cleanly edge-to-edge. */
+/** Fixed node-box width per kind, kept under the leaf gap so cards never touch. */
 function widthFor(node: GraphNode): number {
   if (node.kind === "root") return 150;
-  if (node.kind === "hub" || node.kind === "category") return 178;
-  return 200;
+  if (node.kind === "hub" || node.kind === "category") return 166;
+  return 170;
 }
-const NODE_H = 34;
 
 /**
- * The flat view: a tidy left-to-right layered graph of the same nodes and
- * edges, drawn as rectangles. No physics — positions come from the layered
- * layout and the canvas scrolls if it is taller than the viewport, so nodes
- * never overlap. Hovering dims everything not connected to the node.
+ * The flat view: a tidy top-down layered graph of the same nodes and edges,
+ * drawn as rectangles. No physics — positions come from the layered layout and
+ * the canvas scrolls if it is wider than the viewport, so nodes never overlap.
+ * Write-ups are tagged "notes" so they read as distinct from the same-named
+ * feature they document. Hovering dims everything not connected to the node.
  */
 export default function FlatGraph({ reducedMotion }: Props) {
   const data = useMemo(() => buildGraphData(), []);
   const layout = useMemo(() => buildLayeredLayout(data), [data]);
   const [hovered, setHovered] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
 
-  const { widthOf, centerY, leftX, rightX } = useMemo(() => {
-    const w = new Map(data.nodes.map((n) => [n.id, widthFor(n)]));
-    const pos = layout.positions;
-    return {
-      widthOf: w,
-      centerY: (id: string) => pos.get(id)?.y ?? 0,
-      leftX: (id: string) => pos.get(id)?.x ?? 0,
-      rightX: (id: string) => (pos.get(id)?.x ?? 0) + (w.get(id) ?? 0),
-    };
-  }, [data, layout]);
+  const center = (id: string) =>
+    layout.positions.get(id) ?? { x: 0, y: 0 };
 
   // Neighbour lookup for hover dimming.
   const neighbors = useMemo(() => {
@@ -53,7 +47,21 @@ export default function FlatGraph({ reducedMotion }: Props) {
     return map;
   }, [data]);
 
-  // Left-to-right reveal on mount.
+  const colorOf = useMemo(
+    () => new Map(data.nodes.map((n) => [n.id, n.color])),
+    [data],
+  );
+
+  // Start scrolled so the root sits at the top-centre, since it anchors the tree.
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    const root = layout.positions.get("root");
+    if (scroller && root) {
+      scroller.scrollLeft = Math.max(0, root.x - scroller.clientWidth / 2);
+    }
+  }, [layout]);
+
+  // Top-down reveal on mount.
   useEffect(() => {
     if (reducedMotion) return;
     const canvas = canvasRef.current;
@@ -62,10 +70,10 @@ export default function FlatGraph({ reducedMotion }: Props) {
     const paths = canvas.querySelectorAll("[data-flat-edge]");
     gsap.fromTo(
       boxes,
-      { opacity: 0, x: -18 },
+      { opacity: 0, y: -16 },
       {
         opacity: 1,
-        x: 0,
+        y: 0,
         duration: 0.5,
         ease: "power2.out",
         stagger: { each: 0.015, from: "start" },
@@ -79,11 +87,13 @@ export default function FlatGraph({ reducedMotion }: Props) {
     );
   }, [reducedMotion]);
 
+  const halfH = FLAT_NODE_H / 2;
+
   return (
-    <div className="h-full w-full overflow-auto">
+    <div ref={scrollerRef} className="h-full w-full overflow-auto">
       <div
         ref={canvasRef}
-        className="relative"
+        className="relative mx-auto"
         style={{
           width: Math.max(layout.width, 0),
           height: Math.max(layout.height, 0),
@@ -102,17 +112,19 @@ export default function FlatGraph({ reducedMotion }: Props) {
               hovered != null &&
               (edge.source === hovered || edge.target === hovered);
             const dim = hovered != null && !active;
-            const x1 = edge.bridge ? leftX(edge.source) : rightX(edge.source);
-            const y1 = centerY(edge.source);
-            const x2 = leftX(edge.target);
-            const y2 = centerY(edge.target);
-            const cx = edge.bridge
-              ? Math.min(x1, x2) - 46
-              : (x1 + x2) / 2;
-            const d = edge.bridge
-              ? `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`
-              : `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`;
-            const color = data.nodes.find((n) => n.id === edge.source)?.color;
+            const a = center(edge.source);
+            const b = center(edge.target);
+            const color = colorOf.get(edge.source);
+            let d: string;
+            if (edge.bridge) {
+              // Same-level cross-link: arc downward beneath the row.
+              const arc = 46;
+              d = `M${a.x},${a.y + halfH} C${a.x},${a.y + halfH + arc} ${b.x},${b.y + halfH + arc} ${b.x},${b.y + halfH}`;
+            } else {
+              // Parent (above) to child (below): vertical S-curve.
+              const my = (a.y + b.y) / 2;
+              d = `M${a.x},${a.y + halfH} C${a.x},${my} ${b.x},${my} ${b.x},${b.y - halfH}`;
+            }
             return (
               <path
                 key={i}
@@ -120,13 +132,7 @@ export default function FlatGraph({ reducedMotion }: Props) {
                 d={d}
                 fill="none"
                 stroke={active || edge.bridge ? color : "currentColor"}
-                className={
-                  active
-                    ? ""
-                    : edge.bridge
-                      ? ""
-                      : "text-foreground/15"
-                }
+                className={active || edge.bridge ? "" : "text-foreground/15"}
                 strokeWidth={active ? 2 : edge.bridge ? 1.5 : 1}
                 strokeOpacity={dim ? 0.2 : edge.bridge && !active ? 0.55 : 1}
                 strokeDasharray={edge.bridge ? "4 4" : undefined}
@@ -140,14 +146,13 @@ export default function FlatGraph({ reducedMotion }: Props) {
           const pos = layout.positions.get(node.id);
           if (!pos) return null;
           const dim = hovered != null && !neighbors.get(hovered)?.has(node.id);
-          const w = widthOf.get(node.id) ?? 180;
           return (
             <FlatNode
               key={node.id}
               node={node}
               x={pos.x}
               y={pos.y}
-              width={w}
+              width={widthFor(node)}
               dim={dim}
               onEnter={() => setHovered(node.id)}
               onLeave={() => setHovered((h) => (h === node.id ? null : h))}
@@ -183,17 +188,17 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
     onPointerEnter: onEnter,
     onPointerLeave: onLeave,
     className: [
-      "absolute flex items-center gap-2 overflow-hidden rounded-lg border border-border bg-surface px-3 shadow-sm transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md",
+      "absolute flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-surface px-2.5 shadow-sm transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md",
       dim ? "opacity-30" : "opacity-100",
     ].join(" "),
     style: {
       left: x,
       top: y,
       width,
-      height: NODE_H,
-      transform: "translateY(-50%)",
-      borderLeftColor: node.color,
-      borderLeftWidth: 3,
+      height: FLAT_NODE_H,
+      transform: "translate(-50%, -50%)",
+      borderTopColor: node.color,
+      borderTopWidth: 3,
     } as React.CSSProperties,
   };
 
@@ -206,6 +211,11 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
       <span className={`truncate text-foreground ${emphasis}`}>
         {node.label}
       </span>
+      {node.kind === "thought" ? (
+        <span className="ml-auto shrink-0 rounded-sm bg-foreground/10 px-1 text-[9px] font-semibold uppercase tracking-wide text-muted">
+          notes
+        </span>
+      ) : null}
     </>
   );
 
