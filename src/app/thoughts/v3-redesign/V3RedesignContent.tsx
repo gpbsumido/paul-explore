@@ -176,12 +176,15 @@ export default function V3RedesignContent() {
               </li>
               <li>
                 The landing passes the automated axe scan at WCAG 2.1 AA with
-                zero violations. It also passes axe&rsquo;s stricter
-                <em className="text-foreground/80"> best-practice</em> rules
-                &mdash; though the shared test still enforces AA only, because
-                flipping best-practice on globally would flag older routes that
-                predate landmark discipline. That&rsquo;s a follow-up sweep, not
-                a v3 concern.
+                zero violations, and axe&rsquo;s stricter
+                <em className="text-foreground/80"> best-practice</em> rules too.
+                Flipping best-practice on globally flagged a few older routes
+                that predate landmark discipline, so that became its own
+                follow-up sweep &mdash; the shared test now enforces
+                best-practice, and the routes it caught (a couple of{" "}
+                <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">/tcg</code>{" "}
+                pages, <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">/calendar</code>)
+                got their missing landmarks.
               </li>
             </ul>
           </section>
@@ -207,10 +210,10 @@ export default function V3RedesignContent() {
           <section>
             <h2 className="mb-3 text-lg font-bold">What I&rsquo;d do next</h2>
             <p className="text-muted">
-              Give the force view a mobile fallback of its own; animate the
-              cross-fade when toggling views; and run the best-practice a11y
-              sweep across the older routes so the whole site can hold the higher
-              bar, not just this page.
+              Give the force view a mobile fallback of its own, and animate the
+              cross-fade when toggling views. The best-practice a11y sweep across
+              the older routes already landed as a follow-up, so the whole site
+              holds the higher bar now, not just this page.
             </p>
           </section>
         </div>
