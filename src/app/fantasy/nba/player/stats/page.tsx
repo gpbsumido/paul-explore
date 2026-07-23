@@ -30,7 +30,6 @@ export const revalidate = 3600;
 export default function StatsPage() {
   return (
     <>
-      <h1 className="sr-only">Player Stats</h1>
       <StatsContent />
     </>
   );

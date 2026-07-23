@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-23 - version 0.25.74
+
+- accessibility sweep across the rest of the public routes to meet AA + axe best-practice, for the routes whose only issues were structural. added `<main>` landmarks to `/tcg/pocket`, `/tcg/pokemon/sets`, and `/lab/particles`; named the previously-unnamed controls (the particle-lab range sliders and mouse-attraction toggle, and the fantasy team/player selects); wrapped the fantasy filter bars in named `<section>` landmarks and moved their sr-only `h1` inside `<main>`; and gave `PageHeader`'s breadcrumb nav an `aria-label` ("Breadcrumb") so it's distinguishable from a page's other navs — one shared fix that clears `landmark-unique` on every learn topic page. added public e2e a11y coverage for the eight now-clean routes (learn, learn/binary-search, work-portfolio, tcg/pocket, tcg/pokemon/sets, lab/particles, and the fantasy court-vision + player-stats pages). the routes that also need colour-contrast work (graphql, operator, lab/motion, some fantasy pages) are handled in the contrast follow-up
+
 ## 2026-07-22 - version 0.25.73
 
 - raised the automated accessibility bar in the shared `checkA11y` e2e helper from WCAG 2.1 A/AA to AA + axe best-practice (a single main landmark, all content contained by landmarks, a top-level heading, non-redundant alt text, heading order), and fixed the routes it flagged: wrapped `/tcg/pokemon` (browse), `/tcg/pokemon/card/[cardId]` (detail), and `/calendar` content in `<main>`, and marked the browse card image decorative (`alt=""`) since the card name is already the link's visible text (`image-redundant-alt`). `/vitals` and `/settings` already had a main + heading. verified against the public landmark + axe e2e
