@@ -1,25 +1,15 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { NextResponse } from "next/server";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { updateEventBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
 
+type RouteCtx = { params: Promise<{ id: string }> };
+
 // GET /api/calendar/events/:id
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params;
-
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[calendar BFF] GET event — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
+export const GET = withBackend<RouteCtx>(
+  "calendar event GET",
+  async ({ token, email }, _request, { params }) => {
+    const { id } = await params;
     const res = await fetch(`${API_URL}/api/calendar/events/${id}`, {
       headers: buildHeaders(token, email),
     });
@@ -31,41 +21,24 @@ export async function GET(
         { status: res.status },
       );
     }
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("[calendar BFF] GET event — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+    return NextResponse.json(await res.json());
+  },
+);
 
 // PUT /api/calendar/events/:id
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params;
+export const PUT = withBackend<RouteCtx>(
+  "calendar event PUT",
+  async ({ token, email }, request, { params }) => {
+    const { id } = await params;
+    const bodyResult = await parseBody(request, updateEventBodySchema);
+    if (!bodyResult.ok) return bodyResult.response;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[calendar BFF] PUT — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  const bodyResult = await parseBody(request, updateEventBodySchema);
-  if (!bodyResult.ok) return bodyResult.response;
-  const body = bodyResult.data;
-
-  try {
     const res = await fetch(`${API_URL}/api/calendar/events/${id}`, {
       method: "PUT",
       headers: buildHeaders(token, email, {
         "Content-Type": "application/json",
       }),
-      body: JSON.stringify(body),
+      body: JSON.stringify(bodyResult.data),
     });
     if (!res.ok) {
       const err = await res
@@ -74,31 +47,15 @@ export async function PUT(
       console.error("[calendar BFF] PUT — backend error body:", err);
       return NextResponse.json(err, { status: res.status });
     }
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("[calendar BFF] PUT — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+    return NextResponse.json(await res.json());
+  },
+);
 
 // DELETE /api/calendar/events/:id
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params;
-
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[calendar BFF] DELETE — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
+export const DELETE = withBackend<RouteCtx>(
+  "calendar event DELETE",
+  async ({ token, email }, _request, { params }) => {
+    const { id } = await params;
     const res = await fetch(`${API_URL}/api/calendar/events/${id}`, {
       method: "DELETE",
       headers: buildHeaders(token, email),
@@ -111,8 +68,5 @@ export async function DELETE(
       return NextResponse.json(err, { status: res.status });
     }
     return new NextResponse(null, { status: 204 });
-  } catch (err) {
-    console.error("[calendar BFF] DELETE — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);
