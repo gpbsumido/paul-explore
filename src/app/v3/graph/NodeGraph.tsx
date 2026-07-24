@@ -676,6 +676,19 @@ export default function NodeGraph({ reducedMotion }: Props) {
         </div>
       ) : null}
 
+      {/* Idle interaction hint — lives in the same top slot as the hover popover
+          and only shows when nothing is hovered (and the zoom hint isn't up), so
+          the popover replaces it the moment you hover a node. */}
+      {!cramped && hovered == null ? (
+        <div
+          aria-hidden
+          style={{ top: "calc(var(--v3-header-h, 4rem) + 0.5rem)" }}
+          className="pointer-events-none absolute left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-surface/70 px-3 py-1 text-xs text-muted backdrop-blur"
+        >
+          Drag the nodes · click one to open it
+        </div>
+      ) : null}
+
       {/* Fixed detail panel for the hovered node — pinned just below the header
           so it sits above the node cluster instead of covering the categories
           that fan upward, and clears the header even when it wraps on zoom. */}
