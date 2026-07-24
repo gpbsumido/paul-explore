@@ -72,9 +72,13 @@ plan's PR so the target is explicit.
   accent-parameterised (`colorA`/`colorB`), reduced-motion aware — extracted from
   `GraphBackground`, which now just wraps it (proving the extraction, identical
   landing output).
-- **Next:** the glass surface (`.glass` / `.glass-card`; design-system CSS
-  component preferred, app CSS token fallback), and an optional `PageShell` that
-  composes background + header + motion container so pages are a one-liner.
+- **Done:** the glass surface — `.glass-card` in `globals.css`: semi-transparent
+  (so the ambient shows through, blurred), theme-aware via the surface/border
+  tokens, and tintable toward an accent via `--glass-accent`. Applied to the
+  Pokédex cards (`/graphql`) as the first full ambient + glass example.
+- **Next:** an optional `PageShell` that composes background + header + motion
+  container so pages are a one-liner, and rolling `.glass-card` onto the other
+  pages' card surfaces.
 
 ### 3. Showcase pages (highest visual payoff, lowest risk) — **in progress**
 `/operator`, `/work-portfolio`, `/learn`, `/fantasy/nba` (the new hub). These are
