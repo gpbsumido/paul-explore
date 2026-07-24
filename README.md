@@ -19,15 +19,14 @@ Public (no login):
 - [Learn](https://paulsumido.com/learn) — 14 interactive algorithm & frontend-pattern deep-dives
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
 - [Particle Lab](https://paulsumido.com/lab/particles) · [Motion Lab](https://paulsumido.com/lab/motion) — R3F and Framer Motion experiments
-- [Pokémon TCG Browser](https://paulsumido.com/tcg) · [GraphQL Pokédex](https://paulsumido.com/pokedex)
-- [NBA Playoffs Bracket](https://paulsumido.com/fantasy/nba/playoffs) — bracket picker with a public leaderboard
+- [Pokémon TCG Browser](https://paulsumido.com/tcg/pokemon) · [GraphQL Pokédex](https://paulsumido.com/graphql)
+- Fantasy NBA — [playoffs bracket](https://paulsumido.com/fantasy/nba/playoffs) (public leaderboard), [player stats](https://paulsumido.com/fantasy/nba/player/stats), [league history](https://paulsumido.com/fantasy/nba/league-history), [court vision](https://paulsumido.com/fantasy/nba/court-vision), [matchups](https://paulsumido.com/fantasy/nba/matchups)
 - [Thoughts](https://paulsumido.com/thoughts) — write-ups on design decisions
 
-Requires login:
+Requires login (redirected to Auth0 by the middleware):
 
-- [Calendar](https://paulsumido.com/calendar) — full personal calendar with Google Calendar sync
-- [Web Vitals](https://paulsumido.com/vitals) — real-user Core Web Vitals dashboard
-- [NBA Stats](https://paulsumido.com/nba) — live player stats
+- [Calendar](https://paulsumido.com/calendar) — personal calendar (per-user) with Google Calendar sync; includes events and countdowns
+- [Web Vitals](https://paulsumido.com/vitals) — real-user Core Web Vitals dashboard (site-wide data, visible to any signed-in user)
 - [Settings](https://paulsumido.com/settings)
 
 ---

@@ -3,6 +3,7 @@
 ## 2026-07-24 - version 1.0.4
 
 - trimmed the README down to what actually belongs in a repo README. It had grown to ~390 lines that reproduced the site itself — a per-feature deep-dive for every page, a "Key technical decisions" list, and an ~80-bullet "Things I learned" log, all of which are the live site's and the `/thoughts` write-ups' job to tell. Removed those three sections, condensed the two public/login feature lists into one compact index of links to the live routes (plus a pointer to `/thoughts`), and kept the parts a README is actually for: run-locally steps, tech-stack and deployment tables, and project structure. From 389 lines to ~140
+- corrected the feature/auth lists while trimming — the old README had wrong routes and wrong auth labels. Real auth-gated set (verified against prod: 307 to `/auth/login`) is exactly `/vitals`, `/settings`, and `/calendar*`, matching the `proxy.ts` middleware. Fixed: "NBA Stats" was listed as login-only but the fantasy NBA pages (including player stats at `/fantasy/nba/player/stats`) are public; the TCG browser is `/tcg/pokemon` not `/tcg`; the Pokédex is `/graphql` not `/pokedex`; there is no `/nba` route
 
 ## 2026-07-23 - version 1.0.2
 
