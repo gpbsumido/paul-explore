@@ -67,16 +67,25 @@ Capture each top-level surface in light and dark: `/`, `/operator`,
 the landing (surface, background, accent, motion). Output: a short table in this
 plan's PR so the target is explicit.
 
-### 2. Extract primitives
-- `AmbientBackground` from `GraphBackground` (accent-parameterised, reduced-motion aware).
-- Glass surface: add a `.glass` / `.glass-card` (design-system CSS component preferred; app CSS token fallback otherwise), matching the FeatureCard treatment.
-- `PageShell` composing background + header + motion container.
-- Unit-test the pure bits (token→style mapping); visually verify the wrappers.
+### 2. Extract primitives — **in progress**
+- **Done:** `AmbientBackground` (`src/components/AmbientBackground.tsx`) —
+  accent-parameterised (`colorA`/`colorB`), reduced-motion aware — extracted from
+  `GraphBackground`, which now just wraps it (proving the extraction, identical
+  landing output).
+- **Next:** the glass surface (`.glass` / `.glass-card`; design-system CSS
+  component preferred, app CSS token fallback), and an optional `PageShell` that
+  composes background + header + motion container so pages are a one-liner.
 
-### 3. Showcase pages (highest visual payoff, lowest risk)
+### 3. Showcase pages (highest visual payoff, lowest risk) — **in progress**
 `/operator`, `/work-portfolio`, `/learn`, `/fantasy/nba` (the new hub). These are
 card/dashboard-heavy and already public, so the glass + ambient treatment lands
 cleanly and there's no auth to stand up for verification.
+- **Done:** `/operator` (violet/blue aurora) and `/learn` (green aurora,
+  replacing its ad-hoc dot grid with the shared background), both verified in the
+  browser.
+- **Next:** `/work-portfolio` (careful — it's a full-bleed `overflow-hidden`
+  layout) and the `/fantasy/nba` hub, then the glass-card treatment on the cards
+  themselves (this pass so far is the ambient background only).
 
 ### 4. Content/data pages
 `/tcg/pokemon`, `/graphql`, `/vitals`, `/thoughts` index + write-ups. Here the

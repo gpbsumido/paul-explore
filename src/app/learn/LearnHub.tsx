@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { m } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import AmbientBackground from "@/components/AmbientBackground";
 import {
   spring,
   fadeInUp,
@@ -722,23 +723,15 @@ export default function LearnHub() {
   const t = prefersReduced ? instantTransition : spring.smooth;
 
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Learn" }]}
-      />
-
-      <main className="relative mx-auto max-w-4xl px-4 py-16 sm:py-20">
-        <div
-          className="pointer-events-none absolute inset-0 text-foreground opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "radial-gradient(currentColor 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-          }}
-          aria-hidden
+    <div className="relative min-h-dvh bg-background">
+      <AmbientBackground colorA="#34d399" colorB="#22d3ee" />
+      <div className="relative z-10">
+        <PageHeader
+          breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Learn" }]}
         />
 
-        <div className="relative">
+        <main className="relative mx-auto max-w-4xl px-4 py-16 sm:py-20">
+          <div className="relative">
           <m.h1
             className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
             variants={fadeInUp}
@@ -805,8 +798,9 @@ export default function LearnHub() {
               </section>
             );
           })}
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
