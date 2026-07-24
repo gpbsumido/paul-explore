@@ -2,7 +2,8 @@
 
 ## 2026-07-24 - version 1.0.6
 
-- polished the v3 landing graph. Three fixes:
+- polished the v3 landing graph. A batch of fixes:
+  - **Graph view — the highlight now lingers so you can reach a hovered node's children.** Leaving a node used to release the focus immediately, which un-pinned it and let its (spread-out) children snap back before you could get to them. The release now waits out a grace window (cancelled the moment you hover another node), so you can travel to a child without the graph rearranging under you.
   - **Flat view — main sections now read as sections.** The root, the Apps hub, and the category headers used to look almost identical to the leaf cards (only a slightly larger font). They now get a colour-tinted fill, a full-colour border, a glow, and a bigger dot, so the columns' headers stand out.
   - **Flat view — hovering now actually dims the rest.** The intro animation's `clearProps` only cleared `transform`, leaving an inline `opacity: 1` on every node that overrode the hover-dim class, so hovering did nothing. Clearing opacity too lets the dim apply: hovering a node fades everything except it and its connected cluster (down to 0.2).
   - **Graph view — the hover popover no longer covers nodes.** It was pinned at `top-24`, right on top of the categories that fan upward from the centre. Moved it to the top edge and, so a node never sits behind it at any viewport size, taught the simulation a keep-out: while the popover is up, nodes within its rectangle get pushed down past its bottom edge (read from the popover's real DOM rect, inverse-mapped through the frozen fit). The push isn't alpha-scaled so it holds at rest, skips pinned nodes (root and the focused node, which stays under the cursor), and releases when you move away. Verified in the browser: zero node centres under the panel, with a comfortable buffer.

@@ -18,6 +18,13 @@ import {
 /** Movement (px) past which a pointer gesture counts as a drag, not a click. */
 const DRAG_THRESHOLD = 5;
 
+/**
+ * How long the highlight/focus lingers after the pointer leaves a node, so you
+ * can move onto one of its (now spread-out) children without the graph
+ * rearranging out from under you. Cancelled the moment you hover another node.
+ */
+const HOVER_GRACE_MS = 2500;
+
 type Props = { reducedMotion: boolean };
 
 /**
@@ -50,6 +57,11 @@ export default function NodeGraph({ reducedMotion }: Props) {
   );
   // Delay before a hover starts pushing neighbours, so the highlight locks first.
   const focusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Grace timer that delays releasing the focus after the pointer leaves, and a
+  // ref mirror of the hovered index so that delayed release can tell whether
+  // another node has since taken over.
+  const hoverEndTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoveredRef = useRef<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
 
   // Adjacency: which edges touch a node, and the two endpoints of each edge.
@@ -330,6 +342,7 @@ export default function NodeGraph({ reducedMotion }: Props) {
       ro.disconnect();
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       if (focusTimer.current) clearTimeout(focusTimer.current);
+      if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
       gsap.killTweensOf(innerArr.filter(Boolean));
       gsap.killTweensOf(edgeArr.filter(Boolean));
       runningRef.current = false;
@@ -352,6 +365,11 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const p = pointFromEvent(e);
     dragRef.current = { i, moved: false, sx: p.x, sy: p.y };
     if (focusTimer.current) clearTimeout(focusTimer.current);
+    if (hoverEndTimer.current) {
+      clearTimeout(hoverEndTimer.current);
+      hoverEndTimer.current = null;
+    }
+    hoveredRef.current = i;
     sim.nodes[i].pinned = true;
     // Give the dragged node extra clearance so it shoulders other nodes out of
     // the way as it moves through the graph.
@@ -499,6 +517,13 @@ export default function NodeGraph({ reducedMotion }: Props) {
             onPointerUp={onNodePointerUp(i)}
             onClick={onNodeClick}
             onHoverStart={() => {
+              // Hovering a new node cancels any pending grace release from the
+              // node we just left, so the highlight moves cleanly between nodes.
+              if (hoverEndTimer.current) {
+                clearTimeout(hoverEndTimer.current);
+                hoverEndTimer.current = null;
+              }
+              hoveredRef.current = i;
               setHovered(i);
               // Highlight immediately, but wait ~half a second before pushing
               // neighbours away so the selection locks in first.
@@ -512,35 +537,53 @@ export default function NodeGraph({ reducedMotion }: Props) {
               if (focusTimer.current) clearTimeout(focusTimer.current);
               focusTimer.current = setTimeout(() => {
                 const sim = simRef.current;
-                if (sim) {
-                  sim.focus = i;
-                  // Pin the focused node so it holds under the cursor while its
-                  // neighbours get pushed away (collision reacts on both nodes).
-                  sim.nodes[i].pinned = true;
-                  sim.labeled = labeledSet(i);
-                  reheat(sim, 0.25);
-                  ensureRunning();
+                if (!sim) return;
+                // Release the previously focused node (a grace period may have
+                // left it pinned) before pinning the new one.
+                const prev = sim.focus;
+                if (prev != null && prev !== i && prev !== 0 && !dragRef.current) {
+                  sim.nodes[prev].pinned = false;
                 }
+                sim.focus = i;
+                // Pin the focused node so it holds under the cursor while its
+                // neighbours get pushed away (collision reacts on both nodes).
+                sim.nodes[i].pinned = true;
+                sim.labeled = labeledSet(i);
+                reheat(sim, 0.25);
+                ensureRunning();
               }, 500);
             }}
             onHoverEnd={() => {
-              setHovered((h) => (h === i ? null : h));
-              if (focusTimer.current) clearTimeout(focusTimer.current);
-              const sim = simRef.current;
-              // Drop the keep-out and let the displaced nodes drift back.
-              if (popoverActiveRef.current) {
-                popoverActiveRef.current = false;
-                if (sim) reheat(sim, 0.15);
-                ensureRunning();
+              if (reducedMotion) {
+                hoveredRef.current = null;
+                setHovered((h) => (h === i ? null : h));
+                return;
               }
-              if (sim && sim.focus === i) {
-                sim.focus = null;
-                sim.labeled = labeledSet(null);
-                // Release the pin unless it's the root (root stays centred).
-                if (i !== 0 && !dragRef.current) sim.nodes[i].pinned = false;
-                reheat(sim, 0.2);
+              // Don't release immediately. Wait out the grace period so you can
+              // travel to a child; if you land on another node first, its
+              // onHoverStart cancels this timer.
+              if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
+              hoverEndTimer.current = setTimeout(() => {
+                hoverEndTimer.current = null;
+                // Bail if another node became the hover in the meantime.
+                if (hoveredRef.current !== i) return;
+                hoveredRef.current = null;
+                setHovered((h) => (h === i ? null : h));
+                if (focusTimer.current) clearTimeout(focusTimer.current);
+                const sim = simRef.current;
+                if (popoverActiveRef.current) {
+                  popoverActiveRef.current = false;
+                  if (sim) reheat(sim, 0.15);
+                }
+                if (sim && sim.focus === i) {
+                  sim.focus = null;
+                  sim.labeled = labeledSet(null);
+                  // Release the pin unless it's the root (root stays centred).
+                  if (i !== 0 && !dragRef.current) sim.nodes[i].pinned = false;
+                  reheat(sim, 0.2);
+                }
                 ensureRunning();
-              }
+              }, HOVER_GRACE_MS);
             }}
           />
         );
