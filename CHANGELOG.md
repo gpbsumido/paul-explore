@@ -10,7 +10,8 @@
   - **Graph view — a focused node's neighbours no longer spread off screen.** Hovering a category with many write-ups pushed some of them past the viewport edge, because the fit is frozen during a hover (to hold the focused node under the cursor) so the graph can't zoom out. Added a containment force, active only while a hover is up, that pulls any node past the visible edge back inside — with extra clearance at the bottom so labels don't collide with the legend/hint chrome. Verified: hovering the busiest category leaves zero nodes off screen or over the bottom pills.
   - **Flat view — the root node is no longer hidden behind the header.** `paul-explore` sat at the top of the column layout, under the ~120px fixed header. Dropped the root (and the column row below it) down so it clears the header.
   - **Flat view — hovering a card expands it to its full label.** Cards truncate to fit their column; on hover the hovered card now grows to its full, untruncated text and floats above the rest.
-  - **Graph view — a "zoom out" hint at cramped sizes.** When the viewport is too small (e.g. zoomed in) for the keep-out to hold the popover clear of nodes, a small hint pill suggests zooming out, shown only when nothing is hovered so it never collides with the popover.
+  - **Graph view — a "zoom out" hint when zoomed in.** When you've zoomed in (browser zoom scales `devicePixelRatio`, so it's detected by comparing to the value at load, ≥1.25×) or the viewport is genuinely tiny, a hint pill suggests zooming out — shown only when nothing is hovered so it never collides with the popover.
+  - **Both views — the bottom chrome pills no longer overlap.** The centered interaction hint shared the bottom row with the legend and corner nav, so they collided at narrower/zoomed widths. The hint now lifts onto its own row below ~1400px and stays inline above it.
 
 ## 2026-07-24 - version 1.0.5
 

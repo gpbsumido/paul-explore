@@ -327,9 +327,20 @@ export default function NodeGraph({ reducedMotion }: Props) {
       ensureRunning();
     }
 
+    // Browser zoom scales devicePixelRatio, so compare it to the value at load:
+    // zoomed in past ~1.25x (or a genuinely tiny viewport) means the graph is
+    // too cramped to keep the popover clear, and we surface the zoom-out hint.
+    const baseDpr = window.devicePixelRatio || 1;
     const syncCramped = () =>
-      setCramped(container.clientWidth < 700 || container.clientHeight < 520);
+      setCramped(
+        window.devicePixelRatio / baseDpr >= 1.25 ||
+          container.clientWidth < 700 ||
+          container.clientHeight < 520,
+      );
     syncCramped();
+    // Browser zoom fires a window resize; the ResizeObserver below only sees
+    // container size changes, so listen here too to catch zoom on large windows.
+    window.addEventListener("resize", syncCramped);
 
     const ro = new ResizeObserver(() => {
       const s = simRef.current;
@@ -348,6 +359,7 @@ export default function NodeGraph({ reducedMotion }: Props) {
 
     return () => {
       ro.disconnect();
+      window.removeEventListener("resize", syncCramped);
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       if (focusTimer.current) clearTimeout(focusTimer.current);
       if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);

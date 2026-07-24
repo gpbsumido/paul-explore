@@ -164,10 +164,12 @@ export default function GraphShell({
         </span>
       </div>
 
-      {/* Interaction hint — hidden on phones where it would crowd the nav */}
+      {/* Interaction hint — hidden on phones where it would crowd the nav.
+          On wide screens it sits on the same bottom row as the legend/nav; on
+          narrower screens it lifts onto its own row so it can't overlap them. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-5 z-30 hidden justify-center sm:flex"
+        className="pointer-events-none absolute inset-x-0 bottom-16 z-30 hidden justify-center sm:flex min-[1400px]:bottom-5"
       >
         <span className="rounded-full border border-border bg-surface/70 px-3 py-1 text-xs text-muted backdrop-blur">
           {mode === "force"
