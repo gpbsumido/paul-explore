@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import {
@@ -40,7 +40,10 @@ export default function FlatGraph({ reducedMotion }: Props) {
   // than the space available, i.e. showing every column would need horizontal
   // scrolling. That covers phones and any window (or zoom level) too narrow to
   // fit the full width, instead of switching on a fixed breakpoint alone.
-  useEffect(() => {
+  // useLayoutEffect so the decision lands before the first paint — otherwise a
+  // too-narrow load flashes the column canvas for a frame before snapping to
+  // the vertical list.
+  useLayoutEffect(() => {
     const el = rootRef.current;
     if (!el) return;
     const sync = () => {
@@ -78,8 +81,40 @@ export default function FlatGraph({ reducedMotion }: Props) {
     return { headerIds: headers, itemGroup: item };
   }, [groups]);
 
+  // Neighbour lookup: each node mapped to itself plus everything it connects to.
+  // Used both to reveal a hovered node's connections and to dim the rest.
+  const neighbors = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    data.nodes.forEach((n) => map.set(n.id, new Set([n.id])));
+    data.edges.forEach((e) => {
+      map.get(e.source)?.add(e.target);
+      map.get(e.target)?.add(e.source);
+    });
+    return map;
+  }, [data]);
+
+  // Which category columns are shown: the open one, plus — while hovering — the
+  // columns holding the hovered node and everything it connects to. Whole
+  // columns open (so items stay lined up under their header); the dimming below
+  // is what singles out the actually-connected nodes.
+  const revealedGroups = useMemo(() => {
+    const s = new Set<string>();
+    if (openGroup) s.add(openGroup);
+    if (hovered != null) {
+      const own = itemGroup.get(hovered);
+      if (own) s.add(own);
+      for (const nb of neighbors.get(hovered) ?? []) {
+        const g = itemGroup.get(nb);
+        if (g) s.add(g);
+      }
+    }
+    return s;
+  }, [openGroup, hovered, itemGroup, neighbors]);
+
   const isVisible = (id: string) =>
-    id === "root" || headerIds.has(id) || itemGroup.get(id) === openGroup;
+    id === "root" ||
+    headerIds.has(id) ||
+    revealedGroups.has(itemGroup.get(id) ?? "");
 
   const isSectionNode = (id: string) => id === "root" || headerIds.has(id);
   // Hovering a section header just reveals its items — it shouldn't dim the
@@ -98,21 +133,10 @@ export default function FlatGraph({ reducedMotion }: Props) {
     }
     return maxY + FLAT_NODE_H / 2 + 40;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, layout, openGroup, headerIds, itemGroup]);
+  }, [data, layout, openGroup, headerIds, itemGroup, hovered, neighbors]);
 
   const center = (id: string) =>
     layout.positions.get(id) ?? { x: 0, y: 0 };
-
-  // Neighbour lookup for hover dimming.
-  const neighbors = useMemo(() => {
-    const map = new Map<string, Set<string>>();
-    data.nodes.forEach((n) => map.set(n.id, new Set([n.id])));
-    data.edges.forEach((e) => {
-      map.get(e.source)?.add(e.target);
-      map.get(e.target)?.add(e.source);
-    });
-    return map;
-  }, [data]);
 
   const colorOf = useMemo(
     () => new Map(data.nodes.map((n) => [n.id, n.color])),
@@ -128,17 +152,17 @@ export default function FlatGraph({ reducedMotion }: Props) {
     const paths = canvas.querySelectorAll("[data-flat-edge]");
     gsap.fromTo(
       boxes,
-      { opacity: 0, y: -16 },
+      { opacity: 0 },
       {
         opacity: 1,
-        y: 0,
         duration: 0.5,
         ease: "power2.out",
         stagger: { each: 0.015, from: "start" },
-        // Clear opacity too, not just transform: otherwise the intro leaves an
-        // inline opacity:1 that overrides the hover-dim class, so hovering never
-        // fades the unconnected nodes.
-        clearProps: "transform,opacity",
+        // Clear only opacity, not transform: the intro leaves an inline
+        // opacity:1 that would override the hover-dim class, so we drop it — but
+        // clearing transform would also strip each card's translate(-50%,-50%)
+        // centering and shove headers half a box off their column.
+        clearProps: "opacity",
       },
     );
     gsap.fromTo(

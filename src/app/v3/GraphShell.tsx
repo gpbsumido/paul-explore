@@ -13,6 +13,9 @@ const FlatGraph = dynamic(() => import("./graph/FlatGraph"), { ssr: false });
 
 type LayoutMode = "force" | "flat";
 
+/** localStorage key for remembering the force/flat choice across visits. */
+const MODE_STORAGE_KEY = "v3-graph-mode";
+
 /** Segmented switch that flips between the force graph and the flat layered view. */
 function LayoutSwitch({
   mode,
@@ -85,8 +88,32 @@ export default function GraphShell({
   action: ReactNode;
 }) {
   const reduced = useReducedMotion() ?? false;
-  const [mode, setMode] = useState<LayoutMode>("force");
+  const [mode, setModeState] = useState<LayoutMode>("force");
   const rootRef = useRef<HTMLDivElement | null>(null);
+
+  // Remember the last-used view across visits. Read in an effect (not lazy
+  // init) so the server-rendered markup and first client render agree, then
+  // switch if a preference was stored.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(MODE_STORAGE_KEY);
+      // One-time read of a persisted UI preference on mount; a lazy initializer
+      // would mismatch the server-rendered default and warn on hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (saved === "flat" || saved === "force") setModeState(saved);
+    } catch {
+      // localStorage can throw (private mode, disabled) — just use the default.
+    }
+  }, []);
+
+  const setMode = (next: LayoutMode) => {
+    setModeState(next);
+    try {
+      localStorage.setItem(MODE_STORAGE_KEY, next);
+    } catch {
+      // ignore write failures; the choice just won't persist
+    }
+  };
   const headerRef = useRef<HTMLElement | null>(null);
 
   // Publish the header's live height as a CSS var so the graph overlays (the
