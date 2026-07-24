@@ -5,7 +5,7 @@
 - polished the v3 landing graph. Three fixes:
   - **Flat view — main sections now read as sections.** The root, the Apps hub, and the category headers used to look almost identical to the leaf cards (only a slightly larger font). They now get a colour-tinted fill, a full-colour border, a glow, and a bigger dot, so the columns' headers stand out.
   - **Flat view — hovering now actually dims the rest.** The intro animation's `clearProps` only cleared `transform`, leaving an inline `opacity: 1` on every node that overrode the hover-dim class, so hovering did nothing. Clearing opacity too lets the dim apply: hovering a node fades everything except it and its connected cluster (down to 0.2).
-  - **Graph view — the hover popover no longer covers nodes.** It was pinned at `top-24`, right on top of the categories that fan upward from the centre. Moved it into the top-edge chrome band (between the heading and the layout toggle) so it sits above the node field. Verified in the browser.
+  - **Graph view — the hover popover no longer covers nodes.** It was pinned at `top-24`, right on top of the categories that fan upward from the centre. Moved it to the top edge and, so a node never sits behind it at any viewport size, taught the simulation a keep-out: while the popover is up, nodes within its rectangle get pushed down past its bottom edge (read from the popover's real DOM rect, inverse-mapped through the frozen fit). The push isn't alpha-scaled so it holds at rest, skips pinned nodes (root and the focused node, which stays under the cursor), and releases when you move away. Verified in the browser: zero node centres under the panel, with a comfortable buffer.
 
 ## 2026-07-24 - version 1.0.5
 

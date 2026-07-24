@@ -23,6 +23,19 @@ export type SimNode = {
 
 type SimEdge = { a: number; b: number; rest: number };
 
+/**
+ * A rectangular region (in sim space) the popover occupies, that nodes are
+ * pushed down out of so the hover detail panel never covers them. Only the top
+ * edge matters — nodes above `yBottom` within the x-span get nudged below it.
+ */
+export type KeepOut = {
+  xMin: number;
+  xMax: number;
+  yBottom: number;
+  /** Push strength; held at rest (not alpha-scaled) like collision. */
+  strength: number;
+};
+
 export type SimState = {
   nodes: SimNode[];
   edges: SimEdge[];
@@ -155,6 +168,7 @@ export function stepSimulation(
   state: SimState,
   params: SimParams,
   screenScale = 1,
+  keepOut: KeepOut | null = null,
 ): void {
   const { nodes, edges, alpha, fx, fy, eff } = state;
   const n = nodes.length;
@@ -224,6 +238,24 @@ export function stepSimulation(
     const node = nodes[i];
     fx[i] += -node.x * params.gravity * alpha;
     fy[i] += -node.y * params.gravity * alpha;
+  }
+
+  // Keep-out: shove any node sitting under the hover popover down past its
+  // bottom edge, so the panel never covers a node. Proportional to how far the
+  // node has intruded, and not alpha-scaled so it still holds once the graph is
+  // at rest. Pinned nodes (root, the focused node) are left alone.
+  if (keepOut) {
+    for (let i = 0; i < n; i++) {
+      const node = nodes[i];
+      if (node.pinned) continue;
+      if (
+        node.x > keepOut.xMin &&
+        node.x < keepOut.xMax &&
+        node.y < keepOut.yBottom
+      ) {
+        fy[i] += (keepOut.yBottom - node.y) * keepOut.strength;
+      }
+    }
   }
 
   for (let i = 0; i < n; i++) {

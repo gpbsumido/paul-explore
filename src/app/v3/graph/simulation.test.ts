@@ -87,6 +87,28 @@ describe("forces", () => {
     expect(dist(s)).toBeGreaterThan(before);
   });
 
+  it("keep-out drives a node under the popover down past its bottom edge", () => {
+    const keepOut = { xMin: -50, xMax: 50, yBottom: -40, strength: 0.35 };
+    const withKeep = pairState(0, -100, 2000, 2000); // node 0 sits in the band
+    const without = pairState(0, -100, 2000, 2000);
+    for (let i = 0; i < 40; i++) {
+      stepSimulation(withKeep, DEFAULT_PARAMS, 1, keepOut);
+      stepSimulation(without, DEFAULT_PARAMS, 1, null);
+    }
+    // The keep-out pushes it lower than physics alone, and clear of the band.
+    expect(withKeep.nodes[0].y).toBeGreaterThan(without.nodes[0].y);
+    expect(withKeep.nodes[0].y).toBeGreaterThan(keepOut.yBottom - 1);
+  });
+
+  it("keep-out leaves nodes outside its x-span untouched", () => {
+    const keepOut = { xMin: -50, xMax: 50, yBottom: -40, strength: 0.35 };
+    const inBand = pairState(500, -100, 2000, 2000); // x=500 is outside the span
+    const control = pairState(500, -100, 2000, 2000);
+    stepSimulation(inBand, DEFAULT_PARAMS, 1, keepOut);
+    stepSimulation(control, DEFAULT_PARAMS, 1, null);
+    expect(inBand.nodes[0].y).toBeCloseTo(control.nodes[0].y, 10);
+  });
+
   it("a spring pulls two connected, far-apart nodes closer", () => {
     const s = pairState(-400, 0, 400, 0, true); // way beyond rest length (100)
     const before = dist(s);
