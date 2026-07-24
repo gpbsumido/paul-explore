@@ -28,6 +28,10 @@ export default function FlatGraph({ reducedMotion }: Props) {
   const data = useMemo(() => buildGraphData(), []);
   const layout = useMemo(() => buildLayeredLayout(data), [data]);
   const [hovered, setHovered] = useState<string | null>(null);
+  // Progressive disclosure: which section header is expanded (its items shown).
+  // null = collapsed (only the root and the section headers show). Hovering a
+  // header opens it; it stays open until a different header is hovered.
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [compact, setCompact] = useState(false);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -56,6 +60,37 @@ export default function FlatGraph({ reducedMotion }: Props) {
       items: (childMap.get(gid) ?? []).map((id) => byId.get(id)!),
     }));
   }, [data]);
+
+  // Header (root's children) ids, and which header each item belongs to, for
+  // progressive disclosure.
+  const { headerIds, itemGroup } = useMemo(() => {
+    const headers = new Set(groups.map((g) => g.node.id));
+    const item = new Map<string, string>();
+    for (const g of groups) for (const it of g.items) item.set(it.id, g.node.id);
+    return { headerIds: headers, itemGroup: item };
+  }, [groups]);
+
+  const isVisible = (id: string) =>
+    id === "root" || headerIds.has(id) || itemGroup.get(id) === openGroup;
+
+  const isSectionNode = (id: string) => id === "root" || headerIds.has(id);
+  // Hovering a section header just reveals its items — it shouldn't dim the
+  // other headers, since those are the persistent navigation. Only hovering an
+  // item fades the rest (and never the headers).
+  const hoveredIsSection = hovered != null && isSectionNode(hovered);
+
+  // Canvas only needs to be as tall as what's currently shown, so the collapsed
+  // view is a compact root + header row and opening a section grows it.
+  const visibleHeight = useMemo(() => {
+    let maxY = 0;
+    for (const n of data.nodes) {
+      if (!isVisible(n.id)) continue;
+      const p = layout.positions.get(n.id);
+      if (p && p.y > maxY) maxY = p.y;
+    }
+    return maxY + FLAT_NODE_H / 2 + 40;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, layout, openGroup, headerIds, itemGroup]);
 
   const center = (id: string) =>
     layout.positions.get(id) ?? { x: 0, y: 0 };
@@ -101,7 +136,10 @@ export default function FlatGraph({ reducedMotion }: Props) {
         duration: 0.5,
         ease: "power2.out",
         stagger: { each: 0.015, from: "start" },
-        clearProps: "transform",
+        // Clear opacity too, not just transform: otherwise the intro leaves an
+        // inline opacity:1 that overrides the hover-dim class, so hovering never
+        // fades the unconnected nodes.
+        clearProps: "transform,opacity",
       },
     );
     gsap.fromTo(
@@ -158,7 +196,7 @@ export default function FlatGraph({ reducedMotion }: Props) {
         className="relative mx-auto"
         style={{
           width: Math.max(layout.width, 0),
-          height: Math.max(layout.height, 0),
+          height: Math.max(visibleHeight, 0),
           minWidth: "100%",
           minHeight: "100%",
         }}
@@ -166,14 +204,17 @@ export default function FlatGraph({ reducedMotion }: Props) {
         <svg
           className="absolute inset-0"
           width={layout.width}
-          height={layout.height}
+          height={visibleHeight}
           aria-hidden
         >
           {data.edges.map((edge, i) => {
+            // Progressive disclosure: only draw an edge when both ends are shown.
+            if (!isVisible(edge.source) || !isVisible(edge.target)) return null;
             const active =
               hovered != null &&
               (edge.source === hovered || edge.target === hovered);
-            const dim = hovered != null && !active;
+            // Only an item hover dims; a header hover just highlights its own edges.
+            const dim = hovered != null && !hoveredIsSection && !active;
             const a = center(edge.source);
             const b = center(edge.target);
             const color = colorOf.get(edge.source);
@@ -210,8 +251,14 @@ export default function FlatGraph({ reducedMotion }: Props) {
 
         {data.nodes.map((node) => {
           const pos = layout.positions.get(node.id);
-          if (!pos) return null;
-          const dim = hovered != null && !neighbors.get(hovered)?.has(node.id);
+          if (!pos || !isVisible(node.id)) return null;
+          // Headers/root are navigation and never dim; only items fade, and
+          // only when another item (not a header) is hovered.
+          const dim =
+            hovered != null &&
+            !hoveredIsSection &&
+            !isSectionNode(node.id) &&
+            !neighbors.get(hovered)?.has(node.id);
           return (
             <FlatNode
               key={node.id}
@@ -220,7 +267,13 @@ export default function FlatGraph({ reducedMotion }: Props) {
               y={pos.y}
               width={widthFor(node)}
               dim={dim}
-              onEnter={() => setHovered(node.id)}
+              expanded={hovered === node.id}
+              onEnter={() => {
+                setHovered(node.id);
+                // Hovering a section header opens it; it stays open (even after
+                // you leave) until you hover a different header.
+                if (headerIds.has(node.id)) setOpenGroup(node.id);
+              }}
               onLeave={() => setHovered((h) => (h === node.id ? null : h))}
             />
           );
@@ -276,16 +329,24 @@ type FlatNodeProps = {
   y: number;
   width: number;
   dim: boolean;
+  /** The hovered node grows to its full, untruncated label and floats above the rest. */
+  expanded: boolean;
   onEnter: () => void;
   onLeave: () => void;
 };
 
-function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
+function FlatNode({ node, x, y, width, dim, expanded, onEnter, onLeave }: FlatNodeProps) {
+  // Root, the Apps hub, and the category headers are the graph's main sections,
+  // so they get a tinted fill, a full colour border, and a glow to stand out
+  // from the leaf cards.
+  const isSection =
+    node.kind === "root" || node.kind === "hub" || node.kind === "category";
+
   const emphasis =
     node.kind === "root"
       ? "text-sm font-bold"
       : node.kind === "hub" || node.kind === "category"
-        ? "text-[13px] font-semibold"
+        ? "text-[13px] font-bold"
         : "text-xs font-medium";
 
   const common = {
@@ -294,27 +355,45 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
     onPointerEnter: onEnter,
     onPointerLeave: onLeave,
     className: [
-      "absolute flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-surface px-2.5 shadow-sm outline-none transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-      dim ? "opacity-30" : "opacity-100",
+      "absolute flex items-center gap-1.5 rounded-lg border px-2.5 outline-none transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+      // Expanded (hovered) node grows past its column and floats over the rest.
+      expanded ? "z-30 overflow-visible shadow-lg" : "overflow-hidden",
+      isSection ? "" : "border-border bg-surface shadow-sm",
+      // Non-connected nodes fade well back on hover so the connected cluster reads.
+      dim ? "opacity-20" : "opacity-100",
     ].join(" "),
     style: {
       left: x,
       top: y,
-      width,
+      width: expanded ? "auto" : width,
+      // Never shrink below the resting width — only grow for long labels — so a
+      // short-label node (e.g. the root) doesn't shrink out from under the
+      // cursor on hover and flicker.
+      minWidth: expanded ? width : undefined,
+      maxWidth: expanded ? "min(20rem, 80vw)" : undefined,
       height: FLAT_NODE_H,
       transform: "translate(-50%, -50%)",
       borderTopColor: node.color,
       borderTopWidth: 3,
+      ...(isSection
+        ? {
+            background: `color-mix(in srgb, ${node.color} 16%, var(--color-surface))`,
+            borderColor: node.color,
+            boxShadow: `0 0 0 1px ${node.color}40, 0 4px 16px ${node.color}30`,
+          }
+        : {}),
     } as React.CSSProperties,
   };
 
   const content = (
     <>
       <span
-        className="h-2 w-2 shrink-0 rounded-full"
+        className={`${isSection ? "h-2.5 w-2.5" : "h-2 w-2"} shrink-0 rounded-full`}
         style={{ background: node.color, boxShadow: `0 0 8px ${node.color}` }}
       />
-      <span className={`truncate text-foreground ${emphasis}`}>
+      <span
+        className={`${expanded ? "whitespace-nowrap" : "truncate"} text-foreground ${emphasis}`}
+      >
         {node.label}
       </span>
       {node.kind === "thought" ? (

@@ -11,10 +11,19 @@ import {
   reheat,
   DEFAULT_PARAMS,
   type SimState,
+  type KeepOut,
+  type Bounds,
 } from "./simulation";
 
 /** Movement (px) past which a pointer gesture counts as a drag, not a click. */
 const DRAG_THRESHOLD = 5;
+
+/**
+ * How long the highlight/focus lingers after the pointer leaves a node, so you
+ * can move onto one of its (now spread-out) children without the graph
+ * rearranging out from under you. Cancelled the moment you hover another node.
+ */
+const HOVER_GRACE_MS = 2500;
 
 type Props = { reducedMotion: boolean };
 
@@ -34,6 +43,10 @@ export default function NodeGraph({ reducedMotion }: Props) {
   const simRef = useRef<SimState | null>(null);
   const frameRef = useRef<number | null>(null);
   const runningRef = useRef(false);
+  // The hover popover's DOM node, and whether it's currently up: while it is,
+  // the sim keeps running and pushes nodes out from under it.
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+  const popoverActiveRef = useRef(false);
   // Smoothed viewport fit: maps origin-centred sim space onto the screen so the
   // graph always fills the room available. cx/cy is the sim-space centre.
   const fitRef = useRef({ scale: 1, cx: 0, cy: 0, init: false });
@@ -44,7 +57,15 @@ export default function NodeGraph({ reducedMotion }: Props) {
   );
   // Delay before a hover starts pushing neighbours, so the highlight locks first.
   const focusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Grace timer that delays releasing the focus after the pointer leaves, and a
+  // ref mirror of the hovered index so that delayed release can tell whether
+  // another node has since taken over.
+  const hoverEndTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoveredRef = useRef<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  // True when the viewport is too small (e.g. zoomed in) for the graph to keep
+  // the popover fully clear of nodes; we surface a "zoom out" hint instead.
+  const [cramped, setCramped] = useState(false);
 
   // Adjacency: which edges touch a node, and the two endpoints of each edge.
   const { edgeEnds, nodeEdges } = useMemo(() => {
@@ -98,10 +119,11 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const sim = simRef.current;
     const container = containerRef.current;
     if (!sim || !container) return;
-    // Freeze the fit while dragging or focusing so the coordinate mapping stays
-    // stable — otherwise neighbours spreading out grows the bbox, rescales the
-    // graph, and slides the hovered/dragged node out from under the cursor.
-    if (dragRef.current || sim.focus != null) return;
+    // Freeze the fit while dragging, focusing, or showing the popover so the
+    // coordinate mapping stays stable — otherwise neighbours spreading out (or
+    // nodes moving out of the popover) grows the bbox, rescales the graph, and
+    // slides the hovered/dragged node out from under the cursor.
+    if (dragRef.current || sim.focus != null || popoverActiveRef.current) return;
     const W = container.clientWidth;
     const H = container.clientHeight;
 
@@ -172,12 +194,75 @@ export default function NodeGraph({ reducedMotion }: Props) {
     }
   };
 
+  /**
+   * The popover's rectangle in sim space (or null), so the sim can push nodes
+   * out from under it. Read straight from the DOM each frame and inverse-mapped
+   * through the current fit; the fit is frozen while the popover is up, so the
+   * region stays put.
+   */
+  const computeKeepOut = (): KeepOut | null => {
+    if (!popoverActiveRef.current) return null;
+    const el = popoverRef.current;
+    const container = containerRef.current;
+    if (!el || !container) return null;
+    const cr = container.getBoundingClientRect();
+    const pr = el.getBoundingClientRect();
+    const fit = fitRef.current;
+    // Generous clearance so node bodies (not just centres) stay clear of the panel.
+    const pad = 48;
+    const invX = (px: number) => (px - cr.width / 2) / fit.scale + fit.cx;
+    const invY = (py: number) => (py - cr.height / 2) / fit.scale + fit.cy;
+    return {
+      xMin: invX(pr.left - cr.left - pad),
+      xMax: invX(pr.right - cr.left + pad),
+      yBottom: invY(pr.bottom - cr.top + pad),
+      strength: 0.35,
+    };
+  };
+
+  /**
+   * The visible area in sim space, but only while the fit is frozen (a hover is
+   * active) — otherwise the auto-fit already keeps everything on screen. Keeps a
+   * focused node's spreading neighbours from sliding past the viewport edge.
+   */
+  const computeBounds = (): Bounds | null => {
+    const sim = simRef.current;
+    const container = containerRef.current;
+    if (!sim || !container) return null;
+    if (sim.focus == null && !popoverActiveRef.current) return null;
+    const fit = fitRef.current;
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+    const margin = 76; // room for a node plus its label
+    // The bottom chrome (legend, the "drag the nodes" hint, corner nav) sits
+    // ~56px up from the bottom edge; keep nodes and their labels clear of it.
+    const marginBottom = 104;
+    const invX = (px: number) => (px - W / 2) / fit.scale + fit.cx;
+    const invY = (py: number) => (py - H / 2) / fit.scale + fit.cy;
+    return {
+      xMin: invX(margin),
+      xMax: invX(W - margin),
+      yMin: invY(margin),
+      yMax: invY(H - marginBottom),
+      strength: 0.12,
+    };
+  };
+
   const tick = () => {
     const sim = simRef.current;
     if (!sim) return;
-    stepSimulation(sim, DEFAULT_PARAMS, fitRef.current.scale);
+    stepSimulation(
+      sim,
+      DEFAULT_PARAMS,
+      fitRef.current.scale,
+      computeKeepOut(),
+      computeBounds(),
+    );
     paint();
-    const keepGoing = sim.alpha > DEFAULT_PARAMS.minAlpha * 1.05 || dragRef.current;
+    const keepGoing =
+      sim.alpha > DEFAULT_PARAMS.minAlpha * 1.05 ||
+      dragRef.current ||
+      popoverActiveRef.current;
     if (keepGoing) {
       frameRef.current = requestAnimationFrame(tick);
     } else {
@@ -242,9 +327,29 @@ export default function NodeGraph({ reducedMotion }: Props) {
       ensureRunning();
     }
 
+    // Absolute browser-zoom estimate that doesn't depend on the value at load:
+    // page zoom shrinks the CSS viewport (innerWidth) while the window frame
+    // (outerWidth) stays, so their ratio ~= the zoom factor. Zoomed in past
+    // ~1.2x (or a genuinely tiny viewport) is too cramped to keep the popover
+    // clear, so we surface the zoom-out hint.
+    const syncCramped = () => {
+      const zoom =
+        window.innerWidth > 0 ? window.outerWidth / window.innerWidth : 1;
+      setCramped(
+        zoom >= 1.2 ||
+          container.clientWidth < 700 ||
+          container.clientHeight < 520,
+      );
+    };
+    syncCramped();
+    // Browser zoom fires a window resize; the ResizeObserver below only sees
+    // container size changes, so listen here too to catch zoom on large windows.
+    window.addEventListener("resize", syncCramped);
+
     const ro = new ResizeObserver(() => {
       const s = simRef.current;
       if (!s) return;
+      syncCramped();
       // Re-fit to the new size. For reduced motion just repaint; otherwise let
       // the loop run a few frames so the fit eases to the new viewport.
       if (reducedMotion) {
@@ -258,8 +363,10 @@ export default function NodeGraph({ reducedMotion }: Props) {
 
     return () => {
       ro.disconnect();
+      window.removeEventListener("resize", syncCramped);
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       if (focusTimer.current) clearTimeout(focusTimer.current);
+      if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
       gsap.killTweensOf(innerArr.filter(Boolean));
       gsap.killTweensOf(edgeArr.filter(Boolean));
       runningRef.current = false;
@@ -282,6 +389,11 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const p = pointFromEvent(e);
     dragRef.current = { i, moved: false, sx: p.x, sy: p.y };
     if (focusTimer.current) clearTimeout(focusTimer.current);
+    if (hoverEndTimer.current) {
+      clearTimeout(hoverEndTimer.current);
+      hoverEndTimer.current = null;
+    }
+    hoveredRef.current = i;
     sim.nodes[i].pinned = true;
     // Give the dragged node extra clearance so it shoulders other nodes out of
     // the way as it moves through the graph.
@@ -429,36 +541,73 @@ export default function NodeGraph({ reducedMotion }: Props) {
             onPointerUp={onNodePointerUp(i)}
             onClick={onNodeClick}
             onHoverStart={() => {
+              // Hovering a new node cancels any pending grace release from the
+              // node we just left, so the highlight moves cleanly between nodes.
+              if (hoverEndTimer.current) {
+                clearTimeout(hoverEndTimer.current);
+                hoverEndTimer.current = null;
+              }
+              hoveredRef.current = i;
               setHovered(i);
               // Highlight immediately, but wait ~half a second before pushing
               // neighbours away so the selection locks in first.
               if (reducedMotion) return;
+              // The popover shows right away, so start clearing space under it
+              // now (independent of the delayed neighbour-focus below).
+              if (data.nodes[i].blurb) {
+                popoverActiveRef.current = true;
+                ensureRunning();
+              }
               if (focusTimer.current) clearTimeout(focusTimer.current);
               focusTimer.current = setTimeout(() => {
                 const sim = simRef.current;
-                if (sim) {
-                  sim.focus = i;
-                  // Pin the focused node so it holds under the cursor while its
-                  // neighbours get pushed away (collision reacts on both nodes).
-                  sim.nodes[i].pinned = true;
-                  sim.labeled = labeledSet(i);
-                  reheat(sim, 0.25);
-                  ensureRunning();
+                if (!sim) return;
+                // Release the previously focused node (a grace period may have
+                // left it pinned) before pinning the new one.
+                const prev = sim.focus;
+                if (prev != null && prev !== i && prev !== 0 && !dragRef.current) {
+                  sim.nodes[prev].pinned = false;
                 }
+                sim.focus = i;
+                // Pin the focused node so it holds under the cursor while its
+                // neighbours get pushed away (collision reacts on both nodes).
+                sim.nodes[i].pinned = true;
+                sim.labeled = labeledSet(i);
+                reheat(sim, 0.25);
+                ensureRunning();
               }, 500);
             }}
             onHoverEnd={() => {
-              setHovered((h) => (h === i ? null : h));
-              if (focusTimer.current) clearTimeout(focusTimer.current);
-              const sim = simRef.current;
-              if (sim && sim.focus === i) {
-                sim.focus = null;
-                sim.labeled = labeledSet(null);
-                // Release the pin unless it's the root (root stays centred).
-                if (i !== 0 && !dragRef.current) sim.nodes[i].pinned = false;
-                reheat(sim, 0.2);
-                ensureRunning();
+              if (reducedMotion) {
+                hoveredRef.current = null;
+                setHovered((h) => (h === i ? null : h));
+                return;
               }
+              // Don't release immediately. Wait out the grace period so you can
+              // travel to a child; if you land on another node first, its
+              // onHoverStart cancels this timer.
+              if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
+              hoverEndTimer.current = setTimeout(() => {
+                hoverEndTimer.current = null;
+                // Bail if another node became the hover in the meantime.
+                if (hoveredRef.current !== i) return;
+                hoveredRef.current = null;
+                setHovered((h) => (h === i ? null : h));
+                if (focusTimer.current) clearTimeout(focusTimer.current);
+                const sim = simRef.current;
+                if (popoverActiveRef.current) {
+                  popoverActiveRef.current = false;
+                  if (sim) reheat(sim, 0.15);
+                }
+                if (sim && sim.focus === i) {
+                  sim.focus = null;
+                  sim.labeled = labeledSet(null);
+                  // Release the pin unless it's the root (root stays centred).
+                  if (i !== 0 && !dragRef.current) sim.nodes[i].pinned = false;
+                  reheat(sim, 0.2);
+                }
+                ensureRunning();
+              }, HOVER_GRACE_MS);
             }}
           />
         );
@@ -470,12 +619,26 @@ export default function NodeGraph({ reducedMotion }: Props) {
         className="pointer-events-none absolute inset-0 z-40"
       />
 
-      {/* Fixed detail panel for the hovered node — kept out of the graph so it
-          never covers the highlighted cluster or runs off the screen edge. */}
-      {hovered != null && data.nodes[hovered]?.blurb ? (
+      {/* Zoom-out hint: at small/zoomed viewports the graph is too cramped to
+          keep the popover clear of nodes, so nudge the visitor to zoom out.
+          Only when nothing is hovered, so it never sits under the popover. */}
+      {cramped && hovered == null ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-24 z-30 w-[min(22rem,82vw)] -translate-x-1/2 rounded-xl border border-border bg-surface/95 px-4 py-3 text-center shadow-xl ring-1 ring-black/5 backdrop-blur"
+          className="pointer-events-none absolute left-1/2 top-3 z-50 -translate-x-1/2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-500/90 backdrop-blur"
+        >
+          Zoom out for the full graph
+        </div>
+      ) : null}
+
+      {/* Fixed detail panel for the hovered node — pinned to the top-edge chrome
+          band (between the heading and the layout toggle) so it sits above the
+          node cluster instead of covering the categories that fan upward. */}
+      {hovered != null && data.nodes[hovered]?.blurb ? (
+        <div
+          ref={popoverRef}
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-3 z-50 w-[min(22rem,72vw)] -translate-x-1/2 rounded-xl border border-border bg-surface/95 px-4 py-2.5 text-center shadow-xl ring-1 ring-black/5 backdrop-blur"
         >
           <p
             className="text-sm font-semibold"
