@@ -1,4 +1,5 @@
 import PageHeader from "@/components/PageHeader";
+import AmbientBackground from "@/components/AmbientBackground";
 import VersionSelector from "./VersionSelector";
 import VitalsChart from "./VitalsChart";
 import {
@@ -61,7 +62,7 @@ function MetricCard({ config, data }: MetricCardProps) {
   const styles = rating ? RATING_STYLES[rating] : null;
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
+    <div className="glass-card rounded-xl p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
           <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
@@ -176,7 +177,9 @@ export default function VitalsContent({
   const hasData = byPage.length > 0;
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="relative min-h-dvh bg-background">
+      <AmbientBackground colorA="#22c55e" colorB="#14b8a6" />
+      <div className="relative z-10">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
@@ -319,7 +322,7 @@ export default function VitalsContent({
             {IMPROVEMENTS.map(({ metric, what, how }) => (
               <div
                 key={metric}
-                className="rounded-xl border border-border bg-surface p-4"
+                className="glass-card rounded-xl p-4"
               >
                 <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
                   {metric}
@@ -335,6 +338,7 @@ export default function VitalsContent({
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }
