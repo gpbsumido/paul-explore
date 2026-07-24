@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-24 - version 1.0.8
+
+- started extending the v3 landing page's look and feel to the rest of the app so it reads as one product. Extracted the landing's ambient backdrop (dotted grid + drifting aurora blobs) into a shared, accent-parameterised `AmbientBackground` — the landing's `GraphBackground` now just wraps it — and added a `.glass-card` utility (the landing's frosted, semi-transparent, backdrop-blurred surface, theme-aware and accent-tintable). Applied them, each tinted to the page's feature accent, across `/operator`, `/graphql`, `/fantasy/nba`, `/thoughts`, `/vitals` (all with glass cards), plus `/learn`, `/tcg/pokemon`, and `/calendar` (ambient behind the untouched grid). Tables and dense surfaces keep flat backgrounds for legibility. `/work-portfolio` (full-bleed layout) and the `/thoughts/*` write-up pages are deferred to a focused follow-up. See `docs/landing-look-rollout.md` for the full plan and status.
+
 ## 2026-07-24 - version 1.0.7
 
 - consolidated the five separate NBA/fantasy entries (Stats, Matchups, Court Vision, League History, Playoffs) into a single "Fantasy NBA" feature in the shared `FEATURES` list, so it reads as one thing under Apps everywhere it surfaces: the v3 landing graph (one node instead of five), the signed-in feature hub, and the v2 landing. Added a new `/fantasy/nba` hub page — a PageHeader + FantasyNav + a card grid linking out to all five pages — as the single entry point (there wasn't one before), and pointed the consolidated feature at it; its write-up bridge still goes to `/thoughts/playoffs`. Removed the four now-unused card-preview mockups (NBA/Matchups/Court Vision/League) and their data, keeping the playoffs preview for the consolidated card. Updated the v2 "NBA"/"Fantasy & NBA" category groupings to the new id. Verified in the browser: the hub renders and the graph shows one Fantasy NBA node.

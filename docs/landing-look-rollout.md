@@ -112,6 +112,37 @@ Sweep for one-off card styles that didn't go through the primitive, align
 `rounded-*`/border/spacing, confirm reduced-motion everywhere, and re-run the
 axe a11y e2e (contrast can regress when tinting surfaces).
 
+## Progress (this PR)
+
+Both primitives shipped — `AmbientBackground` (`src/components/AmbientBackground.tsx`)
+and `.glass-card` (`globals.css`) — and applied across the app, each tinted to
+the page's feature accent:
+
+| Page | Ambient | Glass cards |
+| --- | --- | --- |
+| `/` (landing) | via shared primitive | — (already glassy) |
+| `/operator` | ✅ violet/blue | ✅ store cards |
+| `/graphql` | ✅ teal | ✅ Pokédex cards |
+| `/fantasy/nba` | ✅ rose/violet | ✅ hub cards |
+| `/thoughts` | ✅ indigo | ✅ write-up cards |
+| `/vitals` | ✅ green | ✅ metric/trend cards (table stays flat) |
+| `/learn` | ✅ green | — |
+| `/tcg/pokemon` | ✅ red/amber | — (image tiles) |
+| `/calendar` | ✅ amber/violet (bg only) | — (grid untouched) |
+
+**Verify while logged in:** `/calendar` and `/vitals` are auth-gated, so they
+weren't screenshot here — they're the same low-risk pattern (calendar is
+background-only behind the untouched grid).
+
+**Deferred:** `/work-portfolio` — its content root paints an opaque
+`bg-background` over the ambient and it's a fixed-height `overflow-hidden`
+ticker layout, so it needs a bespoke integration (transparent ticker area or a
+different ambient placement), not the standard root-wrap. Left for a focused
+follow-up.
+
+**Still to do:** the individual `/thoughts/*` write-up pages (via `ThoughtLayout`),
+the optional `PageShell` one-liner, and the axe a11y/contrast sweep.
+
 ## Decisions
 
 - **Glass surface as a design-system component vs. app-only.** Preferred: add it
