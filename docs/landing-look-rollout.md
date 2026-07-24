@@ -87,8 +87,10 @@ cleanly and there's no auth to stand up for verification.
   layout) and the `/fantasy/nba` hub, then the glass-card treatment on the cards
   themselves (this pass so far is the ambient background only).
 
-### 4. Content/data pages
-`/tcg/pokemon`, `/graphql`, `/vitals`, `/thoughts` index + write-ups. Here the
+### 4. Content/data pages — **started**
+`/tcg/pokemon`, `/graphql`, `/vitals`, `/thoughts` index + write-ups.
+- **Done:** `/graphql` (teal aurora, ambient behind the card grid).
+- **Next:** `/tcg/pokemon`, `/vitals`, `/thoughts`. Here the
 glass treatment applies to headers/cards but **tables and dense data keep plain
 surfaces** for legibility — the ambient background + accented header does most of
 the work. `ThoughtLayout` is one file, so all write-ups move together.
