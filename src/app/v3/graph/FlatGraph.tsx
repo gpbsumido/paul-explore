@@ -317,6 +317,10 @@ function FlatNode({ node, x, y, width, dim, expanded, onEnter, onLeave }: FlatNo
       left: x,
       top: y,
       width: expanded ? "auto" : width,
+      // Never shrink below the resting width — only grow for long labels — so a
+      // short-label node (e.g. the root) doesn't shrink out from under the
+      // cursor on hover and flicker.
+      minWidth: expanded ? width : undefined,
       maxWidth: expanded ? "min(20rem, 80vw)" : undefined,
       height: FLAT_NODE_H,
       transform: "translate(-50%, -50%)",
