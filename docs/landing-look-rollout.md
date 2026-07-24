@@ -129,19 +129,19 @@ the page's feature accent:
 | `/learn` | ✅ green | — |
 | `/tcg/pokemon` | ✅ red/amber | — (image tiles) |
 | `/calendar` | ✅ amber/violet (bg only) | — (grid untouched) |
+| `/thoughts/*` write-ups | ✅ indigo (via `ThoughtLayout`) | — (prose) |
+| `/work-portfolio` | ✅ blue/violet | — (transparent content root over the ambient) |
+
+`/work-portfolio` needed a bespoke integration (drop the content root's opaque
+`bg-background` and let the ambient show through the transparent ticker area);
+the standard root-wrap alone would have been hidden. Done and verified.
 
 **Verify while logged in:** `/calendar` and `/vitals` are auth-gated, so they
 weren't screenshot here — they're the same low-risk pattern (calendar is
 background-only behind the untouched grid).
 
-**Deferred:** `/work-portfolio` — its content root paints an opaque
-`bg-background` over the ambient and it's a fixed-height `overflow-hidden`
-ticker layout, so it needs a bespoke integration (transparent ticker area or a
-different ambient placement), not the standard root-wrap. Left for a focused
-follow-up.
-
-**Still to do:** the individual `/thoughts/*` write-up pages (via `ThoughtLayout`),
-the optional `PageShell` one-liner, and the axe a11y/contrast sweep.
+**Still to do:** the optional `PageShell` one-liner (a convenience wrapper — the
+pattern itself is now applied everywhere), and the axe a11y/contrast sweep.
 
 ## Decisions
 
