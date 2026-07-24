@@ -140,8 +140,14 @@ the standard root-wrap alone would have been hidden. Done and verified.
 weren't screenshot here — they're the same low-risk pattern (calendar is
 background-only behind the untouched grid).
 
-**Still to do:** the optional `PageShell` one-liner (a convenience wrapper — the
-pattern itself is now applied everywhere), and the axe a11y/contrast sweep.
+**Done:** `PageShell` (`src/components/PageShell.tsx`) composes the ambient +
+`relative z-10` content layer, so a standard page is now
+`<PageShell colorA="…" colorB="…">…</PageShell>`. Every standard page was
+refactored onto it; `/work-portfolio` keeps its bespoke wrap (it manages its own
+height/overflow).
+
+**Still to do:** the axe a11y/contrast sweep (CI's public-page axe scans cover
+most of it).
 
 ## Decisions
 

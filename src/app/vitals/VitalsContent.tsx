@@ -1,5 +1,5 @@
 import PageHeader from "@/components/PageHeader";
-import AmbientBackground from "@/components/AmbientBackground";
+import PageShell from "@/components/PageShell";
 import VersionSelector from "./VersionSelector";
 import VitalsChart from "./VitalsChart";
 import {
@@ -177,9 +177,7 @@ export default function VitalsContent({
   const hasData = byPage.length > 0;
 
   return (
-    <div className="relative min-h-dvh bg-background">
-      <AmbientBackground colorA="#22c55e" colorB="#14b8a6" />
-      <div className="relative z-10">
+    <PageShell colorA="#22c55e" colorB="#14b8a6">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
@@ -338,7 +336,6 @@ export default function VitalsContent({
           </div>
         </div>
       </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import AmbientBackground from "@/components/AmbientBackground";
+import PageShell from "@/components/PageShell";
 import { THOUGHTS } from "@/app/_shared/featureData";
 import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
@@ -51,19 +51,17 @@ export default function ThoughtsIndexContent() {
   }, []);
 
   return (
-    <div className="relative min-h-dvh bg-background">
-      <AmbientBackground colorA="#818cf8" colorB="#38bdf8" />
-      <div className="relative z-10">
-        <PageHeader
-          breadcrumbs={[
-            { label: "Hub", href: "/" },
-            { label: "Thoughts" },
-          ]}
-          showLogout={false}
-          maxWidth="max-w-5xl"
-        />
+    <PageShell colorA="#818cf8" colorB="#38bdf8">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Hub", href: "/" },
+          { label: "Thoughts" },
+        ]}
+        showLogout={false}
+        maxWidth="max-w-5xl"
+      />
 
-        <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
         <header className="mb-10">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
             Dev notes
@@ -97,8 +95,7 @@ export default function ThoughtsIndexContent() {
             </section>
           ))}
         </div>
-        </main>
-      </div>
-    </div>
+      </main>
+    </PageShell>
   );
 }

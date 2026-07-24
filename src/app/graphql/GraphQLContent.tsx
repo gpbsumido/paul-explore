@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import PageHeader from "@/components/PageHeader";
-import AmbientBackground from "@/components/AmbientBackground";
+import PageShell from "@/components/PageShell";
 import { Input } from "@/components/ui";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -147,17 +147,15 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
   );
 
   return (
-    <div className="relative min-h-dvh bg-background font-sans">
-      <AmbientBackground colorA="#14b8a6" colorB="#38bdf8" />
-      <div className="relative z-10">
-        <PageHeader
-          breadcrumbs={[
-            { label: "Dashboard", href: "/" },
-            { label: "GraphQL Pokédex" },
-          ]}
-        />
+    <PageShell colorA="#14b8a6" colorB="#38bdf8" className="font-sans">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "GraphQL Pokédex" },
+        ]}
+      />
 
-        <main className="mx-auto max-w-5xl px-4 py-6 space-y-5">
+      <main className="mx-auto max-w-5xl px-4 py-6 space-y-5">
         <h1 className="sr-only">GraphQL Explorer</h1>
         {/* ── search ── */}
         <Input
@@ -290,10 +288,9 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
         )}
 
         {/* Sentinel — always in the DOM so IntersectionObserver can attach on mount */}
-          <div ref={sentinelRef} className="h-8" />
-        </main>
-      </div>
-    </div>
+        <div ref={sentinelRef} className="h-8" />
+      </main>
+    </PageShell>
   );
 }
 

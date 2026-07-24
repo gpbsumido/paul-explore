@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import AmbientBackground from "@/components/AmbientBackground";
+import PageShell from "@/components/PageShell";
 import FantasyNav from "./FantasyNav";
 
 /** The fantasy NBA pages, surfaced as cards from the section hub. */
@@ -47,19 +47,17 @@ const PAGES = [
 /** Landing hub for the fantasy NBA section: one entry point to all its pages. */
 export default function FantasyHubContent() {
   return (
-    <div className="relative min-h-dvh bg-background font-sans">
-      <AmbientBackground colorA="#f43f5e" colorB="#8b5cf6" />
-      <div className="relative z-10">
-        <PageHeader
-          breadcrumbs={[
-            { label: "Dashboard", href: "/" },
-            { label: "Fantasy NBA" },
-          ]}
-          maxWidth="max-w-5xl"
-        />
-        <FantasyNav />
+    <PageShell colorA="#f43f5e" colorB="#8b5cf6" className="font-sans">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Fantasy NBA" },
+        ]}
+        maxWidth="max-w-5xl"
+      />
+      <FantasyNav />
 
-        <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
+      <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
         <header className="mb-8">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Fantasy NBA
@@ -84,8 +82,7 @@ export default function FantasyHubContent() {
             </Link>
           ))}
         </div>
-        </main>
-      </div>
-    </div>
+      </main>
+    </PageShell>
   );
 }

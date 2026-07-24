@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import PageHeader from "@/components/PageHeader";
-import AmbientBackground from "@/components/AmbientBackground";
+import PageShell from "@/components/PageShell";
 import { auth0 } from "@/lib/auth0";
 import CalendarContent from "./CalendarContent";
 import CalendarLoading from "./loading";
@@ -70,24 +70,18 @@ async function CalendarWithData() {
 
 export default function CalendarPage() {
   return (
-    <div className="relative min-h-dvh bg-background font-sans">
-      <AmbientBackground colorA="#f59e0b" colorB="#8b5cf6" />
-      <div className="relative z-10">
-        <PageHeader
-          breadcrumbs={[
-            { label: "Dashboard", href: "/" },
-            { label: "Calendar" },
-          ]}
-        />
+    <PageShell colorA="#f59e0b" colorB="#8b5cf6" className="font-sans">
+      <PageHeader
+        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Calendar" }]}
+      />
 
-        <main>
-          <h1 className="sr-only">Calendar</h1>
+      <main>
+        <h1 className="sr-only">Calendar</h1>
 
-          <Suspense fallback={<CalendarLoading />}>
-            <CalendarWithData />
-          </Suspense>
-        </main>
-      </div>
-    </div>
+        <Suspense fallback={<CalendarLoading />}>
+          <CalendarWithData />
+        </Suspense>
+      </main>
+    </PageShell>
   );
 }

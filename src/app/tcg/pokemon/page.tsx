@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import AmbientBackground from "@/components/AmbientBackground";
+import PageShell from "@/components/PageShell";
 import TCGdex, { Query } from "@tcgdex/sdk";
 import BrowseContent from "./BrowseContent";
 import { toPlain, type CardResume } from "@/lib/tcg";
@@ -62,9 +62,7 @@ async function BrowseWithData() {
 
 export default function PokemonTcgPage() {
   return (
-    <div className="relative min-h-dvh bg-background font-sans">
-      <AmbientBackground colorA="#ef4444" colorB="#f59e0b" />
-      <div className="relative z-10">
+    <PageShell colorA="#ef4444" colorB="#f59e0b" className="font-sans">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
@@ -95,8 +93,7 @@ export default function PokemonTcgPage() {
           <BrowseWithData />
         </Suspense>
       </main>
-      </div>
-    </div>
+    </PageShell>
   );
 }
 
