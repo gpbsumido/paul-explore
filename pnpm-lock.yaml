@@ -13,11 +13,11 @@ dependencies:
     specifier: ^6.3.1
     version: 6.3.1(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/css':
-    specifier: ^0.4.1
-    version: 0.4.1(@paul-portfolio/tokens@0.1.9)
+    specifier: ^0.4.3
+    version: 0.4.3(@paul-portfolio/tokens@0.1.9)
   '@paul-portfolio/react':
-    specifier: ^0.4.0
-    version: 0.4.0(@paul-portfolio/css@0.4.1)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3)
+    specifier: ^0.4.2
+    version: 0.4.2(@paul-portfolio/css@0.4.3)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/tokens':
     specifier: ^0.1.9
     version: 0.1.9
@@ -1796,23 +1796,23 @@ packages:
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
     dev: false
 
-  /@paul-portfolio/css@0.4.1(@paul-portfolio/tokens@0.1.9):
-    resolution: {integrity: sha512-JoFmZp3j9Z+44gQIrL2urw6dMh/2A4kx3w4SO3aOQMwoBUhT1T7iw3tqNGzWWdyU/dVxcmK4s+a3x4fQ241i7Q==}
+  /@paul-portfolio/css@0.4.3(@paul-portfolio/tokens@0.1.9):
+    resolution: {integrity: sha512-mc3TH1iIuvHbYAYXfRFXBSw8PHwdpi/pdjCA9E2oUawHyNPp3kO/UAtovIjs1mO9ExPIS9Wl7i3GWWsshAgGJA==}
     peerDependencies:
       '@paul-portfolio/tokens': '>=0.1.0'
     dependencies:
       '@paul-portfolio/tokens': 0.1.9
     dev: false
 
-  /@paul-portfolio/react@0.4.0(@paul-portfolio/css@0.4.1)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-DAHh92JehUWXj9ZdENCsGoHEy7cqJbGqy5loF7faMHQdHZY/ZyfNQ7IiJA+6/SH4UeNY9W99JoQsuGF65Zushg==}
+  /@paul-portfolio/react@0.4.2(@paul-portfolio/css@0.4.3)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-wH+C4cowsH+8stY0t1WopEahyHEku/yFVG9vkFeGz4Q29u6DYwKwzfXi+FQmB+iLTEfvysiQc9wgVT/HSib0aA==}
     peerDependencies:
       '@paul-portfolio/css': '>=0.1.0'
       '@paul-portfolio/tokens': '>=0.1.0'
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@paul-portfolio/css': 0.4.1(@paul-portfolio/tokens@0.1.9)
+      '@paul-portfolio/css': 0.4.3(@paul-portfolio/tokens@0.1.9)
       '@paul-portfolio/tokens': 0.1.9
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)

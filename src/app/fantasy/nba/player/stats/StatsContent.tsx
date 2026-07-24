@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui";
-import LabelledSelect from "@/components/ui/LabelledSelect";
-import FilterBar from "../../FilterBar";
+import { Button, FilterBar, Select } from "@/components/ui";
 import type { Team, Player, PlayerStats, PlayerRow, SortKey } from "./types";
 import { queryKeys } from "@/lib/queryKeys";
 import { COLUMNS, getSortValue } from "@/lib/nba";
@@ -165,7 +163,7 @@ export default function StatsContent() {
 
       {/* ---- Team selector ---- */}
       <FilterBar label="Team filter">
-        <LabelledSelect
+        <Select
           label="Team"
           value={selectedTeamId ?? ""}
           onChange={handleTeamChange}
@@ -176,7 +174,7 @@ export default function StatsContent() {
               {team.full_name}
             </option>
           ))}
-        </LabelledSelect>
+        </Select>
 
           {selectedTeamId && (
             <button

@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui";
-import LabelledSelect from "@/components/ui/LabelledSelect";
+import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import FantasyNav from "../FantasyNav";
-import FilterBar from "../FilterBar";
 import type { ESPNLeagueResponse, ESPNTeam, ESPNMember } from "@/types/espn";
 
 const POSITION_MAP: Record<number, string> = {
@@ -177,7 +175,7 @@ export default function LeagueContent() {
 
       {/* ---- Season selector ---- */}
       <FilterBar label="Season filter">
-        <LabelledSelect
+        <Select
           label="Season"
           value={season}
           onChange={handleSeasonChange}
@@ -187,7 +185,7 @@ export default function LeagueContent() {
               {yr - 1}–{yr} Season
             </option>
           ))}
-        </LabelledSelect>
+        </Select>
       </FilterBar>
 
       {/* ---- Content ---- */}

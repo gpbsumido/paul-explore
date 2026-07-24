@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui";
-import LabelledSelect from "@/components/ui/LabelledSelect";
+import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import FantasyNav from "../FantasyNav";
-import FilterBar from "../FilterBar";
 import CourtSVG from "./CourtSVG";
 import type { Team, Player } from "@/types/nba";
 import type { ShotChartData } from "@/types/nba";
@@ -85,7 +83,7 @@ export default function CourtVisionContent() {
 
       {/* Team + player selector */}
       <FilterBar label="Team and player filters">
-        <LabelledSelect
+        <Select
           label="Team"
           value={selectedTeamId ?? ""}
           onChange={handleTeamChange}
@@ -96,9 +94,9 @@ export default function CourtVisionContent() {
               {team.full_name}
             </option>
           ))}
-        </LabelledSelect>
+        </Select>
 
-        <LabelledSelect
+        <Select
           label="Player"
           value={playerId ?? ""}
           onChange={handlePlayerChange}
@@ -110,7 +108,7 @@ export default function CourtVisionContent() {
               {p.first_name} {p.last_name}
             </option>
           ))}
-        </LabelledSelect>
+        </Select>
       </FilterBar>
 
       {/* Content */}
