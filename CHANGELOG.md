@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-24 - version 1.0.7
+
+- consolidated the five separate NBA/fantasy entries (Stats, Matchups, Court Vision, League History, Playoffs) into a single "Fantasy NBA" feature in the shared `FEATURES` list, so it reads as one thing under Apps everywhere it surfaces: the v3 landing graph (one node instead of five), the signed-in feature hub, and the v2 landing. Added a new `/fantasy/nba` hub page — a PageHeader + FantasyNav + a card grid linking out to all five pages — as the single entry point (there wasn't one before), and pointed the consolidated feature at it; its write-up bridge still goes to `/thoughts/playoffs`. Removed the four now-unused card-preview mockups (NBA/Matchups/Court Vision/League) and their data, keeping the playoffs preview for the consolidated card. Updated the v2 "NBA"/"Fantasy & NBA" category groupings to the new id. Verified in the browser: the hub renders and the graph shows one Fantasy NBA node.
+
 ## 2026-07-24 - version 1.0.6
 
 - polished the v3 landing graph. A batch of fixes:

@@ -12,43 +12,11 @@ import type { FeatureItem, ThoughtItem } from "@/types/hub";
 
 export const FEATURES: FeatureItem[] = [
   {
-    id: "nba",
-    title: "NBA Stats",
+    id: "fantasy-nba",
+    title: "Fantasy NBA",
     description:
-      "Live player stats via API proxy. Batch loading, per-player error states, and skeleton rows while the NBA API catches up.",
-    href: "/fantasy/nba/player/stats",
-    color: "#007aff",
-  },
-  {
-    id: "matchups",
-    title: "Fantasy Matchups",
-    description:
-      "Head-to-head weekly matchups with category breakdowns, animated win bars, and an AI-style prediction panel with start/sit recommendations.",
-    href: "/fantasy/nba/matchups",
-    color: "#FF6B35",
-  },
-  {
-    id: "court-vision",
-    title: "Court Vision",
-    description:
-      "SVG half-court shot chart with color-coded shooting zones. Hover for per-zone FG% and attempts per game.",
-    href: "/fantasy/nba/court-vision",
-    color: "#00D4FF",
-  },
-  {
-    id: "league",
-    title: "League History",
-    description:
-      "ESPN fantasy basketball standings by season. Glassmorphism team cards, expandable rosters, and a season selector.",
-    href: "/fantasy/nba/league-history",
-    color: "#ff9500",
-  },
-  {
-    id: "playoffs",
-    title: "NBA Playoffs Bracket",
-    description:
-      "Pick every series winner, length, and MVP before the playoffs start. Debounced auto-save, cascade clears, TBD resolution, and a public leaderboard with per-round scoring.",
-    href: "/fantasy/nba/playoffs",
+      "Everything NBA in one place: a playoff bracket picker with a public leaderboard, live player stats, head-to-head matchups with predictions, an SVG shot chart, and ESPN league history.",
+    href: "/fantasy/nba",
     color: "#f43f5e",
     thoughtsHref: "/thoughts/playoffs",
   },
@@ -387,157 +355,6 @@ export const THOUGHTS: ThoughtItem[] = [
 // light gray background with dark ink; in dark mode they flip to a near-black
 // background with white ink — same pattern as the landing page sections, just
 // theme-aware this time.
-
-export const NBA_PLAYERS = [
-  { name: "LeBron James", pts: 25.6, reb: 7.3, ast: 8.1 },
-  { name: "Anthony Davis", pts: 22.4, reb: 11.2, ast: 3.2 },
-  { name: "Austin Reaves", pts: 16.8, reb: 3.2, ast: 4.1 },
-];
-
-export function NBAPreview() {
-  return (
-    <div className="overflow-hidden rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
-      <div className="grid grid-cols-[1fr_2.5rem_2.5rem_2.5rem] border-b border-black/10 dark:border-white/10 px-2 py-1">
-        {["Player", "PTS", "REB", "AST"].map((h) => (
-          <span
-            key={h}
-            className="text-[7px] font-bold uppercase tracking-wider text-black/30 dark:text-white/30 last:text-right [&:not(:first-child)]:text-right"
-          >
-            {h}
-          </span>
-        ))}
-      </div>
-      {NBA_PLAYERS.map((p) => (
-        <div
-          key={p.name}
-          className="grid grid-cols-[1fr_2.5rem_2.5rem_2.5rem] items-center border-b border-black/5 dark:border-white/5 px-2 py-1.5 last:border-b-0"
-        >
-          <span className="truncate text-[9px] text-black/70 dark:text-white/70">
-            {p.name}
-          </span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
-            {p.pts}
-          </span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
-            {p.reb}
-          </span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
-            {p.ast}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export const MATCHUP_DATA = [
-  { away: "Wemby's Team", home: "Stroke Bros", awayPts: 342, homePts: 318 },
-  { away: "Running Shoe", home: "LaMelo Arc", awayPts: 287, homePts: 301 },
-];
-
-export function MatchupsPreview() {
-  return (
-    <div className="space-y-1.5">
-      {MATCHUP_DATA.map((m) => {
-        const total = m.awayPts + m.homePts || 1;
-        const leftPct = (m.awayPts / total) * 100;
-        return (
-          <div
-            key={m.away}
-            className="rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-2 space-y-1"
-          >
-            <div className="flex items-center justify-between">
-              <span className="truncate text-[8px] text-black/60 dark:text-white/60">
-                {m.away}
-              </span>
-              <span className="tabular-nums text-[9px] font-bold text-[#FF6B35]">
-                {m.awayPts}
-              </span>
-            </div>
-            <div className="flex h-1 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-              <div
-                className="rounded-l-full bg-[#FF6B35]"
-                style={{ width: `${leftPct}%` }}
-              />
-              <div
-                className="rounded-r-full bg-[#00D4FF]"
-                style={{ width: `${100 - leftPct}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="truncate text-[8px] text-black/60 dark:text-white/60">
-                {m.home}
-              </span>
-              <span className="tabular-nums text-[9px] font-bold text-[#00D4FF]">
-                {m.homePts}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-export const COURT_ZONES = [
-  { zone: "Paint", pct: 58.2, color: "#ef4444" },
-  { zone: "Mid-Range", pct: 42.1, color: "#eab308" },
-  { zone: "Corner 3", pct: 37.5, color: "#3b82f6" },
-  { zone: "Above Break", pct: 35.8, color: "#3b82f6" },
-];
-
-export function CourtVisionPreview() {
-  return (
-    <div className="space-y-1">
-      {COURT_ZONES.map((z) => (
-        <div
-          key={z.zone}
-          className="flex items-center gap-2 rounded border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2 py-1"
-        >
-          <div
-            className="h-2 w-2 shrink-0 rounded-full"
-            style={{ backgroundColor: z.color }}
-          />
-          <span className="flex-1 text-[8px] text-black/60 dark:text-white/60">
-            {z.zone}
-          </span>
-          <span className="tabular-nums text-[9px] font-bold text-black/70 dark:text-white/70">
-            {z.pct}%
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export const LEAGUE_TEAMS = [
-  { rank: 1, name: "The Ballers", record: "12-2" },
-  { rank: 2, name: "Bench Warmers", record: "10-4" },
-  { rank: 3, name: "Laker Fans Only", record: "8-6" },
-];
-
-export function LeaguePreview() {
-  return (
-    <div className="space-y-1.5">
-      {LEAGUE_TEAMS.map((t) => (
-        <div
-          key={t.rank}
-          className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-2"
-        >
-          <span className="w-4 shrink-0 text-[9px] font-bold text-black/30 dark:text-white/30">
-            #{t.rank}
-          </span>
-          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
-            {t.name}
-          </span>
-          <span className="shrink-0 tabular-nums text-[9px] text-black/40 dark:text-white/40">
-            {t.record}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export const PLAYOFF_ROWS = [
   { conf: "E", s1: 1, t1: "BOS", s2: 8, t2: "MIA", pick: 1 },
@@ -1041,11 +858,7 @@ export function WorkPortfolioPreview() {
 
 // Maps feature.id to its design-token CSS variable name.
 export const FEATURE_TOKEN: Record<string, string> = {
-  nba: "--color-feature-nba",
-  matchups: "--color-feature-sync",
-  "court-vision": "--color-feature-nba",
-  league: "--color-feature-sync",
-  playoffs: "--color-feature-nba",
+  "fantasy-nba": "--color-feature-nba",
   tcg: "--color-feature-tcg",
   pocket: "--color-feature-particles",
   calendar: "--color-feature-calendar",
@@ -1060,11 +873,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 export const PREVIEW_MAP: Record<string, React.ComponentType> = {
-  nba: NBAPreview,
-  matchups: MatchupsPreview,
-  "court-vision": CourtVisionPreview,
-  league: LeaguePreview,
-  playoffs: PlayoffsPreview,
+  "fantasy-nba": PlayoffsPreview,
   tcg: TcgPreview,
   pocket: PocketPreview,
   calendar: CalendarPreview,
