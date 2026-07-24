@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-24 - version 1.0.4
+
+- trimmed the README down to what actually belongs in a repo README. It had grown to ~390 lines that reproduced the site itself — a per-feature deep-dive for every page, a "Key technical decisions" list, and an ~80-bullet "Things I learned" log, all of which are the live site's and the `/thoughts` write-ups' job to tell. Removed those three sections, condensed the two public/login feature lists into one compact index of links to the live routes (plus a pointer to `/thoughts`), and kept the parts a README is actually for: run-locally steps, tech-stack and deployment tables, and project structure. From 389 lines to ~140
+
 ## 2026-07-23 - version 1.0.2
 
 - moved the learn-page demos off their hand-rolled play/step engines and onto the shared `useStepPlayer` hook. Fifteen widgets across nine lessons (two-pointers, binary-search, sliding-window, hash-maps, stacks-queues, dynamic-programming, recursion-backtracking, trees-graphs, async-patterns) each carried their own ~40-line copy of the same stepIdx + interval logic — the exact duplication the hook was extracted to kill. They now destructure `advance`, `play`, `stop`, `reset` from the hook and keep only their own bits: the visualization, and the target/preset/snippet pickers that reset the player before swapping data. Behavior is unchanged — the hook keeps the synchronous ref write so batched interval ticks stop exactly on the last step. Verified page by page: `tsc`, `eslint`, `next build` (all 14 learn routes prerender static), the hook's 6 unit tests, and a click-through of Play/Step/Reset on the migrated demos. That closes the second follow-up noted in 1.0.0
