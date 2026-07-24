@@ -223,6 +223,7 @@ export default function FlatGraph({ reducedMotion }: Props) {
               y={pos.y}
               width={widthFor(node)}
               dim={dim}
+              expanded={hovered === node.id}
               onEnter={() => setHovered(node.id)}
               onLeave={() => setHovered((h) => (h === node.id ? null : h))}
             />
@@ -279,11 +280,13 @@ type FlatNodeProps = {
   y: number;
   width: number;
   dim: boolean;
+  /** The hovered node grows to its full, untruncated label and floats above the rest. */
+  expanded: boolean;
   onEnter: () => void;
   onLeave: () => void;
 };
 
-function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
+function FlatNode({ node, x, y, width, dim, expanded, onEnter, onLeave }: FlatNodeProps) {
   // Root, the Apps hub, and the category headers are the graph's main sections,
   // so they get a tinted fill, a full colour border, and a glow to stand out
   // from the leaf cards.
@@ -303,7 +306,9 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
     onPointerEnter: onEnter,
     onPointerLeave: onLeave,
     className: [
-      "absolute flex items-center gap-1.5 overflow-hidden rounded-lg border px-2.5 outline-none transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+      "absolute flex items-center gap-1.5 rounded-lg border px-2.5 outline-none transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+      // Expanded (hovered) node grows past its column and floats over the rest.
+      expanded ? "z-30 overflow-visible shadow-lg" : "overflow-hidden",
       isSection ? "" : "border-border bg-surface shadow-sm",
       // Non-connected nodes fade well back on hover so the connected cluster reads.
       dim ? "opacity-20" : "opacity-100",
@@ -311,7 +316,8 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
     style: {
       left: x,
       top: y,
-      width,
+      width: expanded ? "auto" : width,
+      maxWidth: expanded ? "min(20rem, 80vw)" : undefined,
       height: FLAT_NODE_H,
       transform: "translate(-50%, -50%)",
       borderTopColor: node.color,
@@ -332,7 +338,9 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
         className={`${isSection ? "h-2.5 w-2.5" : "h-2 w-2"} shrink-0 rounded-full`}
         style={{ background: node.color, boxShadow: `0 0 8px ${node.color}` }}
       />
-      <span className={`truncate text-foreground ${emphasis}`}>
+      <span
+        className={`${expanded ? "whitespace-nowrap" : "truncate"} text-foreground ${emphasis}`}
+      >
         {node.label}
       </span>
       {node.kind === "thought" ? (

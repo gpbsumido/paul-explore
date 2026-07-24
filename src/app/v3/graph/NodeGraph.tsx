@@ -63,6 +63,9 @@ export default function NodeGraph({ reducedMotion }: Props) {
   const hoverEndTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoveredRef = useRef<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  // True when the viewport is too small (e.g. zoomed in) for the graph to keep
+  // the popover fully clear of nodes; we surface a "zoom out" hint instead.
+  const [cramped, setCramped] = useState(false);
 
   // Adjacency: which edges touch a node, and the two endpoints of each edge.
   const { edgeEnds, nodeEdges } = useMemo(() => {
@@ -324,9 +327,14 @@ export default function NodeGraph({ reducedMotion }: Props) {
       ensureRunning();
     }
 
+    const syncCramped = () =>
+      setCramped(container.clientWidth < 700 || container.clientHeight < 520);
+    syncCramped();
+
     const ro = new ResizeObserver(() => {
       const s = simRef.current;
       if (!s) return;
+      syncCramped();
       // Re-fit to the new size. For reduced motion just repaint; otherwise let
       // the loop run a few frames so the fit eases to the new viewport.
       if (reducedMotion) {
@@ -594,6 +602,18 @@ export default function NodeGraph({ reducedMotion }: Props) {
         aria-hidden
         className="pointer-events-none absolute inset-0 z-40"
       />
+
+      {/* Zoom-out hint: at small/zoomed viewports the graph is too cramped to
+          keep the popover clear of nodes, so nudge the visitor to zoom out.
+          Only when nothing is hovered, so it never sits under the popover. */}
+      {cramped && hovered == null ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-3 z-50 -translate-x-1/2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-500/90 backdrop-blur"
+        >
+          Zoom out for the full graph
+        </div>
+      ) : null}
 
       {/* Fixed detail panel for the hovered node — pinned to the top-edge chrome
           band (between the heading and the layout toggle) so it sits above the
