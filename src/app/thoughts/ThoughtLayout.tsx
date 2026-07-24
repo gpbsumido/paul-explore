@@ -19,6 +19,8 @@ type Props = {
   chat?: ReactNode;
   /** The summary sections (each an <section>). */
   children: ReactNode;
+  /** Marks the write-up as documenting a feature that's no longer in the app. */
+  deprecated?: boolean;
 };
 
 /**
@@ -33,6 +35,7 @@ export default function ThoughtLayout({
   intro,
   chat,
   children,
+  deprecated = false,
 }: Props) {
   const [view, setView] = useState<"summary" | "chat">("summary");
   const hasChat = Boolean(chat);
@@ -47,6 +50,16 @@ export default function ThoughtLayout({
         showLogout={false}
         maxWidth="max-w-3xl"
       />
+
+      {deprecated ? (
+        <div className="mx-auto max-w-3xl px-4 pt-6">
+          <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-[13px] text-amber-600 dark:text-amber-400">
+            <span className="font-semibold">Deprecated.</span> This write-up
+            documents a feature that&apos;s no longer part of the app. It&apos;s
+            kept here for the history and the reasoning.
+          </p>
+        </div>
+      ) : null}
 
       {!hasChat || view === "summary" ? (
         <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">

@@ -10,7 +10,34 @@ import type { FeatureItem, ThoughtItem } from "@/types/hub";
 // Feature & thought data
 // ---------------------------------------------------------------------------
 
+// Ordered most-impressive first — this order drives the flat Apps column, the
+// graph's feature cluster, and the signed-in hub grid.
 export const FEATURES: FeatureItem[] = [
+  {
+    id: "operator",
+    title: "Operator Dashboard",
+    description:
+      "Manage a MicroMart smart store fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
+    href: "/operator",
+    color: "#8b5cf6",
+    thoughtsHref: "/thoughts/operator-dashboard",
+  },
+  {
+    id: "work-portfolio",
+    title: "Work Portfolio",
+    description:
+      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
+    href: "/work-portfolio",
+    color: "#60a5fa",
+  },
+  {
+    id: "learn",
+    title: "Learn",
+    description:
+      "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
+    href: "/learn",
+    color: "#34d399",
+  },
   {
     id: "fantasy-nba",
     title: "Fantasy NBA",
@@ -21,23 +48,6 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/playoffs",
   },
   {
-    id: "tcg",
-    title: "Pokémon TCG",
-    description:
-      "Card browser with infinite scroll, URL-synced filters, per-set grids, and deep card detail pages — built on the TCGdex SDK.",
-    href: "/tcg/pokemon",
-    color: "#ef4444",
-    thoughtsHref: "/thoughts/tcg",
-  },
-  {
-    id: "pocket",
-    title: "TCG Pocket",
-    description:
-      "All Pokémon TCG Pocket expansions — sets, packs, and individual card pages with full metadata and ISR caching.",
-    href: "/tcg/pocket",
-    color: "#6366f1",
-  },
-  {
     id: "calendar",
     title: "Calendar",
     description:
@@ -45,24 +55,6 @@ export const FEATURES: FeatureItem[] = [
     href: "/calendar",
     color: "#f59e0b",
     thoughtsHref: "/thoughts/calendar",
-  },
-  {
-    id: "graphql",
-    title: "GraphQL Pokédex",
-    description:
-      "Pokémon browser on the PokeAPI Hasura endpoint. Plain fetch over Apollo, typed queries, streaming SSR, and a live query inspector.",
-    href: "/graphql",
-    color: "#14b8a6",
-    thoughtsHref: "/thoughts/graphql",
-  },
-  {
-    id: "vitals",
-    title: "Web Vitals",
-    description:
-      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
-    href: "/vitals",
-    color: "#22c55e",
-    thoughtsHref: "/thoughts/vitals",
   },
   {
     id: "particles",
@@ -82,31 +74,41 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/ketsup",
   },
   {
-    id: "operator",
-    title: "Operator Dashboard",
+    id: "vitals",
+    title: "Web Vitals",
     description:
-      "Manage a MicroMart smart store fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
-    href: "/operator",
-    color: "#8b5cf6",
-    thoughtsHref: "/thoughts/operator-dashboard",
+      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
+    href: "/vitals",
+    color: "#22c55e",
+    thoughtsHref: "/thoughts/vitals",
   },
   {
-    id: "learn",
-    title: "Learn",
+    id: "graphql",
+    title: "GraphQL Pokédex",
     description:
-      "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
-    href: "/learn",
-    color: "#34d399",
+      "Pokémon browser on the PokeAPI Hasura endpoint. Plain fetch over Apollo, typed queries, streaming SSR, and a live query inspector.",
+    href: "/graphql",
+    color: "#14b8a6",
+    thoughtsHref: "/thoughts/graphql",
   },
   {
-    id: "work-portfolio",
-    title: "Work Portfolio",
+    id: "tcg",
+    title: "Pokémon TCG",
     description:
-      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
-    href: "/work-portfolio",
-    color: "#60a5fa",
+      "Card browser with infinite scroll, URL-synced filters, per-set grids, and deep card detail pages — built on the TCGdex SDK.",
+    href: "/tcg/pokemon",
+    color: "#ef4444",
+    thoughtsHref: "/thoughts/tcg",
   },
-].reverse();
+  {
+    id: "pocket",
+    title: "TCG Pocket",
+    description:
+      "All Pokémon TCG Pocket expansions — sets, packs, and individual card pages with full metadata and ISR caching.",
+    href: "/tcg/pocket",
+    color: "#6366f1",
+  },
+];
 
 export const THOUGHTS: ThoughtItem[] = [
   {
@@ -133,6 +135,7 @@ export const THOUGHTS: ThoughtItem[] = [
     href: "/thoughts/search-bar",
     preview: "Server/client split, filtering, and trade-offs",
     color: "#5856d6",
+    deprecated: true,
   },
   {
     title: "TCG Pages",
@@ -221,6 +224,7 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Why links opened in Facebook Messenger showed a logged-in hub for unauthenticated users, and the two-line fix",
     color: "#3b82f6",
+    deprecated: true,
   },
   {
     title: "Web Vitals",

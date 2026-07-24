@@ -7,6 +7,7 @@ import { Timestamp, Sent, Received } from "@/lib/threads";
 export default function MessengerAuthContent() {
   return (
     <ThoughtLayout
+      deprecated
       breadcrumb="Messenger Auth Bug"
       title="Messenger Auth Bug"
       intro={

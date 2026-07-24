@@ -12,11 +12,20 @@ function ThoughtCard({ thought }: { thought: ThoughtItem }) {
   return (
     <Link
       href={thought.href}
-      className="flex h-full items-start gap-3 rounded-xl border border-border p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
+      className={`flex h-full items-start gap-3 rounded-xl border border-border p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
+        thought.deprecated ? " opacity-70" : ""
+      }`}
       style={{ borderLeftWidth: 3, borderLeftColor: thought.color }}
     >
       <div className="min-w-0">
-        <p className="font-semibold text-foreground">{thought.title}</p>
+        <p className="flex items-center gap-2 font-semibold text-foreground">
+          <span className="truncate">{thought.title}</span>
+          {thought.deprecated ? (
+            <span className="shrink-0 rounded-sm bg-foreground/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted">
+              deprecated
+            </span>
+          ) : null}
+        </p>
         <p className="mt-1 text-sm text-muted">{thought.preview}</p>
       </div>
     </Link>

@@ -8,6 +8,7 @@ import SearchDemo from "./SearchDemo";
 export default function SearchBarContent() {
   return (
     <ThoughtLayout
+      deprecated
       breadcrumb="Search Bar"
       title="Search Bar"
       intro={
