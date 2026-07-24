@@ -34,16 +34,24 @@ export default function FlatGraph({ reducedMotion }: Props) {
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [compact, setCompact] = useState(false);
   const canvasRef = useRef<HTMLDivElement | null>(null);
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
-  // On phones the column graph is unreadable, so fall back to a stacked list.
+  // Fall back to the stacked vertical list whenever the column canvas is wider
+  // than the space available, i.e. showing every column would need horizontal
+  // scrolling. That covers phones and any window (or zoom level) too narrow to
+  // fit the full width, instead of switching on a fixed breakpoint alone.
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    const sync = () => setCompact(mq.matches);
+    const el = rootRef.current;
+    if (!el) return;
+    const sync = () => {
+      const w = el.clientWidth;
+      setCompact(w > 0 && layout.width > w);
+    };
     sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [layout.width]);
 
   // Root's children as groups (Apps + each category), each with its items.
   const groups = useMemo(() => {
@@ -111,15 +119,6 @@ export default function FlatGraph({ reducedMotion }: Props) {
     [data],
   );
 
-  // Start scrolled so the root sits at the top-centre, since it anchors the tree.
-  useEffect(() => {
-    const scroller = scrollerRef.current;
-    const root = layout.positions.get("root");
-    if (scroller && root) {
-      scroller.scrollLeft = Math.max(0, root.x - scroller.clientWidth / 2);
-    }
-  }, [layout]);
-
   // Top-down reveal on mount.
   useEffect(() => {
     if (reducedMotion) return;
@@ -155,52 +154,92 @@ export default function FlatGraph({ reducedMotion }: Props) {
 
   const halfH = FLAT_NODE_H / 2;
 
-  // Mobile: a stacked, grouped list — the columns become sections. Padded clear
-  // of the fixed header (top) and corner nav (bottom); the root is already the
-  // header wordmark, so it isn't repeated here.
+  // Vertical: a stacked, grouped accordion — the columns become sections.
+  // Progressive disclosure, same as the desktop graph: only the section headers
+  // show at rest and tapping one reveals its items (and collapses the rest).
+  // Padded clear of the fixed header, whose height varies as it wraps on zoom.
   if (compact) {
     return (
-      <div className="h-full w-full overflow-auto px-4 pb-20 pt-20">
-        <div className="mx-auto max-w-md space-y-7">
-          {groups.map((g) => (
-            <section key={g.node.id}>
-              <div className="mb-2 flex items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{
-                    background: g.node.color,
-                    boxShadow: `0 0 10px ${g.node.color}`,
-                  }}
-                />
-                <h3 className="text-sm font-semibold text-foreground">
-                  {g.node.label}
-                </h3>
-                <span className="text-xs text-muted">{g.items.length}</span>
-              </div>
-              <div className="space-y-1.5">
-                {g.items.map((item) => (
-                  <FlatRow key={item.id} node={item} />
-                ))}
-              </div>
-            </section>
-          ))}
+      <div ref={rootRef} className="h-full w-full">
+        <div
+          className="h-full w-full overflow-auto px-4 pb-20"
+          style={{ paddingTop: "calc(var(--v3-header-h, 5rem) + 1rem)" }}
+        >
+          <div className="mx-auto max-w-md space-y-2">
+            {groups.map((g) => {
+              const open = openGroup === g.node.id;
+              return (
+                <section
+                  key={g.node.id}
+                  className="overflow-hidden rounded-xl border border-border bg-surface/60"
+                  style={{ borderLeftColor: g.node.color, borderLeftWidth: 3 }}
+                >
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() =>
+                      setOpenGroup((cur) => (cur === g.node.id ? null : g.node.id))
+                    }
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left outline-none transition-colors hover:bg-surface focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset"
+                  >
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{
+                        background: g.node.color,
+                        boxShadow: `0 0 10px ${g.node.color}`,
+                      }}
+                    />
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {g.node.label}
+                    </h3>
+                    <span className="ml-auto text-xs text-muted">
+                      {g.items.length}
+                    </span>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden
+                      className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`}
+                    >
+                      <path
+                        d="M6 9l6 6 6-6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  {open ? (
+                    <div className="space-y-1.5 px-3 pb-3 pt-0.5">
+                      {g.items.map((item) => (
+                        <FlatRow key={item.id} node={item} />
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div ref={scrollerRef} className="h-full w-full overflow-auto">
-      <div
-        ref={canvasRef}
-        className="relative mx-auto"
-        style={{
-          width: Math.max(layout.width, 0),
-          height: Math.max(visibleHeight, 0),
-          minWidth: "100%",
-          minHeight: "100%",
-        }}
-      >
+    <div ref={rootRef} className="h-full w-full overflow-hidden">
+      <div className="h-full w-full overflow-y-auto overflow-x-hidden">
+        <div
+          ref={canvasRef}
+          className="relative mx-auto"
+          style={{
+            width: Math.max(layout.width, 0),
+            height: Math.max(visibleHeight, 0),
+            minHeight: "100%",
+          }}
+        >
         <svg
           className="absolute inset-0"
           width={layout.width}
@@ -278,6 +317,7 @@ export default function FlatGraph({ reducedMotion }: Props) {
             />
           );
         })}
+        </div>
       </div>
     </div>
   );

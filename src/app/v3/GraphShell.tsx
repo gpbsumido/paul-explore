@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useReducedMotion } from "framer-motion";
@@ -86,9 +86,30 @@ export default function GraphShell({
 }) {
   const reduced = useReducedMotion() ?? false;
   const [mode, setMode] = useState<LayoutMode>("force");
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  // Publish the header's live height as a CSS var so the graph overlays (the
+  // hover popover, the zoom hint, the flat list's top padding) can sit clear of
+  // it. The header wraps to two rows when zoomed in or on a narrow window, so a
+  // fixed offset would either waste space or slide under the controls.
+  useEffect(() => {
+    const header = headerRef.current;
+    const root = rootRef.current;
+    if (!header || !root) return;
+    const sync = () =>
+      root.style.setProperty("--v3-header-h", `${header.offsetHeight}px`);
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(header);
+    return () => ro.disconnect();
+  }, []);
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-background text-foreground">
+    <div
+      ref={rootRef}
+      className="relative h-dvh w-full overflow-hidden bg-background text-foreground"
+    >
       <GraphBackground />
 
       <main
@@ -104,11 +125,14 @@ export default function GraphShell({
 
       {/* Header — glassy in flat view so scrolling cards don't show through it */}
       <header
+        ref={headerRef}
         className={[
-          "pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-4 sm:p-6",
+          "pointer-events-none absolute inset-x-0 top-0 z-40 flex flex-wrap items-start justify-between gap-x-3 gap-y-2 p-4 sm:p-6",
           mode === "flat"
             ? "border-b border-border bg-background/80 backdrop-blur-md"
-            : "",
+            : // Force view: a soft top-down fade so nodes drifting up behind the
+              // pills read as tucked under the chrome, not colliding with it.
+              "bg-gradient-to-b from-background via-background/85 to-transparent pb-8",
         ].join(" ")}
       >
         <div className="pointer-events-auto min-w-0">
@@ -125,7 +149,7 @@ export default function GraphShell({
             {greeting}
           </p>
         </div>
-        <div className="pointer-events-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="pointer-events-auto flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
           <LayoutSwitch mode={mode} onChange={setMode} />
           {action}
         </div>
