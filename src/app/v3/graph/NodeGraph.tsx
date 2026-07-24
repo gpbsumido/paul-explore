@@ -219,13 +219,16 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const W = container.clientWidth;
     const H = container.clientHeight;
     const margin = 76; // room for a node plus its label
+    // The bottom chrome (legend, the "drag the nodes" hint, corner nav) sits
+    // ~56px up from the bottom edge; keep nodes and their labels clear of it.
+    const marginBottom = 104;
     const invX = (px: number) => (px - W / 2) / fit.scale + fit.cx;
     const invY = (py: number) => (py - H / 2) / fit.scale + fit.cy;
     return {
       xMin: invX(margin),
       xMax: invX(W - margin),
       yMin: invY(margin),
-      yMax: invY(H - margin),
+      yMax: invY(H - marginBottom),
       strength: 0.12,
     };
   };
