@@ -11,13 +11,23 @@ describe("buildGraphData", () => {
     expect(data.nodes.filter((n) => n.kind === "hub")).toHaveLength(1);
   });
 
-  it("has a node for every feature and every write-up", () => {
+  it("has a node for every feature and every non-deprecated write-up", () => {
     expect(data.nodes.filter((n) => n.kind === "feature")).toHaveLength(
       FEATURES.length,
     );
     expect(data.nodes.filter((n) => n.kind === "thought")).toHaveLength(
-      THOUGHTS.length,
+      THOUGHTS.filter((t) => !t.deprecated).length,
     );
+  });
+
+  it("keeps deprecated write-ups out of the graph entirely", () => {
+    const deprecatedSlugs = THOUGHTS.filter((t) => t.deprecated).map((t) =>
+      t.href.replace(/^\/thoughts\//, ""),
+    );
+    expect(deprecatedSlugs.length).toBeGreaterThan(0);
+    for (const slug of deprecatedSlugs) {
+      expect(data.nodes.some((n) => n.id === `thought:${slug}`)).toBe(false);
+    }
   });
 
   it("gives every node a unique id", () => {

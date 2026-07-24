@@ -29,10 +29,7 @@ const CATEGORIES: ReadonlyArray<{
   },
   { label: "Labs", ids: new Set(["particles", "learn"]) },
   { label: "Calendar", ids: new Set(["calendar"]) },
-  {
-    label: "NBA",
-    ids: new Set(["nba", "matchups", "court-vision", "league", "playoffs"]),
-  },
+  { label: "NBA", ids: new Set(["fantasy-nba"]) },
   { label: "Pokemon", ids: new Set(["tcg", "pocket", "graphql"]) },
 ];
 

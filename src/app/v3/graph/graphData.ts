@@ -81,6 +81,11 @@ export function buildGraphData(): GraphData {
   });
   edges.push({ source: "root", target: "hub:features", rest: 260 });
 
+  // Deprecated write-ups are kept as pages but dropped from the graph, so the
+  // node ids that actually exist are the non-deprecated ones.
+  const activeThoughts = THOUGHTS.filter((t) => !t.deprecated);
+  const thoughtIds = new Set(activeThoughts.map((t) => thoughtNodeId(t.href)));
+
   for (const feature of FEATURES) {
     const id = `feat:${feature.id}`;
     nodes.push({
@@ -95,7 +100,8 @@ export function buildGraphData(): GraphData {
     });
     edges.push({ source: "hub:features", target: id, rest: 150 });
 
-    if (feature.thoughtsHref) {
+    // Only bridge to the write-up if it still exists in the graph.
+    if (feature.thoughtsHref && thoughtIds.has(thoughtNodeId(feature.thoughtsHref))) {
       edges.push({
         source: id,
         target: thoughtNodeId(feature.thoughtsHref),
@@ -105,7 +111,7 @@ export function buildGraphData(): GraphData {
     }
   }
 
-  for (const group of groupThoughts(THOUGHTS)) {
+  for (const group of groupThoughts(activeThoughts)) {
     const catId = categoryNodeId(group.name);
     const color = CATEGORY_COLORS[group.name] ?? "#94a3b8";
     nodes.push({

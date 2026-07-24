@@ -8,10 +8,7 @@ const GROUPS = [
   { label: "Labs & Learning", ids: ["particles", "learn"] },
   { label: "Productivity", ids: ["calendar"] },
   { label: "Social", ids: ["ketsup"] },
-  {
-    label: "Fantasy & NBA",
-    ids: ["nba", "matchups", "court-vision", "league", "playoffs"],
-  },
+  { label: "Fantasy & NBA", ids: ["fantasy-nba"] },
   { label: "Pok\u00e9mon", ids: ["tcg", "pocket", "graphql"] },
 ];
 

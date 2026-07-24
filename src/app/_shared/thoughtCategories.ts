@@ -73,13 +73,21 @@ export const categoryAnchor = (name: string): string =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+/** Name of the trailing group for write-ups whose feature no longer applies. */
+export const DEPRECATED_GROUP = "Deprecated";
+
 /**
  * Group the given thoughts into the ordered categories above. Anything not
  * assigned to a category falls into a trailing "More" group, so a newly added
  * thought is never hidden just because it hasn't been categorized yet.
+ * Deprecated write-ups are pulled out of the categories into a final
+ * "Deprecated" group.
  */
 export function groupThoughts(thoughts: ThoughtItem[]): ThoughtGroup[] {
-  const bySlug = new Map(thoughts.map((t) => [slugOf(t.href), t]));
+  const active = thoughts.filter((t) => !t.deprecated);
+  const deprecated = thoughts.filter((t) => t.deprecated);
+
+  const bySlug = new Map(active.map((t) => [slugOf(t.href), t]));
   const claimed = new Set<string>();
 
   const groups = CATEGORIES.map((category) => {
@@ -90,9 +98,13 @@ export function groupThoughts(thoughts: ThoughtItem[]): ThoughtGroup[] {
     return { name: category.name, items };
   }).filter((group) => group.items.length > 0);
 
-  const leftovers = thoughts.filter((t) => !claimed.has(slugOf(t.href)));
+  const leftovers = active.filter((t) => !claimed.has(slugOf(t.href)));
   if (leftovers.length > 0) {
     groups.push({ name: "More", items: leftovers });
+  }
+
+  if (deprecated.length > 0) {
+    groups.push({ name: DEPRECATED_GROUP, items: deprecated });
   }
 
   return groups;

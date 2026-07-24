@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-24 - version 1.0.7
+
+- consolidated the five separate NBA/fantasy entries (Stats, Matchups, Court Vision, League History, Playoffs) into a single "Fantasy NBA" feature in the shared `FEATURES` list, so it reads as one thing under Apps everywhere it surfaces: the v3 landing graph (one node instead of five), the signed-in feature hub, and the v2 landing. Added a new `/fantasy/nba` hub page — a PageHeader + FantasyNav + a card grid linking out to all five pages — as the single entry point (there wasn't one before), and pointed the consolidated feature at it; its write-up bridge still goes to `/thoughts/playoffs`. Removed the four now-unused card-preview mockups (NBA/Matchups/Court Vision/League) and their data, keeping the playoffs preview for the consolidated card. Updated the v2 "NBA"/"Fantasy & NBA" category groupings to the new id. Verified in the browser: the hub renders and the graph shows one Fantasy NBA node.
+- added a "deprecated" concept for write-ups whose feature no longer exists. A `deprecated` flag on `ThoughtItem` drops the write-up from the graphs (node + any feature bridge), routes it into a trailing "Deprecated" section on the `/thoughts` index (with a badge on the card), and shows a banner on the write-up page — but the page stays reachable for the history. Marked **Search Bar** and **Messenger Auth Bug**. Verified in the browser: the Deprecated section + badges render, the pages show the banner, and neither node appears in the graph.
+- reordered `FEATURES` most-impressive-first (Operator, Work Portfolio, Learn, Fantasy NBA, Calendar, …), which sorts the flat Apps column, the graph's feature cluster, and the signed-in hub. Replaced the old `.reverse()` with an explicit order so the intent is readable.
+
 ## 2026-07-24 - version 1.0.6
 
 - polished the v3 landing graph. A batch of fixes:
