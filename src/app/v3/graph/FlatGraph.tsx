@@ -28,6 +28,10 @@ export default function FlatGraph({ reducedMotion }: Props) {
   const data = useMemo(() => buildGraphData(), []);
   const layout = useMemo(() => buildLayeredLayout(data), [data]);
   const [hovered, setHovered] = useState<string | null>(null);
+  // Progressive disclosure: which section header is expanded (its items shown).
+  // null = collapsed (only the root and the section headers show). Hovering a
+  // header opens it; it stays open until a different header is hovered.
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [compact, setCompact] = useState(false);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -56,6 +60,31 @@ export default function FlatGraph({ reducedMotion }: Props) {
       items: (childMap.get(gid) ?? []).map((id) => byId.get(id)!),
     }));
   }, [data]);
+
+  // Header (root's children) ids, and which header each item belongs to, for
+  // progressive disclosure.
+  const { headerIds, itemGroup } = useMemo(() => {
+    const headers = new Set(groups.map((g) => g.node.id));
+    const item = new Map<string, string>();
+    for (const g of groups) for (const it of g.items) item.set(it.id, g.node.id);
+    return { headerIds: headers, itemGroup: item };
+  }, [groups]);
+
+  const isVisible = (id: string) =>
+    id === "root" || headerIds.has(id) || itemGroup.get(id) === openGroup;
+
+  // Canvas only needs to be as tall as what's currently shown, so the collapsed
+  // view is a compact root + header row and opening a section grows it.
+  const visibleHeight = useMemo(() => {
+    let maxY = 0;
+    for (const n of data.nodes) {
+      if (!isVisible(n.id)) continue;
+      const p = layout.positions.get(n.id);
+      if (p && p.y > maxY) maxY = p.y;
+    }
+    return maxY + FLAT_NODE_H / 2 + 40;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, layout, openGroup, headerIds, itemGroup]);
 
   const center = (id: string) =>
     layout.positions.get(id) ?? { x: 0, y: 0 };
@@ -161,7 +190,7 @@ export default function FlatGraph({ reducedMotion }: Props) {
         className="relative mx-auto"
         style={{
           width: Math.max(layout.width, 0),
-          height: Math.max(layout.height, 0),
+          height: Math.max(visibleHeight, 0),
           minWidth: "100%",
           minHeight: "100%",
         }}
@@ -169,10 +198,12 @@ export default function FlatGraph({ reducedMotion }: Props) {
         <svg
           className="absolute inset-0"
           width={layout.width}
-          height={layout.height}
+          height={visibleHeight}
           aria-hidden
         >
           {data.edges.map((edge, i) => {
+            // Progressive disclosure: only draw an edge when both ends are shown.
+            if (!isVisible(edge.source) || !isVisible(edge.target)) return null;
             const active =
               hovered != null &&
               (edge.source === hovered || edge.target === hovered);
@@ -213,7 +244,7 @@ export default function FlatGraph({ reducedMotion }: Props) {
 
         {data.nodes.map((node) => {
           const pos = layout.positions.get(node.id);
-          if (!pos) return null;
+          if (!pos || !isVisible(node.id)) return null;
           const dim = hovered != null && !neighbors.get(hovered)?.has(node.id);
           return (
             <FlatNode
@@ -224,7 +255,12 @@ export default function FlatGraph({ reducedMotion }: Props) {
               width={widthFor(node)}
               dim={dim}
               expanded={hovered === node.id}
-              onEnter={() => setHovered(node.id)}
+              onEnter={() => {
+                setHovered(node.id);
+                // Hovering a section header opens it; it stays open (even after
+                // you leave) until you hover a different header.
+                if (headerIds.has(node.id)) setOpenGroup(node.id);
+              }}
               onLeave={() => setHovered((h) => (h === node.id ? null : h))}
             />
           );
