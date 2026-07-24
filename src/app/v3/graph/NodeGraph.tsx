@@ -470,12 +470,13 @@ export default function NodeGraph({ reducedMotion }: Props) {
         className="pointer-events-none absolute inset-0 z-40"
       />
 
-      {/* Fixed detail panel for the hovered node — kept out of the graph so it
-          never covers the highlighted cluster or runs off the screen edge. */}
+      {/* Fixed detail panel for the hovered node — pinned to the top-edge chrome
+          band (between the heading and the layout toggle) so it sits above the
+          node cluster instead of covering the categories that fan upward. */}
       {hovered != null && data.nodes[hovered]?.blurb ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-24 z-30 w-[min(22rem,82vw)] -translate-x-1/2 rounded-xl border border-border bg-surface/95 px-4 py-3 text-center shadow-xl ring-1 ring-black/5 backdrop-blur"
+          className="pointer-events-none absolute left-1/2 top-3 z-50 w-[min(22rem,72vw)] -translate-x-1/2 rounded-xl border border-border bg-surface/95 px-4 py-2.5 text-center shadow-xl ring-1 ring-black/5 backdrop-blur"
         >
           <p
             className="text-sm font-semibold"

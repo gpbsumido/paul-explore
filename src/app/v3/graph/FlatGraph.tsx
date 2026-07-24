@@ -101,7 +101,10 @@ export default function FlatGraph({ reducedMotion }: Props) {
         duration: 0.5,
         ease: "power2.out",
         stagger: { each: 0.015, from: "start" },
-        clearProps: "transform",
+        // Clear opacity too, not just transform: otherwise the intro leaves an
+        // inline opacity:1 that overrides the hover-dim class, so hovering never
+        // fades the unconnected nodes.
+        clearProps: "transform,opacity",
       },
     );
     gsap.fromTo(
@@ -281,11 +284,17 @@ type FlatNodeProps = {
 };
 
 function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
+  // Root, the Apps hub, and the category headers are the graph's main sections,
+  // so they get a tinted fill, a full colour border, and a glow to stand out
+  // from the leaf cards.
+  const isSection =
+    node.kind === "root" || node.kind === "hub" || node.kind === "category";
+
   const emphasis =
     node.kind === "root"
       ? "text-sm font-bold"
       : node.kind === "hub" || node.kind === "category"
-        ? "text-[13px] font-semibold"
+        ? "text-[13px] font-bold"
         : "text-xs font-medium";
 
   const common = {
@@ -294,8 +303,10 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
     onPointerEnter: onEnter,
     onPointerLeave: onLeave,
     className: [
-      "absolute flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-surface px-2.5 shadow-sm outline-none transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-      dim ? "opacity-30" : "opacity-100",
+      "absolute flex items-center gap-1.5 overflow-hidden rounded-lg border px-2.5 outline-none transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+      isSection ? "" : "border-border bg-surface shadow-sm",
+      // Non-connected nodes fade well back on hover so the connected cluster reads.
+      dim ? "opacity-20" : "opacity-100",
     ].join(" "),
     style: {
       left: x,
@@ -305,13 +316,20 @@ function FlatNode({ node, x, y, width, dim, onEnter, onLeave }: FlatNodeProps) {
       transform: "translate(-50%, -50%)",
       borderTopColor: node.color,
       borderTopWidth: 3,
+      ...(isSection
+        ? {
+            background: `color-mix(in srgb, ${node.color} 16%, var(--color-surface))`,
+            borderColor: node.color,
+            boxShadow: `0 0 0 1px ${node.color}40, 0 4px 16px ${node.color}30`,
+          }
+        : {}),
     } as React.CSSProperties,
   };
 
   const content = (
     <>
       <span
-        className="h-2 w-2 shrink-0 rounded-full"
+        className={`${isSection ? "h-2.5 w-2.5" : "h-2 w-2"} shrink-0 rounded-full`}
         style={{ background: node.color, boxShadow: `0 0 8px ${node.color}` }}
       />
       <span className={`truncate text-foreground ${emphasis}`}>

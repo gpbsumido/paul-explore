@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-24 - version 1.0.6
+
+- polished the v3 landing graph. Three fixes:
+  - **Flat view — main sections now read as sections.** The root, the Apps hub, and the category headers used to look almost identical to the leaf cards (only a slightly larger font). They now get a colour-tinted fill, a full-colour border, a glow, and a bigger dot, so the columns' headers stand out.
+  - **Flat view — hovering now actually dims the rest.** The intro animation's `clearProps` only cleared `transform`, leaving an inline `opacity: 1` on every node that overrode the hover-dim class, so hovering did nothing. Clearing opacity too lets the dim apply: hovering a node fades everything except it and its connected cluster (down to 0.2).
+  - **Graph view — the hover popover no longer covers nodes.** It was pinned at `top-24`, right on top of the categories that fan upward from the centre. Moved it into the top-edge chrome band (between the heading and the layout toggle) so it sits above the node field. Verified in the browser.
+
 ## 2026-07-24 - version 1.0.5
 
 - fixed the landing graph's category nodes linking to the top of `/thoughts` instead of the matching section. Every category node (Design & UI, Performance, Security, …) had a hardcoded `href: "/thoughts"`, so clicking one dropped you at the page top with no indication of where its write-ups were. Added a shared `categoryAnchor()` helper, tagged each category `<section>` on the `/thoughts` index with that id (plus `scroll-mt-20` so the sticky header doesn't cover the heading), and pointed the category nodes at `/thoughts#<anchor>`. Individual write-up nodes already deep-linked correctly; this was only the category hubs. Tested: the anchor slugs, the graph hrefs, and a render cross-check that every category deep-link resolves to a real section on the index
@@ -9,7 +16,6 @@
 
 - trimmed the README down to what actually belongs in a repo README. It had grown to ~390 lines that reproduced the site itself — a per-feature deep-dive for every page, a "Key technical decisions" list, and an ~80-bullet "Things I learned" log, all of which are the live site's and the `/thoughts` write-ups' job to tell. Removed those three sections, condensed the two public/login feature lists into one compact index of links to the live routes (plus a pointer to `/thoughts`), and kept the parts a README is actually for: run-locally steps, tech-stack and deployment tables, and project structure. From 389 lines to ~140
 - corrected the feature/auth lists while trimming — the old README had wrong routes and wrong auth labels. Real auth-gated set (verified against prod: 307 to `/auth/login`) is exactly `/vitals`, `/settings`, and `/calendar*`, matching the `proxy.ts` middleware. Fixed: "NBA Stats" was listed as login-only but the fantasy NBA pages (including player stats at `/fantasy/nba/player/stats`) are public; the TCG browser is `/tcg/pokemon` not `/tcg`; the Pokédex is `/graphql` not `/pokedex`; there is no `/nba` route
-
 ## 2026-07-23 - version 1.0.2
 
 - moved the learn-page demos off their hand-rolled play/step engines and onto the shared `useStepPlayer` hook. Fifteen widgets across nine lessons (two-pointers, binary-search, sliding-window, hash-maps, stacks-queues, dynamic-programming, recursion-backtracking, trees-graphs, async-patterns) each carried their own ~40-line copy of the same stepIdx + interval logic — the exact duplication the hook was extracted to kill. They now destructure `advance`, `play`, `stop`, `reset` from the hook and keep only their own bits: the visualization, and the target/preset/snippet pickers that reset the player before swapping data. Behavior is unchanged — the hook keeps the synchronous ref write so batched interval ticks stop exactly on the last step. Verified page by page: `tsc`, `eslint`, `next build` (all 14 learn routes prerender static), the hook's 6 unit tests, and a click-through of Play/Step/Reset on the migrated demos. That closes the second follow-up noted in 1.0.0
