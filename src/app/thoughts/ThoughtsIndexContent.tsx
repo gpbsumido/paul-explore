@@ -3,7 +3,7 @@
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { THOUGHTS } from "@/app/_shared/featureData";
-import { groupThoughts } from "@/app/_shared/thoughtCategories";
+import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
 
 /** A single write-up card, colour-keyed to match its page. */
@@ -53,7 +53,13 @@ export default function ThoughtsIndexContent() {
 
         <div className="space-y-12">
           {groups.map((group) => (
-            <section key={group.name}>
+            <section
+              key={group.name}
+              id={categoryAnchor(group.name)}
+              // scroll-mt clears the sticky h-14 header so a deep link from the
+              // landing graph lands on the heading, not under the nav.
+              className="scroll-mt-20"
+            >
               <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
                 {group.name}
               </h2>

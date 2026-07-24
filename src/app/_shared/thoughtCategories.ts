@@ -62,6 +62,18 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
 const slugOf = (href: string): string => href.replace(/^\/thoughts\//, "");
 
 /**
+ * A URL-fragment id for a category, e.g. "Design & UI" -> "design-ui". The
+ * /thoughts index tags each category section with this id, and the landing
+ * graph's category nodes link to `/thoughts#<anchor>` so a click lands on the
+ * matching section rather than the top of the page.
+ */
+export const categoryAnchor = (name: string): string =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+/**
  * Group the given thoughts into the ordered categories above. Anything not
  * assigned to a category falls into a trailing "More" group, so a newly added
  * thought is never hidden just because it hasn't been categorized yet.

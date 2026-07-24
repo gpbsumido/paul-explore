@@ -49,6 +49,15 @@ describe("buildGraphData", () => {
     expect(targets).toContain("hub:features");
     expect(targets.some((t) => t.startsWith("cat:"))).toBe(true);
   });
+
+  it("deep-links every category node to its section on the index, not the top", () => {
+    const categories = data.nodes.filter((n) => n.kind === "category");
+    expect(categories.length).toBeGreaterThan(0);
+    for (const c of categories) {
+      expect(c.href, c.label).toMatch(/^\/thoughts#[a-z0-9-]+$/);
+      expect(c.href, c.label).not.toBe("/thoughts");
+    }
+  });
 });
 
 describe("buildLayeredLayout", () => {

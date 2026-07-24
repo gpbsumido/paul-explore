@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-24 - version 1.0.5
+
+- fixed the landing graph's category nodes linking to the top of `/thoughts` instead of the matching section. Every category node (Design & UI, Performance, Security, …) had a hardcoded `href: "/thoughts"`, so clicking one dropped you at the page top with no indication of where its write-ups were. Added a shared `categoryAnchor()` helper, tagged each category `<section>` on the `/thoughts` index with that id (plus `scroll-mt-20` so the sticky header doesn't cover the heading), and pointed the category nodes at `/thoughts#<anchor>`. Individual write-up nodes already deep-linked correctly; this was only the category hubs. Tested: the anchor slugs, the graph hrefs, and a render cross-check that every category deep-link resolves to a real section on the index
+
 ## 2026-07-24 - version 1.0.4
 
 - trimmed the README down to what actually belongs in a repo README. It had grown to ~390 lines that reproduced the site itself — a per-feature deep-dive for every page, a "Key technical decisions" list, and an ~80-bullet "Things I learned" log, all of which are the live site's and the `/thoughts` write-ups' job to tell. Removed those three sections, condensed the two public/login feature lists into one compact index of links to the live routes (plus a pointer to `/thoughts`), and kept the parts a README is actually for: run-locally steps, tech-stack and deployment tables, and project structure. From 389 lines to ~140
