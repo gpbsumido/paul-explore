@@ -252,12 +252,14 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const invX = (px: number) => (px - W / 2) / fit.scale + fit.cx;
     const invY = (py: number) => (py - vCenter) / fit.scale + fit.cy;
     // Keep the focused cluster and its labels clear of the header band at the
-    // top and the legend/hint/nav band at the bottom.
+    // top and the legend/hint/nav band at the bottom. The extra offsets are a
+    // node's radius (top) and a node plus the label that hangs below it
+    // (bottom), since the bounds clamp a node's centre, not its edges.
     return {
       xMin: invX(margin),
       xMax: invX(W - margin),
-      yMin: invY(insetTop + 8),
-      yMax: invY(H - INSET_BOTTOM - 8),
+      yMin: invY(insetTop + 44),
+      yMax: invY(H - INSET_BOTTOM - 56),
       strength: 0.12,
     };
   };
