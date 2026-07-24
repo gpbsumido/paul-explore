@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { THOUGHTS } from "@/app/_shared/featureData";
@@ -25,6 +26,19 @@ function ThoughtCard({ thought }: { thought: ThoughtItem }) {
 /** Index for the /thoughts section: write-ups grouped by category so they are easier to scan. */
 export default function ThoughtsIndexContent() {
   const groups = groupThoughts(THOUGHTS);
+
+  // Jump to the #category section on load. The browser's own hash scroll misses
+  // it because the content is client-rendered (and the loading.tsx skeleton
+  // shows first), so the target isn't in the DOM when the native jump fires and
+  // Next's router never retries. scrollIntoView honours the section's scroll-mt.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (!id) return;
+    const raf = requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   return (
     <div className="min-h-dvh bg-background">

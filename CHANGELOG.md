@@ -3,6 +3,7 @@
 ## 2026-07-24 - version 1.0.5
 
 - fixed the landing graph's category nodes linking to the top of `/thoughts` instead of the matching section. Every category node (Design & UI, Performance, Security, …) had a hardcoded `href: "/thoughts"`, so clicking one dropped you at the page top with no indication of where its write-ups were. Added a shared `categoryAnchor()` helper, tagged each category `<section>` on the `/thoughts` index with that id (plus `scroll-mt-20` so the sticky header doesn't cover the heading), and pointed the category nodes at `/thoughts#<anchor>`. Individual write-up nodes already deep-linked correctly; this was only the category hubs. Tested: the anchor slugs, the graph hrefs, and a render cross-check that every category deep-link resolves to a real section on the index
+- made the deep link actually scroll on arrival. Because the index is client-rendered (and shows the loading.tsx skeleton first), the browser's one-shot hash jump fires before the target section is in the DOM and Next never retries, so `/thoughts#architecture-backend` sat at the top. Added a mount effect that re-runs the jump via `scrollIntoView` (which honours the section's scroll-mt). Verified in the browser: the section lands just below the sticky header
 
 ## 2026-07-24 - version 1.0.4
 

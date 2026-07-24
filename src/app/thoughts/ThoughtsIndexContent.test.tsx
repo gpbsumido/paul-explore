@@ -26,4 +26,21 @@ describe("ThoughtsIndexContent deep-link anchors", () => {
       expect(ids, `#${anchor} exists on the index`).toContain(anchor);
     }
   });
+
+  it("scrolls to the section named in the URL hash on mount", async () => {
+    const scrollSpy = vi.fn();
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = scrollSpy;
+    window.location.hash = "#architecture-backend";
+    try {
+      render(<ThoughtsIndexContent />);
+      await vi.waitFor(() => expect(scrollSpy).toHaveBeenCalled());
+      expect(scrollSpy.mock.instances[0]).toBe(
+        document.getElementById("architecture-backend"),
+      );
+    } finally {
+      Element.prototype.scrollIntoView = original;
+      window.location.hash = "";
+    }
+  });
 });
