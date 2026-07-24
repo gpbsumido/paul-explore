@@ -61,6 +61,10 @@ export default function NodeGraph({ reducedMotion }: Props) {
   const dragRef = useRef<{ i: number; moved: boolean; sx: number; sy: number } | null>(
     null,
   );
+  // Set on pointer-up when the gesture was a drag, and read (then cleared) by
+  // the click that follows, so a drag-drop never navigates. dragRef itself is
+  // already nulled by pointer-up before the click fires, so it can't carry this.
+  const suppressClickRef = useRef(false);
   // Delay before a hover starts pushing neighbours, so the highlight locks first.
   const focusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Grace timer that delays releasing the focus after the pointer leaves, and a
@@ -468,6 +472,9 @@ export default function NodeGraph({ reducedMotion }: Props) {
       sim.focus = null;
       sim.labeled = labeledSet(null);
     }
+    // Remember whether this gesture actually dragged, so the click that fires
+    // right after this pointer-up can suppress navigation.
+    suppressClickRef.current = drag.moved;
     dragRef.current = null;
     reheat(sim, 0.4);
     ensureRunning();
@@ -475,7 +482,8 @@ export default function NodeGraph({ reducedMotion }: Props) {
 
   /** Suppress navigation when the gesture was a drag rather than a tap. */
   const onNodeClick = (e: React.MouseEvent) => {
-    if (dragRef.current?.moved) {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
       e.preventDefault();
       return;
     }
