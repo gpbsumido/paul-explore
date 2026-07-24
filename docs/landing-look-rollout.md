@@ -84,12 +84,15 @@ plan's PR so the target is explicit.
 `/operator`, `/work-portfolio`, `/learn`, `/fantasy/nba` (the new hub). These are
 card/dashboard-heavy and already public, so the glass + ambient treatment lands
 cleanly and there's no auth to stand up for verification.
-- **Done:** `/operator` (violet/blue aurora) and `/learn` (green aurora,
-  replacing its ad-hoc dot grid with the shared background), both verified in the
-  browser.
-- **Next:** `/work-portfolio` (careful — it's a full-bleed `overflow-hidden`
-  layout) and the `/fantasy/nba` hub, then the glass-card treatment on the cards
-  themselves (this pass so far is the ambient background only).
+- **Done (ambient):** `/operator` (violet/blue), `/learn` (green, replacing its
+  ad-hoc dot grid), `/graphql` (teal), `/tcg/pokemon` (red/amber).
+- **Done (glass):** the `/operator` store cards and the `/graphql` Pokédex cards
+  now use `.glass-card`, so both have the full ambient + glass treatment.
+- **Next:** `/vitals` (auth — verify while logged in), the `/fantasy/nba` hub and
+  `/thoughts` (deferred: touched by the #214/#215/#216 stack, do after it merges
+  to avoid conflicts), then the careful ones — `/work-portfolio` (full-bleed
+  `overflow-hidden` layout) and `/calendar` (dense — ambient + accent chrome
+  only, leave the grid/event surfaces alone).
 
 ### 4. Content/data pages — **started**
 `/tcg/pokemon`, `/graphql`, `/vitals`, `/thoughts` index + write-ups.
