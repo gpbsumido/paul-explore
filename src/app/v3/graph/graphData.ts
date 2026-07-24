@@ -150,7 +150,9 @@ export type LayeredLayout = {
 export const FLAT_NODE_H = 34;
 const FLAT_COL_W = 170; // column pitch
 const FLAT_ROW_H = 40; // vertical pitch within a column
-const FLAT_HEADER_Y = 150; // y of the hub/category header row
+/** y of the root node — clears the ~120px fixed header (which overlays the graph). */
+const FLAT_ROOT_Y = 150;
+const FLAT_HEADER_Y = 240; // y of the hub/category header row, below the root
 const FLAT_PAD = 36;
 
 /**
@@ -185,7 +187,7 @@ export function buildLayeredLayout(data: GraphData): LayeredLayout {
 
   const firstX = FLAT_PAD + FLAT_COL_W / 2;
   const lastX = FLAT_PAD + FLAT_COL_W / 2 + (groups.length - 1) * FLAT_COL_W;
-  positions.set("root", { x: (firstX + lastX) / 2, y: FLAT_PAD + 16 });
+  positions.set("root", { x: (firstX + lastX) / 2, y: FLAT_ROOT_Y });
 
   return {
     positions,

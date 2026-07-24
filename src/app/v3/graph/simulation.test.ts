@@ -109,6 +109,31 @@ describe("forces", () => {
     expect(inBand.nodes[0].y).toBeCloseTo(control.nodes[0].y, 10);
   });
 
+  it("bounds pull a node that has drifted off screen back inside", () => {
+    const bounds = { xMin: -400, xMax: 400, yMin: -300, yMax: 300, strength: 0.12 };
+    // node 0 is way past the right/bottom edge; node 1 parked far away.
+    const s = pairState(900, 700, -2000, -2000);
+    const before = { x: s.nodes[0].x, y: s.nodes[0].y };
+    for (let i = 0; i < 40; i++) {
+      stepSimulation(s, DEFAULT_PARAMS, 1, null, bounds);
+    }
+    // It moves back toward the box on both axes.
+    expect(s.nodes[0].x).toBeLessThan(before.x);
+    expect(s.nodes[0].y).toBeLessThan(before.y);
+    expect(s.nodes[0].x).toBeLessThan(bounds.xMax + 50);
+    expect(s.nodes[0].y).toBeLessThan(bounds.yMax + 50);
+  });
+
+  it("bounds leave a node already inside the box alone", () => {
+    const bounds = { xMin: -400, xMax: 400, yMin: -300, yMax: 300, strength: 0.12 };
+    const inside = pairState(0, 0, 2000, 2000);
+    const control = pairState(0, 0, 2000, 2000);
+    stepSimulation(inside, DEFAULT_PARAMS, 1, null, bounds);
+    stepSimulation(control, DEFAULT_PARAMS, 1, null, null);
+    expect(inside.nodes[0].x).toBeCloseTo(control.nodes[0].x, 10);
+    expect(inside.nodes[0].y).toBeCloseTo(control.nodes[0].y, 10);
+  });
+
   it("a spring pulls two connected, far-apart nodes closer", () => {
     const s = pairState(-400, 0, 400, 0, true); // way beyond rest length (100)
     const before = dist(s);

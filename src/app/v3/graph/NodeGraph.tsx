@@ -12,6 +12,7 @@ import {
   DEFAULT_PARAMS,
   type SimState,
   type KeepOut,
+  type Bounds,
 } from "./simulation";
 
 /** Movement (px) past which a pointer gesture counts as a drag, not a click. */
@@ -204,10 +205,41 @@ export default function NodeGraph({ reducedMotion }: Props) {
     };
   };
 
+  /**
+   * The visible area in sim space, but only while the fit is frozen (a hover is
+   * active) — otherwise the auto-fit already keeps everything on screen. Keeps a
+   * focused node's spreading neighbours from sliding past the viewport edge.
+   */
+  const computeBounds = (): Bounds | null => {
+    const sim = simRef.current;
+    const container = containerRef.current;
+    if (!sim || !container) return null;
+    if (sim.focus == null && !popoverActiveRef.current) return null;
+    const fit = fitRef.current;
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+    const margin = 76; // room for a node plus its label
+    const invX = (px: number) => (px - W / 2) / fit.scale + fit.cx;
+    const invY = (py: number) => (py - H / 2) / fit.scale + fit.cy;
+    return {
+      xMin: invX(margin),
+      xMax: invX(W - margin),
+      yMin: invY(margin),
+      yMax: invY(H - margin),
+      strength: 0.12,
+    };
+  };
+
   const tick = () => {
     const sim = simRef.current;
     if (!sim) return;
-    stepSimulation(sim, DEFAULT_PARAMS, fitRef.current.scale, computeKeepOut());
+    stepSimulation(
+      sim,
+      DEFAULT_PARAMS,
+      fitRef.current.scale,
+      computeKeepOut(),
+      computeBounds(),
+    );
     paint();
     const keepGoing =
       sim.alpha > DEFAULT_PARAMS.minAlpha * 1.05 ||

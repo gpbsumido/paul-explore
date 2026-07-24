@@ -36,6 +36,20 @@ export type KeepOut = {
   strength: number;
 };
 
+/**
+ * The visible area (in sim space) nodes are kept inside of, used while the fit
+ * is frozen during a hover so the focused node's neighbours can't spread off
+ * screen. Nodes past an edge get pulled back proportional to how far out.
+ */
+export type Bounds = {
+  xMin: number;
+  xMax: number;
+  yMin: number;
+  yMax: number;
+  /** Pull-back strength; held at rest (not alpha-scaled). */
+  strength: number;
+};
+
 export type SimState = {
   nodes: SimNode[];
   edges: SimEdge[];
@@ -169,6 +183,7 @@ export function stepSimulation(
   params: SimParams,
   screenScale = 1,
   keepOut: KeepOut | null = null,
+  bounds: Bounds | null = null,
 ): void {
   const { nodes, edges, alpha, fx, fy, eff } = state;
   const n = nodes.length;
@@ -255,6 +270,21 @@ export function stepSimulation(
       ) {
         fy[i] += (keepOut.yBottom - node.y) * keepOut.strength;
       }
+    }
+  }
+
+  // Containment: while the fit is frozen (during a hover), pull any node that
+  // has drifted past the visible edge back inside, so a focused node's
+  // neighbours can't spread off screen. Proportional to the overshoot and not
+  // alpha-scaled so it holds at rest. Pinned nodes are left where they are.
+  if (bounds) {
+    for (let i = 0; i < n; i++) {
+      const node = nodes[i];
+      if (node.pinned) continue;
+      if (node.x < bounds.xMin) fx[i] += (bounds.xMin - node.x) * bounds.strength;
+      else if (node.x > bounds.xMax) fx[i] += (bounds.xMax - node.x) * bounds.strength;
+      if (node.y < bounds.yMin) fy[i] += (bounds.yMin - node.y) * bounds.strength;
+      else if (node.y > bounds.yMax) fy[i] += (bounds.yMax - node.y) * bounds.strength;
     }
   }
 
