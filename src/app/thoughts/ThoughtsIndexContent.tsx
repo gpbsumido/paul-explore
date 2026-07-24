@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import AmbientBackground from "@/components/AmbientBackground";
 import { THOUGHTS } from "@/app/_shared/featureData";
 import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
@@ -12,7 +13,7 @@ function ThoughtCard({ thought }: { thought: ThoughtItem }) {
   return (
     <Link
       href={thought.href}
-      className={`flex h-full items-start gap-3 rounded-xl border border-border p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
+      className={`glass-card flex h-full items-start gap-3 rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
         thought.deprecated ? " opacity-70" : ""
       }`}
       style={{ borderLeftWidth: 3, borderLeftColor: thought.color }}
@@ -50,17 +51,19 @@ export default function ThoughtsIndexContent() {
   }, []);
 
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "Thoughts" },
-        ]}
-        showLogout={false}
-        maxWidth="max-w-5xl"
-      />
+    <div className="relative min-h-dvh bg-background">
+      <AmbientBackground colorA="#818cf8" colorB="#38bdf8" />
+      <div className="relative z-10">
+        <PageHeader
+          breadcrumbs={[
+            { label: "Hub", href: "/" },
+            { label: "Thoughts" },
+          ]}
+          showLogout={false}
+          maxWidth="max-w-5xl"
+        />
 
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
+        <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
         <header className="mb-10">
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
             Dev notes
@@ -94,7 +97,8 @@ export default function ThoughtsIndexContent() {
             </section>
           ))}
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
