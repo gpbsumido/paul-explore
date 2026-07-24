@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import { THOUGHTS } from "@/app/_shared/featureData";
-import { groupThoughts } from "@/app/_shared/thoughtCategories";
+import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
 
 /** A single write-up card, colour-keyed to match its page. */
@@ -25,6 +26,19 @@ function ThoughtCard({ thought }: { thought: ThoughtItem }) {
 /** Index for the /thoughts section: write-ups grouped by category so they are easier to scan. */
 export default function ThoughtsIndexContent() {
   const groups = groupThoughts(THOUGHTS);
+
+  // Jump to the #category section on load. The browser's own hash scroll misses
+  // it because the content is client-rendered (and the loading.tsx skeleton
+  // shows first), so the target isn't in the DOM when the native jump fires and
+  // Next's router never retries. scrollIntoView honours the section's scroll-mt.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (!id) return;
+    const raf = requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView();
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   return (
     <div className="min-h-dvh bg-background">
@@ -53,7 +67,13 @@ export default function ThoughtsIndexContent() {
 
         <div className="space-y-12">
           {groups.map((group) => (
-            <section key={group.name}>
+            <section
+              key={group.name}
+              id={categoryAnchor(group.name)}
+              // scroll-mt clears the sticky h-14 header so a deep link from the
+              // landing graph lands on the heading, not under the nav.
+              className="scroll-mt-20"
+            >
               <h2 className="mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
                 {group.name}
               </h2>

@@ -1,5 +1,5 @@
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
-import { groupThoughts } from "@/app/_shared/thoughtCategories";
+import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 
 /** What a node represents, which drives its size and styling. */
 export type GraphNodeKind = "root" | "hub" | "feature" | "category" | "thought";
@@ -112,7 +112,8 @@ export function buildGraphData(): GraphData {
       id: catId,
       kind: "category",
       label: group.name,
-      href: "/thoughts",
+      // Deep-link to this category's section on the index, not the page top.
+      href: `/thoughts#${categoryAnchor(group.name)}`,
       color,
       blurb: `${group.items.length} write-ups`,
       radius: 28,
