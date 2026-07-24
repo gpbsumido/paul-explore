@@ -73,6 +73,12 @@ export default function FlatGraph({ reducedMotion }: Props) {
   const isVisible = (id: string) =>
     id === "root" || headerIds.has(id) || itemGroup.get(id) === openGroup;
 
+  const isSectionNode = (id: string) => id === "root" || headerIds.has(id);
+  // Hovering a section header just reveals its items — it shouldn't dim the
+  // other headers, since those are the persistent navigation. Only hovering an
+  // item fades the rest (and never the headers).
+  const hoveredIsSection = hovered != null && isSectionNode(hovered);
+
   // Canvas only needs to be as tall as what's currently shown, so the collapsed
   // view is a compact root + header row and opening a section grows it.
   const visibleHeight = useMemo(() => {
@@ -207,7 +213,8 @@ export default function FlatGraph({ reducedMotion }: Props) {
             const active =
               hovered != null &&
               (edge.source === hovered || edge.target === hovered);
-            const dim = hovered != null && !active;
+            // Only an item hover dims; a header hover just highlights its own edges.
+            const dim = hovered != null && !hoveredIsSection && !active;
             const a = center(edge.source);
             const b = center(edge.target);
             const color = colorOf.get(edge.source);
@@ -245,7 +252,13 @@ export default function FlatGraph({ reducedMotion }: Props) {
         {data.nodes.map((node) => {
           const pos = layout.positions.get(node.id);
           if (!pos || !isVisible(node.id)) return null;
-          const dim = hovered != null && !neighbors.get(hovered)?.has(node.id);
+          // Headers/root are navigation and never dim; only items fade, and
+          // only when another item (not a header) is hovered.
+          const dim =
+            hovered != null &&
+            !hoveredIsSection &&
+            !isSectionNode(node.id) &&
+            !neighbors.get(hovered)?.has(node.id);
           return (
             <FlatNode
               key={node.id}
