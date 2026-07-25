@@ -301,6 +301,31 @@ export function stepSimulation(
     node.y += node.vy;
   }
 
+  // Hard containment after integration: the soft spring above eases nodes back,
+  // but a fast hover-spread can overshoot and render a frame or two outside the
+  // visible band, so also clamp positions to the bounds and kill the outward
+  // velocity. Pinned nodes (root, the focused node) are left where they are.
+  if (bounds) {
+    for (let i = 0; i < n; i++) {
+      const node = nodes[i];
+      if (node.pinned) continue;
+      if (node.x < bounds.xMin) {
+        node.x = bounds.xMin;
+        if (node.vx < 0) node.vx = 0;
+      } else if (node.x > bounds.xMax) {
+        node.x = bounds.xMax;
+        if (node.vx > 0) node.vx = 0;
+      }
+      if (node.y < bounds.yMin) {
+        node.y = bounds.yMin;
+        if (node.vy < 0) node.vy = 0;
+      } else if (node.y > bounds.yMax) {
+        node.y = bounds.yMax;
+        if (node.vy > 0) node.vy = 0;
+      }
+    }
+  }
+
   state.alpha = Math.max(params.minAlpha, alpha * (1 - params.alphaDecay));
 }
 

@@ -50,11 +50,21 @@ export default function NodeGraph({ reducedMotion }: Props) {
   // Smoothed viewport fit: maps origin-centred sim space onto the screen so the
   // graph always fills the room available. cx/cy is the sim-space centre.
   const fitRef = useRef({ scale: 1, cx: 0, cy: 0, init: false });
+  // Chrome the graph must stay clear of: the header band at the top (its height
+  // is live — it wraps to two rows when zoomed) and the legend/hint/nav band at
+  // the bottom. The fit maps into the space between them so nodes never tuck
+  // under the header or the bottom controls.
+  const insetTopRef = useRef(80);
+  const INSET_BOTTOM = 64;
 
   // Drag bookkeeping (sx/sy are the pointer-down position in container px).
   const dragRef = useRef<{ i: number; moved: boolean; sx: number; sy: number } | null>(
     null,
   );
+  // Set on pointer-up when the gesture was a drag, and read (then cleared) by
+  // the click that follows, so a drag-drop never navigates. dragRef itself is
+  // already nulled by pointer-up before the click fires, so it can't carry this.
+  const suppressClickRef = useRef(false);
   // Delay before a hover starts pushing neighbours, so the highlight locks first.
   const focusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Grace timer that delays releasing the focus after the pointer leaves, and a
@@ -139,10 +149,13 @@ export default function NodeGraph({ reducedMotion }: Props) {
     }
     const bboxW = Math.max(maxX - minX, 1);
     const bboxH = Math.max(maxY - minY, 1);
+    // Fit into the band between the header and the bottom chrome, not the whole
+    // container, so the graph is never scaled to a size that tucks under them.
+    const availH = Math.max(H - insetTopRef.current - INSET_BOTTOM, 1);
     const pad = W < 640 ? 60 : 110;
     const target = Math.min(
       (W - pad * 2) / bboxW,
-      (H - pad * 2) / bboxH,
+      (availH - pad * 2) / bboxH,
       1.5, // don't zoom past 1.5x when the graph is small
     );
     const cx = (minX + maxX) / 2;
@@ -171,8 +184,11 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const W = container.clientWidth;
     const H = container.clientHeight;
     const fit = fitRef.current;
+    // Vertical centre of the header-to-bottom-chrome band (shifted down from the
+    // container centre by the header, up by the bottom chrome).
+    const vCenter = (H + insetTopRef.current - INSET_BOTTOM) / 2;
     const sx = (x: number) => W / 2 + (x - fit.cx) * fit.scale;
-    const sy = (y: number) => H / 2 + (y - fit.cy) * fit.scale;
+    const sy = (y: number) => vCenter + (y - fit.cy) * fit.scale;
 
     for (let i = 0; i < sim.nodes.length; i++) {
       const el = nodeEls.current[i];
@@ -210,8 +226,9 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const fit = fitRef.current;
     // Generous clearance so node bodies (not just centres) stay clear of the panel.
     const pad = 48;
+    const vCenter = (cr.height + insetTopRef.current - INSET_BOTTOM) / 2;
     const invX = (px: number) => (px - cr.width / 2) / fit.scale + fit.cx;
-    const invY = (py: number) => (py - cr.height / 2) / fit.scale + fit.cy;
+    const invY = (py: number) => (py - vCenter) / fit.scale + fit.cy;
     return {
       xMin: invX(pr.left - cr.left - pad),
       xMax: invX(pr.right - cr.left + pad),
@@ -234,16 +251,19 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const W = container.clientWidth;
     const H = container.clientHeight;
     const margin = 76; // room for a node plus its label
-    // The bottom chrome (legend, the "drag the nodes" hint, corner nav) sits
-    // ~56px up from the bottom edge; keep nodes and their labels clear of it.
-    const marginBottom = 104;
+    const insetTop = insetTopRef.current;
+    const vCenter = (H + insetTop - INSET_BOTTOM) / 2;
     const invX = (px: number) => (px - W / 2) / fit.scale + fit.cx;
-    const invY = (py: number) => (py - H / 2) / fit.scale + fit.cy;
+    const invY = (py: number) => (py - vCenter) / fit.scale + fit.cy;
+    // Keep the focused cluster and its labels clear of the header band at the
+    // top and the legend/hint/nav band at the bottom. The extra offsets are a
+    // node's radius (top) and a node plus the label that hangs below it
+    // (bottom), since the bounds clamp a node's centre, not its edges.
     return {
       xMin: invX(margin),
       xMax: invX(W - margin),
-      yMin: invY(margin),
-      yMax: invY(H - marginBottom),
+      yMin: invY(insetTop + 44),
+      yMax: invY(H - INSET_BOTTOM - 56),
       strength: 0.12,
     };
   };
@@ -333,6 +353,12 @@ export default function NodeGraph({ reducedMotion }: Props) {
     // ~1.2x (or a genuinely tiny viewport) is too cramped to keep the popover
     // clear, so we surface the zoom-out hint.
     const syncCramped = () => {
+      // Track the live header height (it wraps taller when zoomed) so the fit
+      // keeps the graph clear of it. Falls back to a sensible default pre-paint.
+      const headerPx = parseFloat(
+        getComputedStyle(container).getPropertyValue("--v3-header-h"),
+      );
+      insetTopRef.current = (Number.isFinite(headerPx) ? headerPx : 64) + 16;
       const zoom =
         window.innerWidth > 0 ? window.outerWidth / window.innerWidth : 1;
       setCramped(
@@ -342,6 +368,15 @@ export default function NodeGraph({ reducedMotion }: Props) {
       );
     };
     syncCramped();
+    // The header-height var is published by the parent's effect, which commits
+    // after this child effect on first mount. Re-read it next frame so the fit
+    // reserves the real header band even on a fresh narrow load (the vertical
+    // centre is applied immediately on the next paint, so nodes shift clear).
+    const resync = requestAnimationFrame(() => {
+      syncCramped();
+      if (reducedMotion) paint();
+      else ensureRunning();
+    });
     // Browser zoom fires a window resize; the ResizeObserver below only sees
     // container size changes, so listen here too to catch zoom on large windows.
     window.addEventListener("resize", syncCramped);
@@ -364,6 +399,7 @@ export default function NodeGraph({ reducedMotion }: Props) {
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", syncCramped);
+      cancelAnimationFrame(resync);
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       if (focusTimer.current) clearTimeout(focusTimer.current);
       if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
@@ -415,8 +451,10 @@ export default function NodeGraph({ reducedMotion }: Props) {
     // Convert the container-space pointer back into sim space via the fit.
     const fit = fitRef.current;
     const nd = sim.nodes[drag.i];
+    const vCenter =
+      (container.clientHeight + insetTopRef.current - INSET_BOTTOM) / 2;
     nd.x = (p.x - container.clientWidth / 2) / fit.scale + fit.cx;
-    nd.y = (p.y - container.clientHeight / 2) / fit.scale + fit.cy;
+    nd.y = (p.y - vCenter) / fit.scale + fit.cy;
     nd.vx = 0;
     nd.vy = 0;
     reheat(sim, 0.5);
@@ -434,6 +472,9 @@ export default function NodeGraph({ reducedMotion }: Props) {
       sim.focus = null;
       sim.labeled = labeledSet(null);
     }
+    // Remember whether this gesture actually dragged, so the click that fires
+    // right after this pointer-up can suppress navigation.
+    suppressClickRef.current = drag.moved;
     dragRef.current = null;
     reheat(sim, 0.4);
     ensureRunning();
@@ -441,7 +482,8 @@ export default function NodeGraph({ reducedMotion }: Props) {
 
   /** Suppress navigation when the gesture was a drag rather than a tap. */
   const onNodeClick = (e: React.MouseEvent) => {
-    if (dragRef.current?.moved) {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
       e.preventDefault();
       return;
     }
@@ -621,24 +663,41 @@ export default function NodeGraph({ reducedMotion }: Props) {
 
       {/* Zoom-out hint: at small/zoomed viewports the graph is too cramped to
           keep the popover clear of nodes, so nudge the visitor to zoom out.
-          Only when nothing is hovered, so it never sits under the popover. */}
+          Only when nothing is hovered — while hovering, the same warning is
+          folded into the popover below so it never gets hidden behind it.
+          Sits below the header (its height varies as it wraps when zoomed). */}
       {cramped && hovered == null ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-3 z-50 -translate-x-1/2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-500/90 backdrop-blur"
+          style={{ top: "calc(var(--v3-header-h, 4rem) + 0.5rem)" }}
+          className="pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-500/90 backdrop-blur"
         >
           Zoom out for the full graph
         </div>
       ) : null}
 
-      {/* Fixed detail panel for the hovered node — pinned to the top-edge chrome
-          band (between the heading and the layout toggle) so it sits above the
-          node cluster instead of covering the categories that fan upward. */}
+      {/* Idle interaction hint — lives in the same top slot as the hover popover
+          and only shows when nothing is hovered (and the zoom hint isn't up), so
+          the popover replaces it the moment you hover a node. */}
+      {!cramped && hovered == null ? (
+        <div
+          aria-hidden
+          style={{ top: "calc(var(--v3-header-h, 4rem) + 0.5rem)" }}
+          className="pointer-events-none absolute left-1/2 z-40 -translate-x-1/2 rounded-full border border-border bg-surface/70 px-3 py-1 text-xs text-muted backdrop-blur"
+        >
+          Drag the nodes · click one to open it
+        </div>
+      ) : null}
+
+      {/* Fixed detail panel for the hovered node — pinned just below the header
+          so it sits above the node cluster instead of covering the categories
+          that fan upward, and clears the header even when it wraps on zoom. */}
       {hovered != null && data.nodes[hovered]?.blurb ? (
         <div
           ref={popoverRef}
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-3 z-50 w-[min(22rem,72vw)] -translate-x-1/2 rounded-xl border border-border bg-surface/95 px-4 py-2.5 text-center shadow-xl ring-1 ring-black/5 backdrop-blur"
+          style={{ top: "calc(var(--v3-header-h, 4rem) + 0.5rem)" }}
+          className="pointer-events-none absolute left-1/2 z-50 w-[min(22rem,72vw)] -translate-x-1/2 rounded-xl border border-border bg-surface/95 px-4 py-2.5 text-center shadow-xl ring-1 ring-black/5 backdrop-blur"
         >
           <p
             className="text-sm font-semibold"
@@ -649,6 +708,13 @@ export default function NodeGraph({ reducedMotion }: Props) {
           <p className="mt-1 text-xs leading-snug text-muted">
             {data.nodes[hovered].blurb}
           </p>
+          {/* When cramped, the standalone hint is suppressed (it would sit under
+              this panel), so surface it here instead. */}
+          {cramped ? (
+            <p className="mt-2 border-t border-amber-500/20 pt-1.5 text-[11px] font-medium text-amber-500/90">
+              Zoom out for the full graph
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>
