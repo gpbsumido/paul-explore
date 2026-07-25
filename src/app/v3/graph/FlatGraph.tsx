@@ -12,6 +12,13 @@ import {
 
 type Props = { reducedMotion: boolean };
 
+/**
+ * How long a hover lingers after the pointer leaves a node, so you can travel to
+ * the connected nodes it just revealed (in another column) before they hide.
+ * Cancelled the moment you hover another node.
+ */
+const HOVER_GRACE_MS = 1500;
+
 /** Uniform card width, kept under the column pitch so columns never touch. */
 function widthFor(node: GraphNode): number {
   return node.kind === "root" ? 148 : 150;
@@ -35,6 +42,15 @@ export default function FlatGraph({ reducedMotion }: Props) {
   const [compact, setCompact] = useState(false);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  // Grace timer that delays releasing the hover after the pointer leaves, so the
+  // revealed connected nodes don't vanish before you can reach them.
+  const hoverEndTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
+    },
+    [],
+  );
 
   // Fall back to the stacked vertical list whenever the column canvas is wider
   // than the space available, i.e. showing every column would need horizontal
@@ -332,12 +348,27 @@ export default function FlatGraph({ reducedMotion }: Props) {
               dim={dim}
               expanded={hovered === node.id}
               onEnter={() => {
+                // Entering a node cancels any pending release from the one we
+                // just left, so the hover moves cleanly between nodes.
+                if (hoverEndTimer.current) {
+                  clearTimeout(hoverEndTimer.current);
+                  hoverEndTimer.current = null;
+                }
                 setHovered(node.id);
                 // Hovering a section header opens it; it stays open (even after
                 // you leave) until you hover a different header.
                 if (headerIds.has(node.id)) setOpenGroup(node.id);
               }}
-              onLeave={() => setHovered((h) => (h === node.id ? null : h))}
+              onLeave={() => {
+                // Don't drop the hover immediately — wait out the grace period so
+                // you can travel to the revealed connected nodes. If you land on
+                // another node first, its onEnter cancels this.
+                if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
+                hoverEndTimer.current = setTimeout(() => {
+                  hoverEndTimer.current = null;
+                  setHovered((h) => (h === node.id ? null : h));
+                }, HOVER_GRACE_MS);
+              }}
             />
           );
         })}
@@ -419,7 +450,7 @@ function FlatNode({ node, x, y, width, dim, expanded, onEnter, onLeave }: FlatNo
     onPointerEnter: onEnter,
     onPointerLeave: onLeave,
     className: [
-      "absolute flex items-center gap-1.5 rounded-lg border px-2.5 outline-none transition-[opacity,box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+      "absolute flex items-center gap-1.5 rounded-lg border px-2.5 outline-none transition-[opacity,box-shadow] hover:shadow-md focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
       // Expanded (hovered) node grows past its column and floats over the rest.
       expanded ? "z-30 overflow-visible shadow-lg" : "overflow-hidden",
       isSection ? "" : "border-border bg-surface shadow-sm",
