@@ -1,0 +1,11 @@
+/* The work-portfolio tickers are horizontal scroll containers so every chip is
+   reachable by scrolling; the ambient loop is driven in JS via scrollLeft (see
+   Ticker.tsx). This class hides the scrollbar without disabling the scroll. */
+.noScrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge */
+}
+
+.noScrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
