@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import PageHeader from "@/components/PageHeader";
+import PageShell from "@/components/PageShell";
 import ViewToggle from "@/app/thoughts/ViewToggle";
 
 type Props = {
@@ -41,7 +42,7 @@ export default function ThoughtLayout({
   const hasChat = Boolean(chat);
 
   return (
-    <div className="min-h-dvh bg-background">
+    <PageShell colorA="#818cf8" colorB="#38bdf8">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: breadcrumb }]}
         right={
@@ -80,6 +81,6 @@ export default function ThoughtLayout({
       ) : (
         chat
       )}
-    </div>
+    </PageShell>
   );
 }

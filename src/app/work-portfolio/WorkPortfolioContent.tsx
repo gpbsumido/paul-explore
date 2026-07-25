@@ -97,7 +97,7 @@ export default function WorkPortfolioContent() {
   }, []);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
+    <div className="flex min-h-0 flex-1 flex-col">
       <Ticker label="Projects ticker" edge="top" direction="left">
         {PROJECTS.map((project) => (
           <ProjectChip
