@@ -34,7 +34,7 @@ const StoreCard = memo(function StoreCard({
   return (
     <Link
       href={`/operator/stores/${store.id}`}
-      className={`group flex flex-col gap-3 rounded-xl border bg-surface p-4 transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${borderClass}`}
+      className={`group glass-card flex flex-col gap-3 rounded-xl p-4 transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${borderClass}`}
     >
       {/* Header row: name + status badge */}
       <div className="flex items-start justify-between gap-2">

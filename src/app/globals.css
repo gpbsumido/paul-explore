@@ -238,6 +238,26 @@
   animation: scroll-hint 2s ease-in-out infinite;
 }
 
+/* Glass card — the v3 landing's frosted, tinted surface. Semi-transparent so an
+   AmbientBackground behind it shows through, blurred. Tint it toward an accent
+   by setting --glass-accent (e.g. a feature token); defaults to a neutral tint.
+   Theme-aware via the surface/border tokens. Set the radius on the element. */
+.glass-card {
+  background-color: color-mix(
+    in srgb,
+    var(--glass-accent, var(--color-foreground)) 5%,
+    color-mix(in srgb, var(--color-surface) 72%, transparent)
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--glass-accent, var(--color-border)) 35%,
+      var(--color-border)
+    );
+}
+
 @layer base {
   html,
   body {

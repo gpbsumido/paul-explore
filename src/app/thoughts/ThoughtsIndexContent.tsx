@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import PageShell from "@/components/PageShell";
 import { THOUGHTS } from "@/app/_shared/featureData";
 import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
@@ -12,7 +13,7 @@ function ThoughtCard({ thought }: { thought: ThoughtItem }) {
   return (
     <Link
       href={thought.href}
-      className={`flex h-full items-start gap-3 rounded-xl border border-border p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
+      className={`glass-card flex h-full items-start gap-3 rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm${
         thought.deprecated ? " opacity-70" : ""
       }`}
       style={{ borderLeftWidth: 3, borderLeftColor: thought.color }}
@@ -50,7 +51,7 @@ export default function ThoughtsIndexContent() {
   }, []);
 
   return (
-    <div className="min-h-dvh bg-background">
+    <PageShell colorA="#818cf8" colorB="#38bdf8">
       <PageHeader
         breadcrumbs={[
           { label: "Hub", href: "/" },
@@ -95,6 +96,6 @@ export default function ThoughtsIndexContent() {
           ))}
         </div>
       </main>
-    </div>
+    </PageShell>
   );
 }
