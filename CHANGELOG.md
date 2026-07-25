@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-24 - version 1.0.8
+
+- swapped the work-portfolio tickers over to the shared `@paul-portfolio` `Ticker` (scroll mode), now that it's published. Both this app and ketsup had grown their own ticker, so it got generalized into the design system; this drops the local `Ticker`, its css module, and the `useReducedMotionPref` hook (all extracted upstream) and imports the shared one instead. Same props (`label`/`edge`/`direction`) and same behaviour: ambient auto-scroll, pause on hover/touch, seamless cloned loop, and reduced-motion collapsing to a static single copy. Bumped `@paul-portfolio/react` to 0.4.4 and `@paul-portfolio/css` to 0.4.5, kept the translucent strip look with a `bg-surface/30` className, and updated the ticker test for the shared component's structure (`data-direction` sits on the labelled section now). All 836 tests green.
+
 ## 2026-07-24 - version 1.0.7
 
 - consolidated the five separate NBA/fantasy entries (Stats, Matchups, Court Vision, League History, Playoffs) into a single "Fantasy NBA" feature in the shared `FEATURES` list, so it reads as one thing under Apps everywhere it surfaces: the v3 landing graph (one node instead of five), the signed-in feature hub, and the v2 landing. Added a new `/fantasy/nba` hub page — a PageHeader + FantasyNav + a card grid linking out to all five pages — as the single entry point (there wasn't one before), and pointed the consolidated feature at it; its write-up bridge still goes to `/thoughts/playoffs`. Removed the four now-unused card-preview mockups (NBA/Matchups/Court Vision/League) and their data, keeping the playoffs preview for the consolidated card. Updated the v2 "NBA"/"Fantasy & NBA" category groupings to the new id. Verified in the browser: the hub renders and the graph shows one Fantasy NBA node.
