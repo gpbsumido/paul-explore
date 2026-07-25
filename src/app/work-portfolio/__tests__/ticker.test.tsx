@@ -61,16 +61,11 @@ describe("work-portfolio tickers", () => {
   it("tickers travel in opposite directions", () => {
     stubReducedMotion(false);
     render(<WorkPortfolioContent />);
+    // The shared Ticker sets data-direction on the labelled section itself.
     const top = screen.getByLabelText("Projects ticker");
     const bottom = screen.getByLabelText("Features ticker");
-    expect(top.querySelector("[data-direction]")).toHaveAttribute(
-      "data-direction",
-      "left",
-    );
-    expect(bottom.querySelector("[data-direction]")).toHaveAttribute(
-      "data-direction",
-      "right",
-    );
+    expect(top).toHaveAttribute("data-direction", "left");
+    expect(bottom).toHaveAttribute("data-direction", "right");
   });
 
   it("prefers-reduced-motion renders a single static copy", async () => {
@@ -81,7 +76,8 @@ describe("work-portfolio tickers", () => {
     await waitFor(() =>
       expect(within(top).getAllByText(PROJECTS[0].name)).toHaveLength(1),
     );
-    expect(top.querySelector("[data-direction]")).toBeNull();
+    // reduced motion drops the ambient scroll, so no direction is marked
+    expect(top).not.toHaveAttribute("data-direction");
   });
 });
 
