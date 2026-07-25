@@ -1,8 +1,11 @@
 # Changelog
 
-## 2026-07-24 - version 1.0.8
+## 2026-07-25 - version 1.0.10
 
 - swapped the work-portfolio tickers over to the shared `@paul-portfolio` `Ticker` (scroll mode), now that it's published. Both this app and ketsup had grown their own ticker, so it got generalized into the design system; this drops the local `Ticker`, its css module, and the `useReducedMotionPref` hook (all extracted upstream) and imports the shared one instead. Same props (`label`/`edge`/`direction`) and same behaviour: ambient auto-scroll, pause on hover/touch, seamless cloned loop, and reduced-motion collapsing to a static single copy. Bumped `@paul-portfolio/react` to 0.4.4 and `@paul-portfolio/css` to 0.4.5, kept the translucent strip look with a `bg-surface/30` className, and updated the ticker test for the shared component's structure (`data-direction` sits on the labelled section now). All 836 tests green.
+
+## 2026-07-24 - version 1.0.8
+
 - started extending the v3 landing page's look and feel to the rest of the app so it reads as one product. Extracted the landing's ambient backdrop (dotted grid + drifting aurora blobs) into a shared, accent-parameterised `AmbientBackground` — the landing's `GraphBackground` now just wraps it — and added a `.glass-card` utility (the landing's frosted, semi-transparent, backdrop-blurred surface, theme-aware and accent-tintable). Applied them, each tinted to the page's feature accent, across `/operator`, `/graphql`, `/fantasy/nba`, `/thoughts`, `/vitals` (all with glass cards), plus `/learn`, `/tcg/pokemon`, and `/calendar` (ambient behind the untouched grid). Tables and dense surfaces keep flat backgrounds for legibility. Also covered every `/thoughts/*` write-up page in one shot via the shared `ThoughtLayout`, and `/work-portfolio` via a bespoke integration (its opaque full-bleed content root is now transparent so the ambient shows through the ticker layout). Remaining: an optional `PageShell` convenience wrapper and an axe contrast sweep. See `docs/landing-look-rollout.md`.
 
 ## 2026-07-24 - version 1.0.7
