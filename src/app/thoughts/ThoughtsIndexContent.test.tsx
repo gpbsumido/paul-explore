@@ -15,8 +15,11 @@ describe("ThoughtsIndexContent deep-link anchors", () => {
     );
     expect(ids.size).toBeGreaterThan(0);
 
+    // Real thoughts categories (cat:* ids) deep-link into the index. The résumé
+    // node reuses the "category" kind for styling but links to its own page, so
+    // it is excluded here.
     const categoryHrefs = buildGraphData()
-      .nodes.filter((n) => n.kind === "category")
+      .nodes.filter((n) => n.kind === "category" && n.id.startsWith("cat:"))
       .map((n) => n.href!);
     expect(categoryHrefs.length).toBeGreaterThan(0);
 

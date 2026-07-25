@@ -60,8 +60,13 @@ describe("buildGraphData", () => {
     expect(targets.some((t) => t.startsWith("cat:"))).toBe(true);
   });
 
-  it("deep-links every category node to its section on the index, not the top", () => {
-    const categories = data.nodes.filter((n) => n.kind === "category");
+  it("deep-links every thoughts category node to its section on the index, not the top", () => {
+    // Scope to the real thoughts categories (cat:* ids). The résumé node reuses
+    // the "category" kind for its styling but links to its own page, not a
+    // /thoughts section, so it is intentionally excluded here.
+    const categories = data.nodes.filter(
+      (n) => n.kind === "category" && n.id.startsWith("cat:"),
+    );
     expect(categories.length).toBeGreaterThan(0);
     for (const c of categories) {
       expect(c.href, c.label).toMatch(/^\/thoughts#[a-z0-9-]+$/);

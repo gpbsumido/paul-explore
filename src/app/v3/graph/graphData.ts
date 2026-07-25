@@ -45,6 +45,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const ROOT_COLOR = "#8b5cf6";
 const FEATURES_HUB_COLOR = "#38bdf8";
+/** Warm accent for the résumé node so it stands apart from the category hues. */
+const RESUME_COLOR = "#fb923c";
 /** Every feature node shares one colour so the feature cluster reads as a group. */
 const FEATURE_COLOR = "#38bdf8";
 
@@ -80,6 +82,20 @@ export function buildGraphData(): GraphData {
     radius: 31,
   });
   edges.push({ source: "root", target: "hub:features", rest: 260 });
+
+  // Résumé: a prominent top-level node hanging off the root (not a thoughts
+  // category despite the kind — reusing "category" gets it the always-labelled,
+  // section-style treatment for free). Links to the dedicated résumé page.
+  nodes.push({
+    id: "resume",
+    kind: "category",
+    label: "Résumé",
+    href: "/resume",
+    color: RESUME_COLOR,
+    blurb: "My résumé — experience, skills, and the projects behind this site.",
+    radius: 27,
+  });
+  edges.push({ source: "root", target: "resume", rest: 230 });
 
   // Deprecated write-ups are kept as pages but dropped from the graph, so the
   // node ids that actually exist are the non-deprecated ones.
