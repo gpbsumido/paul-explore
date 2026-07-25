@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
+import PageShell from "@/components/PageShell";
 import FantasyNav from "./FantasyNav";
 
 /** The fantasy NBA pages, surfaced as cards from the section hub. */
@@ -46,7 +47,7 @@ const PAGES = [
 /** Landing hub for the fantasy NBA section: one entry point to all its pages. */
 export default function FantasyHubContent() {
   return (
-    <div className="min-h-dvh bg-background font-sans">
+    <PageShell colorA="#f43f5e" colorB="#8b5cf6" className="font-sans">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
@@ -71,7 +72,7 @@ export default function FantasyHubContent() {
             <Link
               key={p.href}
               href={p.href}
-              className="flex h-full flex-col rounded-xl border border-border p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
+              className="glass-card flex h-full flex-col rounded-xl p-4 transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-sm"
               style={{ borderLeftWidth: 3, borderLeftColor: p.color }}
             >
               <p className="font-semibold text-foreground">{p.title}</p>
@@ -82,6 +83,6 @@ export default function FantasyHubContent() {
           ))}
         </div>
       </main>
-    </div>
+    </PageShell>
   );
 }
