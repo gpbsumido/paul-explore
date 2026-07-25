@@ -9,7 +9,7 @@ import {
   featureIndexBySlug,
 } from "./_data/catalog";
 import IntroCard from "./IntroCard";
-import Ticker from "./Ticker";
+import { Ticker } from "@paul-portfolio/react";
 import StageArrow from "./StageNav";
 import { ProjectChip, FeatureChip } from "./chips";
 import { cycleIndex } from "./nav";
@@ -98,7 +98,12 @@ export default function WorkPortfolioContent() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <Ticker label="Projects ticker" edge="top" direction="left">
+      <Ticker
+        label="Projects ticker"
+        edge="top"
+        direction="left"
+        className="bg-surface/30"
+      >
         {PROJECTS.map((project) => (
           <ProjectChip
             key={project.id}
@@ -199,7 +204,12 @@ export default function WorkPortfolioContent() {
         </div>
         <StageArrow dir="next" onClick={() => step(1)} />
       </main>
-      <Ticker label="Features ticker" edge="bottom" direction="right">
+      <Ticker
+        label="Features ticker"
+        edge="bottom"
+        direction="right"
+        className="bg-surface/30"
+      >
         {FEATURES.map((feature, i) => (
           <FeatureChip
             key={feature.slug}
