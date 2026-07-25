@@ -59,7 +59,7 @@ const PokemonCard = memo(function PokemonCard({ pokemon }: PokemonCardProps) {
 
   return (
     <div
-      className="rounded-xl border border-border bg-surface p-3 flex flex-col gap-2.5 hover:border-muted/40 transition-colors"
+      className="glass-card rounded-xl p-3 flex flex-col gap-2.5 hover:border-muted/40 transition-colors"
       style={{ contentVisibility: "auto", containIntrinsicSize: "auto 200px" }}
     >
       {/* dex number + type badges */}

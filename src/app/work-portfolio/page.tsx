@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import PageHeader from "@/components/PageHeader";
+import AmbientBackground from "@/components/AmbientBackground";
 import WorkPortfolioContent from "./WorkPortfolioContent";
 
 const TITLE = "Work Portfolio";
@@ -30,14 +31,17 @@ export const revalidate = 86400;
 
 export default function WorkPortfolioPage() {
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Work Portfolio" },
-        ]}
-      />
-      <WorkPortfolioContent />
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-background">
+      <AmbientBackground colorA="#60a5fa" colorB="#8b5cf6" />
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+        <PageHeader
+          breadcrumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Work Portfolio" },
+          ]}
+        />
+        <WorkPortfolioContent />
+      </div>
     </div>
   );
 }

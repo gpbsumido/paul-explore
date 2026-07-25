@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
+import PageShell from "@/components/PageShell";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import OperatorDashboard from "./OperatorDashboard";
 import OperatorLoading from "./loading";
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function OperatorPage() {
   return (
-    <div className="min-h-dvh bg-background font-sans">
+    <PageShell colorA="#8b5cf6" colorB="#38bdf8" className="font-sans">
       <PageHeader
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Operator" }]}
       />
@@ -37,6 +38,6 @@ export default function OperatorPage() {
       <Suspense fallback={<OperatorLoading />}>
         <OperatorDashboard />
       </Suspense>
-    </div>
+    </PageShell>
   );
 }
