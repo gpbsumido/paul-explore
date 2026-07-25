@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-07-25 - version 1.0.10
+## 2026-07-25 - version 1.0.11
 
 - served my résumé and made it an obvious, top-level destination. Added a public `/resume` page that embeds the PDF inline (with Download PDF and Word buttons and an open-in-new-tab fallback), and surfaced it in two places on both the guest landing and the signed-in hub: a warm-accent "Résumé" button in the graph header chrome, and a "Résumé" node wired off the root of the node graph (visible in both the force and flat views) in the same accent so they read as one thing. The files live in `public/resume` and are served statically. Since the page embeds its own PDF, the CSP now allows same-origin framing (`frame-src 'self'`, `frame-ancestors 'self'`); cross-origin framing, the actual clickjacking risk, stays blocked. The résumé node reuses the `category` node kind for its always-labelled styling, so the two tests that assert category nodes deep-link to `/thoughts` sections are scoped to the real `cat:*` categories.
 
