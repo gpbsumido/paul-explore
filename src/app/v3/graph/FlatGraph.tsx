@@ -208,53 +208,71 @@ export default function FlatGraph({ reducedMotion }: Props) {
           <div className="mx-auto max-w-md space-y-2">
             {groups.map((g) => {
               const open = openGroup === g.node.id;
+              // A section with no children (e.g. Résumé) can't expand, so it
+              // navigates to its own page instead of toggling.
+              const asLink = g.items.length === 0 && !!g.node.href;
+              const headerClass =
+                "flex w-full items-center gap-2 px-3 py-2.5 text-left outline-none transition-colors hover:bg-surface focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset";
+              const headerInner = (
+                <>
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{
+                      background: g.node.color,
+                      boxShadow: `0 0 10px ${g.node.color}`,
+                    }}
+                  />
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {g.node.label}
+                  </h3>
+                  {g.items.length > 0 ? (
+                    <span className="ml-auto text-xs text-muted">
+                      {g.items.length}
+                    </span>
+                  ) : null}
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden
+                    className={`shrink-0 text-muted transition-transform ${g.items.length > 0 ? "" : "ml-auto"} ${open ? "rotate-180" : ""}`}
+                  >
+                    {/* Chevron-down for expandable sections, chevron-right for
+                        link sections that navigate away. */}
+                    <path
+                      d={asLink ? "M9 6l6 6-6 6" : "M6 9l6 6 6-6"}
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </>
+              );
               return (
                 <section
                   key={g.node.id}
                   className="overflow-hidden rounded-xl border border-border bg-surface/60"
                   style={{ borderLeftColor: g.node.color, borderLeftWidth: 3 }}
                 >
-                  <button
-                    type="button"
-                    aria-expanded={open}
-                    onClick={() =>
-                      setOpenGroup((cur) => (cur === g.node.id ? null : g.node.id))
-                    }
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left outline-none transition-colors hover:bg-surface focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-inset"
-                  >
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{
-                        background: g.node.color,
-                        boxShadow: `0 0 10px ${g.node.color}`,
-                      }}
-                    />
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {g.node.label}
-                    </h3>
-                    {g.items.length > 0 ? (
-                      <span className="ml-auto text-xs text-muted">
-                        {g.items.length}
-                      </span>
-                    ) : null}
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden
-                      className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`}
+                  {asLink ? (
+                    <Link href={g.node.href!} className={headerClass}>
+                      {headerInner}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      aria-expanded={open}
+                      onClick={() =>
+                        setOpenGroup((cur) => (cur === g.node.id ? null : g.node.id))
+                      }
+                      className={headerClass}
                     >
-                      <path
-                        d="M6 9l6 6 6-6"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
-                  {open ? (
+                      {headerInner}
+                    </button>
+                  )}
+                  {open && g.items.length > 0 ? (
                     <div className="space-y-1.5 px-3 pb-3 pt-0.5">
                       {g.items.map((item) => (
                         <FlatRow key={item.id} node={item} />

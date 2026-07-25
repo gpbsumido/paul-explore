@@ -31,15 +31,32 @@ export const metadata: Metadata = {
 // Static page — the résumé changes rarely, so cache it at the CDN for a day.
 export const revalidate = 86400;
 
-/** A small pill link, used for the download actions in the header. */
-function DownloadLink({ href, children }: { href: string; children: React.ReactNode }) {
+/** A compact pill download link for the header — icon plus a short label so it
+ * stays on one line and doesn't balloon the fixed-height bar on narrow screens. */
+function DownloadLink({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
       download
-      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:text-foreground"
+      className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-surface/70 px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:text-foreground"
     >
-      {children}
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden
+        className="shrink-0"
+      >
+        <path
+          d="M12 3v11m0 0 4-4m-4 4-4-4M5 20h14"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      {label}
     </a>
   );
 }
@@ -54,12 +71,6 @@ export default function ResumePage() {
       <PageHeader
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Résumé" }]}
         showLogout={false}
-        right={
-          <div className="flex items-center gap-2">
-            <DownloadLink href={PDF_HREF}>Download PDF</DownloadLink>
-            <DownloadLink href={DOCX_HREF}>Word</DownloadLink>
-          </div>
-        }
       />
 
       <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
@@ -67,8 +78,12 @@ export default function ResumePage() {
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">Résumé</h1>
           <p className="mt-1 text-[13px] text-muted">
             Experience, skills, and the projects behind this site. Prefer a file?
-            Grab the PDF or Word version above.
+            Grab a copy below.
           </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <DownloadLink href={PDF_HREF} label="Download PDF" />
+            <DownloadLink href={DOCX_HREF} label="Download Word" />
+          </div>
         </div>
 
         {/* Inline PDF viewer. Some browsers (notably mobile Safari) render a
