@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { reveal } from "@/app/landing/Section";
 import { spring, cardFlipIn, instantTransition } from "@/lib/animations";
 import type { FeatureItem, ThoughtItem } from "@/types/hub";
@@ -10,64 +10,42 @@ import type { FeatureItem, ThoughtItem } from "@/types/hub";
 // Feature & thought data
 // ---------------------------------------------------------------------------
 
+// Ordered most-impressive first — this order drives the flat Apps column, the
+// graph's feature cluster, and the signed-in hub grid.
 export const FEATURES: FeatureItem[] = [
   {
-    id: "nba",
-    title: "NBA Stats",
+    id: "operator",
+    title: "Operator Dashboard",
     description:
-      "Live player stats via API proxy. Batch loading, per-player error states, and skeleton rows while the NBA API catches up.",
-    href: "/fantasy/nba/player/stats",
-    color: "#007aff",
+      "Manage a MicroMart smart store fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
+    href: "/operator",
+    color: "#8b5cf6",
+    thoughtsHref: "/thoughts/operator-dashboard",
   },
   {
-    id: "matchups",
-    title: "Fantasy Matchups",
+    id: "work-portfolio",
+    title: "Work Portfolio",
     description:
-      "Head-to-head weekly matchups with category breakdowns, animated win bars, and an AI-style prediction panel with start/sit recommendations.",
-    href: "/fantasy/nba/matchups",
-    color: "#FF6B35",
+      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
+    href: "/work-portfolio",
+    color: "#60a5fa",
   },
   {
-    id: "court-vision",
-    title: "Court Vision",
+    id: "learn",
+    title: "Learn",
     description:
-      "SVG half-court shot chart with color-coded shooting zones. Hover for per-zone FG% and attempts per game.",
-    href: "/fantasy/nba/court-vision",
-    color: "#00D4FF",
+      "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
+    href: "/learn",
+    color: "#34d399",
   },
   {
-    id: "league",
-    title: "League History",
+    id: "fantasy-nba",
+    title: "Fantasy NBA",
     description:
-      "ESPN fantasy basketball standings by season. Glassmorphism team cards, expandable rosters, and a season selector.",
-    href: "/fantasy/nba/league-history",
-    color: "#ff9500",
-  },
-  {
-    id: "playoffs",
-    title: "NBA Playoffs Bracket",
-    description:
-      "Pick every series winner, length, and MVP before the playoffs start. Debounced auto-save, cascade clears, TBD resolution, and a public leaderboard with per-round scoring.",
-    href: "/fantasy/nba/playoffs",
+      "Everything NBA in one place: a playoff bracket picker with a public leaderboard, live player stats, head-to-head matchups with predictions, an SVG shot chart, and ESPN league history.",
+    href: "/fantasy/nba",
     color: "#f43f5e",
     thoughtsHref: "/thoughts/playoffs",
-  },
-  {
-    id: "tcg",
-    title: "Pokémon TCG",
-    description:
-      "Card browser with infinite scroll, URL-synced filters, per-set grids, and deep card detail pages — built on the TCGdex SDK.",
-    href: "/tcg/pokemon",
-    color: "#ef4444",
-    thoughtsHref: "/thoughts/tcg",
-  },
-  {
-    id: "pocket",
-    title: "TCG Pocket",
-    description:
-      "All Pokémon TCG Pocket expansions — sets, packs, and individual card pages with full metadata and ISR caching.",
-    href: "/tcg/pocket",
-    color: "#6366f1",
   },
   {
     id: "calendar",
@@ -77,24 +55,6 @@ export const FEATURES: FeatureItem[] = [
     href: "/calendar",
     color: "#f59e0b",
     thoughtsHref: "/thoughts/calendar",
-  },
-  {
-    id: "graphql",
-    title: "GraphQL Pokédex",
-    description:
-      "Pokémon browser on the PokeAPI Hasura endpoint. Plain fetch over Apollo, typed queries, streaming SSR, and a live query inspector.",
-    href: "/graphql",
-    color: "#14b8a6",
-    thoughtsHref: "/thoughts/graphql",
-  },
-  {
-    id: "vitals",
-    title: "Web Vitals",
-    description:
-      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
-    href: "/vitals",
-    color: "#22c55e",
-    thoughtsHref: "/thoughts/vitals",
   },
   {
     id: "particles",
@@ -114,33 +74,50 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/ketsup",
   },
   {
-    id: "operator",
-    title: "Operator Dashboard",
+    id: "vitals",
+    title: "Web Vitals",
     description:
-      "Manage a MicroMart smart store fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
-    href: "/operator",
-    color: "#8b5cf6",
-    thoughtsHref: "/thoughts/operator-dashboard",
+      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
+    href: "/vitals",
+    color: "#22c55e",
+    thoughtsHref: "/thoughts/vitals",
   },
   {
-    id: "learn",
-    title: "Learn",
+    id: "graphql",
+    title: "GraphQL Pokédex",
     description:
-      "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
-    href: "/learn",
-    color: "#34d399",
+      "Pokémon browser on the PokeAPI Hasura endpoint. Plain fetch over Apollo, typed queries, streaming SSR, and a live query inspector.",
+    href: "/graphql",
+    color: "#14b8a6",
+    thoughtsHref: "/thoughts/graphql",
   },
   {
-    id: "work-portfolio",
-    title: "Work Portfolio",
+    id: "tcg",
+    title: "Pokémon TCG",
     description:
-      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
-    href: "/work-portfolio",
-    color: "#60a5fa",
+      "Card browser with infinite scroll, URL-synced filters, per-set grids, and deep card detail pages — built on the TCGdex SDK.",
+    href: "/tcg/pokemon",
+    color: "#ef4444",
+    thoughtsHref: "/thoughts/tcg",
   },
-].reverse();
+  {
+    id: "pocket",
+    title: "TCG Pocket",
+    description:
+      "All Pokémon TCG Pocket expansions — sets, packs, and individual card pages with full metadata and ISR caching.",
+    href: "/tcg/pocket",
+    color: "#6366f1",
+  },
+];
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "React Doctor",
+    href: "/thoughts/react-doctor",
+    preview:
+      "Working a static-analysis pass: real fixes, the fix that fought back, false positives, and why severity isn't priority",
+    color: "#f43f5e",
+  },
   {
     title: "Styling Decisions",
     href: "/thoughts/styling",
@@ -158,6 +135,7 @@ export const THOUGHTS: ThoughtItem[] = [
     href: "/thoughts/search-bar",
     preview: "Server/client split, filtering, and trade-offs",
     color: "#5856d6",
+    deprecated: true,
   },
   {
     title: "TCG Pages",
@@ -246,6 +224,7 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Why links opened in Facebook Messenger showed a logged-in hub for unauthenticated users, and the two-line fix",
     color: "#3b82f6",
+    deprecated: true,
   },
   {
     title: "Web Vitals",
@@ -280,6 +259,20 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "URL-based version routing with next/dynamic bundle splitting — Three.js out of the default path, v2 ships a clean slate",
     color: "#e879f9",
+  },
+  {
+    title: "V3 Redesign",
+    href: "/thoughts/v3-redesign",
+    preview:
+      "The whole site as a node graph — a hand-rolled force sim, fit-to-viewport rendering, the drag/hover bugs, and an a11y audit",
+    color: "#8b5cf6",
+  },
+  {
+    title: "Project Review",
+    href: "/thoughts/project-review",
+    preview:
+      "An evidence-backed review of the whole codebase — engineering, system design, architecture overfit, and per-feature UX gains",
+    color: "#64748b",
   },
   {
     title: "AI Security & Bare Repo Attacks",
@@ -366,157 +359,6 @@ export const THOUGHTS: ThoughtItem[] = [
 // light gray background with dark ink; in dark mode they flip to a near-black
 // background with white ink — same pattern as the landing page sections, just
 // theme-aware this time.
-
-export const NBA_PLAYERS = [
-  { name: "LeBron James", pts: 25.6, reb: 7.3, ast: 8.1 },
-  { name: "Anthony Davis", pts: 22.4, reb: 11.2, ast: 3.2 },
-  { name: "Austin Reaves", pts: 16.8, reb: 3.2, ast: 4.1 },
-];
-
-export function NBAPreview() {
-  return (
-    <div className="overflow-hidden rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
-      <div className="grid grid-cols-[1fr_2.5rem_2.5rem_2.5rem] border-b border-black/10 dark:border-white/10 px-2 py-1">
-        {["Player", "PTS", "REB", "AST"].map((h) => (
-          <span
-            key={h}
-            className="text-[7px] font-bold uppercase tracking-wider text-black/30 dark:text-white/30 last:text-right [&:not(:first-child)]:text-right"
-          >
-            {h}
-          </span>
-        ))}
-      </div>
-      {NBA_PLAYERS.map((p) => (
-        <div
-          key={p.name}
-          className="grid grid-cols-[1fr_2.5rem_2.5rem_2.5rem] items-center border-b border-black/5 dark:border-white/5 px-2 py-1.5 last:border-b-0"
-        >
-          <span className="truncate text-[9px] text-black/70 dark:text-white/70">
-            {p.name}
-          </span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
-            {p.pts}
-          </span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
-            {p.reb}
-          </span>
-          <span className="text-right tabular-nums text-[9px] text-black/50 dark:text-white/50">
-            {p.ast}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export const MATCHUP_DATA = [
-  { away: "Wemby's Team", home: "Stroke Bros", awayPts: 342, homePts: 318 },
-  { away: "Running Shoe", home: "LaMelo Arc", awayPts: 287, homePts: 301 },
-];
-
-export function MatchupsPreview() {
-  return (
-    <div className="space-y-1.5">
-      {MATCHUP_DATA.map((m) => {
-        const total = m.awayPts + m.homePts || 1;
-        const leftPct = (m.awayPts / total) * 100;
-        return (
-          <div
-            key={m.away}
-            className="rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-2 space-y-1"
-          >
-            <div className="flex items-center justify-between">
-              <span className="truncate text-[8px] text-black/60 dark:text-white/60">
-                {m.away}
-              </span>
-              <span className="tabular-nums text-[9px] font-bold text-[#FF6B35]">
-                {m.awayPts}
-              </span>
-            </div>
-            <div className="flex h-1 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-              <div
-                className="rounded-l-full bg-[#FF6B35]"
-                style={{ width: `${leftPct}%` }}
-              />
-              <div
-                className="rounded-r-full bg-[#00D4FF]"
-                style={{ width: `${100 - leftPct}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="truncate text-[8px] text-black/60 dark:text-white/60">
-                {m.home}
-              </span>
-              <span className="tabular-nums text-[9px] font-bold text-[#00D4FF]">
-                {m.homePts}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-export const COURT_ZONES = [
-  { zone: "Paint", pct: 58.2, color: "#ef4444" },
-  { zone: "Mid-Range", pct: 42.1, color: "#eab308" },
-  { zone: "Corner 3", pct: 37.5, color: "#3b82f6" },
-  { zone: "Above Break", pct: 35.8, color: "#3b82f6" },
-];
-
-export function CourtVisionPreview() {
-  return (
-    <div className="space-y-1">
-      {COURT_ZONES.map((z) => (
-        <div
-          key={z.zone}
-          className="flex items-center gap-2 rounded border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2 py-1"
-        >
-          <div
-            className="h-2 w-2 shrink-0 rounded-full"
-            style={{ backgroundColor: z.color }}
-          />
-          <span className="flex-1 text-[8px] text-black/60 dark:text-white/60">
-            {z.zone}
-          </span>
-          <span className="tabular-nums text-[9px] font-bold text-black/70 dark:text-white/70">
-            {z.pct}%
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export const LEAGUE_TEAMS = [
-  { rank: 1, name: "The Ballers", record: "12-2" },
-  { rank: 2, name: "Bench Warmers", record: "10-4" },
-  { rank: 3, name: "Laker Fans Only", record: "8-6" },
-];
-
-export function LeaguePreview() {
-  return (
-    <div className="space-y-1.5">
-      {LEAGUE_TEAMS.map((t) => (
-        <div
-          key={t.rank}
-          className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-2"
-        >
-          <span className="w-4 shrink-0 text-[9px] font-bold text-black/30 dark:text-white/30">
-            #{t.rank}
-          </span>
-          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
-            {t.name}
-          </span>
-          <span className="shrink-0 tabular-nums text-[9px] text-black/40 dark:text-white/40">
-            {t.record}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export const PLAYOFF_ROWS = [
   { conf: "E", s1: 1, t1: "BOS", s2: 8, t2: "MIA", pick: 1 },
@@ -951,17 +793,76 @@ export function LearnPreview() {
   );
 }
 
+// The work-portfolio card gets an animated mini dual-ticker so it stands out:
+// two rows of accent-dotted chips marquee in opposite directions, mirroring the
+// real feature. Falls back to a static strip under prefers-reduced-m.
+const WP_TOP = ["Content Engine", "Analytics Suite", "Portal v2", "Gamer Hub"];
+const WP_BOTTOM = ["Wallet Lookup", "LLM Assistant", "Dashboard", "Email Studio"];
+
+function WpTickerRow({
+  items,
+  direction,
+  reduced,
+}: {
+  items: readonly string[];
+  direction: "left" | "right";
+  reduced: boolean;
+}) {
+  // two copies so the marquee loops seamlessly, same trick as the real ticker
+  const doubled = [...items, ...items];
+  const keyframes = direction === "left" ? ["0%", "-50%"] : ["-50%", "0%"];
+  return (
+    <div className="flex overflow-hidden">
+      <m.div
+        className="flex w-max shrink-0 gap-1.5"
+        animate={reduced ? undefined : { x: keyframes }}
+        transition={
+          reduced
+            ? undefined
+            : { duration: 14, ease: "linear", repeat: Infinity }
+        }
+      >
+        {doubled.map((label, i) => (
+          <span
+            key={i}
+            className="flex items-center gap-1 rounded-full border border-black/10 px-1.5 py-0.5 dark:border-white/10"
+            style={{
+              background:
+                "color-mix(in srgb, var(--color-feature-work-portfolio) 12%, transparent)",
+            }}
+          >
+            <span
+              aria-hidden
+              className="h-1 w-1 shrink-0 rounded-full"
+              style={{ backgroundColor: "#60a5fa" }}
+            />
+            <span className="whitespace-nowrap text-[7px] text-black/50 dark:text-white/50">
+              {label}
+            </span>
+          </span>
+        ))}
+      </m.div>
+    </div>
+  );
+}
+
+export function WorkPortfolioPreview() {
+  const reduced = useReducedMotion();
+  return (
+    <div className="flex h-full flex-col justify-center gap-2">
+      <WpTickerRow items={WP_TOP} direction="left" reduced={!!reduced} />
+      <WpTickerRow items={WP_BOTTOM} direction="right" reduced={!!reduced} />
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Maps & tokens
 // ---------------------------------------------------------------------------
 
 // Maps feature.id to its design-token CSS variable name.
 export const FEATURE_TOKEN: Record<string, string> = {
-  nba: "--color-feature-nba",
-  matchups: "--color-feature-sync",
-  "court-vision": "--color-feature-nba",
-  league: "--color-feature-sync",
-  playoffs: "--color-feature-nba",
+  "fantasy-nba": "--color-feature-nba",
   tcg: "--color-feature-tcg",
   pocket: "--color-feature-particles",
   calendar: "--color-feature-calendar",
@@ -971,15 +872,12 @@ export const FEATURE_TOKEN: Record<string, string> = {
   ketsup: "--color-feature-ketsup",
   operator: "--color-feature-operator",
   learn: "--color-feature-learn",
+  "work-portfolio": "--color-feature-work-portfolio",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 export const PREVIEW_MAP: Record<string, React.ComponentType> = {
-  nba: NBAPreview,
-  matchups: MatchupsPreview,
-  "court-vision": CourtVisionPreview,
-  league: LeaguePreview,
-  playoffs: PlayoffsPreview,
+  "fantasy-nba": PlayoffsPreview,
   tcg: TcgPreview,
   pocket: PocketPreview,
   calendar: CalendarPreview,
@@ -989,6 +887,7 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   ketsup: KetsupPreview,
   operator: OperatorPreview,
   learn: LearnPreview,
+  "work-portfolio": WorkPortfolioPreview,
 };
 
 // ---------------------------------------------------------------------------
@@ -1013,7 +912,7 @@ export function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
   const token = FEATURE_TOKEN[feature.id] ?? "--color-feature-nba";
 
   return (
-    <motion.div
+    <m.div
       variants={cardFlipIn}
       transition={prefersReduced ? instantTransition : { ...spring.smooth }}
       whileHover={{ y: -4, transition: { ...spring.snappy } }}
@@ -1084,7 +983,7 @@ export function FeatureCard({ feature, prefersReduced }: FeatureCardProps) {
           )}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

@@ -13,12 +13,12 @@ import VersionBanner from "./v2/VersionBanner";
 // Use next/dynamic for retired versions to keep their deps out of the
 // default bundle.
 
-import LandingContentV2 from "./v2/LandingContentV2";
-import FeatureHubV2 from "./v2/FeatureHubV2";
+import LandingContentV3 from "./v3/LandingContentV3";
+import FeatureHubV3 from "./v3/FeatureHubV3";
 
 type MeData = { name: string | null; email: string | null };
 
-const CURRENT_VERSION = "v2";
+const CURRENT_VERSION = "v3";
 
 const VERSIONS = {
   v1: {
@@ -26,8 +26,12 @@ const VERSIONS = {
     Hub: nextDynamic(() => import("./FeatureHub")),
   },
   v2: {
-    Landing: LandingContentV2,
-    Hub: FeatureHubV2,
+    Landing: nextDynamic(() => import("./v2/LandingContentV2")),
+    Hub: nextDynamic(() => import("./v2/FeatureHubV2")),
+  },
+  v3: {
+    Landing: LandingContentV3,
+    Hub: FeatureHubV3,
   },
 } satisfies Record<
   string,
@@ -104,7 +108,7 @@ export default async function Home({
   if (isOldVersion) {
     return (
       <>
-        <VersionBanner />
+        <VersionBanner version={version} />
         <div className="pt-8">{content}</div>
       </>
     );

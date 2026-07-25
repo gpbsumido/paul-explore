@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui";
+import { Button, FilterBar, Select } from "@/components/ui";
 import type { Team, Player, PlayerStats, PlayerRow, SortKey } from "./types";
 import { queryKeys } from "@/lib/queryKeys";
 import { COLUMNS, getSortValue } from "@/lib/nba";
-import { selectChevron } from "@/assets/icons";
 import FantasyNav from "../../FantasyNav";
 import ErrorRowModal from "./ErrorRowModal";
 import NoStats from "./NoStats";
@@ -163,27 +162,19 @@ export default function StatsContent() {
       <FantasyNav />
 
       {/* ---- Team selector ---- */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex items-center gap-3">
-          <span className="text-[13px] text-muted shrink-0">Team</span>
-          <select
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
-            value={selectedTeamId ?? ""}
-            onChange={handleTeamChange}
-          >
-            <option value="">Select a team…</option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.full_name}
-              </option>
-            ))}
-          </select>
+      <FilterBar label="Team filter">
+        <Select
+          label="Team"
+          value={selectedTeamId ?? ""}
+          onChange={handleTeamChange}
+        >
+          <option value="">Select a team…</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.full_name}
+            </option>
+          ))}
+        </Select>
 
           {selectedTeamId && (
             <button
@@ -215,11 +206,11 @@ export default function StatsContent() {
               Compare
             </button>
           )}
-        </div>
-      </div>
+      </FilterBar>
 
       {/* ---- Content ---- */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">
+        <h1 className="sr-only">Player Stats</h1>
         {topLevelError && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center text-muted text-[15px]">
             <span>{topLevelErrorMessage}</span>

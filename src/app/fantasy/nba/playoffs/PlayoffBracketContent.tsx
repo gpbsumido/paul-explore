@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { queryKeys } from "@/lib/queryKeys";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -203,7 +203,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
 
   return (
     <AnimatePresence mode="wait">
-      <motion.span
+      <m.span
         key={status}
         initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
@@ -214,7 +214,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
         ].join(" ")}
       >
         {status === "saving" ? "Saving…" : "Saved"}
-      </motion.span>
+      </m.span>
     </AnimatePresence>
   );
 }
@@ -244,7 +244,7 @@ function SubmitButton({
           ? "bg-green-500/20 text-green-400 cursor-default"
           : isDisabled
             ? "bg-orange-500/10 text-orange-400/40 cursor-not-allowed"
-            : "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30",
+            : "bg-orange-500/20 text-orange-800 dark:text-orange-400 hover:bg-orange-500/30",
       ].join(" ")}
     >
       {status === "submitting"
@@ -292,7 +292,7 @@ function ShareButton({ url }: { url: string }) {
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
       </svg>
       <AnimatePresence mode="wait">
-        <motion.span
+        <m.span
           key={copied ? "copied" : "share"}
           initial={{ opacity: 0, y: -3 }}
           animate={{ opacity: 1, y: 0 }}
@@ -300,7 +300,7 @@ function ShareButton({ url }: { url: string }) {
           transition={{ duration: 0.15 }}
         >
           {copied ? "Copied!" : "Share"}
-        </motion.span>
+        </m.span>
       </AnimatePresence>
     </button>
   );
@@ -327,7 +327,7 @@ function PickProgress({
         {picked}/{total}
       </span>
       <div className="h-1 w-16 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
-        <motion.div
+        <m.div
           className="h-full rounded-full bg-orange-400/70"
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -359,7 +359,7 @@ function ChampionDisplay({
 
   return (
     <AnimatePresence>
-      <motion.div
+      <m.div
         key={finalsPick.winner}
         initial={{ opacity: 0, scale: 0.85, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -380,7 +380,7 @@ function ChampionDisplay({
         }
       >
         {/* Trophy with wiggle */}
-        <motion.div
+        <m.div
           animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
           transition={{ duration: 1.6, ease: "easeInOut", delay: 0.4 }}
         >
@@ -392,11 +392,11 @@ function ChampionDisplay({
           >
             <path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z" />
           </svg>
-        </motion.div>
+        </m.div>
 
         {/* Logo */}
         {logoUrl && (
-          <motion.img
+          <m.img
             initial={{ scale: 0, rotate: -10 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{
@@ -427,7 +427,7 @@ function ChampionDisplay({
             Your Champion
           </p>
         </div>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }
@@ -454,7 +454,7 @@ function ViewModeBanner({
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 24 }}
@@ -462,7 +462,7 @@ function ViewModeBanner({
       className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/8 px-4 py-3"
     >
       <svg
-        className="h-4 w-4 shrink-0 text-blue-400"
+        className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -497,7 +497,7 @@ function ViewModeBanner({
           </a>
         )}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -519,7 +519,7 @@ function RoundColumn({
   animVariant?: "left" | "right";
 }) {
   return (
-    <motion.div
+    <m.div
       variants={
         animVariant === "left"
           ? slideInLeft
@@ -553,7 +553,7 @@ function RoundColumn({
           );
         })}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -578,7 +578,10 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
     queryFn: (): Promise<{ sub: string | null; name: string | null }> =>
-      fetch("/api/me").then((r) => r.json()),
+      fetch("/api/me").then((r) => {
+        if (!r.ok) throw new Error("Failed to load user");
+        return r.json();
+      }),
     staleTime: 5 * 60_000,
   });
 
@@ -654,6 +657,9 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
   useEffect(() => {
     if (!autoSave || !userHasPickedRef.current || isViewMode) return;
 
+    const controller = new AbortController();
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+
     fetch("/api/nba/playoffs/picks", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -661,14 +667,25 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
         picks: debouncedPicks,
         displayName: meQuery.data?.name,
       }),
+      signal: controller.signal,
     })
       .then((res) => {
         if (res.ok) {
           setSaveStatus("saved");
-          setTimeout(() => setSaveStatus("idle"), 2000);
+          idleTimer = setTimeout(() => setSaveStatus("idle"), 2000);
         }
       })
-      .catch(() => setSaveStatus("idle"));
+      .catch((err: unknown) => {
+        const aborted = err instanceof DOMException && err.name === "AbortError";
+        if (!aborted) setSaveStatus("idle");
+      });
+
+    // Cancel the in-flight save and the reset timer if this re-runs or unmounts,
+    // so neither fires setSaveStatus after the component is gone.
+    return () => {
+      controller.abort();
+      if (idleTimer) clearTimeout(idleTimer);
+    };
   }, [autoSave, debouncedPicks, isViewMode, meQuery.data?.name]);
 
   function handlePick(matchupId: string, pick: PlayoffSeriesPick | FinalsPick) {
@@ -765,6 +782,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
       <FantasyNav />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6">
+        <h1 className="sr-only">Playoff Bracket</h1>
         {/* View mode banner */}
         <AnimatePresence>
           {isViewMode && (
@@ -815,7 +833,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
 
         {/* View mode: unavailable state */}
         {isViewMode && viewPicksQuery.isError && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="flex flex-col items-center gap-2 py-12 text-center"
@@ -825,22 +843,22 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
             </p>
             <a
               href="/fantasy/nba/playoffs"
-              className="text-[12px] text-orange-400 hover:underline"
+              className="text-[12px] text-orange-700 dark:text-orange-400 hover:underline"
             >
               Go back to the bracket →
             </a>
-          </motion.div>
+          </m.div>
         )}
 
         {bracket && (!isViewMode || !viewPicksQuery.isError) && (
-          <motion.div
+          <m.div
             variants={staggerContainer(0.08)}
             initial="hidden"
             animate="visible"
             className="flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_180px_1fr] lg:items-start lg:gap-4"
           >
             {/* ── East ── */}
-            <motion.div variants={slideInLeft}>
+            <m.div variants={slideInLeft}>
               <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted">
                 Eastern Conference
               </h2>
@@ -849,10 +867,10 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 <RoundColumn label="R2" matchups={eastR2} {...columnProps} />
                 <RoundColumn label="ECF" matchups={eastCF} {...columnProps} />
               </div>
-            </motion.div>
+            </m.div>
 
             {/* ── Finals ── */}
-            <motion.div
+            <m.div
               variants={fadeInUp}
               className="mx-auto w-full max-w-[260px] lg:mx-0 lg:max-w-none"
             >
@@ -883,10 +901,10 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                     </div>
                   );
                 })()}
-            </motion.div>
+            </m.div>
 
             {/* ── West ── */}
-            <motion.div variants={slideInRight}>
+            <m.div variants={slideInRight}>
               <h2 className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-muted">
                 Western Conference
               </h2>
@@ -896,8 +914,8 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 <RoundColumn label="R2" matchups={westR2} {...columnProps} />
                 <RoundColumn label="WCF" matchups={westCF} {...columnProps} />
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
 
         {/* ── Leaderboard ── */}
@@ -952,7 +970,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                       className="border-b border-border/50 last:border-b-0"
                     >
                       <td className="px-4 py-2.5 text-foreground">{round}</td>
-                      <td className="px-4 py-2.5 text-right font-mono text-orange-400">
+                      <td className="px-4 py-2.5 text-right font-mono text-orange-700 dark:text-orange-400">
                         +{winner} pt{winner !== 1 ? "s" : ""}
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono text-muted">
@@ -970,7 +988,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 <span className="text-foreground">
                   Finals MVP (correct name)
                 </span>
-                <span className="font-mono text-orange-400">+5 pts</span>
+                <span className="font-mono text-orange-700 dark:text-orange-400">+5 pts</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5">
                 <span className="text-foreground">

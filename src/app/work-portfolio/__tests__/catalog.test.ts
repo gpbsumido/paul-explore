@@ -9,9 +9,9 @@ import {
 } from "../_data/catalog";
 
 describe("work-portfolio catalog", () => {
-  it("exposes 24 features across 11 projects", () => {
-    expect(PROJECTS).toHaveLength(11);
-    expect(FEATURES).toHaveLength(24);
+  it("exposes 22 features across 10 projects", () => {
+    expect(PROJECTS).toHaveLength(10);
+    expect(FEATURES).toHaveLength(22);
   });
 
   it("has unique feature slugs and project ids", () => {

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -451,7 +452,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -495,11 +496,12 @@ const MODE_LABELS: Record<TraversalMode, string> = {
 
 function TreeTraversalDemo() {
   const [mode, setMode] = useState<TraversalMode>("pre");
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = useMemo(() => computeTreeSteps(mode), [mode]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 900 },
+  );
   const step = steps[stepIdx];
 
   const visitedSet = useMemo(() => new Set(step.visited), [step.visited]);
@@ -507,50 +509,6 @@ function TreeTraversalDemo() {
     () => new Set(step.traversedEdges),
     [step.traversedEdges],
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) setStepIdx(0);
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 900);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleModeChange = useCallback(
     (newMode: TraversalMode) => {
@@ -604,7 +562,7 @@ function TreeTraversalDemo() {
           <AnimatePresence>
             {TREE_EDGE_COORDS.map((e, i) =>
               traversedSet.has(i) ? (
-                <motion.line
+                <m.line
                   key={`fg-${i}`}
                   x1={e.x1}
                   y1={e.y1}
@@ -626,7 +584,7 @@ function TreeTraversalDemo() {
             const isActive = step.activeNode === node.id;
             return (
               <g key={node.id}>
-                <motion.circle
+                <m.circle
                   cx={node.x}
                   cy={node.y}
                   r={NODE_R}
@@ -669,7 +627,7 @@ function TreeTraversalDemo() {
             <div className="mt-2 flex min-h-[2rem] flex-col-reverse items-center gap-1">
               <AnimatePresence>
                 {step.dsValues.map((val, i) => (
-                  <motion.div
+                  <m.div
                     key={`stack-${val}`}
                     className={[
                       "flex h-7 w-10 items-center justify-center rounded-sm border font-mono text-[10px]",
@@ -683,7 +641,7 @@ function TreeTraversalDemo() {
                     transition={hoverSpring}
                   >
                     {val}
-                  </motion.div>
+                  </m.div>
                 ))}
               </AnimatePresence>
               {step.dsValues.length === 0 && stepIdx > 0 && (
@@ -699,7 +657,7 @@ function TreeTraversalDemo() {
               )}
               <AnimatePresence>
                 {step.dsValues.map((val) => (
-                  <motion.div
+                  <m.div
                     key={`queue-${val}`}
                     className="flex h-7 w-8 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
                     initial={{ opacity: 0, x: 12 }}
@@ -708,7 +666,7 @@ function TreeTraversalDemo() {
                     transition={hoverSpring}
                   >
                     {val}
-                  </motion.div>
+                  </m.div>
                 ))}
               </AnimatePresence>
               {step.dsValues.length === 0 && stepIdx > 0 && (
@@ -726,7 +684,7 @@ function TreeTraversalDemo() {
           <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
             <AnimatePresence>
               {step.visitOrder.map((val, i) => (
-                <motion.span
+                <m.span
                   key={`order-${val}`}
                   className={[
                     "inline-flex h-7 w-8 items-center justify-center rounded-sm border font-mono text-[10px]",
@@ -739,7 +697,7 @@ function TreeTraversalDemo() {
                   transition={hoverSpring}
                 >
                   {val}
-                </motion.span>
+                </m.span>
               ))}
             </AnimatePresence>
           </div>
@@ -763,7 +721,7 @@ function TreeTraversalDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -771,7 +729,7 @@ function TreeTraversalDemo() {
             transition={{ duration: 0.15 }}
           >
             <Narration text={step.narration} />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -785,13 +743,13 @@ function TreeTraversalDemo() {
 function GraphBFSDemo() {
   const [start, setStart] = useState(GRAPH_PRESETS[0][0]);
   const [target, setTarget] = useState(GRAPH_PRESETS[0][1]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = useMemo(
     () => computeGraphBFSSteps(start, target),
     [start, target],
+  );
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
   );
   const step = steps[stepIdx];
 
@@ -802,50 +760,6 @@ function GraphBFSDemo() {
   );
   const pathNodeSet = useMemo(() => new Set(step.pathNodes), [step.pathNodes]);
   const pathEdgeSet = useMemo(() => new Set(step.pathEdges), [step.pathEdges]);
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) setStepIdx(0);
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1000);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handlePreset = useCallback(
     (s: number, t: number) => {
@@ -918,7 +832,7 @@ function GraphBFSDemo() {
             {GRAPH_EDGE_COORDS.map((e, i) => {
               const isPath = pathEdgeSet.has(i);
               return exploredEdgeSet.has(i) ? (
-                <motion.line
+                <m.line
                   key={`fg-${i}`}
                   x1={e.x1}
                   y1={e.y1}
@@ -951,7 +865,7 @@ function GraphBFSDemo() {
                 style={{ cursor: node.id === start ? "default" : "pointer" }}
                 onClick={() => handleNodeClick(node.id)}
               >
-                <motion.circle
+                <m.circle
                   cx={node.x}
                   cy={node.y}
                   r={GRAPH_R}
@@ -1022,7 +936,7 @@ function GraphBFSDemo() {
             )}
             <AnimatePresence>
               {step.queue.map((id) => (
-                <motion.div
+                <m.div
                   key={`gq-${id}`}
                   className="flex h-7 w-8 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
                   initial={{ opacity: 0, x: 12 }}
@@ -1031,7 +945,7 @@ function GraphBFSDemo() {
                   transition={hoverSpring}
                 >
                   {GRAPH[id].label}
-                </motion.div>
+                </m.div>
               ))}
             </AnimatePresence>
             {step.queue.length === 0 && stepIdx > 0 && (
@@ -1047,7 +961,7 @@ function GraphBFSDemo() {
           <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
             <AnimatePresence>
               {step.visitedSet.map((id) => (
-                <motion.span
+                <m.span
                   key={`gv-${id}`}
                   className="inline-flex h-7 w-8 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -1055,7 +969,7 @@ function GraphBFSDemo() {
                   transition={hoverSpring}
                 >
                   {GRAPH[id].label}
-                </motion.span>
+                </m.span>
               ))}
             </AnimatePresence>
           </div>
@@ -1079,7 +993,7 @@ function GraphBFSDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1093,7 +1007,7 @@ function GraphBFSDemo() {
                 {step.pathNodes.length - 1 === 1 ? "edge" : "edges"}
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -1114,7 +1028,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -1123,7 +1037,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 
 // ---------------------------------------------------------------------------
 // Shared config
@@ -224,7 +225,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -296,13 +297,14 @@ function useCellCenters(
 
 function ClassicSearchDemo() {
   const [target, setTarget] = useState(TARGET_PRESETS[0]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const steps = useMemo(() => computeBSearchSteps(target), [target]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 1000 },
+  );
   const step = steps[stepIdx];
   const cellCenters = useCellCenters(containerRef, cellRefs);
 
@@ -310,52 +312,6 @@ function ClassicSearchDemo() {
     () => new Set(step.eliminated),
     [step.eliminated],
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) {
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1000);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleTargetChange = useCallback(
     (newTarget: number) => {
@@ -402,7 +358,7 @@ function ClassicSearchDemo() {
             const isFound = step.found === true && isMid;
 
             return (
-              <motion.div
+              <m.div
                 key={i}
                 ref={(el) => {
                   cellRefs.current[i] = el;
@@ -419,39 +375,39 @@ function ClassicSearchDemo() {
                 transition={hoverSpring}
               >
                 {val}
-              </motion.div>
+              </m.div>
             );
           })}
         </div>
 
         {cellCenters.length > 0 && showPointers && (
           <div className="relative mt-1.5 h-5">
-            <motion.span
+            <m.span
               className="absolute top-0 -translate-x-1/2 font-mono text-[10px] text-foreground/50"
               initial={false}
               animate={{ left: cellCenters[step.left] ?? 0 }}
               transition={hoverSpring}
             >
               L
-            </motion.span>
+            </m.span>
             {step.mid >= 0 && step.mid < SORTED_ARRAY.length && (
-              <motion.span
+              <m.span
                 className="absolute top-0 -translate-x-1/2 font-mono text-[10px] text-foreground/50"
                 initial={false}
                 animate={{ left: cellCenters[step.mid] ?? 0 }}
                 transition={hoverSpring}
               >
                 mid
-              </motion.span>
+              </m.span>
             )}
-            <motion.span
+            <m.span
               className="absolute top-0 -translate-x-1/2 font-mono text-[10px] text-foreground/50"
               initial={false}
               animate={{ left: cellCenters[step.right] ?? 0 }}
               transition={hoverSpring}
             >
               R
-            </motion.span>
+            </m.span>
           </div>
         )}
       </div>
@@ -471,7 +427,7 @@ function ClassicSearchDemo() {
 
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -484,7 +440,7 @@ function ClassicSearchDemo() {
                 {step.found ? `found at index ${step.mid}` : "not found"}
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -496,13 +452,14 @@ function ClassicSearchDemo() {
 // ---------------------------------------------------------------------------
 
 function CapacityDemo() {
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const steps = useMemo(() => computeCapacitySteps(), []);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 1200 },
+  );
   const step = steps[stepIdx];
   const cellCenters = useCellCenters(containerRef, cellRefs);
 
@@ -510,52 +467,6 @@ function CapacityDemo() {
     () => new Set(step.eliminated),
     [step.eliminated],
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) {
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1200);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const isLast = stepIdx >= steps.length - 1;
 
@@ -581,7 +492,7 @@ function CapacityDemo() {
             const isDone = step.done === true && step.lo === cap;
 
             return (
-              <motion.div
+              <m.div
                 key={cap}
                 ref={(el) => {
                   cellRefs.current[i] = el;
@@ -598,48 +509,48 @@ function CapacityDemo() {
                 transition={hoverSpring}
               >
                 {cap}
-              </motion.div>
+              </m.div>
             );
           })}
         </div>
 
         {cellCenters.length > 0 && (
           <div className="relative mt-1.5 h-5">
-            <motion.span
+            <m.span
               className="absolute top-0 -translate-x-1/2 font-mono text-[10px] text-foreground/50"
               initial={false}
               animate={{ left: cellCenters[step.lo - MIN_CAP] ?? 0 }}
               transition={hoverSpring}
             >
               lo
-            </motion.span>
+            </m.span>
             {step.mid >= MIN_CAP &&
               step.mid <= MAX_CAP &&
               step.done !== true && (
-                <motion.span
+                <m.span
                   className="absolute top-0 -translate-x-1/2 font-mono text-[10px] text-foreground/50"
                   initial={false}
                   animate={{ left: cellCenters[step.mid - MIN_CAP] ?? 0 }}
                   transition={hoverSpring}
                 >
                   mid
-                </motion.span>
+                </m.span>
               )}
-            <motion.span
+            <m.span
               className="absolute top-0 -translate-x-1/2 font-mono text-[10px] text-foreground/50"
               initial={false}
               animate={{ left: cellCenters[step.hi - MIN_CAP] ?? 0 }}
               transition={hoverSpring}
             >
               hi
-            </motion.span>
+            </m.span>
           </div>
         )}
       </div>
 
       <AnimatePresence mode="wait">
         {step.dayAssignments.length > 0 && (
-          <motion.div
+          <m.div
             key={`days-${stepIdx}`}
             className="mt-2 space-y-1.5"
             initial={{ opacity: 0, y: 6 }}
@@ -670,7 +581,7 @@ function CapacityDemo() {
                 </div>
               );
             })}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -689,7 +600,7 @@ function CapacityDemo() {
 
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -702,7 +613,7 @@ function CapacityDemo() {
                 minimum capacity: {step.lo}
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -723,7 +634,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -732,7 +643,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

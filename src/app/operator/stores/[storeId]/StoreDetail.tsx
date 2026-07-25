@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { fadeInUp, spring } from "@/lib/animations";
 import { ToastProvider } from "@/contexts/ToastContext";
@@ -45,7 +45,7 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
 
   return (
     <ToastProvider>
-      <motion.main
+      <m.main
         className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6"
         variants={fadeInUp}
         initial="hidden"
@@ -63,7 +63,7 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
         <Suspense>
           <StoreTabs storeId={storeId} />
         </Suspense>
-      </motion.main>
+      </m.main>
       <ToastNotification />
     </ToastProvider>
   );

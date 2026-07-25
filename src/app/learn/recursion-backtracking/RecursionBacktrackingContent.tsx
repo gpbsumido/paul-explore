@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -468,7 +469,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -506,15 +507,16 @@ function Narration({ text }: { text: string }) {
 function FibonacciDemo() {
   const [n, setN] = useState<number>(5);
   const [memoEnabled, setMemoEnabled] = useState(false);
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const tree = FIB_TREES[n];
   const edgeCoords = FIB_EDGE_COORDS[n];
   const steps = useMemo(
     () => computeFibSteps(n, memoEnabled),
     [n, memoEnabled],
+  );
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 800 },
   );
   const step = steps[stepIdx];
 
@@ -536,50 +538,6 @@ function FibonacciDemo() {
   }, [n, memoEnabled, tree.nodes, tree.edges]);
 
   const memoNodeCount = useMemo(() => getVisibleWithMemo(n).nodes.size, [n]);
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) setStepIdx(0);
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 800);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handlePreset = useCallback(
     (newN: number) => {
@@ -643,7 +601,7 @@ function FibonacciDemo() {
         >
           {/* Background edges */}
           {edgeCoords.map((e, i) => (
-            <motion.line
+            <m.line
               key={`bg-${i}`}
               x1={e.x1}
               y1={e.y1}
@@ -662,7 +620,7 @@ function FibonacciDemo() {
           <AnimatePresence>
             {edgeCoords.map((e, i) =>
               traversedSet.has(i) && visibleEdgeSet.has(i) ? (
-                <motion.line
+                <m.line
                   key={`fg-${i}`}
                   x1={e.x1}
                   y1={e.y1}
@@ -688,7 +646,7 @@ function FibonacciDemo() {
 
             return (
               <g key={node.id}>
-                <motion.circle
+                <m.circle
                   cx={node.x}
                   cy={node.y}
                   r={FIB_R}
@@ -719,7 +677,7 @@ function FibonacciDemo() {
                   }}
                   transition={hoverSpring}
                 />
-                <motion.text
+                <m.text
                   x={node.x}
                   y={node.y + 4}
                   textAnchor="middle"
@@ -738,7 +696,7 @@ function FibonacciDemo() {
                   transition={hoverSpring}
                 >
                   {node.n}
-                </motion.text>
+                </m.text>
               </g>
             );
           })}
@@ -754,7 +712,7 @@ function FibonacciDemo() {
           <div className="mt-2 flex min-h-[2rem] flex-col-reverse items-center gap-1">
             <AnimatePresence>
               {step.callStack.map((nodeId) => (
-                <motion.div
+                <m.div
                   key={`stack-${nodeId}`}
                   className={[
                     "flex h-7 items-center justify-center rounded-sm border px-2 font-mono text-[10px]",
@@ -768,7 +726,7 @@ function FibonacciDemo() {
                   transition={hoverSpring}
                 >
                   f({tree.nodes[nodeId].n})
-                </motion.div>
+                </m.div>
               ))}
             </AnimatePresence>
             {step.callStack.length === 0 && stepIdx > 0 && (
@@ -785,7 +743,7 @@ function FibonacciDemo() {
             <div className="mt-2 flex min-h-[2rem] flex-wrap items-center gap-1">
               <AnimatePresence>
                 {step.cache.map(([arg, val]) => (
-                  <motion.span
+                  <m.span
                     key={`cache-${arg}`}
                     className="inline-flex h-7 items-center justify-center rounded-sm border border-foreground/10 px-2 font-mono text-[10px]"
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -793,7 +751,7 @@ function FibonacciDemo() {
                     transition={hoverSpring}
                   >
                     f({arg})={val}
-                  </motion.span>
+                  </m.span>
                 ))}
               </AnimatePresence>
             </div>
@@ -818,7 +776,7 @@ function FibonacciDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -826,7 +784,7 @@ function FibonacciDemo() {
             transition={{ duration: 0.15 }}
           >
             <Narration text={step.narration} />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -838,11 +796,12 @@ function FibonacciDemo() {
 // ---------------------------------------------------------------------------
 
 function SubsetsDemo() {
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = SUBSET_STEPS;
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 900 },
+  );
   const step = steps[stepIdx];
 
   const activePathSet = useMemo(
@@ -861,50 +820,6 @@ function SubsetsDemo() {
     () => new Set(step.backtrackedEdges),
     [step.backtrackedEdges],
   );
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) setStepIdx(0);
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 900);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   return (
     <div>
@@ -953,7 +868,7 @@ function SubsetsDemo() {
           <AnimatePresence>
             {SUBSET_EDGE_COORDS.map((e, i) =>
               activeEdgeSet.has(i) ? (
-                <motion.line
+                <m.line
                   key={`active-${i}`}
                   x1={e.x1}
                   y1={e.y1}
@@ -999,7 +914,7 @@ function SubsetsDemo() {
 
             return (
               <g key={node.id}>
-                <motion.circle
+                <m.circle
                   cx={node.x}
                   cy={node.y}
                   r={SUBSET_R}
@@ -1075,7 +990,7 @@ function SubsetsDemo() {
             {step.results.map((subset, i) => {
               const label = subset.length > 0 ? `[${subset.join(",")}]` : "[]";
               return (
-                <motion.span
+                <m.span
                   key={`result-${label}`}
                   className={[
                     "inline-flex h-7 items-center justify-center rounded-sm border px-2 font-mono text-[10px]",
@@ -1088,7 +1003,7 @@ function SubsetsDemo() {
                   transition={hoverSpring}
                 >
                   {label}
-                </motion.span>
+                </m.span>
               );
             })}
           </AnimatePresence>
@@ -1112,7 +1027,7 @@ function SubsetsDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1120,7 +1035,7 @@ function SubsetsDemo() {
             transition={{ duration: 0.15 }}
           >
             <Narration text={step.narration} />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -1141,7 +1056,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -1150,7 +1065,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

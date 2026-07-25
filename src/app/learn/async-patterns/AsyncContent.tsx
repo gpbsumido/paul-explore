@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { m, AnimatePresence, useInView } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -27,7 +28,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -51,7 +52,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -60,7 +61,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -389,72 +390,29 @@ const SNIPPETS: readonly Snippet[] = [
 
 function EventLoopSimulator() {
   const [snippetIdx, setSnippetIdx] = useState(0);
-  const [step, setStep] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reduced = useHubReducedMotion();
   const t = reduced ? instantTransition : hoverSpring;
 
   const snippet = SNIPPETS[snippetIdx];
+  const {
+    stepIdx: step,
+    playing,
+    advance: handleStep,
+    toggle: handlePlay,
+    reset: handleReset,
+  } = useStepPlayer(snippet.steps.length, { intervalMs: 800 });
+
   const currentItems = snippet.steps[step];
   const narration = snippet.narrations[step];
   const maxStep = snippet.steps.length - 1;
 
-  const stopPlay = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const handleStep = useCallback(() => {
-    setStep((s) => {
-      if (s >= maxStep) {
-        stopPlay();
-        return s;
-      }
-      return s + 1;
-    });
-  }, [maxStep, stopPlay]);
-
-  const handlePlay = useCallback(() => {
-    if (playing) {
-      stopPlay();
-      return;
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStep((s) => {
-        if (s >= maxStep) {
-          stopPlay();
-          return s;
-        }
-        return s + 1;
-      });
-    }, 800);
-  }, [playing, maxStep, stopPlay]);
-
-  const handleReset = useCallback(() => {
-    stopPlay();
-    setStep(0);
-  }, [stopPlay]);
-
   const selectSnippet = useCallback(
     (idx: number) => {
-      stopPlay();
+      handleReset();
       setSnippetIdx(idx);
-      setStep(0);
     },
-    [stopPlay],
+    [handleReset],
   );
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
 
   const getItemsForLocation = (loc: "callstack" | "microtask" | "macrotask") =>
     currentItems.filter((item) => item.location === loc);
@@ -496,7 +454,7 @@ function EventLoopSimulator() {
               <div className="mt-2 space-y-1.5">
                 <AnimatePresence mode="popLayout">
                   {items.map((item) => (
-                    <motion.div
+                    <m.div
                       key={item.id}
                       layout
                       variants={fadeInUp}
@@ -507,7 +465,7 @@ function EventLoopSimulator() {
                       className="rounded-sm border border-foreground/10 bg-foreground/10 px-2 py-1.5 font-mono text-[11px] leading-tight text-foreground/70"
                     >
                       {item.label}
-                    </motion.div>
+                    </m.div>
                   ))}
                 </AnimatePresence>
               </div>
@@ -524,7 +482,7 @@ function EventLoopSimulator() {
         <div className="mt-2 min-h-[32px] font-mono text-[13px] text-foreground/60">
           <AnimatePresence mode="popLayout">
             {outputs.map((o, i) => (
-              <motion.span
+              <m.span
                 key={`${snippetIdx}-${o}-${i}`}
                 variants={fadeInUp}
                 initial="hidden"
@@ -533,7 +491,7 @@ function EventLoopSimulator() {
                 className="mr-3"
               >
                 {o}
-              </motion.span>
+              </m.span>
             ))}
           </AnimatePresence>
         </div>
@@ -541,7 +499,7 @@ function EventLoopSimulator() {
 
       {/* narration */}
       <AnimatePresence mode="wait">
-        <motion.p
+        <m.p
           key={`${snippetIdx}-${step}`}
           variants={fadeInUp}
           initial="hidden"
@@ -550,7 +508,7 @@ function EventLoopSimulator() {
           className="mt-3 text-[13px] text-muted"
         >
           {narration}
-        </motion.p>
+        </m.p>
       </AnimatePresence>
 
       {/* controls */}
@@ -644,7 +602,7 @@ function PromisePatternsVisual() {
               const x = (bar.start / 100) * 360 + 20;
               const w = (bar.width / 100) * 360;
               return (
-                <motion.rect
+                <m.rect
                   key={i}
                   x={x}
                   y={y}
@@ -695,7 +653,7 @@ function PromisePatternsVisual() {
             {p.dots.map((dot, i) => {
               const cx = (dot.x / 100) * 360 + 20;
               return (
-                <motion.circle
+                <m.circle
                   key={i}
                   cx={cx}
                   cy={55}
@@ -788,7 +746,7 @@ function SequentialVsParallel() {
         {[0, 1, 2].map((i) => {
           const x = 20 + i * 110;
           return (
-            <motion.rect
+            <m.rect
               key={i}
               x={x}
               y={12}
@@ -865,7 +823,7 @@ function SequentialVsParallel() {
           const y = 6 + i * 14;
           const w = 80 + i * 20; // varying widths to show different resolve times
           return (
-            <motion.rect
+            <m.rect
               key={i}
               x={20}
               y={y}
@@ -892,7 +850,7 @@ function SequentialVsParallel() {
           );
         })}
         {/* resolution dot at slowest */}
-        <motion.circle
+        <m.circle
           cx={140}
           cy={45}
           r={4}

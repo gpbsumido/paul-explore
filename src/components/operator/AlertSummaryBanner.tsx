@@ -52,7 +52,7 @@ export default function AlertSummaryBanner({
             {warningCount} warning{warningCount !== 1 ? "s" : ""}
           </button>
         )}
-        <span className="text-muted">across fleet</span>
+        <span className="text-foreground/70">across fleet</span>
       </div>
     </div>
   );

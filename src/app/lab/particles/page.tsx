@@ -90,6 +90,7 @@ function Slider({
       </div>
       <input
         type="range"
+        aria-label={label}
         min={min}
         max={max}
         step={step}
@@ -137,7 +138,7 @@ export default function ParticlesPage() {
   }
 
   return (
-    <div
+    <main
       className="relative bg-black"
       style={{ height: "calc(100dvh - 3.5rem)" }}
       onPointerMove={handlePointerMove}
@@ -194,7 +195,7 @@ export default function ParticlesPage() {
             </span>
             <div className="flex gap-2">
               {PALETTE_DOTS.map((dot, i) => (
-                <button
+                <button type="button"
                   key={i}
                   onClick={() => setPaletteIndex(i)}
                   title={PALETTE_LABELS[i]}
@@ -220,7 +221,8 @@ export default function ParticlesPage() {
             <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
               Mouse Attraction
             </span>
-            <button
+            <button type="button"
+              aria-label="Mouse Attraction"
               onClick={() => setMouseAttraction((v) => !v)}
               className="flex h-5 w-9 items-center rounded-full transition-colors"
               style={{
@@ -242,6 +244,6 @@ export default function ParticlesPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

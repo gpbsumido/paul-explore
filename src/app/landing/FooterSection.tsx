@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import AuthButton from "@/components/AuthButton";
 import {
   spring,
@@ -25,7 +25,7 @@ export default function FooterSection() {
       <div className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-secondary-500/10 blur-3xl z-[2]" />
 
       <div ref={ref} className="relative z-[3]">
-        <motion.h2
+        <m.h2
           className="text-4xl font-bold tracking-tight text-foreground md:text-5xl"
           variants={headingWipe}
           initial="hidden"
@@ -33,8 +33,8 @@ export default function FooterSection() {
           transition={transition ?? { ...spring.smooth }}
         >
           Ready to explore?
-        </motion.h2>
-        <motion.p
+        </m.h2>
+        <m.p
           className="mt-4 text-lg text-foreground/70"
           variants={fadeUp}
           initial="hidden"
@@ -42,8 +42,8 @@ export default function FooterSection() {
           transition={transition ?? { ...spring.smooth, delay: 0.1 }}
         >
           Log in and see everything in action.
-        </motion.p>
-        <motion.div
+        </m.p>
+        <m.div
           className="mt-8"
           variants={fadeUp}
           initial="hidden"
@@ -54,7 +54,7 @@ export default function FooterSection() {
             loggedIn={false}
             className="inline-flex items-center rounded-full border border-foreground/25 bg-foreground/10 px-8 py-3 text-sm font-medium text-foreground backdrop-blur-sm transition-[border-color,background-color] hover:border-foreground/40 hover:bg-foreground/20"
           />
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );

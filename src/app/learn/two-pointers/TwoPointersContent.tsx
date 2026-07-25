@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
@@ -155,7 +156,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -196,57 +197,12 @@ function Narration({ text }: { text: string }) {
 
 function TwoSumDemo() {
   const [target, setTarget] = useState(TWO_SUM_TARGETS[0]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const steps = computeTwoSumSteps(target);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 800 },
+  );
   const step = steps[stepIdx];
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) {
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 800);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleTargetChange = useCallback(
     (t: number) => {
@@ -285,7 +241,7 @@ function TwoSumDemo() {
 
           return (
             <div key={i} className="relative flex flex-col items-center">
-              <motion.div
+              <m.div
                 className={[
                   "flex h-10 w-10 items-center justify-center rounded-sm border font-mono text-sm sm:h-12 sm:w-12",
                   isFound
@@ -300,10 +256,10 @@ function TwoSumDemo() {
                 transition={hoverSpring}
               >
                 {val}
-              </motion.div>
+              </m.div>
               <AnimatePresence>
                 {isLeft && (
-                  <motion.span
+                  <m.span
                     key="L"
                     className="absolute -bottom-6 font-mono text-[11px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -312,10 +268,10 @@ function TwoSumDemo() {
                     transition={hoverSpring}
                   >
                     L
-                  </motion.span>
+                  </m.span>
                 )}
                 {isRight && (
-                  <motion.span
+                  <m.span
                     key="R"
                     className="absolute -bottom-6 font-mono text-[11px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -324,7 +280,7 @@ function TwoSumDemo() {
                     transition={hoverSpring}
                   >
                     R
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -347,7 +303,7 @@ function TwoSumDemo() {
 
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -360,7 +316,7 @@ function TwoSumDemo() {
                 Pair found.
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -372,56 +328,11 @@ function TwoSumDemo() {
 // ---------------------------------------------------------------------------
 
 function DedupDemo() {
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    DEDUP_STEPS.length,
+    { intervalMs: 800 },
+  );
   const step = DEDUP_STEPS[stepIdx];
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= DEDUP_STEPS.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= DEDUP_STEPS.length - 1) {
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= DEDUP_STEPS.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 800);
-  }, [stepIdx, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
 
   const isLast = stepIdx >= DEDUP_STEPS.length - 1;
 
@@ -435,7 +346,7 @@ function DedupDemo() {
 
           return (
             <div key={i} className="relative flex flex-col items-center">
-              <motion.div
+              <m.div
                 className={[
                   "flex h-10 w-10 items-center justify-center rounded-sm border font-mono text-sm sm:h-12 sm:w-12",
                   isRead || isWrite
@@ -446,10 +357,10 @@ function DedupDemo() {
                 transition={hoverSpring}
               >
                 {val}
-              </motion.div>
+              </m.div>
               <AnimatePresence>
                 {isWrite && (
-                  <motion.span
+                  <m.span
                     key="W"
                     className="absolute -bottom-6 font-mono text-[11px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -458,10 +369,10 @@ function DedupDemo() {
                     transition={hoverSpring}
                   >
                     W
-                  </motion.span>
+                  </m.span>
                 )}
                 {isRead && !isWrite && (
-                  <motion.span
+                  <m.span
                     key="R"
                     className="absolute -bottom-6 font-mono text-[11px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -470,10 +381,10 @@ function DedupDemo() {
                     transition={hoverSpring}
                   >
                     R
-                  </motion.span>
+                  </m.span>
                 )}
                 {isRead && isWrite && (
-                  <motion.span
+                  <m.span
                     key="WR"
                     className="absolute -bottom-6 font-mono text-[10px] text-foreground/50"
                     initial={{ opacity: 0, y: -4 }}
@@ -482,7 +393,7 @@ function DedupDemo() {
                     transition={hoverSpring}
                   >
                     W/R
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -505,7 +416,7 @@ function DedupDemo() {
 
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -518,7 +429,7 @@ function DedupDemo() {
                 Result: [{step.result.join(", ")}]
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -539,7 +450,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -548,7 +459,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

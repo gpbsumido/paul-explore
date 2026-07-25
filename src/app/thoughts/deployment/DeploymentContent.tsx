@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import type { ReactNode } from "react";
-import PageHeader from "@/components/PageHeader";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 /** Inline code chip — same styling the other thoughts pages repeat inline. */
 function C({ children }: { children: ReactNode }) {
@@ -17,38 +15,159 @@ function C({ children }: { children: ReactNode }) {
 }
 
 export default function DeploymentContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Deployment" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Deployment
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              How I think about shipping a site to production: what
+    <ThoughtLayout
+      breadcrumb="Deployment"
+      title="Deployment"
+      intro={
+        <>
+          How I think about shipping a site to production: what
               &ldquo;deployment&rdquo; actually is once you break it apart, when
               the decision should be made (earlier than most people make it),
               the platform trade-offs that actually bite, what the industry
               reaches for by default, and the concrete setup behind this
               portfolio and its Angular sibling.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 2:00 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">
+                how should I think about deploying this
+              </Received>
+              <Received pos="last">vercel? aws? no idea where to start</Received>
+
+              <Sent pos="first">
+                start earlier than that. &ldquo;deploy&rdquo; is five jobs, not
+                one — build, host, serve, route, observe. platform pain is almost
+                always someone treating them as a single thing
+              </Sent>
+              <Sent pos="last">
+                and the real first question isn&apos;t the vendor. it&apos;s what
+                the app needs at request time
+              </Sent>
+
+              <Timestamp>2:04 PM</Timestamp>
+
+              <Received>meaning?</Received>
+
+              <Sent pos="first">
+                fully static → a CDN is enough, nothing runs per request.
+                cheapest and hardest to break
+              </Sent>
+              <Sent pos="middle">
+                server-rendered like this app → you need a node runtime or a
+                serverless function on the hot path. a bucket won&apos;t do it
+              </Sent>
+              <Sent pos="last">
+                stateful backend with sockets or a db → now you want a real
+                container platform, because serverless statelessness starts
+                fighting you
+              </Sent>
+
+              <Received>
+                so the runtime shape picks the platform, not the other way around
+              </Received>
+
+              <Sent>
+                exactly. this portfolio is SSR with force-dynamic on the home
+                route so a logged-in hub never gets cached for a guest. that one
+                fact is why it belongs somewhere with first-class serverless SSR
+              </Sent>
+
+              <Timestamp>2:11 PM</Timestamp>
+
+              <Received>when do I actually make the call</Received>
+
+              <Sent pos="first">
+                before the first line. deployment is an architecture decision in
+                an ops costume — decide late and you retrofit. filesystem reads,
+                sockets, warm-process auth all quietly assume a runtime
+              </Sent>
+              <Sent pos="last">
+                and deploy a hello-world on day one. every change after that
+                ships through a path you already trust. &ldquo;works on my
+                machine&rdquo; never gets to pile up
+              </Sent>
+
+              <Timestamp>2:18 PM</Timestamp>
+
+              <Received>what does everyone actually use</Received>
+
+              <Sent pos="first">
+                JS frameworks → vercel/netlify/cloudflare, because framework and
+                host are co-designed. backends with a db → railway/render/fly, or
+                lambda/cloud run if you already live in a cloud. big orgs →
+                containers on k8s for uniformity
+              </Sent>
+              <Sent pos="last">
+                but the two things that matter more than the vendor: git-driven
+                deploys and a preview URL per PR. those conventions are basically
+                universal now
+              </Sent>
+
+              <Received>and the catch with the easy PaaS route</Received>
+
+              <Sent pos="first">
+                cost at scale, cold starts, lock-in on their edge/SSR primitives,
+                and no local state you can trust between invocations
+              </Sent>
+              <Sent pos="last">
+                none of those are reasons to avoid it. they&apos;re reasons to
+                know which platform you&apos;re signing up for
+              </Sent>
+
+              <Timestamp>2:26 PM</Timestamp>
+
+              <Received>how&apos;s this one wired</Received>
+
+              <Sent pos="first">
+                next on vercel (iad1), cloudflare in front for DNS + CDN, at
+                paulsumido.com. github actions runs the full suite and blocks the
+                deploy if it&apos;s red. vercel keeps every deploy so rollback is
+                one click
+              </Sent>
+              <Sent pos="middle">
+                CI proves the change is safe, the platform does the deploy. they
+                only touch at one point: a failing check gates production. that
+                split is what makes shipping boring
+              </Sent>
+              <Sent pos="last">
+                the angular sibling reuses the exact same spine — angular 21 SSR,
+                vercel&apos;s angular preset wrapping the express handler as a
+                function, same cloudflare zone — at angular.paulsumido.com. same
+                five jobs, different runtime shape
+              </Sent>
+
+              <Received>and if a bad deploy slips through</Received>
+
+              <Sent pos="first">
+                promote the last good deploy — one click, because deploys are
+                immutable. if recovery means rebuild-and-redeploy you don&apos;t
+                really have rollback
+              </Sent>
+              <Sent pos="last">
+                and you find out before users do. this app beacons real-user core
+                web vitals as P75, so regressions show up as data, not complaints
+              </Sent>
+
+              <div className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">
                 Deployment is five jobs, not one
               </h2>
@@ -239,145 +358,6 @@ export default function DeploymentContent() {
                 pipeline identical everywhere.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 2:00 PM</Timestamp>
-
-              <Received pos="first">
-                how should I think about deploying this
-              </Received>
-              <Received pos="last">vercel? aws? no idea where to start</Received>
-
-              <Sent pos="first">
-                start earlier than that. &ldquo;deploy&rdquo; is five jobs, not
-                one — build, host, serve, route, observe. platform pain is almost
-                always someone treating them as a single thing
-              </Sent>
-              <Sent pos="last">
-                and the real first question isn&apos;t the vendor. it&apos;s what
-                the app needs at request time
-              </Sent>
-
-              <Timestamp>2:04 PM</Timestamp>
-
-              <Received>meaning?</Received>
-
-              <Sent pos="first">
-                fully static → a CDN is enough, nothing runs per request.
-                cheapest and hardest to break
-              </Sent>
-              <Sent pos="middle">
-                server-rendered like this app → you need a node runtime or a
-                serverless function on the hot path. a bucket won&apos;t do it
-              </Sent>
-              <Sent pos="last">
-                stateful backend with sockets or a db → now you want a real
-                container platform, because serverless statelessness starts
-                fighting you
-              </Sent>
-
-              <Received>
-                so the runtime shape picks the platform, not the other way around
-              </Received>
-
-              <Sent>
-                exactly. this portfolio is SSR with force-dynamic on the home
-                route so a logged-in hub never gets cached for a guest. that one
-                fact is why it belongs somewhere with first-class serverless SSR
-              </Sent>
-
-              <Timestamp>2:11 PM</Timestamp>
-
-              <Received>when do I actually make the call</Received>
-
-              <Sent pos="first">
-                before the first line. deployment is an architecture decision in
-                an ops costume — decide late and you retrofit. filesystem reads,
-                sockets, warm-process auth all quietly assume a runtime
-              </Sent>
-              <Sent pos="last">
-                and deploy a hello-world on day one. every change after that
-                ships through a path you already trust. &ldquo;works on my
-                machine&rdquo; never gets to pile up
-              </Sent>
-
-              <Timestamp>2:18 PM</Timestamp>
-
-              <Received>what does everyone actually use</Received>
-
-              <Sent pos="first">
-                JS frameworks → vercel/netlify/cloudflare, because framework and
-                host are co-designed. backends with a db → railway/render/fly, or
-                lambda/cloud run if you already live in a cloud. big orgs →
-                containers on k8s for uniformity
-              </Sent>
-              <Sent pos="last">
-                but the two things that matter more than the vendor: git-driven
-                deploys and a preview URL per PR. those conventions are basically
-                universal now
-              </Sent>
-
-              <Received>and the catch with the easy PaaS route</Received>
-
-              <Sent pos="first">
-                cost at scale, cold starts, lock-in on their edge/SSR primitives,
-                and no local state you can trust between invocations
-              </Sent>
-              <Sent pos="last">
-                none of those are reasons to avoid it. they&apos;re reasons to
-                know which platform you&apos;re signing up for
-              </Sent>
-
-              <Timestamp>2:26 PM</Timestamp>
-
-              <Received>how&apos;s this one wired</Received>
-
-              <Sent pos="first">
-                next on vercel (iad1), cloudflare in front for DNS + CDN, at
-                paulsumido.com. github actions runs the full suite and blocks the
-                deploy if it&apos;s red. vercel keeps every deploy so rollback is
-                one click
-              </Sent>
-              <Sent pos="middle">
-                CI proves the change is safe, the platform does the deploy. they
-                only touch at one point: a failing check gates production. that
-                split is what makes shipping boring
-              </Sent>
-              <Sent pos="last">
-                the angular sibling reuses the exact same spine — angular 21 SSR,
-                vercel&apos;s angular preset wrapping the express handler as a
-                function, same cloudflare zone — at angular.paulsumido.com. same
-                five jobs, different runtime shape
-              </Sent>
-
-              <Received>and if a bad deploy slips through</Received>
-
-              <Sent pos="first">
-                promote the last good deploy — one click, because deploys are
-                immutable. if recovery means rebuild-and-redeploy you don&apos;t
-                really have rollback
-              </Sent>
-              <Sent pos="last">
-                and you find out before users do. this app beacons real-user core
-                web vitals as P75, so regressions show up as data, not complaints
-              </Sent>
-
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

@@ -232,7 +232,9 @@ const CardTile = memo(function CardTile({ card }: { card: CardResume }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={`${card.image}/low.webp`}
-          alt={card.name}
+          // Decorative: the card name is already the link's visible text, so
+          // repeating it as alt is redundant (axe image-redundant-alt).
+          alt=""
           className="w-full group-hover:scale-[1.03] transition-transform duration-200"
           loading="lazy"
         />

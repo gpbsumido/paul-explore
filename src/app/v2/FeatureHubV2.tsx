@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import { staggerContainer } from "@/lib/animations";
@@ -13,6 +13,7 @@ import {
   FeatureCard,
   ThoughtCard,
 } from "@/app/_shared/featureData";
+import { groupThoughts } from "@/app/_shared/thoughtCategories";
 import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 
 type MeData = { name: string | null; email: string | null };
@@ -23,13 +24,13 @@ const CATEGORIES: ReadonlyArray<{
 }> = [
   { label: "All", ids: null },
   {
-    label: "NBA",
-    ids: new Set(["nba", "matchups", "court-vision", "league", "playoffs"]),
+    label: "Engineering",
+    ids: new Set(["vitals", "operator", "ketsup", "work-portfolio"]),
   },
-  { label: "Pokemon", ids: new Set(["tcg", "pocket", "graphql"]) },
-  { label: "Calendar", ids: new Set(["calendar"]) },
-  { label: "Engineering", ids: new Set(["vitals", "operator", "ketsup"]) },
   { label: "Labs", ids: new Set(["particles", "learn"]) },
+  { label: "Calendar", ids: new Set(["calendar"]) },
+  { label: "NBA", ids: new Set(["fantasy-nba"]) },
+  { label: "Pokemon", ids: new Set(["tcg", "pocket", "graphql"]) },
 ];
 
 export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
@@ -38,7 +39,11 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
-    queryFn: (): Promise<MeData> => fetch("/api/me").then((r) => r.json()),
+    queryFn: (): Promise<MeData> =>
+      fetch("/api/me").then((r) => {
+        if (!r.ok) throw new Error("Failed to load user");
+        return r.json();
+      }),
     initialData: initialMe,
     staleTime: 5 * 60_000,
   });
@@ -81,7 +86,7 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
           style={{ scrollbarWidth: "none" }}
         >
           {CATEGORIES.map((cat, i) => (
-            <button
+            <button type="button"
               key={cat.label}
               onClick={() => setActive(i)}
               className={[
@@ -97,7 +102,7 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
         </div>
 
         {/* Feature grid */}
-        <motion.div
+        <m.div
           key={active}
           className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
           style={{ perspective: "1000px" }}
@@ -112,7 +117,7 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
               prefersReduced={prefersReduced}
             />
           ))}
-        </motion.div>
+        </m.div>
 
         {/* Dev thoughts */}
         <div ref={thoughtsRef} className="mt-14">
@@ -124,15 +129,29 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
           >
             Build notes &middot; {THOUGHTS.length}
           </h2>
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-            {THOUGHTS.map((thought, i) => (
-              <ThoughtCard
-                key={thought.href}
-                thought={thought}
-                delayMs={i * 75}
-                visible={thoughtsVisible}
-              />
-            ))}
+          <div className="space-y-8">
+            {groupThoughts(THOUGHTS).map((group, gi, all) => {
+              const startIndex = all
+                .slice(0, gi)
+                .reduce((n, g) => n + g.items.length, 0);
+              return (
+                <div key={group.name}>
+                  <h3 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted/80">
+                    {group.name}
+                  </h3>
+                  <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                    {group.items.map((thought, j) => (
+                      <ThoughtCard
+                        key={thought.href}
+                        thought={thought}
+                        delayMs={(startIndex + j) * 75}
+                        visible={thoughtsVisible}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </main>

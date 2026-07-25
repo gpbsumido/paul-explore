@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { getTeamInfo, getTeamLogoUrl } from "@/lib/nbaTeamColors";
 import type { PlayoffTeam, FinalsPick } from "@/types/nba";
 
@@ -39,7 +39,7 @@ function TeamButton({
   const logoUrl = getTeamLogoUrl(team.teamId);
 
   return (
-    <motion.button
+    <m.button
       type="button"
       aria-pressed={isWinner}
       disabled={disabled}
@@ -90,7 +90,7 @@ function TeamButton({
       {/* Winner checkmark */}
       <AnimatePresence>
         {isWinner && (
-          <motion.svg
+          <m.svg
             key="check"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -109,10 +109,10 @@ function TeamButton({
             aria-hidden
           >
             <polyline points="20 6 9 17 4 12" />
-          </motion.svg>
+          </m.svg>
         )}
       </AnimatePresence>
-    </motion.button>
+    </m.button>
   );
 }
 

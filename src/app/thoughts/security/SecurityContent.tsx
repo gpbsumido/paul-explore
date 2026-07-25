@@ -1,218 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function SecurityContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "CSP & Security" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              CSP &amp; Security
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Why the landing page sections were blank in production, how the
+    <ThoughtLayout
+      breadcrumb="CSP & Security"
+      title="CSP &amp; Security"
+      intro={
+        <>
+          Why the landing page sections were blank in production, how the
               CSP got fixed, and how the middleware was restructured to avoid
               paying Auth0 latency on every request.
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">What CSP does</h2>
-              <p className="text-muted">
-                A Content Security Policy is an HTTP header that tells the
-                browser which resources it&apos;s allowed to load and execute.
-                The policy had{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  script-src &apos;nonce-&#123;nonce&#125;&apos;
-                  &apos;strict-dynamic&apos;
-                </code>{" "}
-                — each request generated a random nonce and any script without
-                that nonce attribute was blocked.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                The unsafe-inline problem
-              </h2>
-              <p className="text-muted">
-                Next.js App Router inlines RSC payload scripts directly into the
-                HTML — they look like{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  self.__next_f.push([...])
-                </code>{" "}
-                and hydrate the React tree on the client. These scripts have no
-                nonce attribute. And{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  &apos;strict-dynamic&apos;
-                </code>{" "}
-                explicitly ignores{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  &apos;self&apos;
-                </code>
-                , so even same-origin scripts are blocked unless they carry the
-                nonce.
-              </p>
-              <p className="mt-3 text-muted">
-                Locally this was fine because the dev server always re-renders
-                everything. In production the landing page became fully static
-                after moving the auth redirect to middleware, and Vercel served
-                the CSP from the CDN edge. The clue: HeroSection still animated
-                because its animation is pure CSS{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  @keyframes
-                </code>{" "}
-                — everything else uses IntersectionObserver which requires JS.
-                JS was simply not running at all.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Why unsafe-inline is still safe here
-              </h2>
-              <p className="text-muted">
-                The fix is{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  script-src &apos;self&apos; &apos;unsafe-inline&apos;
-                </code>
-                . What{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  &apos;unsafe-inline&apos;
-                </code>{" "}
-                actually protects against is reflected XSS — an attacker
-                injecting a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  {"<script>"}
-                </code>{" "}
-                tag into the HTML response. The real XSS protection here is
-                React&apos;s automatic JSX escaping — any value rendered in JSX
-                gets HTML-escaped before it touches the DOM. The attack surface
-                only opens up if you use{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  dangerouslySetInnerHTML
-                </code>
-                , and there is none of that in this codebase.
-              </p>
-              <p className="mt-3 text-muted">
-                To do nonce-based CSP correctly in Next.js you have to make the
-                root layout async and read the nonce from request headers inside
-                it. But reading{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  headers()
-                </code>{" "}
-                in any server component opts that route out of static generation
-                — every page goes dynamic. The root layout wraps every page, so
-                every page takes the TTFB hit. It&apos;s not worth it here, and
-                it&apos;s what the Next.js docs recommend for static apps.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Middleware optimization
-              </h2>
-              <p className="text-muted">
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  auth0.middleware()
-                </code>{" "}
-                makes a network call to Auth0 on every single request — not just
-                auth routes, every page. That showed up in TTFB data immediately
-                and the whole middleware was pulled. Now the proxy runs on every
-                request but{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  auth0.middleware()
-                </code>{" "}
-                is only invoked for{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /auth/*
-                </code>{" "}
-                and authenticated{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /vitals
-                </code>{" "}
-                or{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /settings
-                </code>{" "}
-                requests. Everything else hits{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  NextResponse.next()
-                </code>{" "}
-                with the CSP header attached and returns immediately.
-              </p>
-              <p className="mt-3 text-muted">
-                For protected routes,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  auth0.getSession(req)
-                </code>{" "}
-                runs first — the proxy-safe overload that reads from{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  req.cookies
-                </code>{" "}
-                directly, no network call, just a cookie decrypt. If
-                there&apos;s no session it redirects to login and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  auth0.middleware
-                </code>{" "}
-                never runs. If there is a session,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  auth0.middleware
-                </code>{" "}
-                runs after to handle rolling session refresh.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Other headers</h2>
-              <p className="text-muted">
-                The remaining directives do meaningful work:{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  default-src &apos;self&apos;
-                </code>{" "}
-                blocks loading resources from unknown domains,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  frame-ancestors &apos;none&apos;
-                </code>{" "}
-                blocks clickjacking,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  object-src &apos;none&apos;
-                </code>{" "}
-                blocks Flash and plugins,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  base-uri &apos;self&apos;
-                </code>{" "}
-                blocks base tag injection.{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  connect-src
-                </code>{" "}
-                is locked down so JS can only make requests to known endpoints —
-                same origin, plus specific external services: Speed Insights,
-                TCGdex, and GitHub raw for Pokémon sprites.
-              </p>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         <div className="flex justify-center">
           <div
             className={styles.phone}
@@ -470,7 +274,183 @@ export default function SecurityContent() {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">What CSP does</h2>
+              <p className="text-muted">
+                A Content Security Policy is an HTTP header that tells the
+                browser which resources it&apos;s allowed to load and execute.
+                The policy had{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  script-src &apos;nonce-&#123;nonce&#125;&apos;
+                  &apos;strict-dynamic&apos;
+                </code>{" "}
+                — each request generated a random nonce and any script without
+                that nonce attribute was blocked.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                The unsafe-inline problem
+              </h2>
+              <p className="text-muted">
+                Next.js App Router inlines RSC payload scripts directly into the
+                HTML — they look like{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  self.__next_f.push([...])
+                </code>{" "}
+                and hydrate the React tree on the client. These scripts have no
+                nonce attribute. And{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &apos;strict-dynamic&apos;
+                </code>{" "}
+                explicitly ignores{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &apos;self&apos;
+                </code>
+                , so even same-origin scripts are blocked unless they carry the
+                nonce.
+              </p>
+              <p className="mt-3 text-muted">
+                Locally this was fine because the dev server always re-renders
+                everything. In production the landing page became fully static
+                after moving the auth redirect to middleware, and Vercel served
+                the CSP from the CDN edge. The clue: HeroSection still animated
+                because its animation is pure CSS{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  @keyframes
+                </code>{" "}
+                — everything else uses IntersectionObserver which requires JS.
+                JS was simply not running at all.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Why unsafe-inline is still safe here
+              </h2>
+              <p className="text-muted">
+                The fix is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  script-src &apos;self&apos; &apos;unsafe-inline&apos;
+                </code>
+                . What{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &apos;unsafe-inline&apos;
+                </code>{" "}
+                actually protects against is reflected XSS — an attacker
+                injecting a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"<script>"}
+                </code>{" "}
+                tag into the HTML response. The real XSS protection here is
+                React&apos;s automatic JSX escaping — any value rendered in JSX
+                gets HTML-escaped before it touches the DOM. The attack surface
+                only opens up if you use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  dangerouslySetInnerHTML
+                </code>
+                , and there is none of that in this codebase.
+              </p>
+              <p className="mt-3 text-muted">
+                To do nonce-based CSP correctly in Next.js you have to make the
+                root layout async and read the nonce from request headers inside
+                it. But reading{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  headers()
+                </code>{" "}
+                in any server component opts that route out of static generation
+                — every page goes dynamic. The root layout wraps every page, so
+                every page takes the TTFB hit. It&apos;s not worth it here, and
+                it&apos;s what the Next.js docs recommend for static apps.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Middleware optimization
+              </h2>
+              <p className="text-muted">
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  auth0.middleware()
+                </code>{" "}
+                makes a network call to Auth0 on every single request — not just
+                auth routes, every page. That showed up in TTFB data immediately
+                and the whole middleware was pulled. Now the proxy runs on every
+                request but{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  auth0.middleware()
+                </code>{" "}
+                is only invoked for{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /auth/*
+                </code>{" "}
+                and authenticated{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /vitals
+                </code>{" "}
+                or{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /settings
+                </code>{" "}
+                requests. Everything else hits{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  NextResponse.next()
+                </code>{" "}
+                with the CSP header attached and returns immediately.
+              </p>
+              <p className="mt-3 text-muted">
+                For protected routes,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  auth0.getSession(req)
+                </code>{" "}
+                runs first — the proxy-safe overload that reads from{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  req.cookies
+                </code>{" "}
+                directly, no network call, just a cookie decrypt. If
+                there&apos;s no session it redirects to login and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  auth0.middleware
+                </code>{" "}
+                never runs. If there is a session,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  auth0.middleware
+                </code>{" "}
+                runs after to handle rolling session refresh.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Other headers</h2>
+              <p className="text-muted">
+                The remaining directives do meaningful work:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  default-src &apos;self&apos;
+                </code>{" "}
+                blocks loading resources from unknown domains,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  frame-ancestors &apos;none&apos;
+                </code>{" "}
+                blocks clickjacking,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  object-src &apos;none&apos;
+                </code>{" "}
+                blocks Flash and plugins,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  base-uri &apos;self&apos;
+                </code>{" "}
+                blocks base tag injection.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  connect-src
+                </code>{" "}
+                is locked down so JS can only make requests to known endpoints —
+                same origin, plus specific external services: Speed Insights,
+                TCGdex, and GitHub raw for Pokémon sprites.
+              </p>
+            </section>
+    </ThoughtLayout>
   );
 }

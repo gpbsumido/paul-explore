@@ -28,10 +28,5 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default function CourtVisionPage() {
-  return (
-    <>
-      <h1 className="sr-only">Court Vision</h1>
-      <CourtVisionContent />
-    </>
-  );
+  return <CourtVisionContent />;
 }

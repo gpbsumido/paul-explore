@@ -94,7 +94,8 @@ export default async function PocketPage() {
         }
       />
 
-      <h1 className="sr-only">Pokémon Pocket</h1>
+      <main>
+        <h1 className="sr-only">Pokémon Pocket</h1>
 
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-indigo-950/60 to-background">
@@ -221,6 +222,7 @@ export default async function PocketPage() {
           );
         })}
       </div>
+      </main>
     </div>
   );
 }

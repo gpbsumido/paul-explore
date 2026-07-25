@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import CharacterSheetsDemo from "../character-sheets";
 import { FEATURES, featureIndexBySlug } from "../../_data/catalog";
 
@@ -22,5 +22,31 @@ describe("character sheets demo", () => {
       for (let i = 0; i < 10; i++) fireEvent.click(raise);
     }
     expect(screen.getByTestId("stat-total")).toHaveTextContent("30 / 30");
+  });
+
+  it("creates a character through the stepped modal", () => {
+    render(<CharacterSheetsDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "New character" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Create character" });
+    fireEvent.change(within(dialog).getByLabelText("Name"), {
+      target: { value: "Zephyr" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Next" })); // to Class
+    fireEvent.click(within(dialog).getByRole("button", { name: "Next" })); // to Stats
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Create character" }),
+    );
+
+    expect(
+      within(screen.getByRole("list", { name: "Roster" })).getByText("Zephyr"),
+    ).toBeInTheDocument();
+  });
+
+  it("blocks advancing past identity without a name", () => {
+    render(<CharacterSheetsDemo feature={feature} />);
+    fireEvent.click(screen.getByRole("button", { name: "New character" }));
+    const dialog = screen.getByRole("dialog", { name: "Create character" });
+    expect(within(dialog).getByRole("button", { name: "Next" })).toBeDisabled();
   });
 });

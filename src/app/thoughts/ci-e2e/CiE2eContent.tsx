@@ -1,46 +1,154 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function CiE2eContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "CI E2E Reliability" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              CI E2E Reliability
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Two classes of CI failure that look unrelated but share a root
+    <ThoughtLayout
+      breadcrumb="CI E2E Reliability"
+      title="CI E2E Reliability"
+      intro={
+        <>
+          Two classes of CI failure that look unrelated but share a root
               cause: the test environment is not your laptop. Auth0 crashing the
               entire middleware, and a search test depending on an external API
               that CI can&apos;t reach reliably. Each one required a different
               fix.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 3:00 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">the e2e tests broke in CI</Received>
+              <Received pos="last">two separate things you said</Received>
+
+              <Sent pos="first">
+                first one: Auth0Client is constructed at module load time. in
+                production the env vars are set and it initializes fine. in
+                github actions, unset secrets resolve to empty strings — the SDK
+                read the empty value, failed its own validation, and threw
+                during init
+              </Sent>
+              <Sent pos="middle">
+                module-level throw means node cached the failed module
+                evaluation. proxy.ts imports auth0.ts, so proxy.ts also failed
+                to load. middleware runs before every request so every route
+                returned 500 — not just the auth routes
+              </Sent>
+              <Sent pos="last">
+                fixed it with placeholder fallbacks in ci.yml so the SDK has
+                something valid-looking at startup. plus a try-catch around
+                auth0.middleware() so a runtime error on /auth/* falls through
+                instead of crashing everything
+              </Sent>
+
+              <Timestamp>3:07 PM</Timestamp>
+
+              <Received>what was the second thing</Received>
+
+              <Sent pos="first">
+                the TCG search test. it was checking that searching for Pikachu
+                shows different cards. the test depended on TCGdex responding
+                fast enough in CI, which it didn&apos;t
+              </Sent>
+              <Sent pos="middle">
+                first I tried waitForResponse — race condition where the
+                response lands before the listener is registered. then I tried
+                polling the DOM hrefs until they changed — that passes on the
+                empty loading state between renders before the results arrive
+              </Sent>
+              <Sent pos="last">
+                the fix was page.route. intercept /api/tcg/cards* at the browser
+                level and return a fixed mock payload for q=pikachu instantly.
+                changed the assertion to toContainEqual on a specific href from
+                the mock — only resolves when that card is actually in the DOM,
+                not on the transient empty state
+              </Sent>
+
+              <Timestamp>3:14 PM</Timestamp>
+
+              <Received>
+                mock is in but it still fails. still showing unfiltered cards
+              </Received>
+
+              <Sent pos="first">
+                added request logging — the search fetch never fires at all.
+                mock never had a chance
+              </Sent>
+              <Sent pos="middle">
+                root cause: BrowseContent passes initialCards to
+                useInfiniteQuery as initialData, unconditionally. React Query
+                applies that to whatever the current key is. when you type
+                Pikachu, the new key gets seeded with the unfiltered server data
+                — staleTime says it&apos;s fresh — no fetch
+              </Sent>
+              <Sent pos="last">
+                fix: guard initialData behind !debouncedSearch && !type. server
+                data is only valid for the key it was actually fetched for.
+                filtered keys get undefined, React Query finds nothing, fetches
+                immediately
+              </Sent>
+
+              <Timestamp>3:19 PM</Timestamp>
+
+              <Received>why not mock the initial page load too</Received>
+
+              <Sent pos="first">
+                the browse axe scan and the scroll sentinel test need real
+                rendered content to be meaningful. mocking the initial load
+                would make them test the mock, not the page
+              </Sent>
+              <Sent pos="middle">
+                the initial load hits the CDN-cached response which arrives
+                consistently within the 15s beforeEach timeout. that&apos;s a
+                stable dependency
+              </Sent>
+              <Sent pos="last">
+                the search fetch is different — the interesting behavior is the
+                debounce, the URL update, and the DOM transition. whether TCGdex
+                happens to have Pikachu cards today is not what the test is
+                about. mock that part, keep the rest real
+              </Sent>
+
+              <Timestamp>3:19 PM</Timestamp>
+
+              <Received>is there a general rule here</Received>
+
+              <Sent pos="first">
+                yeah — CI should not depend on external services behaving a
+                specific way. your own /api/* routes are in scope. TCGdex,
+                Auth0&apos;s runtime, any third-party — not in scope
+              </Sent>
+              <Sent pos="middle">
+                for auth, that means giving the SDK valid-looking config so it
+                boots, not real credentials. the public tests never call Auth0
+                at runtime anyway
+              </Sent>
+              <Sent pos="last">
+                for external data APIs, mock at the boundary between your app
+                and theirs. everything inside that boundary runs for real.
+                everything outside it is a variable you don&apos;t control
+              </Sent>
+
+              <div className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">
                 Auth0 and module-level initialization
               </h2>
@@ -301,137 +409,6 @@ AUTH0_DOMAIN: \${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}`}
                 hollowing out what the test actually exercises.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 3:00 PM</Timestamp>
-
-              <Received pos="first">the e2e tests broke in CI</Received>
-              <Received pos="last">two separate things you said</Received>
-
-              <Sent pos="first">
-                first one: Auth0Client is constructed at module load time. in
-                production the env vars are set and it initializes fine. in
-                github actions, unset secrets resolve to empty strings — the SDK
-                read the empty value, failed its own validation, and threw
-                during init
-              </Sent>
-              <Sent pos="middle">
-                module-level throw means node cached the failed module
-                evaluation. proxy.ts imports auth0.ts, so proxy.ts also failed
-                to load. middleware runs before every request so every route
-                returned 500 — not just the auth routes
-              </Sent>
-              <Sent pos="last">
-                fixed it with placeholder fallbacks in ci.yml so the SDK has
-                something valid-looking at startup. plus a try-catch around
-                auth0.middleware() so a runtime error on /auth/* falls through
-                instead of crashing everything
-              </Sent>
-
-              <Timestamp>3:07 PM</Timestamp>
-
-              <Received>what was the second thing</Received>
-
-              <Sent pos="first">
-                the TCG search test. it was checking that searching for Pikachu
-                shows different cards. the test depended on TCGdex responding
-                fast enough in CI, which it didn&apos;t
-              </Sent>
-              <Sent pos="middle">
-                first I tried waitForResponse — race condition where the
-                response lands before the listener is registered. then I tried
-                polling the DOM hrefs until they changed — that passes on the
-                empty loading state between renders before the results arrive
-              </Sent>
-              <Sent pos="last">
-                the fix was page.route. intercept /api/tcg/cards* at the browser
-                level and return a fixed mock payload for q=pikachu instantly.
-                changed the assertion to toContainEqual on a specific href from
-                the mock — only resolves when that card is actually in the DOM,
-                not on the transient empty state
-              </Sent>
-
-              <Timestamp>3:14 PM</Timestamp>
-
-              <Received>
-                mock is in but it still fails. still showing unfiltered cards
-              </Received>
-
-              <Sent pos="first">
-                added request logging — the search fetch never fires at all.
-                mock never had a chance
-              </Sent>
-              <Sent pos="middle">
-                root cause: BrowseContent passes initialCards to
-                useInfiniteQuery as initialData, unconditionally. React Query
-                applies that to whatever the current key is. when you type
-                Pikachu, the new key gets seeded with the unfiltered server data
-                — staleTime says it&apos;s fresh — no fetch
-              </Sent>
-              <Sent pos="last">
-                fix: guard initialData behind !debouncedSearch && !type. server
-                data is only valid for the key it was actually fetched for.
-                filtered keys get undefined, React Query finds nothing, fetches
-                immediately
-              </Sent>
-
-              <Timestamp>3:19 PM</Timestamp>
-
-              <Received>why not mock the initial page load too</Received>
-
-              <Sent pos="first">
-                the browse axe scan and the scroll sentinel test need real
-                rendered content to be meaningful. mocking the initial load
-                would make them test the mock, not the page
-              </Sent>
-              <Sent pos="middle">
-                the initial load hits the CDN-cached response which arrives
-                consistently within the 15s beforeEach timeout. that&apos;s a
-                stable dependency
-              </Sent>
-              <Sent pos="last">
-                the search fetch is different — the interesting behavior is the
-                debounce, the URL update, and the DOM transition. whether TCGdex
-                happens to have Pikachu cards today is not what the test is
-                about. mock that part, keep the rest real
-              </Sent>
-
-              <Timestamp>3:19 PM</Timestamp>
-
-              <Received>is there a general rule here</Received>
-
-              <Sent pos="first">
-                yeah — CI should not depend on external services behaving a
-                specific way. your own /api/* routes are in scope. TCGdex,
-                Auth0&apos;s runtime, any third-party — not in scope
-              </Sent>
-              <Sent pos="middle">
-                for auth, that means giving the SDK valid-looking config so it
-                boots, not real credentials. the public tests never call Auth0
-                at runtime anyway
-              </Sent>
-              <Sent pos="last">
-                for external data APIs, mock at the boundary between your app
-                and theirs. everything inside that boundary runs for real.
-                everything outside it is a variable you don&apos;t control
-              </Sent>
-
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

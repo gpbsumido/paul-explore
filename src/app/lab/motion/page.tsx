@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import {
-  motion,
+  m,
   AnimatePresence,
   LayoutGroup,
   Reorder,
@@ -42,7 +42,7 @@ function DemoSection({
       <div className="border-b border-white/8 px-6 py-4">
         <div className="flex items-baseline gap-2">
           <h2 className="text-[15px] font-semibold text-white">{title}</h2>
-          <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/40">
+          <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white/70">
             {tag}
           </span>
         </div>
@@ -77,13 +77,14 @@ function ControlSlider({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/70">
           {label}
         </span>
         <span className="font-mono text-[10px] text-white/60">{display}</span>
       </div>
       <input
         type="range"
+        aria-label={label}
         min={min}
         max={max}
         step={step}
@@ -117,7 +118,7 @@ function SpringPlayground() {
           <div className="h-px w-8 bg-white" />
           <div className="absolute h-8 w-px bg-white" />
         </div>
-        <motion.div
+        <m.div
           drag
           dragSnapToOrigin
           dragElastic={0.3}
@@ -128,7 +129,7 @@ function SpringPlayground() {
           <span className="pointer-events-none select-none text-[9px] font-bold text-white/70">
             drag
           </span>
-        </motion.div>
+        </m.div>
       </div>
       {/* Sliders */}
       <div className="grid gap-3 sm:grid-cols-3">
@@ -184,7 +185,7 @@ function StaggerGrid() {
       tag="stagger"
       description="12 tiles cascade in one by one. Adjust the per-tile delay and replay."
     >
-      <motion.div
+      <m.div
         key={gridKey}
         className="mb-5 grid grid-cols-6 gap-2"
         variants={{ visible: { transition: { staggerChildren: staggerDelay } } }}
@@ -192,7 +193,7 @@ function StaggerGrid() {
         animate="visible"
       >
         {TILE_COLORS.map((color, i) => (
-          <motion.div
+          <m.div
             key={i}
             variants={{
               hidden: { opacity: 0, scale: 0.3, y: 10 },
@@ -203,7 +204,7 @@ function StaggerGrid() {
             style={{ backgroundColor: color }}
           />
         ))}
-      </motion.div>
+      </m.div>
       <div className="flex items-end gap-4">
         <div className="flex-1">
           <ControlSlider
@@ -216,7 +217,7 @@ function StaggerGrid() {
             display={staggerDelay.toFixed(2) + "s"}
           />
         </div>
-        <button
+        <button type="button"
           onClick={() => setGridKey((k) => k + 1)}
           className="shrink-0 rounded-lg bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-white/20"
         >
@@ -264,7 +265,7 @@ function ReorderList() {
               style={{ backgroundColor: item.color }}
             />
             <span className="flex-1">{item.label}</span>
-            <span className="shrink-0 select-none text-[12px] text-white/20">⠿</span>
+            <span className="shrink-0 select-none text-[12px] text-white/70">⠿</span>
           </Reorder.Item>
         ))}
       </Reorder.Group>
@@ -294,35 +295,40 @@ function ScrollParallax() {
     >
       <div
         ref={containerRef}
-        className="relative h-52 overflow-y-scroll rounded-xl bg-black/30"
+        // Keyboard users need to focus the scroll container to scroll it
+        // (axe scrollable-region-focusable); role="region" + a label justify the tabindex.
+        role="region"
+        aria-label="Scrollable parallax demo"
+        tabIndex={0}
+        className="relative h-52 overflow-y-scroll rounded-xl bg-black/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/50"
         style={{ scrollbarWidth: "none" }}
       >
         <div className="relative h-[480px]">
           {/* Back — slow drift */}
-          <motion.div
+          <m.div
             style={{ y: yBack, opacity }}
             className="absolute inset-0 flex items-center justify-center"
           >
             <div className="h-32 w-44 rounded-2xl bg-indigo-950/80 border border-indigo-800/40" />
-          </motion.div>
+          </m.div>
 
           {/* Mid — faster drift + scales up */}
-          <motion.div
+          <m.div
             style={{ y: yMid, scale }}
             className="absolute inset-0 flex items-center justify-center"
           >
             <div className="h-20 w-28 rounded-xl bg-violet-700/70" />
-          </motion.div>
+          </m.div>
 
           {/* Front — rotates */}
-          <motion.div
+          <m.div
             style={{ rotate }}
             className="absolute inset-0 flex items-center justify-center"
           >
             <div className="h-12 w-12 rounded-lg bg-white/20 shadow-lg" />
-          </motion.div>
+          </m.div>
 
-          <div className="absolute bottom-6 right-4 animate-bounce text-[10px] text-white/25">
+          <div className="absolute bottom-6 right-4 animate-bounce text-[10px] text-white/70">
             scroll ↓
           </div>
         </div>
@@ -337,11 +343,13 @@ function ScrollParallax() {
 
 type GestureState = "idle" | "hover" | "tap" | "drag";
 
+// Deepened one step from the indigo/violet palette so white label text clears
+// AA contrast on every state (the lighter originals failed for small text).
 const GESTURE_COLORS: Record<GestureState, string> = {
-  idle:  "#6366f1",
-  hover: "#8b5cf6",
-  tap:   "#a855f7",
-  drag:  "#7c3aed",
+  idle:  "#4f46e5",
+  hover: "#7c3aed",
+  tap:   "#9333ea",
+  drag:  "#6d28d9",
 };
 
 const GESTURE_LABELS: Record<GestureState, string> = {
@@ -361,7 +369,7 @@ function GestureCard() {
       description="Hover, tap, and drag the card. The state panel updates in real time."
     >
       <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-        <motion.div
+        <m.div
           drag
           dragSnapToOrigin
           dragElastic={0.2}
@@ -380,18 +388,18 @@ function GestureCard() {
           style={{ background: GESTURE_COLORS[state] }}
           aria-label="Gesture demo card"
         >
-          <span className="pointer-events-none select-none text-[11px] font-semibold text-white/80">
+          <span className="pointer-events-none select-none text-[11px] font-semibold text-white">
             {state}
           </span>
-        </motion.div>
+        </m.div>
 
         {/* Live state panel */}
         <div className="w-full flex-1 rounded-xl border border-white/10 bg-white/5 p-4">
-          <p className="mb-3 text-[9px] font-bold uppercase tracking-widest text-white/30">
+          <p className="mb-3 text-[9px] font-bold uppercase tracking-widest text-white/70">
             Live State
           </p>
           <div className="flex items-center gap-2">
-            <motion.div
+            <m.div
               key={state}
               className="h-2 w-2 rounded-full"
               style={{ backgroundColor: GESTURE_COLORS[state] }}
@@ -400,13 +408,13 @@ function GestureCard() {
             />
             <span className="font-mono text-sm font-semibold text-white">{state}</span>
           </div>
-          <p className="mt-1 text-[12px] text-white/40">{GESTURE_LABELS[state]}</p>
+          <p className="mt-1 text-[12px] text-white/70">{GESTURE_LABELS[state]}</p>
           <div className="mt-4 grid grid-cols-2 gap-1.5">
             {(Object.keys(GESTURE_COLORS) as GestureState[]).map((s) => (
               <div
                 key={s}
                 className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] transition-colors ${
-                  state === s ? "bg-white/10 text-white" : "text-white/25"
+                  state === s ? "bg-white/10 text-white" : "text-white/70"
                 }`}
               >
                 <div
@@ -473,7 +481,7 @@ function SharedLayout() {
                   style={{ background: `${item.color}18` }}
                 />
               ) : (
-                <motion.div
+                <m.div
                   key={item.id}
                   layoutId={item.id}
                   onClick={() => setSelected(item.id)}
@@ -482,20 +490,20 @@ function SharedLayout() {
                   whileHover={{ scale: 1.04 }}
                   transition={{ ...spring.smooth }}
                 >
-                  <motion.span
+                  <m.span
                     layoutId={`title-${item.id}`}
                     className="text-[11px] font-bold text-white"
                   >
                     {item.label}
-                  </motion.span>
-                </motion.div>
+                  </m.span>
+                </m.div>
               ),
             )}
           </div>
 
           <AnimatePresence>
             {selected && selectedItem && (
-              <motion.div
+              <m.div
                 key="expanded"
                 layoutId={selected}
                 className="absolute inset-0 z-10 cursor-pointer rounded-2xl p-5"
@@ -507,29 +515,29 @@ function SharedLayout() {
                 onClick={() => setSelected(null)}
                 transition={{ ...spring.smooth }}
               >
-                <motion.p
+                <m.p
                   layoutId={`title-${selected}`}
                   className="text-lg font-bold text-white"
                 >
                   {selectedItem.label}
-                </motion.p>
-                <motion.p
+                </m.p>
+                <m.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, transition: { delay: 0.18 } }}
                   exit={{ opacity: 0 }}
                   className="mt-2 text-[13px] leading-relaxed text-white/80"
                 >
                   {selectedItem.desc}
-                </motion.p>
-                <motion.p
+                </m.p>
+                <m.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1, transition: { delay: 0.26 } }}
                   exit={{ opacity: 0 }}
-                  className="mt-3 text-[10px] text-white/40"
+                  className="mt-3 text-[10px] text-white/70"
                 >
                   tap to collapse ↩
-                </motion.p>
-              </motion.div>
+                </m.p>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
@@ -545,7 +553,7 @@ function SharedLayout() {
 export default function MotionPage() {
   return (
     <div className="min-h-dvh bg-neutral-950 text-neutral-50">
-      <div className="mx-auto max-w-3xl space-y-8 px-4 py-10 sm:px-6">
+      <main className="mx-auto max-w-3xl space-y-8 px-4 py-10 sm:px-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Motion Lab</h1>
           <p className="mt-1.5 text-[14px] text-neutral-400">
@@ -560,7 +568,7 @@ export default function MotionPage() {
         <ScrollParallax />
         <GestureCard />
         <SharedLayout />
-      </div>
+      </main>
     </div>
   );
 }

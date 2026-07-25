@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { m, useInView } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import { reveal } from "@/app/landing/Section";
@@ -14,6 +14,7 @@ import {
   FeatureCard,
   ThoughtCard,
 } from "@/app/_shared/featureData";
+import { groupThoughts } from "@/app/_shared/thoughtCategories";
 
 // ---- FeatureHub ----
 
@@ -33,7 +34,11 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
 
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
-    queryFn: (): Promise<MeData> => fetch("/api/me").then((r) => r.json()),
+    queryFn: (): Promise<MeData> =>
+      fetch("/api/me").then((r) => {
+        if (!r.ok) throw new Error("Failed to load user");
+        return r.json();
+      }),
     initialData: initialMe,
     staleTime: 5 * 60_000,
   });
@@ -102,7 +107,7 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
         </div>
 
         {/* Feature grid — cards stagger in with cardFlipIn via Framer variants */}
-        <motion.div
+        <m.div
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
           style={{ perspective: "1000px" }}
           variants={staggerContainer(0.07)}
@@ -116,7 +121,7 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
               prefersReduced={prefersReduced}
             />
           ))}
-        </motion.div>
+        </m.div>
 
         {/* Dev notes — scroll-triggered */}
         <div ref={thoughtsRef} className="mt-14">
@@ -128,15 +133,29 @@ export default function FeatureHub({ initialMe }: { initialMe?: MeData }) {
           >
             Dev notes
           </h2>
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-            {THOUGHTS.map((thought, i) => (
-              <ThoughtCard
-                key={thought.href}
-                thought={thought}
-                delayMs={i * 75}
-                visible={thoughtsVisible}
-              />
-            ))}
+          <div className="space-y-8">
+            {groupThoughts(THOUGHTS).map((group, gi, all) => {
+              const startIndex = all
+                .slice(0, gi)
+                .reduce((n, g) => n + g.items.length, 0);
+              return (
+                <div key={group.name}>
+                  <h3 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted/80">
+                    {group.name}
+                  </h3>
+                  <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                    {group.items.map((thought, j) => (
+                      <ThoughtCard
+                        key={thought.href}
+                        thought={thought}
+                        delayMs={(startIndex + j) * 75}
+                        visible={thoughtsVisible}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </main>

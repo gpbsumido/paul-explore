@@ -60,7 +60,7 @@ export default async function SetsPage() {
         }
       />
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-10">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-10">
         <h1 className="text-3xl font-black uppercase tracking-tight text-foreground">
           All Sets
         </h1>
@@ -121,7 +121,7 @@ export default async function SetsPage() {
             </div>
           </section>
         ))}
-      </div>
+      </main>
     </div>
   );
 }

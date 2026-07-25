@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
 import {
   spring,
@@ -48,7 +48,7 @@ export default function OperatorSection() {
   return (
     <Section glow="radial-gradient(ellipse at 75% 50%, color-mix(in srgb, var(--color-feature-operator) 6%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
-        <motion.h2
+        <m.h2
           className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
@@ -56,9 +56,9 @@ export default function OperatorSection() {
           transition={transition ?? { ...spring.smooth }}
         >
           Fleet Operator
-        </motion.h2>
+        </m.h2>
 
-        <motion.p
+        <m.p
           className="mx-auto mt-3 max-w-lg text-center text-foreground/70"
           variants={fadeUp}
           initial="hidden"
@@ -68,10 +68,10 @@ export default function OperatorSection() {
           Real-time fleet monitoring for micro-retail stores. Live status,
           alerts, inventory health, and per-store drill-down — all demo data, no
           external dependencies.
-        </motion.p>
+        </m.p>
 
         {/* Mock fleet dashboard */}
-        <motion.div
+        <m.div
           className="mt-10 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5 shadow-xl backdrop-blur-sm"
           variants={fadeUp}
           initial="hidden"
@@ -126,10 +126,10 @@ export default function OperatorSection() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Highlights */}
-        <motion.div
+        <m.div
           className="mt-8 grid gap-4 md:grid-cols-3"
           variants={fadeUp}
           initial="hidden"
@@ -147,9 +147,9 @@ export default function OperatorSection() {
               </p>
             </div>
           ))}
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           className="mt-8 flex justify-center"
           variants={fadeUp}
           initial="hidden"
@@ -162,7 +162,7 @@ export default function OperatorSection() {
           >
             Explore fleet →
           </Link>
-        </motion.div>
+        </m.div>
       </div>
     </Section>
   );

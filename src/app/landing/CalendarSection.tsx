@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
 import ModelLazyMount from "./models/ModelLazyMount";
 import {
@@ -48,7 +48,7 @@ function MockDay({
   prefersReduced: boolean;
 }) {
   return (
-    <motion.div
+    <m.div
       className="min-h-[52px] border-r border-b border-foreground/10 p-1 last:border-r-0"
       initial={prefersReduced ? { opacity: 0 } : { scale: 0, opacity: 0 }}
       animate={inView ? { scale: 1, opacity: 1 } : undefined}
@@ -74,7 +74,7 @@ function MockDay({
       </div>
 
       {chips.map((chip, i) => (
-        <motion.div
+        <m.div
           key={i}
           className="mb-0.5 truncate rounded-sm px-1 py-px text-[8px] font-medium"
           style={{ backgroundColor: chip.color + "40", color: chip.color }}
@@ -87,9 +87,9 @@ function MockDay({
           }
         >
           {chip.label}
-        </motion.div>
+        </m.div>
       ))}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -161,7 +161,7 @@ export default function CalendarSection() {
           </ModelLazyMount>
         </div>
 
-        <motion.h2
+        <m.h2
           className="text-center text-3xl font-bold tracking-tight text-foreground md:text-left md:text-4xl"
           variants={headingWipe}
           initial="hidden"
@@ -169,9 +169,9 @@ export default function CalendarSection() {
           transition={transition ?? { ...spring.smooth }}
         >
           Personal Calendar
-        </motion.h2>
+        </m.h2>
 
-        <motion.p
+        <m.p
           className="mx-auto mt-3 max-w-lg text-center text-foreground/70 md:mx-0 md:text-left"
           variants={fadeUp}
           initial="hidden"
@@ -181,10 +181,10 @@ export default function CalendarSection() {
           Day, week, month, and year views with multi-day events, an
           overlapping-event layout engine, and Pokémon card attachments — built
           to track what we pull playing Pokémon Pocket together.
-        </motion.p>
+        </m.p>
 
         {/* Mock calendar month grid */}
-        <motion.div
+        <m.div
           className="mt-10 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5 shadow-xl backdrop-blur-sm"
           variants={fadeUp}
           initial="hidden"
@@ -256,10 +256,10 @@ export default function CalendarSection() {
               />
             ))}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Feature highlights — appear after chips */}
-        <motion.div
+        <m.div
           className="mt-8 grid gap-4 md:grid-cols-3"
           variants={fadeUp}
           initial="hidden"
@@ -279,9 +279,9 @@ export default function CalendarSection() {
               </p>
             </div>
           ))}
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           className="mt-8 flex justify-center"
           variants={fadeUp}
           initial="hidden"
@@ -296,7 +296,7 @@ export default function CalendarSection() {
           >
             Log in to view →
           </Link>
-        </motion.div>
+        </m.div>
       </div>
     </Section>
   );

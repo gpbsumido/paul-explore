@@ -1,0 +1,204 @@
+import { describe, it, expect } from "vitest";
+import {
+  createSimState,
+  stepSimulation,
+  reheat,
+  radialLayout,
+  DEFAULT_PARAMS,
+  type SimState,
+} from "./simulation";
+import { buildGraphData } from "./graphData";
+import type { GraphData } from "./graphData";
+
+const data: GraphData = buildGraphData();
+
+/** A minimal two-node graph for isolating a single force. */
+function pairState(
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  edge = false,
+): SimState {
+  const mini: GraphData = {
+    nodes: [
+      { id: "a", kind: "feature", label: "A", color: "#000", radius: 12 },
+      { id: "b", kind: "feature", label: "B", color: "#000", radius: 12 },
+    ],
+    edges: edge ? [{ source: "a", target: "b", rest: 100 }] : [],
+  };
+  const s = createSimState(mini);
+  s.nodes[0].x = ax;
+  s.nodes[0].y = ay;
+  s.nodes[1].x = bx;
+  s.nodes[1].y = by;
+  s.nodes[0].pinned = false; // neither is the root here
+  return s;
+}
+
+const dist = (s: SimState) =>
+  Math.hypot(s.nodes[0].x - s.nodes[1].x, s.nodes[0].y - s.nodes[1].y);
+
+describe("createSimState", () => {
+  it("pins the root at the origin with no velocity", () => {
+    const s = createSimState(data);
+    const root = s.nodes[0];
+    expect(root.pinned).toBe(true);
+    expect(root.x).toBe(0);
+    expect(root.y).toBe(0);
+    expect(root.vx).toBe(0);
+    expect(root.vy).toBe(0);
+  });
+
+  it("marks the root, hub and categories as labelled at rest", () => {
+    const s = createSimState(data);
+    for (const i of s.labeled) {
+      expect(["root", "hub", "category"]).toContain(data.nodes[i].kind);
+    }
+    // every always-labelled node is in the set
+    data.nodes.forEach((n, i) => {
+      if (n.kind === "root" || n.kind === "hub" || n.kind === "category") {
+        expect(s.labeled.has(i)).toBe(true);
+      }
+    });
+  });
+
+  it("allocates reusable force buffers sized to the node count", () => {
+    const s = createSimState(data);
+    expect(s.fx).toHaveLength(s.nodes.length);
+    expect(s.fy).toHaveLength(s.nodes.length);
+    expect(s.eff).toHaveLength(s.nodes.length);
+  });
+
+  it("is deterministic (same seed, same initial scatter)", () => {
+    const a = createSimState(data);
+    const b = createSimState(data);
+    expect(a.nodes.map((n) => [n.x, n.y])).toEqual(
+      b.nodes.map((n) => [n.x, n.y]),
+    );
+  });
+});
+
+describe("forces", () => {
+  it("repulsion/collision pushes two overlapping nodes apart", () => {
+    const s = pairState(0, 0, 3, 0); // nearly on top of each other
+    const before = dist(s);
+    stepSimulation(s, DEFAULT_PARAMS);
+    expect(dist(s)).toBeGreaterThan(before);
+  });
+
+  it("keep-out drives a node under the popover down past its bottom edge", () => {
+    const keepOut = { xMin: -50, xMax: 50, yBottom: -40, strength: 0.35 };
+    const withKeep = pairState(0, -100, 2000, 2000); // node 0 sits in the band
+    const without = pairState(0, -100, 2000, 2000);
+    for (let i = 0; i < 40; i++) {
+      stepSimulation(withKeep, DEFAULT_PARAMS, 1, keepOut);
+      stepSimulation(without, DEFAULT_PARAMS, 1, null);
+    }
+    // The keep-out pushes it lower than physics alone, and clear of the band.
+    expect(withKeep.nodes[0].y).toBeGreaterThan(without.nodes[0].y);
+    expect(withKeep.nodes[0].y).toBeGreaterThan(keepOut.yBottom - 1);
+  });
+
+  it("keep-out leaves nodes outside its x-span untouched", () => {
+    const keepOut = { xMin: -50, xMax: 50, yBottom: -40, strength: 0.35 };
+    const inBand = pairState(500, -100, 2000, 2000); // x=500 is outside the span
+    const control = pairState(500, -100, 2000, 2000);
+    stepSimulation(inBand, DEFAULT_PARAMS, 1, keepOut);
+    stepSimulation(control, DEFAULT_PARAMS, 1, null);
+    expect(inBand.nodes[0].y).toBeCloseTo(control.nodes[0].y, 10);
+  });
+
+  it("bounds pull a node that has drifted off screen back inside", () => {
+    const bounds = { xMin: -400, xMax: 400, yMin: -300, yMax: 300, strength: 0.12 };
+    // node 0 is way past the right/bottom edge; node 1 parked far away.
+    const s = pairState(900, 700, -2000, -2000);
+    const before = { x: s.nodes[0].x, y: s.nodes[0].y };
+    for (let i = 0; i < 40; i++) {
+      stepSimulation(s, DEFAULT_PARAMS, 1, null, bounds);
+    }
+    // It moves back toward the box on both axes.
+    expect(s.nodes[0].x).toBeLessThan(before.x);
+    expect(s.nodes[0].y).toBeLessThan(before.y);
+    expect(s.nodes[0].x).toBeLessThan(bounds.xMax + 50);
+    expect(s.nodes[0].y).toBeLessThan(bounds.yMax + 50);
+  });
+
+  it("bounds leave a node already inside the box alone", () => {
+    const bounds = { xMin: -400, xMax: 400, yMin: -300, yMax: 300, strength: 0.12 };
+    const inside = pairState(0, 0, 2000, 2000);
+    const control = pairState(0, 0, 2000, 2000);
+    stepSimulation(inside, DEFAULT_PARAMS, 1, null, bounds);
+    stepSimulation(control, DEFAULT_PARAMS, 1, null, null);
+    expect(inside.nodes[0].x).toBeCloseTo(control.nodes[0].x, 10);
+    expect(inside.nodes[0].y).toBeCloseTo(control.nodes[0].y, 10);
+  });
+
+  it("a spring pulls two connected, far-apart nodes closer", () => {
+    const s = pairState(-400, 0, 400, 0, true); // way beyond rest length (100)
+    const before = dist(s);
+    for (let i = 0; i < 20; i++) stepSimulation(s, DEFAULT_PARAMS);
+    expect(dist(s)).toBeLessThan(before);
+  });
+
+  it("gravity pulls a lone node toward the origin", () => {
+    const s = pairState(500, 500, 3000, 3000); // both far out
+    const d0 = Math.hypot(s.nodes[0].x, s.nodes[0].y);
+    for (let i = 0; i < 30; i++) stepSimulation(s, DEFAULT_PARAMS);
+    expect(Math.hypot(s.nodes[0].x, s.nodes[0].y)).toBeLessThan(d0);
+  });
+});
+
+describe("cooling and pinning", () => {
+  it("decays alpha toward its floor and keeps positions finite", () => {
+    const s = createSimState(data);
+    for (let i = 0; i < 600; i++) stepSimulation(s, DEFAULT_PARAMS);
+    expect(s.alpha).toBeLessThanOrEqual(DEFAULT_PARAMS.minAlpha + 1e-9);
+    for (const n of s.nodes) {
+      expect(Number.isFinite(n.x)).toBe(true);
+      expect(Number.isFinite(n.y)).toBe(true);
+    }
+  });
+
+  it("never moves the pinned root", () => {
+    const s = createSimState(data);
+    for (let i = 0; i < 100; i++) stepSimulation(s, DEFAULT_PARAMS);
+    expect(s.nodes[0].x).toBe(0);
+    expect(s.nodes[0].y).toBe(0);
+  });
+
+  it("settled nodes are not stacked on the same point", () => {
+    const s = createSimState(data);
+    for (let i = 0; i < 500; i++) stepSimulation(s, DEFAULT_PARAMS);
+    for (let i = 1; i < s.nodes.length; i++) {
+      for (let j = i + 1; j < s.nodes.length; j++) {
+        const d = Math.hypot(
+          s.nodes[i].x - s.nodes[j].x,
+          s.nodes[i].y - s.nodes[j].y,
+        );
+        expect(d).toBeGreaterThan(1);
+      }
+    }
+  });
+
+  it("reheat raises alpha", () => {
+    const s = createSimState(data);
+    s.alpha = 0.01;
+    reheat(s, 0.5);
+    expect(s.alpha).toBe(0.5);
+    reheat(s, 0.2); // never lowers
+    expect(s.alpha).toBe(0.5);
+  });
+});
+
+describe("radialLayout", () => {
+  it("centres the root and spreads the rest to distinct points", () => {
+    const s = createSimState(data);
+    radialLayout(s, data);
+    expect(s.nodes[0].x).toBe(0);
+    expect(s.nodes[0].y).toBe(0);
+    const points = s.nodes.map((n) => `${Math.round(n.x)},${Math.round(n.y)}`);
+    // the vast majority land on unique coordinates
+    expect(new Set(points).size).toBeGreaterThan(s.nodes.length * 0.8);
+  });
+});

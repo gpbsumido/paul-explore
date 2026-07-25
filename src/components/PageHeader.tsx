@@ -206,7 +206,9 @@ export default function PageHeader({
   }
 
   return (
-    <nav className={navClassName} style={glassStyle}>
+    // Named so it's distinguishable from any other nav on the page (e.g. a
+    // prev/next pager), which axe's landmark-unique rule requires.
+    <nav aria-label="Breadcrumb" className={navClassName} style={glassStyle}>
       {content}
     </nav>
   );

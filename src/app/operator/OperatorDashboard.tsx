@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { fadeInUp, spring } from "@/lib/animations";
@@ -150,13 +150,20 @@ export default function OperatorDashboard() {
   }
 
   return (
-    <motion.main
+    <m.main
       className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6"
       variants={fadeInUp}
       initial="hidden"
       animate="visible"
       transition={spring.smooth}
     >
+      <h1 className="sr-only">Fleet Dashboard</h1>
+      {/* One-line orientation for a cold visitor landing on a dense dashboard */}
+      <p className="text-sm text-muted">
+        A demo of running a smart-store fleet &mdash; live-style status, alerts,
+        inventory health, and analytics. Filter the stores below, or click one to
+        drill in.
+      </p>
       {/* Global refresh bar */}
       <RefreshBar />
 
@@ -246,7 +253,7 @@ export default function OperatorDashboard() {
           })}
         </div>
       )}
-    </motion.main>
+    </m.main>
   );
 }
 

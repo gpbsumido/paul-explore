@@ -160,7 +160,7 @@ export default function CalendarHeader({
           ].join(" ")}
         >
           <span>{banner.message}</span>
-          <button
+          <button type="button"
             onClick={() => setBanner(null)}
             aria-label="Dismiss"
             className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
@@ -225,7 +225,7 @@ export default function CalendarHeader({
               )}
               {/* edit (owner) or leave (member) button — visible on hover */}
               {calendars[0].role === "owner" ? (
-                <button
+                <button type="button"
                   onClick={() => setEditingCalendar(calendars[0])}
                   aria-label="Edit calendar"
                   title="Edit calendar"
@@ -234,7 +234,7 @@ export default function CalendarHeader({
                   <PencilIcon />
                 </button>
               ) : (
-                <button
+                <button type="button"
                   onClick={() => handleLeave(calendars[0].id)}
                   disabled={leavingId === calendars[0].id}
                   aria-label="Leave calendar"
@@ -247,7 +247,7 @@ export default function CalendarHeader({
             </span>
           ) : calendars.length > 1 ? (
             <div data-calendar-dropdown className="hidden sm:block relative">
-              <button
+              <button type="button"
                 onClick={() => setDropdownOpen((v) => !v)}
                 className="flex items-center gap-1.5 px-2 py-0.5 text-xs rounded border border-border bg-background text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
@@ -268,7 +268,7 @@ export default function CalendarHeader({
               </button>
               {dropdownOpen && (
                 <div className="absolute left-0 top-full mt-1 min-w-[180px] rounded-lg border border-border bg-background shadow-md z-50 py-1">
-                  <button
+                  <button type="button"
                     onClick={() => { onSelectCalendar(null); setDropdownOpen(false); }}
                     className="w-full px-3 py-1.5 text-xs text-left text-muted hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                   >
@@ -276,7 +276,7 @@ export default function CalendarHeader({
                   </button>
                   {calendars.map((c) => (
                     <div key={c.id} className="flex items-center group/item hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-                      <button
+                      <button type="button"
                         onClick={() => { onSelectCalendar(c.id); setDropdownOpen(false); }}
                         className="flex-1 flex items-center gap-2 px-3 py-1.5 text-xs text-left min-w-0"
                       >
@@ -293,7 +293,7 @@ export default function CalendarHeader({
                       </button>
                       {/* edit (owner) or leave (member) */}
                       {c.role === "owner" ? (
-                        <button
+                        <button type="button"
                           onClick={(e) => { e.stopPropagation(); setEditingCalendar(c); setDropdownOpen(false); }}
                           aria-label={`Edit ${c.name}`}
                           title="Edit calendar"
@@ -302,7 +302,7 @@ export default function CalendarHeader({
                           <PencilIcon />
                         </button>
                       ) : (
-                        <button
+                        <button type="button"
                           onClick={(e) => { e.stopPropagation(); handleLeave(c.id); }}
                           disabled={leavingId === c.id}
                           aria-label={`Leave ${c.name}`}
@@ -319,7 +319,7 @@ export default function CalendarHeader({
             </div>
           ) : null}
           <span className="hidden sm:inline-flex items-center gap-1">
-            <button
+            <button type="button"
               onClick={() => {
                 setCalendarModalOpen(true);
               }}
@@ -367,7 +367,7 @@ export default function CalendarHeader({
               Countdowns track time until a specific date — like a trip, exam, or deadline. They show on the calendar grid as chips and have their own dedicated page.
             </InfoTip>
             {onNewCountdown && (
-              <button
+              <button type="button"
                 onClick={onNewCountdown}
                 aria-label="New countdown"
                 className="flex items-center justify-center w-4 h-4 rounded-full text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
@@ -399,7 +399,7 @@ export default function CalendarHeader({
                 className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0"
                 title="Synced with Google Calendar"
               />
-              <button
+              <button type="button"
                 onClick={handleSync}
                 aria-label="Refresh calendar from Google"
                 title="Refresh from Google Calendar"
@@ -428,7 +428,7 @@ export default function CalendarHeader({
           {/* View switcher — Year hidden on mobile (too small to be useful) */}
           <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
             {VIEWS.map((v) => (
-              <button
+              <button type="button"
                 key={v}
                 onClick={() => onViewChange(v)}
                 className={[

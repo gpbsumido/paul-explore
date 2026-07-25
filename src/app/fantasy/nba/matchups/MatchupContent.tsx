@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { m, useSpring, useTransform } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui";
-import { selectChevron } from "@/assets/icons";
+import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import { useCountUp } from "@/hooks/useCountUp";
 import FantasyNav from "../FantasyNav";
@@ -88,11 +87,11 @@ function WinBar({ leftPct, animate }: { leftPct: number; animate: boolean }) {
 
   return (
     <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-black/5 dark:bg-white/5">
-      <motion.div
+      <m.div
         className="rounded-l-full bg-[#FF6B35]"
         style={{ width: leftWidth }}
       />
-      <motion.div
+      <m.div
         className="rounded-r-full bg-[#00D4FF]"
         style={{ width: rightWidth }}
       />
@@ -121,7 +120,7 @@ function CategoryRow({
     <tr className="border-b border-border/50 last:border-b-0">
       <td
         className={`px-3 py-2 text-right text-[13px] font-mono tabular-nums ${
-          awayWins && !tied ? "font-bold text-[#FF6B35]" : "text-muted"
+          awayWins && !tied ? "font-bold text-[#c2410c] dark:text-[#FF6B35]" : "text-muted"
         }`}
       >
         {Number.isInteger(awayVal) ? awayVal : awayVal.toFixed(1)}
@@ -131,7 +130,7 @@ function CategoryRow({
       </td>
       <td
         className={`px-3 py-2 text-left text-[13px] font-mono tabular-nums ${
-          homeWins && !tied ? "font-bold text-[#00D4FF]" : "text-muted"
+          homeWins && !tied ? "font-bold text-[#0e7490] dark:text-[#00D4FF]" : "text-muted"
         }`}
       >
         {Number.isInteger(homeVal) ? homeVal : homeVal.toFixed(1)}
@@ -188,14 +187,14 @@ function MatchupCard({
           <div className="flex items-baseline gap-2">
             <CountUpScore
               value={awayPts}
-              className="text-lg font-bold font-mono tabular-nums text-[#FF6B35]"
+              className="text-lg font-bold font-mono tabular-nums text-[#c2410c] dark:text-[#FF6B35]"
             />
             <span className="text-[10px] font-semibold uppercase tracking-widest text-muted">
               vs
             </span>
             <CountUpScore
               value={homePts}
-              className="text-lg font-bold font-mono tabular-nums text-[#00D4FF]"
+              className="text-lg font-bold font-mono tabular-nums text-[#0e7490] dark:text-[#00D4FF]"
             />
           </div>
           <span className="text-[10px] font-medium text-muted tabular-nums">
@@ -343,17 +342,9 @@ export default function MatchupContent() {
       <FantasyNav />
 
       {/* Season + week selector */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
-          <span className="text-[13px] text-muted shrink-0">Season</span>
-          <select
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
+      <FilterBar label="Matchup filters">
+          <Select
+            label="Season"
             value={season}
             onChange={handleSeasonChange}
           >
@@ -362,17 +353,10 @@ export default function MatchupContent() {
                 {yr - 1}–{yr}
               </option>
             ))}
-          </select>
+          </Select>
 
-          <span className="text-[13px] text-muted shrink-0">Week</span>
-          <select
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
+          <Select
+            label="Week"
             value={activeWeek}
             onChange={handleWeekChange}
             disabled={!data}
@@ -386,20 +370,13 @@ export default function MatchupContent() {
                 </option>
               );
             })}
-          </select>
+          </Select>
 
-          {/* Prediction for picker for predictions */}
-          <span className="text-[13px] text-muted shrink-0 ml-auto sm:ml-0">
-            Prediction for
-          </span>
-          <select
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
+          {/* Prediction picker, pushed to the right on mobile so it sits apart
+              from the season/week controls */}
+          <div className="ml-auto sm:ml-0">
+          <Select
+            label="Prediction for"
             value={myTeamId ?? ""}
             onChange={(e) => {
               const id = Number(e.target.value) || null;
@@ -422,7 +399,8 @@ export default function MatchupContent() {
                 {t.name}
               </option>
             ))}
-          </select>
+          </Select>
+          </div>
 
           {/* Week navigation arrows */}
           <div className="flex items-center gap-1 sm:ml-auto">
@@ -469,11 +447,11 @@ export default function MatchupContent() {
               </svg>
             </button>
           </div>
-        </div>
-      </div>
+      </FilterBar>
 
       {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6" aria-live="polite">
+        <h1 className="sr-only">Matchup Predictions</h1>
         {scoreboardQuery.isLoading && (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -506,7 +484,7 @@ export default function MatchupContent() {
               {(playoffRound > 0 || allZero) && (
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                   {playoffRound > 0 && (
-                    <span className="inline-flex items-center rounded-full bg-orange-500/15 px-3 py-1 text-[12px] font-semibold text-orange-400">
+                    <span className="inline-flex items-center rounded-full bg-orange-500/15 px-3 py-1 text-[12px] font-semibold text-orange-800 dark:text-orange-400">
                       Playoff Round {playoffRound}
                     </span>
                   )}

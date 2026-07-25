@@ -1,37 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function RoutingContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "Route Restructure" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Route Restructure
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Moving the authenticated hub from{" "}
+    <ThoughtLayout
+      breadcrumb="Route Restructure"
+      title="Route Restructure"
+      intro={
+        <>
+          Moving the authenticated hub from{" "}
               <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                 /protected
               </code>{" "}
@@ -41,11 +21,177 @@ export default function RoutingContent() {
               </code>
               , eliminating the redirect, and promoting sub-routes to top-level
               paths.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 3:00 PM</Timestamp>
 
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received pos="first">
+                why was the hub at /protected in the first place
+              </Received>
+              <Received pos="last">that URL always felt off</Received>
+
+              <Sent pos="first">
+                it was just how the auth gating got wired up initially. Next.js
+                middleware can only redirect, it can&apos;t conditionally render
+                — so the pattern was: land on <code>/</code>, middleware detects
+                a session, redirects to <code>/protected</code>
+              </Sent>
+              <Sent pos="last">
+                the problem is that&apos;s an implementation detail in the URL.
+                <code>/protected</code> doesn&apos;t mean anything to a user. it
+                means &quot;this is where the auth redirect dumps you&quot;
+              </Sent>
+
+              <Timestamp>3:03 PM</Timestamp>
+
+              <Received>
+                so how do you make / context-aware without middleware
+              </Received>
+
+              <Sent pos="first">
+                you don&apos;t need middleware for it. <code>page.tsx</code>{" "}
+                becomes an async server component that calls{" "}
+                <code>auth0.getSession()</code>
+                directly — no network call, just a cookie decrypt — and renders
+                either the hub or the landing page based on what comes back
+              </Sent>
+              <Sent pos="last">
+                same URL, different content. the redirect is completely gone. if
+                you&apos;re logged in you see the hub at <code>/</code>. if not,
+                you see the landing page at <code>/</code>. no visible
+                transition, no URL change
+              </Sent>
+
+              <Received>doesn&apos;t that break static generation</Received>
+
+              <Sent pos="first">
+                yes, <code>/</code> becomes dynamic. it can&apos;t be baked into
+                the CDN at build time anymore because the content depends on a
+                cookie
+              </Sent>
+              <Sent pos="middle">
+                but the cost is basically nothing.{" "}
+                <code>auth0.getSession()</code>
+                decrypts a cookie locally using <code>AUTH0_SECRET</code>. no
+                round trip to Auth0, no database call — a few microseconds of
+                CPU
+              </Sent>
+              <Sent pos="last">
+                for a personal portfolio, clean URLs are worth more than static
+                generation on the root route. the hub content is still fetched
+                client-side via TanStack Query the same as it always was
+              </Sent>
+
+              <Timestamp>3:09 PM</Timestamp>
+
+              <Received>what happened to /vitals and /settings</Received>
+
+              <Sent pos="first">
+                they moved out of the <code>protected/</code> folder to
+                top-level routes. <code>/protected/vitals</code> becomes{" "}
+                <code>/vitals</code>,<code>/protected/settings</code> becomes{" "}
+                <code>/settings</code>
+              </Sent>
+              <Sent pos="last">
+                middleware still protects them — unauthenticated requests get
+                redirected to <code>/auth/login?returnTo=/vitals</code> before
+                any page code runs. same security guarantee, better URLs
+              </Sent>
+
+              <Received>
+                but the middleware now runs <code>auth0.middleware()</code> for
+                those routes — doesn&apos;t that add latency
+              </Received>
+
+              <Sent pos="first">
+                only when there&apos;s a valid session. the proxy checks
+                <code>auth0.getSession(req)</code> first — that&apos;s the
+                proxy-safe overload that reads from <code>req.cookies</code>, no
+                network call. if there&apos;s no session it redirects
+                immediately and
+                <code>auth0.middleware()</code> never runs
+              </Sent>
+              <Sent pos="last">
+                if there is a session, <code>auth0.middleware()</code> runs
+                after to handle rolling session refresh. that&apos;s the one
+                network call — but it only happens for authenticated requests to
+                protected routes, same as the old behavior
+              </Sent>
+
+              <Timestamp>3:15 PM</Timestamp>
+
+              <Received>
+                what about the Google Calendar callback — that was hardcoded to
+                /protected/settings
+              </Received>
+
+              <Sent pos="first">
+                yeah, that&apos;s the one external dependency. the Express
+                backend builds the OAuth callback URL as{" "}
+                <code>{"{origin}"}/protected/settings?gcal=connected</code>
+              </Sent>
+              <Sent pos="middle">
+                after the migration the correct path is{" "}
+                <code>{"{origin}"}/settings?gcal=connected</code>. until the
+                backend is updated the success banner won&apos;t fire after
+                connecting Google Calendar — but the middleware catches the old
+                URL gracefully, the OAuth flow itself still completes
+              </Sent>
+              <Sent pos="last">
+                deploy order: frontend first, then backend. the old callback URL
+                still works during the gap, it just doesn&apos;t trigger the
+                banner
+              </Sent>
+
+              <Timestamp>3:21 PM</Timestamp>
+
+              <Received>how many files actually changed</Received>
+
+              <Sent pos="first">
+                9 files moved — <code>FeatureHub.tsx</code>, the vitals folder,
+                the settings folder — out of <code>protected/</code> to their
+                new top-level locations
+              </Sent>
+              <Sent pos="middle">
+                22 files updated — every back-to-hub link that pointed to{" "}
+                <code>href=&quot;/protected&quot;</code> changed to{" "}
+                <code>href=&quot;/&quot;</code>. feature pages, thoughts pages,
+                nav components
+              </Sent>
+              <Sent pos="last">
+                and <code>src/types/protected.ts</code> got renamed to{" "}
+                <code>src/types/hub.ts</code>. the type name was leaking the
+                same implementation detail as the route
+              </Sent>
+
+              <Received>
+                clean. the URL finally matches what it actually is
+              </Received>
+
+              <Sent>
+                that&apos;s the whole point. URLs are user-facing. they should
+                describe what&apos;s there, not how the auth routing works
+              </Sent>
+
+              {/* Typing indicator */}
+              <div className={styles.typingDots}>
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">Why this change</h2>
               <p className="text-muted">
                 The original routing pattern had a problem: logged-in users who
@@ -294,175 +440,6 @@ export default function RoutingContent() {
                 order: frontend first, then backend.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 3:00 PM</Timestamp>
-
-              <Received pos="first">
-                why was the hub at /protected in the first place
-              </Received>
-              <Received pos="last">that URL always felt off</Received>
-
-              <Sent pos="first">
-                it was just how the auth gating got wired up initially. Next.js
-                middleware can only redirect, it can&apos;t conditionally render
-                — so the pattern was: land on <code>/</code>, middleware detects
-                a session, redirects to <code>/protected</code>
-              </Sent>
-              <Sent pos="last">
-                the problem is that&apos;s an implementation detail in the URL.
-                <code>/protected</code> doesn&apos;t mean anything to a user. it
-                means &quot;this is where the auth redirect dumps you&quot;
-              </Sent>
-
-              <Timestamp>3:03 PM</Timestamp>
-
-              <Received>
-                so how do you make / context-aware without middleware
-              </Received>
-
-              <Sent pos="first">
-                you don&apos;t need middleware for it. <code>page.tsx</code>{" "}
-                becomes an async server component that calls{" "}
-                <code>auth0.getSession()</code>
-                directly — no network call, just a cookie decrypt — and renders
-                either the hub or the landing page based on what comes back
-              </Sent>
-              <Sent pos="last">
-                same URL, different content. the redirect is completely gone. if
-                you&apos;re logged in you see the hub at <code>/</code>. if not,
-                you see the landing page at <code>/</code>. no visible
-                transition, no URL change
-              </Sent>
-
-              <Received>doesn&apos;t that break static generation</Received>
-
-              <Sent pos="first">
-                yes, <code>/</code> becomes dynamic. it can&apos;t be baked into
-                the CDN at build time anymore because the content depends on a
-                cookie
-              </Sent>
-              <Sent pos="middle">
-                but the cost is basically nothing.{" "}
-                <code>auth0.getSession()</code>
-                decrypts a cookie locally using <code>AUTH0_SECRET</code>. no
-                round trip to Auth0, no database call — a few microseconds of
-                CPU
-              </Sent>
-              <Sent pos="last">
-                for a personal portfolio, clean URLs are worth more than static
-                generation on the root route. the hub content is still fetched
-                client-side via TanStack Query the same as it always was
-              </Sent>
-
-              <Timestamp>3:09 PM</Timestamp>
-
-              <Received>what happened to /vitals and /settings</Received>
-
-              <Sent pos="first">
-                they moved out of the <code>protected/</code> folder to
-                top-level routes. <code>/protected/vitals</code> becomes{" "}
-                <code>/vitals</code>,<code>/protected/settings</code> becomes{" "}
-                <code>/settings</code>
-              </Sent>
-              <Sent pos="last">
-                middleware still protects them — unauthenticated requests get
-                redirected to <code>/auth/login?returnTo=/vitals</code> before
-                any page code runs. same security guarantee, better URLs
-              </Sent>
-
-              <Received>
-                but the middleware now runs <code>auth0.middleware()</code> for
-                those routes — doesn&apos;t that add latency
-              </Received>
-
-              <Sent pos="first">
-                only when there&apos;s a valid session. the proxy checks
-                <code>auth0.getSession(req)</code> first — that&apos;s the
-                proxy-safe overload that reads from <code>req.cookies</code>, no
-                network call. if there&apos;s no session it redirects
-                immediately and
-                <code>auth0.middleware()</code> never runs
-              </Sent>
-              <Sent pos="last">
-                if there is a session, <code>auth0.middleware()</code> runs
-                after to handle rolling session refresh. that&apos;s the one
-                network call — but it only happens for authenticated requests to
-                protected routes, same as the old behavior
-              </Sent>
-
-              <Timestamp>3:15 PM</Timestamp>
-
-              <Received>
-                what about the Google Calendar callback — that was hardcoded to
-                /protected/settings
-              </Received>
-
-              <Sent pos="first">
-                yeah, that&apos;s the one external dependency. the Express
-                backend builds the OAuth callback URL as{" "}
-                <code>{"{origin}"}/protected/settings?gcal=connected</code>
-              </Sent>
-              <Sent pos="middle">
-                after the migration the correct path is{" "}
-                <code>{"{origin}"}/settings?gcal=connected</code>. until the
-                backend is updated the success banner won&apos;t fire after
-                connecting Google Calendar — but the middleware catches the old
-                URL gracefully, the OAuth flow itself still completes
-              </Sent>
-              <Sent pos="last">
-                deploy order: frontend first, then backend. the old callback URL
-                still works during the gap, it just doesn&apos;t trigger the
-                banner
-              </Sent>
-
-              <Timestamp>3:21 PM</Timestamp>
-
-              <Received>how many files actually changed</Received>
-
-              <Sent pos="first">
-                9 files moved — <code>FeatureHub.tsx</code>, the vitals folder,
-                the settings folder — out of <code>protected/</code> to their
-                new top-level locations
-              </Sent>
-              <Sent pos="middle">
-                22 files updated — every back-to-hub link that pointed to{" "}
-                <code>href=&quot;/protected&quot;</code> changed to{" "}
-                <code>href=&quot;/&quot;</code>. feature pages, thoughts pages,
-                nav components
-              </Sent>
-              <Sent pos="last">
-                and <code>src/types/protected.ts</code> got renamed to{" "}
-                <code>src/types/hub.ts</code>. the type name was leaking the
-                same implementation detail as the route
-              </Sent>
-
-              <Received>
-                clean. the URL finally matches what it actually is
-              </Received>
-
-              <Sent>
-                that&apos;s the whole point. URLs are user-facing. they should
-                describe what&apos;s there, not how the auth routing works
-              </Sent>
-
-              {/* Typing indicator */}
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

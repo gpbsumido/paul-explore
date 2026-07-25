@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
 import {
   spring,
@@ -46,7 +46,7 @@ export default function LearnSection() {
   return (
     <Section glow="radial-gradient(ellipse at 25% 50%, color-mix(in srgb, var(--color-feature-learn) 6%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
-        <motion.h2
+        <m.h2
           className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
@@ -54,9 +54,9 @@ export default function LearnSection() {
           transition={transition ?? { ...spring.smooth }}
         >
           Learn
-        </motion.h2>
+        </m.h2>
 
-        <motion.p
+        <m.p
           className="mx-auto mt-3 max-w-lg text-center text-foreground/70"
           variants={fadeUp}
           initial="hidden"
@@ -66,10 +66,10 @@ export default function LearnSection() {
           Interactive deep-dives into algorithms and frontend patterns. 13
           topics, each with demos you can step through, visualizations that
           build intuition, and code that comes last.
-        </motion.p>
+        </m.p>
 
         {/* Mock topic list with dot-grid */}
-        <motion.div
+        <m.div
           className="relative mt-10 overflow-hidden rounded-xl border border-foreground/10 bg-foreground/5 shadow-xl backdrop-blur-sm"
           variants={fadeUp}
           initial="hidden"
@@ -118,10 +118,10 @@ export default function LearnSection() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Highlights */}
-        <motion.div
+        <m.div
           className="mt-8 grid gap-4 md:grid-cols-3"
           variants={fadeUp}
           initial="hidden"
@@ -139,9 +139,9 @@ export default function LearnSection() {
               </p>
             </div>
           ))}
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           className="mt-8 flex justify-center"
           variants={fadeUp}
           initial="hidden"
@@ -154,7 +154,7 @@ export default function LearnSection() {
           >
             Start learning →
           </Link>
-        </motion.div>
+        </m.div>
       </div>
     </Section>
   );

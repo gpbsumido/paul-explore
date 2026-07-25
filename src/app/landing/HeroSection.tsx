@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import AuthButton from "@/components/AuthButton";
 import HeaderMenu from "@/components/HeaderMenu";
 import { useTheme } from "@/components/ThemeProvider";
@@ -83,7 +83,7 @@ export default function HeroSection() {
         {/* Word-by-word H1 spring assembly. Server renders all words visible
             (initial={false}) so the H1 is in the LCP paint. On mount the
             client replays the entrance from hidden. */}
-        <motion.h1
+        <m.h1
           className="relative z-10 text-5xl font-bold tracking-tight text-foreground md:text-7xl"
           style={isDark ? H1_STYLE_DARK : H1_STYLE_LIGHT}
           variants={staggerContainer(0.08, 0.1)}
@@ -91,19 +91,19 @@ export default function HeroSection() {
           animate="visible"
         >
           {WORDS.map((word, i) => (
-            <motion.span
+            <m.span
               key={i}
               variants={wordReveal}
               transition={transition ?? { ...spring.wordReveal }}
               style={{ display: "inline-block", marginRight: "0.3em" }}
             >
               {word}
-            </motion.span>
+            </m.span>
           ))}
-        </motion.h1>
+        </m.h1>
 
         {/* Subtitle fades up after the title stagger finishes */}
-        <motion.p
+        <m.p
           className="relative z-10 mt-4 max-w-md text-lg text-foreground/70 md:text-xl"
           style={isDark ? SUBTITLE_STYLE_DARK : SUBTITLE_STYLE_LIGHT}
           initial={mounted ? { opacity: 0, y: 16 } : false}
@@ -111,10 +111,10 @@ export default function HeroSection() {
           transition={transition ?? { ...spring.smooth, delay: 0.5 }}
         >
           A playground where I can test different styles and functionality.
-        </motion.p>
+        </m.p>
 
         {/* CTA scales in from 0.85 with bounce spring */}
-        <motion.div
+        <m.div
           className="relative z-10 mt-8"
           variants={scaleIn}
           initial={mounted ? "hidden" : false}
@@ -126,10 +126,10 @@ export default function HeroSection() {
             loggedIn={false}
             className="inline-flex items-center rounded-full border border-foreground/25 bg-foreground/10 px-8 py-3 text-sm font-medium text-foreground backdrop-blur-sm transition-[border-color,background-color] hover:border-foreground/40 hover:bg-foreground/20"
           />
-        </motion.div>
+        </m.div>
 
         {/* Scroll hint */}
-        <motion.div
+        <m.div
           className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
           initial={mounted ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
@@ -164,7 +164,7 @@ export default function HeroSection() {
               />
             </svg>
           </div>
-        </motion.div>
+        </m.div>
       </section>
     </>
   );

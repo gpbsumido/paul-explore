@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import type { ReactNode } from "react";
-import PageHeader from "@/components/PageHeader";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 /**
  * Inline code span styled to match the other thoughts pages.
@@ -70,42 +68,113 @@ function Pivot({ children }: { children: ReactNode }) {
 }
 
 export default function ApiBackendOverhaulContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "API Backend Overhaul" },
-        ]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              API Backend Overhaul
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              <code className="font-mono">portfolio_api</code> started as a pile
+    <ThoughtLayout
+      breadcrumb="API Backend Overhaul"
+      title="API Backend Overhaul"
+      intro={
+        <>
+          <code className="font-mono">portfolio_api</code> started as a pile
               of JavaScript route files. The overhaul turned it into a typed,
               layered TypeScript backend across twelve phases. This is the whole
               thought process behind it &mdash; what I chose, why, where I
               changed my mind, and why the decisions are sound system design
               even though (maybe especially because) I came at it as a frontend
               dev.
-            </p>
-          </header>
+        </>
+      }
+      chat={
+        <div className="flex justify-center">
+          <div
+            className={styles.phone}
+            style={{ minHeight: "calc(100dvh - 56px)" }}
+          >
+            <div className={styles.chat}>
+              <Timestamp>Today 2:10 PM</Timestamp>
 
-          <div className="space-y-12 text-[15px] leading-relaxed text-foreground">
-            <section>
+              <Received>
+                you&apos;re a frontend dev, why are you rewriting a backend
+              </Received>
+
+              <Sent pos="first">
+                because i&apos;m the one who calls it all day. when a response
+                shape is sloppy or an endpoint 500s, the pain lands in the
+                frontend
+              </Sent>
+              <Sent pos="last">
+                a response body is a contract, same as a component&apos;s props.
+                the whole overhaul is just making that contract typed and
+                predictable end to end
+              </Sent>
+
+              <Timestamp>2:12 PM</Timestamp>
+
+              <Received>how do you rewrite something that&apos;s in prod</Received>
+
+              <Sent pos="first">
+                strangler fig. you don&apos;t swap, you grow the new thing
+                alongside the old. old JS kept serving live traffic while the new
+                TS was built next to it, nothing got pointed at until it matched
+                byte for byte
+              </Sent>
+              <Sent pos="last">
+                that&apos;s why it was 12 incremental phases, not one big rewrite.
+                every phase leaves the app shippable, and a bad step is one revert
+                from safe
+              </Sent>
+
+              <Timestamp>2:15 PM</Timestamp>
+
+              <Received>three different data access patterns though? isn&apos;t that a mess</Received>
+
+              <Sent pos="first">
+                partly showcase, i&apos;ll be honest. but it holds up because
+                every module hides its tool behind a repository. the service layer
+                has no idea if it&apos;s raw SQL or Drizzle underneath
+              </Sent>
+              <Sent pos="last">
+                same as a hook not caring if data came from fetch or react query.
+                the boundary caps the cost. and phase 10 puts that whole decision
+                back on trial in writing anyway
+              </Sent>
+
+              <Timestamp>2:18 PM</Timestamp>
+
+              <Received>where did the plan change</Received>
+
+              <Sent pos="first">
+                two big ones. the plan wanted every response wrapped in {"{ data }"}
+                {" "}but paul-explore expects raw bodies, so wrapping would break
+                the contract day one. shelved the prettier design, froze v1,
+                versioned v2
+              </Sent>
+              <Sent pos="last">
+                and the &quot;delete all the legacy JS&quot; step was too
+                aggressive. F1/fantasy still lean on python-queue plumbing that
+                was never ported. broke them, restored the files. that&apos;s the
+                strangler fig earning its keep tho, cost a restore not an outage
+              </Sent>
+
+              <Timestamp>2:22 PM</Timestamp>
+
+              <Received>what&apos;s the actual takeaway for a frontend dev</Received>
+
+              <Sent pos="first">
+                none of it needed a different brain. typed boundaries, stable
+                contracts, separation of concerns, caching by how fast data
+                changes, measure before you optimize
+              </Sent>
+              <Sent pos="last">
+                those are the same instincts behind a good component tree, just
+                pointed at the other end of the wire. frontend and backend are one
+                system and the same judgment makes both good
+              </Sent>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <section>
               <h2 className="mb-3 text-lg font-bold">
                 Why a frontend dev rebuilds a backend
               </h2>
@@ -607,98 +676,6 @@ export default function ApiBackendOverhaulContent() {
                 at risk, in any of the twelve phases.
               </p>
             </section>
-          </div>
-        </main>
-      ) : (
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
-              <Timestamp>Today 2:10 PM</Timestamp>
-
-              <Received>
-                you&apos;re a frontend dev, why are you rewriting a backend
-              </Received>
-
-              <Sent pos="first">
-                because i&apos;m the one who calls it all day. when a response
-                shape is sloppy or an endpoint 500s, the pain lands in the
-                frontend
-              </Sent>
-              <Sent pos="last">
-                a response body is a contract, same as a component&apos;s props.
-                the whole overhaul is just making that contract typed and
-                predictable end to end
-              </Sent>
-
-              <Timestamp>2:12 PM</Timestamp>
-
-              <Received>how do you rewrite something that&apos;s in prod</Received>
-
-              <Sent pos="first">
-                strangler fig. you don&apos;t swap, you grow the new thing
-                alongside the old. old JS kept serving live traffic while the new
-                TS was built next to it, nothing got pointed at until it matched
-                byte for byte
-              </Sent>
-              <Sent pos="last">
-                that&apos;s why it was 12 incremental phases, not one big rewrite.
-                every phase leaves the app shippable, and a bad step is one revert
-                from safe
-              </Sent>
-
-              <Timestamp>2:15 PM</Timestamp>
-
-              <Received>three different data access patterns though? isn&apos;t that a mess</Received>
-
-              <Sent pos="first">
-                partly showcase, i&apos;ll be honest. but it holds up because
-                every module hides its tool behind a repository. the service layer
-                has no idea if it&apos;s raw SQL or Drizzle underneath
-              </Sent>
-              <Sent pos="last">
-                same as a hook not caring if data came from fetch or react query.
-                the boundary caps the cost. and phase 10 puts that whole decision
-                back on trial in writing anyway
-              </Sent>
-
-              <Timestamp>2:18 PM</Timestamp>
-
-              <Received>where did the plan change</Received>
-
-              <Sent pos="first">
-                two big ones. the plan wanted every response wrapped in {"{ data }"}
-                {" "}but paul-explore expects raw bodies, so wrapping would break
-                the contract day one. shelved the prettier design, froze v1,
-                versioned v2
-              </Sent>
-              <Sent pos="last">
-                and the &quot;delete all the legacy JS&quot; step was too
-                aggressive. F1/fantasy still lean on python-queue plumbing that
-                was never ported. broke them, restored the files. that&apos;s the
-                strangler fig earning its keep tho, cost a restore not an outage
-              </Sent>
-
-              <Timestamp>2:22 PM</Timestamp>
-
-              <Received>what&apos;s the actual takeaway for a frontend dev</Received>
-
-              <Sent pos="first">
-                none of it needed a different brain. typed boundaries, stable
-                contracts, separation of concerns, caching by how fast data
-                changes, measure before you optimize
-              </Sent>
-              <Sent pos="last">
-                those are the same instincts behind a good component tree, just
-                pointed at the other end of the wire. frontend and backend are one
-                system and the same judgment makes both good
-              </Sent>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ThoughtLayout>
   );
 }

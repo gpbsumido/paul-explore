@@ -2,6 +2,7 @@
 
 import { formatDistanceToNow } from "date-fns";
 import { isSensorOffline } from "@/lib/operator-freshness";
+import { useLocaleDateTime } from "@/hooks/useLocaleDateTime";
 import { WarningTriangleIcon } from "./icons";
 
 interface SensorOfflineCalloutProps {
@@ -16,6 +17,8 @@ interface SensorOfflineCalloutProps {
 export default function SensorOfflineCallout({
   lastPing,
 }: SensorOfflineCalloutProps) {
+  // Called before the early return so the hook order stays stable.
+  const exactTime = useLocaleDateTime(lastPing);
   if (!isSensorOffline(lastPing)) return null;
 
   const date = new Date(lastPing);
@@ -29,7 +32,7 @@ export default function SensorOfflineCallout({
         </p>
         <p className="text-muted text-xs mt-0.5">
           Inventory data may be inaccurate. Last reading at{" "}
-          {date.toLocaleString()}.
+          {exactTime}.
         </p>
       </div>
     </div>

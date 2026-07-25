@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -110,7 +111,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -197,7 +198,7 @@ function StackQueueDemo() {
             {stackItems.map((item, i) => {
               const isTop = i === stackItems.length - 1;
               return (
-                <motion.div
+                <m.div
                   key={item}
                   className={[
                     "flex h-8 w-24 items-center justify-center rounded-sm border font-mono text-xs",
@@ -215,7 +216,7 @@ function StackQueueDemo() {
                   {isTop && (
                     <span className="ml-2 text-[10px] text-muted">← top</span>
                   )}
-                </motion.div>
+                </m.div>
               );
             })}
           </AnimatePresence>
@@ -239,7 +240,7 @@ function StackQueueDemo() {
             {queueItems.map((item, i) => {
               const isFront = i === 0;
               return (
-                <motion.div
+                <m.div
                   key={item}
                   className={[
                     "flex h-10 w-10 flex-col items-center justify-center rounded-sm border font-mono text-xs sm:h-12 sm:w-12",
@@ -257,7 +258,7 @@ function StackQueueDemo() {
                   {isFront && (
                     <span className="text-[9px] text-muted">front</span>
                   )}
-                </motion.div>
+                </m.div>
               );
             })}
           </AnimatePresence>
@@ -280,58 +281,13 @@ function StackQueueDemo() {
 
 function ParensDemo() {
   const [input, setInput] = useState(PARENS_PRESETS[0]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = useMemo(() => computeParensSteps(input), [input]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 800 },
+  );
   const step = steps[stepIdx];
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) {
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 800);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleInputChange = useCallback(
     (newInput: string) => {
@@ -371,7 +327,7 @@ function ParensDemo() {
           const isError = isMismatch && isCurrent;
 
           return (
-            <motion.div
+            <m.div
               key={`${input}-${i}`}
               className={[
                 "flex h-10 w-10 items-center justify-center rounded-sm border font-mono text-sm",
@@ -387,7 +343,7 @@ function ParensDemo() {
               transition={hoverSpring}
             >
               {char}
-            </motion.div>
+            </m.div>
           );
         })}
       </div>
@@ -403,7 +359,7 @@ function ParensDemo() {
               const isTop = i === step.stack.length - 1;
               const justPushed = step.action === "push" && isTop;
               return (
-                <motion.span
+                <m.span
                   key={`${i}-${char}`}
                   className={[
                     "inline-flex h-7 w-7 items-center justify-center rounded-sm border font-mono text-xs",
@@ -419,7 +375,7 @@ function ParensDemo() {
                   transition={hoverSpring}
                 >
                   {char}
-                </motion.span>
+                </m.span>
               );
             })}
           </AnimatePresence>
@@ -446,7 +402,7 @@ function ParensDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -459,7 +415,7 @@ function ParensDemo() {
                 {step.valid ? "valid" : "invalid"}
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -480,7 +436,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -489,7 +445,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { m, AnimatePresence, useInView } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -110,7 +111,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -151,58 +152,13 @@ function Narration({ text }: { text: string }) {
 
 function TwoSumDemo() {
   const [target, setTarget] = useState(TWO_SUM_TARGETS[0]);
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = useMemo(() => computeTwoSumSteps(target), [target]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 1200 },
+  );
   const step = steps[stepIdx];
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) {
-      setStepIdx(0);
-    }
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1200);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   const handleTargetChange = useCallback(
     (t: number) => {
@@ -282,7 +238,7 @@ function TwoSumDemo() {
 
           return (
             <div key={i} className="relative flex flex-col items-center">
-              <motion.div
+              <m.div
                 className={[
                   "flex h-10 w-10 items-center justify-center rounded-sm border font-mono text-sm sm:h-12 sm:w-12",
                   isFoundPair
@@ -297,7 +253,7 @@ function TwoSumDemo() {
                 transition={hoverSpring}
               >
                 {val}
-              </motion.div>
+              </m.div>
               <span className="mt-1 font-mono text-[10px] text-muted">{i}</span>
             </div>
           );
@@ -319,7 +275,7 @@ function TwoSumDemo() {
                 const isHighlighted =
                   step.found && entry.key === step.highlightMapKey;
                 return (
-                  <motion.div
+                  <m.div
                     key={`${entry.key}-${entry.value}`}
                     className={[
                       "flex border-b border-foreground/5 py-1 font-mono text-[13px]",
@@ -334,7 +290,7 @@ function TwoSumDemo() {
                   >
                     <span className="w-1/2">{entry.key}</span>
                     <span className="w-1/2">index {entry.value}</span>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </AnimatePresence>
@@ -359,7 +315,7 @@ function TwoSumDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -372,7 +328,7 @@ function TwoSumDemo() {
                 Pair found.
               </p>
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -465,7 +421,7 @@ function HashingDiagram() {
           const fromY = keys[a.from].y;
           const toY = buckets[a.to].y + 10;
           return (
-            <motion.path
+            <m.path
               key={i}
               d={`M 54 ${fromY} L 200 ${toY}`}
               strokeOpacity={0.35}
@@ -568,7 +524,7 @@ function SetDemo() {
         </span>
         <AnimatePresence>
           {currentSet.map((val) => (
-            <motion.span
+            <m.span
               key={val}
               className={[
                 "inline-flex h-6 items-center rounded-sm border px-2 font-mono text-xs transition-colors",
@@ -582,7 +538,7 @@ function SetDemo() {
               transition={hoverSpring}
             >
               {val}
-            </motion.span>
+            </m.span>
           ))}
         </AnimatePresence>
         {currentSet.length === 0 && (
@@ -607,7 +563,7 @@ function SetDemo() {
       <div className="mt-3 min-h-[1.5rem]">
         <AnimatePresence mode="wait">
           {message && (
-            <motion.p
+            <m.p
               key={message}
               className="font-mono text-[13px] text-muted"
               initial={{ opacity: 0, y: 6 }}
@@ -616,7 +572,7 @@ function SetDemo() {
               transition={{ duration: 0.15 }}
             >
               {message}
-            </motion.p>
+            </m.p>
           )}
         </AnimatePresence>
       </div>
@@ -638,7 +594,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -647,7 +603,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 

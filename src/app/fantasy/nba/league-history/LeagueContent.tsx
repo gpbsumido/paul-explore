@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui";
-import { selectChevron } from "@/assets/icons";
+import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import FantasyNav from "../FantasyNav";
 import type { ESPNLeagueResponse, ESPNTeam, ESPNMember } from "@/types/espn";
@@ -39,9 +38,9 @@ function getOwnerName(team: ESPNTeam, members: ESPNMember[]): string {
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 0) return null;
   let colors = "bg-surface-raised text-muted";
-  if (rank === 1) colors = "bg-green-500/15 text-green-600 dark:text-green-400";
+  if (rank === 1) colors = "bg-green-500/15 text-green-800 dark:text-green-400";
   else if (rank <= 3)
-    colors = "bg-blue-500/15 text-blue-600 dark:text-blue-400";
+    colors = "bg-blue-500/15 text-blue-800 dark:text-blue-400";
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${colors}`}
@@ -175,31 +174,23 @@ export default function LeagueContent() {
       <FantasyNav />
 
       {/* ---- Season selector ---- */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex items-center gap-3">
-          <span className="text-[13px] text-muted shrink-0">Season</span>
-          <select
-            className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50"
-            style={{
-              backgroundImage: selectChevron,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 10px center",
-              paddingRight: "28px",
-            }}
-            value={season}
-            onChange={handleSeasonChange}
-          >
-            {SEASONS.map((yr) => (
-              <option key={yr} value={yr}>
-                {yr - 1}–{yr} Season
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <FilterBar label="Season filter">
+        <Select
+          label="Season"
+          value={season}
+          onChange={handleSeasonChange}
+        >
+          {SEASONS.map((yr) => (
+            <option key={yr} value={yr}>
+              {yr - 1}–{yr} Season
+            </option>
+          ))}
+        </Select>
+      </FilterBar>
 
       {/* ---- Content ---- */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-6">
+        <h1 className="sr-only">League History</h1>
         {leagueQuery.isLoading && (
           <>
             <div className="h-4 w-40 rounded bg-surface-raised animate-pulse mb-4" />

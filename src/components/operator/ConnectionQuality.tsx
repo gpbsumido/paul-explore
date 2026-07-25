@@ -16,13 +16,13 @@ const CONFIG: Record<
 > = {
   strong: {
     label: "Strong signal",
-    color: "text-success-500",
+    color: "text-success-700 dark:text-success-500",
     bars: 3,
     offline: false,
   },
   weak: {
     label: "Weak signal",
-    color: "text-warning-500",
+    color: "text-warning-700 dark:text-warning-500",
     bars: 2,
     offline: false,
   },

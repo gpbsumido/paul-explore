@@ -18,4 +18,10 @@ export interface ThoughtItem {
   href: string;
   preview: string;
   color: string;
+  /**
+   * The write-up documents a feature that no longer exists in the app. It's
+   * kept (and reachable) as a page, but dropped from the graphs and shown in a
+   * "Deprecated" section on the /thoughts index.
+   */
+  deprecated?: boolean;
 }

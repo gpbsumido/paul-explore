@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { m, useInView, useReducedMotion } from "framer-motion";
 import Section from "./Section";
 import ModelLazyMount from "./models/ModelLazyMount";
 import {
@@ -41,7 +41,7 @@ export default function TcgSection() {
   return (
     <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-tcg) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
-        <motion.h2
+        <m.h2
           className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
@@ -49,9 +49,9 @@ export default function TcgSection() {
           transition={transition ?? { ...spring.smooth }}
         >
           Pokémon TCG Browser
-        </motion.h2>
+        </m.h2>
 
-        <motion.p
+        <m.p
           className="mx-auto mt-3 max-w-lg text-center text-foreground/70"
           variants={fadeUp}
           initial="hidden"
@@ -60,10 +60,10 @@ export default function TcgSection() {
         >
           Full card browser with infinite scroll, URL-synced filters, per-set
           grids, and deep card detail — built on the TCGdex SDK.
-        </motion.p>
+        </m.p>
 
         {/* 3D card fan — hover a featured card to lift it and reveal the tooltip */}
-        <motion.div
+        <m.div
           className="mt-10"
           variants={fadeUp}
           initial="hidden"
@@ -77,10 +77,10 @@ export default function TcgSection() {
           >
             <TcgSectionCanvas />
           </ModelLazyMount>
-        </motion.div>
+        </m.div>
 
         {/* Feature highlights */}
-        <motion.div
+        <m.div
           className="mt-8 grid gap-4 md:grid-cols-3"
           variants={fadeUp}
           initial="hidden"
@@ -98,9 +98,9 @@ export default function TcgSection() {
               </p>
             </div>
           ))}
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           className="mt-8 flex justify-center"
           variants={fadeUp}
           initial="hidden"
@@ -113,7 +113,7 @@ export default function TcgSection() {
           >
             Browse Pokémon TCG →
           </Link>
-        </motion.div>
+        </m.div>
       </div>
     </Section>
   );

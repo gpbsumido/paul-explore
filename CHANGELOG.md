@@ -1,112 +1,531 @@
 # Changelog
 
-## 2026-07-19 - version 0.17.2
+## 2026-07-25 - version 1.1.0
+
+- release to `main`, rolling up the recent develop work: the résumé page and its entry points (1.0.11), the shared `@paul-portfolio` `Ticker` migration (1.0.10), the v3 graph small/zoomed-viewport and interaction fixes (1.0.9), and the landing look-and-feel rollout across the app (1.0.8). See the entries below for details.
+
+## 2026-07-25 - version 1.0.11
+
+- served my résumé and made it an obvious, top-level destination. Added a public `/resume` page that embeds the PDF inline (with Download PDF and Word buttons and an open-in-new-tab fallback), and surfaced it in two places on both the guest landing and the signed-in hub: a warm-accent "Résumé" button in the graph header chrome, and a "Résumé" node wired off the root of the node graph (visible in both the force and flat views) in the same accent so they read as one thing. The files live in `public/resume` and are served statically. Since the page embeds its own PDF, the CSP now allows same-origin framing (`frame-src 'self'`, `frame-ancestors 'self'`); cross-origin framing, the actual clickjacking risk, stays blocked. The résumé node reuses the `category` node kind for its always-labelled styling, so the two tests that assert category nodes deep-link to `/thoughts` sections are scoped to the real `cat:*` categories. In the flat list's vertical (mobile) view the Résumé row now links straight to the page rather than being an empty expander, and on the résumé page the download actions moved from the fixed-height header (where "Download PDF" wrapped and overflowed on narrow screens) to a button row under the heading. Also added a Résumé link to the shared header menu (below the divider, above Settings) so it's reachable from every page.
+## 2026-07-25 - version 1.0.10
+
+- swapped the work-portfolio tickers over to the shared `@paul-portfolio` `Ticker` (scroll mode), now that it's published. Both this app and ketsup had grown their own ticker, so it got generalized into the design system; this drops the local `Ticker`, its css module, and the `useReducedMotionPref` hook (all extracted upstream) and imports the shared one instead. Same props (`label`/`edge`/`direction`) and same behaviour: ambient auto-scroll, pause on hover/touch, seamless cloned loop, and reduced-motion collapsing to a static single copy. Bumped `@paul-portfolio/react` to 0.4.4 and `@paul-portfolio/css` to 0.4.5, kept the translucent strip look with a `bg-surface/30` className, and updated the ticker test for the shared component's structure (`data-direction` sits on the labelled section now). All 836 tests green.
+## 2026-07-25 - version 1.0.9
+
+- reworked the v3 landing graph to hold up on small and zoomed-in viewports. The flat view now switches to the stacked vertical layout whenever the columns wouldn't fit without side-scrolling (measured against the container, not just a phone breakpoint), and that vertical list became a progressive-disclosure accordion like the column view. Hovering a flat node now reveals the full category column it connects to (a feature and its write-up) with only the connected nodes highlighted, and fixed a header/item misalignment where the intro tween was stripping each card's centring transform. In the force view the hover popover and the zoom-out hint moved below the header (they overlapped it once it wrapped when zoomed), the hint folds into the popover when the graph is too cramped to show it separately, and the "drag the nodes" idle hint shares that same slot so the popover replaces it the moment a node is hovered. The viewport fit now reserves the header and bottom-chrome bands so nodes settle clear of them, hovered nodes are hard-clamped inside the viewport so a fast spread can't fling them off-screen, and a drag-drop that ends on a node no longer opens it. The Graph/Flat choice is remembered in localStorage. Flat nodes no longer do a hover lift (it flickered as children opened), and a hover now lingers briefly after the pointer leaves so you can travel to the connected nodes it revealed before they hide.
+
+## 2026-07-24 - version 1.0.8
+
+- started extending the v3 landing page's look and feel to the rest of the app so it reads as one product. Extracted the landing's ambient backdrop (dotted grid + drifting aurora blobs) into a shared, accent-parameterised `AmbientBackground` — the landing's `GraphBackground` now just wraps it — and added a `.glass-card` utility (the landing's frosted, semi-transparent, backdrop-blurred surface, theme-aware and accent-tintable). Applied them, each tinted to the page's feature accent, across `/operator`, `/graphql`, `/fantasy/nba`, `/thoughts`, `/vitals` (all with glass cards), plus `/learn`, `/tcg/pokemon`, and `/calendar` (ambient behind the untouched grid). Tables and dense surfaces keep flat backgrounds for legibility. Also covered every `/thoughts/*` write-up page in one shot via the shared `ThoughtLayout`, and `/work-portfolio` via a bespoke integration (its opaque full-bleed content root is now transparent so the ambient shows through the ticker layout). Remaining: an optional `PageShell` convenience wrapper and an axe contrast sweep. See `docs/landing-look-rollout.md`.
+
+## 2026-07-24 - version 1.0.7
+
+- consolidated the five separate NBA/fantasy entries (Stats, Matchups, Court Vision, League History, Playoffs) into a single "Fantasy NBA" feature in the shared `FEATURES` list, so it reads as one thing under Apps everywhere it surfaces: the v3 landing graph (one node instead of five), the signed-in feature hub, and the v2 landing. Added a new `/fantasy/nba` hub page — a PageHeader + FantasyNav + a card grid linking out to all five pages — as the single entry point (there wasn't one before), and pointed the consolidated feature at it; its write-up bridge still goes to `/thoughts/playoffs`. Removed the four now-unused card-preview mockups (NBA/Matchups/Court Vision/League) and their data, keeping the playoffs preview for the consolidated card. Updated the v2 "NBA"/"Fantasy & NBA" category groupings to the new id. Verified in the browser: the hub renders and the graph shows one Fantasy NBA node.
+- added a "deprecated" concept for write-ups whose feature no longer exists. A `deprecated` flag on `ThoughtItem` drops the write-up from the graphs (node + any feature bridge), routes it into a trailing "Deprecated" section on the `/thoughts` index (with a badge on the card), and shows a banner on the write-up page — but the page stays reachable for the history. Marked **Search Bar** and **Messenger Auth Bug**. Verified in the browser: the Deprecated section + badges render, the pages show the banner, and neither node appears in the graph.
+- reordered `FEATURES` most-impressive-first (Operator, Work Portfolio, Learn, Fantasy NBA, Calendar, …), which sorts the flat Apps column, the graph's feature cluster, and the signed-in hub. Replaced the old `.reverse()` with an explicit order so the intent is readable.
+
+## 2026-07-24 - version 1.0.6
+
+- polished the v3 landing graph. A batch of fixes:
+  - **Graph view — the highlight now lingers so you can reach a hovered node's children.** Leaving a node used to release the focus immediately, which un-pinned it and let its (spread-out) children snap back before you could get to them. The release now waits out a grace window (cancelled the moment you hover another node), so you can travel to a child without the graph rearranging under you.
+  - **Flat view — main sections now read as sections.** The root, the Apps hub, and the category headers used to look almost identical to the leaf cards (only a slightly larger font). They now get a colour-tinted fill, a full-colour border, a glow, and a bigger dot, so the columns' headers stand out.
+  - **Flat view — hovering now actually dims the rest.** The intro animation's `clearProps` only cleared `transform`, leaving an inline `opacity: 1` on every node that overrode the hover-dim class, so hovering did nothing. Clearing opacity too lets the dim apply: hovering a node fades everything except it and its connected cluster (down to 0.2).
+  - **Graph view — the hover popover no longer covers nodes.** It was pinned at `top-24`, right on top of the categories that fan upward from the centre. Moved it to the top edge and, so a node never sits behind it at any viewport size, taught the simulation a keep-out: while the popover is up, nodes within its rectangle get pushed down past its bottom edge (read from the popover's real DOM rect, inverse-mapped through the frozen fit). The push isn't alpha-scaled so it holds at rest, skips pinned nodes (root and the focused node, which stays under the cursor), and releases when you move away. Verified in the browser: zero node centres under the panel, with a comfortable buffer.
+  - **Graph view — a focused node's neighbours no longer spread off screen.** Hovering a category with many write-ups pushed some of them past the viewport edge, because the fit is frozen during a hover (to hold the focused node under the cursor) so the graph can't zoom out. Added a containment force, active only while a hover is up, that pulls any node past the visible edge back inside — with extra clearance at the bottom so labels don't collide with the legend/hint chrome. Verified: hovering the busiest category leaves zero nodes off screen or over the bottom pills.
+  - **Flat view — the root node is no longer hidden behind the header.** `paul-explore` sat at the top of the column layout, under the ~120px fixed header. Dropped the root (and the column row below it) down so it clears the header.
+  - **Flat view — progressive disclosure.** The flat view now opens collapsed to just the root and its section headers (Apps + the thought categories). Hovering a header reveals that section's items; it stays open after you move away and only collapses when you hover a different header. Edges and the canvas height follow what's shown. Hovering a header never dims the other headers (they're the persistent navigation) — only hovering an item fades the rest, and never the headers.
+  - **Flat view — hovering a card expands it to its full label.** Cards truncate to fit their column; on hover the hovered card grows to its full, untruncated text and floats above the rest. It never shrinks below its resting width, so a short-label card (e.g. the root) doesn't shrink out from under the cursor and flicker.
+  - **Graph view — a "zoom out" hint when zoomed in.** When you've zoomed in or the viewport is genuinely tiny, a hint pill suggests zooming out — shown only when nothing is hovered so it never collides with the popover. Zoom is estimated absolutely (page zoom shrinks the CSS viewport while the window frame stays, so `outerWidth / innerWidth` ≈ the zoom factor), independent of the zoom level at page load.
+  - **Both views — the bottom chrome pills no longer overlap.** The centered interaction hint shared the bottom row with the legend and corner nav, so they collided at narrower/zoomed widths. The hint now lifts onto its own row below ~1400px and stays inline above it.
+
+## 2026-07-24 - version 1.0.5
+
+- fixed the landing graph's category nodes linking to the top of `/thoughts` instead of the matching section. Every category node (Design & UI, Performance, Security, …) had a hardcoded `href: "/thoughts"`, so clicking one dropped you at the page top with no indication of where its write-ups were. Added a shared `categoryAnchor()` helper, tagged each category `<section>` on the `/thoughts` index with that id (plus `scroll-mt-20` so the sticky header doesn't cover the heading), and pointed the category nodes at `/thoughts#<anchor>`. Individual write-up nodes already deep-linked correctly; this was only the category hubs. Tested: the anchor slugs, the graph hrefs, and a render cross-check that every category deep-link resolves to a real section on the index
+- made the deep link actually scroll on arrival. Because the index is client-rendered (and shows the loading.tsx skeleton first), the browser's one-shot hash jump fires before the target section is in the DOM and Next never retries, so `/thoughts#architecture-backend` sat at the top. Added a mount effect that re-runs the jump via `scrollIntoView` (which honours the section's scroll-mt). Verified in the browser: the section lands just below the sticky header
+
+## 2026-07-24 - version 1.0.4
+
+- trimmed the README down to what actually belongs in a repo README. It had grown to ~390 lines that reproduced the site itself — a per-feature deep-dive for every page, a "Key technical decisions" list, and an ~80-bullet "Things I learned" log, all of which are the live site's and the `/thoughts` write-ups' job to tell. Removed those three sections, condensed the two public/login feature lists into one compact index of links to the live routes (plus a pointer to `/thoughts`), and kept the parts a README is actually for: run-locally steps, tech-stack and deployment tables, and project structure. From 389 lines to ~140
+- corrected the feature/auth lists while trimming — the old README had wrong routes and wrong auth labels. Real auth-gated set (verified against prod: 307 to `/auth/login`) is exactly `/vitals`, `/settings`, and `/calendar*`, matching the `proxy.ts` middleware. Fixed: "NBA Stats" was listed as login-only but the fantasy NBA pages (including player stats at `/fantasy/nba/player/stats`) are public; the TCG browser is `/tcg/pokemon` not `/tcg`; the Pokédex is `/graphql` not `/pokedex`; there is no `/nba` route
+## 2026-07-23 - version 1.0.2
+
+- moved the learn-page demos off their hand-rolled play/step engines and onto the shared `useStepPlayer` hook. Fifteen widgets across nine lessons (two-pointers, binary-search, sliding-window, hash-maps, stacks-queues, dynamic-programming, recursion-backtracking, trees-graphs, async-patterns) each carried their own ~40-line copy of the same stepIdx + interval logic — the exact duplication the hook was extracted to kill. They now destructure `advance`, `play`, `stop`, `reset` from the hook and keep only their own bits: the visualization, and the target/preset/snippet pickers that reset the player before swapping data. Behavior is unchanged — the hook keeps the synchronous ref write so batched interval ticks stop exactly on the last step. Verified page by page: `tsc`, `eslint`, `next build` (all 14 learn routes prerender static), the hook's 6 unit tests, and a click-through of Play/Step/Reset on the migrated demos. That closes the second follow-up noted in 1.0.0
+
+## 2026-07-23 - version 1.0.1
+
+- finished the `ThoughtLayout` rollout: moved the remaining 33 chat-style write-ups off their hand-rolled scaffold and onto the shared component, using its toggle mode. Each page kept its own `useState` view flag, breadcrumb header, "Dev notes" eyebrow + heading + intro, and the summary/chat branch inline — now they pass `breadcrumb`, `title`, `intro`, `chat`, and their sections and let `ThoughtLayout` own the shell and the summary/chat toggle. Purely structural: the section and conversation content moved across verbatim (only the wrapper and its indentation changed), so nothing about how the pages read or render changed. One incidental tidy — `api-backend-overhaul` had used `space-y-12` for its section stack where every other page used `space-y-10`, so it now matches. That closes the follow-up noted in 1.0.0; the whole `/thoughts` section is on one layout, so a fix to the shell lands everywhere at once
+
+## 2026-07-23 - version 1.0.0
+
+- extracted the shared dev-notes scaffold every thoughts write-up had been repeating by hand into a single `ThoughtLayout` component. The page shell, the breadcrumb header (with the optional summary/chat toggle), and the "Dev notes" eyebrow + heading + intro of the summary view now live in one place, so a cross-cutting fix to any of them lands everywhere instead of being copy-pasted across pages. Migrated the two summary-only write-ups (`v3-redesign`, `project-review`) onto it as the pilot; the toggle-mode adoption for the remaining chat-style pages follows incrementally since each wires its own conversation content. Also caught a pre-existing contrast miss while in there — the "notes" tag on the v3 write-up was `text-muted` at 10px (3.8:1), now `text-foreground/70` — so both pages pass the axe scan at WCAG 2.1 AA and best-practice with zero violations. Ships as 1.0.0
+
+## 2026-07-23 - version 0.25.82
+
+- extracted the learn-page step player into a shared `useStepPlayer` hook. Each of the 14 lessons hand-rolled the same ~40-line play/step/reset engine — and the same play/advance off-by-one bug (a batched interval tick reading a stale index and overrunning the steps array) had to be fixed in every one of them. The hook owns that logic once, keeping the crucial detail: the step index is written to a ref synchronously inside advance/play, so ticks read a fresh value and stop exactly at the last step. It also adds the keyboard control the review wanted — an `onKeyDown` handler (arrows to step, space to play/pause) a focusable container can spread on. Unit-tested (6 tests: advance/back bounds, reset, play-to-end without overrun, replay-from-end, keys). The per-lesson migration onto the hook follows incrementally, since each lesson wires its own animation refs
+
+## 2026-07-23 - version 0.25.81
+
+- audited the direct `fetch()` calls in client components (the review flagged ~26 as possibly bypassing TanStack Query). The audit found the count was misleading: almost all are legitimate — inside a query/mutation `queryFn`, the fire-and-forget Web Vitals beacon (which must not be a Query), or lesson demos that are literally *about* `fetch`. The one genuine bypass was the referral-links demo recording a click with a raw lib call plus a manual `stats.refetch()`. Added a `useRecordReferralClick` mutation that invalidates the stats query on success, and moved the demo onto it — so the count updates through the cache, no manual refetch
+
+## 2026-07-23 - version 0.25.80
+
+- added a `withBackend()` wrapper so the authenticated BFF proxy routes stop repeating their auth + failure plumbing. Each proxy route hand-rolled the same shape: resolve the token (401 on failure), fetch the backend, catch a thrown network error into a 502, log. `withBackend(label, handler)` owns the auth and the 502-on-throw with consistent logging; routes keep only their own fetch + status mapping. Adopted it across the calendar event routes (calendars, events, events/[id]) — covering GET/POST/PUT/DELETE and dynamic params — as the proven pattern; the remaining proxy routes can move over incrementally. (The operator/tcg routes flagged in the review aren't proxies — local mock data / an SDK — so they don't need it.) Unit-tested: 401 when the token can't resolve, a clean 502 when the handler throws, and passthrough on success
+
+## 2026-07-23 - version 0.25.79
+
+- fixed the work-portfolio explainer dialog so it reliably closes on Escape. Two real bugs: Escape only closed the dialog when focus had already landed inside it (which raced the focus effect, and left mouse users — whose focus is still on the trigger — unable to close it at all), and a pending 350ms hover-to-open timer could immediately reopen what you just closed. Escape now closes it whenever it's open, and closing cancels the hover timer. The previously-flaky e2e is now deterministic (4/4)
+- added a one-line "what am I looking at" intro to the operator fleet dashboard so a cold visitor gets context before the dense grid
+
+## 2026-07-23 - version 0.25.78
+
+- de-duplicated the fantasy filter bars into two shared components. The four fantasy pages each hand-rolled the same `<section>` + styled `<select>` (7 copied selects, a per-file `selectChevron`/`selectStyle` pair) — the accessibility pass had to fix each one individually. Extracted a `LabelledSelect` UI primitive (label span + accessible name + the shared chevron styling, once) and a `FilterBar` wrapper (the named landmark + centered row) and moved court-vision, player-stats, matchups, and league-history onto them. The copied styles are gone; the next filter/a11y change is a one-file edit. Verified: the fantasy a11y e2e still pass
+
+## 2026-07-23 - version 0.25.77
+
+- v3 force-graph now has unit coverage (21 tests). The pure helpers were the riskiest, most-reused, least-tested code in the repo — `simulation.ts` and `graphData.ts` take plain data in and out but had no tests. Covers: the graph-data wiring (a node per feature/write-up, unique ids, every edge resolves, a bridge for every `thoughtsHref`, root wired to hub + categories) and the layered layout; and the physics — the root pins at the origin, forces behave (overlapping nodes repel, connected far-apart nodes spring together, lone nodes fall toward centre), alpha decays to its floor with finite positions, settled nodes never stack on one point, `reheat` only ever raises alpha, and the reduced-motion radial layout spreads to distinct points
+
+## 2026-07-23 - version 0.25.76
+
+- added `/thoughts/project-review`: an evidence-backed review of the whole codebase, gathered from an axe scan across every route, a lines-of-code/duplication census, a production build, and a test-file census. Findings, each with why-we-looked, pros/cons, and the expected gain: ~37% of `src` (~35,500 lines) is prose authored as React with no shared layout (highest-leverage refactor → MDX + a shared ThoughtLayout); the fantasy filter bar is copy-pasted 5× (7 duplicate selects); the v3 physics engine (1,503 lines, pure and load-bearing) has zero tests; BFF error handling is inconsistent (35/46 routes); the v3 landing carries product-grade engineering for a page most visitors skim (the honest answer to "did we overfit"); plus a per-feature UX pass and an ROI-ordered roadmap. Includes the one place with real before/after numbers — the accessibility work (2 → 14+3 scanned routes, AA → AA+best-practice, ~120 contrast + ~10 landmark violations → 0). registered it in the graph + thoughts index
+
+## 2026-07-23 - version 0.25.75
+
+- accessibility colour-contrast pass (WCAG AA) plus the remaining structural fixes across the last six public routes, so every public route now passes AA + axe best-practice. tinted-badge text (the GraphQL Pokémon type pills via `POKEMON_TYPE_COLORS`, and the fantasy/playoffs pills) is now theme-aware — a darker shade in light mode, the bright shade kept for dark; the fantasy matchup team colours (`#00D4FF` / `#FF6B35`) get accessible light-mode variants while the win-bar fills keep the brand colour; the motion-lab dark-UI label opacities were raised (and its gesture-card palette deepened one step so white labels clear contrast); operator status colours (success/warning) went theme-aware and its primary tab uses `primary-600`. structural fixes on the same routes: `<main>` on graphql/lab-motion, named `<section>` filter bars + named `<select>`s on the fantasy pages, the sr-only `h1`s moved inside `<main>`, a labelled + focusable scroll region in the motion lab, an accessible name on the leaderboard's spacer `<th>`, and the operator store-card heading promoted to `h2` for correct heading order. extended the public a11y e2e spec to all fourteen fixed routes
+- with this, the whole scanned surface — public routes here + the authenticated routes (calendar / vitals / settings) — is clean at AA + best-practice
+
+## 2026-07-23 - version 0.25.74
+
+- accessibility sweep across the rest of the public routes to meet AA + axe best-practice, for the routes whose only issues were structural. added `<main>` landmarks to `/tcg/pocket`, `/tcg/pokemon/sets`, and `/lab/particles`; named the previously-unnamed controls (the particle-lab range sliders and mouse-attraction toggle, and the fantasy team/player selects); wrapped the fantasy filter bars in named `<section>` landmarks and moved their sr-only `h1` inside `<main>`; and gave `PageHeader`'s breadcrumb nav an `aria-label` ("Breadcrumb") so it's distinguishable from a page's other navs — one shared fix that clears `landmark-unique` on every learn topic page. added public e2e a11y coverage for the eight now-clean routes (learn, learn/binary-search, work-portfolio, tcg/pocket, tcg/pokemon/sets, lab/particles, and the fantasy court-vision + player-stats pages). the routes that also need colour-contrast work (graphql, operator, lab/motion, some fantasy pages) are handled in the contrast follow-up
+
+## 2026-07-22 - version 0.25.73
+
+- raised the automated accessibility bar in the shared `checkA11y` e2e helper from WCAG 2.1 A/AA to AA + axe best-practice (a single main landmark, all content contained by landmarks, a top-level heading, non-redundant alt text, heading order), and fixed the routes it flagged: wrapped `/tcg/pokemon` (browse), `/tcg/pokemon/card/[cardId]` (detail), and `/calendar` content in `<main>`, and marked the browse card image decorative (`alt=""`) since the card name is already the link's visible text (`image-redundant-alt`). `/vitals` and `/settings` already had a main + heading. verified against the public landmark + axe e2e
+
+## 2026-07-22 - version 0.25.72
+
+- v3 landing: replaced the scrolling landing/hub with an interactive node graph of every feature and write-up, wired by category and by each feature's own notes (the existing `thoughtsHref`). two views toggled by a switch in the header — a draggable force-directed graph and a flat grouped-column layout. the force layout is a hand-rolled physics sim (repulsion, springs, gravity, collision) that runs in a rAF loop and is written straight to the DOM; it runs in an abstract coordinate space and the renderer fits-and-scales it to the viewport every frame, so "lay out" and "use the available space" are decoupled. on phones the flat view becomes a stacked, grouped list. GSAP for the intro reveal and click sparks; an animated aurora backdrop. wired into `page.tsx`'s `VERSIONS` registry as the current version — v1/v2 stay reachable via `?version=` and show a version-aware banner. new dependency: gsap
+- v3 interaction hardening: disabled native link drag (the nodes are anchors) so dragging actually works; freeze the viewport fit while dragging/focusing and pin the focused node so it stays under the cursor as neighbours push away; label-aware collision so label boxes (not just dots) never overlap; the neighbour push is delayed ~0.5s so the highlight locks in first
+- v3 accessibility: real `main` / `header` / `nav` landmarks and a single `h1`, a visible focus ring on every node with keyboard-openable links, `aria-hidden` on decorative layers, and a static reduced-motion layout — passes the axe WCAG 2.1 AA scan with zero violations
+- v3 performance: the rAF loop sleeps when the graph settles, positions are written to the DOM instead of through React state (no per-frame re-render), force/radius buffers are reused instead of allocated each frame, GSAP tweens are killed on unmount, and the flat view is dynamically imported so its code stays out of the initial bundle
+- added the `/thoughts/v3-redesign` write-up (design, the hand-rolled physics, the interaction bugs, the audit) and registered it in the graph + thoughts index
+
+## 2026-07-22 - version 0.25.68
+
+- added a doctor.config.json that mutes react-doctor's no-array-index-as-key rule after auditing all 65 hits (all static/append-only lists, recharts Cells, or pure-render maps; the reorderable lists already use stable ids). the rule key needs the react-doctor/ prefix or it silently no-ops. wrote up the audit and the config gotcha on the thoughts page
+
+## 2026-07-22 - version 0.25.67
+
+- react-doctor follow-up (framer-motion sample): mounted a LazyMotion provider app-wide (domMax features, non-strict) and converted three components from motion to the lighter m — proves the recipe before sweeping the remaining ~50 files. verified the converted components still animate. documented on the thoughts page
+- fixed a stepper overrun the new tests caught: the play/advance guard read stepIdxRef, but that ref is only refreshed by an effect after commit, so batched interval ticks read a stale value and ran stepIdx off the end of the steps array (crash). now the callbacks write the ref synchronously, so back-to-back ticks stop at the last step. also reset the ref on replay-from-end. applies to all nine learn steppers. wrote up the timing gap on the thoughts page
+
+## 2026-07-22 - version 0.25.66
+
+- added tests for the learn-page steppers: a parameterized suite over all nine pages that locks in the play/step/reset contract (stepping advances the counter, reset returns to the start, play runs to the last step and stops) — the behavior the recent react-doctor refactor touched, previously untested
+- added matchMedia, IntersectionObserver, and ResizeObserver polyfills to the shared test setup so component tests can render pages that use them
+
+## 2026-07-22 - version 0.25.65
+
+- updated the React Doctor thoughts page to close the loop on the stepper story: the "fought back" section now shows the correct fix shipped across all ten steppers, with a before/after
+
+## 2026-07-22 - version 0.25.64
+
+- react-doctor fixes: reworked the ten learn-page steppers so the play/advance controls stop the run from the interval/handler (via a synced ref) instead of calling stop() inside the setStepIdx updater — clears every impure-updater finding there with no setState-in-effect, and playback/step/reset behavior is unchanged
+
+## 2026-07-22 - version 0.25.63
+
+- Email Studio: swapped the imported-image preview from a raw <img> to next/image (fill + unoptimized, since it's a local data URL), clearing the last lint warning. documented on the thoughts page
+
+## 2026-07-22 - version 0.25.62
+
+- filled in the remaining before/after snippets on the React Doctor thoughts page (GraphQL typewriter, infinite calendar scroll, and the graphql proxy guard) so every fix on the PR has one
+
+## 2026-07-22 - version 0.25.61
+
+- react-doctor fixes: moved two operator timestamps' toLocaleString() out of render into a useSyncExternalStore hook (server renders empty, client fills in) so there's no hydration mismatch and no setState-in-effect. documented the fix on the thoughts page
+
+## 2026-07-22 - version 0.25.60
+
+- react-doctor fixes: memoized the Theme and Toast context values so consumers stop re-rendering on every provider render
+
+## 2026-07-22 - version 0.25.59
+
+- added before/after code snippets to each fix on the React Doctor thoughts page, including the before/attempt/correct triptych for the stepper fix that fought back
+
+## 2026-07-22 - version 0.25.58
+
+- added a "React Doctor" dev-thoughts page documenting the full journey of the static-analysis pass: the fixes that landed, the fix that fought back (and got reverted), the false positives, what was deferred and why, and what the tool got right and wrong
+
+## 2026-07-22 - version 0.25.57
+
+- react-doctor fixes: check response.ok before reading the body on the /api/me and calendar-cards fetches (fetch does not reject on 4xx/5xx), and guard the graphql proxy's json parse so a non-JSON upstream error can't throw
+
+## 2026-07-22 - version 0.25.56
+
+- react-doctor fixes: gave the NBA playoff auto-save effect a proper cleanup (aborts the in-flight save and clears the reset timer on unmount) so it can't set state after the component is gone
+- moved side effects out of state updater functions (which React may replay) in the game demo, weather + fleet-analytics preference toggles, the landing GraphQL typewriter, and the infinite calendar scroll — updaters are now pure, with the persistence/timer/scroll work done in effects or handlers
+- added an explicit type="button" to 48 buttons across 30 files (none in forms) so none of them can accidentally act as a submit
+
+## 2026-07-22 - version 0.25.55
+
+- work-portfolio now keeps both tickers pinned to the viewport and scrolls the demo area between them when it needs more height, instead of the page growing and pushing a ticker off screen
+- drove the ticker's ambient loop with scrollLeft instead of a CSS transform, which fixes the empty space you could scroll into (the transform had shifted the content out from under the scroll area)
+
+## 2026-07-22 - version 0.25.54
+
+- fixed NFT transfer-mode drag the same way as the Post Queue board: the dragged chip now follows the cursor across both wallet panes (drawn in a drag overlay instead of clipped inside its own pane) and drops wherever the pointer is
+
+## 2026-07-22 - version 0.25.53
+
+- work-portfolio tickers are now real horizontal scroll containers, so every project and feature chip is reachable by scrolling (wheel, trackpad, drag, or touch) instead of only appearing as the marquee passes. the ambient auto-scroll still runs and pauses on hover/touch; scrollbar is hidden
+- fixed the WalletConnect connect flow in the gamer-hub demo: allowed the WalletConnect verify iframe in the CSP frame-src, and patched the QR library (cuer's `qr` dep rejected the `border: 0` it is called with) so the connect QR renders instead of crashing the modal
+
+## 2026-07-22 - version 0.25.52
+
+- fixed Post Queue drag-and-drop: the dragged card now follows the cursor across columns (drawn in a drag overlay instead of clipped inside its own column) and you can drop it straight into any column, skipping over one, instead of only moving one column at a time
+
+## 2026-07-21 - version 0.25.51
+
+- fixed the work-portfolio wallet and referral demos being blocked by the Content-Security-Policy: allowed the referral API, the WalletConnect relay/endpoints, and the wallet RPC hosts in connect-src (plus wallet icons in img-src), and pinned the wagmi RPC endpoints so the allowed hosts stay in sync with what actually gets called
+
+## 2026-07-21 - version 0.25.50
+
+- final polish pass: updated the README for the rebuild (real wallet connect, referral service, drag-and-drop editors, simulated agent UI) and corrected the feature and project counts. full suite and axe a11y checks green
+
+## 2026-07-21 - version 0.25.49
+
+- rewrote every work-portfolio feature explainer into a longer, interview-style talk-through (what it did, the hard part, the skill shown) and brought the real-vs-mocked notes up to date with everything that became real across the rebuild
+
+## 2026-07-21 - version 0.25.48
+
+- LLM Assistant now shows the full set of agent-UI patterns (all simulated): an agent/chat mode toggle, a plan of steps that ticks off, the tool-call row running then done, streamed tokens, citation chips, and stop/retry controls
+
+## 2026-07-21 - version 0.25.47
+
+- Workflow Editor is now editable: drag nodes around the graph, edit a node's label and config in place, and add or remove connections between nodes
+
+## 2026-07-21 - version 0.25.46
+
+- Email Studio blocks are now editable in place (heading, body, button text type right in the preview) and image blocks import a local file straight to a data URL, no server
+
+## 2026-07-21 - version 0.25.45
+
+- Dashboard Designer drag-drop reworked on dnd-kit: drag a widget by its title onto another to drop it into that slot, or onto a trailing zone to send it to the end, so it lands in empty cells reliably. move and resize buttons still work
+
+## 2026-07-21 - version 0.25.44
+
+- Auth Flows fields are now actually typeable with inline validation (email format, password length, matching confirm, 6-digit code). still a walkthrough, nothing authenticates
+
+## 2026-07-21 - version 0.25.43
+
+- Referral Links now shows real click stats from the API, polling so the total ticks up, with a recent-clicks list and proper loading and empty states. an "open link" button records a click so you can watch it move
+
+## 2026-07-21 - version 0.25.42
+
+- Referral Links now creates real links against the portfolio_api: pick where it points on paulsumido.com, optionally name the slug, and the server enforces uniqueness (a taken slug comes back as a friendly error). shows the created link with copy
+
+## 2026-07-21 - version 0.25.41
+
+- UA Campaign Builder is now a stepped flow (basics, targeting, review) that only lets you move on once the campaign has a name, with the live preview card carrying across every step
+
+## 2026-07-21 - version 0.25.40
+
+- Web3 Gamer Hub now uses a real wallet connect (the shared wagmi/RainbowKit setup): connect a browser wallet and it shows your actual address, ENS, and balance. the NFT grid stays fixture data. the demo mounts its own Web3Provider so wallet code only loads here, not app-wide
+
+## 2026-07-21 - version 0.25.39
+
+- Web3 Gamer Hub: added a transfer mode with two wallet panes, drag an NFT from one to the other (or use the arrow button) to move it across, both grids update. simulated, no real transaction
+
+## 2026-07-21 - version 0.25.38
+
+- Web3 Gamer Hub: click an NFT to open a detail modal with its metadata, attributes, and a provenance/history timeline (fixture data)
+
+## 2026-07-21 - version 0.25.37
+
+- each Public Dashboards slug is now actually its own dashboard: different chart type (line, bar, area, radial), its own tiles, and metrics that read the right way (counts, percentages, dollars, latency) instead of the same layout recolored. added an acquisition slug too
+
+## 2026-07-21 - version 0.25.36
+
+- Public Dashboards now shows the JSON config each slug renders from, in a read-only syntax-highlighted panel, so you can see the config-in dashboard-out idea directly
+
+## 2026-07-21 - version 0.25.35
+
+- the Conference Game minigame now runs a 20-second round with a countdown, a game-over screen, a locally-persisted best score, and a play-again button
+
+## 2026-07-21 - version 0.25.34
+
+- fixed the Conference Game demo hanging on "building": the booth build now loads to 100% and drops into a small reflex minigame (tap the targets to score) instead of an endless spinner
+
+## 2026-07-21 - version 0.25.33
+
+- the AI Content Module can now "post to social (not really)": a confirm modal lets you pick a character voice (Hype Announcer, Grumpy Veteran, Lore Keeper, Meme Lord) and posts the copy restyled in that voice, streamed in
+
+## 2026-07-21 - version 0.25.32
+
+- Admin Suite rows can now reassign in place: move a user to another org, a key to another owner, or a config to another org, all persisted locally
+
+## 2026-07-21 - version 0.25.31
+
+- reworked the Admin Suite into a tabbed console (orgs, users, API keys, configs) with create flows that assign each new user/key/config to an org or user, plus per-key reveal/copy. Persists to local storage (local memory), no backend, via a new `usePersistentState` hook
+
+## 2026-07-21 - version 0.25.30
+
+- made the authenticated e2e login setup resilient to fix intermittent CI timeouts: it retries the Auth0 login once from a clean state, handles an occasional consent screen, and gives the login-to-app redirect a longer (45s) timeout
+
+## 2026-07-21 - version 0.25.29
+
+- reworked Per-title Dashboards (portal v1) into a config-driven view: one config array drives every title's dashboard, with a single mode that reskins per title and a compare mode that diffs two titles' KPIs with per-metric deltas and an overlaid chart
+
+## 2026-07-21 - version 0.25.28
+
+- computed the Pareto chart's cumulative line without a mutable render-scoped variable, satisfying the react-compiler immutability lint
+
+## 2026-07-21 - version 0.25.27
+
+- reworked Standard Analytics into an interactive dashboard: KPI cards double as metric selectors and a range (7/30/90d) and segment (all/new/returning) filter recompute a live area chart per domain tab. Also fixed the chart not drawing (recharts needs a definite-height parent)
+
+## 2026-07-21 - version 0.25.26
+
+- Chart Library charts can now be renamed and re-accented through a settings modal (opened from a gear on each chart); the accent recolors that chart's series via a scoped CSS variable
+
+## 2026-07-21 - version 0.25.25
+
+- Chart Library charts now use a shared design-system tooltip (a label plus a colored swatch and formatted value per series) instead of the default recharts one
+
+## 2026-07-21 - version 0.25.24
+
+- fixed the Chart Library focus mode: recharts charts rendered blank because their flex container measured zero height on mount; the focused chart now has a concrete min-height and renders
+
+## 2026-07-21 - version 0.25.23
+
+- expanded the Chart Library demo to all 17 chart types (added cohort heatmap, Pareto, sentiment word cloud, DAU trend/KPI, DAU-vs-MAU, session histogram, regional split, stacked revenue, correlation scatter, balance radar, and KPI tiles), all re-rolling on one seed
+
+## 2026-07-21 - version 0.25.22
+
+- removed unused `@dnd-kit/sortable` and `@dnd-kit/utilities`; the kanban only needs `@dnd-kit/core` (they can come back if a later drag demo needs sortable)
+
+## 2026-07-21 - version 0.25.21
+
+- Character Sheets now has a roster of characters and a stepped create modal (identity, then class, then the stat-point budget) for adding new ones
+
+## 2026-07-21 - version 0.25.20
+
+- Community Mode likes now tick up live on an interval, and clicking a post opens an analytics modal with its likes, replies, and a like-over-time trend
+
+## 2026-07-21 - version 0.25.19
+
+- Community Mode now lets you compose a new post or reply to a post through a modal; replies thread under their post with a count
+
+## 2026-07-20 - version 0.25.18
+
+- Post Queue kanban cards now open an edit modal on click (or keyboard activation) to change a post's title, scheduled day, and column
+
+## 2026-07-20 - version 0.25.17
+
+- reworked the Post Queue demo into a kanban board (Backlog / Scheduled / Published): cards drag between columns with dnd-kit, with keyboard-reachable move buttons as the accessible equivalent, and the week strip recomputes. Adds `@dnd-kit`
+
+## 2026-07-20 - version 0.25.16
+
+- scoped the wallet provider off the root layout so wagmi/RainbowKit and their telemetry no longer load (and trip the site CSP) on every page. It will mount around the gamer-hub NFT demo when that lands, keeping wallet code off pages that do not use it
+
+## 2026-07-20 - version 0.25.15
+
+- added a live store inspector to the Campaign Manager demo: a redux-devtools-style pane showing the dispatched-action log and a snapshot of the store, updating as you create and toggle campaigns
+
+## 2026-07-20 - version 0.25.14
+
+- reworked the Campaign Manager demo: creating a campaign now runs through a stepped modal (basics, then targeting/schedule, then a review) with progressive disclosure and per-step gating, backed by a reducer, instead of the inline one-field form
+
+## 2026-07-20 - version 0.25.13
+
+- marked the wallet/referral public exports (`ConnectWallet`, `useCreateReferral`, `useReferralStats`, `getReferral`) with `ts-prune-ignore-next` so the dead-code CI passes; the demos that consume them land in later phases
+
+## 2026-07-20 - version 0.25.12
+
+- added a typed client and react-query hooks for the portfolio_api referrals endpoints (create, resolve, click, stats), for the upcoming referral-links demo
+
+## 2026-07-20 - version 0.25.11
+
+- added a reusable `useWallet` hook (address, ENS, balance, connection status) and a design-system-styled `ConnectWallet` button, both usable anywhere under the wallet provider
+
+## 2026-07-20 - version 0.25.10
+
+- added app-wide wallet-connect support (wagmi + viem + RainbowKit) via a `Web3Provider` mounted in the root layout, themed to match light/dark. Groundwork for the gamer-hub wallet demo and reusable across the app. The WalletConnect project id reads from `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` (injected wallets work without it)
+
+## 2026-07-20 - version 0.25.9
+
+- trimmed the work-portfolio stage padding and gaps so the demo surface gets a bit more room, groundwork for the demos that now use the extra space
+
+## 2026-07-20 - version 0.25.8
+
+- the work-portfolio info popup now stays open once shown (whether opened by hover or click) until you dismiss it with the close button or Escape; hovering away or pressing outside no longer closes it
+
+## 2026-07-20 - version 0.25.7
+
+- removed the Economy & Financial Health demo from the work-portfolio catalog and registry; it overlapped too much with the other analytics demos to earn its slot in the revamp
+
+## 2026-07-20 - version 0.25.6
+
+- gave the Work Portfolio hub card an animated mini dual-ticker preview (two rows of accent-dotted chips marqueeing in opposite directions, mirroring the real feature) so it stands out, with a static fallback under prefers-reduced-motion
+
+## 2026-07-20 - version 0.25.5
+
+- reordered the feature categories on the hub and landing so Engineering, Labs, and the everyday tools lead, and filed Work Portfolio under Engineering in both places
+
+## 2026-07-20 - version 0.25.4
+
+- bumped `@paul-portfolio/css` to 0.4.1, which fixes the ghost button label losing contrast on hover in dark mode. The work-portfolio ticker chips read correctly on hover now
+
+## 2026-07-20 - version 0.25.3
+
+- removed the Streaming Ops demo and its Ops Console project from the work-portfolio catalog, registry, and tests, trimming the set down as part of the demo revamp
+
+## 2026-07-20 - version 0.25.2
+
+- updated menu settings to include Work Portfolio
+
+## 2026-07-20 - version 0.25.1
+
+- fixed the work-portfolio tickers so chips under the trailing (cloned) half of a marquee are clickable again. The aria-hidden clone was `inert`, which kills pointer events, so everything to the right of the last real chip (e.g. past Analytics Portal v2 in the top ticker, and intermittently in the bottom one) was a dead zone. The clone now stays out of the a11y tree and the tab order but is clickable
+- added the shared `PageHeader` to the work-portfolio page, so there's a back link to the dashboard and a light/dark theme toggle. The stage fills the space below it without scrolling
+- known follow-up: the ghost chip label loses contrast on hover in dark mode. That's a design-system bug (`.btn--ghost:hover` uses a fixed light neutral); fixed in `@paul-portfolio/css` 0.4.1 and lands here on the next dependency bump
+
+## 2026-07-19 - version 0.25.0
+
+- version-only bump to control merge order (sits after the ds-backed-primitives stack). No functional change
+
+## 2026-07-19 - version 0.24.0
+
+- version-only bump to control merge order (sits after the work-portfolio stack). No functional change
+
+## 2026-07-19 - version 0.23.5
 
 - bumped `@paul-portfolio/react` and `/css` to 0.2.0 and `/tokens` to 0.1.9, which add IconButton, Textarea, InfoTip, Switch, Spinner, and Divider to the shared design system
 - re-backed `components/ui/IconButton` onto the design system's `IconButton` (it was hand-rolled Tailwind before), so its styling now comes from the shared `.icon-btn` class like Button and Input already do. Kept it a thin wrapper so every call site keeps working. Left `Textarea` and `InfoTip` local for now: their local versions are richer than the new DS ones (a character counter / hideLabel on Textarea, rich `ReactNode` popover content on InfoTip), so backing those cleanly needs a DS enhancement rather than a lossy rewrap
-## 2026-07-19 - version 0.23.0
 
-- work-portfolio write-up and docs, closing out the feature. Added a `/thoughts/work-portfolio` dev-notes page (summary + chat views) covering the reasoning: reconstruction over emulation, anonymizing client work and enforcing it with a test, the no-new-deps rule, the dual-ticker UX and its click-a-moving-target tradeoff, and shipping the whole thing as merge-order-independent PRs. Registered it in the thoughts hub
-- listed the page in the README feature list and noted both routes in the architecture map
-## 2026-07-19 - version 0.22.1
+## 2026-07-19 - version 0.23.4
 
 - moved the content/ops/game demos onto design-system primitives: the campaign-manager name field and character-sheet name/class are `Input`, the character-sheet stat steppers and post-queue reorder controls are `IconButton`, and the streaming-ops run-script button is a `Button`. Accent CTAs (Create, Connect wallet, Start demo), the like buttons, and colored status toggles stay as-is
 
-
-## 2026-07-19 - version 0.22.0
-
-- wallet + NFT inventory demo from the gamer hub, the last of the 24: a fake wallet-connect that reveals an on-chain asset grid with rarity-tagged items. With this the whole demo set is wired, once all the demo PRs land every ticker feature has a real reconstruction behind it
-## 2026-07-19 - version 0.21.1
+## 2026-07-19 - version 0.23.3
 
 - moved the UA-batch demos onto design-system primitives: the signup wizard fields, campaign-builder name/reward, and referral handle are now `Input`; the signup Back / Start-over and admin reveal/copy buttons are `Button`. Accent CTAs (Next, Submit, Copy link, Generate), the budget slider, channel select, and template chips stay as-is
 
-
-## 2026-07-19 - version 0.21.0
-
-- auth flows demo, last of the UA batch: a walkthrough of the identity screens (sign in, verify email, reset password, wallet passport) with dot navigation and a next-screen cta. Read-only fields, nothing authenticates, it's the shape of the hosted-identity flows. Also moved the referral-links seed write off the synchronous effect path for lint
-
-
-## 2026-07-19 - version 0.18.6
-
-- conference game demo: a faux game-embed frame with a booth-build start screen and a running-scene state, plus a note on how the original streamed WebGL gameplay events back into the analytics pipeline. The real engine build isn't shipped, so this stands in for the embed pattern
-
-## 2026-07-19 - version 0.18.5
-
-- streaming ops demo from the ops console: a topic table with consumer-lag badges (green/amber by threshold) and a fake maintenance console that appends rebalance-script output on run. Brings in a copy of the seeded-RNG helper for this batch
-
-## 2026-07-19 - version 0.18.4
-
-- character sheet demo from the content engine: edit a game character's name and class and spend a 30-point stat budget across STR/AGI/INT/LCK with live bars, capped both per-stat and at the total budget
-
-## 2026-07-19 - version 0.18.3
-
-- community mode demo from the content engine: a likeable community feed with a per-post engagement bar and a running total, standing in for the posts and community-analytics views
-
-## 2026-07-19 - version 0.18.2
-
-- post queue demo from the content engine: a reorderable list of scheduled posts (move up/down) with a week strip that shows how many posts land each day, recomputed from the queue
-
-## 2026-07-19 - version 0.18.1
-
-- first content-batch demo, the content engine's campaign manager: a list with a create form and an inline draft/live status toggle, standing in for the original's CRUD routes
-- referral links demo from the UA tools: type a handle to mint a referral link, copy it, and watch a simulated click counter tick up (seeded off the handle so it's stable). Brings in a copy of the seeded-RNG helper for this batch
-
-## 2026-07-19 - version 0.18.5
-
-- campaign builder demo from the UA tools: a form (name, reward, budget slider, channel) with a live preview card that updates as you type, including an estimated-installs figure derived from the budget
-
-## 2026-07-19 - version 0.18.4
-
-- AI content module demo from the platform console: pick a template (patch notes, event teaser, store blurb), hit generate, and the canned copy streams in word by word. No model behind it, just the shape of the assisted-writing flow
-
-## 2026-07-19 - version 0.18.3
-
-- admin suite demo from the platform console: a members-and-roles table with color-coded role chips, plus a live API key you can reveal and copy (copy faked with local state, the key is obviously fake)
-
-## 2026-07-19 - version 0.18.2
-
-- signup flow depth: per-step validation (required fields plus a real email check) blocks advancing with inline errors, a campaign-attribution chip rides along from the entry link's utm source, and submitting lands on a completion screen that credits the campaign. Start-over resets it
-## 2026-07-19 - version 0.20.1
+## 2026-07-19 - version 0.23.2
 
 - moved the portal-v2 demos' neutral controls onto design-system primitives: the wallet-lookup address field and the LLM message field are now `Input`, the dashboard-designer palette and email-studio add-block buttons are `Button`, and the widget move/resize/remove controls are `IconButton`. Accent CTAs (Look up, Send), tabs, and segmented toggles stay as-is
 
+## 2026-07-19 - version 0.23.1
+
+- swapped the chart library's neutral controls onto design-system primitives: the Reroll button is now a `Button`, and the focus-mode prev/next are `IconButton`s from `@/components/ui`. Left the Grid/Focus segmented toggle custom (no segmented-control primitive)
+
+## 2026-07-19 - version 0.23.0
+
+- moved the work-portfolio chrome onto the app design-system primitives instead of hand-rolled buttons: the stage arrows, the chip info buttons, the explainer close, and the stage-header info button are now `IconButton`, and the ticker chip select body is a ghost `Button`, all from `@/components/ui` (which wraps `@paul-portfolio/react`). Kept the explainer window's anchored positioning custom since the shared `Modal` is centered-only
+
+## 2026-07-19 - version 0.22.1
+
+- work-portfolio write-up and docs, closing out the feature. Added a `/thoughts/work-portfolio` dev-notes page (summary + chat views) covering the reasoning: reconstruction over emulation, anonymizing client work and enforcing it with a test, the no-new-deps rule, the dual-ticker UX and its click-a-moving-target tradeoff, and shipping the whole thing as merge-order-independent PRs. Registered it in the thoughts hub
+- listed the page in the README feature list and noted both routes in the architecture map
+
+## 2026-07-19 - version 0.22.0
+
+- work-portfolio e2e coverage (public Playwright project): intro state, clicking a feature chip and a project chip, arrow + keyboard navigation, `?feature=` deep link, and the explainer window open/close. Freezes CSS animations in the ticker-click tests so the marquee can't move mid-click
+
+## 2026-07-19 - version 0.21.6
+
+- wallet + NFT inventory demo from the gamer hub, the last of the 24: a fake wallet-connect that reveals an on-chain asset grid with rarity-tagged items. With this the whole demo set is wired, once all the demo PRs land every ticker feature has a real reconstruction behind it
+
+## 2026-07-19 - version 0.21.5
+
+- conference game demo: a faux game-embed frame with a booth-build start screen and a running-scene state, plus a note on how the original streamed WebGL gameplay events back into the analytics pipeline. The real engine build isn't shipped, so this stands in for the embed pattern
+
+## 2026-07-19 - version 0.21.4
+
+- streaming ops demo from the ops console: a topic table with consumer-lag badges (green/amber by threshold) and a fake maintenance console that appends rebalance-script output on run. Brings in a copy of the seeded-RNG helper for this batch
+
+## 2026-07-19 - version 0.21.3
+
+- character sheet demo from the content engine: edit a game character's name and class and spend a 30-point stat budget across STR/AGI/INT/LCK with live bars, capped both per-stat and at the total budget
+
+## 2026-07-19 - version 0.21.2
+
+- community mode demo from the content engine: a likeable community feed with a per-post engagement bar and a running total, standing in for the posts and community-analytics views
+
+## 2026-07-19 - version 0.21.1
+
+- post queue demo from the content engine: a reorderable list of scheduled posts (move up/down) with a week strip that shows how many posts land each day, recomputed from the queue
+
+## 2026-07-19 - version 0.21.0
+
+- first content-batch demo, the content engine's campaign manager: a list with a create form and an inline draft/live status toggle, standing in for the original's CRUD routes
+
+## 2026-07-19 - version 0.20.6
+
+- auth flows demo, last of the UA batch: a walkthrough of the identity screens (sign in, verify email, reset password, wallet passport) with dot navigation and a next-screen cta. Read-only fields, nothing authenticates, it's the shape of the hosted-identity flows. Also moved the referral-links seed write off the synchronous effect path for lint
+
+## 2026-07-19 - version 0.20.5
+
+- referral links demo from the UA tools: type a handle to mint a referral link, copy it, and watch a simulated click counter tick up (seeded off the handle so it's stable). Brings in a copy of the seeded-RNG helper for this batch
+
+## 2026-07-19 - version 0.20.4
+
+- campaign builder demo from the UA tools: a form (name, reward, budget slider, channel) with a live preview card that updates as you type, including an estimated-installs figure derived from the budget
+
+## 2026-07-19 - version 0.20.3
+
+- AI content module demo from the platform console: pick a template (patch notes, event teaser, store blurb), hit generate, and the canned copy streams in word by word. No model behind it, just the shape of the assisted-writing flow
+
+## 2026-07-19 - version 0.20.2
+
+- admin suite demo from the platform console: a members-and-roles table with color-coded role chips, plus a live API key you can reveal and copy (copy faked with local state, the key is obviously fake)
+
+## 2026-07-19 - version 0.20.1
+
+- signup flow depth: per-step validation (required fields plus a real email check) blocks advancing with inline errors, a campaign-attribution chip rides along from the entry link's utm source, and submitting lands on a completion screen that credits the campaign. Start-over resets it
 
 ## 2026-07-19 - version 0.20.0
+
+- first UA-batch demo, the driver signup flow shell: a three-step wizard (contact, vehicle, review) with a step indicator and back/next navigation that carries entered values through to the review step. Validation, campaign attribution, and the completion screen come next
+
+## 2026-07-19 - version 0.19.7
 
 - workflow editor demo, the last of the portal-v2 batch: a hand-built SVG node graph (trigger, filters, enrich, action with connecting edges) where clicking a node shows its read-only config below. Stands in for the original's node-graph library plus code editor
 - decoupled the stage placeholder test from any specific slug (it now renders the coming-soon demo directly) so wiring a demo can't break it, and moved the wallet-lookup loading flag off the effect path to satisfy the render-safety lint rule
 
-
-## 2026-07-19 - version 0.18.7
+## 2026-07-19 - version 0.19.6
 
 - email studio demo from portal v2: a block-based email composer (add heading/text/button/image blocks to a live preview) next to a campaign table with per-campaign status chips and open rates
 
-## 2026-07-19 - version 0.18.6
+## 2026-07-19 - version 0.19.5
 
 - LLM assistant tool-call rows: each answer now runs a fake tool first (query_warehouse, segment_players, search_docs) shown as a monospace row that ticks from running to done before the text streams. Makes it read like a real agent, retrieve then answer, not just a canned chatbot
-## 2026-07-19 - version 0.19.1
 
-- swapped the chart library's neutral controls onto design-system primitives: the Reroll button is now a `Button`, and the focus-mode prev/next are `IconButton`s from `@/components/ui`. Left the Grid/Focus segmented toggle custom (no segmented-control primitive)
-
-
-## 2026-07-19 - version 0.19.0
-
-- slug-driven dashboards demo, the last of the analytics batch: a slug picker (`/d/<slug>`) that reshapes one dashboard entirely from config, different tiles, chart type, and accent per slug, which was the whole idea of the original catch-all route. Also tidied a couple of unused imports the linter flagged in the chart library
-
-
-## 2026-07-19 - version 0.18.5
+## 2026-07-19 - version 0.19.4
 
 - LLM assistant demo, chat shell: a chat surface that streams canned answers word by word, routed by keyword (retention, revenue, whales) with a fallback. Suggestion chips and a text input, send disabled while a response streams. Tool-call rows come next
 
-
-## 2026-07-19 - version 0.18.4
+## 2026-07-19 - version 0.19.3
 
 - wallet lookup depth: the NFTs tab shows a rarity-tagged asset grid (or an empty state for wallets with none) and the Transactions tab a send/receive history. Switching to a data-heavy tab shows a brief skeleton-loading state first, like the original waiting on the chain-data API
 
-
-## 2026-07-19 - version 0.18.3
+## 2026-07-19 - version 0.19.2
 
 - wallet lookup demo, shell: paste (or pick a sample) address and get an overview card of balance, tokens, NFTs, and first-seen, with Overview / NFTs / Transactions tabs. Data is a deterministic fake keyed off the address so the same address always resolves the same, no chain calls. NFT and transaction tabs come next
+
+## 2026-07-19 - version 0.19.1
+
+- dashboard designer gets its interactivity: widgets reorder by pointer drag or with left/right move buttons, and resize between one and two columns with a size toggle. Kept the button controls alongside drag so the reorder is keyboard-reachable and testable, not drag-only
+
+## 2026-07-19 - version 0.19.0
+
+- first portal-v2 demo, the dashboard designer shell. The original used a gridstack drag-drop engine; this rebuilds the idea as a CSS-grid canvas you compose from a widget palette (KPI tile, trend line, bar chart), with per-widget remove and an empty state. Reorder and resize come next. Carries a copy of the seeded-RNG helper so this demo batch stands alone
+
+## 2026-07-19 - version 0.18.6
+
+- slug-driven dashboards demo, the last of the analytics batch: a slug picker (`/d/<slug>`) that reshapes one dashboard entirely from config, different tiles, chart type, and accent per slug, which was the whole idea of the original catch-all route. Also tidied a couple of unused imports the linter flagged in the chart library
+
+## 2026-07-19 - version 0.18.5
+
 - economy and financial-health demo from portal v1: a faucet-vs-sink bar chart for an in-game currency next to a KPI grid (net supply, sink ratio, whales, inflation) that color-flags supply pressure
 
 ## 2026-07-19 - version 0.18.4
@@ -117,27 +536,18 @@
 
 - standard analytics demo: the domain-split dashboard sections from the analytics suite. Tabs for Game / Web / On-chain / Sandbox, each swapping its own KPI trio and bar chart. Per-tab numbers are deterministic so switching back and forth is stable
 
-
 ## 2026-07-19 - version 0.18.2
 
-- dashboard designer gets its interactivity: widgets reorder by pointer drag or with left/right move buttons, and resize between one and two columns with a size toggle. Kept the button controls alongside drag so the reorder is keyboard-reachable and testable, not drag-only
 - chart library demo gets its depth: two more chart types (a radial engagement gauge and a ranked-titles bar table) and a Grid/Focus toggle. Focus mode blows one chart up full-size with prev/next to page through all six, so it reads like the real thing where you drill into a single visualization
-
 
 ## 2026-07-19 - version 0.18.1
 
-- work-portfolio e2e coverage (public Playwright project): intro state, clicking a feature chip and a project chip, arrow + keyboard navigation, `?feature=` deep link, and the explainer window open/close. Freezes CSS animations in the ticker-click tests so the marquee can't move mid-click
-- first UA-batch demo, the driver signup flow shell: a three-step wizard (contact, vehicle, review) with a step indicator and back/next navigation that carries entered values through to the review step. Validation, campaign attribution, and the completion screen come next
-- first portal-v2 demo, the dashboard designer shell. The original used a gridstack drag-drop engine; this rebuilds the idea as a CSS-grid canvas you compose from a widget palette (KPI tile, trend line, bar chart), with per-widget remove and an empty state. Reorder and resize come next. Carries a copy of the seeded-RNG helper so this demo batch stands alone
 - first work-portfolio demo: the analytics chart library. The original was 17 documented ECharts components, this rebuilds a representative board on recharts (growth curve, conversion funnel, retention bars, revenue donut). All four charts share one seed so a Reroll button re-rolls the whole board at once, off a small seeded RNG. Wired into the demo registry so it replaces the coming-soon placeholder
-- moved the work-portfolio chrome onto the app design-system primitives instead of hand-rolled buttons: the stage arrows, the chip info buttons, the explainer close, and the stage-header info button are now `IconButton`, and the ticker chip select body is a ghost `Button`, all from `@/components/ui` (which wraps `@paul-portfolio/react`). Kept the explainer window's anchored positioning custom since the shared `Modal` is centered-only
-
 
 ## 2026-07-19 - version 0.18.0
 
 - work-portfolio base is feature-complete. Accessibility pass: the stage announces selection changes through a polite live region, and axe scans of both the intro and a selected demo come back clean. Reworked the stage layout so the demo surface fills ~95% of the space between the two tickers (compact header row, arrows hugging the edges) instead of sitting small in the middle
 - tightened a few things the linter caught along the way: the demo registry now resolves every slug to a component at module scope so render code does a plain lookup, the explainer's key handling moved to a document listener (a dialog is a container, not an interactive element), and the deep-link and reduced-motion effects defer their state writes off the synchronous effect path
-
 
 ## 2026-07-18 - version 0.17.12
 
@@ -185,11 +595,11 @@
 - started the work-portfolio feature: a single page at `/work-portfolio` that will demo features from 11 past projects as self-contained reconstructions. This commit lays the data spine: a typed catalog of 11 anonymized projects and 24 features (5 flagged as flagships), the route with metadata and a layout-matched loading skeleton, and an intro card as the stage's resting state
 - everything in the catalog is deliberately anonymized (no employer or client names), enforced by a unit test that scans every work-portfolio source file for a banned-name list so a slip can't ship
 
-
 ## 2026-07-18 - version 0.17.1
 
 - added the `/thoughts/bundlers` dev-notes page and registered it in the THOUGHTS hub. It writes up which bundler this project runs (Turbopack, the Next 16 default for dev and build; webpack only for `pnpm analyze` because the analyzer doesn't support Turbopack), whether it's the right call (yes, and the split setup is best-practice), and the real decision drivers behind when a lead reaches for a different bundler entirely — library output (Rollup/tsup), CLI speed (esbuild), webpack-config migration (Rspack), Module Federation (webpack/Rspack), the framework deciding for you (Vite), and zero-config spikes (Parcel)
 - the through-line is the mental model: you don't pick a bundler in the abstract, the deliverable and the dominant constraint pick it. Ties back to the `@paul-portfolio/*` packages this site consumes as the concrete "now you'd use a library bundler" case. Summary and chat views, same pattern as the other thoughts pages
+
 ## 2026-07-18 - version 0.17.0
 
 - added the `/thoughts/tree-shaking` dev-notes page and registered it in the THOUGHTS hub. It's the public write-up of this whole pass, and it leans into the reasoning rather than the diff: the three kinds of dead weight (shipped bundle vs. deploy weight vs. source hygiene) and why they pay off in different currencies, why removing an unused export is not a bundle win, the two findings that looked identical to their tools but needed opposite calls (`gltf-transform` kept, the v1 hero components deleted), and the blocking-vs-advisory trade-off behind putting the checks in CI. Summary and chat views, same pattern as the other thoughts pages
@@ -198,8 +608,8 @@
 ## 2026-07-18 - version 0.16.14
 
 - cleaned up the cascade left behind by removing the calendar read-side and the duplicate `FleetStats` in 0.16.11. Those functions were the last consumers of a few imports and schemas, which only showed up once the new CI checks and ESLint ran over the result — a nice demonstration that no single tool sees everything
-- ESLint flagged the now-unused imports (`EventSearchFilters`, `eventsResponseSchema`, `cardsResponseSchema` in `lib/calendar.ts`, `fleetStatsSchema` in `types/operator.ts`) that `ts-prune` can't see because they're unused *imports*, not exports. Removed them
-- removing those imports then orphaned two *exports* — `cardsResponseSchema` (`lib/schemas.ts`) and the `EventSearchFilters` type (`types/calendar.ts`) — which the new blocking `deadexports` check caught. Removed those too. `eventsResponseSchema` and `fleetStatsSchema` survived because other code still uses them. tsc, lint, and dead-code checks all green
+- ESLint flagged the now-unused imports (`EventSearchFilters`, `eventsResponseSchema`, `cardsResponseSchema` in `lib/calendar.ts`, `fleetStatsSchema` in `types/operator.ts`) that `ts-prune` can't see because they're unused _imports_, not exports. Removed them
+- removing those imports then orphaned two _exports_ — `cardsResponseSchema` (`lib/schemas.ts`) and the `EventSearchFilters` type (`types/calendar.ts`) — which the new blocking `deadexports` check caught. Removed those too. `eventsResponseSchema` and `fleetStatsSchema` survived because other code still uses them. tsc, lint, and dead-code checks all green
 
 ## 2026-07-18 - version 0.16.13
 
@@ -216,7 +626,7 @@
 
 ## 2026-07-18 - version 0.16.11
 
-- removed a batch of dead exports that `ts-prune` flagged and I verified by hand (grepped the whole repo, including co-located tests, for each symbol — every one appeared only in its own definition file). Because these are unused *exports* from modules that are otherwise imported, the bundler already tree-shakes them out, so this is source-hygiene, not a bundle-size win. `tsc` and all 626 tests stay green
+- removed a batch of dead exports that `ts-prune` flagged and I verified by hand (grepped the whole repo, including co-located tests, for each symbol — every one appeared only in its own definition file). Because these are unused _exports_ from modules that are otherwise imported, the bundler already tree-shakes them out, so this is source-hygiene, not a bundle-size win. `tsc` and all 626 tests stay green
 - deleted two orphaned components: `PageIntro.tsx` and `PageLayout.tsx` (nothing rendered them)
 - dropped unused animation variants `fadeIn` and `calendarSlide` from `lib/animations.ts`
 - dropped the dead read-side of `lib/calendar.ts` (`fetchEvents`, `fetchEvent`, `searchEvents`, `fetchEventCards`, `eventsForHour`). The calendar feature fetches through other paths now; the write-side CRUD (`createEvent`/`updateEvent`/`deleteEvent`) is still live and untouched. The response schemas these used are shared with the API routes, so nothing cascaded

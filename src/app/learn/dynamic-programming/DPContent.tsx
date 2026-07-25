@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import PageHeader from "@/components/PageHeader";
+import { useStepPlayer } from "@/hooks/useStepPlayer";
 import { spring, fadeInUp, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -236,7 +237,7 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -277,7 +278,7 @@ function Section({
   transition: typeof spring.smooth | typeof instantTransition;
 }) {
   return (
-    <motion.section
+    <m.section
       className={className}
       variants={fadeInUp}
       initial="hidden"
@@ -286,7 +287,7 @@ function Section({
       transition={transition}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -295,56 +296,13 @@ function Section({
 // ---------------------------------------------------------------------------
 
 function FibBottomUpDemo() {
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const steps = FIB_TABLE_STEPS;
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 600 },
+  );
   const step = steps[stepIdx];
-
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) setStepIdx(0);
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 600);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
 
   return (
     <div>
@@ -380,14 +338,14 @@ function FibBottomUpDemo() {
             >
               <AnimatePresence>
                 {isFilled && (
-                  <motion.span
+                  <m.span
                     key={`v-${i}`}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 0.8, scale: 1 }}
                     transition={hoverSpring}
                   >
                     {val}
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -412,7 +370,7 @@ function FibBottomUpDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -420,7 +378,7 @@ function FibBottomUpDemo() {
             transition={{ duration: 0.15 }}
           >
             <Narration text={step.narration} />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -440,68 +398,24 @@ const GRID_PRESETS = [
 
 function UniquePathsDemo() {
   const [presetIdx, setPresetIdx] = useState(1);
-  const [stepIdx, setStepIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { rows, cols } = GRID_PRESETS[presetIdx];
   const grid = useMemo(() => computeGrid(rows, cols), [rows, cols]);
   const steps = useMemo(() => computePathsSteps(rows, cols), [rows, cols]);
+  const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
+    steps.length,
+    { intervalMs: 400 },
+  );
   const step = steps[stepIdx];
 
   const filledSet = useMemo(() => new Set(step.filled), [step.filled]);
 
-  const stop = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setPlaying(false);
-  }, []);
-
-  const advance = useCallback(() => {
-    setStepIdx((prev) => {
-      if (prev >= steps.length - 1) {
-        stop();
-        return prev;
-      }
-      return prev + 1;
-    });
-  }, [steps.length, stop]);
-
-  const play = useCallback(() => {
-    if (stepIdx >= steps.length - 1) setStepIdx(0);
-    setPlaying(true);
-    intervalRef.current = setInterval(() => {
-      if (document.hidden) return;
-      setStepIdx((prev) => {
-        if (prev >= steps.length - 1) {
-          stop();
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 400);
-  }, [stepIdx, steps.length, stop]);
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  const reset = useCallback(() => {
-    stop();
-    setStepIdx(0);
-  }, [stop]);
-
   const handlePreset = useCallback(
     (idx: number) => {
-      stop();
-      setStepIdx(0);
+      reset();
       setPresetIdx(idx);
     },
-    [stop],
+    [reset],
   );
 
   return (
@@ -548,7 +462,7 @@ function UniquePathsDemo() {
             >
               <AnimatePresence>
                 {isFilled && (
-                  <motion.span
+                  <m.span
                     key={`p-${key}`}
                     className={
                       isActive ? "text-foreground" : "text-foreground/60"
@@ -558,7 +472,7 @@ function UniquePathsDemo() {
                     transition={hoverSpring}
                   >
                     {grid[r][c]}
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </div>
@@ -583,7 +497,7 @@ function UniquePathsDemo() {
       {/* Narration */}
       <div className="mt-4 min-h-[2.5rem]">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={stepIdx}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -591,7 +505,7 @@ function UniquePathsDemo() {
             transition={{ duration: 0.15 }}
           >
             <Narration text={step.narration} />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -659,7 +573,7 @@ function ClimbingStairsDemo() {
         const cx = pad + i * stepW + stepW / 2;
         const cy = groundY - (i + 1) * stepH + stepH / 2 + 5;
         return (
-          <motion.text
+          <m.text
             key={`w-${i}`}
             x={cx}
             textAnchor="middle"
@@ -673,7 +587,7 @@ function ClimbingStairsDemo() {
             transition={{ ...hoverSpring, delay: i * 0.12 }}
           >
             {STAIR_WAYS[i + 1]}
-          </motion.text>
+          </m.text>
         );
       })}
 

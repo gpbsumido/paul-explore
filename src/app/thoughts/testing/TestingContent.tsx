@@ -1,267 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function TestingContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Testing" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Testing
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              640+ tests (623 unit + 17 e2e) — Vitest, Testing Library, MSW, and
+    <ThoughtLayout
+      breadcrumb="Testing"
+      title="Testing"
+      intro={
+        <>
+          640+ tests (623 unit + 17 e2e) — Vitest, Testing Library, MSW, and
               Playwright. Pure functions first, then hooks with fetch mocking,
               with a specific technique for proving that optimistic updates
               actually fire before the server responds.
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">The gap</h2>
-              <p className="text-muted">
-                One principle that should be followed and be non-negotiable is
-                Test-Driven Development (TDD). This codebase, before the change,
-                had zero test files. The goal was to close that gap by targeting
-                the parts of the codebase that are actually worth testing: the
-                rate limiter, the calendar layout algorithm, the vitals
-                formatting, and the hooks with their optimistic update behavior.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Setup</h2>
-              <ul className="mt-2 space-y-2 text-muted">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">Vitest</strong> as the
-                    runner with jsdom environment — same config format as Vite,
-                    fast, no Jest compatibility layer needed
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">Testing Library</strong>{" "}
-                    for{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      renderHook
-                    </code>{" "}
-                    and{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      waitFor
-                    </code>{" "}
-                    — both are needed for anything that touches React Query
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">MSW</strong> in node
-                    mode for intercepting fetch calls in the hooks — the same
-                    library used for browser mocking, just with the node
-                    adapter. Configured with{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      onUnhandledRequest: &quot;error&quot;
-                    </code>{" "}
-                    so any fetch without a registered handler fails the test
-                    immediately instead of silently passing
-                  </span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">What got tested</h2>
-              <ul className="mt-2 space-y-2 text-muted">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">Rate limiter</strong> —
-                    allow/block behavior, remaining count, window reset, IP
-                    isolation, bucket isolation. Pure function, fake timers
-                    advance the clock without sleeping
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">
-                      Calendar pure functions
-                    </strong>{" "}
-                    — event filtering by day, all-day vs timed event
-                    classification, spanning event ordering, and the overlap
-                    layout algorithm that assigns column positions so
-                    simultaneous events appear side by side
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">
-                      Vitals formatting
-                    </strong>{" "}
-                    — millisecond vs second display, CLS decimal formatting, and
-                    the good/needs improvement/poor color thresholds for all
-                    five metrics
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">
-                      Proxy rule matching
-                    </strong>{" "}
-                    — the rate limit rule table is tested in isolation without
-                    importing the full proxy module, which would pull in{" "}
-                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                      next/server
-                    </code>{" "}
-                    and Auth0 and require a Next.js runtime
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">
-                      useCalendarEvents and useCountdowns
-                    </strong>{" "}
-                    — fetch, SSR seeding, error states, and create/update/delete
-                    with both optimistic updates and rollback on failure
-                  </span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Testing optimistic updates properly
-              </h2>
-              <p className="text-muted">
-                The first attempt at testing optimistic updates used a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  fetchCount
-                </code>{" "}
-                variable to make the GET handler return different data on first
-                vs subsequent calls. It worked, but it was testing the wrong
-                thing — it verified the end state after a completed mutation
-                cycle, not whether the cache updated before the server
-                responded.
-              </p>
-              <p className="mt-3 text-muted">
-                The fix is{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  delay()
-                </code>{" "}
-                from MSW. Add a 300ms pause to the POST/PUT/DELETE handler, then
-                fire the mutation without awaiting it. The mutation is still
-                in-flight when the assertion runs, so the test is checking the
-                actual optimistic state — what the user sees before the server
-                has responded.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                The overlap layout algorithm
-              </h2>
-              <p className="text-muted">
-                The calendar&apos;s{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  layoutDayEvents
-                </code>{" "}
-                function takes a list of same-day timed events and assigns each
-                one a column index and a total column count, so they can be
-                absolutely positioned side by side in the time grid. The tests
-                cover: a single event gets column 0 of 1, two non-overlapping
-                events share column 0, two overlapping events get separate
-                columns, three simultaneous events get three columns each
-                reporting{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  totalColumns: 3
-                </code>
-                , and pixel positions derived from the row height constant. This
-                is the kind of logic that looks simple but has enough edge cases
-                to be worth specifying in tests.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">CI and deploy gates</h2>
-              <p className="text-muted">
-                Tests only matter if they run automatically. A GitHub Actions
-                workflow runs typecheck and the full unit suite on every push to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  main
-                </code>{" "}
-                and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  develop
-                </code>
-                , and on every PR targeting{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  main
-                </code>
-                . A second job runs after the first passes: it installs
-                Chromium, boots the dev server, and runs the public Playwright
-                suite — which includes axe-core accessibility scans on the
-                landing page, TCG browser, and card detail page. A WCAG 2.1 AA
-                violation blocks the merge just like a failing unit test. Vercel
-                deploys are gated on both checks passing.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Factory functions</h2>
-              <p className="text-muted">
-                Every test uses factory functions instead of shared fixtures.{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  makeEvent()
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  makeCountdown()
-                </code>
-                , and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  makePage()
-                </code>{" "}
-                accept optional overrides and return fresh objects with
-                randomized IDs. No{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  let
-                </code>{" "}
-                declarations, no{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  beforeEach
-                </code>{" "}
-                mutations. Each test constructs exactly what it needs and
-                nothing is shared between tests.
-              </p>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         <div className="flex justify-center">
           <div
             className={styles.phone}
@@ -484,7 +240,231 @@ await waitFor(() =>
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">The gap</h2>
+              <p className="text-muted">
+                One principle that should be followed and be non-negotiable is
+                Test-Driven Development (TDD). This codebase, before the change,
+                had zero test files. The goal was to close that gap by targeting
+                the parts of the codebase that are actually worth testing: the
+                rate limiter, the calendar layout algorithm, the vitals
+                formatting, and the hooks with their optimistic update behavior.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Setup</h2>
+              <ul className="mt-2 space-y-2 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">Vitest</strong> as the
+                    runner with jsdom environment — same config format as Vite,
+                    fast, no Jest compatibility layer needed
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">Testing Library</strong>{" "}
+                    for{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      renderHook
+                    </code>{" "}
+                    and{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      waitFor
+                    </code>{" "}
+                    — both are needed for anything that touches React Query
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">MSW</strong> in node
+                    mode for intercepting fetch calls in the hooks — the same
+                    library used for browser mocking, just with the node
+                    adapter. Configured with{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      onUnhandledRequest: &quot;error&quot;
+                    </code>{" "}
+                    so any fetch without a registered handler fails the test
+                    immediately instead of silently passing
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">What got tested</h2>
+              <ul className="mt-2 space-y-2 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">Rate limiter</strong> —
+                    allow/block behavior, remaining count, window reset, IP
+                    isolation, bucket isolation. Pure function, fake timers
+                    advance the clock without sleeping
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">
+                      Calendar pure functions
+                    </strong>{" "}
+                    — event filtering by day, all-day vs timed event
+                    classification, spanning event ordering, and the overlap
+                    layout algorithm that assigns column positions so
+                    simultaneous events appear side by side
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">
+                      Vitals formatting
+                    </strong>{" "}
+                    — millisecond vs second display, CLS decimal formatting, and
+                    the good/needs improvement/poor color thresholds for all
+                    five metrics
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">
+                      Proxy rule matching
+                    </strong>{" "}
+                    — the rate limit rule table is tested in isolation without
+                    importing the full proxy module, which would pull in{" "}
+                    <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                      next/server
+                    </code>{" "}
+                    and Auth0 and require a Next.js runtime
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">
+                      useCalendarEvents and useCountdowns
+                    </strong>{" "}
+                    — fetch, SSR seeding, error states, and create/update/delete
+                    with both optimistic updates and rollback on failure
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Testing optimistic updates properly
+              </h2>
+              <p className="text-muted">
+                The first attempt at testing optimistic updates used a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  fetchCount
+                </code>{" "}
+                variable to make the GET handler return different data on first
+                vs subsequent calls. It worked, but it was testing the wrong
+                thing — it verified the end state after a completed mutation
+                cycle, not whether the cache updated before the server
+                responded.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  delay()
+                </code>{" "}
+                from MSW. Add a 300ms pause to the POST/PUT/DELETE handler, then
+                fire the mutation without awaiting it. The mutation is still
+                in-flight when the assertion runs, so the test is checking the
+                actual optimistic state — what the user sees before the server
+                has responded.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                The overlap layout algorithm
+              </h2>
+              <p className="text-muted">
+                The calendar&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  layoutDayEvents
+                </code>{" "}
+                function takes a list of same-day timed events and assigns each
+                one a column index and a total column count, so they can be
+                absolutely positioned side by side in the time grid. The tests
+                cover: a single event gets column 0 of 1, two non-overlapping
+                events share column 0, two overlapping events get separate
+                columns, three simultaneous events get three columns each
+                reporting{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  totalColumns: 3
+                </code>
+                , and pixel positions derived from the row height constant. This
+                is the kind of logic that looks simple but has enough edge cases
+                to be worth specifying in tests.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">CI and deploy gates</h2>
+              <p className="text-muted">
+                Tests only matter if they run automatically. A GitHub Actions
+                workflow runs typecheck and the full unit suite on every push to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  main
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  develop
+                </code>
+                , and on every PR targeting{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  main
+                </code>
+                . A second job runs after the first passes: it installs
+                Chromium, boots the dev server, and runs the public Playwright
+                suite — which includes axe-core accessibility scans on the
+                landing page, TCG browser, and card detail page. A WCAG 2.1 AA
+                violation blocks the merge just like a failing unit test. Vercel
+                deploys are gated on both checks passing.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Factory functions</h2>
+              <p className="text-muted">
+                Every test uses factory functions instead of shared fixtures.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  makeEvent()
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  makeCountdown()
+                </code>
+                , and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  makePage()
+                </code>{" "}
+                accept optional overrides and return fresh objects with
+                randomized IDs. No{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  let
+                </code>{" "}
+                declarations, no{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  beforeEach
+                </code>{" "}
+                mutations. Each test constructs exactly what it needs and
+                nothing is shared between tests.
+              </p>
+            </section>
+    </ThoughtLayout>
   );
 }

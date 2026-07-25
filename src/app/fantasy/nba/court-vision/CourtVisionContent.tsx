@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui";
-import { selectChevron } from "@/assets/icons";
+import { Button, FilterBar, Select } from "@/components/ui";
 import { queryKeys } from "@/lib/queryKeys";
 import FantasyNav from "../FantasyNav";
 import CourtSVG from "./CourtSVG";
@@ -72,15 +71,6 @@ export default function CourtVisionContent() {
 
   const topLevelError = teamsQuery.isError || playersQuery.isError;
 
-  const selectClass =
-    "h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-foreground font-sans outline-none appearance-none cursor-pointer transition-colors hover:border-foreground/30 focus:border-foreground/50";
-  const selectStyle = {
-    backgroundImage: selectChevron,
-    backgroundRepeat: "no-repeat" as const,
-    backgroundPosition: "right 10px center",
-    paddingRight: "28px",
-  };
-
   return (
     <div className="min-h-dvh bg-background font-sans">
       <PageHeader
@@ -92,43 +82,38 @@ export default function CourtVisionContent() {
       <FantasyNav />
 
       {/* Team + player selector */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
-          <span className="text-[13px] text-muted shrink-0">Team</span>
-          <select
-            className={selectClass}
-            style={selectStyle}
-            value={selectedTeamId ?? ""}
-            onChange={handleTeamChange}
-          >
-            <option value="">Select a team…</option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.full_name}
-              </option>
-            ))}
-          </select>
+      <FilterBar label="Team and player filters">
+        <Select
+          label="Team"
+          value={selectedTeamId ?? ""}
+          onChange={handleTeamChange}
+        >
+          <option value="">Select a team…</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.full_name}
+            </option>
+          ))}
+        </Select>
 
-          <span className="text-[13px] text-muted shrink-0">Player</span>
-          <select
-            className={selectClass}
-            style={selectStyle}
-            value={playerId ?? ""}
-            onChange={handlePlayerChange}
-            disabled={!selectedTeamId || players.length === 0}
-          >
-            <option value="">Select a player…</option>
-            {players.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.first_name} {p.last_name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+        <Select
+          label="Player"
+          value={playerId ?? ""}
+          onChange={handlePlayerChange}
+          disabled={!selectedTeamId || players.length === 0}
+        >
+          <option value="">Select a player…</option>
+          {players.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.first_name} {p.last_name}
+            </option>
+          ))}
+        </Select>
+      </FilterBar>
 
       {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8" aria-live="polite">
+        <h1 className="sr-only">Court Vision</h1>
         <div className="mb-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-[13px] text-amber-400/80">
           This page is a work in progress. Shot data is currently mock data and
           doesn&apos;t reflect real shooting numbers yet.

@@ -51,7 +51,7 @@ export default async function CardDetailPage({
         ]}
       />
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-10">
           {/* Card image — sticky on wide screens */}
           {card.image && (
@@ -242,7 +242,7 @@ export default async function CardDetailPage({
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

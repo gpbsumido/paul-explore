@@ -1,191 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function GraphQLThoughtsContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "GraphQL" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              GraphQL Pokédex
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A Pokémon browser on PokeAPI&apos;s public Hasura endpoint — plain
+    <ThoughtLayout
+      breadcrumb="GraphQL"
+      title="GraphQL Pokédex"
+      intro={
+        <>
+          A Pokémon browser on PokeAPI&apos;s public Hasura endpoint — plain
               fetch over Apollo, server-side initial data, and useInfiniteQuery
               pagination.
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Why GraphQL over REST</h2>
-              <p className="text-muted">
-                The PokeAPI REST endpoint returns a massive JSON blob per
-                Pokémon — game versions, form descriptions, encounter data —
-                most of which a card view ignores. GraphQL lets you ask for
-                exactly what the card needs. The PokeAPI v2 endpoint is powered
-                by Hasura, which introspects the Postgres database and
-                auto-generates the entire schema. Every table and relationship
-                becomes queryable with filtering, sorting, aggregates, and
-                nested joins — no resolvers written by hand.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Why plain fetch over Apollo Client
-              </h2>
-              <p className="text-muted">
-                Apollo Client adds around 60kb gzipped to the client bundle.
-                GraphQL is just HTTP — a POST request with a JSON body
-                containing{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  query
-                </code>{" "}
-                and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  variables
-                </code>
-                . Plain fetch handles that in about 10 lines. A client library
-                earns its cost when you need a normalized cache, optimistic
-                mutations, or real-time subscriptions. None of those are needed
-                here, so the library would just be weight.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Variables over interpolation
-              </h2>
-              <p className="text-muted">
-                The query string itself is a constant that never changes — only
-                the variables object changes with user input. This means the
-                network tab always shows the same query shape, which makes
-                debugging easier and lets Hasura cache the parsed query on its
-                side. Interpolation also opens the door to injection: someone
-                passing{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  {"}) { id } query Anything {"}
-                </code>{" "}
-                as a search string could restructure the query entirely.
-                Variables are always treated as scalars, never as query syntax.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Server-side initial data
-              </h2>
-              <p className="text-muted">
-                Page 1 is fetched server-side via a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  fetchPokemonDirect
-                </code>{" "}
-                function that calls PokeAPI straight from the server — no proxy
-                needed, since server code doesn&apos;t have CSP constraints. It
-                passes{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  next: {"{"} revalidate: 3600 {"}"}
-                </code>{" "}
-                to the underlying fetch so repeated renders within an hour hit
-                Next.js&apos;s data cache. The page wraps the server component
-                in a Suspense boundary with a skeleton fallback — the skeleton
-                streams immediately while the fetch resolves, then the real grid
-                drops in.
-              </p>
-              <p className="mt-3 text-muted">
-                The{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  initialData
-                </code>{" "}
-                prop goes straight into the{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useInfiniteQuery
-                </code>{" "}
-                cache as the first page. TanStack treats it as fresh for 30
-                seconds and skips the initial fetch. The seed only applies to
-                the no-filter key — passing it unconditionally caused a bug
-                where filtered queries got seeded with unfiltered server data
-                and the 30-second stale time prevented the filter fetch from
-                firing.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                useInfiniteQuery and the CSP proxy
-              </h2>
-              <p className="text-muted">
-                The original implementation used manual{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  loadedKey
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  filterKey
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  hasServerData
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  abortRef
-                </code>
-                , and offset state. After converting to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useInfiniteQuery
-                </code>{" "}
-                all of that is gone. The query key includes{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  debouncedName
-                </code>{" "}
-                and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  activeType
-                </code>{" "}
-                — when either changes, TanStack cancels the in-flight request
-                and fires a fresh fetch automatically.
-              </p>
-              <p className="mt-3 text-muted">
-                The{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /api/graphql
-                </code>{" "}
-                proxy route forwards the POST body upstream to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  beta.pokeapi.co/graphql/v1beta
-                </code>
-                . It exists because the app&apos;s CSP locks{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  connect-src
-                </code>{" "}
-                to same-origin, so the browser can&apos;t reach the upstream URL
-                directly. Secondary benefit: the upstream URL stays out of the
-                client bundle entirely.
-              </p>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         <div className="flex justify-center">
           <div
             className={styles.phone}
@@ -550,7 +381,156 @@ async function gql(query, variables, signal) {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">Why GraphQL over REST</h2>
+              <p className="text-muted">
+                The PokeAPI REST endpoint returns a massive JSON blob per
+                Pokémon — game versions, form descriptions, encounter data —
+                most of which a card view ignores. GraphQL lets you ask for
+                exactly what the card needs. The PokeAPI v2 endpoint is powered
+                by Hasura, which introspects the Postgres database and
+                auto-generates the entire schema. Every table and relationship
+                becomes queryable with filtering, sorting, aggregates, and
+                nested joins — no resolvers written by hand.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Why plain fetch over Apollo Client
+              </h2>
+              <p className="text-muted">
+                Apollo Client adds around 60kb gzipped to the client bundle.
+                GraphQL is just HTTP — a POST request with a JSON body
+                containing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  query
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  variables
+                </code>
+                . Plain fetch handles that in about 10 lines. A client library
+                earns its cost when you need a normalized cache, optimistic
+                mutations, or real-time subscriptions. None of those are needed
+                here, so the library would just be weight.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Variables over interpolation
+              </h2>
+              <p className="text-muted">
+                The query string itself is a constant that never changes — only
+                the variables object changes with user input. This means the
+                network tab always shows the same query shape, which makes
+                debugging easier and lets Hasura cache the parsed query on its
+                side. Interpolation also opens the door to injection: someone
+                passing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"}) { id } query Anything {"}
+                </code>{" "}
+                as a search string could restructure the query entirely.
+                Variables are always treated as scalars, never as query syntax.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Server-side initial data
+              </h2>
+              <p className="text-muted">
+                Page 1 is fetched server-side via a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  fetchPokemonDirect
+                </code>{" "}
+                function that calls PokeAPI straight from the server — no proxy
+                needed, since server code doesn&apos;t have CSP constraints. It
+                passes{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  next: {"{"} revalidate: 3600 {"}"}
+                </code>{" "}
+                to the underlying fetch so repeated renders within an hour hit
+                Next.js&apos;s data cache. The page wraps the server component
+                in a Suspense boundary with a skeleton fallback — the skeleton
+                streams immediately while the fetch resolves, then the real grid
+                drops in.
+              </p>
+              <p className="mt-3 text-muted">
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  initialData
+                </code>{" "}
+                prop goes straight into the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>{" "}
+                cache as the first page. TanStack treats it as fresh for 30
+                seconds and skips the initial fetch. The seed only applies to
+                the no-filter key — passing it unconditionally caused a bug
+                where filtered queries got seeded with unfiltered server data
+                and the 30-second stale time prevented the filter fetch from
+                firing.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                useInfiniteQuery and the CSP proxy
+              </h2>
+              <p className="text-muted">
+                The original implementation used manual{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  loadedKey
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  filterKey
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  hasServerData
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  abortRef
+                </code>
+                , and offset state. After converting to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useInfiniteQuery
+                </code>{" "}
+                all of that is gone. The query key includes{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  debouncedName
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  activeType
+                </code>{" "}
+                — when either changes, TanStack cancels the in-flight request
+                and fires a fresh fetch automatically.
+              </p>
+              <p className="mt-3 text-muted">
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/graphql
+                </code>{" "}
+                proxy route forwards the POST body upstream to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  beta.pokeapi.co/graphql/v1beta
+                </code>
+                . It exists because the app&apos;s CSP locks{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  connect-src
+                </code>{" "}
+                to same-origin, so the browser can&apos;t reach the upstream URL
+                directly. Secondary benefit: the upstream URL stays out of the
+                client bundle entirely.
+              </p>
+            </section>
+    </ThoughtLayout>
   );
 }

@@ -32,14 +32,18 @@ const CSP = [
   `default-src 'self'`,
   `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://vercel.live https://va.vercel-scripts.com`,
   `style-src 'self' 'unsafe-inline'`,
-  `img-src 'self' blob: data: https://assets.tcgdex.net https://raw.githubusercontent.com https://a.espncdn.com`,
+  `img-src 'self' blob: data: https://assets.tcgdex.net https://raw.githubusercontent.com https://a.espncdn.com https://explorer-api.walletconnect.com`,
   `font-src 'self'`,
-  `connect-src 'self' blob: https://vitals.vercel-insights.com https://vercel.live https://api.open-meteo.com`,
-  `frame-src https://vercel.live`,
+  `connect-src 'self' blob: https://vitals.vercel-insights.com https://vercel.live https://api.open-meteo.com https://api.paulsumido.com https://ethereum-rpc.publicnode.com https://ethereum-sepolia-rpc.publicnode.com wss://relay.walletconnect.org https://relay.walletconnect.org https://explorer-api.walletconnect.com https://api.web3modal.org https://pulse.walletconnect.org`,
+  // 'self' lets the résumé page embed its own PDF in an iframe; frame-ancestors
+  // below still stops anyone else from framing us.
+  `frame-src 'self' https://vercel.live https://verify.walletconnect.org https://verify.walletconnect.com`,
   `object-src 'none'`,
   `base-uri 'self'`,
   `form-action 'self'`,
-  `frame-ancestors 'none'`,
+  // 'self' (not 'none') so the résumé page can frame its own PDF; cross-origin
+  // framing — the actual clickjacking risk — is still blocked.
+  `frame-ancestors 'self'`,
 ].join("; ");
 
 /**

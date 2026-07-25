@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { ShotZone } from "@/types/nba";
 
 /** Zone color by FG%: cold (<35%), average (35-48%), hot (>48%). */
@@ -72,7 +72,7 @@ export default function CourtSVG({ zones, loading }: Props) {
               : "rgba(255,255,255,0.02)";
 
           return (
-            <motion.path
+            <m.path
               key={zone}
               d={path}
               fill={fill}

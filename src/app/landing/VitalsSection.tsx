@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
-  motion,
+  m,
   useInView,
   useReducedMotion,
   useSpring,
@@ -89,7 +89,7 @@ function AnimatedBar({
 
   return (
     <div className="h-1 w-full overflow-hidden rounded-full bg-foreground/10">
-      <motion.div
+      <m.div
         className={`h-full rounded-full ${RATING_BAR[rating]}`}
         style={{ width: widthPct }}
       />
@@ -133,7 +133,7 @@ function AnimatedStat({
     return <span className={className}>{inView ? value : "—"}</span>;
   }
 
-  return <motion.span className={className}>{displayed}</motion.span>;
+  return <m.span className={className}>{displayed}</m.span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -150,7 +150,7 @@ function RatingBadge({
   prefersReduced: boolean;
 }) {
   return (
-    <motion.div
+    <m.div
       className={`h-1.5 w-1.5 shrink-0 rounded-full ${RATING_DOT[rating]}`}
       initial={{ scale: 0, opacity: 0 }}
       animate={inView ? { scale: 1, opacity: 1 } : undefined}
@@ -176,7 +176,7 @@ export default function VitalsSection() {
   return (
     <Section glow="radial-gradient(ellipse at 80% 50%, color-mix(in srgb, var(--color-feature-vitals) 5%, transparent) 0%, transparent 60%)">
       <div ref={ref}>
-        <motion.h2
+        <m.h2
           className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
@@ -184,9 +184,9 @@ export default function VitalsSection() {
           transition={transition ?? { ...spring.smooth }}
         >
           Web Vitals Dashboard
-        </motion.h2>
+        </m.h2>
 
-        <motion.p
+        <m.p
           className="mx-auto mt-3 max-w-lg text-center text-foreground/70"
           variants={fadeUp}
           initial="hidden"
@@ -196,13 +196,13 @@ export default function VitalsSection() {
           Real-user Core Web Vitals collected from every page load. P75 scores
           aggregated in Postgres and displayed on a protected dashboard — field
           data, not lab simulations.
-        </motion.p>
+        </m.p>
 
         {/* Speedometer — hidden on mobile: the portrait aspect ratio causes the
             model to clip outside the view frustum, leaving only the Html
             hotspot dots floating in empty space. */}
         <div className="hidden md:block">
-          <motion.div
+          <m.div
             className="mt-10"
             variants={fadeUp}
             initial="hidden"
@@ -217,11 +217,11 @@ export default function VitalsSection() {
                 prefersReduced={prefersReduced}
               />
             </ModelLazyMount>
-          </motion.div>
+          </m.div>
         </div>
 
         {/* Three primary stat cards — LCP, INP, CLS */}
-        <motion.div
+        <m.div
           className="mt-6 grid grid-cols-3 gap-2 sm:gap-4"
           variants={fadeUp}
           initial="hidden"
@@ -273,10 +273,10 @@ export default function VitalsSection() {
               </div>
             </div>
           ))}
-        </motion.div>
+        </m.div>
 
         {/* Feature highlights */}
-        <motion.div
+        <m.div
           className="mt-8 grid gap-4 md:grid-cols-3"
           variants={fadeUp}
           initial="hidden"
@@ -294,9 +294,9 @@ export default function VitalsSection() {
               </p>
             </div>
           ))}
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           className="mt-8 flex justify-center"
           variants={fadeUp}
           initial="hidden"
@@ -309,7 +309,7 @@ export default function VitalsSection() {
           >
             Log in to view →
           </a>
-        </motion.div>
+        </m.div>
       </div>
     </Section>
   );

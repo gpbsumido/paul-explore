@@ -1,310 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Sent, Received, Timestamp } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function UIRedesignContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "UI Redesign" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              UI Redesign
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Why the zero-dependency constraint gave way to Framer Motion, how
+    <ThoughtLayout
+      breadcrumb="UI Redesign"
+      title="UI Redesign"
+      intro={
+        <>
+          Why the zero-dependency constraint gave way to Framer Motion, how
               the B&W + pastel system works, and what&apos;s measurably better
               versus what&apos;s a design bet.
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Why Framer Motion</h2>
-              <p className="text-muted">
-                The zero-dependency constraint forced understanding what the
-                browser can do on its own — that was worth doing. But it had a
-                real limitation: exit animations don&apos;t exist in CSS. When a
-                modal closes it just vanishes. CSS transitions only animate
-                between states that are both in the DOM. Framer Motion solves
-                that with{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  AnimatePresence
-                </code>{" "}
-                — it holds the element in the tree long enough for the exit
-                animation to finish, then removes it.
-              </p>
-              <p className="mt-3 text-muted">
-                The old approach also had spring configs scattered everywhere —
-                inline{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  transition
-                </code>{" "}
-                objects with different stiffness values in every file. The new
-                system has a single{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  src/lib/animations.ts
-                </code>{" "}
-                with named spring presets:{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  snappy
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  smooth
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  bounce
-                </code>
-                ,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  gentle
-                </code>
-                . Change one value there and every component that references it
-                updates.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                B&W + pastel accent system
-              </h2>
-              <p className="text-muted">
-                The old design treated all eight features the same — same card
-                color, same border, same typography. Assigning each feature its
-                own pastel fixes that: calendar is mint, TCG is rose, vitals is
-                violet, NBA is amber. The colors are Tailwind 200-level — light
-                enough not to dominate on black, saturated enough to be distinct
-                from each other. Putting them on a black base instead of neutral
-                gray means the pastels actually read as color. On a white
-                background they look washed out.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Glassmorphism</h2>
-              <p className="text-muted">
-                Frosted glass cards let the dark background and the pastel tints
-                bleed through, which ties everything together visually. A solid{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  bg-surface
-                </code>{" "}
-                card on a black background would just look like a white
-                rectangle — disconnected. Technically:{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  backdrop-filter: blur()
-                </code>{" "}
-                is GPU composited. It&apos;s not a layout property, so it
-                doesn&apos;t affect CLS. That mattered — no vitals regression
-                for a visual effect.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">ShaderGradient hero</h2>
-              <p className="text-muted">
-                The Three.js particle network was moved from the hero to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /lab/particles
-                </code>{" "}
-                — it was ~40kb of canvas code loading on every landing page
-                visit. ShaderGradient takes its place with a black CSS fallback,
-                so LCP fires on the H1 text immediately while the gradient loads
-                behind it. The interactive mouse parallax maps cursor position
-                to camera angles (
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  cAzimuthAngle
-                </code>{" "}
-                and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  cPolarAngle
-                </code>
-                ), RAF-throttled so there&apos;s one setState per frame maximum.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                What&apos;s measurably better
-              </h2>
-              <p className="text-muted">
-                The provable improvements: bundle size (Three.js disappears from
-                the landing chunk), exit animations (they literally didn&apos;t
-                exist before), reduced-motion support (the app had none, now
-                there&apos;s a provider), animation config centralization (all
-                spring objects in one file). The web vitals dashboard gives a
-                before/after on LCP, CLS, and INP since every version gets its
-                own trend line — real user data, not synthetic Lighthouse
-                scores.
-              </p>
-              <p className="mt-3 text-muted">
-                What&apos;s not provable: whether glassmorphism looks better
-                than flat cards, whether per-section animations are more
-                engaging than a uniform stagger, whether the pastel palette is
-                more memorable than a primary color scheme. Those are bets. The
-                constraint changed from &quot;zero dependencies&quot; to
-                &quot;earn every dependency&quot; — Framer earned it,
-                ShaderGradient earned it, everything else is still the platform.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                V2 redesign — editorial layout
-              </h2>
-              <p className="text-muted">
-                The v1 redesign added Framer Motion, glassmorphism, and the
-                ShaderGradient hero. V2 goes further: it removes all 3D
-                dependencies from the default path entirely. The landing page
-                and authenticated hub were rebuilt from scratch, inspired by{" "}
-                <a
-                  href="https://www.adamhartwig.co.uk/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2 hover:opacity-80"
-                >
-                  Adam Hartwig&apos;s
-                </a>{" "}
-                editorial portfolio style — generous whitespace, full-width
-                project cards, scroll-triggered reveals, and typographic
-                hierarchy over visual noise.
-              </p>
-              <p className="mt-3 text-muted">
-                What was removed from the default landing: WeatherCanvas,
-                ShaderGradient (WebGL), the Three.js globe, and every R3F
-                dependency. What replaced them: a CSS-only ambient gradient (two
-                overlapping radial gradients on a 20-second keyframe loop),
-                Framer Motion scroll animations, and a project showcase with
-                grouped categories and zig-zag card layouts. The hero headline
-                uses a staggered word reveal instead of a WebGL background
-                effect.
-              </p>
-              <p className="mt-3 text-muted">
-                The versioning scheme uses a URL parameter:{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ?version=v1
-                </code>{" "}
-                serves the original experience with all its 3D dependencies,
-                loaded via{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  next/dynamic
-                </code>{" "}
-                so those chunks only download when explicitly requested. The
-                default path ships zero Three.js bytes. A version registry in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  page.tsx
-                </code>{" "}
-                maps each version to its Landing and Hub components, making
-                future versions a single entry addition.
-              </p>
-              <p className="mt-3 text-muted">
-                Bundle impact: the 19 chunks containing Three.js, R3F, and
-                shader-gradient are all lazy-loaded and only fetched on{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ?version=v1
-                </code>
-                . Zero 3D imports exist in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  src/app/v2/
-                </code>
-                . The default landing page is now pure CSS, Framer Motion, and
-                static React — no canvas, no WebGL, no heavy peer dependencies.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Particle lab</h2>
-              <p className="text-muted">
-                Moving the particle network to its own page at{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /lab/particles
-                </code>{" "}
-                turns it from silent background decoration into a feature you
-                can interact with — controls, color themes, mouse attraction
-                toggle. A second lab page at{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /lab/motion
-                </code>{" "}
-                documents the Framer Motion API with six interactive sections:
-                spring physics, stagger grids, drag-to-reorder, scroll-driven
-                parallax, gesture variants, and shared layout transitions. The
-                spring playground was the first place to feel the difference
-                between stiffness and damping with sliders rather than just
-                reading about it.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                The cost of Framer Motion, and paying it back
-              </h2>
-              <p className="text-muted">
-                Real-user vitals caught up with the redesign. On the current
-                minor version the guest landing at{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /
-                </code>{" "}
-                regressed: FCP p75 climbed to roughly 2.6s and CLS reached about
-                0.2, both worse than the version before it. The redesign bought
-                nicer motion but shipped the bill with it.
-              </p>
-              <p className="mt-3 text-muted">
-                The FCP cause was structural. The new landing was one big{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  &quot;use client&quot;
-                </code>{" "}
-                component that statically imported all four sections, so every
-                one of them pulled Framer Motion into the initial chunk. The
-                old v1 landing had already solved this: keep the hero eager
-                because it holds the LCP element, and split everything below the
-                fold into async chunks with{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  next/dynamic
-                </code>
-                . The v2 rewrite quietly dropped that pattern. Restoring it, with{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  ssr: true
-                </code>{" "}
-                so the streamed HTML and SEO stay identical, shrinks the initial
-                bundle so first paint lands sooner.
-              </p>
-              <p className="mt-3 text-muted">
-                The CLS cause was smaller but sneaky. The hero used{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  min-h-dvh
-                </code>
-                . On mobile the dynamic viewport unit grows the moment the URL
-                bar hides on scroll, which resizes the hero and pushes every
-                section below it down. That downward shove is exactly what CLS
-                measures. Switching to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  min-h-svh
-                </code>{" "}
-                pins the hero to the stable smallest-viewport height so it never
-                resizes mid-scroll. None of the markup, landmarks, or motion
-                changed, so the redesign looks the same and just measures better.
-              </p>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         <div className="flex justify-center">
           <div
             className={styles.phone}
@@ -744,7 +456,275 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">Why Framer Motion</h2>
+              <p className="text-muted">
+                The zero-dependency constraint forced understanding what the
+                browser can do on its own — that was worth doing. But it had a
+                real limitation: exit animations don&apos;t exist in CSS. When a
+                modal closes it just vanishes. CSS transitions only animate
+                between states that are both in the DOM. Framer Motion solves
+                that with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AnimatePresence
+                </code>{" "}
+                — it holds the element in the tree long enough for the exit
+                animation to finish, then removes it.
+              </p>
+              <p className="mt-3 text-muted">
+                The old approach also had spring configs scattered everywhere —
+                inline{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  transition
+                </code>{" "}
+                objects with different stiffness values in every file. The new
+                system has a single{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  src/lib/animations.ts
+                </code>{" "}
+                with named spring presets:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  snappy
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  smooth
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bounce
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  gentle
+                </code>
+                . Change one value there and every component that references it
+                updates.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                B&W + pastel accent system
+              </h2>
+              <p className="text-muted">
+                The old design treated all eight features the same — same card
+                color, same border, same typography. Assigning each feature its
+                own pastel fixes that: calendar is mint, TCG is rose, vitals is
+                violet, NBA is amber. The colors are Tailwind 200-level — light
+                enough not to dominate on black, saturated enough to be distinct
+                from each other. Putting them on a black base instead of neutral
+                gray means the pastels actually read as color. On a white
+                background they look washed out.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Glassmorphism</h2>
+              <p className="text-muted">
+                Frosted glass cards let the dark background and the pastel tints
+                bleed through, which ties everything together visually. A solid{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  bg-surface
+                </code>{" "}
+                card on a black background would just look like a white
+                rectangle — disconnected. Technically:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  backdrop-filter: blur()
+                </code>{" "}
+                is GPU composited. It&apos;s not a layout property, so it
+                doesn&apos;t affect CLS. That mattered — no vitals regression
+                for a visual effect.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">ShaderGradient hero</h2>
+              <p className="text-muted">
+                The Three.js particle network was moved from the hero to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /lab/particles
+                </code>{" "}
+                — it was ~40kb of canvas code loading on every landing page
+                visit. ShaderGradient takes its place with a black CSS fallback,
+                so LCP fires on the H1 text immediately while the gradient loads
+                behind it. The interactive mouse parallax maps cursor position
+                to camera angles (
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  cAzimuthAngle
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  cPolarAngle
+                </code>
+                ), RAF-throttled so there&apos;s one setState per frame maximum.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                What&apos;s measurably better
+              </h2>
+              <p className="text-muted">
+                The provable improvements: bundle size (Three.js disappears from
+                the landing chunk), exit animations (they literally didn&apos;t
+                exist before), reduced-motion support (the app had none, now
+                there&apos;s a provider), animation config centralization (all
+                spring objects in one file). The web vitals dashboard gives a
+                before/after on LCP, CLS, and INP since every version gets its
+                own trend line — real user data, not synthetic Lighthouse
+                scores.
+              </p>
+              <p className="mt-3 text-muted">
+                What&apos;s not provable: whether glassmorphism looks better
+                than flat cards, whether per-section animations are more
+                engaging than a uniform stagger, whether the pastel palette is
+                more memorable than a primary color scheme. Those are bets. The
+                constraint changed from &quot;zero dependencies&quot; to
+                &quot;earn every dependency&quot; — Framer earned it,
+                ShaderGradient earned it, everything else is still the platform.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                V2 redesign — editorial layout
+              </h2>
+              <p className="text-muted">
+                The v1 redesign added Framer Motion, glassmorphism, and the
+                ShaderGradient hero. V2 goes further: it removes all 3D
+                dependencies from the default path entirely. The landing page
+                and authenticated hub were rebuilt from scratch, inspired by{" "}
+                <a
+                  href="https://www.adamhartwig.co.uk/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:opacity-80"
+                >
+                  Adam Hartwig&apos;s
+                </a>{" "}
+                editorial portfolio style — generous whitespace, full-width
+                project cards, scroll-triggered reveals, and typographic
+                hierarchy over visual noise.
+              </p>
+              <p className="mt-3 text-muted">
+                What was removed from the default landing: WeatherCanvas,
+                ShaderGradient (WebGL), the Three.js globe, and every R3F
+                dependency. What replaced them: a CSS-only ambient gradient (two
+                overlapping radial gradients on a 20-second keyframe loop),
+                Framer Motion scroll animations, and a project showcase with
+                grouped categories and zig-zag card layouts. The hero headline
+                uses a staggered word reveal instead of a WebGL background
+                effect.
+              </p>
+              <p className="mt-3 text-muted">
+                The versioning scheme uses a URL parameter:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?version=v1
+                </code>{" "}
+                serves the original experience with all its 3D dependencies,
+                loaded via{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  next/dynamic
+                </code>{" "}
+                so those chunks only download when explicitly requested. The
+                default path ships zero Three.js bytes. A version registry in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  page.tsx
+                </code>{" "}
+                maps each version to its Landing and Hub components, making
+                future versions a single entry addition.
+              </p>
+              <p className="mt-3 text-muted">
+                Bundle impact: the 19 chunks containing Three.js, R3F, and
+                shader-gradient are all lazy-loaded and only fetched on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?version=v1
+                </code>
+                . Zero 3D imports exist in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  src/app/v2/
+                </code>
+                . The default landing page is now pure CSS, Framer Motion, and
+                static React — no canvas, no WebGL, no heavy peer dependencies.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">Particle lab</h2>
+              <p className="text-muted">
+                Moving the particle network to its own page at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /lab/particles
+                </code>{" "}
+                turns it from silent background decoration into a feature you
+                can interact with — controls, color themes, mouse attraction
+                toggle. A second lab page at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /lab/motion
+                </code>{" "}
+                documents the Framer Motion API with six interactive sections:
+                spring physics, stagger grids, drag-to-reorder, scroll-driven
+                parallax, gesture variants, and shared layout transitions. The
+                spring playground was the first place to feel the difference
+                between stiffness and damping with sliders rather than just
+                reading about it.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                The cost of Framer Motion, and paying it back
+              </h2>
+              <p className="text-muted">
+                Real-user vitals caught up with the redesign. On the current
+                minor version the guest landing at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /
+                </code>{" "}
+                regressed: FCP p75 climbed to roughly 2.6s and CLS reached about
+                0.2, both worse than the version before it. The redesign bought
+                nicer motion but shipped the bill with it.
+              </p>
+              <p className="mt-3 text-muted">
+                The FCP cause was structural. The new landing was one big{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  &quot;use client&quot;
+                </code>{" "}
+                component that statically imported all four sections, so every
+                one of them pulled Framer Motion into the initial chunk. The
+                old v1 landing had already solved this: keep the hero eager
+                because it holds the LCP element, and split everything below the
+                fold into async chunks with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  next/dynamic
+                </code>
+                . The v2 rewrite quietly dropped that pattern. Restoring it, with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ssr: true
+                </code>{" "}
+                so the streamed HTML and SEO stay identical, shrinks the initial
+                bundle so first paint lands sooner.
+              </p>
+              <p className="mt-3 text-muted">
+                The CLS cause was smaller but sneaky. The hero used{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  min-h-dvh
+                </code>
+                . On mobile the dynamic viewport unit grows the moment the URL
+                bar hides on scroll, which resizes the hero and pushes every
+                section below it down. That downward shove is exactly what CLS
+                measures. Switching to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  min-h-svh
+                </code>{" "}
+                pins the hero to the stable smallest-viewport height so it never
+                resizes mid-scroll. None of the markup, landmarks, or motion
+                changed, so the redesign looks the same and just measures better.
+              </p>
+            </section>
+    </ThoughtLayout>
   );
 }

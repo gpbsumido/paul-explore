@@ -78,7 +78,7 @@ export default function HotspotDot({
     <Html position={position} center occlude>
       <div className="hotspot-root">
         <span className="hotspot-ring" aria-hidden="true" />
-        <button
+        <button type="button"
           className="hotspot-dot"
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}

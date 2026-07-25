@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useCallback,
+  useMemo,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -88,11 +89,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }, []);
 
-  return (
-    <ThemeContext value={{ theme, preference, setPreference }}>
-      {children}
-    </ThemeContext>
+  // Memoize so context consumers only re-render when a value actually changes,
+  // not on every provider render.
+  const value = useMemo(
+    () => ({ theme, preference, setPreference }),
+    [theme, preference, setPreference],
   );
+
+  return <ThemeContext value={value}>{children}</ThemeContext>;
 }
 
 export function useTheme(): ThemeContextValue {

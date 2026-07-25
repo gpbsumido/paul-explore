@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import {
   spring,
   fadeInUp,
@@ -49,7 +49,7 @@ export default function HeroSection() {
 
       <div className="relative z-10 max-w-3xl">
         {/* Badge pill */}
-        <motion.p
+        <m.p
           className="mb-6 inline-block rounded-full border border-border bg-surface/50 px-4 py-1.5 text-xs font-medium tracking-widest uppercase text-muted"
           initial={mounted ? { opacity: 0, y: 10 } : false}
           animate={{ opacity: 1, y: 0 }}
@@ -58,10 +58,10 @@ export default function HeroSection() {
           }
         >
           Full-Stack Engineer
-        </motion.p>
+        </m.p>
 
         {/* Headline with staggered word reveal */}
-        <motion.h1
+        <m.h1
           className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl"
           style={{ perspective: 800 }}
           variants={staggerContainer(staggerDelay)}
@@ -70,13 +70,13 @@ export default function HeroSection() {
         >
           {words.map(({ word, lineIdx, key, isLastInLine }) => (
             <span key={key}>
-              <motion.span
+              <m.span
                 className="inline-block"
                 variants={fadeInUp}
                 transition={transition}
               >
                 {word}
-              </motion.span>
+              </m.span>
               {isLastInLine && lineIdx < LINES.length - 1 ? (
                 <br />
               ) : (
@@ -84,10 +84,10 @@ export default function HeroSection() {
               )}
             </span>
           ))}
-        </motion.h1>
+        </m.h1>
 
         {/* Subtitle */}
-        <motion.p
+        <m.p
           className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted"
           initial={mounted ? { opacity: 0, y: 14 } : false}
           animate={{ opacity: 1, y: 0 }}
@@ -100,10 +100,10 @@ export default function HeroSection() {
           Software engineer who ships real products — from fantasy sports
           dashboards to fleet management systems. Every feature tested, every
           metric tracked.
-        </motion.p>
+        </m.p>
 
         {/* CTA */}
-        <motion.button
+        <m.button
           className="mt-8 rounded-full border border-border bg-foreground px-8 py-3 text-sm font-medium text-background transition-opacity hover:opacity-80"
           initial={mounted ? { opacity: 0, y: 14 } : false}
           animate={{ opacity: 1, y: 0 }}
@@ -119,11 +119,11 @@ export default function HeroSection() {
           }
         >
           Explore my work ↓
-        </motion.button>
+        </m.button>
       </div>
 
       {/* Scroll indicator */}
-      <motion.div
+      <m.div
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
         initial={mounted ? { opacity: 0 } : false}
         animate={{ opacity: 1 }}
@@ -133,7 +133,7 @@ export default function HeroSection() {
             : { ...spring.gentle, delay: afterHeadlineDelay + 0.4 }
         }
       >
-        <motion.div
+        <m.div
           className="h-8 w-[1px] bg-muted/40"
           animate={skip ? {} : { y: [0, 8, 0] }}
           transition={{
@@ -142,7 +142,7 @@ export default function HeroSection() {
             ease: "easeInOut",
           }}
         />
-      </motion.div>
+      </m.div>
     </section>
   );
 }

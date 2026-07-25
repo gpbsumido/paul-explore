@@ -1,285 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import styles from "@/app/thoughts/styling/styling.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
-import ViewToggle from "@/app/thoughts/ViewToggle";
 
 export default function WebVitalsContent() {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-
   return (
-    <div className="min-h-dvh bg-background">
-      <PageHeader
-        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Web Vitals" }]}
-        right={<ViewToggle view={view} setView={setView} />}
-        showLogout={false}
-        maxWidth="max-w-3xl"
-      />
-
-      {view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Web Vitals
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              A self-hosted vitals pipeline that collects real-user data from
+    <ThoughtLayout
+      breadcrumb="Web Vitals"
+      title="Web Vitals"
+      intro={
+        <>
+          A self-hosted vitals pipeline that collects real-user data from
               every page and aggregates it into P75 scores — built because
               owning the data matters more than reading a third-party dashboard.
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Why custom over Vercel Speed Insights
-              </h2>
-              <p className="text-muted">
-                Vercel Speed Insights is still in the app — it feeds into their
-                dashboard and that&apos;s useful. But the data lives there, in
-                their UI, not mine. Self-hosted means the data can be queried
-                any way needed, displayed inside the app itself on the protected
-                hub, and extended with version filtering or custom aggregations.
-                Building the pipeline is also the more interesting part: knowing
-                what{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  sendBeacon
-                </code>{" "}
-                does and why, how to store and aggregate percentile data in
-                Postgres, how to wire a collection client to a backend —
-                that&apos;s the stuff worth knowing as a developer.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                The collection pipeline
-              </h2>
-              <p className="text-muted">
-                The{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  web-vitals
-                </code>{" "}
-                npm package hooks into browser APIs to detect each metric at the
-                right time and fires a callback with the name, value, and a
-                rating. A{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  WebVitalsReporter
-                </code>{" "}
-                client component in the root layout registers all five
-                collectors once on mount and sends each metric to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /api/vitals
-                </code>
-                . That Next.js route validates the shape and forwards it to the
-                Express backend, which inserts one row per metric event into a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  web_vitals
-                </code>{" "}
-                Postgres table.
-              </p>
-              <p className="mt-3 text-muted">
-                Each beacon uses{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  navigator.sendBeacon
-                </code>{" "}
-                wrapped in a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  Blob
-                </code>{" "}
-                with explicit{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  application/json
-                </code>{" "}
-                content type. Regular fetch gets killed when the browser tears
-                down the page — INP and CLS fire on page hide, which is exactly
-                when a regular fetch would be cancelled. The Blob wrapper forces
-                the content type that Express&apos;s JSON parser expects;
-                sendBeacon defaults to{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  text/plain
-                </code>{" "}
-                otherwise.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">The five metrics</h2>
-              <ul className="mt-2 space-y-2 text-muted">
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">LCP</strong> — Largest
-                    Contentful Paint. How long until the biggest element is
-                    visible. Good under 2.5s. The main perceived load speed
-                    metric.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">FCP</strong> — First
-                    Contentful Paint. Time until any content shows up at all.
-                    Good under 1.8s.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">INP</strong> —
-                    Interaction to Next Paint. How quickly the page responds to
-                    clicks, taps, and key presses. Replaced FID in 2024. Good
-                    under 200ms.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">CLS</strong> —
-                    Cumulative Layout Shift. A score for how much content jumps
-                    around while the page loads. Under 0.1 is good.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
-                  <span>
-                    <strong className="text-foreground">TTFB</strong> — Time to
-                    First Byte. How long the browser waits for the server to
-                    start sending a response. Good under 800ms.
-                  </span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">P75 over average</h2>
-              <p className="text-muted">
-                Averages hide the tail. If 90% of page loads take 1.2s and 10%
-                take 8s, the average might look fine at 1.9s. P75 means 75% of
-                users had a load time at or below that number — sensitive enough
-                to catch real problems without being dominated by a single
-                extreme outlier. Google uses P75 for the official Core Web
-                Vitals thresholds in search ranking. The by-page table filters
-                to pages with at least 5 samples — one data point isn&apos;t a
-                distribution.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Speedometer model on the landing section
-              </h2>
-              <p className="text-muted">
-                The Vitals landing section now has an interactive speedometer
-                GLB. The needle animates from a resting &ldquo;slow&rdquo;
-                position to the &ldquo;good&rdquo; zone when the section enters
-                the viewport, using a frame-by-frame lerp in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useFrame
-                </code>
-                . The three primary metrics — LCP, INP, and CLS — are displayed
-                as animated stat cards below the speedometer with spring-driven
-                value counters and score bars. The raw GLB had bounding-box
-                coordinates spanning tens of thousands of units, so a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  Box3
-                </code>{" "}
-                auto-fit runs in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useEffect
-                </code>{" "}
-                after load to scale and center the model dynamically — a
-                general-purpose pattern for any GLB with unknown native units.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                Version selector grouping
-              </h2>
-              <p className="text-muted">
-                The original version selector was a flat dropdown of every patch
-                version — fine with 10 versions, unusable with 50. The new
-                selector groups versions into tiers: &ldquo;Current Major&rdquo;
-                (all data in the major version, the default), &ldquo;Current
-                Minor&rdquo; (all patches in the latest minor), the last 3 minor
-                versions with each patch shown individually in optgroups, and
-                everything older collapsed into one entry per minor version with
-                aggregated data.
-              </p>
-              <p className="mt-3 text-muted">
-                The URL encodes the filter mode via prefix:{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  major:0
-                </code>{" "}
-                for all 0.x.y versions,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  minor:0.12
-                </code>{" "}
-                for all 0.12.x patches, or a bare{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  0.11.3
-                </code>{" "}
-                for an exact match. The backend&apos;s{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  buildVersionConditions
-                </code>{" "}
-                helper translates the mode into the right SQL — major uses{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  split_part
-                </code>{" "}
-                on the first segment, minor matches both first and second, and
-                exact does a straight equality check. The trend chart adapts
-                too: minor mode returns up to 30 patch versions so you see the
-                full progression within a minor, while major mode caps at 10.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-lg font-bold">
-                What improved each metric
-              </h2>
-              <p className="text-muted">
-                <strong>INP</strong> improved by replacing{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  transition-all
-                </code>{" "}
-                with explicit property lists across the codebase and wrapping
-                the hub&apos;s mount animation update in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  startTransition
-                </code>
-                . <strong>LCP</strong> on the hub improved by removing the{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  reveal()
-                </code>{" "}
-                wrapper from the H1 heading — browsers exclude{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  opacity: 0
-                </code>{" "}
-                elements from LCP consideration entirely. <strong>TTFB</strong>{" "}
-                on the hub improved by making{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  page.tsx
-                </code>{" "}
-                a plain sync component with no auth calls, so Next.js can
-                statically pre-render it — TTFB drops from ~2.1s to ~50ms.{" "}
-                <strong>CLS</strong> on the vitals page improved by extracting a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  CHART_CONTAINER_HEIGHT
-                </code>{" "}
-                constant shared by both the skeleton div and the real chart
-                wrapper so they reserve the same space.
-              </p>
-            </section>
-          </div>
-        </main>
-      ) : (
+        </>
+      }
+      chat={
         <div className="flex justify-center">
           <div
             className={styles.phone}
@@ -838,7 +575,250 @@ const selectedVersion = urlVersion ?? versions[0];`}
             </div>
           </div>
         </div>
-      )}
-    </div>
+      }
+    >
+      <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Why custom over Vercel Speed Insights
+              </h2>
+              <p className="text-muted">
+                Vercel Speed Insights is still in the app — it feeds into their
+                dashboard and that&apos;s useful. But the data lives there, in
+                their UI, not mine. Self-hosted means the data can be queried
+                any way needed, displayed inside the app itself on the protected
+                hub, and extended with version filtering or custom aggregations.
+                Building the pipeline is also the more interesting part: knowing
+                what{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  sendBeacon
+                </code>{" "}
+                does and why, how to store and aggregate percentile data in
+                Postgres, how to wire a collection client to a backend —
+                that&apos;s the stuff worth knowing as a developer.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                The collection pipeline
+              </h2>
+              <p className="text-muted">
+                The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  web-vitals
+                </code>{" "}
+                npm package hooks into browser APIs to detect each metric at the
+                right time and fires a callback with the name, value, and a
+                rating. A{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  WebVitalsReporter
+                </code>{" "}
+                client component in the root layout registers all five
+                collectors once on mount and sends each metric to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/vitals
+                </code>
+                . That Next.js route validates the shape and forwards it to the
+                Express backend, which inserts one row per metric event into a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  web_vitals
+                </code>{" "}
+                Postgres table.
+              </p>
+              <p className="mt-3 text-muted">
+                Each beacon uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  navigator.sendBeacon
+                </code>{" "}
+                wrapped in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Blob
+                </code>{" "}
+                with explicit{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  application/json
+                </code>{" "}
+                content type. Regular fetch gets killed when the browser tears
+                down the page — INP and CLS fire on page hide, which is exactly
+                when a regular fetch would be cancelled. The Blob wrapper forces
+                the content type that Express&apos;s JSON parser expects;
+                sendBeacon defaults to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  text/plain
+                </code>{" "}
+                otherwise.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">The five metrics</h2>
+              <ul className="mt-2 space-y-2 text-muted">
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">LCP</strong> — Largest
+                    Contentful Paint. How long until the biggest element is
+                    visible. Good under 2.5s. The main perceived load speed
+                    metric.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">FCP</strong> — First
+                    Contentful Paint. Time until any content shows up at all.
+                    Good under 1.8s.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">INP</strong> —
+                    Interaction to Next Paint. How quickly the page responds to
+                    clicks, taps, and key presses. Replaced FID in 2024. Good
+                    under 200ms.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">CLS</strong> —
+                    Cumulative Layout Shift. A score for how much content jumps
+                    around while the page loads. Under 0.1 is good.
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                  <span>
+                    <strong className="text-foreground">TTFB</strong> — Time to
+                    First Byte. How long the browser waits for the server to
+                    start sending a response. Good under 800ms.
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">P75 over average</h2>
+              <p className="text-muted">
+                Averages hide the tail. If 90% of page loads take 1.2s and 10%
+                take 8s, the average might look fine at 1.9s. P75 means 75% of
+                users had a load time at or below that number — sensitive enough
+                to catch real problems without being dominated by a single
+                extreme outlier. Google uses P75 for the official Core Web
+                Vitals thresholds in search ranking. The by-page table filters
+                to pages with at least 5 samples — one data point isn&apos;t a
+                distribution.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Speedometer model on the landing section
+              </h2>
+              <p className="text-muted">
+                The Vitals landing section now has an interactive speedometer
+                GLB. The needle animates from a resting &ldquo;slow&rdquo;
+                position to the &ldquo;good&rdquo; zone when the section enters
+                the viewport, using a frame-by-frame lerp in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useFrame
+                </code>
+                . The three primary metrics — LCP, INP, and CLS — are displayed
+                as animated stat cards below the speedometer with spring-driven
+                value counters and score bars. The raw GLB had bounding-box
+                coordinates spanning tens of thousands of units, so a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Box3
+                </code>{" "}
+                auto-fit runs in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useEffect
+                </code>{" "}
+                after load to scale and center the model dynamically — a
+                general-purpose pattern for any GLB with unknown native units.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Version selector grouping
+              </h2>
+              <p className="text-muted">
+                The original version selector was a flat dropdown of every patch
+                version — fine with 10 versions, unusable with 50. The new
+                selector groups versions into tiers: &ldquo;Current Major&rdquo;
+                (all data in the major version, the default), &ldquo;Current
+                Minor&rdquo; (all patches in the latest minor), the last 3 minor
+                versions with each patch shown individually in optgroups, and
+                everything older collapsed into one entry per minor version with
+                aggregated data.
+              </p>
+              <p className="mt-3 text-muted">
+                The URL encodes the filter mode via prefix:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  major:0
+                </code>{" "}
+                for all 0.x.y versions,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  minor:0.12
+                </code>{" "}
+                for all 0.12.x patches, or a bare{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  0.11.3
+                </code>{" "}
+                for an exact match. The backend&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  buildVersionConditions
+                </code>{" "}
+                helper translates the mode into the right SQL — major uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  split_part
+                </code>{" "}
+                on the first segment, minor matches both first and second, and
+                exact does a straight equality check. The trend chart adapts
+                too: minor mode returns up to 30 patch versions so you see the
+                full progression within a minor, while major mode caps at 10.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                What improved each metric
+              </h2>
+              <p className="text-muted">
+                <strong>INP</strong> improved by replacing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  transition-all
+                </code>{" "}
+                with explicit property lists across the codebase and wrapping
+                the hub&apos;s mount animation update in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  startTransition
+                </code>
+                . <strong>LCP</strong> on the hub improved by removing the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  reveal()
+                </code>{" "}
+                wrapper from the H1 heading — browsers exclude{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  opacity: 0
+                </code>{" "}
+                elements from LCP consideration entirely. <strong>TTFB</strong>{" "}
+                on the hub improved by making{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  page.tsx
+                </code>{" "}
+                a plain sync component with no auth calls, so Next.js can
+                statically pre-render it — TTFB drops from ~2.1s to ~50ms.{" "}
+                <strong>CLS</strong> on the vitals page improved by extracting a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  CHART_CONTAINER_HEIGHT
+                </code>{" "}
+                constant shared by both the skeleton div and the real chart
+                wrapper so they reserve the same space.
+              </p>
+            </section>
+    </ThoughtLayout>
   );
 }

@@ -104,6 +104,13 @@ const InfiniteCalendarScroll = memo(
       // Saved scrollHeight right before a prepend — useLayoutEffect compensates after the DOM update.
       const prependHeightRef = useRef<number | null>(null);
 
+      // Mirror of periods so the observer callbacks can read the latest value
+      // and do the scroll-height capture outside the setPeriods updater.
+      const periodsRef = useRef(periods);
+      useEffect(() => {
+        periodsRef.current = periods;
+      }, [periods]);
+
       // After programmatic navigation, stores the target period key and timestamp.
       // The scroll handler uses this to reject stale updates that would revert
       // away from the programmatic target within a settling window.
@@ -153,15 +160,19 @@ const InfiniteCalendarScroll = memo(
         const obs = new IntersectionObserver(
           ([entry]) => {
             if (!entry.isIntersecting) return;
-            setPeriods((prev) => {
-              const prevPeriod = getPrevPeriod(prev[0]);
-              const key = getPeriodKey(prevPeriod);
-              if (prev.some((d) => getPeriodKey(d) === key)) return prev;
-              if (scrollRef.current) {
-                prependHeightRef.current = scrollRef.current.scrollHeight;
-              }
-              return [prevPeriod, ...prev];
-            });
+            const current = periodsRef.current;
+            const prevPeriod = getPrevPeriod(current[0]);
+            const key = getPeriodKey(prevPeriod);
+            if (current.some((d) => getPeriodKey(d) === key)) return;
+            // Capture scroll height before the prepend, outside the updater.
+            if (scrollRef.current) {
+              prependHeightRef.current = scrollRef.current.scrollHeight;
+            }
+            setPeriods((prev) =>
+              prev.some((d) => getPeriodKey(d) === key)
+                ? prev
+                : [prevPeriod, ...prev],
+            );
           },
           { root: container, rootMargin: "300px" },
         );

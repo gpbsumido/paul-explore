@@ -99,7 +99,7 @@ export default function InventoryRow({
           Restocked
         </span>
       ) : (
-        <button
+        <button type="button"
           onClick={() => onRestock(item.id)}
           disabled={isRestocking || status === "healthy"}
           className="shrink-0 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"

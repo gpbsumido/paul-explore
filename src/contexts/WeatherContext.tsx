@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -57,15 +58,13 @@ export function WeatherProvider({ children }: { children: ReactNode }) {
     },
   );
 
-  const toggle = useCallback(
-    () =>
-      setEnabled((v) => {
-        const next = !v;
-        localStorage.setItem("weather-fx-enabled", String(next));
-        return next;
-      }),
-    [],
-  );
+  const toggle = useCallback(() => setEnabled((v) => !v), []);
+
+  // Persist the toggle preference as a side effect of the state change, rather
+  // than inside the updater (which React may replay).
+  useEffect(() => {
+    localStorage.setItem("weather-fx-enabled", String(enabled));
+  }, [enabled]);
 
   const setSelectedEffect = useCallback((v: EffectChoice) => {
     setSelectedEffectState(v);

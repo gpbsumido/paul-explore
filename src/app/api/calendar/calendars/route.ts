@@ -1,61 +1,37 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { NextResponse } from "next/server";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { createCalendarBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
 
 // GET /api/calendar/calendars
-export async function GET() {
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[calendars BFF] GET — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+export const GET = withBackend("calendars GET", async ({ token, email }) => {
+  const res = await fetch(`${API_URL}/api/calendar/calendars`, {
+    headers: buildHeaders(token, email),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    console.error("[calendars BFF] GET — backend error:", body);
+    return NextResponse.json(
+      { error: "Failed to fetch calendars" },
+      { status: res.status },
+    );
   }
-
-  try {
-    const res = await fetch(`${API_URL}/api/calendar/calendars`, {
-      headers: buildHeaders(token, email),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      console.error("[calendars BFF] GET — backend error:", body);
-      return NextResponse.json(
-        { error: "Failed to fetch calendars" },
-        { status: res.status },
-      );
-    }
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("[calendars BFF] GET — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  return NextResponse.json(await res.json());
+});
 
 // POST /api/calendar/calendars
-export async function POST(request: NextRequest) {
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[calendars BFF] POST — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+export const POST = withBackend(
+  "calendars POST",
+  async ({ token, email }, request) => {
+    const bodyResult = await parseBody(request, createCalendarBodySchema);
+    if (!bodyResult.ok) return bodyResult.response;
 
-  const bodyResult = await parseBody(request, createCalendarBodySchema);
-  if (!bodyResult.ok) return bodyResult.response;
-  const body = bodyResult.data;
-
-  try {
     const res = await fetch(`${API_URL}/api/calendar/calendars`, {
       method: "POST",
       headers: buildHeaders(token, email, {
         "Content-Type": "application/json",
       }),
-      body: JSON.stringify(body),
+      body: JSON.stringify(bodyResult.data),
     });
     if (!res.ok) {
       const err = await res
@@ -64,10 +40,6 @@ export async function POST(request: NextRequest) {
       console.error("[calendars BFF] POST — backend error:", err);
       return NextResponse.json(err, { status: res.status });
     }
-    const data = await res.json();
-    return NextResponse.json(data, { status: 201 });
-  } catch (err) {
-    console.error("[calendars BFF] POST — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+    return NextResponse.json(await res.json(), { status: 201 });
+  },
+);

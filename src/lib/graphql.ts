@@ -214,25 +214,25 @@ export function getStat(pokemon: Pokemon, statName: string): number {
  * Kept here so the card and the filter pills always use the same palette.
  */
 export const POKEMON_TYPE_COLORS: Record<string, string> = {
-  fire:     "bg-orange-500/20 text-orange-400 border-orange-500/40",
-  water:    "bg-blue-500/20 text-blue-400 border-blue-500/40",
-  grass:    "bg-green-500/20 text-green-400 border-green-500/40",
-  electric: "bg-yellow-400/20 text-yellow-400 border-yellow-400/40",
-  psychic:  "bg-pink-500/20 text-pink-400 border-pink-500/40",
-  dragon:   "bg-indigo-500/20 text-indigo-400 border-indigo-500/40",
-  fighting: "bg-red-600/20 text-red-400 border-red-600/40",
-  rock:     "bg-amber-700/20 text-amber-400 border-amber-700/40",
-  ghost:    "bg-purple-700/20 text-purple-400 border-purple-700/40",
-  dark:     "bg-slate-700/20 text-slate-400 border-slate-700/40",
-  steel:    "bg-zinc-400/20 text-zinc-400 border-zinc-400/40",
-  ice:      "bg-cyan-400/20 text-cyan-400 border-cyan-400/40",
-  normal:   "bg-neutral-400/20 text-neutral-400 border-neutral-400/40",
-  flying:   "bg-sky-400/20 text-sky-400 border-sky-400/40",
-  poison:   "bg-purple-500/20 text-purple-400 border-purple-500/40",
-  ground:   "bg-amber-600/20 text-amber-400 border-amber-600/40",
-  bug:      "bg-lime-500/20 text-lime-400 border-lime-500/40",
-  fairy:    "bg-rose-400/20 text-rose-400 border-rose-400/40",
+  fire:     "bg-orange-500/20 text-orange-800 dark:text-orange-400 border-orange-500/40",
+  water:    "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/40",
+  grass:    "bg-green-500/20 text-green-800 dark:text-green-400 border-green-500/40",
+  electric: "bg-yellow-400/20 text-yellow-700 dark:text-yellow-400 border-yellow-400/40",
+  psychic:  "bg-pink-500/20 text-pink-700 dark:text-pink-400 border-pink-500/40",
+  dragon:   "bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 border-indigo-500/40",
+  fighting: "bg-red-600/20 text-red-700 dark:text-red-400 border-red-600/40",
+  rock:     "bg-amber-700/20 text-amber-700 dark:text-amber-400 border-amber-700/40",
+  ghost:    "bg-purple-700/20 text-purple-700 dark:text-purple-400 border-purple-700/40",
+  dark:     "bg-slate-700/20 text-slate-700 dark:text-slate-400 border-slate-700/40",
+  steel:    "bg-zinc-400/20 text-zinc-700 dark:text-zinc-400 border-zinc-400/40",
+  ice:      "bg-cyan-400/20 text-cyan-700 dark:text-cyan-400 border-cyan-400/40",
+  normal:   "bg-neutral-400/20 text-neutral-700 dark:text-neutral-400 border-neutral-400/40",
+  flying:   "bg-sky-400/20 text-sky-700 dark:text-sky-400 border-sky-400/40",
+  poison:   "bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500/40",
+  ground:   "bg-amber-600/20 text-amber-700 dark:text-amber-400 border-amber-600/40",
+  bug:      "bg-lime-500/20 text-lime-800 dark:text-lime-400 border-lime-500/40",
+  fairy:    "bg-rose-400/20 text-rose-700 dark:text-rose-400 border-rose-400/40",
 };
 
 /** Fallback for any type not in the map above. */
-export const DEFAULT_TYPE_COLOR = "bg-neutral-400/20 text-neutral-400 border-neutral-400/40";
+export const DEFAULT_TYPE_COLOR = "bg-neutral-400/20 text-neutral-700 dark:text-neutral-400 border-neutral-400/40";

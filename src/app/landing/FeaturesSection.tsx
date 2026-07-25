@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import {
-  motion,
+  m,
   useInView,
   useReducedMotion,
   type Transition,
@@ -159,7 +159,7 @@ function FeatureCard({
   href?: string;
 }) {
   const card = (
-    <motion.div
+    <m.div
       variants={cardFlipIn}
       transition={transition ?? { ...spring.bounce }}
       whileHover={HOVER_ANIMATION}
@@ -183,7 +183,7 @@ function FeatureCard({
         <h3 className="mt-3 text-lg font-semibold text-foreground">{title}</h3>
         <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>
       </div>
-    </motion.div>
+    </m.div>
   );
 
   if (href) {
@@ -221,7 +221,7 @@ export default function FeaturesSection() {
   return (
     <Section>
       <div ref={ref}>
-        <motion.h2
+        <m.h2
           className="text-center text-3xl font-bold tracking-tight text-foreground md:text-4xl"
           variants={headingWipe}
           initial="hidden"
@@ -229,9 +229,9 @@ export default function FeaturesSection() {
           transition={transition ?? { ...spring.smooth }}
         >
           What I Built
-        </motion.h2>
+        </m.h2>
 
-        <motion.p
+        <m.p
           className="mx-auto mt-3 max-w-lg text-center text-muted"
           variants={fadeUp}
           initial="hidden"
@@ -240,10 +240,10 @@ export default function FeaturesSection() {
         >
           Authentication, design systems, live data, full-stack API integration,
           and real-user performance monitoring — all in one project.
-        </motion.p>
+        </m.p>
 
         {/* perspective on the grid gives rotateX a reference plane for cardFlipIn */}
-        <motion.div
+        <m.div
           className="mt-12 grid gap-6 sm:grid-cols-2 md:grid-cols-3"
           style={{ perspective: "1000px" }}
           variants={staggerContainer(0.07, 0.1)}
@@ -336,7 +336,7 @@ export default function FeaturesSection() {
             featureToken="--color-feature-particles"
             href="/lab/particles"
           />
-        </motion.div>
+        </m.div>
       </div>
     </Section>
   );

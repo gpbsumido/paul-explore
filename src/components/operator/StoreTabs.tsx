@@ -58,7 +58,7 @@ export default function StoreTabs({ storeId }: StoreTabsProps) {
         {TABS.map((tab) => {
           const isActive = tab.id === activeTab;
           return (
-            <button
+            <button type="button"
               key={tab.id}
               id={`tab-${tab.id}`}
               role="tab"
