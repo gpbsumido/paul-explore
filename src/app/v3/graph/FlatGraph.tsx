@@ -175,7 +175,9 @@ export default function FlatGraph({ reducedMotion }: Props) {
                 <h3 className="text-sm font-semibold text-foreground">
                   {g.node.label}
                 </h3>
-                <span className="text-xs text-muted">{g.items.length}</span>
+                {g.items.length > 0 ? (
+                  <span className="text-xs text-muted">{g.items.length}</span>
+                ) : null}
               </div>
               <div className="space-y-1.5">
                 {g.items.map((item) => (

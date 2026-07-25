@@ -1,0 +1,95 @@
+GLENN PAUL SUMIDO
+Lead Frontend Developer
+
+Toronto, ON, Canada | 613-700-7474 | psumido@gmail.com
+LinkedIn: linkedin.com/in/paulsumido | GitHub: github.com/gpbsumido | Portfolio: paulsumido.com
+
+============================================================
+SUMMARY
+============================================================
+Frontend engineer with 9+ years building scalable, data-intensive web
+applications in React & TypeScript. Frontend lead on enterprise SaaS
+products - from conversational AI interfaces and complex data-visualization
+dashboards to reusable design systems spanning React and Angular. Deep focus
+on performance, automated testing, accessibility, and turning ambiguous
+product goals into polished, production-ready experiences alongside designers
+and product owners.
+
+============================================================
+SKILLS
+============================================================
+Languages:              TypeScript, JavaScript (ES2023), HTML5, CSS3 / Sass, Python, SQL
+Frameworks & UI:        React 19, Next.js, Angular 21 (signals, zoneless, SSR), Redux,
+                        Zustand, TanStack Query, MUI, Tailwind CSS, Framer Motion, GSAP
+Design Systems:         Design tokens, CSS custom properties, component library
+                        architecture, Figma, WCAG accessibility
+Data & Visualization:   ECharts, Recharts, Chart.js, Three.js / React Three Fiber,
+                        MapLibre / Leaflet
+APIs & Data:            REST, GraphQL, Zod validation, Auth0, BFF auth pattern,
+                        Node.js / Express, PostgreSQL
+Testing:                Vitest, Jest, React Testing Library, MSW, Playwright, Cypress,
+                        mutation testing
+Tooling & Infra:        Docker, AWS (S3), Vercel, Railway, CI/CD, real-user Core Web
+                        Vitals monitoring
+
+============================================================
+EXPERIENCE
+============================================================
+Helika - Senior Software Developer (Frontend Lead)          Jun 2023 - Feb 2026
+Web3 gaming-analytics SaaS | Calgary (Remote)
+- Led frontend development of an enterprise gaming-analytics SaaS platform,
+  owning complex, data-heavy visualization interfaces built with React,
+  TypeScript, and Redux.
+- Designed and shipped Helika AI, a production conversational analytics
+  assistant real clients use to query game data in natural language and
+  receive live, interactive artifacts - charts, dashboards, leaderboards, and
+  config changes - rendered inline in chat.
+- Architected the chat around a decoupled controller/state-machine, allowing
+  the UI to swap a single chat endpoint for a session-scoped multi-agent
+  backend without a rewrite.
+- Owned frontend delivery through multiple fundraising rounds, shipping
+  investor-facing features and pixel-perfect UI from Figma that supported key
+  company milestones.
+- Hardened the product for real users with response streaming, Auth0
+  authentication, Sentry error monitoring, and continuous performance and
+  reliability improvements.
+
+Refmint - Front End Developer                               Feb 2022 - Jun 2023
+Vancouver (Remote)
+- Designed and built data-heavy React applications with a strong focus on
+  performance, improving page load times ~40% through lazy loading and
+  caching strategies.
+- Built and maintained a reusable UI component library shared across internal
+  and customer-facing applications.
+- Streamlined deployments with automated CI/CD build pipelines and continuous
+  integration.
+
+PeopleInsight - Data Scientist / Front-End Developer        Apr 2017 - Jan 2022
+Enterprise HR analytics | Ottawa
+- Built interactive dashboards for enterprise HR analytics in React,
+  partnering with UX designers to translate complex requirements into
+  intuitive interfaces.
+- Developed survey-driven data-collection workflows with validation logic and
+  automated testing.
+- Implemented automated data-processing pipelines that reduced manual effort
+  and improved data quality.
+
+============================================================
+SELECTED PROJECTS
+============================================================
+- Paul Design System - Framework-agnostic design system: design tokens
+  compiled to CSS custom properties, powering first-class React (10 components)
+  and Angular (16 standalone components) libraries in a monorepo.
+- paulsumido.com (live) - Next.js portfolio with a BFF auth pattern (no tokens
+  exposed to the browser) and a real-user Core Web Vitals pipeline reporting
+  P75 by route and release; optimistic updates verified with mid-flight MSW
+  assertions.
+- angular-paul - A macOS-style desktop-OS portfolio in Angular 21 using
+  standalone components, signals, zoneless change detection, and SSR with
+  incremental hydration.
+
+============================================================
+EDUCATION
+============================================================
+Bachelor of Engineering - Communications Engineering        2013 - 2018
+Carleton University, Ottawa

@@ -50,6 +50,35 @@ function LayoutSwitch({
   );
 }
 
+/** Warm accent shared with the résumé graph node so the two read as the same thing. */
+const RESUME_ACCENT = "#fb923c";
+
+/** Standout résumé call-to-action, shown in the header on both the landing and the hub. */
+function ResumeLink() {
+  return (
+    <Link
+      href="/resume"
+      className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors"
+      style={{
+        borderColor: `color-mix(in srgb, ${RESUME_ACCENT} 50%, transparent)`,
+        backgroundColor: `color-mix(in srgb, ${RESUME_ACCENT} 15%, transparent)`,
+        color: RESUME_ACCENT,
+      }}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path
+          d="M14 3v4a1 1 0 0 0 1 1h4M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 9h6m-6 4h6"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      Résumé
+    </Link>
+  );
+}
+
 type LegendItem = { color: string; label: string };
 
 const LEGEND: LegendItem[] = [
@@ -105,7 +134,7 @@ export default function GraphShell({
       {/* Header — glassy in flat view so scrolling cards don't show through it */}
       <header
         className={[
-          "pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-4 sm:p-6",
+          "pointer-events-none absolute inset-x-0 top-0 z-40 flex flex-wrap items-start justify-between gap-x-3 gap-y-2 p-4 sm:p-6",
           mode === "flat"
             ? "border-b border-border bg-background/80 backdrop-blur-md"
             : "",
@@ -125,8 +154,9 @@ export default function GraphShell({
             {greeting}
           </p>
         </div>
-        <div className="pointer-events-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="pointer-events-auto flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
           <LayoutSwitch mode={mode} onChange={setMode} />
+          <ResumeLink />
           {action}
         </div>
       </header>
