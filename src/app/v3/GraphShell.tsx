@@ -82,21 +82,32 @@ function ResumeLink() {
   );
 }
 
-type LegendItem = { color: string; label: string };
+// Retired landing designs, newest first, for the footer picker. v3 is current
+// (see CURRENT_VERSION in page.tsx) so it stays out of the list.
+const OLDER_VERSIONS = ["v2", "v1"] as const;
 
+type LegendItem = { swatch: string; label: string; glow?: string };
+
+// Features (and the Apps hub) all share one blue. Categories and their write-ups
+// are coloured by topic instead — each category gets its own hue and its
+// write-ups inherit it — so the second pill is a multi-hue swatch built from the
+// real category palette, not a single dot.
 const LEGEND: LegendItem[] = [
-  { color: "#38bdf8", label: "Feature" },
-  { color: "#a78bfa", label: "Category" },
-  { color: "#f472b6", label: "Write-up" },
+  { swatch: "#38bdf8", label: "Feature", glow: "#38bdf8" },
+  {
+    swatch:
+      "conic-gradient(from 130deg, #818cf8, #f472b6, #34d399, #a78bfa, #fbbf24, #fb7185, #22d3ee, #94a3b8, #818cf8)",
+    label: "By topic",
+  },
 ];
 
-/** A pill for the node-type legend, OriginUI-style. */
-function LegendPill({ color, label }: LegendItem) {
+/** A pill for the graph legend, OriginUI-style. */
+function LegendPill({ swatch, label, glow }: LegendItem) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-2.5 py-1 text-[11px] text-muted backdrop-blur">
       <span
         className="h-2 w-2 rounded-full"
-        style={{ background: color, boxShadow: `0 0 8px ${color}` }}
+        style={{ background: swatch, boxShadow: glow ? `0 0 8px ${glow}` : undefined }}
       />
       {label}
     </span>
@@ -277,12 +288,24 @@ export default function GraphShell({
         >
           GitHub
         </a>
-        <Link
-          href="/?version=v2"
-          className="transition-colors hover:text-foreground"
-        >
-          v2 ↗
-        </Link>
+        {/* Peek at the older landing designs. A tiny <details> picker instead
+            of a hard-coded v2 link, so it stays right as versions come and go. */}
+        <details className="relative">
+          <summary className="cursor-pointer list-none transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
+            Versions ↗
+          </summary>
+          <div className="absolute right-0 bottom-full mb-2 flex min-w-[7rem] flex-col rounded-lg border border-border bg-surface/90 p-1 text-right backdrop-blur">
+            {OLDER_VERSIONS.map((v) => (
+              <Link
+                key={v}
+                href={`/?version=${v}`}
+                className="rounded px-2 py-1 whitespace-nowrap transition-colors hover:bg-foreground/5 hover:text-foreground"
+              >
+                {v} ↗
+              </Link>
+            ))}
+          </div>
+        </details>
       </nav>
     </div>
   );
