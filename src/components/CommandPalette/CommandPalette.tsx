@@ -226,6 +226,13 @@ export default function CommandPalette({
                       const index = flat.indexOf(ranked);
                       const isActive = index === activeIndex;
                       return (
+                        // This is the WAI-ARIA combobox+listbox pattern: keyboard
+                        // navigation lives on the input via aria-activedescendant
+                        // (see handleKeyDown), so options must NOT be individually
+                        // focusable or carry their own key handlers. The click
+                        // handler is a mouse-only shortcut. The two jsx-a11y rules
+                        // don't model this pattern, so we opt out here.
+                        // eslint-disable-next-line jsx-a11y/interactive-supports-focus, jsx-a11y/click-events-have-key-events
                         <div
                           key={ranked.command.id}
                           id={optionId(index)}

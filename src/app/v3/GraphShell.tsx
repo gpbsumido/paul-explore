@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useReducedMotion } from "framer-motion";
 import GraphBackground from "./graph/GraphBackground";
 import NodeGraph from "./graph/NodeGraph";
+import { openCommandPalette } from "@/lib/command-palette/open-event";
 
 // The flat view is only shown when the visitor toggles to it, so keep its code
 // out of the initial bundle and load it on demand.
@@ -50,6 +51,44 @@ function LayoutSwitch({
         Flat
       </button>
     </div>
+  );
+}
+
+/**
+ * Header affordance that tells visitors the command palette exists and opens it.
+ * The graph landing fills every corner with its own chrome, so the global
+ * floating ⌘K trigger is hidden here (see CommandPaletteRoot) and this stands in
+ * its place. The ⌘K hint is desktop-only; on touch the icon alone is the tap
+ * target. Opens the palette through the shared window event.
+ */
+function SearchHint() {
+  return (
+    <button
+      type="button"
+      onClick={openCommandPalette}
+      aria-label="Search pages, dev notes, and actions (Command K)"
+      aria-haspopup="dialog"
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-1.5 text-xs text-muted backdrop-blur transition-colors hover:text-foreground"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      <span className="hidden sm:inline">Search</span>
+      <kbd className="hidden font-sans text-[11px] tracking-wide text-muted sm:inline">
+        ⌘K
+      </kbd>
+    </button>
   );
 }
 
@@ -206,6 +245,7 @@ export default function GraphShell({
           </p>
         </div>
         <div className="pointer-events-auto flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+          <SearchHint />
           <LayoutSwitch mode={mode} onChange={setMode} />
           <ResumeLink />
           {action}

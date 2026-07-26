@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-const { push, setPreference } = vi.hoisted(() => ({
+const { push, setPreference, pathname } = vi.hoisted(() => ({
   push: vi.fn(),
   setPreference: vi.fn(),
+  pathname: { current: "/thoughts" },
 }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  usePathname: () => pathname.current,
 }));
 
 vi.mock("@/components/ThemeProvider", () => ({
@@ -16,10 +18,12 @@ vi.mock("@/components/ThemeProvider", () => ({
 }));
 
 import CommandPaletteRoot from "../CommandPaletteRoot";
+import { openCommandPalette } from "@/lib/command-palette/open-event";
 
 beforeEach(() => {
   push.mockClear();
   setPreference.mockClear();
+  pathname.current = "/thoughts";
 });
 
 afterEach(cleanup);
@@ -38,6 +42,24 @@ describe("CommandPaletteRoot", () => {
     const user = userEvent.setup();
     render(<CommandPaletteRoot />);
     await openPalette(user);
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+  });
+
+  it("hides the floating trigger on the graph landing, which supplies its own", () => {
+    pathname.current = "/";
+    render(<CommandPaletteRoot />);
+    expect(
+      screen.queryByRole("button", { name: /command palette/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("still opens on the landing when asked via the open event", () => {
+    pathname.current = "/";
+    render(<CommandPaletteRoot />);
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    act(() => {
+      openCommandPalette();
+    });
     expect(screen.getByRole("combobox")).toBeInTheDocument();
   });
 

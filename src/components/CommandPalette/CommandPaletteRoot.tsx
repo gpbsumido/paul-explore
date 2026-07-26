@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
 import { useCommandPaletteHotkey } from "@/hooks/useCommandPaletteHotkey";
 import { buildCommandRegistry } from "@/lib/command-palette/registry";
+import { COMMAND_PALETTE_OPEN_EVENT } from "@/lib/command-palette/open-event";
 import type { Command } from "@/lib/command-palette/types";
 import CommandPalette from "./CommandPalette";
 
@@ -17,6 +18,7 @@ import CommandPalette from "./CommandPalette";
 export default function CommandPaletteRoot() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, setPreference } = useTheme();
 
   const commands = useMemo(() => buildCommandRegistry(), []);
@@ -25,6 +27,18 @@ export default function CommandPaletteRoot() {
   const handleClose = useCallback(() => setOpen(false), []);
 
   useCommandPaletteHotkey({ onOpen: handleOpen });
+
+  // The graph landing/hub ("/") crowds all four corners with its own chrome and
+  // shows an inline ⌘K affordance in its header instead, so hide the floating
+  // trigger there to avoid a collision. Other in-tree triggers reach us through
+  // this window event, the same way the keyboard hotkey does.
+  useEffect(() => {
+    window.addEventListener(COMMAND_PALETTE_OPEN_EVENT, handleOpen);
+    return () =>
+      window.removeEventListener(COMMAND_PALETTE_OPEN_EVENT, handleOpen);
+  }, [handleOpen]);
+
+  const showFloatingTrigger = pathname !== "/";
 
   const handleSelect = useCallback(
     (command: Command) => {
@@ -44,6 +58,7 @@ export default function CommandPaletteRoot() {
 
   return (
     <>
+      {showFloatingTrigger && (
       <button
         type="button"
         onClick={handleOpen}
@@ -67,6 +82,7 @@ export default function CommandPaletteRoot() {
         </svg>
         <kbd className="font-sans text-[11px] tracking-wide">⌘K</kbd>
       </button>
+      )}
 
       <CommandPalette
         open={open}
