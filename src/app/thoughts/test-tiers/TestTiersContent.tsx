@@ -81,13 +81,22 @@ export default function TestTiersContent() {
               <Received>does this repo already do that</Received>
 
               <Sent pos="first">
-                partly. ci.yml has a quality job — lint, typecheck, dead-code,
-                unit tests — that gates everything. it&apos;s the fast tier
+                yep. ci.yml has a quality job — lint, typecheck, dead-code, unit
+                tests — that gates everything. it&apos;s the fast tier on every push
+              </Sent>
+              <Sent pos="middle">
+                e2e-smoke runs just the @smoke tests on every PR, so pull requests
+                keep a real-browser signal without the full cost
+              </Sent>
+              <Sent pos="middle">
+                the integration job — component + data-layer vitest tests — is so
+                fast here we just keep it on every PR too, not only merge/nightly.
+                the cadence rule only pays off when a tier is actually slow
               </Sent>
               <Sent pos="last">
-                the e2e + accessibility job needs: quality, so the slow Playwright
-                run only starts once the cheap checks pass. that&apos;s the split
-                already in action
+                and e2e-full — the whole public + authenticated suite — runs
+                nightly on a schedule, with flaky tests quarantined off the
+                blocking path. four jobs, one file, each on its own clock
               </Sent>
 
               <div className={styles.typingDots}>
@@ -158,7 +167,11 @@ export default function TestTiersContent() {
           plus its data layer — so they&apos;re slower than unit tests but still
           worth running regularly. Gating them on merge, rather than every push,
           keeps the per-push loop fast while still catching wiring problems before
-          they reach the shared branch.
+          they reach the shared branch. In this repo they&apos;re the Vitest tests
+          that render a component or route against its real data layer
+          (react-query + MSW), tagged with a{" "}
+          <code className={code}>.integration.test.tsx</code> suffix and run with{" "}
+          <code className={code}>pnpm test:integration</code>.
         </p>
 
         <h3 className="mb-1 mt-5 font-semibold text-foreground">
@@ -170,8 +183,12 @@ export default function TestTiersContent() {
           them the slowest and most fragile tier. Running them on a schedule (or
           as a release gate) means the whole app gets exercised end to end
           regularly, without that cost landing on every individual commit. Here
-          that&apos;s the Playwright <code className={code}>public</code> project,
-          axe accessibility scans included.
+          that&apos;s the Playwright <code className={code}>public</code> and{" "}
+          <code className={code}>authenticated</code> projects, axe accessibility
+          scans included, wired to a <code className={code}>schedule</code>{" "}
+          trigger. Every push and PR still runs a thin{" "}
+          <code className={code}>@smoke</code>-tagged subset so pull requests keep
+          a real-browser signal without the full cost.
         </p>
 
         <h3 className="mb-1 mt-5 font-semibold text-foreground">
@@ -190,9 +207,9 @@ export default function TestTiersContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">What this repo does today</h2>
         <p className="text-muted">
-          The split already exists in{" "}
-          <code className={code}>.github/workflows/ci.yml</code>, as two jobs
-          with a dependency between them.
+          The split lives in{" "}
+          <code className={code}>.github/workflows/ci.yml</code>, as four jobs,
+          each running as often as its cost is worth paying.
         </p>
         <p className="mt-3 text-muted">
           The <code className={code}>quality</code> job is the fast tier: it
@@ -203,18 +220,40 @@ export default function TestTiersContent() {
           the thing developers wait on.
         </p>
         <p className="mt-3 text-muted">
-          The <code className={code}>e2e-accessibility</code> job is the slow
-          tier. It declares <code className={code}>needs: quality</code>, so the
-          Playwright run — browser install included — never even starts until the
-          cheap checks are green. There&apos;s no point spending E2E minutes on a
-          change that doesn&apos;t typecheck.
+          The <code className={code}>e2e-smoke</code> job runs a thin
+          real-browser subset on every push and PR. It declares{" "}
+          <code className={code}>needs: quality</code>, so it never starts until
+          the cheap checks are green, and it runs only the{" "}
+          <code className={code}>@smoke</code>-tagged Playwright tests
+          (<code className={code}>--grep @smoke</code>). PRs keep a fast
+          end-to-end signal without paying for the whole suite.
         </p>
         <p className="mt-3 text-muted">
-          The obvious next step is cadence. Right now the E2E tier runs on the
-          same triggers as the fast tier. Moving the heaviest flows to a nightly
-          schedule (a <code className={code}>schedule</code> trigger) or a
-          pre-release gate, and keeping only a thin smoke subset on every PR,
-          would push this repo from a two-job gate toward a true tiered schedule.
+          The <code className={code}>integration</code> job is the middle tier: the
+          Vitest tests that render a component or route against its real data
+          layer (<code className={code}>pnpm test:integration</code>), gated on{" "}
+          <code className={code}>needs: quality</code>. The textbook cadence would
+          gate these on merge, but here&apos;s a deliberate deviation: this
+          repo&apos;s integration tests run in milliseconds (Vitest + MSW, no real
+          browser), so we keep them on <strong>every push and PR</strong> as well
+          as nightly, rather than merge-only. When a tier is that cheap, the
+          reason to defer it disappears — it&apos;s better to catch a wiring bug
+          on the PR than after it lands on the shared branch. The cadence rule
+          still bites where the cost is real: the genuinely slow end-to-end flows
+          below are what move off the per-commit path.
+        </p>
+        <p className="mt-3 text-muted">
+          The <code className={code}>e2e-full</code> job is the heavy tier: the
+          full <code className={code}>public</code> and{" "}
+          <code className={code}>authenticated</code> flows plus axe scans. It&apos;s
+          gated behind <code className={code}>needs: quality</code> too, but it
+          only runs on a nightly <code className={code}>schedule</code> or via{" "}
+          <code className={code}>workflow_dispatch</code> before a release — never
+          on an individual commit. Anything tagged{" "}
+          <code className={code}>@flaky</code> is held off the blocking path with{" "}
+          <code className={code}>--grep-invert @flaky</code> and re-run in a
+          separate <code className={code}>continue-on-error</code> step, so a
+          flaky test gets exercised nightly but can never fail a build.
         </p>
       </section>
 

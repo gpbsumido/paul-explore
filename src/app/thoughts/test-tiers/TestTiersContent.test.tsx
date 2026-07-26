@@ -29,6 +29,32 @@ describe("TestTiersContent", () => {
       ).toBeInTheDocument();
     }
   });
+
+  it("describes the implemented smoke and nightly cadence", () => {
+    render(<TestTiersContent />);
+    expect(screen.getByText(/e2e-smoke/)).toBeInTheDocument();
+    expect(screen.getByText(/e2e-full/)).toBeInTheDocument();
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/nightly/i);
+    expect(body).toMatch(/@smoke/);
+  });
+
+  it("describes the carved-out integration tier", () => {
+    render(<TestTiersContent />);
+    expect(screen.getAllByText(/pnpm test:integration/).length).toBeGreaterThan(
+      0,
+    );
+    expect(
+      screen.getByText(/\.integration\.test\.tsx/),
+    ).toBeInTheDocument();
+  });
+
+  it("notes keeping the fast integration tier on every PR as a deliberate deviation", () => {
+    render(<TestTiersContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/deliberate deviation/i);
+    expect(body).toMatch(/every push and PR/i);
+  });
 });
 
 describe("test-tiers write-up registration", () => {
