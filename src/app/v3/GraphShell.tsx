@@ -16,6 +16,13 @@ type LayoutMode = "force" | "flat";
 /** localStorage key for remembering the force/flat choice across visits. */
 const MODE_STORAGE_KEY = "v3-graph-mode";
 
+/** Full-bleed layer for one graph view; the inactive one is hidden but stays laid out. */
+function layerClass(active: boolean): string {
+  return active
+    ? "absolute inset-0"
+    : "absolute inset-0 invisible pointer-events-none";
+}
+
 /** Segmented switch that flips between the force graph and the flat layered view. */
 function LayoutSwitch({
   mode,
@@ -129,6 +136,9 @@ export default function GraphShell({
 }) {
   const reduced = useReducedMotion() ?? false;
   const [mode, setModeState] = useState<LayoutMode>("force");
+  // Once the flat view has been asked for we keep it mounted, so switching back
+  // to it is instant and never re-loads its chunk or replays its intro.
+  const [flatRequested, setFlatRequested] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // Remember the last-used view across visits. Read in an effect (not lazy
@@ -141,6 +151,7 @@ export default function GraphShell({
       // would mismatch the server-rendered default and warn on hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved === "flat" || saved === "force") setModeState(saved);
+      if (saved === "flat") setFlatRequested(true);
     } catch {
       // localStorage can throw (private mode, disabled) — just use the default.
     }
@@ -148,6 +159,7 @@ export default function GraphShell({
 
   const setMode = (next: LayoutMode) => {
     setModeState(next);
+    if (next === "flat") setFlatRequested(true);
     try {
       localStorage.setItem(MODE_STORAGE_KEY, next);
     } catch {
@@ -183,11 +195,27 @@ export default function GraphShell({
         aria-label="Graph of features and write-ups, and how they connect"
         className="absolute inset-0"
       >
-        {mode === "force" ? (
+        {/* Both views stay mounted and we swap which one is visible. Toggling
+            used to unmount one and mount the other, which replayed each view's
+            intro animation on every switch (and, under dev Strict Mode's double
+            mount, flashed it twice) — that was the flicker. Keeping them mounted
+            with visibility means a switch is just a paint change. invisible
+            (visibility:hidden), not hidden (display:none), so the backgrounded
+            force graph keeps its measured size and its simulation stays valid. */}
+        <div
+          className={layerClass(mode === "force")}
+          aria-hidden={mode !== "force"}
+        >
           <NodeGraph reducedMotion={reduced} />
-        ) : (
-          <FlatGraph reducedMotion={reduced} />
-        )}
+        </div>
+        {flatRequested ? (
+          <div
+            className={layerClass(mode === "flat")}
+            aria-hidden={mode !== "flat"}
+          >
+            <FlatGraph reducedMotion={reduced} />
+          </div>
+        ) : null}
       </main>
 
       {/* Header — glassy in flat view so scrolling cards don't show through it */}
