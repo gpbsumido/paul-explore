@@ -7,6 +7,7 @@ import { useReducedMotion } from "framer-motion";
 import GraphBackground from "./graph/GraphBackground";
 import NodeGraph from "./graph/NodeGraph";
 import { openCommandPalette } from "@/lib/command-palette/open-event";
+import { useShortcutKey } from "@/hooks/useShortcutKey";
 
 // The flat view is only shown when the visitor toggles to it, so keep its code
 // out of the initial bundle and load it on demand.
@@ -64,16 +65,18 @@ function LayoutSwitch({
 /**
  * Header affordance that tells visitors the command palette exists and opens it.
  * The graph landing fills every corner with its own chrome, so the global
- * floating ⌘K trigger is hidden here (see CommandPaletteRoot) and this stands in
- * its place. The ⌘K hint is desktop-only; on touch the icon alone is the tap
- * target. Opens the palette through the shared window event.
+ * floating trigger is hidden here (see CommandPaletteRoot) and this stands in
+ * its place. The shortcut hint is desktop-only, and platform-aware (⌘ on Apple,
+ * Ctrl elsewhere); on touch the icon alone is the tap target. Opens the palette
+ * through the shared window event.
  */
 function SearchHint() {
+  const shortcut = useShortcutKey();
   return (
     <button
       type="button"
       onClick={openCommandPalette}
-      aria-label="Search pages, dev notes, and actions (Command K)"
+      aria-label="Search pages, dev notes, and actions"
       aria-haspopup="dialog"
       className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-1.5 text-xs text-muted backdrop-blur transition-colors hover:text-foreground"
     >
@@ -92,9 +95,11 @@ function SearchHint() {
         <path d="m21 21-4.3-4.3" />
       </svg>
       <span className="hidden sm:inline">Search</span>
-      <kbd className="hidden font-sans text-[11px] tracking-wide text-muted sm:inline">
-        ⌘K
-      </kbd>
+      {shortcut ? (
+        <kbd className="hidden font-sans text-[11px] tracking-wide text-muted sm:inline">
+          {shortcut}K
+        </kbd>
+      ) : null}
     </button>
   );
 }

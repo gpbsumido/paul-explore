@@ -6,6 +6,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { useCommandPaletteHotkey } from "@/hooks/useCommandPaletteHotkey";
 import { buildCommandRegistry } from "@/lib/command-palette/registry";
 import { COMMAND_PALETTE_OPEN_EVENT } from "@/lib/command-palette/open-event";
+import { useShortcutKey } from "@/hooks/useShortcutKey";
 import type { Command } from "@/lib/command-palette/types";
 import CommandPalette from "./CommandPalette";
 
@@ -22,6 +23,7 @@ export default function CommandPaletteRoot() {
   const { theme, setPreference } = useTheme();
 
   const commands = useMemo(() => buildCommandRegistry(), []);
+  const shortcut = useShortcutKey();
 
   const handleOpen = useCallback(() => setOpen(true), []);
   const handleClose = useCallback(() => setOpen(false), []);
@@ -62,7 +64,7 @@ export default function CommandPaletteRoot() {
       <button
         type="button"
         onClick={handleOpen}
-        aria-label="Open command palette (Command K)"
+        aria-label="Open command palette"
         aria-haspopup="dialog"
         className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full border border-border bg-surface/90 px-3 py-2 text-[12px] text-muted shadow-md backdrop-blur transition-colors hover:bg-surface-raised hover:text-foreground"
       >
@@ -80,7 +82,9 @@ export default function CommandPaletteRoot() {
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
         </svg>
-        <kbd className="font-sans text-[11px] tracking-wide">⌘K</kbd>
+        {shortcut ? (
+          <kbd className="font-sans text-[11px] tracking-wide">{shortcut}K</kbd>
+        ) : null}
       </button>
       )}
 
