@@ -96,7 +96,7 @@ function SearchHint() {
       </svg>
       <span className="hidden sm:inline">Search</span>
       {shortcut ? (
-        <kbd className="hidden font-sans text-[11px] tracking-wide text-muted sm:inline">
+        <kbd className="hidden font-sans text-[11px] tracking-wide text-foreground sm:inline">
           {shortcut}K
         </kbd>
       ) : null}

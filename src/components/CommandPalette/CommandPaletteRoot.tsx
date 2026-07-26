@@ -83,7 +83,9 @@ export default function CommandPaletteRoot() {
           <path d="m21 21-4.3-4.3" />
         </svg>
         {shortcut ? (
-          <kbd className="font-sans text-[11px] tracking-wide">{shortcut}K</kbd>
+          <kbd className="font-sans text-[11px] tracking-wide text-foreground">
+            {shortcut}K
+          </kbd>
         ) : null}
       </button>
       )}
