@@ -16,6 +16,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "work-portfolio",
       "ketsup",
       "ai-agent-patterns",
+      "craft",
     ],
   },
   {
