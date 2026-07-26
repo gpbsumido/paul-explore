@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-25 - version 1.2.0
+
+- added a site-wide command palette (⌘K / Ctrl+K, or a bare "/" when not typing). It fuzzy-searches pages, dev notes, and actions built from the same FEATURES + THOUGHTS data the hub renders, with an ARIA combobox (arrow/enter/escape nav via aria-activedescendant) and grouped results. On most pages a floating shortcut pill in the corner is the discoverable trigger; the visible hint is platform-aware (⌘K on Apple devices, Ctrl K on Windows/Linux), resolved after mount so it stays hydration-safe (the shortcut itself already worked on every platform). The graph landing and hub fill every corner with their own chrome, so there the floating pill is hidden and a "Search" affordance sits in the header instead; it opens the same palette through a shared `commandpalette:open` window event. Fixed the two jsx-a11y lint errors on the option rows (false positives for this combobox pattern, where keyboard nav lives on the input, not the individual options), and bumped the shortcut-hint text to a readable colour so it clears WCAG AA contrast.
+
 ## 2026-07-25 - version 1.1.1
 
 - fixed the v3 landing footer. The node-type legend was lying: it showed a single purple "Category" dot and a pink "Write-up" dot, but the graph actually colours every feature one blue and then colours each category (and the write-ups under it) by topic, so those two pills didn't match anything on screen. Collapsed them into an honest "By topic" swatch built from the real category palette, and kept "Feature" as the shared blue. Also replaced the hard-coded "v2 ↗" corner link, which pointed at one arbitrary old design, with a small "Versions" picker that lists the retired landings (v2, v1) so it stays right as versions come and go.
