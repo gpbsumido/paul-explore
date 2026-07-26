@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-25 - version 1.1.1
+
+- fixed the v3 landing footer. The node-type legend was lying: it showed a single purple "Category" dot and a pink "Write-up" dot, but the graph actually colours every feature one blue and then colours each category (and the write-ups under it) by topic, so those two pills didn't match anything on screen. Collapsed them into an honest "By topic" swatch built from the real category palette, and kept "Feature" as the shared blue. Also replaced the hard-coded "v2 ↗" corner link, which pointed at one arbitrary old design, with a small "Versions" picker that lists the retired landings (v2, v1) so it stays right as versions come and go.
+
 ## 2026-07-25 - version 1.1.0
 
 - release to `main`, rolling up the recent develop work: the résumé page and its entry points (1.0.11), the shared `@paul-portfolio` `Ticker` migration (1.0.10), the v3 graph small/zoomed-viewport and interaction fixes (1.0.9), and the landing look-and-feel rollout across the app (1.0.8). See the entries below for details.
