@@ -405,9 +405,11 @@ function Reel({
                 right: 0,
                 top: WINDOW_H / 2 - ROW_H / 2,
                 transform: `translateY(${-pos * ROW_H}px)`,
-                // Vertical smear while the column is turning, like a spinning
-                // reel; snaps sharp the instant it lands.
-                filter: blurring && !reduced ? "blur(2.4px)" : undefined,
+                // Vertical smear while the column is actually turning, like a
+                // spinning reel; snaps sharp the instant it lands. A one-item
+                // reel has nothing to cycle, so it never smears.
+                filter:
+                  blurring && !reduced && len > 1 ? "blur(2.4px)" : undefined,
                 willChange: "transform",
               }}
             >
@@ -534,9 +536,10 @@ export default function SlotMachine({
   const [optPos, setOptPos] = useState<ReelPos>(still(0));
   const [notePos, setNotePos] = useState<ReelPos>(still(0));
   const [spinning, setSpinning] = useState(false);
-  // Which single column is turning right now (-1 when still), so only that reel
-  // wears the motion blur as the spin marches left to right.
-  const [movingReel, setMovingReel] = useState(-1);
+  // How many columns have locked in so far this spin. Every reel starts turning
+  // at once; they settle left to right, so a reel is still blurring while its
+  // index is at or past this count. 3 (all settled) when the machine is idle.
+  const [settledCount, setSettledCount] = useState(3);
   // While a spin runs, reels 2 and 3 read their contents from the locked-in
   // target instead of the mid-flight reel-1 position, so they never thrash
   // through every category the first reel passes on its way down.
@@ -650,11 +653,34 @@ export default function SlotMachine({
     clearTimers();
     setFrozen({ cat: catTarget, opt: optTarget, note: noteTarget });
     setSpinning(true);
+    setSettledCount(0);
     setOptPos(still(0));
     setNotePos(still(0));
 
     const schedule = (fn: () => void, at: number) => {
       timers.current.push(window.setTimeout(fn, at));
+    };
+
+    // Keep a column free-wheeling (steady, fast steps) from the start of the
+    // spin until it's that column's turn to settle, so the reels to the right of
+    // whatever is landing are always visibly turning rather than sitting still.
+    // Returns the position it reaches, so the settle can carry on from there
+    // without a jump. A single-item reel has nothing to cycle, so it holds.
+    const freeSpin = (
+      len: number,
+      set: (value: number) => void,
+      startAt: number,
+      endAt: number,
+      stepMs = 42,
+    ): number => {
+      if (len <= 1) return 0;
+      let p = 0;
+      for (let at = startAt; at < endAt; at += stepMs) {
+        p += 1;
+        const value = p;
+        schedule(() => set(value), at);
+      }
+      return p;
     };
 
     // Spin one column: step forward along the endless strip through at least a
@@ -692,21 +718,26 @@ export default function SlotMachine({
       return start + durMs;
     };
 
-    // Fast, and strictly one column at a time: each reel starts only once the
-    // previous has settled. The motion blur follows the same baton: it lights on
-    // a column at its start and lifts the moment the next one takes over.
-    setMovingReel(0);
+    // All three reels turn together from the off; they lock in left to right.
+    // The category settles first, straight from where it sits. The other two
+    // free-wheel until their turn comes, then decelerate onto their target.
+    const setOpt = (v: number) => setOptPos(glideTo(v));
+    const setNote = (v: number) => setNotePos(glideTo(v));
+
     const t1 = runReel(categories.length, catTarget, catPos.pos, (v) =>
-      setCatPos(glideTo(v)), 0, 560);
-    schedule(() => setMovingReel(1), t1);
-    const t2 = runReel(optList.length, optTarget, 0, (v) =>
-      setOptPos(glideTo(v)), t1, 440);
-    schedule(() => setMovingReel(2), t2);
-    const t3 = runReel(noteList.length, noteTarget, 0, (v) =>
-      setNotePos(glideTo(v)), t2, 440);
+      setCatPos(glideTo(v)), 0, 620);
+    schedule(() => setSettledCount(1), t1);
+
+    const optFrom = freeSpin(optList.length, setOpt, 0, t1);
+    const t2 = runReel(optList.length, optTarget, optFrom, setOpt, t1, 460);
+    schedule(() => setSettledCount(2), t2);
+
+    const noteFrom = freeSpin(noteList.length, setNote, 0, t2);
+    const t3 = runReel(noteList.length, noteTarget, noteFrom, setNote, t2, 460);
+
     schedule(() => {
       setSpinning(false);
-      setMovingReel(-1);
+      setSettledCount(3);
       setFrozen(null);
     }, Math.max(t1, t2, t3) + 200);
   };
@@ -793,7 +824,7 @@ export default function SlotMachine({
                 items={categories}
                 posState={catPos}
                 spinning={spinning}
-                blurring={movingReel === 0}
+                blurring={spinning && settledCount <= 0}
                 reduced={reduced}
                 accent={catAccent}
                 onPosChange={moveCat}
@@ -813,7 +844,7 @@ export default function SlotMachine({
                 items={reelItems()}
                 posState={optPos}
                 spinning={spinning}
-                blurring={movingReel === 1}
+                blurring={spinning && settledCount <= 1}
                 reduced={reduced}
                 accent={optAccent}
                 disabled={middleDisabled}
@@ -838,7 +869,7 @@ export default function SlotMachine({
                 items={noteItems()}
                 posState={notePos}
                 spinning={spinning}
-                blurring={movingReel === 2}
+                blurring={spinning && settledCount <= 2}
                 reduced={reduced}
                 accent={noteAccent}
                 onPosChange={moveNote}
@@ -895,10 +926,12 @@ export default function SlotMachine({
           </m.div>
 
           {/* Result caption: the plain, keyboard-friendly way to open what
-              landed. Hidden mid-spin so the pull isn't spoiled. */}
+              landed. Hidden mid-spin so the pull isn't spoiled. A fixed height
+              keeps the whole centred block from reflowing as the blurb and
+              links change between selections. */}
           <m.div
             variants={revealItem}
-            className="mx-auto mt-7 flex min-h-16 w-full max-w-2xl flex-col items-center justify-start text-center sm:mt-9"
+            className="mx-auto mt-7 flex h-32 w-full max-w-2xl flex-col items-center justify-start overflow-hidden text-center sm:mt-9"
           >
             {spinning ? (
               <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted">
