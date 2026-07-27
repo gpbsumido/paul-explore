@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.9.0
+
+- added a "Motion Components" dev-thoughts write-up at `/thoughts/motion-components`, documenting the pointer-driven motion primitives built for the shared design system — TiltCard, GradientBackground, and Spotlight. Covers the static-first approach (each renders a plain, usable component before any motion attaches), reduced motion as the default rather than an afterthought via one shared `usePrefersReducedMotion` hook, and the pointer math behind the tilt and spotlight effects. Registered in `THOUGHTS` and the Design & UI category, with a matching test asserting registration, categorization, and that the page renders its sections.
+
 ## 2026-07-27 - version 1.8.0
 
 - added a "macOS Menu Bar" dev-thoughts write-up at `/thoughts/mac-menu-bar`, documenting the menu bar work shipped in the angular-paul desktop clone: turning the static Apple / File / Edit / View / Window / Help labels into a working, signal-driven menu system. Covers the `MenuBarService` that derives every menu from live window and dock state via `computed` signals, the real actions each item runs, and the keyboard/screen-reader access (roles, `aria-haspopup`/`aria-expanded`, Escape-to-close-with-focus-return, arrow-key nav). Registered in `THOUGHTS` and the Features category, with a matching test asserting registration, categorization, and that the page renders its sections.

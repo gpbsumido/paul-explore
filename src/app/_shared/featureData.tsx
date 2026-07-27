@@ -375,6 +375,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#60a5fa",
   },
   {
+    title: "Motion Components",
+    href: "/thoughts/motion-components",
+    preview:
+      "TiltCard, GradientBackground, and Spotlight for the shared design system — pointer-driven motion built static-first, with reduced motion as the default and one shared usePrefersReducedMotion hook",
+    color: "#a78bfa",
+  },
+  {
     title: "Design System Showcase",
     href: "/thoughts/design-system-showcase",
     preview:
