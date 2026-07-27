@@ -22,12 +22,10 @@ const ROW_H = 60;
 /** Visible rows per reel; odd so the landed row sits dead centre. */
 const VISIBLE_ROWS = 5;
 const WINDOW_H = ROW_H * VISIBLE_ROWS;
-/** Extra rows rendered past the travel range so the wheel never shows a gap. */
-const OVERSCAN = 3;
 
 /** Reels fade out toward their edges instead of sitting in a frame. */
 const EDGE_FADE =
-  "linear-gradient(to bottom, transparent 0%, black 32%, black 68%, transparent 100%)";
+  "linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)";
 
 /** Warm accent shared with the résumé slot category so the two read as one thing. */
 const RESUME_ACCENT = "#fb923c";
@@ -72,22 +70,22 @@ type ReelItem = {
   label: string;
   color: string;
   deprecated?: boolean;
+  /** A greyed-out placeholder (a category with write-ups but no app to open). */
+  disabled?: boolean;
 };
 
 /**
- * A reel's position on its endless strip, in row units. `pos` only needs to be
+ * A reel's position on its endless strip, in row units. It only needs to be
  * congruent to the selected index (mod length), so it can grow without bound
- * during spins, which is what keeps the motion continuous and directional:
- * the track never jumps back across the strip when the index wraps. `from`
- * remembers where the last glide started so the rows along the travel path
- * stay rendered while the CSS transition covers them.
+ * during a spin, which is what keeps the motion continuous and directional:
+ * the strip never jumps back when the index wraps around.
  */
-type ReelPos = { pos: number; from: number };
+type ReelPos = { pos: number };
 
-const still = (index: number): ReelPos => ({ pos: index, from: index });
+const still = (index: number): ReelPos => ({ pos: index });
 const glideTo =
   (next: number) =>
-  (p: ReelPos): ReelPos => ({ pos: next, from: p.pos });
+  (): ReelPos => ({ pos: next });
 
 /** DOM ids need to be attribute-safe, so squash anything odd in the item id. */
 const rowDomId = (reelKey: string, itemId: string): string =>
@@ -95,11 +93,12 @@ const rowDomId = (reelKey: string, itemId: string): string =>
 
 /**
  * One wheel of the machine: an endless, edge-faded strip of type with the
- * landed row centred and set in the display serif. Semantically it is a plain
- * listbox with a visually hidden option per item for assistive tech; the
- * moving strip itself is decoration. Arrows step one visual row in the pressed
- * direction (wrapping continuously), Home/End take the shortest path, Enter
- * activates.
+ * landed row centred and set in the display serif, a hairline payline marking
+ * the centre. Semantically it is a plain listbox with a visually hidden option
+ * per item for assistive tech; the moving strip itself is decoration. Arrows
+ * step one visual row in the pressed direction (wrapping continuously),
+ * Home/End take the shortest path, Enter activates. A disabled reel is inert
+ * and greyed, but its rows still stack so the layout holds.
  */
 function Reel({
   eyebrow,
@@ -109,6 +108,8 @@ function Reel({
   posState,
   spinning,
   reduced,
+  accent,
+  disabled = false,
   onPosChange,
   onActivate,
   empty,
@@ -121,19 +122,24 @@ function Reel({
   posState: ReelPos;
   spinning: boolean;
   reduced: boolean;
+  /** Landed accent, used for the dot glow and the payline tint. */
+  accent: string;
+  /** Greys the reel out and turns off interaction (write-up-only categories). */
+  disabled?: boolean;
   onPosChange: (next: number) => void;
   /** Omitted for reels that only select (reel 1). */
   onActivate?: (index: number) => void;
   /** Shown inside the window when there are no items. */
   empty?: ReactNode;
 }) {
-  const { pos, from } = posState;
+  const { pos } = posState;
   const len = items.length;
   const selected = wrapIndex(Math.round(pos), len);
   const activeItem = items[selected];
+  const inert = disabled || spinning;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (spinning || len === 0) return;
+    if (inert || len === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
       onPosChange(pos + 1);
@@ -160,13 +166,6 @@ function Reel({
     }
   };
 
-  // Render every virtual row between where the last glide started and where
-  // this one ends, plus a little overscan, so the strip stays solid for the
-  // whole animated travel. Each virtual slot k shows items[k mod len].
-  const lo = Math.floor(Math.min(from, pos)) - OVERSCAN;
-  const hi = Math.ceil(Math.max(from, pos)) + OVERSCAN;
-  const slots = Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
-
   return (
     <div className="flex min-w-0 flex-col gap-3">
       <p className="flex items-baseline gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.25em] text-muted">
@@ -179,15 +178,16 @@ function Reel({
       <div
         role="listbox"
         aria-label={label}
-        tabIndex={0}
+        aria-disabled={inert || undefined}
+        tabIndex={disabled ? -1 : 0}
         aria-activedescendant={
           activeItem ? rowDomId(reelKey, activeItem.id) : undefined
         }
-        aria-disabled={spinning || undefined}
         onKeyDown={handleKeyDown}
         className={[
-          "relative -mx-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-foreground/60",
-          spinning ? "pointer-events-none opacity-70 blur-[1px]" : "",
+          "relative -mx-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-foreground/50",
+          spinning ? "pointer-events-none" : "",
+          disabled ? "opacity-50" : "",
         ].join(" ")}
         style={{ height: WINDOW_H }}
       >
@@ -207,8 +207,28 @@ function Reel({
           ))}
         </div>
 
+        {/* Payline: a single hairline at the centre row, glowing in the landed
+            accent. Three of these across the columns read as one line, no box. */}
+        {len > 0 ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 z-10"
+            style={{ top: WINDOW_H / 2 - 0.5 }}
+          >
+            <div
+              className="h-px w-full transition-[background,box-shadow] duration-500"
+              style={{
+                background: `linear-gradient(to right, transparent, color-mix(in srgb, ${accent} 55%, transparent), transparent)`,
+                boxShadow: spinning
+                  ? "none"
+                  : `0 0 12px color-mix(in srgb, ${accent} 45%, transparent)`,
+              }}
+            />
+          </div>
+        ) : null}
+
         {len === 0 ? (
-          <div className="flex h-full flex-col justify-center gap-1.5 px-1">
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-1 text-center">
             {empty}
           </div>
         ) : (
@@ -219,7 +239,7 @@ function Reel({
           >
             <div
               className={
-                reduced ? "" : "transition-transform duration-300 ease-out"
+                reduced ? "" : "transition-transform duration-200 ease-out"
               }
               style={{
                 position: "absolute",
@@ -230,49 +250,64 @@ function Reel({
                 willChange: "transform",
               }}
             >
-              {slots.map((k) => {
-                const item = items[wrapIndex(k, len)];
-                const isLanded = k === Math.round(pos);
-                const distance = Math.abs(k - Math.round(pos));
+              {items.map((item, i) => {
+                // Render each real item exactly once, at the copy of its index
+                // nearest the current position. A long list tiles the window
+                // like an endless wheel; a short one just leaves gaps above and
+                // below instead of repeating the same label to fill the rows.
+                const rounded = Math.round(pos);
+                const k = i + len * Math.round((pos - i) / len);
+                const isLanded = k === rounded;
+                const distance = Math.abs(k - rounded);
+                const muted = item.disabled;
                 return (
                   <div
-                    key={k}
+                    key={item.id}
                     aria-hidden
-                    onClick={() => onPosChange(k)}
+                    onClick={inert ? undefined : () => onPosChange(k)}
                     className={[
-                      "absolute inset-x-0 flex cursor-pointer items-center px-1",
-                      reduced ? "" : "transition-opacity duration-300",
+                      "group absolute inset-x-0 flex items-center px-1",
+                      inert ? "" : "cursor-pointer",
+                      reduced ? "" : "transition-opacity duration-200",
                     ].join(" ")}
                     style={{
                       top: k * ROW_H,
                       height: ROW_H,
-                      opacity: distance === 0 ? 1 : distance === 1 ? 0.4 : 0.18,
+                      opacity: distance === 0 ? 1 : distance === 1 ? 0.38 : 0.16,
                     }}
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span
-                        className="h-1.5 w-1.5 shrink-0 rounded-full"
+                        className="h-1.5 w-1.5 shrink-0 rounded-full transition-shadow"
                         style={{
-                          backgroundColor: item.color,
-                          boxShadow: isLanded
-                            ? `0 0 10px ${item.color}`
-                            : undefined,
+                          backgroundColor: muted
+                            ? "var(--color-muted, #94a3b8)"
+                            : item.color,
+                          boxShadow:
+                            isLanded && !muted
+                              ? `0 0 10px ${item.color}`
+                              : undefined,
                         }}
                       />
-                      <span
-                        className={
-                          isLanded
-                            ? `${fraunces.className} truncate pb-0.5 text-[17px] leading-tight text-foreground sm:text-xl`
-                            : "truncate text-[13px] text-muted"
-                        }
-                        style={
-                          isLanded
-                            ? { borderBottom: `2px solid ${item.color}` }
-                            : undefined
-                        }
-                      >
-                        {item.label}
-                      </span>
+                      {isLanded && !muted ? (
+                        <span
+                          className={`${fraunces.className} truncate pb-0.5 text-[17px] leading-tight text-foreground sm:text-[19px]`}
+                          style={{ borderBottom: `2px solid ${item.color}` }}
+                        >
+                          {item.label}
+                        </span>
+                      ) : (
+                        <span
+                          className={[
+                            "truncate text-[13px]",
+                            muted
+                              ? "italic text-muted/80"
+                              : "text-muted group-hover:text-foreground",
+                          ].join(" ")}
+                        >
+                          {item.label}
+                        </span>
+                      )}
                       {item.deprecated ? <DeprecatedPill /> : null}
                     </div>
                   </div>
@@ -288,26 +323,32 @@ function Reel({
 
 const revealContainer: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.11, delayChildren: 0.15 } },
+  show: { transition: { staggerChildren: 0.1, delayChildren: 0.12 } },
 };
 
 const revealItem: Variants = {
-  hidden: { opacity: 0, y: 26 },
+  hidden: { opacity: 0, y: 24 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
   },
 };
+
+/** A whole-number index in [0, n). */
+const randIndex = (n: number): number => Math.floor(Math.random() * Math.max(n, 1));
+
+type Frozen = { cat: number; opt: number; note: number };
 
 /**
  * Full-screen v4 landing and hub: a slot machine reimagined as three floating
  * columns of type over the ambient aurora. Reel 1 picks a category, reel 2 an
- * option inside it, reel 3 the write-up behind that option; positions move on
- * an endless strip so spins and wrap-around steps are always continuous and
- * directional. A caption underneath is the plain, fully accessible way to open
- * whatever landed. Callers supply the greeting line and the top-right action
- * (log in, or the signed-in controls).
+ * option inside it (greyed out for write-up-only categories), reel 3 the
+ * write-up behind that option. Positions move on an endless strip so spins and
+ * wrap-around steps are always continuous, and a pull settles the columns one
+ * at a time, left to right. A caption underneath is the plain, fully accessible
+ * way to open whatever landed. Callers supply the greeting and the top-right
+ * action (log in, or the signed-in controls).
  */
 export default function SlotMachine({
   greeting,
@@ -324,6 +365,10 @@ export default function SlotMachine({
   const [optPos, setOptPos] = useState<ReelPos>(still(0));
   const [notePos, setNotePos] = useState<ReelPos>(still(0));
   const [spinning, setSpinning] = useState(false);
+  // While a spin runs, reels 2 and 3 read their contents from the locked-in
+  // target instead of the mid-flight reel-1 position, so they never thrash
+  // through every category the first reel passes on its way down.
+  const [frozen, setFrozen] = useState<Frozen | null>(null);
 
   const timers = useRef<number[]>([]);
   useEffect(() => {
@@ -331,14 +376,25 @@ export default function SlotMachine({
     return () => owned.current.forEach((id) => window.clearTimeout(id));
   }, []);
 
-  const catIndex = wrapIndex(Math.round(catPos.pos), categories.length);
+  const catIndex = frozen
+    ? frozen.cat
+    : wrapIndex(Math.round(catPos.pos), categories.length);
   const category = categories[catIndex];
   const options = category.options;
-  const optIndex = wrapIndex(Math.round(optPos.pos), options.length);
+  const optIndex = frozen
+    ? frozen.opt
+    : wrapIndex(Math.round(optPos.pos), options.length);
   const option = options[optIndex];
+  const middleDisabled = Boolean(option?.disabled);
   const thoughts: SlotThought[] = option?.thoughts ?? [];
-  const noteIndex = wrapIndex(Math.round(notePos.pos), thoughts.length);
+  const noteIndex = frozen
+    ? frozen.note
+    : wrapIndex(Math.round(notePos.pos), thoughts.length);
   const thought = thoughts.length > 0 ? thoughts[noteIndex] : undefined;
+
+  const catAccent = category.color;
+  const optAccent = option?.color ?? catAccent;
+  const noteAccent = thought?.color ?? optAccent;
 
   // Downstream reels only reset when the upstream selection really changes,
   // so nudging a reel around its own strip never yanks its neighbours.
@@ -358,6 +414,7 @@ export default function SlotMachine({
   const moveNote = (next: number) => setNotePos(glideTo(next));
 
   const openHref = (href: string, external?: boolean) => {
+    if (!href) return;
     if (external) {
       window.open(href, "_blank", "noopener,noreferrer");
       return;
@@ -365,25 +422,29 @@ export default function SlotMachine({
     router.push(href);
   };
 
+  const clearTimers = () => {
+    timers.current.forEach((id) => window.clearTimeout(id));
+    timers.current = [];
+  };
+
   const spin = () => {
     if (spinning) return;
-    const catTarget = Math.floor(Math.random() * categories.length);
+    const catTarget = randIndex(categories.length);
     const optList = categories[catTarget].options;
-    const optTarget =
-      optList.length > 0 ? Math.floor(Math.random() * optList.length) : 0;
+    const optTarget = optList.length > 0 ? randIndex(optList.length) : 0;
     const noteList = optList[optTarget]?.thoughts ?? [];
-    const noteTarget =
-      noteList.length > 0 ? Math.floor(Math.random() * noteList.length) : 0;
+    const noteTarget = noteList.length > 0 ? randIndex(noteList.length) : 0;
 
     if (reduced) {
+      setFrozen(null);
       setCatPos(still(catTarget));
       setOptPos(still(optTarget));
       setNotePos(still(noteTarget));
       return;
     }
 
-    timers.current.forEach((id) => window.clearTimeout(id));
-    timers.current = [];
+    clearTimers();
+    setFrozen({ cat: catTarget, opt: optTarget, note: noteTarget });
     setSpinning(true);
     setOptPos(still(0));
     setNotePos(still(0));
@@ -391,71 +452,82 @@ export default function SlotMachine({
     const schedule = (fn: () => void, at: number) => {
       timers.current.push(window.setTimeout(fn, at));
     };
-    // Step a reel forward along its endless strip: at least one full turn,
-    // landing exactly on the target, through eased cumulative positions with
-    // widening gaps so it reads as a wheel losing momentum. Positions only
-    // ever increase, so there is never a jump back across the strip.
+
+    // Spin one column: step forward along the endless strip through at least a
+    // full turn, landing exactly on the target. Distance eases out (a wheel
+    // losing momentum) and the step times bunch up early then spread late, so
+    // it decelerates. Positions only increase, so the strip never jumps back.
+    // A single-item (or empty) reel has nothing to spin, so it just lands after
+    // a short beat, keeping the left-to-right rhythm.
     const runReel = (
       len: number,
       targetIndex: number,
       fromPos: number,
       set: (value: number) => void,
       start: number,
+      durMs: number,
     ): number => {
       if (len <= 1) {
         schedule(() => set(targetIndex), start);
-        return start;
+        return start + 130;
       }
       const fromIndex = wrapIndex(Math.round(fromPos), len);
       const travel = wrapIndex(targetIndex - fromIndex, len) + len;
-      const steps = Math.min(8, travel);
-      let at = start;
+      const steps = Math.min(14, Math.max(6, travel));
       let prev = 0;
       for (let j = 1; j <= steps; j += 1) {
-        const eased = 1 - Math.pow(1 - j / steps, 3);
+        const p = j / steps;
         const cum = Math.min(
           travel,
-          Math.max(prev + 1, Math.round(travel * eased)),
+          Math.max(prev + 1, Math.round(travel * (1 - Math.pow(1 - p, 3)))),
         );
-        at += 55 + j * 26;
-        const value = fromPos + cum;
-        schedule(() => set(value), at);
+        const at = start + Math.round(durMs * (1 - Math.pow(1 - p, 2)));
+        schedule(() => set(fromPos + cum), at);
         prev = cum;
       }
-      return at;
+      return start + durMs;
     };
 
-    const t1 = runReel(
-      categories.length,
-      catTarget,
-      catPos.pos,
-      (v) => setCatPos(glideTo(v)),
-      0,
-    );
-    const t2 = runReel(
-      optList.length,
-      optTarget,
-      0,
-      (v) => setOptPos(glideTo(v)),
-      t1 + 140,
-    );
-    const t3 = runReel(
-      Math.max(noteList.length, 1),
-      noteTarget,
-      0,
-      (v) => setNotePos(glideTo(v)),
-      t2 + 140,
-    );
-    schedule(() => setSpinning(false), t3 + 250);
+    // Fast, and strictly one column at a time: each reel starts only once the
+    // previous has settled.
+    const t1 = runReel(categories.length, catTarget, catPos.pos, (v) =>
+      setCatPos(glideTo(v)), 0, 560);
+    const t2 = runReel(optList.length, optTarget, 0, (v) =>
+      setOptPos(glideTo(v)), t1, 440);
+    const t3 = runReel(noteList.length, noteTarget, 0, (v) =>
+      setNotePos(glideTo(v)), t2, 440);
+    schedule(() => {
+      setSpinning(false);
+      setFrozen(null);
+    }, Math.max(t1, t2, t3) + 200);
   };
 
-  const totalOptions = categories.reduce((n, c) => n + c.options.length, 0);
+  const totalWriteups = categories.reduce(
+    (n, c) => n + c.options.reduce((m, o) => m + o.thoughts.length, 0),
+    0,
+  );
 
   const status = spinning
     ? "Spinning the reels"
     : `Category ${category.label}, option ${option?.label ?? "none"}, ${
         thought ? `write-up ${thought.title}` : "no write-up"
       }`;
+
+  const reelItems = (): ReelItem[] =>
+    options.map((o) => ({
+      id: o.id,
+      label: o.label,
+      color: o.color,
+      ...(o.disabled ? { disabled: true } : {}),
+    }));
+
+  const noteItems = (): ReelItem[] =>
+    thoughts.map((t, i) => ({
+      id: `${option?.id ?? "none"}-${i}`,
+      label: t.title,
+      color: t.color,
+      ...(t.deprecated ? { deprecated: true } : {}),
+    }));
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-background text-foreground">
@@ -498,11 +570,11 @@ export default function SlotMachine({
             variants={revealItem}
             className="mb-8 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted"
           >
-            {categories.length} categories · {totalOptions} destinations · one
+            {categories.length} categories · {totalWriteups} write-ups · one
             pull
           </m.p>
 
-          <div className="grid grid-cols-3 gap-5 sm:gap-10">
+          <div className="grid grid-cols-3 gap-4 sm:gap-10">
             <m.div variants={revealItem} className="min-w-0">
               <Reel
                 eyebrow="01"
@@ -512,6 +584,7 @@ export default function SlotMachine({
                 posState={catPos}
                 spinning={spinning}
                 reduced={reduced}
+                accent={catAccent}
                 onPosChange={moveCat}
               />
             </m.div>
@@ -521,14 +594,17 @@ export default function SlotMachine({
                 eyebrow="02"
                 label="Options"
                 reelKey="opt"
-                items={options}
+                items={reelItems()}
                 posState={optPos}
                 spinning={spinning}
                 reduced={reduced}
+                accent={optAccent}
+                disabled={middleDisabled}
                 onPosChange={moveOpt}
                 onActivate={(i) => {
                   const target = options[i];
-                  if (target) openHref(target.href, target.external);
+                  if (target && !target.disabled)
+                    openHref(target.href, target.external);
                 }}
               />
             </m.div>
@@ -538,15 +614,11 @@ export default function SlotMachine({
                 eyebrow="03"
                 label="Write-ups"
                 reelKey="note"
-                items={thoughts.map((t, i) => ({
-                  id: `${option?.id ?? "none"}-${i}`,
-                  label: t.title,
-                  color: t.color,
-                  ...(t.deprecated ? { deprecated: true } : {}),
-                }))}
+                items={noteItems()}
                 posState={notePos}
                 spinning={spinning}
                 reduced={reduced}
+                accent={noteAccent}
                 onPosChange={moveNote}
                 onActivate={(i) => {
                   const target = thoughts[i];
@@ -561,7 +633,7 @@ export default function SlotMachine({
                     </p>
                     <Link
                       href="/thoughts"
-                      className="w-fit rounded font-mono text-[11px] uppercase tracking-[0.15em] text-muted underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+                      className="rounded font-mono text-[11px] uppercase tracking-[0.15em] text-muted underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
                     >
                       Browse all →
                     </Link>
@@ -571,73 +643,90 @@ export default function SlotMachine({
             </m.div>
           </div>
 
-          {/* The pull: a single circular key between two hairlines. */}
+          {/* The pull: a single circular key between two hairlines, tinted with
+              whatever category is currently up. */}
           <m.div
             variants={revealItem}
-            className="mt-6 flex items-center justify-center gap-6 sm:mt-8"
+            className="mt-7 flex items-center justify-center gap-6 sm:mt-9"
           >
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
             <button
               type="button"
               onClick={spin}
               disabled={spinning}
-              className="flex h-20 w-20 items-center justify-center rounded-full border border-foreground/30 bg-background/40 pl-[0.3em] font-mono text-[11px] font-semibold uppercase tracking-[0.3em] text-foreground backdrop-blur-sm transition-colors hover:border-foreground hover:bg-foreground hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Spin the reels"
+              className="flex h-20 w-20 items-center justify-center rounded-full border bg-background/40 font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-foreground backdrop-blur-sm transition-[transform,border-color,background-color] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                borderColor: `color-mix(in srgb, ${catAccent} 55%, transparent)`,
+                boxShadow: spinning
+                  ? "none"
+                  : `0 0 26px color-mix(in srgb, ${catAccent} 22%, transparent)`,
+              }}
             >
               {spinning ? "···" : "Spin"}
             </button>
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
           </m.div>
 
-          {/* Result caption: the plain, keyboard-friendly way to open what landed. */}
+          {/* Result caption: the plain, keyboard-friendly way to open what
+              landed. Hidden mid-spin so the pull isn't spoiled. */}
           <m.div
             variants={revealItem}
-            className="mx-auto mt-6 w-full max-w-2xl text-center sm:mt-8"
+            className="mx-auto mt-7 flex min-h-16 w-full max-w-2xl flex-col items-center justify-start text-center sm:mt-9"
           >
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-              <span style={{ color: category.color }}>{category.label}</span>
-              <span aria-hidden> › </span>
-              <span style={{ color: option?.color }}>{option?.label}</span>
-            </p>
-            {option?.blurb ? (
-              <p className="mx-auto mt-2 max-w-xl text-[13px] leading-relaxed text-muted">
-                {option.blurb}
+            {spinning ? (
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted">
+                spinning…
               </p>
-            ) : null}
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 text-[13px] font-semibold">
-              {option ? (
-                option.external ? (
-                  <a
-                    href={option.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
-                    style={{ color: option.color }}
-                  >
-                    Open {option.label} →
-                  </a>
-                ) : (
-                  <Link
-                    href={option.href}
-                    className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
-                    style={{ color: option.color }}
-                  >
-                    Open {option.label} →
-                  </Link>
-                )
-              ) : null}
-              {thought ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <Link
-                    href={thought.href}
-                    className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
-                    style={{ color: thought.color }}
-                  >
-                    Read: {thought.title} →
-                  </Link>
-                  {thought.deprecated ? <DeprecatedPill /> : null}
-                </span>
-              ) : null}
-            </div>
+            ) : (
+              <>
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
+                  <span style={{ color: catAccent }}>{category.label}</span>
+                  <span aria-hidden> › </span>
+                  <span style={{ color: optAccent }}>{option?.label}</span>
+                </p>
+                {option?.blurb ? (
+                  <p className="mx-auto mt-2 max-w-xl text-[13px] leading-relaxed text-muted">
+                    {option.blurb}
+                  </p>
+                ) : null}
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-1.5 text-[13px] font-semibold">
+                  {option && !option.disabled ? (
+                    option.external ? (
+                      <a
+                        href={option.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+                        style={{ color: optAccent }}
+                      >
+                        Open {option.label} →
+                      </a>
+                    ) : (
+                      <Link
+                        href={option.href}
+                        className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+                        style={{ color: optAccent }}
+                      >
+                        Open {option.label} →
+                      </Link>
+                    )
+                  ) : null}
+                  {thought ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Link
+                        href={thought.href}
+                        className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+                        style={{ color: noteAccent }}
+                      >
+                        Read: {thought.title} →
+                      </Link>
+                      {thought.deprecated ? <DeprecatedPill /> : null}
+                    </span>
+                  ) : null}
+                </div>
+              </>
+            )}
           </m.div>
         </m.div>
 
