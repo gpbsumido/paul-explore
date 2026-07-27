@@ -17,6 +17,20 @@ import {
   Tooltip,
   InfoTip,
 } from "@/components/ui";
+// These primitives ship in the package but this app doesn't wrap them yet, so
+// the gallery renders them straight from @paul-portfolio/react — the source of
+// truth the showcase exists to reflect.
+import {
+  Avatar,
+  Badge,
+  Card,
+  Divider,
+  Skeleton,
+  Spinner,
+  Switch,
+  Ticker,
+  VisuallyHidden,
+} from "@paul-portfolio/react";
 import { fadeUp, spring, instantTransition } from "@/lib/animations";
 import { useHubReducedMotion } from "@/app/providers";
 import {
@@ -24,6 +38,7 @@ import {
   COLOR_SCALES,
   RADIUS_TOKENS,
   SHADOW_TOKENS,
+  TYPOGRAPHY_TOKENS,
   BUTTON_VARIANTS,
   BUTTON_SIZES,
   buildButtonSnippet,
@@ -45,7 +60,7 @@ const BENEFITS: { title: string; body: string }[] = [
   },
   {
     title: "Framework agnostic",
-    body: "The same tokens and component styles back both React and Angular apps through thin, typed wrappers. No lock-in to one renderer.",
+    body: "The same tokens and component styles back this Next.js app, a sibling Angular app, and Ketsup through thin, typed wrappers. Publish once to npm, adopt anywhere — no lock-in to one renderer.",
   },
   {
     title: "Tested and versioned",
@@ -233,6 +248,20 @@ function ModalDemo() {
   );
 }
 
+function SwitchDemo() {
+  const [on, setOn] = useState(true);
+  return (
+    <label className="flex items-center gap-2 text-sm text-foreground">
+      <Switch
+        checked={on}
+        onCheckedChange={setOn}
+        aria-label="Enable notifications"
+      />
+      Notifications {on ? "on" : "off"}
+    </label>
+  );
+}
+
 function ChipDemo() {
   const [tags, setTags] = useState(["Electric", "Flying", "Psychic"]);
   return (
@@ -316,6 +345,72 @@ const PREVIEWS: Record<string, ReactNode> = {
       </InfoTip>
     </span>
   ),
+  ticker: (
+    <Ticker label="Recent work" mode="marquee" className="w-full">
+      <span className="px-3 text-sm text-foreground">Dashboards</span>
+      <span className="px-3 text-sm text-foreground">Onboarding</span>
+      <span className="px-3 text-sm text-foreground">Campaigns</span>
+      <span className="px-3 text-sm text-foreground">Design system</span>
+    </Ticker>
+  ),
+  card: (
+    <Card variant="elevated" className="w-full">
+      <Card.Header>
+        <span className="text-sm font-semibold text-foreground">Card title</span>
+      </Card.Header>
+      <Card.Body>
+        <span className="text-[13px] text-muted">
+          Header, body, and footer slots on a raised surface.
+        </span>
+      </Card.Body>
+    </Card>
+  ),
+  badge: (
+    <div className="flex flex-wrap items-center gap-2">
+      <Badge variant="success">Stable</Badge>
+      <Badge variant="warning">Beta</Badge>
+      <Badge variant="info" dot>
+        Info
+      </Badge>
+      <Badge variant="info" starburst>
+        New
+      </Badge>
+    </div>
+  ),
+  avatar: (
+    <div className="flex items-center gap-3">
+      <Avatar fallback="PS" alt="Paul Sumido" />
+      <Avatar size="lg" fallback="AB" alt="Ada B" />
+    </div>
+  ),
+  switch: <SwitchDemo />,
+  spinner: <Spinner />,
+  skeleton: (
+    <div className="w-full space-y-2">
+      <Skeleton variant="text" width="60%" />
+      <Skeleton variant="text" width="90%" />
+      <Skeleton variant="rect" height="2rem" />
+    </div>
+  ),
+  divider: (
+    <div className="w-full text-sm text-foreground">
+      Above the rule
+      <Divider className="my-2" />
+      Below the rule
+    </div>
+  ),
+  "visually-hidden": (
+    <div className="flex items-center gap-2 text-sm text-muted">
+      <button
+        type="button"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground"
+      >
+        <StarIcon />
+        <VisuallyHidden>Add to favourites</VisuallyHidden>
+      </button>
+      <span>An icon button named for screen readers only</span>
+    </div>
+  ),
 };
 
 function ComponentCard({ component }: { component: ComponentDoc }) {
@@ -331,12 +426,12 @@ function ComponentCard({ component }: { component: ComponentDoc }) {
         <p className="mt-1 text-sm text-muted">{component.tagline}</p>
       </div>
 
-      {/* The live component. Hovering (or focusing) surfaces a quick usage hint. */}
-      <Tooltip content={component.tagline} delay={200}>
-        <div className="flex min-h-16 w-full items-center rounded-xl border border-border bg-surface/60 p-4">
-          {PREVIEWS[component.id]}
-        </div>
-      </Tooltip>
+      {/* The live component. The tagline already sits above it and the ⓘ carries
+          usage, so the preview isn't wrapped in another tooltip — that stacked a
+          second popover on the Tooltip/InfoTip cards and read as a glitch. */}
+      <div className="flex min-h-16 w-full items-center rounded-xl border border-border bg-surface/60 p-4">
+        {PREVIEWS[component.id]}
+      </div>
 
       <div>
         <h4 className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
@@ -355,20 +450,33 @@ function ComponentCard({ component }: { component: ComponentDoc }) {
       </div>
 
       <div className="mt-auto">
-        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
-          Used on
-        </p>
-        <div className="mt-1.5 flex flex-wrap gap-2">
-          {component.usedOn.map((link) => (
-            <Link
-              key={`${component.id}-${link.href}`}
-              href={link.href}
-              className="rounded-full border border-border px-2.5 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/40 hover:bg-surface"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
+        {component.usedOn.length > 0 ? (
+          <>
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
+              Used on
+            </p>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {component.usedOn.map((link) => (
+                <Link
+                  key={`${component.id}-${link.href}`}
+                  href={link.href}
+                  className="rounded-full border border-border px-2.5 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/40 hover:bg-surface"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
+              Availability
+            </p>
+            <p className="mt-1.5 text-[12px] text-muted">
+              {component.elsewhere}
+            </p>
+          </>
+        )}
       </div>
     </article>
   );
@@ -437,6 +545,27 @@ function TokenGallery() {
           </div>
         </div>
       </div>
+
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-foreground">
+          Type scale
+        </h3>
+        <div className="space-y-1">
+          {TYPOGRAPHY_TOKENS.map((token) => (
+            <div key={token.var} className="flex items-baseline gap-4">
+              <span className="w-10 shrink-0 text-[11px] text-muted">
+                {token.label}
+              </span>
+              <span
+                className="truncate leading-tight text-foreground"
+                style={{ fontSize: `var(${token.var})` }}
+              >
+                The quick brown fox
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -463,10 +592,14 @@ export default function DesignSystemShowcaseContent() {
             The design system, live
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
-            Every primitive below is the real, published component — not a
-            screenshot. Play with the controls, read how each one is used, and
-            follow the links to the pages where it already ships. This is the
-            fastest way to see why adopting the system beats hand-rolling UI.
+            Every primitive below is the real, published component from{" "}
+            <code className="rounded bg-surface px-1 py-0.5 text-[13px] text-foreground">
+              @paul-portfolio/react
+            </code>{" "}
+            — not a screenshot. The same package backs this Next.js app, a
+            sibling Angular app, and Ketsup, so this gallery is the shared source
+            of truth. Play with the controls, read how each one is used, and see
+            where it ships.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">

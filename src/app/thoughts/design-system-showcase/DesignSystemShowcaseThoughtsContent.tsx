@@ -36,9 +36,18 @@ export default function DesignSystemShowcaseThoughtsContent() {
         <p className="mt-3 text-muted">
           So the goal was not a screenshot wall. Every card on the page mounts
           the actual published component from{" "}
-          <code className={code}>@/components/ui</code>. If a primitive breaks,
-          the showcase breaks — which is exactly the pressure that keeps a
-          gallery honest.
+          <code className={code}>@paul-portfolio/react</code>. If a primitive
+          breaks, the showcase breaks — which is exactly the pressure that keeps
+          a gallery honest.
+        </p>
+        <p className="mt-3 text-muted">
+          That matters because the package is shared. The same primitives back
+          this Next.js app, a sibling{" "}
+          <strong className="text-foreground">Angular</strong> app, and{" "}
+          <strong className="text-foreground">Ketsup</strong>, so a component can
+          ship and get adopted in one place before it lands in another. A card
+          for a primitive this app hasn&rsquo;t wrapped yet says so honestly
+          under <em>Availability</em> instead of inventing an in-app link.
         </p>
       </section>
 
@@ -54,16 +63,23 @@ export default function DesignSystemShowcaseThoughtsContent() {
         <p className="mt-3 text-muted">
           Keeping it as plain data unlocked the check I cared about most: a test
           asserts the documented set is <strong className="text-foreground">exactly</strong>{" "}
-          the set exported from the shared UI barrel. Add a primitive to the
-          system and forget to document it, or document one that no longer
-          exists, and CI goes red. The gallery can never quietly drift out of
-          date.
+          the component set exported from{" "}
+          <code className={code}>@paul-portfolio/react</code> (minus the one
+          non-component export, the <code className={code}>cx</code> helper). Add
+          a primitive to the package and forget to document it, or document one
+          that no longer exists, and CI goes red. This is the check that caught
+          the gallery falling behind: the package had grown a{" "}
+          <code className={code}>Ticker</code>, a <code className={code}>Card</code>,
+          a <code className={code}>Switch</code> and more, and anchoring the test
+          to the package — not this app&rsquo;s thin wrapper barrel — is what
+          makes that drift fail loudly instead of going unnoticed.
         </p>
         <ul className="mt-3 list-disc space-y-1 pl-5 text-muted">
           <li>
-            <strong className="text-foreground">Integrity</strong>: catalog ids
-            line up with barrel exports; every &ldquo;used on&rdquo; link points
-            at a real route.
+            <strong className="text-foreground">Integrity</strong>: documented
+            components equal the package&rsquo;s exports; every &ldquo;used
+            on&rdquo; link is a real route, and every card carries provenance —
+            an in-app route or an <em>Availability</em> note.
           </li>
           <li>
             <strong className="text-foreground">Snippet builder</strong>: a pure
@@ -90,14 +106,21 @@ export default function DesignSystemShowcaseThoughtsContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">Tooltips that teach</h2>
         <p className="text-muted">
-          Each card carries two layers of explanation, both built from the
-          system&rsquo;s own overlays. An <code className={code}>InfoTip</code>{" "}
-          next to the name opens a rich, multi-line note on how and when to reach
-          for the component, and the live preview itself is wrapped in a{" "}
-          <code className={code}>Tooltip</code> that surfaces a one-line hint on
-          hover or focus. Using the real overlays here matters: it proves they
-          escape the card&rsquo;s <code className={code}>overflow</code>, open on
-          keyboard focus, and dismiss on Escape.
+          An <code className={code}>InfoTip</code> next to each name opens a rich,
+          multi-line note on how and when to reach for the component. Using the
+          real overlay here matters: it proves the system&rsquo;s own popover
+          escapes the card&rsquo;s <code className={code}>overflow</code>, opens
+          on keyboard focus, and dismisses on Escape.
+        </p>
+        <p className="mt-3 text-muted">
+          An earlier version also wrapped every live preview in a{" "}
+          <code className={code}>Tooltip</code> repeating the tagline. On the
+          Tooltip and InfoTip cards — whose previews are themselves an overlay —
+          that stacked a second popover on top of the first and read as a glitch,
+          and everywhere else it just echoed text already sitting above the
+          preview. So it came out. The tagline stays as plain text, the{" "}
+          <code className={code}>InfoTip</code> carries the depth, and Tooltip is
+          still demonstrated live by its own card. Less is the fix.
         </p>
       </section>
 

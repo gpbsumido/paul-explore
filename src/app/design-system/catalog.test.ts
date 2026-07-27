@@ -1,17 +1,23 @@
 import { describe, it, expect } from "vitest";
-import * as UI from "@/components/ui";
+import * as Pkg from "@paul-portfolio/react";
 import {
   COMPONENTS,
   COLOR_SCALES,
   RADIUS_TOKENS,
   SHADOW_TOKENS,
+  TYPOGRAPHY_TOKENS,
   buildButtonSnippet,
   type ButtonPlaygroundState,
 } from "./catalog";
 
+/** Package exports that aren't renderable primitives, so the gallery skips them. */
+const NON_COMPONENT_EXPORTS = ["cx"];
+
 describe("design system catalog integrity", () => {
-  it("documents every primitive exported from the shared UI barrel", () => {
-    const exported = Object.keys(UI).sort();
+  it("documents every component shipped by @paul-portfolio/react", () => {
+    const exported = Object.keys(Pkg)
+      .filter((name) => !NON_COMPONENT_EXPORTS.includes(name))
+      .sort();
     const documented = COMPONENTS.map((c) => c.importName).sort();
     expect(documented).toEqual(exported);
   });
@@ -21,13 +27,20 @@ describe("design system catalog integrity", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("points every 'used on' link at a real in-app route", () => {
+  it("points every 'used on' link at an in-app route", () => {
     for (const component of COMPONENTS) {
-      expect(component.usedOn.length).toBeGreaterThan(0);
       for (const link of component.usedOn) {
         expect(link.label.length).toBeGreaterThan(0);
         expect(link.href.startsWith("/")).toBe(true);
       }
+    }
+  });
+
+  it("documents provenance for every component — an in-app route or an elsewhere note", () => {
+    for (const component of COMPONENTS) {
+      const hasProvenance =
+        component.usedOn.length > 0 || Boolean(component.elsewhere);
+      expect(hasProvenance).toBe(true);
     }
   });
 
@@ -53,6 +66,17 @@ describe("token scales", () => {
   it("exposes radius and shadow tokens", () => {
     expect(RADIUS_TOKENS.every((t) => t.var.startsWith("--radius-"))).toBe(true);
     expect(SHADOW_TOKENS.every((t) => t.var.startsWith("--shadow-"))).toBe(true);
+  });
+
+  it("carries the full shadow ramp through 2xl", () => {
+    expect(SHADOW_TOKENS.map((t) => t.label)).toContain("2xl");
+  });
+
+  it("exposes a type scale from the font-size tokens", () => {
+    expect(TYPOGRAPHY_TOKENS.length).toBeGreaterThan(0);
+    expect(TYPOGRAPHY_TOKENS.every((t) => t.var.startsWith("--text-"))).toBe(
+      true,
+    );
   });
 });
 

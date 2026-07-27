@@ -16,7 +16,7 @@ export type ComponentDoc = {
   id: string;
   /** Display name, e.g. "Button". */
   name: string;
-  /** Must match the identifier exported from `@/components/ui`. */
+  /** Must match the identifier exported from `@paul-portfolio/react`. */
   importName: string;
   /** One-line summary shown under the name. */
   tagline: string;
@@ -24,8 +24,15 @@ export type ComponentDoc = {
   usage: string;
   /** Accessibility guarantees the primitive ships with out of the box. */
   a11y: string[];
-  /** Real pages that render this component today. */
+  /** Real pages in this app that render this component today. May be empty. */
   usedOn: UsedOnLink[];
+  /**
+   * Where a primitive lives when this app doesn't render it yet. The package is
+   * shared across a Next.js app, an Angular app, and Ketsup, so a component can
+   * ship and be adopted elsewhere before it lands here. Required when usedOn is
+   * empty so a card never claims "used nowhere".
+   */
+  elsewhere?: string;
 };
 
 export const COMPONENTS: ComponentDoc[] = [
@@ -187,6 +194,132 @@ export const COMPONENTS: ComponentDoc[] = [
     ],
     usedOn: [{ label: "Calendar", href: "/calendar" }],
   },
+  {
+    id: "ticker",
+    name: "Ticker",
+    importName: "Ticker",
+    tagline: "A looping horizontal strip, as a real scroller or a marquee.",
+    usage:
+      "Use for a moving row of items. scroll mode is an accessible, auto-scrolling container where every item stays reachable; marquee mode is a decorative, aria-hidden loop for pure flavour. Both honour reduced motion.",
+    a11y: [
+      "scroll mode is a labelled, keyboard-reachable scroll region",
+      "marquee mode is aria-hidden decoration, never a content trap",
+      "Ambient motion stops for prefers-reduced-motion",
+    ],
+    usedOn: [{ label: "Work portfolio", href: "/work-portfolio" }],
+  },
+  {
+    id: "card",
+    name: "Card",
+    importName: "Card",
+    tagline: "A surface container with Header, Body, and Footer slots.",
+    usage:
+      "Use to group related content on a raised surface. Compose Card.Header / Card.Body / Card.Footer, and set variant to interactive when the whole card is a link or button.",
+    a11y: [
+      "Plain container by default — adds no unexpected semantics",
+      "interactive variant keeps a visible focus ring",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package; this app still uses its own local card wrapper.",
+  },
+  {
+    id: "badge",
+    name: "Badge",
+    importName: "Badge",
+    tagline: "A small status marker — dot, pill, or starburst seal.",
+    usage:
+      "Use for compact status like success/warning/error/info. Pass dot for a minimal indicator or starburst for a 'new'/'beta' seal. Keep the text short.",
+    a11y: [
+      "Status is never carried by colour alone — text backs it up",
+      "Decorative dot is hidden from assistive tech",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package; this app renders local status pills for now.",
+  },
+  {
+    id: "avatar",
+    name: "Avatar",
+    importName: "Avatar",
+    tagline: "A user image with sizes and an initials fallback.",
+    usage:
+      "Use to represent a person or entity. Pass src with a descriptive alt; when the image is missing it falls back to initials from fallback, so it never renders a broken image.",
+    a11y: [
+      "alt names the person when an image loads",
+      "Falls back to text initials, not a broken-image icon",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package; used for profile chrome in the Angular app and Ketsup, not yet here.",
+  },
+  {
+    id: "switch",
+    name: "Switch",
+    importName: "Switch",
+    tagline: "An on/off toggle with a real switch role.",
+    usage:
+      "Use for an immediate on/off setting (not a form submit). Controlled via checked and onCheckedChange, and it needs an aria-label since it has no text of its own.",
+    a11y: [
+      "role=switch with aria-checked announces its state",
+      "Keyboard operable with a visible focus ring",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package; not yet adopted in this app.",
+  },
+  {
+    id: "spinner",
+    name: "Spinner",
+    importName: "Spinner",
+    tagline: "An indeterminate loading spinner that announces itself.",
+    usage:
+      "Use for short, indeterminate waits. It renders as a live status region, so screen readers hear that something is loading; pass label to customise the announcement.",
+    a11y: [
+      "Live status region announces the loading state",
+      "Default 'Loading' label, overridable",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package; not yet adopted in this app.",
+  },
+  {
+    id: "skeleton",
+    name: "Skeleton",
+    importName: "Skeleton",
+    tagline: "A shimmering placeholder in text, circle, or rect shapes.",
+    usage:
+      "Use to hold layout while content loads, so there's no shift when it arrives. Pick the variant that matches what's coming and size it with width/height.",
+    a11y: [
+      "Purely decorative — hidden from assistive tech",
+      "Reserves space so content doesn't jump on load",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package; this app hand-rolls its loading skeletons today.",
+  },
+  {
+    id: "divider",
+    name: "Divider",
+    importName: "Divider",
+    tagline: "A thin rule that separates content, either axis.",
+    usage:
+      "Use to divide sections. Renders an <hr> with an implicit separator role; pass orientation='vertical' for use inside a flex row.",
+    a11y: [
+      "Real <hr> with an implicit role=separator",
+      "Orientation is exposed, not just visual",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package; not yet adopted in this app.",
+  },
+  {
+    id: "visually-hidden",
+    name: "VisuallyHidden",
+    importName: "VisuallyHidden",
+    tagline: "Text that's off-screen for sight but read by screen readers.",
+    usage:
+      "Use to name something that's visually obvious but has no text — an icon-only control, or extra context for a link. The content stays in the accessibility tree while staying invisible on screen.",
+    a11y: [
+      "Content stays in the accessibility tree, hidden visually",
+      "The standard way to caption icon-only UI",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package; not yet adopted in this app.",
+  },
 ];
 
 /** A single design token surfaced in the tokens gallery. */
@@ -238,6 +371,20 @@ export const SHADOW_TOKENS: TokenSwatch[] = [
   { var: "--shadow-md", label: "md" },
   { var: "--shadow-lg", label: "lg" },
   { var: "--shadow-xl", label: "xl" },
+  { var: "--shadow-2xl", label: "2xl" },
+];
+
+/** The type scale, expressed as the app's font-size custom properties. */
+export const TYPOGRAPHY_TOKENS: TokenSwatch[] = [
+  { var: "--text-xs", label: "xs" },
+  { var: "--text-sm", label: "sm" },
+  { var: "--text-base", label: "base" },
+  { var: "--text-lg", label: "lg" },
+  { var: "--text-xl", label: "xl" },
+  { var: "--text-2xl", label: "2xl" },
+  { var: "--text-3xl", label: "3xl" },
+  { var: "--text-4xl", label: "4xl" },
+  { var: "--text-5xl", label: "5xl" },
 ];
 
 /** The live state driven by the Button playground controls. */
