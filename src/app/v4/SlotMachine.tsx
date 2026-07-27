@@ -143,10 +143,10 @@ const rowDomId = (reelKey: string, itemId: string): string =>
  * double wiggle. Each pairs the curve with an arrowhead sitting at its foot.
  */
 const ARROW_VARIANTS: { line: string; head: string }[] = [
-  { line: "M23 4 C 31 17, 15 33, 23 52", head: "M16 44 L23 54 L30 44" },
-  { line: "M31 4 C 33 20, 13 30, 21 52", head: "M14 44 L22 54 L28 43" },
+  { line: "M23 1 C 31 16, 15 33, 23 52", head: "M16 44 L23 54 L30 44" },
+  { line: "M31 1 C 33 19, 13 30, 21 52", head: "M14 44 L22 54 L28 43" },
   {
-    line: "M20 4 C 31 13, 13 25, 26 36 C 33 42, 19 47, 23 53",
+    line: "M20 1 C 31 12, 13 25, 26 36 C 33 42, 19 47, 23 53",
     head: "M16 45 L23 55 L30 45",
   },
 ];
@@ -200,11 +200,11 @@ function ReelAnnotation({
         {label}
       </m.span>
       <svg
-        className="mt-1 flex-1 overflow-visible"
+        className="-mt-px flex-1 overflow-visible"
         width="46"
         viewBox="0 0 46 60"
         fill="none"
-        preserveAspectRatio="xMidYMax meet"
+        preserveAspectRatio="xMidYMin meet"
         aria-hidden
       >
         <m.path
@@ -734,10 +734,12 @@ export default function SlotMachine({
       return p;
     };
 
-    // Spin one column: step forward along the endless strip through at least a
-    // full turn, landing exactly on the target. Distance eases out (a wheel
-    // losing momentum) and the step times bunch up early then spread late, so
-    // it decelerates. Positions only increase, so the strip never jumps back.
+    // Settle one column onto its target: step forward along the endless strip,
+    // easing out like a wheel losing momentum (step distances shrink and the
+    // times spread late). Positions only increase, so the strip never jumps
+    // back. `extraTurn` adds a whole rotation before landing, which reel 1 wants
+    // (it settles from rest); the columns that have been free-wheeling pass 0 so
+    // they simply decelerate the short remaining distance, with no second spin.
     // A single-item (or empty) reel has nothing to spin, so it just lands after
     // a short beat, keeping the left-to-right rhythm.
     const runReel = (
@@ -747,13 +749,15 @@ export default function SlotMachine({
       set: (value: number) => void,
       start: number,
       durMs: number,
+      extraTurn: boolean,
     ): number => {
       if (len <= 1) {
         schedule(() => set(targetIndex), start);
         return start + 130;
       }
       const fromIndex = wrapIndex(Math.round(fromPos), len);
-      const travel = wrapIndex(targetIndex - fromIndex, len) + len;
+      let travel = wrapIndex(targetIndex - fromIndex, len) + (extraTurn ? len : 0);
+      if (travel === 0) travel = len;
       const steps = Math.min(14, Math.max(6, travel));
       let prev = 0;
       for (let j = 1; j <= steps; j += 1) {
@@ -776,15 +780,15 @@ export default function SlotMachine({
     const setNote = (v: number) => setNotePos(glideTo(v));
 
     const t1 = runReel(categories.length, catTarget, catPos.pos, (v) =>
-      setCatPos(glideTo(v)), 0, 620);
+      setCatPos(glideTo(v)), 0, 620, true);
     schedule(() => setSettledCount(1), t1);
 
     const optFrom = freeSpin(optList.length, setOpt, 0, t1);
-    const t2 = runReel(optList.length, optTarget, optFrom, setOpt, t1, 460);
+    const t2 = runReel(optList.length, optTarget, optFrom, setOpt, t1, 460, false);
     schedule(() => setSettledCount(2), t2);
 
     const noteFrom = freeSpin(noteList.length, setNote, 0, t2);
-    const t3 = runReel(noteList.length, noteTarget, noteFrom, setNote, t2, 460);
+    const t3 = runReel(noteList.length, noteTarget, noteFrom, setNote, t2, 460, false);
 
     schedule(() => {
       setSpinning(false);

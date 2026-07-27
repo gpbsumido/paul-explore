@@ -139,15 +139,23 @@ export default function V4RedesignContent() {
           <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
             option
           </code>
-          . Arrow keys move the selection (wrapping), Home and End jump, Enter
-          opens whatever a reel-2 or reel-3 row points at, and a polite live
-          region announces the combination after every spin or selection. The
-          result bar under the machine is the primary navigation: ordinary
+          . Up and Down move the selection within a reel (wrapping), Left and
+          Right hop focus between the three columns and skip any greyed-out reel,
+          Home and End jump, and Enter opens whatever the focused reel points at,
+          including the category reel, which opens the landed destination so the
+          leftmost column is never a dead end. A polite live region announces the
+          combination after every spin or selection, and{" "}
+          <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
+            &#8984;K
+          </code>{" "}
+          opens a command palette for jumping straight to any page or note. The
+          result bar under the machine is still the primary navigation: ordinary
           links stating exactly where they go, so nobody has to operate the
-          novelty UI to get anywhere. Selection is never colour alone: the
-          centred row is also bigger, set in a serif, and underlined in its
-          accent, with a hairline payline glowing across the middle of each
-          reel, and everything focusable has a visible ring.
+          novelty UI to get anywhere. Selection is never colour alone: the landed
+          row sits large and sharp under a glass magnifier bar while its
+          neighbours soften, and once a column settles a small hand-drawn arrow
+          draws itself in to name the result in place of a static header.
+          Everything focusable has a visible ring.
         </p>
       </section>
 
