@@ -12,6 +12,8 @@ import type {
   evaluationContextSchema,
   evaluationReasonSchema,
   evaluationResultSchema,
+  auditActionSchema,
+  auditEntrySchema,
   updateFlagBodySchema,
   evaluateBodySchema,
 } from "@/lib/flags-schemas";
@@ -29,6 +31,8 @@ export type Flag = z.infer<typeof flagSchema>;
 export type EvaluationContext = z.infer<typeof evaluationContextSchema>;
 export type EvaluationReason = z.infer<typeof evaluationReasonSchema>;
 export type EvaluationResult = z.infer<typeof evaluationResultSchema>;
+export type AuditAction = z.infer<typeof auditActionSchema>;
+export type AuditEntry = z.infer<typeof auditEntrySchema>;
 
 export type UpdateFlagBody = z.infer<typeof updateFlagBodySchema>;
 export type EvaluateBody = z.infer<typeof evaluateBodySchema>;

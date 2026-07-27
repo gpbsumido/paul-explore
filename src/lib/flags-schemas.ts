@@ -119,6 +119,28 @@ export const evaluationResultSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Audit log
+// ---------------------------------------------------------------------------
+
+/** The kinds of change recorded in the audit trail. */
+export const auditActionSchema = z.enum([
+  "enabled",
+  "disabled",
+  "rollout-changed",
+]);
+
+/** One recorded change to a flag, newest first in the log. */
+export const auditEntrySchema = z.object({
+  id: z.string(),
+  flagKey: z.string(),
+  environment: environmentSchema,
+  action: auditActionSchema,
+  summary: z.string(),
+  actor: z.string(),
+  timestamp: z.string().datetime(),
+});
+
+// ---------------------------------------------------------------------------
 // API request bodies
 // ---------------------------------------------------------------------------
 
