@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.5.0
+
+- made the `/flags` console tell the truth now that the store is live. Replaced the old "demo data, real engine" line with an honest status strip: a "Backed by a live API" badge, a plain note that flags are stored in `portfolio_api` and evaluated by a deterministic engine, and a live "resets in ~2h 14m" countdown derived from the fixed 6-hour UTC reset cadence (a pure, unit-tested function — no clock needed). Signed-out visitors now see the write path locked instead of hitting a silent 401: the kill switch and rollout slider disable and each card offers a "Sign in to change flags" link, while viewing, the verdict strips, and the playground stay fully usable. Auth state is detected the same way the header does, via `/api/me`. Documented the transparency work in the feature-flags dev-notes write-up.
+
 ## 2026-07-27 - version 1.4.0
 
 - repointed the `/flags` BFF at a real backend. The four `/api/flags` routes now prefer portfolio_api's `feature-flags` service and only fall back to the in-memory seed when it is unreachable, so the console reads and writes live, shared data once the service is deployed and still works (looking identical) when it is not. Added a typed `flags-client` that validates every payload against the same Zod schemas the console uses, so a drifting API surfaces as a clear error instead of bad UI. Writes forward the signed-in visitor's bearer token and propagate a genuine 401/404 from the API rather than masking it, laying the groundwork for the "sign in to change flags" and audit-actor work still to come. The deterministic evaluation engine stays in the BFF, unchanged.
