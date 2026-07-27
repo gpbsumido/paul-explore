@@ -9,9 +9,10 @@ interface FlagsInfoStripProps {
 
 /**
  * The honest status line above the console: the flags are stored in a live API
- * and evaluated by a deterministic engine, changes need a sign-in, and the demo
- * resets on a fixed cadence. It replaces the old "demo data" framing now that
- * the store is really persisted in portfolio_api.
+ * and evaluated by a deterministic engine, the demo flags are open to everyone
+ * while the one real flag needs a sign-in, and the demo resets on a fixed
+ * cadence. It replaces the old "demo data" framing now that the store is really
+ * persisted in portfolio_api.
  */
 export default function FlagsInfoStrip({
   isLoggedIn,
@@ -29,11 +30,12 @@ export default function FlagsInfoStrip({
       </span>
       {!isLoggedIn && (
         <span>
+          Demo flags are open to everyone —{" "}
           <a
             href="/auth/login"
             className="font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-400"
           >
-            Sign in to change flags
+            sign in to change the real flag
           </a>
           .
         </span>

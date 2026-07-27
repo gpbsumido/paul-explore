@@ -15,11 +15,19 @@ vi.mock("@/lib/flags-client", async () => {
   };
 });
 
+vi.mock("@/lib/auth0", () => ({
+  auth0: { getSession: vi.fn() },
+}));
+
 import {
   fetchFlagsFromApi,
   fetchAuditFromApi,
   patchFlagOnApi,
 } from "@/lib/flags-client";
+import { auth0 } from "@/lib/auth0";
+
+type Session = Awaited<ReturnType<typeof auth0.getSession>>;
+const signedIn = { user: { sub: "auth0|123" } } as Session;
 
 function patchRequest(body: unknown, headers?: Record<string, string>) {
   return new NextRequest("http://localhost:3000/api/flags/new-checkout", {
@@ -135,5 +143,49 @@ describe("PATCH /api/flags/:flagKey", () => {
     const res = await PATCH(patchRequest({}), params("new-checkout"));
 
     expect(res.status).toBe(400);
+  });
+
+  it("blocks changing the real flag when signed out", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(null);
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("pocket-tcg"),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(body.error).toMatch(/sign in/i);
+    // The real flag is gated before any backend write is attempted.
+    expect(patchFlagOnApi).not.toHaveBeenCalled();
+  });
+
+  it("lets a signed-in user change the real flag", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(signedIn);
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new Error("ECONNREFUSED"));
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("pocket-tcg"),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.flag.key).toBe("pocket-tcg");
+  });
+
+  it("lets anyone change a demo flag while signed out, without an auth check", async () => {
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new Error("ECONNREFUSED"));
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("new-checkout"),
+    );
+
+    expect(res.status).toBe(200);
+    expect(auth0.getSession).not.toHaveBeenCalled();
   });
 });

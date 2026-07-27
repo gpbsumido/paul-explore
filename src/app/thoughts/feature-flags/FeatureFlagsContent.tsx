@@ -404,12 +404,16 @@ export default function FeatureFlagsContent() {
           cron runs on — so it is unit-tested without a clock.
         </p>
         <p className="mt-3 text-muted">
-          Signed-out visitors now see the write path locked rather than hitting a
-          silent 401: the kill switch and rollout slider disable, and each card
-          offers a &quot;Sign in to change flags&quot; link. Viewing, the verdict
-          strips, and the playground all stay fully usable — the console is still
-          worth landing on when you are not logged in, it just will not let you
-          write until you are.
+          The sign-in gate is scoped to what actually matters. The demo flags
+          change nothing real, so they are open to everyone — anyone can flip a
+          kill switch or drag a rollout and watch the engine re-decide. Only the
+          one real flag, the one that gates a live page, needs a sign-in to
+          change. The server enforces exactly that: a write to the real flag with
+          no session gets an honest 401, while a demo write never even checks. On
+          the real flag&apos;s card, signed-out visitors see the controls locked
+          with a &quot;Sign in to change flags&quot; link rather than hitting a
+          silent failure; viewing, the verdict strips, and the playground all
+          stay fully usable.
         </p>
       </section>
 
@@ -447,6 +451,39 @@ export default function FeatureFlagsContent() {
           rollout down in the console and real visitors lose access, each stuck
           to their own bucket. That is the whole point: the console now
           demonstrably changes what a real person sees.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">The verdict that lied</h2>
+        <p className="text-muted">
+          A bug caught this the honest way. Drag a rollout to 100% on and the
+          card&apos;s verdict would still read <em>OFF — bucket 90, disabled</em>.
+          The slider said one thing, the verdict said another, and both were
+          drawn from the same screen.
+        </p>
+        <p className="mt-3 text-muted">
+          The cause was a <em>read-your-writes</em> race. The playground was
+          POSTing to an evaluate endpoint that read the flag config from the
+          server store — but a rollout drag is applied <em>optimistically</em> on
+          the client, so the slider jumps to 100% instantly while the write is
+          still in flight. The re-evaluation raced that write and read the old
+          config, so it bucketed the user against 25% on and returned OFF. The
+          verdict was not wrong about the config it saw; it was just looking at a
+          config the user had already moved past.
+        </p>
+        <p className="mt-3 text-muted">
+          The fix was to stop reading from a place that could lag. The console
+          now evaluates every card in the browser, through the same pure{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            evaluateAllFlags
+          </code>{" "}
+          engine, against the exact flags it is rendering — the way a real flag
+          SDK evaluates locally after fetching configs. There is no round-trip to
+          race and no async gap to flash through: the verdict is a pure function
+          of what you are looking at, so it can never disagree with the switch
+          above it. Writes still go to the API; only the <em>decision</em> came
+          home to the engine.
         </p>
       </section>
 

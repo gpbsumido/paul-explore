@@ -15,7 +15,6 @@ import type {
   auditActionSchema,
   auditEntrySchema,
   updateFlagBodySchema,
-  evaluateBodySchema,
 } from "@/lib/flags-schemas";
 
 export type Environment = z.infer<typeof environmentSchema>;
@@ -34,7 +33,6 @@ export type AuditAction = z.infer<typeof auditActionSchema>;
 export type AuditEntry = z.infer<typeof auditEntrySchema>;
 
 export type UpdateFlagBody = z.infer<typeof updateFlagBodySchema>;
-export type EvaluateBody = z.infer<typeof evaluateBodySchema>;
 
 /** The ordered list of environments, promoted left to right. */
 export const ENVIRONMENTS: readonly Environment[] = [

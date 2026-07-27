@@ -70,6 +70,7 @@ export function buildFlag(overrides: Partial<Flag> = {}): Flag {
     key: "new-checkout",
     name: "New Checkout",
     description: "Rebuilt checkout flow",
+    real: false,
     kind: "boolean",
     tags: ["checkout"],
     variations: [...BOOLEAN_VARIATIONS],

@@ -1,17 +1,14 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
 import type {
   Environment,
-  EvaluateBody,
-  EvaluationResult,
   Flag,
   RolloutWeight,
   UpdateFlagBody,
 } from "@/types/flags";
 import { queryKeys } from "@/lib/queryKeys";
-import { flagSchema, evaluationResultSchema } from "@/lib/flags-schemas";
+import { flagSchema } from "@/lib/flags-schemas";
 
 // ---------------------------------------------------------------------------
 // Toggle / rollout mutations
@@ -98,45 +95,5 @@ export function useUpdateFlag(): UseUpdateFlagReturn {
   return {
     updateFlag: (input) => mutation.mutateAsync(input),
     pendingKey: mutation.isPending ? (mutation.variables?.flagKey ?? null) : null,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Evaluation playground
-// ---------------------------------------------------------------------------
-
-export interface UseEvaluateFlagsReturn {
-  evaluate: (input: EvaluateBody) => Promise<EvaluationResult[]>;
-  results: EvaluationResult[] | null;
-  isEvaluating: boolean;
-  error: string | null;
-}
-
-/**
- * Runs every flag against a user context via the evaluate endpoint. This is a
- * mutation rather than a query because it is triggered by an explicit "run"
- * action and the input is a request body, not a cache key.
- */
-export function useEvaluateFlags(): UseEvaluateFlagsReturn {
-  const mutation = useMutation({
-    mutationFn: async (input: EvaluateBody): Promise<EvaluationResult[]> => {
-      const res = await fetch("/api/flags/evaluate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
-      });
-      if (!res.ok) throw new Error("Failed to evaluate flags");
-      const json = await res.json();
-      return z.array(evaluationResultSchema).parse(json.results);
-    },
-  });
-
-  return {
-    // mutateAsync keeps a stable identity across renders, so callers can safely
-    // list `evaluate` in an effect's dependency array to auto-run it.
-    evaluate: mutation.mutateAsync,
-    results: mutation.data ?? null,
-    isEvaluating: mutation.isPending,
-    error: mutation.isError ? "Evaluation failed. Try again." : null,
   };
 }
