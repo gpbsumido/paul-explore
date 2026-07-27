@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.11.2
+
+- kept every column visibly spinning during a pull, even the ones with nothing to cycle. A write-up-only middle reel (a single "Write-up only" placeholder) or an empty write-up reel (an app with no notes yet) now scrolls a blurred filler strip of labels while it turns, then snaps to its real single or empty state the instant it lands, instead of sitting dead still while the outer reels spin. The greyed-out look for a write-up-only reel only applies once it has landed.
+
 ## 2026-07-27 - version 1.11.1
 
 - shrank the "No write-up yet" empty-state label and its "Browse all" link on small screens so they fit the narrow write-up column instead of spilling past the loupe.

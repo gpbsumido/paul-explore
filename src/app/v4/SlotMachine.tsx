@@ -265,6 +265,7 @@ function Reel({
   onFocusSibling,
   registerRef,
   empty,
+  spinFiller,
 }: {
   label: string;
   reelKey: string;
@@ -280,6 +281,9 @@ function Reel({
   accent: string;
   /** Greys the reel out and turns off interaction (write-up-only categories). */
   disabled?: boolean;
+  /** Labels for the blurred filler strip a short reel scrolls while it spins,
+      so a one-item or empty column still turns instead of sitting static. */
+  spinFiller: string[];
   onPosChange: (next: number) => void;
   /** Omitted for reels that only select (reel 1). */
   onActivate?: (index: number) => void;
@@ -295,6 +299,16 @@ function Reel({
   const selected = wrapIndex(Math.round(pos), len);
   const activeItem = items[selected];
   const inert = disabled || spinning;
+
+  // A reel with one item (a "Write-up only" placeholder) or none (an app with
+  // no write-up yet) has nothing to cycle, so it would sit dead still while the
+  // other columns spin. To keep the pull consistent, such a reel scrolls a
+  // blurred filler strip of labels while it's turning, then snaps to its real
+  // (single or empty) state the instant it lands.
+  const fillerBase = spinFiller.slice(0, 12);
+  const fillerLoopH = fillerBase.length * ROW_H;
+  const showFiller =
+    blurring && !reduced && len <= 1 && fillerBase.length > 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (spinning) return;
@@ -353,7 +367,9 @@ function Reel({
         className={[
           "relative -mx-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-foreground/50",
           spinning ? "pointer-events-none" : "",
-          disabled ? "opacity-50" : "",
+          // Only grey a write-up-only reel once it has landed; while it's still
+          // spinning its filler should read at full strength like any column.
+          disabled && !blurring ? "opacity-50" : "",
         ].join(" ")}
         style={{ height: WINDOW_H }}
       >
@@ -388,7 +404,36 @@ function Reel({
           />
         ) : null}
 
-        {len === 0 ? (
+        {showFiller ? (
+          <div
+            aria-hidden
+            className="absolute inset-0 overflow-hidden"
+            style={{ maskImage: EDGE_FADE, WebkitMaskImage: EDGE_FADE }}
+          >
+            <m.div
+              className="absolute inset-x-0 top-0"
+              style={{ filter: "blur(2.4px)", willChange: "transform" }}
+              animate={{ y: [0, -fillerLoopH] }}
+              transition={{ repeat: Infinity, duration: 0.5, ease: "linear" }}
+            >
+              {[...fillerBase, ...fillerBase].map((fillerLabel, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2.5 px-1"
+                  style={{ height: ROW_H }}
+                >
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: accent, opacity: 0.5 }}
+                  />
+                  <span className="truncate text-[11px] text-muted/70 sm:text-[13px]">
+                    {fillerLabel}
+                  </span>
+                </div>
+              ))}
+            </m.div>
+          </div>
+        ) : len === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-2 px-1 text-center">
             {empty}
           </div>
@@ -557,6 +602,20 @@ export default function SlotMachine({
       });
     });
     return list;
+  }, [categories]);
+
+  // A grab-bag of option and write-up labels the short reels scroll as blurred
+  // filler while they spin, so a one-item or empty column still turns. It never
+  // reads sharply (it's blurred and fast), so the exact contents don't matter.
+  const spinPool = useMemo(() => {
+    const labels: string[] = [];
+    categories.forEach((c) =>
+      c.options.forEach((o) => {
+        labels.push(o.label);
+        o.thoughts.forEach((t) => labels.push(t.title));
+      }),
+    );
+    return Array.from(new Set(labels));
   }, [categories]);
 
   const [catPos, setCatPos] = useState<ReelPos>(still(0));
@@ -892,6 +951,7 @@ export default function SlotMachine({
                 registerRef={(el) => {
                   reelEls.current[0] = el;
                 }}
+                spinFiller={spinPool}
               />
             </m.div>
             <m.div variants={revealItem} className="min-w-0">
@@ -917,6 +977,7 @@ export default function SlotMachine({
                 registerRef={(el) => {
                   reelEls.current[1] = el;
                 }}
+                spinFiller={spinPool}
               />
             </m.div>
             <m.div variants={revealItem} className="min-w-0">
@@ -940,6 +1001,7 @@ export default function SlotMachine({
                 registerRef={(el) => {
                   reelEls.current[2] = el;
                 }}
+                spinFiller={spinPool}
                 empty={
                   <>
                     <p
