@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { checkRateLimit } from "@/lib/rateLimit";
+import {
+  VISITOR_COOKIE,
+  VISITOR_COOKIE_MAX_AGE,
+  newVisitorId,
+} from "@/lib/visitor";
 
 /**
  * Single proxy entry point for auth, session enforcement, and CSP headers.
@@ -166,8 +171,28 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // All other routes: pass through with CSP headers.
-  const response = NextResponse.next();
+  // All other routes: pass through with CSP headers, minting a stable visitor
+  // id on first contact. Server-side flag rollouts (the /tcg/pocket gate) key
+  // off this cookie, so a visitor's bucket stays fixed across visits. When it is
+  // missing we forward the freshly minted id on this request too, so the current
+  // render already sees it instead of waiting for the next navigation.
+  const visitorId = request.cookies.get(VISITOR_COOKIE)?.value;
+  if (visitorId) {
+    const response = NextResponse.next();
+    response.headers.set("Content-Security-Policy", CSP);
+    return response;
+  }
+
+  const mintedVisitorId = newVisitorId();
+  request.cookies.set(VISITOR_COOKIE, mintedVisitorId);
+  const response = NextResponse.next({ request: { headers: request.headers } });
+  response.cookies.set(VISITOR_COOKIE, mintedVisitorId, {
+    path: "/",
+    maxAge: VISITOR_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    httpOnly: true,
+    secure: true,
+  });
   response.headers.set("Content-Security-Policy", CSP);
   return response;
 }
