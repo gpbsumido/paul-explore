@@ -268,6 +268,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#8b5cf6",
   },
   {
+    title: "V4 Redesign",
+    href: "/thoughts/v4-redesign",
+    preview:
+      "The landing and hub as a slot machine: three dependent reels (category, option, write-up) derived from the same data as the graph, dependent-reel selection, a decelerating spin, and a listbox-based a11y model",
+    color: "#f472b6",
+  },
+  {
     title: "Project Review",
     href: "/thoughts/project-review",
     preview:
