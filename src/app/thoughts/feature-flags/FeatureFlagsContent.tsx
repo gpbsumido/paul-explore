@@ -388,6 +388,32 @@ export default function FeatureFlagsContent() {
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">Telling the truth in the UI</h2>
+        <p className="text-muted">
+          Once the store was real, the console had to stop pretending it was a
+          toy. The old &quot;demo data&quot; line became an honest status strip: a{" "}
+          <em>Backed by a live API</em> badge, a plain sentence that the flags
+          live in{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            portfolio_api
+          </code>{" "}
+          and are evaluated by a deterministic engine, and a live{" "}
+          <em>resets in ~2h 14m</em> countdown so a visitor knows any change they
+          make is temporary. The countdown is a pure function over the current
+          time and the fixed six-hour UTC cadence — the exact schedule the reset
+          cron runs on — so it is unit-tested without a clock.
+        </p>
+        <p className="mt-3 text-muted">
+          Signed-out visitors now see the write path locked rather than hitting a
+          silent 401: the kill switch and rollout slider disable, and each card
+          offers a &quot;Sign in to change flags&quot; link. Viewing, the verdict
+          strips, and the playground all stay fully usable — the console is still
+          worth landing on when you are not logged in, it just will not let you
+          write until you are.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">The bright line</h2>
         <p className="mt-3 text-muted">
           Throughout, one rule held: no flag <em>decision</em> lives in a
