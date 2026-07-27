@@ -108,18 +108,6 @@ export default function FlagCard({
         />
       </div>
 
-      {!canEdit && (
-        <p className="text-[12px] text-muted">
-          <a
-            href="/auth/login"
-            className="font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-400"
-          >
-            Sign in to change flags
-          </a>{" "}
-          — viewing and the playground stay open to everyone.
-        </p>
-      )}
-
       <p className="text-[13px] leading-relaxed text-muted">
         {flag.description}
       </p>
