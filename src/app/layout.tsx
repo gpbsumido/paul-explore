@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import CommandPaletteRoot from "@/components/CommandPalette/CommandPaletteRoot";
 import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
-import CommandPaletteRoot from "@/components/CommandPalette/CommandPaletteRoot";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import "./globals.css";
 
