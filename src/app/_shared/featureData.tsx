@@ -240,6 +240,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#06b6d4",
   },
   {
+    title: "Tiered Testing Strategy",
+    href: "/thoughts/test-tiers",
+    preview:
+      "Why you shouldn't run every test on every commit: split by cost — fast unit tests per push, integration on merge, e2e nightly, flaky ones quarantined",
+    color: "#818cf8",
+  },
+  {
     title: "Operator Dashboard",
     href: "/thoughts/operator-dashboard",
     preview:
