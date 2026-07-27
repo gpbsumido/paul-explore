@@ -4,6 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
+import CommandPaletteRoot from "@/components/CommandPalette/CommandPaletteRoot";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import "./globals.css";
 
@@ -66,6 +67,7 @@ export default function RootLayout({
             <div id="main-content" tabIndex={-1}>
               {children}
             </div>
+            <CommandPaletteRoot />
           </ThemeProvider>
         </Providers>
         <SpeedInsights />

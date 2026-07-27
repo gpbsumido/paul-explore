@@ -150,4 +150,12 @@ export const queryKeys = {
     /** Aggregated alert counts + inventory health for the fleet dashboard. Polled every 15s. */
     fleetSummary: () => ["operator", "fleet-summary"] as const,
   },
+
+  flags: {
+    /** All feature flags and their per-environment config. */
+    list: () => ["flags", "list"] as const,
+
+    /** The flag-change audit log, newest first. */
+    audit: () => ["flags", "audit"] as const,
+  },
 } as const;

@@ -16,6 +16,7 @@ Public (no login):
 
 - [Landing](https://paulsumido.com/) — interactive node-graph of the whole site
 - [Fleet Operator](https://paulsumido.com/operator) — real-time fleet monitoring dashboard
+- [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine
 - [Learn](https://paulsumido.com/learn) — 14 interactive algorithm & frontend-pattern deep-dives
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
 - [Particle Lab](https://paulsumido.com/lab/particles) · [Motion Lab](https://paulsumido.com/lab/motion) — R3F and Framer Motion experiments
@@ -110,9 +111,10 @@ CI runs on GitHub Actions — lint, typecheck, and full test suite on every push
 ```
 src/
 ├── app/
-│   ├── api/             # BFF proxy routes (calendar, nba, tcg, vitals)
+│   ├── api/             # BFF proxy routes (calendar, nba, tcg, vitals, flags)
 │   ├── calendar/        # Calendar page, events list + detail, countdowns
 │   ├── fantasy/nba/     # League history, player stats, playoffs bracket
+│   ├── flags/           # Feature-flag console (test a user, live per-flag verdicts)
 │   ├── lab/             # Interactive experiments (particles, motion)
 │   ├── learn/           # Algorithm & frontend-pattern deep-dives
 │   ├── operator/        # Fleet monitoring dashboard (overview + store detail)
