@@ -31,6 +31,15 @@ export const FEATURES: FeatureItem[] = [
     color: "#60a5fa",
   },
   {
+    id: "design-system",
+    title: "Design System",
+    description:
+      "A live, Storybook-style gallery of the shared @paul-portfolio design system — every primitive rendered interactively, a props playground, design tokens, and links to where each ships.",
+    href: "/design-system",
+    color: "#06b6d4",
+    thoughtsHref: "/thoughts/design-system-showcase",
+  },
+  {
     id: "craft",
     title: "Craft",
     description:
@@ -367,11 +376,25 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#60a5fa",
   },
   {
+    title: "Design System Showcase",
+    href: "/thoughts/design-system-showcase",
+    preview:
+      "Building a live, in-app gallery for the shared design system: dogfooding the primitives, a data-driven catalog with an integrity test, an interactive props playground, and an axe-checked accessibility contract",
+    color: "#06b6d4",
+  },
+  {
     title: "Craft",
     href: "/thoughts/craft",
     preview:
       "A page that reframes the whole site as evidence: ten lead front-end traits, each expandable to the real work that proves it, with a data-integrity test that fails on a dead evidence link",
     color: "#c084fc",
+  },
+  {
+    title: "Command Palette",
+    href: "/thoughts/command-palette",
+    preview:
+      "The site-wide ⌘K palette: one globally mounted instance opened from a hotkey or a window event, a registry reused from the hub's FEATURES and THOUGHTS, a hand-rolled fuzzy matcher, and an honest ARIA combobox",
+    color: "#818cf8",
   },
 ].reverse();
 
@@ -879,6 +902,47 @@ export function WorkPortfolioPreview() {
   );
 }
 
+// Mini mockup for the design-system card: a swatch ramp over two pill "buttons",
+// reading like a tiny component gallery.
+export const DS_SWATCHES = [
+  "#a5f3fc",
+  "#5eead4",
+  "#818cf8",
+  "#f9a8d4",
+  "#fde68a",
+] as const;
+
+export function DesignSystemPreview() {
+  return (
+    <div className="space-y-2">
+      <div className="flex overflow-hidden rounded-md border border-black/10 dark:border-white/10">
+        {DS_SWATCHES.map((c) => (
+          <div key={c} className="h-4 flex-1" style={{ backgroundColor: c }} />
+        ))}
+      </div>
+      <div className="flex gap-1.5">
+        <div className="rounded-md bg-black/70 px-2.5 py-1 text-[8px] font-semibold text-white dark:bg-white/80 dark:text-black">
+          Primary
+        </div>
+        <div className="rounded-md border border-black/20 px-2.5 py-1 text-[8px] font-semibold text-black/60 dark:border-white/20 dark:text-white/60">
+          Outline
+        </div>
+      </div>
+      <div className="flex gap-1.5">
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+          tokens
+        </span>
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+          a11y
+        </span>
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+          live
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // A mini skills-matrix: a few trait rows, each a coloured dot, a label bar, and
 // a short filled meter, so the card reads like a competency chart at a glance.
 export const CRAFT_ROWS = [
@@ -935,6 +999,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   operator: "--color-feature-operator",
   learn: "--color-feature-learn",
   "work-portfolio": "--color-feature-work-portfolio",
+  "design-system": "--color-feature-design-system",
   craft: "--color-feature-craft",
 };
 
@@ -951,6 +1016,7 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   operator: OperatorPreview,
   learn: LearnPreview,
   "work-portfolio": WorkPortfolioPreview,
+  "design-system": DesignSystemPreview,
   craft: CraftPreview,
 };
 

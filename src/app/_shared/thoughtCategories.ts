@@ -17,12 +17,14 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "ketsup",
       "ai-agent-patterns",
       "craft",
+      "command-palette",
     ],
   },
   {
     name: "Design & UI",
     slugs: [
       "design-system",
+      "design-system-showcase",
       "styling",
       "landing-page",
       "ui-redesign",
