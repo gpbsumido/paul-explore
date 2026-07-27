@@ -40,6 +40,15 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/design-system-showcase",
   },
   {
+    id: "craft",
+    title: "Craft",
+    description:
+      "The traits of a lead front-end developer — performance, system design, working with libraries, accessibility, testing, and more — each one expandable to the real work in this project that proves it.",
+    href: "/craft",
+    color: "#c084fc",
+    thoughtsHref: "/thoughts/craft",
+  },
+  {
     id: "learn",
     title: "Learn",
     description:
@@ -249,6 +258,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#06b6d4",
   },
   {
+    title: "Tiered Testing Strategy",
+    href: "/thoughts/test-tiers",
+    preview:
+      "Why you shouldn't run every test on every commit: split by cost — fast unit tests per push, integration on merge, e2e nightly, flaky ones quarantined",
+    color: "#818cf8",
+  },
+  {
     title: "Operator Dashboard",
     href: "/thoughts/operator-dashboard",
     preview:
@@ -365,6 +381,20 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Building a live, in-app gallery for the shared design system: dogfooding the primitives, a data-driven catalog with an integrity test, an interactive props playground, and an axe-checked accessibility contract",
     color: "#06b6d4",
+  },
+  {
+    title: "Craft",
+    href: "/thoughts/craft",
+    preview:
+      "A page that reframes the whole site as evidence: ten lead front-end traits, each expandable to the real work that proves it, with a data-integrity test that fails on a dead evidence link",
+    color: "#c084fc",
+  },
+  {
+    title: "Command Palette",
+    href: "/thoughts/command-palette",
+    preview:
+      "The site-wide ⌘K palette: one globally mounted instance opened from a hotkey or a window event, a registry reused from the hub's FEATURES and THOUGHTS, a hand-rolled fuzzy matcher, and an honest ARIA combobox",
+    color: "#818cf8",
   },
 ].reverse();
 
@@ -913,6 +943,45 @@ export function DesignSystemPreview() {
   );
 }
 
+// A mini skills-matrix: a few trait rows, each a coloured dot, a label bar, and
+// a short filled meter, so the card reads like a competency chart at a glance.
+export const CRAFT_ROWS = [
+  { label: "Performance", color: "#f59e0b", pct: 92 },
+  { label: "System Design", color: "#a78bfa", pct: 88 },
+  { label: "Libraries", color: "#38bdf8", pct: 84 },
+  { label: "Accessibility", color: "#34d399", pct: 90 },
+];
+
+export function CraftPreview() {
+  return (
+    <div className="space-y-1.5">
+      {CRAFT_ROWS.map((r) => (
+        <div
+          key={r.label}
+          className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-1.5"
+        >
+          <div
+            className="h-1.5 w-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: r.color }}
+          />
+          <span className="w-14 shrink-0 truncate text-[8px] font-semibold text-black/60 dark:text-white/60">
+            {r.label}
+          </span>
+          <div
+            className="flex-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/10"
+            style={{ height: 3 }}
+          >
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${r.pct}%`, backgroundColor: r.color }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Maps & tokens
 // ---------------------------------------------------------------------------
@@ -931,6 +1000,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   learn: "--color-feature-learn",
   "work-portfolio": "--color-feature-work-portfolio",
   "design-system": "--color-feature-design-system",
+  craft: "--color-feature-craft",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
@@ -947,6 +1017,7 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   learn: LearnPreview,
   "work-portfolio": WorkPortfolioPreview,
   "design-system": DesignSystemPreview,
+  craft: CraftPreview,
 };
 
 // ---------------------------------------------------------------------------

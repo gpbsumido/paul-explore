@@ -16,6 +16,8 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "work-portfolio",
       "ketsup",
       "ai-agent-patterns",
+      "craft",
+      "command-palette",
     ],
   },
   {
@@ -47,7 +49,14 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Testing & Quality",
-    slugs: ["react-doctor", "project-review", "testing", "e2e", "ci-e2e"],
+    slugs: [
+      "react-doctor",
+      "project-review",
+      "testing",
+      "e2e",
+      "ci-e2e",
+      "test-tiers",
+    ],
   },
   {
     name: "Security",

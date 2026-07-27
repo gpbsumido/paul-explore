@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import { useReducedMotion } from "framer-motion";
 import GraphBackground from "./graph/GraphBackground";
 import NodeGraph from "./graph/NodeGraph";
+import { openCommandPalette } from "@/lib/command-palette/open-event";
+import { useShortcutKey } from "@/hooks/useShortcutKey";
 
 // The flat view is only shown when the visitor toggles to it, so keep its code
 // out of the initial bundle and load it on demand.
@@ -15,6 +17,13 @@ type LayoutMode = "force" | "flat";
 
 /** localStorage key for remembering the force/flat choice across visits. */
 const MODE_STORAGE_KEY = "v3-graph-mode";
+
+/** Full-bleed layer for one graph view; the inactive one is hidden but stays laid out. */
+function layerClass(active: boolean): string {
+  return active
+    ? "absolute inset-0"
+    : "absolute inset-0 invisible pointer-events-none";
+}
 
 /** Segmented switch that flips between the force graph and the flat layered view. */
 function LayoutSwitch({
@@ -53,6 +62,48 @@ function LayoutSwitch({
   );
 }
 
+/**
+ * Header affordance that tells visitors the command palette exists and opens it.
+ * The graph landing fills every corner with its own chrome, so the global
+ * floating trigger is hidden here (see CommandPaletteRoot) and this stands in
+ * its place. The shortcut hint is desktop-only, and platform-aware (⌘ on Apple,
+ * Ctrl elsewhere); on touch the icon alone is the tap target. Opens the palette
+ * through the shared window event.
+ */
+function SearchHint() {
+  const shortcut = useShortcutKey();
+  return (
+    <button
+      type="button"
+      onClick={openCommandPalette}
+      aria-label="Search pages, dev notes, and actions"
+      aria-haspopup="dialog"
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-1.5 text-xs text-muted backdrop-blur transition-colors hover:text-foreground"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      <span className="hidden sm:inline">Search</span>
+      {shortcut ? (
+        <kbd className="hidden font-sans text-[11px] tracking-wide text-foreground sm:inline">
+          {shortcut}K
+        </kbd>
+      ) : null}
+    </button>
+  );
+}
+
 /** Warm accent shared with the résumé graph node so the two read as the same thing. */
 const RESUME_ACCENT = "#fb923c";
 
@@ -82,21 +133,32 @@ function ResumeLink() {
   );
 }
 
-type LegendItem = { color: string; label: string };
+// Retired landing designs, newest first, for the footer picker. v3 is current
+// (see CURRENT_VERSION in page.tsx) so it stays out of the list.
+const OLDER_VERSIONS = ["v2", "v1"] as const;
 
+type LegendItem = { swatch: string; label: string; glow?: string };
+
+// Features (and the Apps hub) all share one blue. Categories and their write-ups
+// are coloured by topic instead — each category gets its own hue and its
+// write-ups inherit it — so the second pill is a multi-hue swatch built from the
+// real category palette, not a single dot.
 const LEGEND: LegendItem[] = [
-  { color: "#38bdf8", label: "Feature" },
-  { color: "#a78bfa", label: "Category" },
-  { color: "#f472b6", label: "Write-up" },
+  { swatch: "#38bdf8", label: "Feature", glow: "#38bdf8" },
+  {
+    swatch:
+      "conic-gradient(from 130deg, #818cf8, #f472b6, #34d399, #a78bfa, #fbbf24, #fb7185, #22d3ee, #94a3b8, #818cf8)",
+    label: "By topic",
+  },
 ];
 
-/** A pill for the node-type legend, OriginUI-style. */
-function LegendPill({ color, label }: LegendItem) {
+/** A pill for the graph legend, OriginUI-style. */
+function LegendPill({ swatch, label, glow }: LegendItem) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-2.5 py-1 text-[11px] text-muted backdrop-blur">
       <span
         className="h-2 w-2 rounded-full"
-        style={{ background: color, boxShadow: `0 0 8px ${color}` }}
+        style={{ background: swatch, boxShadow: glow ? `0 0 8px ${glow}` : undefined }}
       />
       {label}
     </span>
@@ -118,6 +180,9 @@ export default function GraphShell({
 }) {
   const reduced = useReducedMotion() ?? false;
   const [mode, setModeState] = useState<LayoutMode>("force");
+  // Once the flat view has been asked for we keep it mounted, so switching back
+  // to it is instant and never re-loads its chunk or replays its intro.
+  const [flatRequested, setFlatRequested] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   // Remember the last-used view across visits. Read in an effect (not lazy
@@ -130,6 +195,7 @@ export default function GraphShell({
       // would mismatch the server-rendered default and warn on hydration.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (saved === "flat" || saved === "force") setModeState(saved);
+      if (saved === "flat") setFlatRequested(true);
     } catch {
       // localStorage can throw (private mode, disabled) — just use the default.
     }
@@ -137,6 +203,7 @@ export default function GraphShell({
 
   const setMode = (next: LayoutMode) => {
     setModeState(next);
+    if (next === "flat") setFlatRequested(true);
     try {
       localStorage.setItem(MODE_STORAGE_KEY, next);
     } catch {
@@ -172,11 +239,27 @@ export default function GraphShell({
         aria-label="Graph of features and write-ups, and how they connect"
         className="absolute inset-0"
       >
-        {mode === "force" ? (
+        {/* Both views stay mounted and we swap which one is visible. Toggling
+            used to unmount one and mount the other, which replayed each view's
+            intro animation on every switch (and, under dev Strict Mode's double
+            mount, flashed it twice) — that was the flicker. Keeping them mounted
+            with visibility means a switch is just a paint change. invisible
+            (visibility:hidden), not hidden (display:none), so the backgrounded
+            force graph keeps its measured size and its simulation stays valid. */}
+        <div
+          className={layerClass(mode === "force")}
+          aria-hidden={mode !== "force"}
+        >
           <NodeGraph reducedMotion={reduced} />
-        ) : (
-          <FlatGraph reducedMotion={reduced} />
-        )}
+        </div>
+        {flatRequested ? (
+          <div
+            className={layerClass(mode === "flat")}
+            aria-hidden={mode !== "flat"}
+          >
+            <FlatGraph reducedMotion={reduced} />
+          </div>
+        ) : null}
       </main>
 
       {/* Header — glassy in flat view so scrolling cards don't show through it */}
@@ -206,6 +289,7 @@ export default function GraphShell({
           </p>
         </div>
         <div className="pointer-events-auto flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+          <SearchHint />
           <LayoutSwitch mode={mode} onChange={setMode} />
           <ResumeLink />
           {action}
@@ -277,12 +361,24 @@ export default function GraphShell({
         >
           GitHub
         </a>
-        <Link
-          href="/?version=v2"
-          className="transition-colors hover:text-foreground"
-        >
-          v2 ↗
-        </Link>
+        {/* Peek at the older landing designs. A tiny <details> picker instead
+            of a hard-coded v2 link, so it stays right as versions come and go. */}
+        <details className="relative">
+          <summary className="cursor-pointer list-none transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
+            Versions ↗
+          </summary>
+          <div className="absolute right-0 bottom-full mb-2 flex min-w-[7rem] flex-col rounded-lg border border-border bg-surface/90 p-1 text-right backdrop-blur">
+            {OLDER_VERSIONS.map((v) => (
+              <Link
+                key={v}
+                href={`/?version=${v}`}
+                className="rounded px-2 py-1 whitespace-nowrap transition-colors hover:bg-foreground/5 hover:text-foreground"
+              >
+                {v} ↗
+              </Link>
+            ))}
+          </div>
+        </details>
       </nav>
     </div>
   );
