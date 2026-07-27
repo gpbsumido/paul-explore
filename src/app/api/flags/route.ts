@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getFlags } from "@/lib/flags-data";
-import { ENVIRONMENTS } from "@/types/flags";
+import { loadFleet } from "@/lib/flags-bff";
 
 export async function GET() {
-  return NextResponse.json({ flags: getFlags(), environments: ENVIRONMENTS });
+  const { flags, environments } = await loadFleet();
+  return NextResponse.json({ flags, environments });
 }

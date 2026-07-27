@@ -15,6 +15,18 @@ import type { Flag, UpdateFlagBody } from "@/types/flags";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const BASE = `${API_URL}/api/feature-flags`;
 
+/**
+ * The API answered, but with a non-2xx status. Distinct from a thrown fetch
+ * (the API being unreachable) so the BFF can fall back to the seed only when
+ * the service is truly down, while propagating a real 401/404 to the caller.
+ */
+export class FlagsApiError extends Error {
+  constructor(readonly status: number) {
+    super(`feature-flags API responded ${status}`);
+    this.name = "FlagsApiError";
+  }
+}
+
 const flagsPayloadSchema = z.object({
   flags: z.array(flagSchema),
   environments: z.array(environmentSchema),
@@ -34,7 +46,7 @@ export async function fetchFlagsFromApi(): Promise<
 > {
   const res = await fetch(BASE, { cache: "no-store" });
   if (!res.ok) {
-    throw new Error(`feature-flags API responded ${res.status}`);
+    throw new FlagsApiError(res.status);
   }
   return flagsPayloadSchema.parse(await res.json());
 }
@@ -45,7 +57,7 @@ export async function fetchAuditFromApi(): Promise<
 > {
   const res = await fetch(`${BASE}/audit`, { cache: "no-store" });
   if (!res.ok) {
-    throw new Error(`feature-flags audit API responded ${res.status}`);
+    throw new FlagsApiError(res.status);
   }
   return auditPayloadSchema.parse(await res.json());
 }
@@ -69,7 +81,7 @@ export async function patchFlagOnApi(
     body: JSON.stringify(updateFlagBodySchema.parse(body)),
   });
   if (!res.ok) {
-    throw new Error(`feature-flags API responded ${res.status}`);
+    throw new FlagsApiError(res.status);
   }
   return flagPayloadSchema.parse(await res.json());
 }

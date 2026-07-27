@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getAudit } from "@/lib/flags-data";
+import { loadAuditLog } from "@/lib/flags-bff";
 
 export async function GET() {
-  return NextResponse.json({ audit: getAudit() });
+  const { audit } = await loadAuditLog();
+  return NextResponse.json({ audit });
 }

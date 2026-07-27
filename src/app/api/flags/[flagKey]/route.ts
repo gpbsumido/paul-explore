@@ -1,12 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateFlagBodySchema } from "@/lib/flags-schemas";
 import { parseBody } from "@/lib/parseBody";
-import { getFlag, setFlagEnabled, setFallthrough } from "@/lib/flags-data";
-import type { Flag } from "@/types/flags";
+import { applyFlagPatch } from "@/lib/flags-bff";
+
+const ERRORS: Record<number, string> = {
+  401: "Sign in to change flags",
+  404: "Flag not found",
+};
 
 /**
  * Updates a flag's per-environment config: the kill switch (`enabled`) and/or
- * the fallthrough rollout weights. Both changes are recorded in the audit log.
+ * the fallthrough rollout weights. Proxies to the live API, forwarding the
+ * visitor's bearer token so the write is authorized and attributed to them;
+ * falls back to the seed store when the API is unreachable.
  */
 export async function PATCH(
   request: NextRequest,
@@ -14,29 +20,21 @@ export async function PATCH(
 ) {
   const { flagKey } = await params;
 
-  if (!getFlag(flagKey)) {
-    return NextResponse.json({ error: "Flag not found" }, { status: 404 });
-  }
-
   const bodyResult = await parseBody(request, updateFlagBodySchema);
   if (!bodyResult.ok) return bodyResult.response;
 
-  const { environment, enabled, fallthrough } = bodyResult.data;
+  const token = request.headers
+    .get("authorization")
+    ?.replace(/^Bearer\s+/i, "");
 
-  let updated: Flag | undefined;
-  if (enabled !== undefined) {
-    updated = setFlagEnabled(flagKey, environment, enabled);
-  }
-  if (fallthrough !== undefined) {
-    updated = setFallthrough(flagKey, environment, fallthrough);
-  }
+  const outcome = await applyFlagPatch(flagKey, bodyResult.data, token);
 
-  if (!updated) {
+  if (outcome.status !== 200 || !outcome.flag) {
     return NextResponse.json(
-      { error: "Environment not configured for this flag" },
-      { status: 404 },
+      { error: ERRORS[outcome.status] ?? "Could not update the flag" },
+      { status: outcome.status },
     );
   }
 
-  return NextResponse.json({ flag: updated });
+  return NextResponse.json({ flag: outcome.flag });
 }
