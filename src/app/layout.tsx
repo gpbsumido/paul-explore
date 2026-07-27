@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import CommandPaletteRoot from "@/components/CommandPalette/CommandPaletteRoot";
 import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import CommandPaletteRoot from "@/components/CommandPalette/CommandPaletteRoot";

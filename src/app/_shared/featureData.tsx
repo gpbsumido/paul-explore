@@ -122,6 +122,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "Feature Flags",
+    href: "/thoughts/feature-flags",
+    preview:
+      "A flag console built engine-first: deterministic FNV-1a bucketing with an avalanche step, sticky and monotonic rollouts, first-match targeting, an explainable evaluation reason, and why the pure core is the whole design",
+    color: "#fb923c",
+  },
+  {
     title: "React Doctor",
     href: "/thoughts/react-doctor",
     preview:
