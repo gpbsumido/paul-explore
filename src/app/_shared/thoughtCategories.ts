@@ -41,6 +41,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "routing",
       "improvements",
       "api-backend-overhaul",
+      "feature-flags",
       "messenger-auth",
     ],
   },

@@ -350,6 +350,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "Rebuilding 24 features from 11 old jobs as self-contained demos: reconstruction over emulation, anonymizing client work, the no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs",
     color: "#60a5fa",
   },
+  {
+    title: "Feature Flags Service",
+    href: "/thoughts/feature-flags",
+    preview:
+      "Giving the flags console a real backend in portfolio_api: public reads, an Auth0-gated PATCH with an audit trail, a Zod contract shared with the UI, and a cron that resets the demo seed every six hours",
+    color: "#0ea5e9",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
