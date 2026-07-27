@@ -47,7 +47,14 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Testing & Quality",
-    slugs: ["react-doctor", "project-review", "testing", "e2e", "ci-e2e"],
+    slugs: [
+      "react-doctor",
+      "project-review",
+      "testing",
+      "e2e",
+      "ci-e2e",
+      "test-tiers",
+    ],
   },
   {
     name: "Security",
