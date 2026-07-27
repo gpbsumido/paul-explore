@@ -92,16 +92,20 @@ export default function V4RedesignContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">The spin</h2>
         <p className="text-muted">
-          Spin picks a random valid combination first, then settles the columns
-          one at a time, left to right: reel 1 lands, then reel 2 within the
-          landed category, then reel 3. Each reel steps through a handful of
-          intermediate rows on timeouts with widening gaps, so it reads as a
-          wheel losing momentum rather than a value snapping into place, and a
-          CSS transform transition glides between steps. The trick that keeps it
-          clean is that reels 2 and 3 lock their contents to the chosen target
-          the moment the pull starts, so while reel 1 is still turning they
-          don&rsquo;t thrash through every category it passes on the way down. It
-          all stays fast, and input is off mid-spin so a stray click can&rsquo;t
+          Spin picks a random valid combination first, then, like a real
+          machine, all three reels start turning at once and lock in left to
+          right: reel 1 lands, then reel 2 within the landed category, then reel
+          3. A column that hasn&rsquo;t reached its turn free-wheels on fast,
+          even steps so the reels to the right of whatever is landing are always
+          visibly moving, and every still-turning column wears a vertical motion
+          blur that snaps sharp the instant it stops. The landing itself steps
+          through a handful of rows on timeouts with widening gaps, so it reads
+          as a wheel losing momentum rather than a value snapping into place. The
+          trick that keeps it clean is that reels 2 and 3 lock their{" "}
+          <em>contents</em> to the chosen target the moment the pull starts, so
+          while they spin they cycle their own frozen options rather than
+          thrashing through every category reel 1 passes on the way down. It all
+          stays fast, and input is off mid-spin so a stray click can&rsquo;t
           desync the three indices. Under{" "}
           <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
             prefers-reduced-motion
@@ -135,15 +139,23 @@ export default function V4RedesignContent() {
           <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
             option
           </code>
-          . Arrow keys move the selection (wrapping), Home and End jump, Enter
-          opens whatever a reel-2 or reel-3 row points at, and a polite live
-          region announces the combination after every spin or selection. The
-          result bar under the machine is the primary navigation: ordinary
+          . Up and Down move the selection within a reel (wrapping), Left and
+          Right hop focus between the three columns and skip any greyed-out reel,
+          Home and End jump, and Enter opens whatever the focused reel points at,
+          including the category reel, which opens the landed destination so the
+          leftmost column is never a dead end. A polite live region announces the
+          combination after every spin or selection, and{" "}
+          <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
+            &#8984;K
+          </code>{" "}
+          opens a command palette for jumping straight to any page or note. The
+          result bar under the machine is still the primary navigation: ordinary
           links stating exactly where they go, so nobody has to operate the
-          novelty UI to get anywhere. Selection is never colour alone: the
-          centred row is also bigger, set in a serif, and underlined in its
-          accent, with a hairline payline glowing across the middle of each
-          reel, and everything focusable has a visible ring.
+          novelty UI to get anywhere. Selection is never colour alone: the landed
+          row sits large and sharp under a glass magnifier bar while its
+          neighbours soften, and once a column settles a small hand-drawn arrow
+          draws itself in to name the result in place of a static header.
+          Everything focusable has a visible ring.
         </p>
       </section>
 

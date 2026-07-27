@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Fraunces } from "next/font/google";
 import { m, useReducedMotion, type Variants } from "framer-motion";
 import GraphBackground from "@/app/v3/graph/GraphBackground";
+import { openCommandPalette } from "@/lib/command-palette/open-event";
+import { useShortcutKey } from "@/hooks/useShortcutKey";
 import {
   buildSlots,
   shortestDelta,
@@ -22,6 +24,10 @@ const ROW_H = 60;
 /** Visible rows per reel; odd so the landed row sits dead centre. */
 const VISIBLE_ROWS = 5;
 const WINDOW_H = ROW_H * VISIBLE_ROWS;
+/** The magnifier "glass bar" over the centre row, a touch taller than a row. */
+const LENS_H = 66;
+/** Top of the centred lens, shared by the lens itself and the arrow annotation. */
+const LENS_TOP = WINDOW_H / 2 - LENS_H / 2;
 
 /** Reels fade out toward their edges instead of sitting in a frame. */
 const EDGE_FADE =
@@ -53,6 +59,46 @@ function ResumeLink() {
       </svg>
       Résumé
     </Link>
+  );
+}
+
+/**
+ * Header affordance for the command palette. The global floating trigger is
+ * hidden at "/" (see CommandPaletteRoot) because the machine fills every corner,
+ * so this stands in for it. Opens through the shared window event; the shortcut
+ * hint is desktop-only and platform-aware.
+ */
+function SearchHint() {
+  const shortcut = useShortcutKey();
+  return (
+    <button
+      type="button"
+      onClick={openCommandPalette}
+      aria-label="Search pages, dev notes, and actions"
+      aria-haspopup="dialog"
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-2 text-sm text-muted backdrop-blur-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      <span className="hidden sm:inline">Search</span>
+      {shortcut ? (
+        <kbd className="hidden font-sans text-[11px] tracking-wide text-foreground sm:inline">
+          {shortcut}K
+        </kbd>
+      ) : null}
+    </button>
   );
 }
 
@@ -92,43 +138,151 @@ const rowDomId = (reelKey: string, itemId: string): string =>
   `v4-${reelKey}-${itemId.replace(/[^a-zA-Z0-9_-]+/g, "-")}`;
 
 /**
+ * Three hand-drawn arrow shapes, one per column, so the marks read as sketched
+ * by hand rather than stamped from a template: a lazy S, a leftward hook, and a
+ * double wiggle. Each pairs the curve with an arrowhead sitting at its foot.
+ */
+const ARROW_VARIANTS: { line: string; head: string }[] = [
+  { line: "M23 1 C 31 16, 15 33, 23 52", head: "M16 44 L23 54 L30 44" },
+  { line: "M31 1 C 33 19, 13 30, 21 52", head: "M14 44 L22 54 L28 43" },
+  {
+    line: "M20 1 C 31 12, 13 25, 26 36 C 33 42, 19 47, 23 53",
+    head: "M16 45 L23 55 L30 45",
+  },
+];
+
+/**
+ * The label that points at whatever a reel landed on. It sits in the reel's own
+ * top space (the old header is gone) and, once the column settles, the arrow
+ * draws itself down toward the magnifier while the label fades in beside it, so
+ * the machine names each result the moment it lands rather than up front. Each
+ * reel gets its own arrow shape so the three don't look stamped from one mould.
+ * Keyed on the landed item by the caller so it redraws on every new selection.
+ * Reduced-motion visitors get the finished mark with no drawing.
+ */
+function ReelAnnotation({
+  label,
+  accent,
+  reduced,
+  variant,
+}: {
+  label: string;
+  accent: string;
+  reduced: boolean;
+  /** Picks one of the hand-drawn arrow shapes, so each column differs. */
+  variant: number;
+}) {
+  const arrow = ARROW_VARIANTS[variant % ARROW_VARIANTS.length];
+  const draw = reduced
+    ? { initial: false as const, animate: { pathLength: 1, opacity: 1 } }
+    : {
+        initial: { pathLength: 0, opacity: 0 },
+        animate: { pathLength: 1, opacity: 1 },
+      };
+  return (
+    <div
+      data-testid="reel-annotation"
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 z-20 flex flex-col items-center"
+      style={{ top: 6, height: LENS_TOP - 6 }}
+    >
+      <m.span
+        initial={reduced ? false : { opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: reduced ? 0 : 0.3, duration: 0.35 }}
+        className="rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] backdrop-blur-sm"
+        style={{
+          color: accent,
+          borderColor: `color-mix(in srgb, ${accent} 35%, transparent)`,
+          backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)`,
+        }}
+      >
+        {label}
+      </m.span>
+      <svg
+        className="-mt-px flex-1 overflow-visible"
+        width="46"
+        viewBox="0 0 46 60"
+        fill="none"
+        preserveAspectRatio="xMidYMin meet"
+        aria-hidden
+      >
+        <m.path
+          d={arrow.line}
+          stroke={accent}
+          strokeWidth={2}
+          strokeLinecap="round"
+          transition={{ duration: reduced ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] }}
+          {...draw}
+        />
+        <m.path
+          d={arrow.head}
+          stroke={accent}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={reduced ? false : { pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{
+            duration: reduced ? 0 : 0.25,
+            delay: reduced ? 0 : 0.45,
+          }}
+        />
+      </svg>
+    </div>
+  );
+}
+
+/**
  * One wheel of the machine: an endless, edge-faded strip of type with the
- * landed row centred and set in the display serif, a hairline payline marking
- * the centre. Semantically it is a plain listbox with a visually hidden option
- * per item for assistive tech; the moving strip itself is decoration. Arrows
- * step one visual row in the pressed direction (wrapping continuously),
- * Home/End take the shortest path, Enter activates. A disabled reel is inert
- * and greyed, but its rows still stack so the layout holds.
+ * landed row magnified under a glass "lens" (the selected item reads large and
+ * sharp, the rest fade back), and, once it settles, a drawn-in arrow naming the
+ * result. Semantically it is a plain listbox with a visually hidden option per
+ * item for assistive tech; the moving strip itself is decoration. Up/Down step
+ * one visual row (wrapping continuously), Left/Right jump focus to the adjacent
+ * reel, Home/End take the shortest path, Enter activates. While a column is
+ * mid-spin the strip smears with a motion blur, like a real reel picking up
+ * speed. A disabled reel is inert and greyed, but its rows still stack so the
+ * layout holds.
  */
 function Reel({
-  eyebrow,
   label,
   reelKey,
+  reelIndex,
   items,
   posState,
   spinning,
+  blurring,
   reduced,
   accent,
   disabled = false,
   onPosChange,
   onActivate,
+  onFocusSibling,
+  registerRef,
   empty,
 }: {
-  /** Small index marker shown before the column label, e.g. "01". */
-  eyebrow: string;
   label: string;
   reelKey: string;
+  /** This reel's slot in the row, so Left/Right can find its neighbours. */
+  reelIndex: number;
   items: ReelItem[];
   posState: ReelPos;
   spinning: boolean;
+  /** True only while this specific column is still turning, for the speed blur. */
+  blurring: boolean;
   reduced: boolean;
-  /** Landed accent, used for the dot glow and the payline tint. */
+  /** Landed accent, used for the dot glow, the lens tint, and the arrow. */
   accent: string;
   /** Greys the reel out and turns off interaction (write-up-only categories). */
   disabled?: boolean;
   onPosChange: (next: number) => void;
   /** Omitted for reels that only select (reel 1). */
   onActivate?: (index: number) => void;
+  /** Moves keyboard focus to the reel dir steps away, skipping inert ones. */
+  onFocusSibling: (from: number, dir: 1 | -1) => void;
+  /** Hands the listbox element back so the parent can focus it laterally. */
+  registerRef: (el: HTMLDivElement | null) => void;
   /** Shown inside the window when there are no items. */
   empty?: ReactNode;
 }) {
@@ -139,7 +293,18 @@ function Reel({
   const inert = disabled || spinning;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (inert || len === 0) return;
+    if (spinning) return;
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      onFocusSibling(reelIndex, -1);
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      onFocusSibling(reelIndex, 1);
+      return;
+    }
+    if (disabled || len === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
       onPosChange(pos + 1);
@@ -167,15 +332,9 @@ function Reel({
   };
 
   return (
-    <div className="flex min-w-0 flex-col gap-3">
-      <p className="flex items-baseline gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.25em] text-muted">
-        <span aria-hidden className="text-foreground/35">
-          {eyebrow}
-        </span>
-        {label}
-      </p>
-      <div aria-hidden className="h-px w-full bg-border" />
+    <div className="relative flex min-w-0 flex-col">
       <div
+        ref={registerRef}
         role="listbox"
         aria-label={label}
         aria-disabled={inert || undefined}
@@ -207,24 +366,42 @@ function Reel({
           ))}
         </div>
 
-        {/* Payline: a single hairline at the centre row, glowing in the landed
-            accent. Three of these across the columns read as one line, no box. */}
+        {/* The magnifier: a rounded glass bar over the centre row, with a bright
+            top edge and a soft accent glow, so the landed item reads as if held
+            under a loupe. The glass itself is clear (the loupe sharpens the
+            landed row, it doesn't fog it); the neighbours blur instead. Dimmed
+            while the column is still spinning. */}
         {len > 0 ? (
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 z-10"
-            style={{ top: WINDOW_H / 2 - 0.5 }}
-          >
-            <div
-              className="h-px w-full transition-[background,box-shadow] duration-500"
-              style={{
-                background: `linear-gradient(to right, transparent, color-mix(in srgb, ${accent} 55%, transparent), transparent)`,
-                boxShadow: spinning
-                  ? "none"
-                  : `0 0 12px color-mix(in srgb, ${accent} 45%, transparent)`,
-              }}
-            />
-          </div>
+            data-testid="reel-lens"
+            className="pointer-events-none absolute inset-x-0 z-10 rounded-2xl border transition-[box-shadow,border-color] duration-500"
+            style={{
+              top: LENS_TOP,
+              height: LENS_H,
+              borderColor: `color-mix(in srgb, ${accent} ${
+                blurring ? 22 : 42
+              }%, transparent)`,
+              background:
+                "linear-gradient(to bottom, color-mix(in srgb, white 10%, transparent), transparent 60%)",
+              boxShadow: blurring
+                ? "inset 0 1px 0 rgba(255,255,255,0.18)"
+                : `inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px color-mix(in srgb, ${accent} 20%, transparent)`,
+            }}
+          />
+        ) : null}
+
+        {/* Drawn-in label that names whatever landed, once the column settles.
+            Write-up-only reels are just a greyed placeholder, so they get no
+            label. */}
+        {len > 0 && !spinning && !disabled ? (
+          <ReelAnnotation
+            key={selected}
+            label={label}
+            accent={accent}
+            reduced={reduced}
+            variant={reelIndex}
+          />
         ) : null}
 
         {len === 0 ? (
@@ -247,6 +424,11 @@ function Reel({
                 right: 0,
                 top: WINDOW_H / 2 - ROW_H / 2,
                 transform: `translateY(${-pos * ROW_H}px)`,
+                // Vertical smear while the column is actually turning, like a
+                // spinning reel; snaps sharp the instant it lands. A one-item
+                // reel has nothing to cycle, so it never smears.
+                filter:
+                  blurring && !reduced && len > 1 ? "blur(2.4px)" : undefined,
                 willChange: "transform",
               }}
             >
@@ -273,26 +455,34 @@ function Reel({
                     style={{
                       top: k * ROW_H,
                       height: ROW_H,
-                      opacity: distance === 0 ? 1 : distance === 1 ? 0.38 : 0.16,
+                      opacity: distance === 0 ? 1 : distance === 1 ? 0.32 : 0.14,
+                      // The loupe keeps the landed row crisp and softens its
+                      // neighbours, so the eye lands on the middle. Skipped
+                      // during the spin, where the whole strip already smears.
+                      filter:
+                        blurring || reduced || distance === 0
+                          ? undefined
+                          : `blur(${distance === 1 ? 0.7 : 1.3}px)`,
                     }}
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span
-                        className="h-1.5 w-1.5 shrink-0 rounded-full transition-shadow"
+                        className="shrink-0 rounded-full transition-all"
                         style={{
+                          height: isLanded ? 8 : 6,
+                          width: isLanded ? 8 : 6,
                           backgroundColor: muted
                             ? "var(--color-muted, #94a3b8)"
                             : item.color,
                           boxShadow:
                             isLanded && !muted
-                              ? `0 0 10px ${item.color}`
+                              ? `0 0 12px ${item.color}`
                               : undefined,
                         }}
                       />
                       {isLanded && !muted ? (
                         <span
-                          className={`${fraunces.className} truncate pb-0.5 text-[17px] leading-tight text-foreground sm:text-[19px]`}
-                          style={{ borderBottom: `2px solid ${item.color}` }}
+                          className={`${fraunces.className} whitespace-nowrap text-lg leading-none text-foreground sm:text-2xl`}
                         >
                           {item.label}
                         </span>
@@ -335,9 +525,6 @@ const revealItem: Variants = {
   },
 };
 
-/** A whole-number index in [0, n). */
-const randIndex = (n: number): number => Math.floor(Math.random() * Math.max(n, 1));
-
 type Frozen = { cat: number; opt: number; note: number };
 
 /**
@@ -361,10 +548,36 @@ export default function SlotMachine({
   const reduced = useReducedMotion() ?? false;
   const categories = useMemo(() => buildSlots(), []);
 
+  // Every reachable category → option → write-up leaf, flattened, so a spin can
+  // pick uniformly across combinations rather than picking a category first
+  // (which would over-favour small categories). Apps leaves carry a little extra
+  // weight so the actual, usable stuff comes up a touch more often.
+  const combos = useMemo(() => {
+    const list: { cat: number; opt: number; note: number; weight: number }[] =
+      [];
+    categories.forEach((c, ci) => {
+      const weight = c.id === "apps" ? 1.5 : 1;
+      c.options.forEach((o, oi) => {
+        if (o.thoughts.length === 0) {
+          list.push({ cat: ci, opt: oi, note: 0, weight });
+          return;
+        }
+        o.thoughts.forEach((_, ni) =>
+          list.push({ cat: ci, opt: oi, note: ni, weight }),
+        );
+      });
+    });
+    return list;
+  }, [categories]);
+
   const [catPos, setCatPos] = useState<ReelPos>(still(0));
   const [optPos, setOptPos] = useState<ReelPos>(still(0));
   const [notePos, setNotePos] = useState<ReelPos>(still(0));
   const [spinning, setSpinning] = useState(false);
+  // How many columns have locked in so far this spin. Every reel starts turning
+  // at once; they settle left to right, so a reel is still blurring while its
+  // index is at or past this count. 3 (all settled) when the machine is idle.
+  const [settledCount, setSettledCount] = useState(3);
   // While a spin runs, reels 2 and 3 read their contents from the locked-in
   // target instead of the mid-flight reel-1 position, so they never thrash
   // through every category the first reel passes on its way down.
@@ -375,6 +588,23 @@ export default function SlotMachine({
     const owned = timers;
     return () => owned.current.forEach((id) => window.clearTimeout(id));
   }, []);
+
+  // The three listbox elements, so Left/Right can hop focus between columns.
+  const reelEls = useRef<(HTMLDivElement | null)[]>([null, null, null]);
+  const focusSibling = (from: number, dir: 1 | -1) => {
+    const n = reelEls.current.length;
+    for (let step = 1; step <= n; step += 1) {
+      const j = from + dir * step;
+      if (j < 0 || j >= n) return;
+      const el = reelEls.current[j];
+      // Skip greyed-out reels (they carry tabindex -1) so focus never parks
+      // somewhere the user can't act.
+      if (el && el.getAttribute("tabindex") !== "-1") {
+        el.focus();
+        return;
+      }
+    }
+  };
 
   const catIndex = frozen
     ? frozen.cat
@@ -395,6 +625,10 @@ export default function SlotMachine({
   const catAccent = category.color;
   const optAccent = option?.color ?? catAccent;
   const noteAccent = thought?.color ?? optAccent;
+
+  // The middle reel names an app to open under Apps, and a plain option
+  // elsewhere. Write-up-only categories grey it out and skip the label entirely.
+  const optLabel = category.id === "apps" ? "App link" : "Options";
 
   // Downstream reels only reset when the upstream selection really changes,
   // so nudging a reel around its own strip never yanks its neighbours.
@@ -422,18 +656,42 @@ export default function SlotMachine({
     router.push(href);
   };
 
+  // Enter on the category reel opens the primary landed destination: the option
+  // itself when it's openable, otherwise its write-up, so the leftmost column is
+  // never a keyboard dead end.
+  const openLanded = () => {
+    if (option && !option.disabled) {
+      openHref(option.href, option.external);
+      return;
+    }
+    if (thought) openHref(thought.href);
+  };
+
   const clearTimers = () => {
     timers.current.forEach((id) => window.clearTimeout(id));
     timers.current = [];
   };
 
+  // Weighted pick across all combos, so every category/app/write-up landing is
+  // about equally likely (Apps a little more so).
+  const pickCombo = () => {
+    const total = combos.reduce((sum, c) => sum + c.weight, 0);
+    let r = Math.random() * total;
+    for (const c of combos) {
+      r -= c.weight;
+      if (r <= 0) return c;
+    }
+    return combos[combos.length - 1];
+  };
+
   const spin = () => {
     if (spinning) return;
-    const catTarget = randIndex(categories.length);
+    const combo = pickCombo();
+    const catTarget = combo.cat;
     const optList = categories[catTarget].options;
-    const optTarget = optList.length > 0 ? randIndex(optList.length) : 0;
+    const optTarget = combo.opt;
     const noteList = optList[optTarget]?.thoughts ?? [];
-    const noteTarget = noteList.length > 0 ? randIndex(noteList.length) : 0;
+    const noteTarget = combo.note;
 
     if (reduced) {
       setFrozen(null);
@@ -446,6 +704,7 @@ export default function SlotMachine({
     clearTimers();
     setFrozen({ cat: catTarget, opt: optTarget, note: noteTarget });
     setSpinning(true);
+    setSettledCount(0);
     setOptPos(still(0));
     setNotePos(still(0));
 
@@ -453,10 +712,34 @@ export default function SlotMachine({
       timers.current.push(window.setTimeout(fn, at));
     };
 
-    // Spin one column: step forward along the endless strip through at least a
-    // full turn, landing exactly on the target. Distance eases out (a wheel
-    // losing momentum) and the step times bunch up early then spread late, so
-    // it decelerates. Positions only increase, so the strip never jumps back.
+    // Keep a column free-wheeling (steady, fast steps) from the start of the
+    // spin until it's that column's turn to settle, so the reels to the right of
+    // whatever is landing are always visibly turning rather than sitting still.
+    // Returns the position it reaches, so the settle can carry on from there
+    // without a jump. A single-item reel has nothing to cycle, so it holds.
+    const freeSpin = (
+      len: number,
+      set: (value: number) => void,
+      startAt: number,
+      endAt: number,
+      stepMs = 42,
+    ): number => {
+      if (len <= 1) return 0;
+      let p = 0;
+      for (let at = startAt; at < endAt; at += stepMs) {
+        p += 1;
+        const value = p;
+        schedule(() => set(value), at);
+      }
+      return p;
+    };
+
+    // Settle one column onto its target: step forward along the endless strip,
+    // easing out like a wheel losing momentum (step distances shrink and the
+    // times spread late). Positions only increase, so the strip never jumps
+    // back. `extraTurn` adds a whole rotation before landing, which reel 1 wants
+    // (it settles from rest); the columns that have been free-wheeling pass 0 so
+    // they simply decelerate the short remaining distance, with no second spin.
     // A single-item (or empty) reel has nothing to spin, so it just lands after
     // a short beat, keeping the left-to-right rhythm.
     const runReel = (
@@ -466,13 +749,15 @@ export default function SlotMachine({
       set: (value: number) => void,
       start: number,
       durMs: number,
+      extraTurn: boolean,
     ): number => {
       if (len <= 1) {
         schedule(() => set(targetIndex), start);
         return start + 130;
       }
       const fromIndex = wrapIndex(Math.round(fromPos), len);
-      const travel = wrapIndex(targetIndex - fromIndex, len) + len;
+      let travel = wrapIndex(targetIndex - fromIndex, len) + (extraTurn ? len : 0);
+      if (travel === 0) travel = len;
       const steps = Math.min(14, Math.max(6, travel));
       let prev = 0;
       for (let j = 1; j <= steps; j += 1) {
@@ -488,16 +773,26 @@ export default function SlotMachine({
       return start + durMs;
     };
 
-    // Fast, and strictly one column at a time: each reel starts only once the
-    // previous has settled.
+    // All three reels turn together from the off; they lock in left to right.
+    // The category settles first, straight from where it sits. The other two
+    // free-wheel until their turn comes, then decelerate onto their target.
+    const setOpt = (v: number) => setOptPos(glideTo(v));
+    const setNote = (v: number) => setNotePos(glideTo(v));
+
     const t1 = runReel(categories.length, catTarget, catPos.pos, (v) =>
-      setCatPos(glideTo(v)), 0, 560);
-    const t2 = runReel(optList.length, optTarget, 0, (v) =>
-      setOptPos(glideTo(v)), t1, 440);
-    const t3 = runReel(noteList.length, noteTarget, 0, (v) =>
-      setNotePos(glideTo(v)), t2, 440);
+      setCatPos(glideTo(v)), 0, 620, true);
+    schedule(() => setSettledCount(1), t1);
+
+    const optFrom = freeSpin(optList.length, setOpt, 0, t1);
+    const t2 = runReel(optList.length, optTarget, optFrom, setOpt, t1, 460, false);
+    schedule(() => setSettledCount(2), t2);
+
+    const noteFrom = freeSpin(noteList.length, setNote, 0, t2);
+    const t3 = runReel(noteList.length, noteTarget, noteFrom, setNote, t2, 460, false);
+
     schedule(() => {
       setSpinning(false);
+      setSettledCount(3);
       setFrozen(null);
     }, Math.max(t1, t2, t3) + 200);
   };
@@ -550,6 +845,7 @@ export default function SlotMachine({
           </p>
         </div>
         <div className="pointer-events-auto flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+          <SearchHint />
           <ResumeLink />
           {action}
         </div>
@@ -563,7 +859,7 @@ export default function SlotMachine({
           variants={revealContainer}
           initial={reduced ? false : "hidden"}
           animate="show"
-          className="m-auto w-full max-w-4xl"
+          className="m-auto w-full max-w-6xl"
         >
           {/* A quiet data line instead of cabinet chrome. */}
           <m.p
@@ -574,29 +870,36 @@ export default function SlotMachine({
             pull
           </m.p>
 
-          <div className="grid grid-cols-3 gap-4 sm:gap-10">
+          <div className="grid grid-cols-3 gap-4 sm:gap-8">
             <m.div variants={revealItem} className="min-w-0">
               <Reel
-                eyebrow="01"
                 label="Category"
                 reelKey="cat"
+                reelIndex={0}
                 items={categories}
                 posState={catPos}
                 spinning={spinning}
+                blurring={spinning && settledCount <= 0}
                 reduced={reduced}
                 accent={catAccent}
                 onPosChange={moveCat}
+                onActivate={openLanded}
+                onFocusSibling={focusSibling}
+                registerRef={(el) => {
+                  reelEls.current[0] = el;
+                }}
               />
             </m.div>
             <m.div variants={revealItem} className="min-w-0">
               <Reel
                 key={category.id}
-                eyebrow="02"
-                label="Options"
+                label={optLabel}
                 reelKey="opt"
+                reelIndex={1}
                 items={reelItems()}
                 posState={optPos}
                 spinning={spinning}
+                blurring={spinning && settledCount <= 1}
                 reduced={reduced}
                 accent={optAccent}
                 disabled={middleDisabled}
@@ -606,23 +909,32 @@ export default function SlotMachine({
                   if (target && !target.disabled)
                     openHref(target.href, target.external);
                 }}
+                onFocusSibling={focusSibling}
+                registerRef={(el) => {
+                  reelEls.current[1] = el;
+                }}
               />
             </m.div>
             <m.div variants={revealItem} className="min-w-0">
               <Reel
                 key={option?.id ?? "none"}
-                eyebrow="03"
-                label="Write-ups"
+                label="Write-up"
                 reelKey="note"
+                reelIndex={2}
                 items={noteItems()}
                 posState={notePos}
                 spinning={spinning}
+                blurring={spinning && settledCount <= 2}
                 reduced={reduced}
                 accent={noteAccent}
                 onPosChange={moveNote}
                 onActivate={(i) => {
                   const target = thoughts[i];
                   if (target) openHref(target.href);
+                }}
+                onFocusSibling={focusSibling}
+                registerRef={(el) => {
+                  reelEls.current[2] = el;
                 }}
                 empty={
                   <>
@@ -669,10 +981,12 @@ export default function SlotMachine({
           </m.div>
 
           {/* Result caption: the plain, keyboard-friendly way to open what
-              landed. Hidden mid-spin so the pull isn't spoiled. */}
+              landed. Hidden mid-spin so the pull isn't spoiled. A fixed height
+              keeps the whole centred block from reflowing as the blurb and
+              links change between selections. */}
           <m.div
             variants={revealItem}
-            className="mx-auto mt-7 flex min-h-16 w-full max-w-2xl flex-col items-center justify-start text-center sm:mt-9"
+            className="mx-auto mt-7 flex h-32 w-full max-w-2xl flex-col items-center justify-start overflow-hidden text-center sm:mt-9"
           >
             {spinning ? (
               <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted">

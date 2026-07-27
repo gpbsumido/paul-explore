@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-27 - version 1.3.0
+
+- reworked the v4 slot machine's reels. The numbered column headers are gone; instead, once a column settles a small arrow draws itself in to name the result, and write-up-only reels stay unlabelled since they're just a greyed placeholder. The landed row now sits large and sharp under a glass "magnifier" bar while its neighbours soften, so the eye lands on the middle the way a loupe reads. Columns are wider with slightly smaller display type so labels no longer ellipsize, the middle reel reads "App link" under Apps, and the third reel is "Write-up".
+- gave the pull a proper casino feel: all three reels now spin at once the moment you hit Spin and lock in left to right, rather than the right-hand columns sitting still until their turn. Every still-turning column wears a vertical motion blur that snaps sharp the instant it lands (single-item reels never smear, since they've nothing to cycle). Columns that free-wheel now just decelerate the short remaining distance onto their target instead of adding a second full rotation, so the middle and right reels no longer look like they spin twice. The result caption sits at a fixed height so the centred machine no longer shifts as blurbs and links change between landings.
+- spread the odds: a spin now picks uniformly across every category → option → write-up combination (Apps weighted a little higher) instead of choosing a category first and over-favouring small ones. Each column also draws its own arrow shape, touching its label, so the three marks read as hand-sketched rather than stamped from one template.
+- surfaced the feature-flags write-up in the machine, so the newest dev note is reachable through the reels and the /thoughts index.
+- fixed the reel keyboard model: Left/Right now hop focus between the three columns (skipping greyed-out reels), Up/Down still step within a reel, and Enter on the category reel opens the landed destination so the leftmost column is never a dead end.
+- brought the command palette back. Mounted `CommandPaletteRoot` in the root layout so ⌘/Ctrl+K works on every route again, and since the floating trigger hides itself on the landing, the v4 header gets an inline Search affordance in its place.
+
 ## 2026-07-27 - version 1.2.0
 
 - rebuilt the landing page and hub as v4: a full-screen slot machine of three dependent reels (category, option, write-up) over the same ambient backdrop. Everything on the reels is derived by `buildSlots()` from the same `FEATURES`/`THOUGHTS` data the v3 graph reads, including the feature-to-write-up bridge rule, so the machine and the graph can never drift apart. Pulling the Spin key settles the columns one at a time, left to right, through a quick decelerating step (reduced-motion jumps straight to the target); reels 2 and 3 lock their contents to the landed target while reel 1 is still turning, so they no longer thrash through every category the first reel passes.
