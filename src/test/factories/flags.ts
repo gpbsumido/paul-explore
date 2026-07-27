@@ -1,4 +1,5 @@
 import type {
+  AuditEntry,
   Clause,
   EnvironmentConfig,
   EvaluationContext,
@@ -90,4 +91,29 @@ export function buildContext(
     attributes: {},
     ...overrides,
   };
+}
+
+export function buildAuditEntry(
+  overrides: Partial<AuditEntry> = {},
+): AuditEntry {
+  return {
+    id: "audit-001",
+    flagKey: "new-checkout",
+    environment: "production",
+    action: "enabled",
+    summary: "Enabled in production",
+    actor: "you@demo",
+    timestamp: "2026-07-20T18:12:00.000Z",
+    ...overrides,
+  };
+}
+
+/** A list of `count` distinct audit entries, newest-first, for pagination tests. */
+export function buildAuditEntries(count: number): AuditEntry[] {
+  return Array.from({ length: count }, (_, i) =>
+    buildAuditEntry({
+      id: `audit-${String(count - i).padStart(3, "0")}`,
+      summary: `Change number ${count - i}`,
+    }),
+  );
 }

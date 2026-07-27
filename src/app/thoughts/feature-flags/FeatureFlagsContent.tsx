@@ -12,11 +12,11 @@ export default function FeatureFlagsContent() {
       intro={
         <>
           A feature-flag management console — per-environment targeting rules,
-          sticky percentage rollouts, a kill switch, an audit log, and a live
-          evaluation playground. The whole thing is built around one pure
-          function: a deterministic engine that, given the same flag,
-          environment, and user, always returns the same decision — and can
-          explain why.
+          sticky percentage rollouts, a kill switch, and an audit log. You
+          describe a user at the top and every flag card shows, live, what that
+          user gets and why. The whole thing is built around one pure function:
+          a deterministic engine that, given the same flag, environment, and
+          user, always returns the same decision — and can explain why.
         </>
       }
       chat={

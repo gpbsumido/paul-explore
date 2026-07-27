@@ -8,7 +8,7 @@ import FlagsLoading from "./loading";
 
 const TITLE = "Feature Flags";
 const DESCRIPTION =
-  "A feature-flag management console: per-environment targeting rules, sticky percentage rollouts, a kill switch, an audit log, and a live evaluation playground powered by a deterministic engine.";
+  "A feature-flag console where you describe a user and watch every flag decide what they see, live: per-environment targeting rules, sticky percentage rollouts, a kill switch, and an audit log, powered by a deterministic engine.";
 
 export const metadata: Metadata = {
   title: TITLE,

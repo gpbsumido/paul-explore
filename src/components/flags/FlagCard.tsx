@@ -1,13 +1,20 @@
 "use client";
 
 import { useId, useState } from "react";
-import type { Environment, Flag, RolloutWeight } from "@/types/flags";
+import type {
+  Environment,
+  EvaluationResult,
+  Flag,
+  RolloutWeight,
+} from "@/types/flags";
 import {
   statusOf,
   exposurePercent,
   hasTargeting,
   variationName,
   kindLabel,
+  valueTone,
+  describeReason,
   type StatusTone,
 } from "@/lib/flags-utils";
 import Switch from "./Switch";
@@ -18,6 +25,10 @@ interface FlagCardProps {
   pending: boolean;
   onToggle: (enabled: boolean) => void;
   onRollout: (fallthrough: RolloutWeight[]) => void;
+  /** The key of the user being tested, shown in the verdict strip. */
+  contextKey?: string;
+  /** How this flag resolved for the tested user, if a user has been evaluated. */
+  result?: EvaluationResult;
 }
 
 const TONE_CLASSES: Record<StatusTone, string> = {
@@ -27,6 +38,27 @@ const TONE_CLASSES: Record<StatusTone, string> = {
     "bg-warning-100 text-warning-700 dark:bg-warning-950/50 dark:text-warning-400",
 };
 
+const VERDICT_TONE: Record<StatusTone, { box: string; dot: string }> = {
+  off: {
+    box: "border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900/60",
+    dot: "bg-neutral-400",
+  },
+  on: {
+    box: "border-success-300 bg-success-50 dark:border-success-900 dark:bg-success-950/40",
+    dot: "bg-success-500",
+  },
+  partial: {
+    box: "border-primary-300 bg-primary-50 dark:border-primary-900 dark:bg-primary-950/40",
+    dot: "bg-primary-500",
+  },
+};
+
+/** The value a user got, as a short label: ON/OFF for booleans, else the name. */
+function verdictValueLabel(flag: Flag, result: EvaluationResult): string {
+  if (typeof result.value === "boolean") return result.value ? "ON" : "OFF";
+  return variationName(flag, result.variationKey);
+}
+
 /** A single flag's card for the active environment, with live controls. */
 export default function FlagCard({
   flag,
@@ -34,6 +66,8 @@ export default function FlagCard({
   pending,
   onToggle,
   onRollout,
+  contextKey,
+  result,
 }: FlagCardProps) {
   const config = flag.environments[environment];
   const sliderId = useId();
@@ -70,6 +104,16 @@ export default function FlagCard({
       <p className="text-[13px] leading-relaxed text-muted">
         {flag.description}
       </p>
+
+      {/* What the tested user gets, and why */}
+      {result && (
+        <VerdictStrip
+          flag={flag}
+          environment={environment}
+          contextKey={contextKey}
+          result={result}
+        />
+      )}
 
       {/* Status + tags */}
       <div className="flex flex-wrap items-center gap-1.5">
@@ -112,7 +156,7 @@ export default function FlagCard({
         <div className={config.enabled ? "" : "opacity-50"}>
           <div className="mb-1 flex items-center justify-between">
             <label htmlFor={sliderId} className="text-[12px] text-muted">
-              Fallthrough rollout
+              Rollout — share of users who get it
             </label>
             <span className="text-[12px] font-medium tabular-nums text-foreground">
               {exposure}% on
@@ -144,6 +188,45 @@ export default function FlagCard({
         </div>
       )}
     </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Verdict strip — what the tested user gets for this flag, and why.
+// ---------------------------------------------------------------------------
+
+function VerdictStrip({
+  flag,
+  environment,
+  contextKey,
+  result,
+}: {
+  flag: Flag;
+  environment: Environment;
+  contextKey?: string;
+  result: EvaluationResult;
+}) {
+  const tone = valueTone(result.value);
+  const styles = VERDICT_TONE[tone];
+  const label = verdictValueLabel(flag, result);
+  const who = contextKey?.trim() || "this user";
+
+  return (
+    <div
+      data-testid="flag-verdict"
+      className={`rounded-lg border px-3 py-2 ${styles.box}`}
+    >
+      <p className="flex items-center gap-2 text-[13px] text-foreground">
+        <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${styles.dot}`} />
+        <span>
+          <code className="text-[12px] font-medium">{who}</code> gets{" "}
+          <span className="font-semibold">{label}</span>
+        </span>
+      </p>
+      <p className="mt-1 pl-4 text-[12px] leading-relaxed text-muted">
+        {describeReason(flag, environment, result)}
+      </p>
+    </div>
   );
 }
 

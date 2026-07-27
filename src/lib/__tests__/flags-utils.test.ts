@@ -6,7 +6,7 @@ import {
   variationName,
   describeReason,
   kindLabel,
-  reasonLabel,
+  valueTone,
 } from "@/lib/flags-utils";
 import {
   buildFlag,
@@ -75,12 +75,12 @@ describe("kindLabel", () => {
   });
 });
 
-describe("reasonLabel", () => {
-  it("gives each evaluation reason a short tag", () => {
-    expect(reasonLabel("OFF")).toBe("Kill switch");
-    expect(reasonLabel("RULE_MATCH")).toBe("Targeting rule");
-    expect(reasonLabel("FALLTHROUGH")).toBe("Default rollout");
-    expect(reasonLabel("FALLTHROUGH_ROLLOUT")).toBe("Percentage rollout");
+describe("valueTone", () => {
+  it("maps a served value to a pill tone", () => {
+    expect(valueTone(true)).toBe("on");
+    expect(valueTone(false)).toBe("off");
+    expect(valueTone("variant-a")).toBe("partial");
+    expect(valueTone(3)).toBe("partial");
   });
 });
 
@@ -103,8 +103,10 @@ describe("describeReason", () => {
     ...over,
   });
 
-  it("explains the kill switch", () => {
-    expect(describeReason(flag, "development", result({ reason: "OFF" }))).toMatch(/kill switch/i);
+  it("explains that the flag is switched off here", () => {
+    expect(describeReason(flag, "development", result({ reason: "OFF" }))).toMatch(
+      /switched off/i,
+    );
   });
 
   it("names the matched rule", () => {
@@ -113,13 +115,19 @@ describe("describeReason", () => {
     ).toContain("Enterprise plans");
   });
 
-  it("shows the bucket for a percentage rollout", () => {
-    expect(
-      describeReason(
-        flag,
-        "development",
-        result({ reason: "FALLTHROUGH_ROLLOUT", bucket: 42.567 }),
-      ),
-    ).toContain("42.6");
+  it("says everyone gets the same value on a plain fallthrough", () => {
+    expect(describeReason(flag, "development", result({ reason: "FALLTHROUGH" }))).toMatch(
+      /everyone/i,
+    );
+  });
+
+  it("explains a percentage rollout as a dice roll landing on the served value", () => {
+    const explanation = describeReason(
+      flag,
+      "development",
+      result({ reason: "FALLTHROUGH_ROLLOUT", bucket: 42.567, variationKey: "on" }),
+    );
+    expect(explanation).toContain("43 of 100");
+    expect(explanation).toContain("Enabled");
   });
 });

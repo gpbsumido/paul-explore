@@ -132,7 +132,9 @@ export function useEvaluateFlags(): UseEvaluateFlagsReturn {
   });
 
   return {
-    evaluate: (input) => mutation.mutateAsync(input),
+    // mutateAsync keeps a stable identity across renders, so callers can safely
+    // list `evaluate` in an effect's dependency array to auto-run it.
+    evaluate: mutation.mutateAsync,
     results: mutation.data ?? null,
     isEvaluating: mutation.isPending,
     error: mutation.isError ? "Evaluation failed. Try again." : null,

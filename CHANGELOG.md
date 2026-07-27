@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-27 - version 1.3.0
+
+- reworked the `/flags` console so it's actually easy to understand at a glance. The old version read like an insider tool — "fallthrough rollout", "kill switch", "bucket 42.3" — and its evaluation playground was a separate island, so you couldn't see what any flag did to a real user. Now "Test a user" is the spine of the page: describe someone (or click a preset — Enterprise user / Beta tester / Anonymous visitor) and every flag card lights up with a plain-English verdict — "`user-42` gets ON, matched the rule 'Enterprise accounts get it first'" or "this user's dice roll landed at 43 of 100, so they get Disabled". Verdicts re-evaluate live through the real deterministic engine whenever you change the user, flip a switch, drag a rollout, or switch environment. Removed the standalone `EvaluationPlayground` (its explainability now lives on the cards) and de-jargoned the copy throughout.
+- paginated the audit log (6 entries per page, Prev/Next) so a long change history no longer stretches the page.
+- added the feature-flags feature to the architecture map and README (routes, API endpoints, components, hooks, lib, types).
+
 ## 2026-07-26 - version 1.2.5
 
 - brought the `/design-system` showcase back in line with what actually ships on npm. The gallery had drifted: it documented only the 10 primitives this app wraps locally, while `@paul-portfolio/react` had grown to 19 components. Added the missing nine — `Ticker`, `Card`, `Badge`, `Avatar`, `Switch`, `Spinner`, `Skeleton`, `Divider`, and `VisuallyHidden` — each with a live preview rendered straight from `@paul-portfolio/react` (the source of truth the showcase exists to reflect), a usage note, and its accessibility guarantees. Re-anchored the integrity test from this app's thin `@/components/ui` barrel to the package's own exports (minus the `cx` helper), so the next time the package adds a component and the catalog forgets it, CI goes red instead of the gallery quietly falling behind. Only `Ticker` is adopted in this app today (Work portfolio); the rest ship in the shared package and are used by the sibling Angular app and Ketsup, so their cards show an honest "Availability" note rather than a fabricated in-app link, and a new test requires every component to carry provenance (a real route or that note).

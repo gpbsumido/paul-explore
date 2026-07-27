@@ -1,10 +1,10 @@
 import type {
   Environment,
   EnvironmentConfig,
-  EvaluationReason,
   EvaluationResult,
   Flag,
   FlagKind,
+  VariationValue,
 } from "@/types/flags";
 
 // ---------------------------------------------------------------------------
@@ -63,22 +63,17 @@ export function kindLabel(kind: FlagKind): string {
   return KIND_LABELS[kind];
 }
 
-const REASON_LABELS: Record<EvaluationReason, string> = {
-  OFF: "Kill switch",
-  RULE_MATCH: "Targeting rule",
-  FALLTHROUGH: "Default rollout",
-  FALLTHROUGH_ROLLOUT: "Percentage rollout",
-};
-
-/** A short tag for why a flag resolved, shown beside the full explanation. */
-export function reasonLabel(reason: EvaluationReason): string {
-  return REASON_LABELS[reason];
+/** The pill tone for a served value: on/off for booleans, partial otherwise. */
+export function valueTone(value: VariationValue): StatusTone {
+  if (value === true) return "on";
+  if (value === false) return "off";
+  return "partial";
 }
 
 /**
- * A plain-English explanation of why a flag resolved the way it did, using the
- * matched rule's description when a rule fired. Powers the "why" line in the
- * evaluation playground.
+ * A plain-English explanation of why a flag resolved the way it did for one
+ * user. Powers the "why" line on each flag card once a test user is set. No
+ * jargon: a rollout is framed as a dice roll landing on the served value.
  */
 export function describeReason(
   flag: Flag,
@@ -87,7 +82,7 @@ export function describeReason(
 ): string {
   switch (result.reason) {
     case "OFF":
-      return "Kill switch is off — serving the default value";
+      return "This flag is switched off here, so everyone gets the default.";
     case "RULE_MATCH": {
       const config = flag.environments[environment];
       const rule =
@@ -95,14 +90,18 @@ export function describeReason(
           ? config?.rules[result.ruleIndex]
           : undefined;
       return rule
-        ? `Matched targeting rule: ${rule.description}`
-        : "Matched a targeting rule";
+        ? `Matched the rule "${rule.description}".`
+        : "Matched a targeting rule.";
     }
     case "FALLTHROUGH":
-      return "Default rollout — everyone gets the same variation";
-    case "FALLTHROUGH_ROLLOUT":
+      return "No rules matched, so everyone here gets the same value.";
+    case "FALLTHROUGH_ROLLOUT": {
+      const served = variationName(flag, result.variationKey);
       return result.bucket !== undefined
-        ? `Percentage rollout — landed in bucket ${result.bucket.toFixed(1)}`
-        : "Percentage rollout";
+        ? `No rules matched. This user's dice roll landed at ${Math.round(
+            result.bucket,
+          )} of 100, so they get ${served}.`
+        : `No rules matched, so the rollout decided: ${served}.`;
+    }
   }
 }
