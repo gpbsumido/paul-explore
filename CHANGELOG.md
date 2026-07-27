@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.8.0
+
+- added a "macOS Menu Bar" dev-thoughts write-up at `/thoughts/mac-menu-bar`, documenting the menu bar work shipped in the angular-paul desktop clone: turning the static Apple / File / Edit / View / Window / Help labels into a working, signal-driven menu system. Covers the `MenuBarService` that derives every menu from live window and dock state via `computed` signals, the real actions each item runs, and the keyboard/screen-reader access (roles, `aria-haspopup`/`aria-expanded`, Escape-to-close-with-focus-return, arrow-key nav). Registered in `THOUGHTS` and the Features category, with a matching test asserting registration, categorization, and that the page renders its sections.
+
 ## 2026-07-27 - version 1.7.0
 
 - reorganized the apps so the list leads with what matters. The shared `FEATURES` catalog is now ordered by priority — Work Portfolio, Design System, Feature Flags, Operator Dashboard, Web Vitals, Learn, then the rest — and since that one array drives the hub grid, the command palette, the node graph's Apps cluster, and the flat list, they all reflect the new order at once. Résumé now leads the flat list too, moved to the top of the graph's root sections. The three Pokémon apps (the TCG browser, TCG Pocket, and the GraphQL Pokédex) are consolidated behind a single "Pokémon" app: a new static `/pokemon` hub links out to all three, and they collapse from three near-identical cards into one in every apps surface. The individual routes stay live.

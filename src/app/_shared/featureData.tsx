@@ -306,6 +306,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#6366f1",
   },
   {
+    title: "macOS Menu Bar",
+    href: "/thoughts/mac-menu-bar",
+    preview:
+      "Turning a desktop clone's dead top-bar labels into a signal-driven macOS menu system — menus derived from window and dock state, real actions, and full keyboard a11y",
+    color: "#0a84ff",
+  },
+  {
     title: "Shared Design System",
     href: "/thoughts/design-system",
     preview:
