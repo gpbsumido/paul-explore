@@ -79,6 +79,10 @@ export const flagSchema = z.object({
   key: z.string(),
   name: z.string(),
   description: z.string(),
+  // True only for flags that gate a real, shipped feature. Demo scenarios
+  // that don't control anything live are false. Defaults false so flags from
+  // an external backend don't have to know about this field.
+  real: z.boolean().default(false),
   kind: flagKindSchema,
   tags: z.array(z.string()),
   variations: z.array(variationSchema).min(2),

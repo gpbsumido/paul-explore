@@ -43,10 +43,36 @@ function boolEnv(config: {
 function seedFlags(): Flag[] {
   return [
     {
+      key: "pocket-tcg",
+      name: "Pokémon TCG Pocket",
+      description:
+        "Gates the /tcg/pocket page for real visitors, evaluated server-side on a sticky per-visitor key. Seeded fully on. Flip the kill switch or dial the rollout down and real people lose access, stuck to their bucket.",
+      real: true,
+      kind: "boolean",
+      tags: ["tcg", "release"],
+      variations: [...BOOLEAN],
+      createdAt: "2026-07-27T12:00:00.000Z",
+      environments: {
+        development: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+        staging: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+        production: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+      },
+    },
+    {
       key: "new-checkout",
       name: "New checkout flow",
       description:
-        "Rebuilt checkout with saved cards and express pay. Rolling out gradually to watch conversion.",
+        "Rebuilt checkout with saved cards and express pay. Rolling out gradually to watch conversion. A demo flag — it doesn't gate anything live.",
+      real: false,
       kind: "boolean",
       tags: ["checkout", "revenue"],
       variations: [...BOOLEAN],
@@ -80,182 +106,15 @@ function seedFlags(): Flag[] {
       },
     },
     {
-      key: "ai-search",
-      name: "AI-powered search",
-      description:
-        "Semantic search backed by embeddings. Gated to beta users and internal accounts while we tune relevance.",
-      kind: "boolean",
-      tags: ["search", "ai", "beta"],
-      variations: [...BOOLEAN],
-      createdAt: "2026-06-10T09:30:00.000Z",
-      environments: {
-        development: boolEnv({
-          enabled: true,
-          fallthrough: [{ variation: "on", weight: 100 }],
-        }),
-        staging: boolEnv({
-          enabled: true,
-          rules: [
-            {
-              id: "ais-beta",
-              description: "Opted-in beta testers",
-              clauses: [{ attribute: "beta", op: "in", values: ["true"] }],
-              serve: "on",
-            },
-          ],
-          fallthrough: [{ variation: "off", weight: 100 }],
-        }),
-        production: boolEnv({
-          enabled: true,
-          rules: [
-            {
-              id: "ais-internal",
-              description: "Internal @acme accounts",
-              clauses: [
-                { attribute: "email", op: "endsWith", values: ["@acme.com"] },
-              ],
-              serve: "on",
-            },
-          ],
-          fallthrough: [
-            { variation: "on", weight: 10 },
-            { variation: "off", weight: 90 },
-          ],
-        }),
-      },
-    },
-    {
-      key: "checkout-experience",
-      name: "Checkout experiment (A/B/C)",
-      description:
-        "Multivariate test of three checkout layouts. Traffic is split evenly and bucketing is sticky so a user always sees the same layout.",
-      kind: "multivariate",
-      tags: ["checkout", "experiment"],
-      variations: [
-        { key: "control", name: "Control", value: "control" },
-        { key: "variant-a", name: "Variant A - single page", value: "variant-a" },
-        { key: "variant-b", name: "Variant B - wizard", value: "variant-b" },
-      ],
-      createdAt: "2026-06-22T11:00:00.000Z",
-      environments: {
-        development: {
-          enabled: true,
-          offVariation: "control",
-          rules: [],
-          fallthrough: [
-            { variation: "control", weight: 34 },
-            { variation: "variant-a", weight: 33 },
-            { variation: "variant-b", weight: 33 },
-          ],
-        },
-        staging: {
-          enabled: true,
-          offVariation: "control",
-          rules: [],
-          fallthrough: [
-            { variation: "control", weight: 34 },
-            { variation: "variant-a", weight: 33 },
-            { variation: "variant-b", weight: 33 },
-          ],
-        },
-        production: {
-          enabled: false,
-          offVariation: "control",
-          rules: [],
-          fallthrough: [
-            { variation: "control", weight: 100 },
-            { variation: "variant-a", weight: 0 },
-            { variation: "variant-b", weight: 0 },
-          ],
-        },
-      },
-    },
-    {
-      key: "priority-support",
-      name: "Priority support queue",
-      description:
-        "Routes paid plans to the fast support queue. A pure targeting flag - no percentage rollout.",
-      kind: "boolean",
-      tags: ["support", "entitlement"],
-      variations: [...BOOLEAN],
-      createdAt: "2026-03-14T16:45:00.000Z",
-      environments: {
-        development: boolEnv({
-          enabled: true,
-          rules: [
-            {
-              id: "ps-paid",
-              description: "Pro and enterprise plans",
-              clauses: [
-                { attribute: "plan", op: "in", values: ["pro", "enterprise"] },
-              ],
-              serve: "on",
-            },
-          ],
-          fallthrough: [{ variation: "off", weight: 100 }],
-        }),
-        staging: boolEnv({
-          enabled: true,
-          rules: [
-            {
-              id: "ps-paid",
-              description: "Pro and enterprise plans",
-              clauses: [
-                { attribute: "plan", op: "in", values: ["pro", "enterprise"] },
-              ],
-              serve: "on",
-            },
-          ],
-          fallthrough: [{ variation: "off", weight: 100 }],
-        }),
-        production: boolEnv({
-          enabled: true,
-          rules: [
-            {
-              id: "ps-paid",
-              description: "Pro and enterprise plans",
-              clauses: [
-                { attribute: "plan", op: "in", values: ["pro", "enterprise"] },
-              ],
-              serve: "on",
-            },
-          ],
-          fallthrough: [{ variation: "off", weight: 100 }],
-        }),
-      },
-    },
-    {
       key: "dark-mode",
       name: "Dark mode",
-      description: "Fully launched. Kept as a flag so it can be killed instantly if a regression appears.",
+      description:
+        "Fully launched. Kept as a flag so it can be killed instantly if a regression appears. A demo flag — it doesn't gate anything live.",
+      real: false,
       kind: "boolean",
       tags: ["ui"],
       variations: [...BOOLEAN],
       createdAt: "2026-01-08T10:00:00.000Z",
-      environments: {
-        development: boolEnv({
-          enabled: true,
-          fallthrough: [{ variation: "on", weight: 100 }],
-        }),
-        staging: boolEnv({
-          enabled: true,
-          fallthrough: [{ variation: "on", weight: 100 }],
-        }),
-        production: boolEnv({
-          enabled: true,
-          fallthrough: [{ variation: "on", weight: 100 }],
-        }),
-      },
-    },
-    {
-      key: "pocket-tcg",
-      name: "Pokémon TCG Pocket",
-      description:
-        "Gates the /tcg/pocket page for real visitors, evaluated server-side on a sticky per-visitor key. Seeded fully on. Flip the kill switch or dial the rollout down and real people lose access, stuck to their bucket.",
-      kind: "boolean",
-      tags: ["tcg", "release"],
-      variations: [...BOOLEAN],
-      createdAt: "2026-07-27T12:00:00.000Z",
       environments: {
         development: boolEnv({
           enabled: true,
@@ -279,6 +138,15 @@ function seedAudit(): AuditEntry[] {
   return [
     {
       id: "audit-003",
+      flagKey: "pocket-tcg",
+      environment: "production",
+      action: "enabled",
+      summary: "Enabled in production for real visitors",
+      actor: "paul@paul-explore.dev",
+      timestamp: "2026-07-27T12:05:00.000Z",
+    },
+    {
+      id: "audit-002",
       flagKey: "new-checkout",
       environment: "production",
       action: "rollout-changed",
@@ -287,22 +155,13 @@ function seedAudit(): AuditEntry[] {
       timestamp: "2026-07-20T18:12:00.000Z",
     },
     {
-      id: "audit-002",
-      flagKey: "ai-search",
+      id: "audit-001",
+      flagKey: "dark-mode",
       environment: "production",
       action: "enabled",
       summary: "Enabled in production",
       actor: "paul@paul-explore.dev",
-      timestamp: "2026-07-18T14:05:00.000Z",
-    },
-    {
-      id: "audit-001",
-      flagKey: "checkout-experience",
-      environment: "production",
-      action: "disabled",
-      summary: "Disabled in production pending staging results",
-      actor: "paul@paul-explore.dev",
-      timestamp: "2026-07-15T09:41:00.000Z",
+      timestamp: "2026-01-08T10:05:00.000Z",
     },
   ];
 }

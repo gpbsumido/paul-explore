@@ -9,7 +9,7 @@ const GROUPS = [
   { label: "Productivity", ids: ["calendar"] },
   { label: "Social", ids: ["ketsup"] },
   { label: "Fantasy & NBA", ids: ["fantasy-nba"] },
-  { label: "Pok\u00e9mon", ids: ["tcg", "pocket", "graphql"] },
+  { label: "Pok\u00e9mon", ids: ["pokemon"] },
 ];
 
 const featureById = new Map(FEATURES.map((f) => [f.id, f]));
