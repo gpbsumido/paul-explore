@@ -1,6 +1,10 @@
 # Changelog
 
-## 2026-07-25 - version 1.1.0
+## 2026-07-27 - version 1.2.0
+
+- rebuilt the landing page and hub as v4: a full-screen slot machine of three dependent reels (category, option, write-up) over the same ambient backdrop. Everything on the reels is derived by `buildSlots()` from the same `FEATURES`/`THOUGHTS` data the v3 graph reads, including the feature-to-write-up bridge rule, so the machine and the graph can never drift apart. The Spin button picks a random valid combo and settles the reels left to right through decelerating timeout steps (reduced-motion jumps straight to the target), and a result bar underneath states the landed combination with plain Open/Read links.
+- standalone and deprecated write-ups stay reachable: every write-up category from the /thoughts index is its own reel-1 entry, deprecated notes get a trailing Deprecated category with an amber tag, and options with no write-up show a friendly reel-3 empty state linking to /thoughts. Under the chrome each reel is a proper listbox — focusable, `aria-activedescendant`, arrow/Home/End/Enter keyboard support, and a polite live region announcing each landed combo.
+- v4 is now the default version (v3 keeps working at `/?version=v3` and picks up the older-version banner), with a `/thoughts/v4-redesign` write-up covering the design, a dev-only `/dev/v4` hub preview, and tests over the slot data model.
 
 - release to `main`, rolling up the recent develop work: the résumé page and its entry points (1.0.11), the shared `@paul-portfolio` `Ticker` migration (1.0.10), the v3 graph small/zoomed-viewport and interaction fixes (1.0.9), and the landing look-and-feel rollout across the app (1.0.8). See the entries below for details.
 

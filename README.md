@@ -14,7 +14,7 @@ Every feature has a `/thoughts` write-up covering the architecture decisions beh
 
 Public (no login):
 
-- [Landing](https://paulsumido.com/) — interactive node-graph of the whole site
+- [Landing](https://paulsumido.com/) — a three-reel slot machine over every feature and write-up (the v3 node-graph is still at `/?version=v3`)
 - [Fleet Operator](https://paulsumido.com/operator) — real-time fleet monitoring dashboard
 - [Learn](https://paulsumido.com/learn) — 14 interactive algorithm & frontend-pattern deep-dives
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
