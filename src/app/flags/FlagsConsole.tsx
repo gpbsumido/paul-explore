@@ -2,12 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { m } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import type { Environment, EvaluationContext } from "@/types/flags";
 import { fadeInUp, spring } from "@/lib/animations";
+import { queryKeys } from "@/lib/queryKeys";
+import { msUntilNextReset, formatResetCountdown } from "@/lib/flags-reset";
 import { useFlags, useFlagAudit } from "@/hooks/useFlags";
 import { useUpdateFlag, useEvaluateFlags } from "@/hooks/useFlagMutations";
 import EnvironmentSwitcher from "@/components/flags/EnvironmentSwitcher";
 import FlagCard from "@/components/flags/FlagCard";
+import FlagsInfoStrip from "@/components/flags/FlagsInfoStrip";
 import TestUserBar from "@/components/flags/TestUserBar";
 import AuditLog from "@/components/flags/AuditLog";
 
@@ -31,6 +35,31 @@ export default function FlagsConsole() {
 
   const [environment, setEnvironment] = useState<Environment>("production");
   const [context, setContext] = useState<EvaluationContext>(DEFAULT_CONTEXT);
+
+  // Writes go through the authed BFF, so a signed-out visitor can view and
+  // evaluate everything but not change flags. Detect the session the same way
+  // the header does, so the controls lock with a clear sign-in affordance.
+  const meQuery = useQuery({
+    queryKey: queryKeys.me(),
+    queryFn: (): Promise<{ sub: string | null }> =>
+      fetch("/api/me").then((r) => {
+        if (!r.ok) throw new Error("Failed to load user");
+        return r.json();
+      }),
+    staleTime: 5 * 60_000,
+  });
+  const isLoggedIn = meQuery.data?.sub != null;
+
+  // A live "resets in ~2h 14m" hint. Computed on the client only (the boundary
+  // depends on the current time) and refreshed each minute.
+  const [resetLabel, setResetLabel] = useState("");
+  useEffect(() => {
+    const tick = () =>
+      setResetLabel(formatResetCountdown(msUntilNextReset(new Date())));
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   // Re-evaluate whenever the tested user, the environment, or any flag's config
   // changes, so the verdict on each card is always current. The signature keeps
@@ -72,9 +101,14 @@ export default function FlagsConsole() {
         <p className="mt-1 text-sm text-muted">
           A flag decides what each user sees. Describe a user below and watch
           every flag make its call — live. Flip a switch or drag a rollout and
-          the calls update instantly. Demo data, real deterministic engine.
+          the calls update instantly.
         </p>
       </div>
+
+      <FlagsInfoStrip
+        isLoggedIn={isLoggedIn}
+        resetLabel={resetLabel || "a few hours"}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -102,6 +136,7 @@ export default function FlagsConsole() {
               flag={flag}
               environment={environment}
               pending={pendingKey === flag.key}
+              canEdit={isLoggedIn}
               contextKey={context.key}
               result={resultByKey.get(flag.key)}
               onToggle={(enabled) =>
