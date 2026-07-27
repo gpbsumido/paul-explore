@@ -247,6 +247,30 @@ function seedFlags(): Flag[] {
         }),
       },
     },
+    {
+      key: "pocket-tcg",
+      name: "Pokémon TCG Pocket",
+      description:
+        "Gates the /tcg/pocket page for real visitors, evaluated server-side on a sticky per-visitor key. Seeded fully on. Flip the kill switch or dial the rollout down and real people lose access, stuck to their bucket.",
+      kind: "boolean",
+      tags: ["tcg", "release"],
+      variations: [...BOOLEAN],
+      createdAt: "2026-07-27T12:00:00.000Z",
+      environments: {
+        development: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+        staging: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+        production: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+      },
+    },
   ];
 }
 

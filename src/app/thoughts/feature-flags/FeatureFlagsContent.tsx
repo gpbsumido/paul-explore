@@ -414,6 +414,43 @@ export default function FeatureFlagsContent() {
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">Gating a real feature</h2>
+        <p className="text-muted">
+          A console that only toggles hypothetical flags is still a toy. The last
+          step was to put a real, visible page behind one: the{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            /tcg/pocket
+          </code>{" "}
+          Pokémon TCG Pocket experience is now gated by a{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            pocket-tcg
+          </code>{" "}
+          flag, evaluated for the actual visitor.
+        </p>
+        <p className="mt-3 text-muted">
+          For a rollout to be <em>sticky</em> it needs a stable per-visitor key,
+          so middleware sets a first-party{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            visitor_id
+          </code>{" "}
+          cookie once — anonymous, a year long, forwarded on the same request it
+          is minted on so the first render already sees it. A server component
+          reads that key, runs the same pure engine against the persisted flag,
+          and renders the on or off branch directly. Because the decision happens
+          on the server, there is no flash of the wrong state — the visitor never
+          sees the page appear and then vanish.
+        </p>
+        <p className="mt-3 text-muted">
+          It fails open: if the flag exists nowhere, the feature stays on, so a
+          config gap can never hide something that otherwise works. Seeded fully
+          on, nothing is hidden today — but flip the kill switch or dial the
+          rollout down in the console and real visitors lose access, each stuck
+          to their own bucket. That is the whole point: the console now
+          demonstrably changes what a real person sees.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">The bright line</h2>
         <p className="mt-3 text-muted">
           Throughout, one rule held: no flag <em>decision</em> lives in a

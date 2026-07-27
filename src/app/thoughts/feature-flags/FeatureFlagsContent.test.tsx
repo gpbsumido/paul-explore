@@ -32,4 +32,13 @@ describe("FeatureFlagsContent", () => {
       0,
     );
   });
+
+  it("documents gating a real feature behind a visitor-keyed flag", () => {
+    render(<FeatureFlagsContent />);
+    expect(
+      screen.getByRole("heading", { name: /gating a real feature/i }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/pocket-tcg/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/visitor_id/i).length).toBeGreaterThan(0);
+  });
 });
