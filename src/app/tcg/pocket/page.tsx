@@ -1,8 +1,11 @@
 import TCGdex from "@tcgdex/sdk";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import PageHeader from "@/components/PageHeader";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import { loadPocketGate } from "@/lib/flags-gate";
+import { VISITOR_COOKIE } from "@/lib/visitor";
 
 const TITLE = "Pokémon TCG Pocket";
 const DESCRIPTION =
@@ -28,8 +31,9 @@ export const metadata: Metadata = {
 
 const tcgdex = new TCGdex("en");
 
-// Pocket sets are updated infrequently — rebuild at most once a day
-export const revalidate = 86400;
+// Gating reads the per-visitor cookie, so this route renders dynamically rather
+// than as a cached static page — the on/off decision is made fresh per visitor.
+export const dynamic = "force-dynamic";
 
 type SetResume = {
   id: string;
@@ -56,6 +60,13 @@ function groupSets(sets: SetResume[]): [string, SetResume[]][] {
 }
 
 export default async function PocketPage() {
+  const visitorKey =
+    (await cookies()).get(VISITOR_COOKIE)?.value ?? "anonymous";
+  const gate = await loadPocketGate(visitorKey);
+  if (!gate.enabled) {
+    return <PocketNotRolledOut />;
+  }
+
   const serie = await tcgdex.serie.get("tcgp");
   if (!serie) {
     return (
@@ -222,6 +233,49 @@ export default async function PocketPage() {
           );
         })}
       </div>
+      </main>
+    </div>
+  );
+}
+
+/**
+ * Shown when the pocket-tcg flag resolves off for this visitor. Honest about
+ * why: the page is behind a real feature flag and this visitor's sticky bucket
+ * currently falls outside the rollout.
+ */
+function PocketNotRolledOut() {
+  return (
+    <div className="min-h-dvh bg-background font-sans">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "TCG Pocket" },
+        ]}
+      />
+      <main className="mx-auto flex min-h-[60dvh] max-w-xl flex-col items-center justify-center gap-4 px-4 text-center">
+        <span className="rounded-full bg-surface-raised px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted">
+          Feature flag
+        </span>
+        <h1 className="text-2xl font-bold text-foreground">
+          Pokémon TCG Pocket isn&apos;t rolled out to you yet
+        </h1>
+        <p className="text-sm leading-relaxed text-muted">
+          This page sits behind a real feature flag, evaluated for you
+          server-side on a stable, anonymous visitor key. Your bucket currently
+          falls outside the rollout, so you see this instead — and it stays
+          consistent every time you visit rather than flickering on and off.
+        </p>
+        <p className="text-sm leading-relaxed text-muted">
+          You can watch the flag that decides this, and change its rollout, in
+          the{" "}
+          <Link
+            href="/flags"
+            className="font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-400"
+          >
+            feature flags console
+          </Link>
+          .
+        </p>
       </main>
     </div>
   );

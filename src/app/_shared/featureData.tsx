@@ -14,6 +14,32 @@ import type { FeatureItem, ThoughtItem } from "@/types/hub";
 // graph's feature cluster, and the signed-in hub grid.
 export const FEATURES: FeatureItem[] = [
   {
+    id: "work-portfolio",
+    title: "Work Portfolio",
+    description:
+      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
+    href: "/work-portfolio",
+    color: "#60a5fa",
+  },
+  {
+    id: "design-system",
+    title: "Design System",
+    description:
+      "A live, Storybook-style gallery of the shared @paul-portfolio design system — every primitive rendered interactively, a props playground, design tokens, and links to where each ships.",
+    href: "/design-system",
+    color: "#06b6d4",
+    thoughtsHref: "/thoughts/design-system-showcase",
+  },
+  {
+    id: "flags",
+    title: "Feature Flags",
+    description:
+      "A flag-management console — per-environment targeting rules, sticky percentage rollouts, a kill switch, an audit log, and a live evaluation playground on a deterministic engine.",
+    href: "/flags",
+    color: "#fb923c",
+    thoughtsHref: "/thoughts/feature-flags",
+  },
+  {
     id: "operator",
     title: "Operator Dashboard",
     description:
@@ -23,12 +49,13 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/operator-dashboard",
   },
   {
-    id: "work-portfolio",
-    title: "Work Portfolio",
+    id: "vitals",
+    title: "Web Vitals",
     description:
-      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
-    href: "/work-portfolio",
-    color: "#60a5fa",
+      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
+    href: "/vitals",
+    color: "#22c55e",
+    thoughtsHref: "/thoughts/vitals",
   },
   {
     id: "learn",
@@ -39,6 +66,15 @@ export const FEATURES: FeatureItem[] = [
     color: "#34d399",
   },
   {
+    id: "craft",
+    title: "Craft",
+    description:
+      "The traits of a lead front-end developer — performance, system design, working with libraries, accessibility, testing, and more — each one expandable to the real work in this project that proves it.",
+    href: "/craft",
+    color: "#c084fc",
+    thoughtsHref: "/thoughts/craft",
+  },
+  {
     id: "fantasy-nba",
     title: "Fantasy NBA",
     description:
@@ -46,6 +82,15 @@ export const FEATURES: FeatureItem[] = [
     href: "/fantasy/nba",
     color: "#f43f5e",
     thoughtsHref: "/thoughts/playoffs",
+  },
+  {
+    id: "pokemon",
+    title: "Pokémon",
+    description:
+      "Three Pokémon apps behind one door: the TCG card browser, the TCG Pocket expansions, and a GraphQL Pokédex on the PokeAPI endpoint.",
+    href: "/pokemon",
+    color: "#ef4444",
+    thoughtsHref: "/thoughts/tcg",
   },
   {
     id: "calendar",
@@ -72,41 +117,6 @@ export const FEATURES: FeatureItem[] = [
     href: "https://ketsup.paulsumido.com",
     color: "#f9a8d4",
     thoughtsHref: "/thoughts/ketsup",
-  },
-  {
-    id: "vitals",
-    title: "Web Vitals",
-    description:
-      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
-    href: "/vitals",
-    color: "#22c55e",
-    thoughtsHref: "/thoughts/vitals",
-  },
-  {
-    id: "graphql",
-    title: "GraphQL Pokédex",
-    description:
-      "Pokémon browser on the PokeAPI Hasura endpoint. Plain fetch over Apollo, typed queries, streaming SSR, and a live query inspector.",
-    href: "/graphql",
-    color: "#14b8a6",
-    thoughtsHref: "/thoughts/graphql",
-  },
-  {
-    id: "tcg",
-    title: "Pokémon TCG",
-    description:
-      "Card browser with infinite scroll, URL-synced filters, per-set grids, and deep card detail pages — built on the TCGdex SDK.",
-    href: "/tcg/pokemon",
-    color: "#ef4444",
-    thoughtsHref: "/thoughts/tcg",
-  },
-  {
-    id: "pocket",
-    title: "TCG Pocket",
-    description:
-      "All Pokémon TCG Pocket expansions — sets, packs, and individual card pages with full metadata and ISR caching.",
-    href: "/tcg/pocket",
-    color: "#6366f1",
   },
 ];
 
@@ -240,6 +250,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#06b6d4",
   },
   {
+    title: "Tiered Testing Strategy",
+    href: "/thoughts/test-tiers",
+    preview:
+      "Why you shouldn't run every test on every commit: split by cost — fast unit tests per push, integration on merge, e2e nightly, flaky ones quarantined",
+    color: "#818cf8",
+  },
+  {
     title: "Operator Dashboard",
     href: "/thoughts/operator-dashboard",
     preview:
@@ -294,6 +311,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "SSE streaming, state machines, tool call UI, approval gates, and streaming markdown — the patterns behind modern agent interfaces",
     color: "#6366f1",
+  },
+  {
+    title: "macOS Menu Bar",
+    href: "/thoughts/mac-menu-bar",
+    preview:
+      "Turning a desktop clone's dead top-bar labels into a signal-driven macOS menu system — menus derived from window and dock state, real actions, and full keyboard a11y",
+    color: "#0a84ff",
   },
   {
     title: "Shared Design System",
@@ -356,6 +380,41 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Rebuilding 24 features from 11 old jobs as self-contained demos: reconstruction over emulation, anonymizing client work, the no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs",
     color: "#60a5fa",
+  },
+  {
+    title: "Motion Components",
+    href: "/thoughts/motion-components",
+    preview:
+      "TiltCard, GradientBackground, and Spotlight for the shared design system — pointer-driven motion built static-first, with reduced motion as the default and one shared usePrefersReducedMotion hook",
+    color: "#a78bfa",
+  },
+  {
+    title: "Design System Showcase",
+    href: "/thoughts/design-system-showcase",
+    preview:
+      "Building a live, in-app gallery for the shared design system: dogfooding the primitives, a data-driven catalog with an integrity test, an interactive props playground, and an axe-checked accessibility contract",
+    color: "#06b6d4",
+  },
+  {
+    title: "Craft",
+    href: "/thoughts/craft",
+    preview:
+      "A page that reframes the whole site as evidence: ten lead front-end traits, each expandable to the real work that proves it, with a data-integrity test that fails on a dead evidence link",
+    color: "#c084fc",
+  },
+  {
+    title: "Command Palette",
+    href: "/thoughts/command-palette",
+    preview:
+      "The site-wide ⌘K palette: one globally mounted instance opened from a hotkey or a window event, a registry reused from the hub's FEATURES and THOUGHTS, a hand-rolled fuzzy matcher, and an honest ARIA combobox",
+    color: "#818cf8",
+  },
+  {
+    title: "Feature Flags",
+    href: "/thoughts/feature-flags",
+    preview:
+      "A flag console built engine-first: deterministic FNV-1a bucketing with an avalanche step, sticky and monotonic rollouts, first-match targeting, an explainable evaluation reason, and why the pure core is the whole design",
+    color: "#fb923c",
   },
 ].reverse();
 
@@ -455,6 +514,41 @@ export function PocketPreview() {
           <div className="h-5 w-5 shrink-0 rounded-sm bg-white/20" />
           <span className="truncate text-[9px] font-semibold text-white/80">
             {exp.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// The consolidated Pokémon hub card. Reads as the suite it now stands for: a
+// row of TCG cards up top and a couple of Pokédex rows below, so one card hints
+// at all three apps behind it.
+export function PokemonPreview() {
+  return (
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-4 gap-1">
+        {TCG_CARDS.slice(0, 4).map((card) => (
+          <div
+            key={card.name}
+            className={`rounded border border-black/10 dark:border-white/10 bg-gradient-to-br ${card.gradient}`}
+            style={{ aspectRatio: "2.5/3.5" }}
+          />
+        ))}
+      </div>
+      {GRAPHQL_POKEMON.slice(0, 2).map((p) => (
+        <div
+          key={p.name}
+          className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2 py-1"
+        >
+          <div
+            className={`h-3.5 w-3.5 shrink-0 rounded-full bg-gradient-to-br ${p.gradient}`}
+          />
+          <span className="flex-1 truncate text-[9px] text-black/70 dark:text-white/70">
+            {p.name}
+          </span>
+          <span className="rounded bg-black/10 dark:bg-white/10 px-1 py-px text-[7px] text-black/50 dark:text-white/50">
+            {p.types[0]}
           </span>
         </div>
       ))}
@@ -765,6 +859,44 @@ export function OperatorPreview() {
   );
 }
 
+// Mini flag list for the hub card: a status dot, a flag name, and either a
+// rollout bar or an "on" pill, echoing the real console.
+export const FLAGS_PREVIEW = [
+  { name: "pocket-tcg", tone: "#fb923c", pct: 100 },
+  { name: "new-checkout", tone: "#22c55e", pct: 25 },
+  { name: "dark-mode", tone: "#22c55e", pct: 100 },
+];
+
+export function FlagsPreview() {
+  return (
+    <div className="space-y-1.5">
+      {FLAGS_PREVIEW.map((f) => (
+        <div
+          key={f.name}
+          className="flex items-center gap-2 rounded-lg border border-black/10 bg-black/5 px-2.5 py-1.5 dark:border-white/10 dark:bg-white/5"
+        >
+          <div
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: f.tone }}
+          />
+          <span className="flex-1 truncate font-mono text-[9px] text-black/70 dark:text-white/70">
+            {f.name}
+          </span>
+          <div className="h-1.5 w-8 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${f.pct}%`, backgroundColor: f.tone }}
+            />
+          </div>
+          <span className="shrink-0 tabular-nums text-[8px] text-black/40 dark:text-white/40">
+            {f.pct}%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export const LEARN_PREVIEW_ITEMS = [
   { num: "01", title: "Two Pointers" },
   { num: "05", title: "Binary Search" },
@@ -863,6 +995,86 @@ export function WorkPortfolioPreview() {
   );
 }
 
+// Mini mockup for the design-system card: a swatch ramp over two pill "buttons",
+// reading like a tiny component gallery.
+export const DS_SWATCHES = [
+  "#a5f3fc",
+  "#5eead4",
+  "#818cf8",
+  "#f9a8d4",
+  "#fde68a",
+] as const;
+
+export function DesignSystemPreview() {
+  return (
+    <div className="space-y-2">
+      <div className="flex overflow-hidden rounded-md border border-black/10 dark:border-white/10">
+        {DS_SWATCHES.map((c) => (
+          <div key={c} className="h-4 flex-1" style={{ backgroundColor: c }} />
+        ))}
+      </div>
+      <div className="flex gap-1.5">
+        <div className="rounded-md bg-black/70 px-2.5 py-1 text-[8px] font-semibold text-white dark:bg-white/80 dark:text-black">
+          Primary
+        </div>
+        <div className="rounded-md border border-black/20 px-2.5 py-1 text-[8px] font-semibold text-black/60 dark:border-white/20 dark:text-white/60">
+          Outline
+        </div>
+      </div>
+      <div className="flex gap-1.5">
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+          tokens
+        </span>
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+          a11y
+        </span>
+        <span className="rounded bg-black/10 px-1.5 py-0.5 text-[7px] text-black/50 dark:bg-white/10 dark:text-white/50">
+          live
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// A mini skills-matrix: a few trait rows, each a coloured dot, a label bar, and
+// a short filled meter, so the card reads like a competency chart at a glance.
+export const CRAFT_ROWS = [
+  { label: "Performance", color: "#f59e0b", pct: 92 },
+  { label: "System Design", color: "#a78bfa", pct: 88 },
+  { label: "Libraries", color: "#38bdf8", pct: 84 },
+  { label: "Accessibility", color: "#34d399", pct: 90 },
+];
+
+export function CraftPreview() {
+  return (
+    <div className="space-y-1.5">
+      {CRAFT_ROWS.map((r) => (
+        <div
+          key={r.label}
+          className="flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 px-2.5 py-1.5"
+        >
+          <div
+            className="h-1.5 w-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: r.color }}
+          />
+          <span className="w-14 shrink-0 truncate text-[8px] font-semibold text-black/60 dark:text-white/60">
+            {r.label}
+          </span>
+          <div
+            className="flex-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/10"
+            style={{ height: 3 }}
+          >
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${r.pct}%`, backgroundColor: r.color }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Maps & tokens
 // ---------------------------------------------------------------------------
@@ -870,31 +1082,33 @@ export function WorkPortfolioPreview() {
 // Maps feature.id to its design-token CSS variable name.
 export const FEATURE_TOKEN: Record<string, string> = {
   "fantasy-nba": "--color-feature-nba",
-  tcg: "--color-feature-tcg",
-  pocket: "--color-feature-particles",
+  pokemon: "--color-feature-tcg",
   calendar: "--color-feature-calendar",
-  graphql: "--color-feature-graphql",
   vitals: "--color-feature-vitals",
   particles: "--color-feature-particles",
   ketsup: "--color-feature-ketsup",
   operator: "--color-feature-operator",
+  flags: "--color-feature-flags",
   learn: "--color-feature-learn",
   "work-portfolio": "--color-feature-work-portfolio",
+  "design-system": "--color-feature-design-system",
+  craft: "--color-feature-craft",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   "fantasy-nba": PlayoffsPreview,
-  tcg: TcgPreview,
-  pocket: PocketPreview,
+  pokemon: PokemonPreview,
   calendar: CalendarPreview,
-  graphql: GraphQLPreview,
   vitals: VitalsPreview,
   particles: ParticlesPreview,
   ketsup: KetsupPreview,
   operator: OperatorPreview,
+  flags: FlagsPreview,
   learn: LearnPreview,
   "work-portfolio": WorkPortfolioPreview,
+  "design-system": DesignSystemPreview,
+  craft: CraftPreview,
 };
 
 // ---------------------------------------------------------------------------

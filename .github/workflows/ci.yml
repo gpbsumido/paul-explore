@@ -5,6 +5,20 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  # Nightly run for the heavy end-to-end tier. 07:00 UTC daily.
+  schedule:
+    - cron: "0 7 * * *"
+  # Manual trigger so the full E2E suite can be run on demand as a pre-release gate.
+  workflow_dispatch:
+
+# Tiered testing strategy (see /thoughts/test-tiers):
+#   quality      - fast tier: lint, typecheck, dead-code, unit tests. Every push/PR.
+#   e2e-smoke    - thin smoke subset (@smoke) in a real browser. Every push/PR.
+#   integration  - component/route + data-layer Vitest tests. Every push/PR + nightly.
+#   e2e-full     - heavy tier: full public + authenticated E2E + a11y. Nightly / on demand.
+# Cheap checks gate the heavier jobs via needs: quality, so we never spend
+# integration or E2E minutes on a change that doesn't lint, typecheck, or pass
+# the unit suite.
 
 jobs:
   quality:
@@ -40,10 +54,91 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-  e2e-accessibility:
-    name: E2E & Accessibility (public routes)
+  integration:
+    name: Integration tests (every push/PR + nightly)
     runs-on: ubuntu-latest
     needs: quality
+    # Component + data-layer Vitest tests (react-query + MSW). The textbook tier
+    # gates these on merge, but here they run in milliseconds, so we deliberately
+    # keep them on every push and PR (no event filter) as well as nightly — the
+    # per-PR cost is trivial and it's better to catch a wiring bug on the PR than
+    # after it lands. See the note in /thoughts/test-tiers.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run integration tests
+        run: pnpm test:integration
+
+  e2e-smoke:
+    name: E2E smoke (public, every push/PR)
+    runs-on: ubuntu-latest
+    needs: quality
+    # Thin smoke subset on every push and PR. The full suite runs nightly, so
+    # skip this job on the scheduled/manual runs to avoid doing the smoke flows twice.
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+
+    env:
+      AUTH0_SECRET: ${{ secrets.AUTH0_SECRET || 'ci-placeholder-secret-32-characters!!' }}
+      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}
+      AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID || 'ci-placeholder-client-id' }}
+      AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET || 'ci-placeholder-client-secret' }}
+      AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE || 'https://placeholder-api' }}
+      APP_BASE_URL: "http://localhost:3000"
+      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers (Chromium only)
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run @smoke e2e tests
+        env:
+          # Public-only run — globalSetup skips the Auth0 login without credentials.
+          E2E_TEST_EMAIL: ""
+          E2E_TEST_PASSWORD: ""
+        # --grep @smoke keeps this to the thin subset; --grep-invert @flaky keeps
+        # quarantined tests off the blocking path.
+        run: pnpm exec playwright test --project=public --grep @smoke --grep-invert @flaky
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-smoke
+          path: playwright-report/
+          retention-days: 7
+
+  e2e-full:
+    name: E2E & Accessibility full (nightly / pre-release)
+    runs-on: ubuntu-latest
+    needs: quality
+    # Heavy tier: the full public + authenticated flows. Runs nightly on a
+    # schedule or on demand before a release, never on individual commits.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
 
     # Real secrets (from repo Settings → Secrets) are used when available.
     # Placeholder fallbacks let the server boot in forks or repos where secrets
@@ -84,11 +179,19 @@ jobs:
           # the Auth0 login — public tests don't need authentication.
           E2E_TEST_EMAIL: ""
           E2E_TEST_PASSWORD: ""
-        run: pnpm exec playwright test --project=public
+        # --grep-invert @flaky keeps quarantined tests off the blocking path;
+        # they get their own non-blocking step below.
+        run: pnpm exec playwright test --project=public --grep-invert @flaky
 
       - name: Run authenticated e2e tests
         if: env.E2E_TEST_EMAIL != ''
-        run: pnpm exec playwright test --project=authenticated
+        run: pnpm exec playwright test --project=authenticated --grep-invert @flaky
+
+      - name: Run quarantined @flaky tests (non-blocking)
+        # Quarantined tests still get exercised nightly, but a failure here never
+        # fails the build — flakes are fixed on their own clock, not by blocking merges.
+        continue-on-error: true
+        run: pnpm exec playwright test --grep @flaky
 
       - name: Upload Playwright report & auth debug screenshots
         if: always()

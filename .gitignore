@@ -192,6 +192,9 @@ dist
 /plans
 /context
 
+# Claude Code harness
+/.harness
+
 # Playwright
 /test-results/
 /playwright-report/
