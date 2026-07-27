@@ -4,9 +4,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import type {
   Environment,
+  EvaluateBody,
   EvaluationResult,
   Flag,
   RolloutWeight,
+  UpdateFlagBody,
 } from "@/types/flags";
 import { queryKeys } from "@/lib/queryKeys";
 import { flagSchema, evaluationResultSchema } from "@/lib/flags-schemas";
@@ -62,10 +64,11 @@ export function useUpdateFlag(): UseUpdateFlagReturn {
   const mutation = useMutation({
     mutationFn: async (input: UpdateInput): Promise<Flag> => {
       const { flagKey, environment, enabled, fallthrough } = input;
+      const body: UpdateFlagBody = { environment, enabled, fallthrough };
       const res = await fetch(`/api/flags/${flagKey}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ environment, enabled, fallthrough }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error("Failed to update flag");
       const json = await res.json();
@@ -102,13 +105,8 @@ export function useUpdateFlag(): UseUpdateFlagReturn {
 // Evaluation playground
 // ---------------------------------------------------------------------------
 
-type EvaluateInput = {
-  environment: Environment;
-  context: { key: string; attributes: Record<string, string | number | boolean> };
-};
-
 export interface UseEvaluateFlagsReturn {
-  evaluate: (input: EvaluateInput) => Promise<EvaluationResult[]>;
+  evaluate: (input: EvaluateBody) => Promise<EvaluationResult[]>;
   results: EvaluationResult[] | null;
   isEvaluating: boolean;
   error: string | null;
@@ -121,7 +119,7 @@ export interface UseEvaluateFlagsReturn {
  */
 export function useEvaluateFlags(): UseEvaluateFlagsReturn {
   const mutation = useMutation({
-    mutationFn: async (input: EvaluateInput): Promise<EvaluationResult[]> => {
+    mutationFn: async (input: EvaluateBody): Promise<EvaluationResult[]> => {
       const res = await fetch("/api/flags/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -5,6 +5,8 @@ import {
   hasTargeting,
   variationName,
   describeReason,
+  kindLabel,
+  reasonLabel,
 } from "@/lib/flags-utils";
 import {
   buildFlag,
@@ -63,6 +65,22 @@ describe("variationName", () => {
     const flag = buildFlag();
     expect(variationName(flag, "on")).toBe("Enabled");
     expect(variationName(flag, "missing")).toBe("missing");
+  });
+});
+
+describe("kindLabel", () => {
+  it("gives each flag kind a human label", () => {
+    expect(kindLabel("boolean")).toBe("Boolean");
+    expect(kindLabel("multivariate")).toBe("Multivariate");
+  });
+});
+
+describe("reasonLabel", () => {
+  it("gives each evaluation reason a short tag", () => {
+    expect(reasonLabel("OFF")).toBe("Kill switch");
+    expect(reasonLabel("RULE_MATCH")).toBe("Targeting rule");
+    expect(reasonLabel("FALLTHROUGH")).toBe("Default rollout");
+    expect(reasonLabel("FALLTHROUGH_ROLLOUT")).toBe("Percentage rollout");
   });
 });
 

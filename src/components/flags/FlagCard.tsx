@@ -7,6 +7,7 @@ import {
   exposurePercent,
   hasTargeting,
   variationName,
+  kindLabel,
   type StatusTone,
 } from "@/lib/flags-utils";
 import Switch from "./Switch";
@@ -51,7 +52,12 @@ export default function FlagCard({
           <h3 className="truncate text-[15px] font-semibold text-foreground">
             {flag.name}
           </h3>
-          <code className="text-[11px] text-muted">{flag.key}</code>
+          <div className="flex items-center gap-1.5">
+            <code className="text-[11px] text-muted">{flag.key}</code>
+            <span className="rounded-full bg-surface-raised px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
+              {kindLabel(flag.kind)}
+            </span>
+          </div>
         </div>
         <Switch
           checked={config.enabled}

@@ -1,8 +1,10 @@
 import type {
   Environment,
   EnvironmentConfig,
+  EvaluationReason,
   EvaluationResult,
   Flag,
+  FlagKind,
 } from "@/types/flags";
 
 // ---------------------------------------------------------------------------
@@ -49,6 +51,28 @@ export function statusOf(config: EnvironmentConfig): FlagStatus {
 /** Looks up a variation's human name, falling back to its key. */
 export function variationName(flag: Flag, key: string): string {
   return flag.variations.find((v) => v.key === key)?.name ?? key;
+}
+
+const KIND_LABELS: Record<FlagKind, string> = {
+  boolean: "Boolean",
+  multivariate: "Multivariate",
+};
+
+/** A human label for a flag's kind, for the badge on each flag card. */
+export function kindLabel(kind: FlagKind): string {
+  return KIND_LABELS[kind];
+}
+
+const REASON_LABELS: Record<EvaluationReason, string> = {
+  OFF: "Kill switch",
+  RULE_MATCH: "Targeting rule",
+  FALLTHROUGH: "Default rollout",
+  FALLTHROUGH_ROLLOUT: "Percentage rollout",
+};
+
+/** A short tag for why a flag resolved, shown beside the full explanation. */
+export function reasonLabel(reason: EvaluationReason): string {
+  return REASON_LABELS[reason];
 }
 
 /**
