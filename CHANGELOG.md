@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-27 - version 1.11.0
+
+- reworked the v4 machine's reveal so the reels no longer look decided before they land. A column only shows its landed value (the big serif, the dot glow, the drawn-in arrow label) once it stops turning, which happens strictly left to right; until then it stays a plain smear. The loupe's edge follows the same rule — each third of the border is a neutral hairline until its column lands, then takes that column's accent, so the colour never resolves ahead of the pick.
+- merged the three separate magnifier bars into one continuous glass loupe spanning all three columns. The glass is clear with the accent living only on the border ring (painted and masked so nothing bleeds into the middle), and the bar now runs a little past the outer columns so its sides aren't flush with the text.
+- let the reel rows wrap to multiple lines instead of clipping with an ellipsis, and shrank the display type on small screens so labels fit the narrow three-column layout.
+- restored the footer version picker on v4: a small Versions dropdown listing the retired v3/v2/v1 landings, replacing the single hard-coded v3 link so it stays right as versions come and go.
+- an empty write-up reel is now a labelled group rather than an empty listbox, so its "Browse all" link is valid and the machine has no axe violations.
+- added an ambient `*.css` type declaration so side-effect stylesheet imports stop tripping the editor's ts(2882), and dropped a duplicate `CommandPaletteRoot` import in the root layout.
+
 ## 2026-07-27 - version 1.3.0
 
 - reworked the v4 slot machine's reels. The numbered column headers are gone; instead, once a column settles a small arrow draws itself in to name the result, and write-up-only reels stay unlabelled since they're just a greyed placeholder. The landed row now sits large and sharp under a glass "magnifier" bar while its neighbours soften, so the eye lands on the middle the way a loupe reads. Columns are wider with slightly smaller display type so labels no longer ellipsize, the middle reel reads "App link" under Apps, and the third reel is "Write-up".

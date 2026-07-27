@@ -17,12 +17,17 @@ const renderMachine = () =>
   );
 
 describe("SlotMachine reels", () => {
-  it("keeps each reel an accessible listbox named for its column", () => {
+  it("keeps each reel an accessible region named for its column", () => {
     renderMachine();
     // Apps is the default landed category, so the middle reel names an app link.
-    for (const name of ["Category", "App link", "Write-up"]) {
-      expect(screen.getByRole("listbox", { name })).toBeInTheDocument();
-    }
+    expect(screen.getByRole("listbox", { name: "Category" })).toBeInTheDocument();
+    expect(screen.getByRole("listbox", { name: "App link" })).toBeInTheDocument();
+    // The Write-up reel is a listbox when it has options and a plain group when
+    // the landed app has no write-up yet; either way it's present and labelled.
+    const writeup =
+      screen.queryByRole("listbox", { name: "Write-up" }) ??
+      screen.getByRole("group", { name: "Write-up" });
+    expect(writeup).toBeInTheDocument();
   });
 
   it("drops the numbered column headers above the reels", () => {
@@ -32,10 +37,11 @@ describe("SlotMachine reels", () => {
     expect(screen.queryByText("03")).not.toBeInTheDocument();
   });
 
-  it("puts a magnifier lens over the selected row of each populated reel", () => {
+  it("puts one continuous magnifier lens across the reels", () => {
     renderMachine();
-    // Category and Options always have items, so at least two lenses render.
-    expect(screen.getAllByTestId("reel-lens").length).toBeGreaterThanOrEqual(2);
+    // The loupe is a single glass bar spanning all three columns now, not a
+    // separate bar per reel.
+    expect(screen.getAllByTestId("reel-lens")).toHaveLength(1);
   });
 
   it("annotates the landed row with a drawn-in label pointing at it", () => {

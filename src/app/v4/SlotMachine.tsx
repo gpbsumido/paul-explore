@@ -36,6 +36,10 @@ const EDGE_FADE =
 /** Warm accent shared with the résumé slot category so the two read as one thing. */
 const RESUME_ACCENT = "#fb923c";
 
+// Retired landing designs, newest first, for the footer picker. v4 is current
+// (see CURRENT_VERSION in page.tsx) so it stays out of the list.
+const OLDER_VERSIONS = ["v3", "v2", "v1"] as const;
+
 /** Standout résumé call-to-action, same treatment as the v3 header chrome. */
 function ResumeLink() {
   return (
@@ -335,12 +339,15 @@ function Reel({
     <div className="relative flex min-w-0 flex-col">
       <div
         ref={registerRef}
-        role="listbox"
+        // An empty reel has no options to select, so it isn't a listbox. Falling
+        // back to a plain group keeps its "Browse all" link valid (a listbox may
+        // only contain options), while it stays focusable for Left/Right nav.
+        role={len > 0 ? "listbox" : "group"}
         aria-label={label}
         aria-disabled={inert || undefined}
         tabIndex={disabled ? -1 : 0}
         aria-activedescendant={
-          activeItem ? rowDomId(reelKey, activeItem.id) : undefined
+          len > 0 && activeItem ? rowDomId(reelKey, activeItem.id) : undefined
         }
         onKeyDown={handleKeyDown}
         className={[
@@ -366,35 +373,12 @@ function Reel({
           ))}
         </div>
 
-        {/* The magnifier: a rounded glass bar over the centre row, with a bright
-            top edge and a soft accent glow, so the landed item reads as if held
-            under a loupe. The glass itself is clear (the loupe sharpens the
-            landed row, it doesn't fog it); the neighbours blur instead. Dimmed
-            while the column is still spinning. */}
-        {len > 0 ? (
-          <div
-            aria-hidden
-            data-testid="reel-lens"
-            className="pointer-events-none absolute inset-x-0 z-10 rounded-2xl border transition-[box-shadow,border-color] duration-500"
-            style={{
-              top: LENS_TOP,
-              height: LENS_H,
-              borderColor: `color-mix(in srgb, ${accent} ${
-                blurring ? 22 : 42
-              }%, transparent)`,
-              background:
-                "linear-gradient(to bottom, color-mix(in srgb, white 10%, transparent), transparent 60%)",
-              boxShadow: blurring
-                ? "inset 0 1px 0 rgba(255,255,255,0.18)"
-                : `inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px color-mix(in srgb, ${accent} 20%, transparent)`,
-            }}
-          />
-        ) : null}
-
-        {/* Drawn-in label that names whatever landed, once the column settles.
+        {/* Drawn-in label that names whatever landed, once this column settles.
+            Gated on this reel's own blur, not the whole machine, so the labels
+            reveal left to right as each column stops rather than all at once.
             Write-up-only reels are just a greyed placeholder, so they get no
             label. */}
-        {len > 0 && !spinning && !disabled ? (
+        {len > 0 && !blurring && !disabled ? (
           <ReelAnnotation
             key={selected}
             label={label}
@@ -439,7 +423,12 @@ function Reel({
                 // below instead of repeating the same label to fill the rows.
                 const rounded = Math.round(pos);
                 const k = i + len * Math.round((pos - i) / len);
-                const isLanded = k === rounded;
+                const isCentre = k === rounded;
+                // Only present a row as the "landed" pick once this column has
+                // actually stopped. While it is still blurring the centre row
+                // stays a plain smear, so a column never looks decided before
+                // it lands (and reels to the right never spoil the pull).
+                const isLanded = isCentre && !blurring;
                 const distance = Math.abs(k - rounded);
                 const muted = item.disabled;
                 return (
@@ -482,14 +471,14 @@ function Reel({
                       />
                       {isLanded && !muted ? (
                         <span
-                          className={`${fraunces.className} whitespace-nowrap text-lg leading-none text-foreground sm:text-2xl`}
+                          className={`${fraunces.className} text-sm leading-tight text-foreground sm:text-2xl`}
                         >
                           {item.label}
                         </span>
                       ) : (
                         <span
                           className={[
-                            "truncate text-[13px]",
+                            "text-[11px] leading-snug sm:text-[13px]",
                             muted
                               ? "italic text-muted/80"
                               : "text-muted group-hover:text-foreground",
@@ -625,6 +614,21 @@ export default function SlotMachine({
   const catAccent = category.color;
   const optAccent = option?.color ?? catAccent;
   const noteAccent = thought?.color ?? optAccent;
+
+  // The loupe's edge only takes on a column's accent once that column has
+  // actually landed; until then it stays a neutral hairline, so the colour
+  // never resolves ahead of the pick. settledCount counts locked-in columns
+  // (1 after the category, 2 after the option, 3 when the write-up lands), and
+  // it sits at 3 whenever the machine is idle.
+  const NEUTRAL_EDGE = "color-mix(in srgb, var(--color-foreground) 14%, transparent)";
+  const lensEdge = (accent: string, settledAt: number): string =>
+    !spinning || settledCount >= settledAt
+      ? `color-mix(in srgb, ${accent} 55%, transparent)`
+      : NEUTRAL_EDGE;
+  const catEdge = lensEdge(catAccent, 1);
+  const optEdge = lensEdge(optAccent, 2);
+  const noteEdge = lensEdge(noteAccent, 3);
+  const lensBorder = `linear-gradient(to right, ${catEdge} 0%, ${catEdge} 30%, ${optEdge} 45%, ${optEdge} 55%, ${noteEdge} 70%, ${noteEdge} 100%)`;
 
   // The middle reel names an app to open under Apps, and a plain option
   // elsewhere. Write-up-only categories grey it out and skip the label entirely.
@@ -870,7 +874,7 @@ export default function SlotMachine({
             pull
           </m.p>
 
-          <div className="grid grid-cols-3 gap-4 sm:gap-8">
+          <div className="relative grid grid-cols-3 gap-4 sm:gap-8">
             <m.div variants={revealItem} className="min-w-0">
               <Reel
                 label="Category"
@@ -953,6 +957,39 @@ export default function SlotMachine({
                 }
               />
             </m.div>
+
+            {/* One continuous glass loupe across all three columns instead of a
+                separate bar per reel. The centre row of every column reads as
+                held under one loupe. The glass itself is clear; the accent lives
+                only on the border ring (the inner layer paints the gradient and
+                masks its own middle out, so nothing bleeds into the glass), and
+                each third carries its own column's colour, but only once that
+                column lands — until then that stretch of the edge is neutral. */}
+            <div
+              aria-hidden
+              data-testid="reel-lens"
+              className="pointer-events-none absolute -inset-x-4 z-10 rounded-2xl transition-[box-shadow] duration-500 sm:-inset-x-6"
+              style={{
+                top: LENS_TOP,
+                height: LENS_H,
+                boxShadow: spinning
+                  ? "inset 0 1px 0 rgba(255,255,255,0.18)"
+                  : "inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px rgba(0,0,0,0.12)",
+              }}
+            >
+              <div
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                  padding: 1,
+                  background: lensBorder,
+                  WebkitMask:
+                    "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                  WebkitMaskComposite: "xor",
+                  mask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                  maskComposite: "exclude",
+                }}
+              />
+            </div>
           </div>
 
           {/* The pull: a single circular key between two hairlines, tinted with
@@ -1077,12 +1114,24 @@ export default function SlotMachine({
         >
           GitHub
         </a>
-        <Link
-          href="/?version=v3"
-          className="rounded transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
-        >
-          v3 ↗
-        </Link>
+        {/* Peek at the older landing designs. A tiny <details> picker instead
+            of a hard-coded link, so it stays right as versions come and go. */}
+        <details className="relative">
+          <summary className="cursor-pointer list-none rounded transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 [&::-webkit-details-marker]:hidden">
+            Versions ↗
+          </summary>
+          <div className="absolute bottom-full right-0 mb-2 flex min-w-[7rem] flex-col rounded-lg border border-border bg-surface/90 p-1 text-right backdrop-blur">
+            {OLDER_VERSIONS.map((v) => (
+              <Link
+                key={v}
+                href={`/?version=${v}`}
+                className="rounded px-2 py-1 whitespace-nowrap transition-colors hover:bg-foreground/5 hover:text-foreground"
+              >
+                {v} ↗
+              </Link>
+            ))}
+          </div>
+        </details>
       </nav>
     </div>
   );
