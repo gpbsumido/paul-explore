@@ -69,42 +69,54 @@ export default function V4RedesignContent() {
         <p className="text-muted">
           A machine that only surfaced feature write-ups would strand the
           standalone ones, so every write-up category from the /thoughts index
-          is its own reel-1 entry: pick{" "}
-          <span className="font-semibold text-foreground">Testing &amp; Quality</span>{" "}
-          and reel 2 lists those write-ups directly. Deprecated notes get the
-          same treatment through a trailing{" "}
+          is its own reel-1 entry. These categories have no app to open, though,
+          so their middle reel is a single greyed-out{" "}
+          <span className="font-semibold text-foreground">Write-up only</span>{" "}
+          marker, disabled and skipped by the spin, and the write-ups
+          themselves stack in reel 3, where they belong. Pick{" "}
+          <span className="font-semibold text-foreground">Build &amp; Tooling</span>{" "}
+          and the middle greys out while deployment, bundlers, and the rest fill
+          the right-hand reel. Deprecated notes get the same treatment through a
+          trailing{" "}
           <span className="font-semibold text-foreground">Deprecated</span>{" "}
           category, each wearing a small amber tag so the state is obvious.
-          There are two things called &ldquo;Features&rdquo; on that reel, and
-          that&rsquo;s deliberate: the Apps bucket holds the features
-          themselves, while the Features write-up category holds the notes
-          about building them. When an option has no write-up at all, reel 3
-          shows a friendly empty state with a link to browse everything instead
-          of a blank wheel.
+          There are two things called &ldquo;Features&rdquo; on the category
+          reel, and that&rsquo;s deliberate: the Apps bucket holds the features
+          themselves, while the Features write-up category holds the notes about
+          building them. When an app has no write-up at all, reel 3 shows a
+          friendly empty state with a link to browse everything instead of a
+          blank wheel.
         </p>
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-bold">The spin</h2>
         <p className="text-muted">
-          Spin picks a random valid combination first, then animates toward it:
-          reel 1 settles, then reel 2 within the landed category, then reel 3.
-          Each reel steps through a handful of intermediate rows on timeouts
-          with widening gaps, so it reads as a wheel losing momentum rather
-          than a value snapping into place, and a CSS transform transition
-          glides between steps. While it runs, the reels blur slightly and stop
-          taking input so a mid-spin click can&rsquo;t desync the three
-          indices. Under{" "}
+          Spin picks a random valid combination first, then settles the columns
+          one at a time, left to right: reel 1 lands, then reel 2 within the
+          landed category, then reel 3. Each reel steps through a handful of
+          intermediate rows on timeouts with widening gaps, so it reads as a
+          wheel losing momentum rather than a value snapping into place, and a
+          CSS transform transition glides between steps. The trick that keeps it
+          clean is that reels 2 and 3 lock their contents to the chosen target
+          the moment the pull starts, so while reel 1 is still turning they
+          don&rsquo;t thrash through every category it passes on the way down. It
+          all stays fast, and input is off mid-spin so a stray click can&rsquo;t
+          desync the three indices. Under{" "}
           <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
             prefers-reduced-motion
           </code>{" "}
           all of that is skipped: the reels jump straight to the target with no
-          stepping, no blur, and no transitions. The only tested logic in the
-          motion path is{" "}
+          stepping and no transitions. The tested logic in the motion path is a
+          pair of tiny pure helpers,{" "}
           <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
             wrapIndex
+          </code>{" "}
+          and{" "}
+          <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
+            shortestDelta
           </code>
-          , the tiny pure function that treats every list as a wrapping wheel.
+          , that treat every list as a wrapping wheel.
         </p>
       </section>
 
@@ -128,9 +140,10 @@ export default function V4RedesignContent() {
           region announces the combination after every spin or selection. The
           result bar under the machine is the primary navigation: ordinary
           links stating exactly where they go, so nobody has to operate the
-          novelty UI to get anywhere. Selection is never colour alone, the
-          centred row is also bigger, bolder, and framed by the window band,
-          and everything focusable has a visible ring.
+          novelty UI to get anywhere. Selection is never colour alone: the
+          centred row is also bigger, set in a serif, and underlined in its
+          accent, with a hairline payline glowing across the middle of each
+          reel, and everything focusable has a visible ring.
         </p>
       </section>
 
