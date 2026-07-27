@@ -59,6 +59,42 @@ describe("FlagCard verdict strip", () => {
   });
 });
 
+describe("FlagCard signed-out state", () => {
+  it("locks the kill switch and rollout and explains why when editing is not allowed", () => {
+    render(
+      <FlagCard
+        flag={buildFlag()}
+        environment="production"
+        pending={false}
+        onToggle={noop}
+        onRollout={noop}
+        canEdit={false}
+      />,
+    );
+
+    expect(screen.getByRole("switch")).toBeDisabled();
+    expect(screen.getByRole("slider")).toBeDisabled();
+    expect(screen.getByText(/sign in to change/i)).toBeInTheDocument();
+  });
+
+  it("leaves the controls interactive when editing is allowed", () => {
+    render(
+      <FlagCard
+        flag={buildFlag()}
+        environment="production"
+        pending={false}
+        onToggle={noop}
+        onRollout={noop}
+        canEdit
+      />,
+    );
+
+    expect(screen.getByRole("switch")).not.toBeDisabled();
+    expect(screen.getByRole("slider")).not.toBeDisabled();
+    expect(screen.queryByText(/sign in to change/i)).not.toBeInTheDocument();
+  });
+});
+
 describe("FlagCard controls", () => {
   it("toggles the flag when the switch is pressed", () => {
     const onToggle = vi.fn();

@@ -29,6 +29,12 @@ interface FlagCardProps {
   contextKey?: string;
   /** How this flag resolved for the tested user, if a user has been evaluated. */
   result?: EvaluationResult;
+  /**
+   * Whether the visitor may change this flag. Signed-out visitors can view and
+   * evaluate everything but not write, so the controls lock with a sign-in hint.
+   * Defaults to true.
+   */
+  canEdit?: boolean;
 }
 
 const TONE_CLASSES: Record<StatusTone, string> = {
@@ -68,6 +74,7 @@ export default function FlagCard({
   onRollout,
   contextKey,
   result,
+  canEdit = true,
 }: FlagCardProps) {
   const config = flag.environments[environment];
   const sliderId = useId();
@@ -95,11 +102,23 @@ export default function FlagCard({
         </div>
         <Switch
           checked={config.enabled}
-          disabled={pending}
+          disabled={pending || !canEdit}
           onChange={onToggle}
           label={`Enable ${flag.name} in ${environment}`}
         />
       </div>
+
+      {!canEdit && (
+        <p className="text-[12px] text-muted">
+          <a
+            href="/auth/login"
+            className="font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-400"
+          >
+            Sign in to change flags
+          </a>{" "}
+          — viewing and the playground stay open to everyone.
+        </p>
+      )}
 
       <p className="text-[13px] leading-relaxed text-muted">
         {flag.description}
@@ -165,7 +184,7 @@ export default function FlagCard({
           <RolloutSlider
             id={sliderId}
             value={exposure}
-            disabled={pending || !config.enabled}
+            disabled={pending || !canEdit || !config.enabled}
             label={`Rollout percentage for ${flag.name} in ${environment}`}
             onCommit={(percent) =>
               onRollout([
