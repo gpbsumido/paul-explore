@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-26 - version 1.1.1
+
+- added a "macOS Menu Bar" dev-thoughts write-up at `/thoughts/mac-menu-bar`, documenting the menu bar work shipped in the angular-paul desktop clone: turning the static Apple / File / Edit / View / Window / Help labels into a working, signal-driven menu system. Covers the `MenuBarService` that derives every menu from live window and dock state via `computed` signals, the real actions each item runs, and the keyboard/screen-reader access (roles, `aria-haspopup`/`aria-expanded`, Escape-to-close-with-focus-return, arrow-key nav). Registered in `THOUGHTS` and the Features category, with a matching test asserting registration, categorization, and that the page renders its sections.
+
 ## 2026-07-25 - version 1.1.0
 
 - release to `main`, rolling up the recent develop work: the résumé page and its entry points (1.0.11), the shared `@paul-portfolio` `Ticker` migration (1.0.10), the v3 graph small/zoomed-viewport and interaction fixes (1.0.9), and the landing look-and-feel rollout across the app (1.0.8). See the entries below for details.
