@@ -54,18 +54,34 @@ describe("buildSlots", () => {
     expect(resume!.options[0].href).toBe("/resume");
   });
 
+  it("gives a write-up-only category a single disabled placeholder, write-ups in reel 3", () => {
+    // Build & Tooling has no app, just write-ups like deployment.
+    const buildTooling = categories.find((c) => c.label === "Build & Tooling");
+    expect(buildTooling).toBeDefined();
+    expect(buildTooling!.options).toHaveLength(1);
+    const placeholder = buildTooling!.options[0];
+    expect(placeholder.disabled).toBe(true);
+    expect(placeholder.label).toBe("Write-up only");
+    expect(placeholder.href).toBe("");
+    expect(placeholder.thoughts.some((t) => t.href === "/thoughts/deployment")).toBe(
+      true,
+    );
+  });
+
   it("keeps deprecated write-ups reachable through a Deprecated category", () => {
     expect(THOUGHTS.some((t) => t.deprecated)).toBe(true);
     const deprecated = categories.find((c) => c.label === DEPRECATED_GROUP);
     expect(deprecated).toBeDefined();
-    expect(deprecated!.options.length).toBeGreaterThan(0);
-    for (const option of deprecated!.options) {
-      expect(option.thoughts).toHaveLength(1);
-      expect(option.thoughts[0].deprecated).toBe(true);
+    expect(deprecated!.options).toHaveLength(1);
+    const placeholder = deprecated!.options[0];
+    expect(placeholder.disabled).toBe(true);
+    expect(placeholder.thoughts.length).toBeGreaterThan(0);
+    for (const note of placeholder.thoughts) {
+      expect(note.deprecated).toBe(true);
     }
   });
 
-  it("keeps standalone write-ups (no feature bridge) reachable via their category", () => {
+  it("keeps standalone write-ups (no feature bridge) reachable in a category's reel 3", () => {
     const bridged = new Set(
       FEATURES.map((f) => f.thoughtsHref).filter((h) => h !== undefined),
     );
@@ -75,14 +91,20 @@ describe("buildSlots", () => {
     expect(standalone).toBeDefined();
     const writingCategories = categories.filter((c) => c.id.startsWith("cat:"));
     const holder = writingCategories.find((c) =>
-      c.options.some((o) => o.href === standalone!.href),
+      c.options.some((o) =>
+        o.thoughts.some((note) => note.href === standalone!.href),
+      ),
     );
     expect(holder).toBeDefined();
   });
 
-  it("gives every option a non-empty href, external exactly for http links", () => {
+  it("gives every openable option a non-empty href, and every disabled one an empty href", () => {
     expect(allOptions.length).toBeGreaterThan(0);
     for (const option of allOptions) {
+      if (option.disabled) {
+        expect(option.href, option.id).toBe("");
+        continue;
+      }
       expect(option.href.length, option.id).toBeGreaterThan(0);
       expect(Boolean(option.external), option.id).toBe(
         option.href.startsWith("http"),

@@ -11,7 +11,7 @@ export type SlotThought = {
   deprecated?: boolean;
 };
 
-/** A reel-2 item: a feature, the resume, or an individual write-up. */
+/** A reel-2 item: a feature, the resume, or a write-up-only placeholder. */
 export type SlotOption = {
   id: string;
   label: string;
@@ -21,6 +21,12 @@ export type SlotOption = {
   color: string;
   /** Short description shown in the result bar. */
   blurb?: string;
+  /**
+   * A placeholder for a category with no app to open, just write-ups. The reel
+   * shows it greyed out and skips it while spinning; reel 3 still carries the
+   * write-ups. There is nothing to "Open", so the result bar hides that action.
+   */
+  disabled?: boolean;
   /** Reel-3 items related to this option. */
   thoughts: SlotThought[];
 };
@@ -51,8 +57,6 @@ const APPS_COLOR = "#38bdf8";
 /** Warm accent shared with the resume page entry points elsewhere on the site. */
 const RESUME_COLOR = "#fb923c";
 const RESUME_BLURB = "Experience, skills, and the projects behind this site.";
-
-const slugOf = (href: string): string => href.replace(/^\/thoughts\//, "");
 
 const toSlotThought = (thought: ThoughtItem): SlotThought => ({
   title: thought.title,
@@ -116,21 +120,28 @@ export function buildSlots(): SlotCategory[] {
 
   // groupThoughts already orders the categories and splits deprecated
   // write-ups into their own trailing group, so they stay reachable here.
-  const writing: SlotCategory[] = groupThoughts(THOUGHTS).map((group) => ({
-    id: `cat:${group.name}`,
-    label: group.name,
-    color: CATEGORY_COLORS[group.name] ?? "#94a3b8",
-    blurb: `${group.items.length} write-ups`,
-    options: group.items.map((thought) => ({
-      id: `thought:${slugOf(thought.href)}`,
-      label: thought.title,
-      href: thought.href,
-      external: thought.href.startsWith("http"),
-      color: thought.color,
-      blurb: thought.preview,
-      thoughts: [toSlotThought(thought)],
-    })),
-  }));
+  // These categories have no app to open, so reel 2 is a single greyed-out
+  // "Write-up only" marker and every write-up lives in reel 3.
+  const writing: SlotCategory[] = groupThoughts(THOUGHTS).map((group) => {
+    const color = CATEGORY_COLORS[group.name] ?? "#94a3b8";
+    return {
+      id: `cat:${group.name}`,
+      label: group.name,
+      color,
+      blurb: `${group.items.length} write-ups`,
+      options: [
+        {
+          id: `writeup-only:${group.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+          label: "Write-up only",
+          href: "",
+          color,
+          blurb: `No app here, just ${group.items.length} write-ups.`,
+          disabled: true,
+          thoughts: group.items.map(toSlotThought),
+        },
+      ],
+    };
+  });
 
   return [apps, resume, ...writing];
 }
