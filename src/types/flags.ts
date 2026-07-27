@@ -29,7 +29,6 @@ export type EnvironmentConfig = z.infer<typeof environmentConfigSchema>;
 export type Flag = z.infer<typeof flagSchema>;
 
 export type EvaluationContext = z.infer<typeof evaluationContextSchema>;
-export type EvaluationReason = z.infer<typeof evaluationReasonSchema>;
 export type EvaluationResult = z.infer<typeof evaluationResultSchema>;
 export type AuditAction = z.infer<typeof auditActionSchema>;
 export type AuditEntry = z.infer<typeof auditEntrySchema>;
