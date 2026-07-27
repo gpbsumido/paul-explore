@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.6.0
+
+- put a real, visible feature behind a flag. The `/tcg/pocket` Pokémon TCG Pocket page is now gated by a new `pocket-tcg` flag, evaluated server-side for the actual visitor: middleware sets a stable, anonymous first-party `visitor_id` cookie once (a year long, forwarded on the same request it is minted on so the first render already sees it), and the page reads that key, runs the pure engine against the persisted flag, and renders the on/off branch with no client flicker. When the flag resolves off, the page shows an honest "not rolled out to you yet" state that links to the flags console. The gate fails open (a missing flag never hides the feature) and the flag is seeded fully on, so nothing is hidden today — but flipping the kill switch or dialing the rollout down in the console now changes what a real visitor sees, sticky to their bucket. Reading the cookie makes the route render dynamically rather than as a cached static page. Documented the gate in the feature-flags dev-notes write-up.
+
 ## 2026-07-27 - version 1.5.0
 
 - made the `/flags` console tell the truth now that the store is live. Replaced the old "demo data, real engine" line with an honest status strip: a "Backed by a live API" badge, a plain note that flags are stored in `portfolio_api` and evaluated by a deterministic engine, and a live "resets in ~2h 14m" countdown derived from the fixed 6-hour UTC reset cadence (a pure, unit-tested function — no clock needed). Signed-out visitors now see the write path locked instead of hitting a silent 401: the kill switch and rollout slider disable and each card offers a "Sign in to change flags" link, while viewing, the verdict strips, and the playground stay fully usable. Auth state is detected the same way the header does, via `/api/me`. Documented the transparency work in the feature-flags dev-notes write-up.
