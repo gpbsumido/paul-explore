@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.11.1
+
+- shrank the "No write-up yet" empty-state label and its "Browse all" link on small screens so they fit the narrow write-up column instead of spilling past the loupe.
+
 ## 2026-07-27 - version 1.11.0
 
 - reworked the v4 machine's reveal so the reels no longer look decided before they land. A column only shows its landed value (the big serif, the dot glow, the drawn-in arrow label) once it stops turning, which happens strictly left to right; until then it stays a plain smear. The loupe's edge follows the same rule — each third of the border is a neutral hairline until its column lands, then takes that column's accent, so the colour never resolves ahead of the pick.

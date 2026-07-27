@@ -943,13 +943,13 @@ export default function SlotMachine({
                 empty={
                   <>
                     <p
-                      className={`${fraunces.className} text-[17px] text-muted sm:text-lg`}
+                      className={`${fraunces.className} text-[13px] leading-snug text-muted sm:text-lg`}
                     >
                       No write-up yet
                     </p>
                     <Link
                       href="/thoughts"
-                      className="rounded font-mono text-[11px] uppercase tracking-[0.15em] text-muted underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+                      className="rounded font-mono text-[9px] uppercase tracking-[0.12em] text-muted underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 sm:text-[11px] sm:tracking-[0.15em]"
                     >
                       Browse all →
                     </Link>
