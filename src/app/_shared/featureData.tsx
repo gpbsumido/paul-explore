@@ -357,6 +357,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "Rebuilding 24 features from 11 old jobs as self-contained demos: reconstruction over emulation, anonymizing client work, the no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs",
     color: "#60a5fa",
   },
+  {
+    title: "Motion Components",
+    href: "/thoughts/motion-components",
+    preview:
+      "TiltCard, GradientBackground, and Spotlight for the shared design system — pointer-driven motion built static-first, with reduced motion as the default and one shared usePrefersReducedMotion hook",
+    color: "#a78bfa",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
