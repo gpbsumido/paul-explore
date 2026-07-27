@@ -138,22 +138,41 @@ const rowDomId = (reelKey: string, itemId: string): string =>
   `v4-${reelKey}-${itemId.replace(/[^a-zA-Z0-9_-]+/g, "-")}`;
 
 /**
+ * Three hand-drawn arrow shapes, one per column, so the marks read as sketched
+ * by hand rather than stamped from a template: a lazy S, a leftward hook, and a
+ * double wiggle. Each pairs the curve with an arrowhead sitting at its foot.
+ */
+const ARROW_VARIANTS: { line: string; head: string }[] = [
+  { line: "M23 4 C 31 17, 15 33, 23 52", head: "M16 44 L23 54 L30 44" },
+  { line: "M31 4 C 33 20, 13 30, 21 52", head: "M14 44 L22 54 L28 43" },
+  {
+    line: "M20 4 C 31 13, 13 25, 26 36 C 33 42, 19 47, 23 53",
+    head: "M16 45 L23 55 L30 45",
+  },
+];
+
+/**
  * The label that points at whatever a reel landed on. It sits in the reel's own
  * top space (the old header is gone) and, once the column settles, the arrow
  * draws itself down toward the magnifier while the label fades in beside it, so
- * the machine names each result the moment it lands rather than up front. Keyed
- * on the landed item by the caller so it redraws on every new selection.
+ * the machine names each result the moment it lands rather than up front. Each
+ * reel gets its own arrow shape so the three don't look stamped from one mould.
+ * Keyed on the landed item by the caller so it redraws on every new selection.
  * Reduced-motion visitors get the finished mark with no drawing.
  */
 function ReelAnnotation({
   label,
   accent,
   reduced,
+  variant,
 }: {
   label: string;
   accent: string;
   reduced: boolean;
+  /** Picks one of the hand-drawn arrow shapes, so each column differs. */
+  variant: number;
 }) {
+  const arrow = ARROW_VARIANTS[variant % ARROW_VARIANTS.length];
   const draw = reduced
     ? { initial: false as const, animate: { pathLength: 1, opacity: 1 } }
     : {
@@ -188,9 +207,8 @@ function ReelAnnotation({
         preserveAspectRatio="xMidYMax meet"
         aria-hidden
       >
-        {/* A hand-drawn-feeling curve from the label down to the lens. */}
         <m.path
-          d="M23 4 C 30 18, 16 34, 23 52"
+          d={arrow.line}
           stroke={accent}
           strokeWidth={2}
           strokeLinecap="round"
@@ -198,7 +216,7 @@ function ReelAnnotation({
           {...draw}
         />
         <m.path
-          d="M16 44 L23 54 L30 44"
+          d={arrow.head}
           stroke={accent}
           strokeWidth={2}
           strokeLinecap="round"
@@ -382,6 +400,7 @@ function Reel({
             label={label}
             accent={accent}
             reduced={reduced}
+            variant={reelIndex}
           />
         ) : null}
 
@@ -506,9 +525,6 @@ const revealItem: Variants = {
   },
 };
 
-/** A whole-number index in [0, n). */
-const randIndex = (n: number): number => Math.floor(Math.random() * Math.max(n, 1));
-
 type Frozen = { cat: number; opt: number; note: number };
 
 /**
@@ -531,6 +547,28 @@ export default function SlotMachine({
   const router = useRouter();
   const reduced = useReducedMotion() ?? false;
   const categories = useMemo(() => buildSlots(), []);
+
+  // Every reachable category → option → write-up leaf, flattened, so a spin can
+  // pick uniformly across combinations rather than picking a category first
+  // (which would over-favour small categories). Apps leaves carry a little extra
+  // weight so the actual, usable stuff comes up a touch more often.
+  const combos = useMemo(() => {
+    const list: { cat: number; opt: number; note: number; weight: number }[] =
+      [];
+    categories.forEach((c, ci) => {
+      const weight = c.id === "apps" ? 1.5 : 1;
+      c.options.forEach((o, oi) => {
+        if (o.thoughts.length === 0) {
+          list.push({ cat: ci, opt: oi, note: 0, weight });
+          return;
+        }
+        o.thoughts.forEach((_, ni) =>
+          list.push({ cat: ci, opt: oi, note: ni, weight }),
+        );
+      });
+    });
+    return list;
+  }, [categories]);
 
   const [catPos, setCatPos] = useState<ReelPos>(still(0));
   const [optPos, setOptPos] = useState<ReelPos>(still(0));
@@ -634,13 +672,26 @@ export default function SlotMachine({
     timers.current = [];
   };
 
+  // Weighted pick across all combos, so every category/app/write-up landing is
+  // about equally likely (Apps a little more so).
+  const pickCombo = () => {
+    const total = combos.reduce((sum, c) => sum + c.weight, 0);
+    let r = Math.random() * total;
+    for (const c of combos) {
+      r -= c.weight;
+      if (r <= 0) return c;
+    }
+    return combos[combos.length - 1];
+  };
+
   const spin = () => {
     if (spinning) return;
-    const catTarget = randIndex(categories.length);
+    const combo = pickCombo();
+    const catTarget = combo.cat;
     const optList = categories[catTarget].options;
-    const optTarget = optList.length > 0 ? randIndex(optList.length) : 0;
+    const optTarget = combo.opt;
     const noteList = optList[optTarget]?.thoughts ?? [];
-    const noteTarget = noteList.length > 0 ? randIndex(noteList.length) : 0;
+    const noteTarget = combo.note;
 
     if (reduced) {
       setFrozen(null);
