@@ -146,10 +146,12 @@ export default function FeatureFlagsContent() {
                 an afterthought
               </Sent>
               <Sent pos="last">
-                the store is in-memory and reseeds on restart — it&apos;s a demo
-                — but the API shape (GET flags, PATCH toggle/rollout, POST
-                evaluate, GET audit) is the real thing. swapping the store for a
-                database wouldn&apos;t touch the engine or the components
+                and now the store is getting real. the four /api/flags routes
+                are thin proxies that prefer a live backend (portfolio_api) and
+                fall back to the in-memory seed when it&apos;s down — so the
+                console keeps working either way. exactly the swap I&apos;d
+                claimed was cheap, and it didn&apos;t touch the engine or the
+                components
               </Sent>
 
               <Received>what would you add next</Received>
@@ -349,18 +351,47 @@ export default function FeatureFlagsContent() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold">Tradeoffs</h2>
+        <h2 className="mb-3 text-lg font-bold">Making the store real</h2>
         <p className="text-muted">
-          The data store is in-memory and reseeds on every server restart. Fine
-          for a demo, and deliberate — wiring a real database in would add
-          deployment complexity without adding to the story, which is the
-          engine. The API surface (GET flags, PATCH toggle and rollout, POST
-          evaluate, GET audit) is the real shape, so swapping the store for a
-          persistent one would not touch the engine or the components.
+          The store started in-memory, reseeding on every server restart — fine
+          for a demo, and the claim in the write-up was that swapping it for a
+          persistent one would not touch the engine or the components. That claim
+          is now being cashed in. The four{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            /api/flags
+          </code>{" "}
+          routes became thin proxies over a small BFF layer that prefers a live
+          backend (the same portfolio_api that backs the referral links) and
+          falls back to the in-memory seed when the service is unreachable — so
+          the console reads and writes shared, persistent data once the backend
+          is deployed, and still works, looking identical, when it is not. The
+          engine and the components did not change, which is exactly the property
+          the original design was betting on.
         </p>
         <p className="mt-3 text-muted">
-          The bright line I held throughout: no flag <em>decision</em> lives in
-          a component or a network round-trip. The moment resolution logic leaks
+          The BFF is careful about what it hides. Reads fall back to the seed on
+          any failure, because a readable console beats an error page. Writes
+          only fall back on a genuine connection failure — a real{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            401
+          </code>{" "}
+          or{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            404
+          </code>{" "}
+          from the API is propagated, not masked, so a signed-out visitor gets an
+          honest &quot;sign in to change flags&quot; instead of a silent local
+          edit that never persists. And every payload crossing the boundary is
+          validated against the same Zod schemas the console uses, so a drifting
+          API surfaces as a clear error instead of quietly bad UI.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">The bright line</h2>
+        <p className="mt-3 text-muted">
+          Throughout, one rule held: no flag <em>decision</em> lives in a
+          component or a network round-trip. The moment resolution logic leaks
           out of the pure engine, you lose determinism — and determinism is the
           whole reason to trust a rollout at all.
         </p>

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.4.0
+
+- repointed the `/flags` BFF at a real backend. The four `/api/flags` routes now prefer portfolio_api's `feature-flags` service and only fall back to the in-memory seed when it is unreachable, so the console reads and writes live, shared data once the service is deployed and still works (looking identical) when it is not. Added a typed `flags-client` that validates every payload against the same Zod schemas the console uses, so a drifting API surfaces as a clear error instead of bad UI. Writes forward the signed-in visitor's bearer token and propagate a genuine 401/404 from the API rather than masking it, laying the groundwork for the "sign in to change flags" and audit-actor work still to come. The deterministic evaluation engine stays in the BFF, unchanged.
+
 ## 2026-07-27 - version 1.3.0
 
 - reworked the `/flags` console so it's actually easy to understand at a glance. The old version read like an insider tool — "fallthrough rollout", "kill switch", "bucket 42.3" — and its evaluation playground was a separate island, so you couldn't see what any flag did to a real user. Now "Test a user" is the spine of the page: describe someone (or click a preset — Enterprise user / Beta tester / Anonymous visitor) and every flag card lights up with a plain-English verdict — "`user-42` gets ON, matched the rule 'Enterprise accounts get it first'" or "this user's dice roll landed at 43 of 100, so they get Disabled". Verdicts re-evaluate live through the real deterministic engine whenever you change the user, flip a switch, drag a rollout, or switch environment. Removed the standalone `EvaluationPlayground` (its explainability now lives on the cards) and de-jargoned the copy throughout.
