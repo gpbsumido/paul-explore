@@ -41,4 +41,13 @@ describe("FeatureFlagsContent", () => {
     expect(screen.getAllByText(/pocket-tcg/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/visitor_id/i).length).toBeGreaterThan(0);
   });
+
+  it("documents the stale-verdict race and the client-side evaluation fix", () => {
+    render(<FeatureFlagsContent />);
+    expect(
+      screen.getByRole("heading", { name: /the verdict that lied/i }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/read-your-writes/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/evaluateAllFlags/).length).toBeGreaterThan(0);
+  });
 });

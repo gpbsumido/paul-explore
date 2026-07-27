@@ -60,7 +60,7 @@ describe("FlagCard verdict strip", () => {
 });
 
 describe("FlagCard signed-out state", () => {
-  it("locks the kill switch and rollout and explains why when editing is not allowed", () => {
+  it("locks the kill switch and rollout when editing is not allowed", () => {
     render(
       <FlagCard
         flag={buildFlag()}
@@ -74,7 +74,9 @@ describe("FlagCard signed-out state", () => {
 
     expect(screen.getByRole("switch")).toBeDisabled();
     expect(screen.getByRole("slider")).toBeDisabled();
-    expect(screen.getByText(/sign in to change/i)).toBeInTheDocument();
+    // The "why" (and the sign-in link) lives in the section banner now, not on
+    // every locked card.
+    expect(screen.queryByText(/sign in to change/i)).not.toBeInTheDocument();
   });
 
   it("leaves the controls interactive when editing is allowed", () => {

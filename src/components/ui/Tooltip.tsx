@@ -21,6 +21,11 @@ interface TooltipProps {
    * on accidental mouse-overs. Defaults to 500.
    */
   delay?: number;
+  /**
+   * Let the label wrap to multiple lines instead of staying on one. Use for
+   * explanatory sentences; the default single-line style suits short labels.
+   */
+  multiline?: boolean;
 }
 
 /**
@@ -35,6 +40,7 @@ export default function Tooltip({
   content,
   children,
   delay = 500,
+  multiline = false,
 }: TooltipProps) {
   const tooltipId = useId();
   const [visible, setVisible] = useState(false);
@@ -106,7 +112,11 @@ export default function Tooltip({
           id={tooltipId}
           role="tooltip"
           style={style}
-          className="rounded-md bg-neutral-900 dark:bg-neutral-100 px-2.5 py-1.5 text-xs font-medium text-white dark:text-neutral-900 shadow-lg whitespace-nowrap"
+          className={`rounded-md bg-neutral-900 dark:bg-neutral-100 px-2.5 py-1.5 text-xs font-medium text-white dark:text-neutral-900 shadow-lg ${
+            multiline
+              ? "max-w-xs whitespace-normal text-left leading-snug"
+              : "whitespace-nowrap"
+          }`}
         >
           {content}
           {/* little arrow pointing down toward the chip */}

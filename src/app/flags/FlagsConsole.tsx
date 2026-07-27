@@ -3,12 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { m } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import type { Environment, EvaluationContext } from "@/types/flags";
+import type {
+  Environment,
+  EvaluationContext,
+  EvaluationResult,
+  Flag,
+  RolloutWeight,
+} from "@/types/flags";
 import { fadeInUp, spring } from "@/lib/animations";
 import { queryKeys } from "@/lib/queryKeys";
 import { msUntilNextReset, formatResetCountdown } from "@/lib/flags-reset";
+import { evaluateAllFlags } from "@/lib/flags-engine";
 import { useFlags, useFlagAudit } from "@/hooks/useFlags";
-import { useUpdateFlag, useEvaluateFlags } from "@/hooks/useFlagMutations";
+import { useUpdateFlag } from "@/hooks/useFlagMutations";
+import Tooltip from "@/components/ui/Tooltip";
 import EnvironmentSwitcher from "@/components/flags/EnvironmentSwitcher";
 import FlagCard from "@/components/flags/FlagCard";
 import FlagsInfoStrip from "@/components/flags/FlagsInfoStrip";
@@ -31,7 +39,6 @@ export default function FlagsConsole() {
   const { flags, loading, error } = useFlags();
   const { audit } = useFlagAudit();
   const { updateFlag, pendingKey } = useUpdateFlag();
-  const { evaluate, results, isEvaluating } = useEvaluateFlags();
 
   const [environment, setEnvironment] = useState<Environment>("production");
   const [context, setContext] = useState<EvaluationContext>(DEFAULT_CONTEXT);
@@ -61,24 +68,26 @@ export default function FlagsConsole() {
     return () => clearInterval(id);
   }, []);
 
-  // Re-evaluate whenever the tested user, the environment, or any flag's config
-  // changes, so the verdict on each card is always current. The signature keeps
-  // the effect from firing on unrelated re-renders.
-  const flagsSignature = useMemo(
-    () =>
-      JSON.stringify(flags.map((f) => [f.key, f.environments[environment]])),
-    [flags, environment],
+  // Evaluate every card against the tested user right here, through the same
+  // pure engine the API uses — exactly how a real flag SDK evaluates locally
+  // after fetching configs. Running it on the flags the console is showing (not
+  // a separate server read) keeps each verdict in lockstep with the switches and
+  // sliders: an optimistic rollout change re-evaluates instantly, with no
+  // round-trip to race and no flash of a stale verdict.
+  const results = useMemo(
+    () => evaluateAllFlags(flags, environment, context),
+    [flags, environment, context],
   );
-
-  useEffect(() => {
-    if (flags.length === 0) return;
-    void evaluate({ environment, context }).catch(() => {});
-  }, [evaluate, environment, context, flagsSignature, flags.length]);
 
   const resultByKey = useMemo(
-    () => new Map((results ?? []).map((r) => [r.flagKey, r])),
+    () => new Map(results.map((r) => [r.flagKey, r])),
     [results],
   );
+
+  // Real flags gate live features; demo flags just illustrate the mechanics.
+  // Show the real ones first so the thing that actually ships leads the page.
+  const realFlags = useMemo(() => flags.filter((f) => f.real), [flags]);
+  const demoFlags = useMemo(() => flags.filter((f) => !f.real), [flags]);
 
   if (error) {
     return (
@@ -112,7 +121,22 @@ export default function FlagsConsole() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="mb-1 text-[12px] text-muted">Environment</p>
+          <div className="mb-1 flex items-center gap-1.5">
+            <p className="text-[12px] text-muted">Environment</p>
+            <Tooltip
+              multiline
+              delay={150}
+              content="Development, staging, and production are three separate configs for the same flag — its own kill switch, targeting, and rollout in each. This picker only changes which one you're viewing and editing here; it's local UI, not wired to a real deploy pipeline."
+            >
+              <button
+                type="button"
+                aria-label="What do the environments do?"
+                className="flex h-4 w-4 items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted transition-colors hover:text-foreground"
+              >
+                i
+              </button>
+            </Tooltip>
+          </div>
           <EnvironmentSwitcher value={environment} onChange={setEnvironment} />
         </div>
         <p className="text-[13px] text-muted">
@@ -123,35 +147,124 @@ export default function FlagsConsole() {
       <TestUserBar
         context={context}
         onEvaluate={setContext}
-        isEvaluating={isEvaluating}
+        isEvaluating={false}
       />
 
       {loading && flags.length === 0 ? (
         <FlagGridSkeleton />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {flags.map((flag) => (
-            <FlagCard
-              key={flag.key}
-              flag={flag}
-              environment={environment}
-              pending={pendingKey === flag.key}
-              canEdit={isLoggedIn}
-              contextKey={context.key}
-              result={resultByKey.get(flag.key)}
-              onToggle={(enabled) =>
-                updateFlag({ flagKey: flag.key, environment, enabled })
-              }
-              onRollout={(fallthrough) =>
-                updateFlag({ flagKey: flag.key, environment, fallthrough })
-              }
-            />
-          ))}
+        <div className="space-y-8">
+          <FlagSection
+            title="Gating a real feature"
+            subtitle="These control a live page. Flip them and real visitors feel it."
+            flags={realFlags}
+            environment={environment}
+            pendingKey={pendingKey}
+            isLoggedIn={isLoggedIn}
+            contextKey={context.key}
+            resultByKey={resultByKey}
+            updateFlag={updateFlag}
+            requiresSignIn
+          />
+          <FlagSection
+            title="Demo flags"
+            subtitle="Illustrations of the mechanics. They don't gate anything live."
+            flags={demoFlags}
+            environment={environment}
+            pendingKey={pendingKey}
+            isLoggedIn={isLoggedIn}
+            contextKey={context.key}
+            resultByKey={resultByKey}
+            updateFlag={updateFlag}
+          />
         </div>
       )}
 
       <AuditLog audit={audit} />
     </m.main>
+  );
+}
+
+type UpdateFlagInput = {
+  flagKey: string;
+  environment: Environment;
+  enabled?: boolean;
+  fallthrough?: RolloutWeight[];
+};
+
+type FlagSectionProps = {
+  title: string;
+  subtitle: string;
+  flags: readonly Flag[];
+  environment: Environment;
+  pendingKey: string | null;
+  isLoggedIn: boolean;
+  contextKey: string;
+  resultByKey: Map<string, EvaluationResult>;
+  updateFlag: (input: UpdateFlagInput) => Promise<Flag>;
+  /** When true, a signed-out visitor sees a sign-in notice right in the header. */
+  requiresSignIn?: boolean;
+};
+
+/** One titled group of flag cards. Skips itself entirely when empty. */
+function FlagSection({
+  title,
+  subtitle,
+  flags,
+  environment,
+  pendingKey,
+  isLoggedIn,
+  contextKey,
+  resultByKey,
+  updateFlag,
+  requiresSignIn = false,
+}: FlagSectionProps) {
+  if (flags.length === 0) return null;
+
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        <p className="text-[13px] text-muted">{subtitle}</p>
+      </div>
+      {requiresSignIn && !isLoggedIn && (
+        <div className="flex items-start gap-2 rounded-lg border border-warning-300 bg-warning-100 px-3 py-2 text-[13px] text-warning-700 dark:border-warning-900 dark:bg-warning-950/40 dark:text-warning-400">
+          <span aria-hidden className="mt-0.5 shrink-0">
+            🔒
+          </span>
+          <span>
+            This one gates a live page, so changing it needs a sign-in.{" "}
+            <a
+              href="/auth/login"
+              className="font-semibold underline underline-offset-2"
+            >
+              Sign in to change it
+            </a>
+            . Everything else here stays open — view it, evaluate it, watch the
+            verdict update.
+          </span>
+        </div>
+      )}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {flags.map((flag) => (
+          <FlagCard
+            key={flag.key}
+            flag={flag}
+            environment={environment}
+            pending={pendingKey === flag.key}
+            canEdit={!flag.real || isLoggedIn}
+            contextKey={contextKey}
+            result={resultByKey.get(flag.key)}
+            onToggle={(enabled) =>
+              updateFlag({ flagKey: flag.key, environment, enabled })
+            }
+            onRollout={(fallthrough) =>
+              updateFlag({ flagKey: flag.key, environment, fallthrough })
+            }
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 

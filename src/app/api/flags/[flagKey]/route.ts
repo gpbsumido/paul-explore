@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateFlagBodySchema } from "@/lib/flags-schemas";
 import { parseBody } from "@/lib/parseBody";
 import { applyFlagPatch } from "@/lib/flags-bff";
+import { getFlag } from "@/lib/flags-data";
+import { auth0 } from "@/lib/auth0";
 
 const ERRORS: Record<number, string> = {
   401: "Sign in to change flags",
@@ -22,6 +24,16 @@ export async function PATCH(
 
   const bodyResult = await parseBody(request, updateFlagBodySchema);
   if (!bodyResult.ok) return bodyResult.response;
+
+  // Only the real flag (the one that gates a live feature) needs a sign-in to
+  // change. Demo flags are open to everyone so anyone can play with the console.
+  const flag = getFlag(flagKey);
+  if (flag?.real) {
+    const session = await auth0.getSession(request);
+    if (!session) {
+      return NextResponse.json({ error: ERRORS[401] }, { status: 401 });
+    }
+  }
 
   const token = request.headers
     .get("authorization")
