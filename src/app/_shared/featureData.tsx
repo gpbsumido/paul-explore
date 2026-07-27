@@ -23,6 +23,15 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/operator-dashboard",
   },
   {
+    id: "flags",
+    title: "Feature Flags",
+    description:
+      "A flag-management console — per-environment targeting rules, sticky percentage rollouts, a kill switch, an audit log, and a live evaluation playground on a deterministic engine.",
+    href: "/flags",
+    color: "#fb923c",
+    thoughtsHref: "/thoughts/feature-flags",
+  },
+  {
     id: "work-portfolio",
     title: "Work Portfolio",
     description:
@@ -395,6 +404,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "The site-wide ⌘K palette: one globally mounted instance opened from a hotkey or a window event, a registry reused from the hub's FEATURES and THOUGHTS, a hand-rolled fuzzy matcher, and an honest ARIA combobox",
     color: "#818cf8",
+  },
+  {
+    title: "Feature Flags",
+    href: "/thoughts/feature-flags",
+    preview:
+      "A flag console built engine-first: deterministic FNV-1a bucketing with an avalanche step, sticky and monotonic rollouts, first-match targeting, an explainable evaluation reason, and why the pure core is the whole design",
+    color: "#fb923c",
   },
 ].reverse();
 
@@ -804,6 +820,44 @@ export function OperatorPreview() {
   );
 }
 
+// Mini flag list for the hub card: a status dot, a flag name, and either a
+// rollout bar or an "on" pill, echoing the real console.
+export const FLAGS_PREVIEW = [
+  { name: "new-checkout", tone: "#fb923c", pct: 25 },
+  { name: "ai-search", tone: "#22c55e", pct: 10 },
+  { name: "dark-mode", tone: "#22c55e", pct: 100 },
+];
+
+export function FlagsPreview() {
+  return (
+    <div className="space-y-1.5">
+      {FLAGS_PREVIEW.map((f) => (
+        <div
+          key={f.name}
+          className="flex items-center gap-2 rounded-lg border border-black/10 bg-black/5 px-2.5 py-1.5 dark:border-white/10 dark:bg-white/5"
+        >
+          <div
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: f.tone }}
+          />
+          <span className="flex-1 truncate font-mono text-[9px] text-black/70 dark:text-white/70">
+            {f.name}
+          </span>
+          <div className="h-1.5 w-8 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${f.pct}%`, backgroundColor: f.tone }}
+            />
+          </div>
+          <span className="shrink-0 tabular-nums text-[8px] text-black/40 dark:text-white/40">
+            {f.pct}%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export const LEARN_PREVIEW_ITEMS = [
   { num: "01", title: "Two Pointers" },
   { num: "05", title: "Binary Search" },
@@ -997,6 +1051,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   particles: "--color-feature-particles",
   ketsup: "--color-feature-ketsup",
   operator: "--color-feature-operator",
+  flags: "--color-feature-flags",
   learn: "--color-feature-learn",
   "work-portfolio": "--color-feature-work-portfolio",
   "design-system": "--color-feature-design-system",
@@ -1014,6 +1069,7 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   particles: ParticlesPreview,
   ketsup: KetsupPreview,
   operator: OperatorPreview,
+  flags: FlagsPreview,
   learn: LearnPreview,
   "work-portfolio": WorkPortfolioPreview,
   "design-system": DesignSystemPreview,
