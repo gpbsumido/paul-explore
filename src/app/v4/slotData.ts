@@ -140,3 +140,14 @@ export function wrapIndex(index: number, len: number): number {
   if (len <= 0) return 0;
   return ((index % len) + len) % len;
 }
+
+/**
+ * Signed number of reel steps on the shortest wrapping path from one index to
+ * another. Positive means step forward (down the reel), negative backward.
+ * Returns 0 for an empty list.
+ */
+export function shortestDelta(from: number, to: number, len: number): number {
+  if (len <= 0) return 0;
+  const forward = wrapIndex(to - from, len);
+  return forward > len / 2 ? forward - len : forward;
+}

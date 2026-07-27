@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildSlots, wrapIndex } from "./slotData";
+import { buildSlots, shortestDelta, wrapIndex } from "./slotData";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
 import { DEPRECATED_GROUP } from "@/app/_shared/thoughtCategories";
 
@@ -102,5 +102,22 @@ describe("wrapIndex", () => {
   it("returns 0 for an empty reel", () => {
     expect(wrapIndex(0, 0)).toBe(0);
     expect(wrapIndex(5, 0)).toBe(0);
+  });
+});
+
+describe("shortestDelta", () => {
+  it("takes the wrap when it is shorter", () => {
+    expect(shortestDelta(0, 2, 3)).toBe(-1);
+    expect(shortestDelta(2, 0, 3)).toBe(1);
+    expect(shortestDelta(0, 3, 4)).toBe(-1);
+  });
+
+  it("steps forward when that is shortest, and stays put for same index", () => {
+    expect(shortestDelta(0, 1, 5)).toBe(1);
+    expect(shortestDelta(1, 1, 5)).toBe(0);
+  });
+
+  it("returns 0 for an empty reel", () => {
+    expect(shortestDelta(0, 3, 0)).toBe(0);
   });
 });
