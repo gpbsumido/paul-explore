@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.1.1
+
+- added a "Feature Flags Service" dev-thoughts write-up documenting the backend I built for the flags console in `portfolio_api`. It walks through the `012_feature_flags` schema and migration (one JSONB row per flag matching the console's `Flag` shape 1:1, plus a newest-first audit table), the module's three routes (public `GET` reads, an Auth0-gated `PATCH` via `checkJwt` that audits every change to the real user's email/sub and 401s when signed out), the Zod contract shared with the UI so the two ends never drift, and the `reset-feature-flags` cron that restores the canonical five-flag seed every six hours from the same seed module the migration uses. Lives at `/thoughts/feature-flags` with a summary and iMessage-chat view like the other write-ups, registered in the Architecture & Backend category, with a rendering test.
+
 ## 2026-07-25 - version 1.1.0
 
 - release to `main`, rolling up the recent develop work: the résumé page and its entry points (1.0.11), the shared `@paul-portfolio` `Ticker` migration (1.0.10), the v3 graph small/zoomed-viewport and interaction fixes (1.0.9), and the landing look-and-feel rollout across the app (1.0.8). See the entries below for details.
