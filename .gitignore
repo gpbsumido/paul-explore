@@ -196,3 +196,5 @@ dist
 /test-results/
 /playwright-report/
 /e2e/.auth/
+# Harness scratch
+.harness/
