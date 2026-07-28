@@ -43,7 +43,7 @@ export const FEATURES: FeatureItem[] = [
     id: "operator",
     title: "Operator Dashboard",
     description:
-      "Manage a MicroMart smart store fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
+      "Manage a smart-store retail fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
     href: "/operator",
     color: "#8b5cf6",
     thoughtsHref: "/thoughts/operator-dashboard",
@@ -73,6 +73,15 @@ export const FEATURES: FeatureItem[] = [
     href: "/craft",
     color: "#c084fc",
     thoughtsHref: "/thoughts/craft",
+  },
+  {
+    id: "gallery-wall",
+    title: "Gallery Wall",
+    description:
+      "Upload your photos and arrange a picture gallery wall. Each photo is auto-framed with the best size and orientation, every frame is yours to change, and the whole wall renders to scale against a wall size you enter.",
+    href: "/gallery-wall",
+    color: "#e879f9",
+    thoughtsHref: "/thoughts/gallery-wall",
   },
   {
     id: "fantasy-nba",
@@ -422,6 +431,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "A flag console built engine-first: deterministic FNV-1a bucketing with an avalanche step, sticky and monotonic rollouts, first-match targeting, an explainable evaluation reason, and why the pure core is the whole design",
     color: "#fb923c",
+  },
+  {
+    title: "Gallery Wall",
+    href: "/thoughts/gallery-wall",
+    preview:
+      "An arranger built pure-core-first: standard frame sizes, an aspect-matching auto-framer with a medium tie-break, a centered shelf-packing layout with overflow detection, and an inches-internal model with a cm toggle at the input edge",
+    color: "#e879f9",
   },
 ].reverse();
 
@@ -1082,6 +1098,31 @@ export function CraftPreview() {
   );
 }
 
+// A mini gallery wall: a row of little frames in mixed sizes and orientations,
+// each a thin mat around a tinted "photo", so the card reads as an arranged wall.
+export const GALLERY_FRAMES = [
+  { w: 20, h: 28 },
+  { w: 32, h: 22 },
+  { w: 20, h: 20 },
+  { w: 18, h: 26 },
+] as const;
+
+export function GalleryWallPreview() {
+  return (
+    <div className="flex h-full items-center justify-center gap-1.5">
+      {GALLERY_FRAMES.map((f, i) => (
+        <div
+          key={i}
+          className="rounded-[2px] border border-black/20 bg-white p-[2px] dark:border-white/20 dark:bg-white/90"
+          style={{ width: f.w, height: f.h }}
+        >
+          <div className="h-full w-full rounded-[1px] bg-gradient-to-br from-fuchsia-300/70 to-violet-400/70" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Maps & tokens
 // ---------------------------------------------------------------------------
@@ -1100,6 +1141,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
   "work-portfolio": "--color-feature-work-portfolio",
   "design-system": "--color-feature-design-system",
   craft: "--color-feature-craft",
+  "gallery-wall": "--color-feature-gallery-wall",
 };
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
@@ -1116,6 +1158,7 @@ export const PREVIEW_MAP: Record<string, React.ComponentType> = {
   "work-portfolio": WorkPortfolioPreview,
   "design-system": DesignSystemPreview,
   craft: CraftPreview,
+  "gallery-wall": GalleryWallPreview,
 };
 
 // ---------------------------------------------------------------------------

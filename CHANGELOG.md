@@ -1,5 +1,73 @@
 # Changelog
 
+## 2026-07-28 - version 2.0.0
+
+Release to production. Rolls up everything since 1.11.3, headlined by the Gallery Wall arranger.
+
+- **Gallery Wall** (`/gallery-wall`) — upload photos, each auto-framed at 11 x 14 (stepping down when the resolution cannot carry it), arranged to scale on a wall you describe. Drag frames by hand, or use rows / masonry / a salon-style aesthetic cluster. Overlaps and off-wall frames block saving. Zoom 100-400% with drag-to-pan and a draggable minimap, a printable hang sheet, and a print-cost estimate with local sales tax.
+- **Named walls saved to S3** — save, open, rename, and delete walls, scoped to the signed-in user, with photos uploaded on save and served from the CDN.
+- Major bump because the wall's saved format and the API it talks to are new: walls saved by earlier builds do not load, and the app now requires the `walls` endpoints from portfolio_api 3.0.0.
+- Also in this release: the v4 slot-machine landing page and hub, the feature-flags console, Pocket TCG gating on a real flag, and the MicroMart scrub from the operator dashboard.
+
+## 2026-07-28 - version 1.17.0
+
+- photos now default to an **11 x 14** frame instead of a size chosen to match their aspect ratio. Since photos are fitted inside the mat rather than cropped, matching the aspect no longer buys anything, and a wall of mixed sizes should be a deliberate choice rather than something you undo on every upload. Orientation still follows the photo.
+- the exception is resolution: a photo without the pixels to print sharply at 11 x 14 steps down to the largest size it can actually carry at 150 DPI, rather than being blown up past what it has. `UploadedImage` now records the photo's natural pixel size to make that call.
+- default wall width is now 76 inches.
+- the per-wall Open / Rename / Delete buttons became a single actions menu, so a wall's name keeps the room it needs instead of being truncated.
+
+## 2026-07-28 - version 1.16.0
+
+- added an **Aesthetic arrange** button that gathers every photo into one tightly interlocked cluster in the middle of the wall, the way a salon wall actually reads. It is a bottom-left skyline pack constrained to a cluster narrower than the wall (given the full width it would just make one long row), plus a deterministic stagger so nothing lines up into columns. Same wall, same arrangement, every time.
+- added a **print cost estimate**: subtotal, sales tax for wherever you are, and the total. Prices are Blacks' matte list prices in CAD; the tax rate comes from the existing geo lookup and falls back to a plain pre-tax total when we cannot tell where you are. Sizes with no listed price are called out rather than guessed at.
+- **photos now fit inside their frame instead of being cropped.** Changing a frame size or orientation leaves more mat rather than slicing the picture.
+- **fixed the page scrolling.** Two causes: the settings column's grid row grew to fit its content, and the `sr-only` labels in the photo list are absolutely positioned, so they escaped the clipped main element and stretched the document. The columns now scroll on their own and the page itself does not.
+- **fixed re-adding a photo you already added.** Ids are derived from the file, so a second copy collided with the first, landed in the same spot, and tripped the overlap warning. Duplicates now get a `_2` suffix.
+- moved the zoom controls to float over the bottom-left of the wall, moved the how-to text into an info tooltip (it was pushing the page into scrolling), put the Float panel button in line with the Wall & photos heading, moved the print cost to the bottom of the settings column, padded the preview so the wall never runs flush to the edge, and disabled floating on windows too narrow for it.
+
+## 2026-07-28 - version 1.15.3
+
+- fixed saved walls reopening blank. Photos were sent under a multipart field named after the image id, and ids come from filenames -- a screenshot named "... 10.40.57 AM.png" carries spaces and a narrow no-break space, which do not survive as a field name. The photo uploaded fine but the server could not match it back to its image, so the wall kept a `blob:` URL that dies with the page. Photos are now paired to images by position against an explicit `imageIds` list.
+- documented the whole debugging run on the gallery wall thoughts page: four separate bugs, all with the identical blank-wall symptom, and the piece of evidence that actually cracked it (the browser made no image requests at all).
+
+## 2026-07-28 - version 1.15.2
+
+- fixed saved gallery walls opening blank. The photos come back from S3 on a different origin, but that origin was not in the CSP `img-src` allowlist, so the browser blocked every one of them -- frames drew, photos did not. The CSP now reads `NEXT_PUBLIC_MEDIA_ORIGIN` and adds it to `img-src` (and `connect-src`), so it can be pointed at a CloudFront or bucket URL per environment without a code change.
+- moved the CSP out of `src/proxy.ts` into `src/lib/csp.ts` so the part that varies by environment is unit tested, including that a media origin can never widen `script-src`.
+
+## 2026-07-28 - version 1.15.1
+
+- fixed the floating settings panel not docking again. The panel header doubles as the drag handle and holds the Dock button, so pressing that button started a drag and captured the pointer, which swallowed the button's own click. Presses that land on a control no longer start a drag, so Float and Dock both work. Docked the header has no drag handlers at all, which is why only one direction was broken.
+
+## 2026-07-28 - version 1.15.0
+
+- replaced the single-slot `localStorage` save with named walls you can keep. A new Saved walls panel lets you name the current wall, save it, open a saved wall, rename it, and delete it, all backed by the portfolio API's S3 storage (one folder per wall, scoped to the signed-in user). Saving with a wall open updates that wall; saving without one creates a new one.
+- photos upload on save: the original `File` behind each photo is kept alongside the wall state (out of the reducer, so state stays serializable), and only images still held as `blob:`/`data:` URLs are sent. The server optimizes them to WebP and hands back CDN URLs, so re-saving an unchanged wall never re-uploads a thing.
+- added the `/api/walls` and `/api/walls/[id]` BFF routes that attach the Auth0 token and forward to the portfolio API, streaming the multipart body through verbatim so the upload boundary survives.
+
+## 2026-07-28 - version 1.14.0
+
+- made the zoomed wall pannable: grab and drag the wall itself to move around when zoomed in (frames still drag on their own), and drag inside the zoom preview to jump the window to that part of the wall. The minimap-to-scroll mapping is a pure `minimapPointToScroll` that inverts `viewportRect`.
+- moved the zoom preview minimap to the bottom-right and padded it clear of the preview window's scrollbar when one is showing.
+- gave the settings column its own scroll so a tall stack of per-photo boxes no longer scrolls the whole page, and added a Float panel toggle that pops the settings out into a draggable floating panel so the wall gets the full width.
+
+## 2026-07-27 - version 1.13.0
+
+- made the gallery wall arrangeable by hand. Drag any frame anywhere on the wall with a pointer, or focus one and nudge it with the arrow keys (Shift for a bigger step). The first drag freezes every frame at its current auto spot so moving one no longer reflows the others.
+- turned overlap into a hard stop. Frames that overlap or hang off the wall turn red, a warning pops over the preview, and Save is disabled until the wall is clean - all driven by pure `findOverlaps`/`findOutOfBounds` checks and a single `canSave` flag. Auto-arrange untangles everything back into a valid layout in one click.
+- added a true staggered masonry layout alongside the original rows, picked with a Layout toggle. Both are pure functions that seed the un-dragged frames.
+- added a printable hang sheet: a measured table giving each frame's hook position from the wall's left and top edges (following the unit toggle), so the on-screen plan becomes a tape-measure checklist.
+- added saving a wall to `localStorage` (gated on a valid arrangement) with a Restore button.
+- added zoom to the preview: type a percentage or use the +/- buttons (clamped 100-400%). The preview window is now a fixed size no matter the wall or zoom - the wall fits and centres inside it, and zooming scrolls to let you pan. A minimap shows which slice of the wall you're looking at, and the SVG stays sharp at any zoom.
+
+## 2026-07-27 - version 1.12.0
+
+- added a Gallery Wall arranger at `/gallery-wall`. Upload photos and each one is auto-framed with a best-fit standard size and orientation, every frame is yours to change, and the whole wall renders to scale against a wall size you enter, warning you when the frames don't fit. Built pure-core-first: an aspect-matching auto-framer with a medium tie-break, a centered shelf-packing layout with overflow detection, and an inches-internal model with a cm toggle only at the input edge. The preview is a single SVG whose viewBox is the wall's physical size, so there's no pixel math, and it reads as one labelled image region for screen readers.
+- wired the feature into the hub grid, the v3 graph, the v4 slot machine, and the command palette from the same `FEATURES`/`THOUGHTS` data, added a `--color-feature-gallery-wall` token, and wrote the dev-notes page at `/thoughts/gallery-wall`.
+## 2026-07-27 - version 1.11.4
+
+- scrubbed the named "MicroMart" reference out of the operator dashboard so it just describes a generic smart-store retail company instead. The hub blurb now reads "a smart-store retail fleet", and the sample operator activity actors use a fictional `@smartstore.example` domain rather than a real-sounding company one.
+
 ## 2026-07-27 - version 1.11.3
 
 - removed a duplicate "Feature Flags" write-up entry that the develop merge left in `THOUGHTS` (both sides had added it). The duplicate was breaking two suites - the graph built one fewer node than the non-deprecated write-up count, and the command registry generated two commands with the same id. Also regenerated the v4 docs screenshots to match the current look (single loupe, populated combos, footer version picker).
