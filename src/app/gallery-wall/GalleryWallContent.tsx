@@ -6,11 +6,16 @@ import {
   useEffect,
   useRef,
   type ChangeEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import WallStage from "./WallStage";
-import { viewportRect, type ViewportMetrics } from "./_lib/arrange";
+import {
+  viewportRect,
+  minimapPointToScroll,
+  type ViewportMetrics,
+} from "./_lib/arrange";
 import { FRAME_SIZES, type Orientation } from "./_lib/frames";
 import {
   galleryReducer,
@@ -84,7 +89,16 @@ export default function GalleryWallContent({ initialState }: Props) {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [canRestore, setCanRestore] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const minimapRef = useRef<SVGSVGElement>(null);
   const [view, setView] = useState<ViewportMetrics | null>(null);
+  // Width of the preview window's scrollbar, so the minimap can clear it.
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
+  // Grab-to-pan the wall itself while zoomed in.
+  const pan = useRef<{ x: number; y: number; left: number; top: number } | null>(
+    null,
+  );
+  const [panning, setPanning] = useState(false);
+  const draggingMinimap = useRef(false);
 
   // Only look for a saved wall on the client, after mount, so the server and
   // first client render match. Skipped when a state is injected (tests).
@@ -110,6 +124,81 @@ export default function GalleryWallContent({ initialState }: Props) {
       clientWidth: el.clientWidth,
       clientHeight: el.clientHeight,
     });
+    setScrollbarWidth(el.offsetWidth - el.clientWidth);
+  };
+
+  // Drag the wall to pan while zoomed in. Frames capture their own pointer for
+  // moving, so a drag that starts on a frame is left alone and never pans.
+  const onWallPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const el = viewportRef.current;
+    if (!el || zoom <= 1) return;
+    if ((event.target as Element).closest("[data-frame-id]")) return;
+    pan.current = {
+      x: event.clientX,
+      y: event.clientY,
+      left: el.scrollLeft,
+      top: el.scrollTop,
+    };
+    setPanning(true);
+    el.setPointerCapture(event.pointerId);
+  };
+
+  const onWallPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const el = viewportRef.current;
+    const start = pan.current;
+    if (!el || !start) return;
+    el.scrollLeft = start.left - (event.clientX - start.x);
+    el.scrollTop = start.top - (event.clientY - start.y);
+  };
+
+  const endPan = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!pan.current) return;
+    pan.current = null;
+    setPanning(false);
+    viewportRef.current?.releasePointerCapture(event.pointerId);
+  };
+
+  // Drag inside the minimap to jump the window to that part of the wall.
+  const panToMinimap = (clientX: number, clientY: number) => {
+    const el = viewportRef.current;
+    const svg = minimapRef.current;
+    if (!el || !svg) return;
+    const rect = svg.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const point = {
+      x: ((clientX - rect.left) / rect.width) * state.wall.width,
+      y: ((clientY - rect.top) / rect.height) * state.wall.height,
+    };
+    const { scrollLeft, scrollTop } = minimapPointToScroll(
+      point,
+      {
+        scrollLeft: el.scrollLeft,
+        scrollTop: el.scrollTop,
+        scrollWidth: el.scrollWidth,
+        scrollHeight: el.scrollHeight,
+        clientWidth: el.clientWidth,
+        clientHeight: el.clientHeight,
+      },
+      state.wall,
+    );
+    el.scrollLeft = scrollLeft;
+    el.scrollTop = scrollTop;
+  };
+
+  const onMinimapPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    draggingMinimap.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    panToMinimap(event.clientX, event.clientY);
+  };
+
+  const onMinimapPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (draggingMinimap.current) panToMinimap(event.clientX, event.clientY);
+  };
+
+  const endMinimapDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (!draggingMinimap.current) return;
+    draggingMinimap.current = false;
+    event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
   const setZoomTo = (z: number) => {
@@ -266,7 +355,13 @@ export default function GalleryWallContent({ initialState }: Props) {
                 <div
                   ref={viewportRef}
                   onScroll={syncView}
-                  className="h-[clamp(320px,52vh,520px)] overflow-auto rounded-lg border border-border bg-surface/40"
+                  onPointerDown={onWallPointerDown}
+                  onPointerMove={onWallPointerMove}
+                  onPointerUp={endPan}
+                  onPointerCancel={endPan}
+                  className={`h-[clamp(320px,52vh,520px)] overflow-auto rounded-lg border border-border bg-surface/40 ${
+                    zoom > 1 ? (panning ? "cursor-grabbing" : "cursor-grab") : ""
+                  }`}
                 >
                   <div
                     className="h-full w-full"
@@ -295,12 +390,18 @@ export default function GalleryWallContent({ initialState }: Props) {
                   <div
                     role="img"
                     aria-label="Zoom preview minimap"
-                    className="pointer-events-none absolute right-3 top-3 w-32 overflow-hidden rounded-md border border-border bg-background/85 p-1 shadow-sm backdrop-blur"
+                    className="absolute w-32 overflow-hidden rounded-md border border-border bg-background/85 p-1 shadow-sm backdrop-blur"
+                    style={{ right: 12 + scrollbarWidth, bottom: 12 }}
                   >
                     <svg
+                      ref={minimapRef}
                       viewBox={`0 0 ${state.wall.width} ${state.wall.height}`}
                       preserveAspectRatio="xMidYMid meet"
-                      className="w-full"
+                      onPointerDown={onMinimapPointerDown}
+                      onPointerMove={onMinimapPointerMove}
+                      onPointerUp={endMinimapDrag}
+                      onPointerCancel={endMinimapDrag}
+                      className="w-full cursor-pointer touch-none"
                       style={{ aspectRatio: `${state.wall.width} / ${state.wall.height}` }}
                     >
                       <rect

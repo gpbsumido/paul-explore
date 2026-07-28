@@ -262,3 +262,29 @@ export function viewportRect(
     height: fh * wall.height,
   };
 }
+
+const clampScroll = (value: number, max: number): number =>
+  Math.min(Math.max(value, 0), Math.max(0, max));
+
+/**
+ * The scroll offset that centres the zoomed window on a wall point, for driving
+ * the pan when you drag inside the minimap. It's the inverse of
+ * {@link viewportRect}: dropping the resulting scroll back through that helper
+ * puts the viewport box's centre on the point (clamped at the wall's edges).
+ * Returns the origin when nothing is scrollable.
+ */
+export function minimapPointToScroll(
+  point: { x: number; y: number },
+  m: ViewportMetrics,
+  wall: { width: number; height: number },
+): { scrollLeft: number; scrollTop: number } {
+  if (m.scrollWidth <= 0 || m.scrollHeight <= 0) {
+    return { scrollLeft: 0, scrollTop: 0 };
+  }
+  const scrollLeft = (point.x / wall.width) * m.scrollWidth - m.clientWidth / 2;
+  const scrollTop = (point.y / wall.height) * m.scrollHeight - m.clientHeight / 2;
+  return {
+    scrollLeft: clampScroll(scrollLeft, m.scrollWidth - m.clientWidth),
+    scrollTop: clampScroll(scrollTop, m.scrollHeight - m.clientHeight),
+  };
+}
