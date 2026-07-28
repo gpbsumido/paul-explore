@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-28 - version 2.1.1
+
+- split the raw feature and write-up data out of `featureData.tsx` into a plain `featureData.data.ts`. The data has no JSX in it, but living beside the preview components meant it was a `"use client"` module importing framer-motion -- so the v3 graph data, the v4 slot data, and the header's feature/write-up link all dragged that in for a list of hrefs, and no server component could read it at all. The `.tsx` re-exports everything, so all existing importers are untouched; the three data-only modules now import the plain one. Added a guard test that the data module never gains a client directive, an animation import, or JSX.
+
 ## 2026-07-28 - version 2.1.0
 
 - added a dev-thoughts write-up at `/thoughts/typescript-7` on why this project is staying on TypeScript 5.9 rather than taking the Go-native compiler: `typescript-eslint` peer-caps at `<6.1.0` (and arrives via `eslint-config-next`, so it is easy to miss), TypeScript 7.0 shipped without the stable programmatic API that type-aware linting needs, and a measured 4.05s type-check over 725 files makes the 8-12x speedup worth about three and a half seconds. Ends with how to take the speed anyway via `@typescript/native-preview`, and what to actually watch for (7.1, not 7.0).
