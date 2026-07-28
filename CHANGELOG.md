@@ -1,8 +1,16 @@
 # Changelog
 
-## 2026-07-28 - version 1.17.1
+## 2026-07-28 - version 2.0.1
 
 - restored the log in / log out control on the pages that had switched it off: Gallery Wall, Craft, Resume, the thoughts index and every thoughts page, and the design-system showcase. `showLogout={false}` predates the menu learning to resolve the real session, so it now just hides the only account control on those pages (issue #244). Added an integrity test so no page can suppress it again.
+## 2026-07-28 - version 2.0.0
+
+Release to production. Rolls up everything since 1.11.3, headlined by the Gallery Wall arranger.
+
+- **Gallery Wall** (`/gallery-wall`) — upload photos, each auto-framed at 11 x 14 (stepping down when the resolution cannot carry it), arranged to scale on a wall you describe. Drag frames by hand, or use rows / masonry / a salon-style aesthetic cluster. Overlaps and off-wall frames block saving. Zoom 100-400% with drag-to-pan and a draggable minimap, a printable hang sheet, and a print-cost estimate with local sales tax.
+- **Named walls saved to S3** — save, open, rename, and delete walls, scoped to the signed-in user, with photos uploaded on save and served from the CDN.
+- Major bump because the wall's saved format and the API it talks to are new: walls saved by earlier builds do not load, and the app now requires the `walls` endpoints from portfolio_api 3.0.0.
+- Also in this release: the v4 slot-machine landing page and hub, the feature-flags console, Pocket TCG gating on a real flag, and the MicroMart scrub from the operator dashboard.
 
 ## 2026-07-28 - version 1.17.0
 
