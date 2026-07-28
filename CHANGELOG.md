@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-07-28 - version 2.2.5
+
+- every chalk word is now the same size, and clearance is checked against measured render dimensions rather than guessed ones. The height was the one that mattered: a script face renders about 3.6em tall once ascenders, descenders and canvas padding are counted, against the 1.4em I had assumed, which is why words kept clipping the interface even after the keep-out list was right.
+- long labels no longer fade mid-stroke -- the per-character time budget now clears tegaki's actual draw rate, and the hold runs to 76% of the cycle rather than 62%.
+- the footer, the reel columns and the result panel joined the keep-out list.
+
+## 2026-07-28 - version 2.2.4
+
+- the chalk backdrop now draws with **tegaki**, which renders the pen's own stroke path rather than tracing around the glyph outline the way a stroke-dasharray on SVG text does. That difference is the whole point: an outline trace reads as a shape being outlined, this reads as handwriting. Costs about 135 KB net over the wire, and needs a `FontFace` stub in the test setup because jsdom has no such API.
+- at most four words on screen at a time, arriving less often, and each word's lifetime scales with its length -- a fixed one faded long labels like "Work Portfolio" mid-stroke.
+- words no longer reappear fully drawn: the life animation used a `backwards` fill-mode, so once it finished the element reverted to its base style and the finished word popped back into view.
+- placement now measures eight parts of the interface (header, stats line, loupe, reel columns, spin button, result panel) and tests a word's whole box rather than its centre point, since a long word reached across an obstacle while its midpoint sat clear.
+
+## 2026-07-28 - version 2.2.3
+
+- stopped chalk words landing on the interface. Placement now measures the header, the stats line, the loupe and the spin button at runtime and rejects any spot that would cover one, rather than trusting percentages read off a single window -- the header is a fixed pixel height, so it covers a fifth of a short window and a tenth of a tall one, and a hard-coded band drifted straight under it.
+
+## 2026-07-28 - version 2.2.2
+
+- took the chalk words out of the tab order and hid them from assistive tech. They are decoration with a pointer shortcut attached, not a control: they come and go every few seconds, so a keyboard user could land on one and have focus vanish out from under them. Nothing is lost, because spinning to an app is fully keyboard-operable through the reels themselves (arrows to move, Enter to open) and the spin button.
+
+## 2026-07-28 - version 2.2.1
+
+- added a chalk backdrop to the v4 landing page: app names write themselves in across the background between pulls, sit for a moment, then dissolve, the way ink sinks into Riddle's diary. Each word runs its own loop on its own delay, so at any moment some are being written while others are fading.
+- the write-on is a stroke-dash trace on SVG text in a handwriting face, with a soft fill arriving behind the traced line -- not an opacity fade. The dash length scales with the label, because a fixed one repeats on longer words and reveals them in chunks instead of drawing them.
+- at most six words are on screen at once, arriving one at a time on a timer and dropping the oldest, each at a fresh random position in a band above or below the reels -- so a name never writes itself into the same spot twice and the page is never briefly empty or briefly crowded. Scheduled in JavaScript rather than looped in CSS, because a CSS loop can only rewrite the same word into the same place.
+- clicking a name spins the reels to that app rather than navigating, so the machine stays the way you get anywhere. `spin()` now takes an optional target.
+- hidden while the reels turn, and not rendered at all under reduced motion.
+
 ## 2026-07-28 - version 2.2.0
 
 - added a win celebration to the v4 slot machine. When all three columns settle on an app you can actually open, party confetti falls across the whole window, the loupe already over the reels catches a shine and glows in the landed colour, and a short square-wave jingle plays.

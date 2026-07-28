@@ -19,6 +19,7 @@ import {
 // body stay in Geist so the serif reads as the machine's voice, not a theme.
 import { isWinningPull } from "./win";
 import WinCelebration, { WIN_MS, type FallStyle } from "./WinCelebration";
+import ChalkBackdrop from "./ChalkBackdrop";
 import { playWinSound, soundEnabled, setSoundEnabled } from "./winSound";
 
 const fraunces = Fraunces({ subsets: ["latin"], display: "swap" });
@@ -624,6 +625,14 @@ export default function SlotMachine({
   // A grab-bag of option and write-up labels the short reels scroll as blurred
   // filler while they spin, so a one-item or empty column still turns. It never
   // reads sharply (it's blurred and fast), so the exact contents don't matter.
+  /** The apps, for the chalk backdrop. Only openable ones are worth writing. */
+  const chalkTargets = useMemo(() => {
+    const apps = categories.find((c) => c.id === "apps");
+    return (apps?.options ?? [])
+      .filter((o) => !o.disabled)
+      .map((o) => ({ id: o.id, label: o.label, color: o.color }));
+  }, [categories]);
+
   const spinPool = useMemo(() => {
     const labels: string[] = [];
     categories.forEach((c) =>
@@ -765,6 +774,16 @@ export default function SlotMachine({
     if (thought) openHref(thought.href);
   };
 
+  /** Where an app sits in the reels, so the backdrop can spin straight to it. */
+  const comboForOption = (optionId: string) => {
+    const cat = categories.findIndex((c) =>
+      c.options.some((o) => o.id === optionId),
+    );
+    if (cat < 0) return undefined;
+    const opt = categories[cat].options.findIndex((o) => o.id === optionId);
+    return { cat, opt, note: 0 };
+  };
+
   const clearTimers = () => {
     timers.current.forEach((id) => window.clearTimeout(id));
     timers.current = [];
@@ -782,9 +801,14 @@ export default function SlotMachine({
     return combos[combos.length - 1];
   };
 
-  const spin = () => {
+  /**
+   * Pull the machine. With no argument it picks at random; pass a combo to land
+   * somewhere specific, which is how clicking a name in the backdrop works --
+   * the reels actually spin to it rather than jumping.
+   */
+  const spin = (target?: { cat: number; opt: number; note: number }) => {
     if (spinning) return;
-    const combo = pickCombo();
+    const combo = target ?? pickCombo();
     const catTarget = combo.cat;
     const optList = categories[catTarget].options;
     const optTarget = combo.opt;
@@ -949,6 +973,19 @@ export default function SlotMachine({
       {/* Confetti falls behind the machine: it should frame the win, not sit on
           top of the glass you are trying to read. Not rendered under reduced
           motion. */}
+      {/* App names writing themselves across the background between pulls.
+          Hidden while the reels turn so it never competes with them. */}
+      {!reduced ? (
+        <ChalkBackdrop
+          targets={chalkTargets}
+          hidden={spinning}
+          onPick={(id) => {
+            const target = comboForOption(id);
+            if (target) spin(target);
+          }}
+        />
+      ) : null}
+
       {won ? (
         <WinCelebration
           key={winKey}
@@ -995,6 +1032,7 @@ export default function SlotMachine({
           {/* A quiet data line instead of cabinet chrome. */}
           <m.p
             variants={revealItem}
+            data-chalk-avoid
             className="mb-8 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted"
           >
             {categories.length} categories · {totalWriteups} write-ups · one
@@ -1142,12 +1180,13 @@ export default function SlotMachine({
               whatever category is currently up. */}
           <m.div
             variants={revealItem}
+            data-chalk-avoid
             className="relative mt-7 flex items-center justify-center gap-6 sm:mt-9"
           >
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
             <button
               type="button"
-              onClick={spin}
+              onClick={() => spin()}
               disabled={spinning}
               aria-label="Spin the reels"
               className="flex h-20 w-20 items-center justify-center rounded-full border bg-background/40 font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-foreground backdrop-blur-sm transition-[transform,border-color,background-color] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
@@ -1187,6 +1226,7 @@ export default function SlotMachine({
               links change between selections. */}
           <m.div
             variants={revealItem}
+            data-chalk-result
             className="mx-auto mt-7 flex h-32 w-full max-w-2xl flex-col items-center justify-start overflow-hidden text-center sm:mt-9"
           >
             {spinning ? (
@@ -1254,6 +1294,7 @@ export default function SlotMachine({
       {/* Interaction hint, purely visual */}
       <div
         aria-hidden
+        data-chalk-avoid
         className="pointer-events-none absolute bottom-5 left-5 z-40 hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted sm:block"
       >
         ↑↓ select · enter opens
@@ -1262,6 +1303,7 @@ export default function SlotMachine({
       {/* Corner nav */}
       <nav
         aria-label="Site"
+        data-chalk-avoid
         className="pointer-events-auto absolute bottom-5 right-5 z-40 flex items-center gap-3 text-xs text-muted"
       >
         <Link

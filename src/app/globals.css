@@ -371,3 +371,25 @@
     opacity: 1;
   }
 }
+
+/* The v4 chalk backdrop: app names tracing themselves in, sitting a moment,
+   then dissolving, the way ink sinks into Riddle's diary. Each word runs the
+   same loop on its own delay and duration, so at any moment some are being
+   written and some are fading. */
+
+/* tegaki draws the strokes; this only handles the life of the word after it is
+   written -- it holds, then dissolves, the way ink sinks into the page. */
+@keyframes v4-chalk-life {
+  0% {
+    opacity: 0.85;
+  }
+  /* Hold well past the point the pen finishes: the fade used to start at 62%,
+     which cut long words off mid-stroke. */
+  76% {
+    opacity: 0.85;
+  }
+  92%,
+  100% {
+    opacity: 0;
+  }
+}
