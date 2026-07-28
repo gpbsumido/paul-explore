@@ -109,7 +109,13 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
       className={`pointer-events-none absolute inset-0 z-0 overflow-hidden transition-opacity duration-700 ${
         hidden ? "opacity-0" : "opacity-100"
       }`}
-      aria-hidden={hidden}
+      // Decoration, and hidden from assistive tech and the tab order entirely.
+      // Clicking a name is a shortcut, not the only route: the reels are fully
+      // keyboard-operable (arrows to move, Enter to open) and the spin button is
+      // right there. Putting these in the tab order would be actively hostile --
+      // they come and go every few seconds, so focus would land on a word and
+      // then vanish out from under it.
+      aria-hidden
     >
       {words.map((w) => {
         const chars = [...w.target.label];
@@ -117,10 +123,9 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
           <button
             key={w.key}
             type="button"
-            tabIndex={hidden ? -1 : 0}
+            tabIndex={-1}
             onClick={() => onPick(w.target.id)}
-            aria-label={`Spin to ${w.target.label}`}
-            className="pointer-events-auto absolute select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
+            className="pointer-events-auto absolute cursor-pointer select-none rounded"
             style={{
               left: `${w.left}%`,
               top: `${w.top}%`,

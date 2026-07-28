@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-28 - version 2.2.2
+
+- took the chalk words out of the tab order and hid them from assistive tech. They are decoration with a pointer shortcut attached, not a control: they come and go every few seconds, so a keyboard user could land on one and have focus vanish out from under them. Nothing is lost, because spinning to an app is fully keyboard-operable through the reels themselves (arrows to move, Enter to open) and the spin button.
+
 ## 2026-07-28 - version 2.2.1
 
 - added a chalk backdrop to the v4 landing page: app names write themselves in across the background between pulls, sit for a moment, then dissolve, the way ink sinks into Riddle's diary. Each word runs its own loop on its own delay, so at any moment some are being written while others are fading.
