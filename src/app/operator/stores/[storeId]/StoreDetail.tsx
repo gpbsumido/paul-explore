@@ -2,9 +2,7 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { m } from "framer-motion";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
-import { fadeInUp, spring } from "@/lib/animations";
 import { ToastProvider } from "@/contexts/ToastContext";
 import StoreHeader from "@/components/operator/StoreHeader";
 import QuickActions from "@/components/operator/QuickActions";
@@ -45,13 +43,7 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
 
   return (
     <ToastProvider>
-      <m.main
-        className="mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6"
-        variants={fadeInUp}
-        initial="hidden"
-        animate="visible"
-        transition={spring.smooth}
-      >
+      <main className="reveal-up mx-auto max-w-3xl px-4 sm:px-6 py-6 space-y-6">
         <Link
           href="/operator"
           className="inline-flex items-center gap-1 text-xs text-muted hover:text-foreground transition-colors"
@@ -63,7 +55,7 @@ export default function StoreDetail({ storeId }: StoreDetailProps) {
         <Suspense>
           <StoreTabs storeId={storeId} />
         </Suspense>
-      </m.main>
+      </main>
       <ToastNotification />
     </ToastProvider>
   );

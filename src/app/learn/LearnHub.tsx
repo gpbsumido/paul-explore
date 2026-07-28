@@ -730,30 +730,21 @@ export default function LearnHub() {
 
       <main className="relative mx-auto max-w-4xl px-4 py-16 sm:py-20">
         <div className="relative">
-          <m.h1
-            className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl"
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            transition={t}
-          >
+          {/* h1 + intro paint straight off the CSS reveal so the largest
+              above-the-fold text isn't gated on hydration (see the LCP note in
+              /thoughts/tree-shaking-2). The category sections below stay on
+              Framer since they're below the fold and don't touch LCP. */}
+          <h1 className="reveal-up text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Learn
-          </m.h1>
-          <m.p
-            className="mt-4 max-w-lg text-[15px] leading-relaxed text-muted"
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            transition={
-              prefersReduced
-                ? instantTransition
-                : { ...spring.smooth, delay: 0.1 }
-            }
+          </h1>
+          <p
+            className="reveal-up mt-4 max-w-lg text-[15px] leading-relaxed text-muted"
+            style={{ animationDelay: "0.06s" }}
           >
             These aren&apos;t reference docs. Each topic starts with something
             you can poke at — an interactive demo that builds the intuition
             before any code appears. Pick one and give it five minutes.
-          </m.p>
+          </p>
 
           {CATEGORIES.map((category, catIdx) => {
             const topics = TOPICS.filter((t) => t.category === category);

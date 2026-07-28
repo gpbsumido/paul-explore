@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { type ReactNode } from "react";
 import HeaderMenu from "@/components/HeaderMenu";
+import FeatureThoughtsLink from "@/components/FeatureThoughtsLink";
 
 export interface BreadcrumbItem {
   /** Display text. */
@@ -88,15 +89,19 @@ function BackChevron() {
  * />
  * ```
  *
- * @example Thoughts page (no logout, narrow container, view toggle)
+ * @example Thoughts page (narrow container, view toggle)
  * ```tsx
  * <PageHeader
  *   breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Calendar" }]}
  *   right={<ViewToggle view={view} setView={setView} />}
- *   showLogout={false}
  *   maxWidth="max-w-3xl"
  * />
  * ```
+ *
+ * Leave `showLogout` alone unless a page genuinely has no business offering
+ * an account control. It defaults to true, and the menu resolves the real
+ * session to show "Log in" or "Log out" -- so switching it off just hides the
+ * only way in or out of an account on that page.
  *
  * @example Hub header with custom left side, settings link, and gradient overlay
  * ```tsx
@@ -188,8 +193,12 @@ export default function PageHeader({
             </ol>
           ))}
 
-        {/* Right: optional slot + dropdown menu */}
+        {/* Right: hop to the other half of this page, optional slot, menu */}
         <div className="ml-auto flex items-center gap-3">
+          {/* Renders only on a feature with a write-up, or a write-up about a
+              feature -- nothing everywhere else. Thoughts pages get it too,
+              since ThoughtLayout renders this same header. */}
+          <FeatureThoughtsLink />
           {right}
           <HeaderMenu showSettings={showSettings} showLogout={showLogout} />
         </div>

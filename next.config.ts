@@ -16,6 +16,22 @@ const nextConfig: NextConfig = {
   // about multiple lockfiles and may trace the wrong workspace root.
   outputFileTracingRoot: path.resolve(__dirname),
 
+  experimental: {
+    // Rewrite barrel imports (import { X } from "pkg") into direct-module
+    // imports so unused members never enter the graph. Next already does this
+    // for a built-in list (recharts, date-fns, lucide-react, and friends), so
+    // we only name the barrels it does NOT cover: our own design-system
+    // package, the two big charting/3D barrels, and framer-motion. Everything
+    // here was confirmed as a real barrel (single entry, many members) before
+    // adding it. See /thoughts/tree-shaking-2.
+    optimizePackageImports: [
+      "@paul-portfolio/react",
+      "@react-three/drei",
+      "@unovis/react",
+      "framer-motion",
+    ],
+  },
+
   async headers() {
     return [
       {

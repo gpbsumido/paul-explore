@@ -142,7 +142,7 @@ export default function PrScreenshotsContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">The requirement</h2>
         <p className="text-muted">
-          Any pull request that changes something a human can see should carry
+          Any pull request that changes something a user can see should carry
           before/after screenshots <em>inline</em> in the description — not as
           links a reviewer has to open, but as images that render where they are
           already looking. Release PRs (<code className={code}>develop</code> →{" "}
@@ -171,7 +171,7 @@ export default function PrScreenshotsContent() {
           <strong>GitHub&apos;s native upload</strong> — the drag-and-drop that
           mints{" "}
           <code className={code}>user-attachments</code> CDN links — is the
-          canonical answer for a human. It is a browser-session feature. There
+          canonical answer. It is a browser-session feature. There
           is no <code className={code}>gh</code> command and no documented API
           that reproduces it, so an unattended agent simply cannot reach it.
         </p>

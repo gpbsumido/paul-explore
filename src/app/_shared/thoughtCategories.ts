@@ -40,7 +40,14 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Performance",
-    slugs: ["perf", "render-perf", "vitals", "bundle", "tree-shaking"],
+    slugs: [
+      "perf",
+      "render-perf",
+      "vitals",
+      "bundle",
+      "tree-shaking",
+      "tree-shaking-2",
+    ],
   },
   {
     name: "Architecture & Backend",
@@ -69,7 +76,13 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Build & Tooling",
-    slugs: ["npm-to-pnpm", "bundlers", "deployment", "pr-screenshots"],
+    slugs: [
+      "npm-to-pnpm",
+      "bundlers",
+      "deployment",
+      "pr-screenshots",
+      "typescript-7",
+    ],
   },
 ];
 

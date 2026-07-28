@@ -1,4 +1,4 @@
-import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
+import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
 

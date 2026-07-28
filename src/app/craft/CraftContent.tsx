@@ -147,7 +147,6 @@ export default function CraftContent() {
     <PageShell colorA="#c084fc" colorB="#38bdf8">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Craft" }]}
-        showLogout={false}
         maxWidth="max-w-3xl"
       />
 
