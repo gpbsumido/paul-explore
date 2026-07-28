@@ -43,7 +43,7 @@ export const FEATURES: FeatureItem[] = [
     id: "operator",
     title: "Operator Dashboard",
     description:
-      "Manage a MicroMart smart store fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
+      "Manage a smart-store retail fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
     href: "/operator",
     color: "#8b5cf6",
     thoughtsHref: "/thoughts/operator-dashboard",

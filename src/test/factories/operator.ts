@@ -231,10 +231,10 @@ const ACTIVITY_DESCRIPTIONS: Record<ActivityType, readonly string[]> = {
 };
 
 const ACTORS = [
-  "operator@micromart.com",
-  "tech-support@micromart.com",
-  "admin@micromart.com",
-  "field-ops@micromart.com",
+  "operator@smartstore.example",
+  "tech-support@smartstore.example",
+  "admin@smartstore.example",
+  "field-ops@smartstore.example",
 ] as const;
 
 export function buildActivityEvent(
