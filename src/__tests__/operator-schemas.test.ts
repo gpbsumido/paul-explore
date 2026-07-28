@@ -222,7 +222,7 @@ describe("activityEventSchema", () => {
     type: "restock" as const,
     description: "Restocked 12 units of Coca-Cola 355ml",
     timestamp: "2026-06-29T08:00:00Z",
-    actor: "operator@micromart.com",
+    actor: "operator@smartstore.example",
   };
 
   it("accepts a valid activity event", () => {

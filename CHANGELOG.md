@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.11.4
+
+- scrubbed the named "MicroMart" reference out of the operator dashboard so it just describes a generic smart-store retail company instead. The hub blurb now reads "a smart-store retail fleet", and the sample operator activity actors use a fictional `@smartstore.example` domain rather than a real-sounding company one.
+
 ## 2026-07-27 - version 1.11.3
 
 - removed a duplicate "Feature Flags" write-up entry that the develop merge left in `THOUGHTS` (both sides had added it). The duplicate was breaking two suites - the graph built one fewer node than the non-deprecated write-up count, and the command registry generated two commands with the same id. Also regenerated the v4 docs screenshots to match the current look (single loupe, populated combos, footer version picker).
