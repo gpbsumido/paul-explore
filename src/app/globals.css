@@ -238,6 +238,39 @@
   animation: scroll-hint 2s ease-in-out infinite;
 }
 
+/* Entrance reveal — a fade-and-rise that runs straight off first paint instead
+   of waiting for the JS bundle to hydrate. We used to do this with framer-motion
+   initial="hidden", but that ships the largest above-the-fold content as
+   opacity:0 in the server HTML, so LCP couldn't fire until hydration finished
+   (~4s on throttled mobile). A CSS animation paints on the compositor the
+   moment the element renders, so the content is visible at FCP and LCP lands
+   with it. Fill mode is `backwards` on purpose: the from-state applies before
+   the animation starts, but the element reverts to its plain styles once it
+   ends, so a later :hover transform isn't pinned by a forwards fill. Stagger a
+   group by setting inline animation-delay on each child. */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-up {
+  animation: reveal-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* Honour the OS reduced-motion setting without a JS hook: no slide, no fade,
+   just the finished state. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up {
+    animation: none;
+  }
+}
+
 /* Glass card — the v3 landing's frosted, tinted surface. Semi-transparent so an
    AmbientBackground behind it shows through, blurred. Tint it toward an accent
    by setting --glass-accent (e.g. a feature token); defaults to a neutral tint.

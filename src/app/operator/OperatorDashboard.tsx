@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { m } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
-import { fadeInUp, spring } from "@/lib/animations";
 import { queryKeys } from "@/lib/queryKeys";
 import { sortStores, filterStores } from "@/lib/operator-utils";
 import type {
@@ -150,13 +148,7 @@ export default function OperatorDashboard() {
   }
 
   return (
-    <m.main
-      className="mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6"
-      variants={fadeInUp}
-      initial="hidden"
-      animate="visible"
-      transition={spring.smooth}
-    >
+    <main className="reveal-up mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
       <h1 className="sr-only">Fleet Dashboard</h1>
       {/* One-line orientation for a cold visitor landing on a dense dashboard */}
       <p className="text-sm text-muted">
@@ -253,7 +245,7 @@ export default function OperatorDashboard() {
           })}
         </div>
       )}
-    </m.main>
+    </main>
   );
 }
 

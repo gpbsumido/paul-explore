@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fraunces } from "next/font/google";
-import { m, useReducedMotion, type Variants } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import GraphBackground from "@/app/v3/graph/GraphBackground";
 import { openCommandPalette } from "@/lib/command-palette/open-event";
 import { useShortcutKey } from "@/hooks/useShortcutKey";
@@ -560,20 +560,6 @@ function Reel({
   );
 }
 
-const revealContainer: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1, delayChildren: 0.12 } },
-};
-
-const revealItem: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
 type Frozen = { cat: number; opt: number; note: number };
 
 /**
@@ -1023,25 +1009,23 @@ export default function SlotMachine({
         aria-label="Slot machine of features and write-ups"
         className="absolute inset-0 flex flex-col overflow-y-auto px-5 pb-20 pt-24 sm:px-8 sm:pt-28"
       >
-        <m.div
-          variants={revealContainer}
-          initial={reduced ? false : "hidden"}
-          animate="show"
-          className="m-auto w-full max-w-6xl"
-        >
+        <div className="m-auto w-full max-w-6xl">
           {/* A quiet data line instead of cabinet chrome. */}
-          <m.p
-            variants={revealItem}
+          <p
             data-chalk-avoid
-            className="mb-8 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted"
+            className="reveal-up mb-8 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted"
+            style={{ animationDelay: "0.02s" }}
           >
             {categories.length} categories · {totalWriteups} write-ups · one
             pull
-          </m.p>
+          </p>
 
           <div className="relative grid grid-cols-3 gap-4 sm:gap-8">
 
-            <m.div variants={revealItem} className="min-w-0">
+            <div
+              className="reveal-up min-w-0"
+              style={{ animationDelay: "0.05s" }}
+            >
               <Reel
                 label="Category"
                 reelKey="cat"
@@ -1060,8 +1044,11 @@ export default function SlotMachine({
                 }}
                 spinFiller={spinPool}
               />
-            </m.div>
-            <m.div variants={revealItem} className="min-w-0">
+            </div>
+            <div
+              className="reveal-up min-w-0"
+              style={{ animationDelay: "0.08s" }}
+            >
               <Reel
                 key={category.id}
                 label={optLabel}
@@ -1086,8 +1073,11 @@ export default function SlotMachine({
                 }}
                 spinFiller={spinPool}
               />
-            </m.div>
-            <m.div variants={revealItem} className="min-w-0">
+            </div>
+            <div
+              className="reveal-up min-w-0"
+              style={{ animationDelay: "0.11s" }}
+            >
               <Reel
                 key={option?.id ?? "none"}
                 label="Write-up"
@@ -1125,7 +1115,7 @@ export default function SlotMachine({
                   </>
                 }
               />
-            </m.div>
+            </div>
 
             {/* One continuous glass loupe across all three columns instead of a
                 separate bar per reel. The centre row of every column reads as
@@ -1178,10 +1168,10 @@ export default function SlotMachine({
 
           {/* The pull: a single circular key between two hairlines, tinted with
               whatever category is currently up. */}
-          <m.div
-            variants={revealItem}
+          <div
             data-chalk-avoid
-            className="relative mt-7 flex items-center justify-center gap-6 sm:mt-9"
+            className="reveal-up relative mt-7 flex items-center justify-center gap-6 sm:mt-9"
+            style={{ animationDelay: "0.08s" }}
           >
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
             <button
@@ -1218,16 +1208,16 @@ export default function SlotMachine({
               </span>
             </button>
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
-          </m.div>
+          </div>
 
           {/* Result caption: the plain, keyboard-friendly way to open what
               landed. Hidden mid-spin so the pull isn't spoiled. A fixed height
               keeps the whole centred block from reflowing as the blurb and
               links change between selections. */}
-          <m.div
-            variants={revealItem}
+          <div
             data-chalk-result
-            className="mx-auto mt-7 flex h-32 w-full max-w-2xl flex-col items-center justify-start overflow-hidden text-center sm:mt-9"
+            className="reveal-up mx-auto mt-7 flex h-32 w-full max-w-2xl flex-col items-center justify-start overflow-hidden text-center sm:mt-9"
+            style={{ animationDelay: "0.08s" }}
           >
             {spinning ? (
               <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted">
@@ -1282,8 +1272,8 @@ export default function SlotMachine({
                 </div>
               </>
             )}
-          </m.div>
-        </m.div>
+          </div>
+        </div>
 
         {/* Announce the landed combo to screen readers without moving focus. */}
         <div aria-live="polite" className="sr-only">
