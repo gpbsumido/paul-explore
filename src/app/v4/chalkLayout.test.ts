@@ -8,18 +8,22 @@ const seeded = (values: number[]) => {
 };
 
 describe("placeChalkWord", () => {
-  it("keeps the middle of the screen clear for the reels", () => {
-    // Whatever the draw, a word never lands over the machine.
-    for (let i = 0; i <= 10; i += 1) {
-      const rand = seeded([i / 10, i / 10, 0.5, 0.5, 0.5]);
-      const { top } = placeChalkWord(rand);
-      expect(top < 34 || top > 66).toBe(true);
+  it("stays clear of the reels, the callout arrows, and the spin button", () => {
+    // The machine owns the middle: reels, the CATEGORY/APP LINK callouts above
+    // them, and the spin button below. Words live in the strips beyond those.
+    for (let i = 0; i < 200; i += 1) {
+      const p = placeChalkWord(Math.random);
+      expect(p.top <= 14 || p.top >= 88).toBe(true);
+      // Nothing in the lower strip sits over the centred spin button.
+      if (p.top >= 88) {
+        expect(p.left <= 34 || p.left >= 66).toBe(true);
+      }
     }
   });
 
-  it("uses both the upper and lower band", () => {
-    expect(placeChalkWord(seeded([0.1, 0.5, 0.5, 0.5, 0.5])).top).toBeLessThan(34);
-    expect(placeChalkWord(seeded([0.9, 0.5, 0.5, 0.5, 0.5])).top).toBeGreaterThan(66);
+  it("uses both the upper and lower strip", () => {
+    expect(placeChalkWord(seeded([0.1, 0.2, 0.5, 0.5, 0.5])).top).toBeLessThan(15);
+    expect(placeChalkWord(seeded([0.9, 0.1, 0.5, 0.5, 0.5])).top).toBeGreaterThan(87);
   });
 
   it("keeps words on screen horizontally", () => {
@@ -72,7 +76,7 @@ describe("placeChalkWord collision avoidance", () => {
   it("places freely when nothing is on screen", () => {
     const p = placeChalkWord(Math.random, []);
     expect(p.left).toBeGreaterThanOrEqual(0);
-    expect(p.top < 34 || p.top > 66).toBe(true);
+    expect(p.top <= 14 || p.top >= 88).toBe(true);
   });
 });
 

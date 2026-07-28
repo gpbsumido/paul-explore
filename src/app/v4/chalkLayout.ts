@@ -28,12 +28,30 @@ export type ChalkPlacement = {
  * it, picked at random. Column, tilt, size and lifetime are random too, so the
  * same app never writes itself into the same spot twice.
  */
+/**
+ * The machine owns more of the screen than just the reels: the CATEGORY and
+ * APP LINK callouts with their arrows sit above the loupe, and the spin button
+ * sits below it. A word landing in either reads as part of the controls, so the
+ * usable bands are the strips beyond them.
+ */
+const TOP_BAND = { from: 2, to: 14 };
+const BOTTOM_BAND = { from: 88, to: 97 };
+/** The spin button is centred, so the lower strip keeps away from the middle. */
+const SPIN_COLUMN = { from: 34, to: 66 };
+
 function candidate(rand: () => number): ChalkPlacement {
   const above = rand() < 0.5;
+  const band = above ? TOP_BAND : BOTTOM_BAND;
+  let left = 4 + rand() * 92;
+  if (!above && left > SPIN_COLUMN.from && left < SPIN_COLUMN.to) {
+    // Push it out to whichever side it was already nearer.
+    const mid = (SPIN_COLUMN.from + SPIN_COLUMN.to) / 2;
+    left = left < mid ? SPIN_COLUMN.from - (mid - left) * 0.9 : SPIN_COLUMN.to + (left - mid) * 0.9;
+    left = Math.min(96, Math.max(4, left));
+  }
   return {
-    left: 5 + rand() * 90,
-    // Two bands, well clear of the reels across the middle of the viewport.
-    top: above ? 4 + rand() * 26 : 68 + rand() * 26,
+    left,
+    top: band.from + rand() * (band.to - band.from),
     rotate: (rand() - 0.5) * 14,
     size: 1.05 + rand() * 1.1,
     duration: 6500 + rand() * 3500,
