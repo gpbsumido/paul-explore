@@ -19,10 +19,18 @@ import {
 } from "./_lib/arrange";
 import { FRAME_SIZES, type Orientation } from "./_lib/frames";
 import {
+  estimatePrintCost,
+  formatCad,
+  taxRateFor,
+  withTax,
+  PRICE_SOURCE,
+} from "./_lib/pricing";
+import {
   galleryReducer,
   initialGalleryState,
   computeValidation,
   computeHangSheet,
+  uniqueImageId,
   type GalleryState,
   type LayoutMode,
   type UploadedImage,
@@ -87,6 +95,11 @@ export default function GalleryWallContent({ initialState }: Props) {
   const [zoom, setZoom] = useState(1);
   const [zoomText, setZoomText] = useState<string | null>(null);
   const [showHangSheet, setShowHangSheet] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [place, setPlace] = useState<{
+    country?: string;
+    regionName?: string;
+  } | null>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<SVGSVGElement>(null);
   const [view, setView] = useState<ViewportMetrics | null>(null);
@@ -104,6 +117,8 @@ export default function GalleryWallContent({ initialState }: Props) {
   // wall state stays serializable. Saving uploads whatever is still local.
   const filesById = useRef<Record<string, File>>({});
   const [floating, setFloating] = useState(false);
+  // Floating the panel only makes sense when there is room beside the wall.
+  const [canFloat, setCanFloat] = useState(true);
   const [panelPos, setPanelPos] = useState({ x: 24, y: 96 });
   const panelDrag = useRef<{
     x: number;
@@ -111,6 +126,35 @@ export default function GalleryWallContent({ initialState }: Props) {
     left: number;
     top: number;
   } | null>(null);
+
+  // Look up roughly where the visitor is, so the estimate can add their sales
+  // tax. Best effort only: no location means we just show the pre-tax total.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/geo")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setPlace(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The floating panel needs a wide window to be useful; below that it would
+  // cover the wall it is meant to free up. Track the width and dock if we drop
+  // under it.
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+    const sync = () => {
+      setCanFloat(query.matches);
+      if (!query.matches) setFloating(false);
+    };
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
 
   const clampZoom = (z: number): number =>
     Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
@@ -271,7 +315,18 @@ export default function GalleryWallContent({ initialState }: Props) {
   const onFiles = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
-    const images = await Promise.all(files.map(readImage));
+    const read = await Promise.all(files.map(readImage));
+
+    // Ids come from the file itself, so adding the same photo twice would give
+    // both copies one id. Uniquify here, where the File map is written, so the
+    // two stay in step.
+    const taken = new Set(state.images.map((image) => image.id));
+    const images = read.map((image) => {
+      const id = uniqueImageId(image.id, taken);
+      taken.add(id);
+      return { ...image, id };
+    });
+
     // Hold on to the original File for each photo so saving can upload it.
     images.forEach((image, index) => {
       filesById.current[image.id] = files[index];
@@ -299,6 +354,8 @@ export default function GalleryWallContent({ initialState }: Props) {
   };
 
   const hangSheet = computeHangSheet(state);
+  const cost = estimatePrintCost(state.images.map((image) => image.frame.sizeId));
+  const tax = taxRateFor(place);
 
   return (
     <PageShell colorA={ACCENT} colorB="#818cf8">
@@ -308,29 +365,77 @@ export default function GalleryWallContent({ initialState }: Props) {
         maxWidth="max-w-5xl"
       />
 
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
-        <header className="mb-8">
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            Arranger
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Gallery Wall
-          </h1>
-          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
-            Upload your photos and the app frames each one. Drag frames anywhere
-            on the wall to arrange them, set your wall size, and print the hang
-            sheet with the exact measurements before a single nail goes in.
-          </p>
-        </header>
-
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14 lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden lg:py-8">
+        {/* The heading sits inside the left column rather than above the grid,
+            so the settings panel starts level with the title instead of a
+            header's height further down the page. */}
         <div
-          className={`grid gap-8 ${
+          className={`grid gap-8 lg:h-full lg:min-h-0 lg:grid-rows-[minmax(0,1fr)] ${
             floating ? "lg:grid-cols-1" : "lg:grid-cols-[1fr_320px]"
           }`}
         >
-          <section aria-label="Wall preview" className="min-w-0">
+          <section aria-label="Wall preview" className="relative min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+            <header className="mb-6">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
+                Arranger
+              </p>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Gallery Wall
+              </h1>
+              <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
+                Upload your photos and the app frames each one. Drag frames
+                anywhere on the wall to arrange them, set your wall size, and
+                print the hang sheet with the exact measurements before a single
+                nail goes in.
+              </p>
+            </header>
+
             <div className="glass-card rounded-2xl p-4">
-              <div className="mb-3 flex items-center justify-end gap-1.5">
+              {/* The preview window is a fixed size no matter the wall or zoom.
+                  The wall is drawn to fit and centred inside it; zooming scales
+                  the content past the window edges and the window scrolls. */}
+              <div className="relative">
+                <div
+                  ref={viewportRef}
+                  onScroll={syncView}
+                  onPointerDown={onWallPointerDown}
+                  onPointerMove={onWallPointerMove}
+                  onPointerUp={endPan}
+                  onPointerCancel={endPan}
+                  // p-3 so the wall never runs flush to the frame. The SVG fits
+                  // to whichever axis is tighter, so without it a wide wall
+                  // touches the left and right edges while the top and bottom
+                  // keep the letterbox slack.
+                  className={`h-[clamp(320px,52vh,520px)] overflow-auto rounded-lg border border-border bg-surface/40 p-3 ${
+                    zoom > 1 ? (panning ? "cursor-grabbing" : "cursor-grab") : ""
+                  }`}
+                >
+                  <div
+                    className="h-full w-full"
+                    style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}
+                  >
+                    <WallStage
+                      wall={state.wall}
+                      placements={validation.placements}
+                      images={state.images}
+                      invalidIds={validation.invalidIds}
+                      onMove={(id, position) =>
+                        dispatch({
+                          type: "move-image",
+                          id,
+                          x: position.x,
+                          y: position.y,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+
+                {/* Zoom controls float over the wall, bottom-left, so they stay
+                    reachable without stealing a row above the preview. */}
+                <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg border border-border bg-background/85 px-2 py-1.5 shadow-sm backdrop-blur [&>*]:pointer-events-auto">
+
                 <label className="mr-1 flex items-center gap-1 text-[12px] text-muted">
                   <span className="sr-only">Zoom percent</span>
                   <input
@@ -383,42 +488,31 @@ export default function GalleryWallContent({ initialState }: Props) {
                 >
                   Fit
                 </button>
-              </div>
+                </div>
 
-              {/* The preview window is a fixed size no matter the wall or zoom.
-                  The wall is drawn to fit and centred inside it; zooming scales
-                  the content past the window edges and the window scrolls. */}
-              <div className="relative">
-                <div
-                  ref={viewportRef}
-                  onScroll={syncView}
-                  onPointerDown={onWallPointerDown}
-                  onPointerMove={onWallPointerMove}
-                  onPointerUp={endPan}
-                  onPointerCancel={endPan}
-                  className={`h-[clamp(320px,52vh,520px)] overflow-auto rounded-lg border border-border bg-surface/40 ${
-                    zoom > 1 ? (panning ? "cursor-grabbing" : "cursor-grab") : ""
-                  }`}
-                >
-                  <div
-                    className="h-full w-full"
-                    style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}
+                {/* The how-to lives in a tooltip rather than a line of text
+                    under the preview, which pushed the page into scrolling. */}
+                <div className="absolute right-3 top-3">
+                  <button
+                    type="button"
+                    aria-label="How to arrange"
+                    aria-expanded={showHelp}
+                    onClick={() => setShowHelp((v) => !v)}
+                    onBlur={() => setShowHelp(false)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background/85 text-[12px] font-bold text-muted shadow-sm backdrop-blur transition-colors hover:text-foreground"
                   >
-                    <WallStage
-                      wall={state.wall}
-                      placements={validation.placements}
-                      images={state.images}
-                      invalidIds={validation.invalidIds}
-                      onMove={(id, position) =>
-                        dispatch({
-                          type: "move-image",
-                          id,
-                          x: position.x,
-                          y: position.y,
-                        })
-                      }
-                    />
-                  </div>
+                    <span aria-hidden>i</span>
+                  </button>
+                  {showHelp ? (
+                    <div
+                      role="tooltip"
+                      className="absolute right-0 top-9 w-56 rounded-lg border border-border bg-background/95 px-3 py-2 text-[12px] leading-relaxed text-muted shadow-lg backdrop-blur"
+                    >
+                      {state.images.length === 0
+                        ? "No photos yet. Add a few to start arranging your wall."
+                        : "Drag a frame to move it, or select one and use the arrow keys (hold Shift for a bigger step)."}
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Zoom preview: a minimap showing which part of the wall the
@@ -503,16 +597,6 @@ export default function GalleryWallContent({ initialState }: Props) {
               </div>
             </div>
 
-            {state.images.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">
-                No photos yet. Add a few to start arranging your wall.
-              </p>
-            ) : (
-              <p className="mt-3 text-[13px] text-muted">
-                Drag a frame to move it, or select one and use the arrow keys
-                (hold Shift for a bigger step).
-              </p>
-            )}
 
             {showHangSheet && hangSheet.length > 0 ? (
               <div className="mt-4 glass-card overflow-x-auto rounded-2xl p-4">
@@ -573,40 +657,54 @@ export default function GalleryWallContent({ initialState }: Props) {
             className={
               floating
                 ? "fixed z-50 flex max-h-[80vh] w-[340px] flex-col overflow-hidden rounded-2xl border border-border bg-background/95 shadow-xl backdrop-blur"
-                : "flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1"
+                : "relative flex flex-col gap-6 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:pr-1"
             }
             style={floating ? { left: panelPos.x, top: panelPos.y } : undefined}
           >
-            <div
-              onPointerDown={floating ? onPanelPointerDown : undefined}
-              onPointerMove={floating ? onPanelPointerMove : undefined}
-              onPointerUp={floating ? endPanelDrag : undefined}
-              onPointerCancel={floating ? endPanelDrag : undefined}
-              className={`flex items-center justify-between gap-2 ${
-                floating ? "cursor-move touch-none border-b border-border px-3 py-2" : ""
-              }`}
-            >
-              {floating ? (
+            {floating ? (
+              <div
+                onPointerDown={onPanelPointerDown}
+                onPointerMove={onPanelPointerMove}
+                onPointerUp={endPanelDrag}
+                onPointerCancel={endPanelDrag}
+                className="flex cursor-move touch-none items-center justify-between gap-2 border-b border-border px-3 py-2"
+              >
                 <span className="text-[12px] font-semibold text-foreground">
                   Wall settings
                 </span>
-              ) : (
-                <span aria-hidden />
-              )}
-              <button
-                type="button"
-                onClick={() => setFloating((f) => !f)}
-                aria-pressed={floating}
-                className="rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
-              >
-                {floating ? "Dock panel" : "Float panel"}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setFloating(false)}
+                  aria-pressed
+                  className="rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                >
+                  Dock panel
+                </button>
+              </div>
+            ) : null}
             <div className={floating ? "flex flex-col gap-6 overflow-y-auto p-3" : "contents"}>
             <div className="glass-card rounded-2xl p-4">
-              <h2 className="mb-3 text-sm font-semibold text-foreground">
-                Wall &amp; photos
-              </h2>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Wall &amp; photos
+                </h2>
+                {!floating ? (
+                  <button
+                    type="button"
+                    onClick={() => setFloating(true)}
+                    aria-pressed={false}
+                    disabled={!canFloat}
+                    title={
+                      canFloat
+                        ? undefined
+                        : "Needs a wider window to float the panel"
+                    }
+                    className="rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Float panel
+                  </button>
+                ) : null}
+              </div>
 
               <label className="block cursor-pointer rounded-lg border border-dashed border-border px-3 py-4 text-center text-sm text-muted transition-colors hover:border-foreground/30 hover:text-foreground">
                 <span className="font-medium">Add photos</span>
@@ -687,7 +785,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                       Layout
                     </span>
                     <div className="flex gap-1">
-                      {(["rows", "masonry"] as LayoutMode[]).map((mode) => {
+                      {(["rows", "masonry", "aesthetic"] as LayoutMode[]).map((mode) => {
                         const active = state.layout === mode;
                         return (
                           <button
@@ -718,6 +816,17 @@ export default function GalleryWallContent({ initialState }: Props) {
                       className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
                     >
                       Auto-arrange
+                    </button>
+                    {/* One-shot: gather everything into a balanced cluster in
+                        the middle of the wall, biggest piece anchoring it. */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        dispatch({ type: "auto-arrange", layout: "aesthetic" })
+                      }
+                      className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                    >
+                      Aesthetic arrange
                     </button>
                     <button
                       type="button"
@@ -828,6 +937,74 @@ export default function GalleryWallContent({ initialState }: Props) {
                   </li>
                 ))}
               </ul>
+            ) : null}
+            {state.images.length > 0 ? (
+              <div className="glass-card rounded-2xl p-4">
+                <h2 className="mb-2 text-sm font-semibold text-foreground">
+                  Print cost
+                </h2>
+                <dl className="flex flex-col gap-1 text-[13px]">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <dt className="text-muted">
+                      Subtotal ({cost.priced}{" "}
+                      {cost.priced === 1 ? "print" : "prints"})
+                    </dt>
+                    <dd className="tabular-nums text-foreground">
+                      {formatCad(cost.total)}
+                    </dd>
+                  </div>
+                  {tax.rate !== null ? (
+                    <>
+                      <div className="flex items-baseline justify-between gap-2">
+                        <dt className="text-muted">
+                          Tax &middot; {tax.region} (
+                          {(tax.rate * 100).toFixed(tax.rate * 100 % 1 === 0 ? 0 : 3)}%)
+                        </dt>
+                        <dd className="tabular-nums text-foreground">
+                          {formatCad(
+                            Math.round(cost.total * tax.rate * 100) / 100,
+                          )}
+                        </dd>
+                      </div>
+                      <div className="mt-1 flex items-baseline justify-between gap-2 border-t border-border pt-1.5">
+                        <dt className="font-semibold text-foreground">Total</dt>
+                        <dd className="text-lg font-bold tabular-nums text-foreground">
+                          {formatCad(withTax(cost.total, tax.rate))}{" "}
+                          <span className="text-[11px] font-medium text-muted">
+                            {PRICE_SOURCE.currency}
+                          </span>
+                        </dd>
+                      </div>
+                    </>
+                  ) : null}
+                </dl>
+                {tax.rate === null ? (
+                  <p className="mt-1 text-[12px] text-muted">
+                    Before tax &mdash;{" "}
+                    {tax.region
+                      ? `no rate on file for ${tax.region}.`
+                      : "we could not tell where you are."}
+                  </p>
+                ) : null}
+                <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                  Rough estimate at{" "}
+                  <a
+                    href={PRICE_SOURCE.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2"
+                  >
+                    {PRICE_SOURCE.vendor}
+                  </a>{" "}
+                  matte list prices (checked {PRICE_SOURCE.checkedOn}). Shipping
+                  and frames not included.
+                </p>
+                {cost.unpriced.length > 0 ? (
+                  <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
+                    No price on file for {cost.unpriced.join(", ")}.
+                  </p>
+                ) : null}
+              </div>
             ) : null}
             </div>
           </aside>

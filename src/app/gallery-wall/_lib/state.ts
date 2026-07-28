@@ -20,6 +20,7 @@ import {
 import {
   arrangeWall,
   arrangeMasonry,
+  arrangeAesthetic,
   findOutOfBounds,
   findOverlaps,
   type Arrangement,
@@ -47,8 +48,11 @@ export type FramedImage = UploadedImage & { frame: Frame; position?: Position };
 /** Wall size in inches. */
 export type Wall = { width: number; height: number };
 
-/** How unmoved frames auto-arrange: tidy rows, or staggered masonry columns. */
-export type LayoutMode = "rows" | "masonry";
+/**
+ * How unmoved frames auto-arrange: tidy rows, staggered masonry columns, or one
+ * balanced cluster centred on the wall.
+ */
+export type LayoutMode = "rows" | "masonry" | "aesthetic";
 
 export type GalleryState = {
   images: FramedImage[];
@@ -109,8 +113,13 @@ function autoPlacements(state: GalleryState): Map<string, Placement> {
       ...frameDimensions(image.frame),
     })),
   };
-  const { placements } =
-    state.layout === "masonry" ? arrangeMasonry(input) : arrangeWall(input);
+  const arrange =
+    state.layout === "masonry"
+      ? arrangeMasonry
+      : state.layout === "aesthetic"
+        ? arrangeAesthetic
+        : arrangeWall;
+  const { placements } = arrange(input);
   return new Map(placements.map((p) => [p.id, p]));
 }
 
@@ -365,9 +374,24 @@ export function deserializeGallery(raw: string): GalleryState | null {
     !Array.isArray(candidate.images) ||
     !isWall(candidate.wall) ||
     typeof candidate.gap !== "number" ||
-    (candidate.layout !== "rows" && candidate.layout !== "masonry")
+    (candidate.layout !== "rows" &&
+      candidate.layout !== "masonry" &&
+      candidate.layout !== "aesthetic")
   ) {
     return null;
   }
   return candidate as GalleryState;
+}
+
+/**
+ * A unique id for a freshly added photo. Ids are derived from the file itself,
+ * so adding the same photo twice would otherwise collide -- both copies would
+ * share an id, land in one spot, and trip the overlap guard. The second copy
+ * gets a `_2` suffix (then `_3`, and so on).
+ */
+export function uniqueImageId(desired: string, taken: ReadonlySet<string>): string {
+  if (!taken.has(desired)) return desired;
+  let suffix = 2;
+  while (taken.has(`${desired}_${suffix}`)) suffix += 1;
+  return `${desired}_${suffix}`;
 }

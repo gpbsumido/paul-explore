@@ -45,7 +45,8 @@ type DragSession = {
  * size in inches, so a frame's inch dimensions map straight to viewBox units and
  * the whole thing scales to whatever width the container gives it without any
  * pixel math. Each frame is a white mat with a dark border and the photo cropped
- * to fill (object-fit: cover, via preserveAspectRatio slice).
+ * fitted whole inside the mat (preserveAspectRatio meet), so changing a
+ * frame size or orientation never crops the picture -- it just leaves more mat.
  *
  * When {@link WallStageProps.onMove} is supplied the frames become movable: drag
  * with a pointer, or focus one and nudge it with the arrow keys (Shift for a
@@ -198,7 +199,7 @@ export default function WallStage({
                   y={innerY}
                   width={innerW}
                   height={innerH}
-                  preserveAspectRatio="xMidYMid slice"
+                  preserveAspectRatio="xMidYMid meet"
                   clipPath={`url(#${clipId})`}
                 />
               ) : null}

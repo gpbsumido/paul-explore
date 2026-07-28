@@ -46,9 +46,24 @@ const overlapping = (): GalleryState =>
 const frameRectX = (container: HTMLElement, id: string): number =>
   Number(container.querySelector(`[data-frame-id="${id}"] rect`)?.getAttribute("x"));
 
+/** Pretend the window is wide (or not), which gates the floating panel. */
+const setViewportWide = (wide: boolean) => {
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: query.includes("min-width: 1024px") ? wide : false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+};
+
 beforeEach(() => {
   window.localStorage.clear();
   window.print = vi.fn();
+  setViewportWide(true);
 });
 
 describe("GalleryWallContent", () => {
@@ -212,6 +227,54 @@ describe("GalleryWallContent", () => {
     fireEvent.pointerMove(dock, { clientX: 300, clientY: 400, pointerId: 1 });
 
     expect(panel.style.left).toBe(before);
+  });
+
+  it("centres everything into one balanced cluster on aesthetic arrange", () => {
+    const { container } = render(
+      <GalleryWallContent initialState={seededState()} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /aesthetic arrange/i }));
+
+    const rects = Array.from(
+      container.querySelectorAll("[data-frame-id] rect"),
+    ).map((r) => ({
+      x: Number(r.getAttribute("x")),
+      y: Number(r.getAttribute("y")),
+      w: Number(r.getAttribute("width")),
+      h: Number(r.getAttribute("height")),
+    }));
+
+    // Equal margins left and right: the cluster sits in the middle of the wall.
+    const left = Math.min(...rects.map((r) => r.x));
+    const right = Math.max(...rects.map((r) => r.x + r.w));
+    expect(left).toBeCloseTo(96 - right, 4);
+
+    // Equal margins top and bottom too: the whole block is centred.
+    const top = Math.min(...rects.map((r) => r.y));
+    const bottom = Math.max(...rects.map((r) => r.y + r.h));
+    expect(top).toBeCloseTo(60 - bottom, 4);
+  });
+
+  it("drops any hand-placed positions when arranging aesthetically", () => {
+    const { container } = render(
+      <GalleryWallContent
+        initialState={seededState({
+          images: [
+            framed("a", 0.8, { sizeId: "8x10", orientation: "portrait" }, { x: 1, y: 1 }),
+            framed("b", 1.5, { sizeId: "11x14", orientation: "landscape" }, { x: 60, y: 40 }),
+          ],
+        })}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /aesthetic arrange/i }));
+    const first = container.querySelector('[data-frame-id="a"] rect');
+    expect(Number(first?.getAttribute("x"))).not.toBe(1);
+  });
+
+  it("will not float the panel when the window is too narrow for it", () => {
+    setViewportWide(false);
+    render(<GalleryWallContent initialState={seededState()} />);
+    expect(screen.getByRole("button", { name: /float panel/i })).toBeDisabled();
   });
 
   it("switches the auto layout to masonry", () => {

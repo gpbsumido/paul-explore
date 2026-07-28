@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-28 - version 1.16.0
+
+- added an **Aesthetic arrange** button that gathers every photo into one tightly interlocked cluster in the middle of the wall, the way a salon wall actually reads. It is a bottom-left skyline pack constrained to a cluster narrower than the wall (given the full width it would just make one long row), plus a deterministic stagger so nothing lines up into columns. Same wall, same arrangement, every time.
+- added a **print cost estimate**: subtotal, sales tax for wherever you are, and the total. Prices are Blacks' matte list prices in CAD; the tax rate comes from the existing geo lookup and falls back to a plain pre-tax total when we cannot tell where you are. Sizes with no listed price are called out rather than guessed at.
+- **photos now fit inside their frame instead of being cropped.** Changing a frame size or orientation leaves more mat rather than slicing the picture.
+- **fixed the page scrolling.** Two causes: the settings column's grid row grew to fit its content, and the `sr-only` labels in the photo list are absolutely positioned, so they escaped the clipped main element and stretched the document. The columns now scroll on their own and the page itself does not.
+- **fixed re-adding a photo you already added.** Ids are derived from the file, so a second copy collided with the first, landed in the same spot, and tripped the overlap warning. Duplicates now get a `_2` suffix.
+- moved the zoom controls to float over the bottom-left of the wall, moved the how-to text into an info tooltip (it was pushing the page into scrolling), put the Float panel button in line with the Wall & photos heading, moved the print cost to the bottom of the settings column, padded the preview so the wall never runs flush to the edge, and disabled floating on windows too narrow for it.
+
 ## 2026-07-28 - version 1.15.3
 
 - fixed saved walls reopening blank. Photos were sent under a multipart field named after the image id, and ids come from filenames -- a screenshot named "... 10.40.57 AM.png" carries spaces and a narrow no-break space, which do not survive as a field name. The photo uploaded fine but the server could not match it back to its image, so the wall kept a `blob:` URL that dies with the page. Photos are now paired to images by position against an explicit `imageIds` list.

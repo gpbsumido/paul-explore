@@ -103,6 +103,169 @@ export function arrangeWall({
   return { placements, contentHeight, overflows: tooTall || tooWide };
 }
 
+const area = (frame: LayoutFrame): number => frame.width * frame.height;
+
+/**
+ * A stable 0..1 value for a string. Used to stagger frames deterministically:
+ * the same wall always arranges the same way, but nothing lines up on a grid.
+ */
+function hash01(text: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return ((hash >>> 0) % 1024) / 1024;
+}
+
+/** A run of the packed cluster's top edge: everything left of `y` is filled. */
+type Skyline = { x: number; width: number; y: number };
+
+/** The highest point of the skyline across a span, or null if it runs off. */
+function spanTop(skyline: Skyline[], x: number, width: number): number | null {
+  let top = 0;
+  let covered = 0;
+  for (const run of skyline) {
+    if (run.x + run.width <= x) continue;
+    if (run.x >= x + width) break;
+    top = Math.max(top, run.y);
+    covered = Math.min(x + width, run.x + run.width) - x;
+  }
+  return covered >= width - 1e-9 ? top : null;
+}
+
+/** Lay a frame across the skyline, raising every run it covers. */
+function raise(skyline: Skyline[], x: number, width: number, top: number): Skyline[] {
+  const next: Skyline[] = [];
+  for (const run of skyline) {
+    const overlaps = run.x < x + width && run.x + run.width > x;
+    if (!overlaps) {
+      next.push(run);
+      continue;
+    }
+    if (run.x < x) next.push({ x: run.x, width: x - run.x, y: run.y });
+    const rightEdge = run.x + run.width;
+    if (rightEdge > x + width) {
+      next.push({ x: x + width, width: rightEdge - (x + width), y: run.y });
+    }
+  }
+  next.push({ x, width, y: top });
+  next.sort((a, b) => a.x - b.x);
+
+  // Fold neighbouring runs that ended up at the same height.
+  return next.reduce<Skyline[]>((merged, run) => {
+    const last = merged[merged.length - 1];
+    if (last && Math.abs(last.y - run.y) < 1e-9 && Math.abs(last.x + last.width - run.x) < 1e-9) {
+      last.width += run.width;
+      return merged;
+    }
+    merged.push({ ...run });
+    return merged;
+  }, []);
+}
+
+/**
+ * Arrange frames the way a salon wall actually reads: one tightly interlocked
+ * cluster, centred on the wall, with frames of different sizes tessellated
+ * together rather than lined up on a shelf.
+ *
+ * It is a bottom-left skyline pack. Each frame is dropped into the position
+ * where it sits lowest against the cluster's current top edge, breaking ties to
+ * the left, which is what produces the staggered jigsaw look -- a big piece
+ * leaves a shelf beside it, and the next small piece tucks into it instead of
+ * starting a new row. Frames are placed largest first so the big pieces set the
+ * structure and the small ones fill the gaps they leave.
+ *
+ * Deterministic: the same wall always arranges the same way.
+ */
+export function arrangeAesthetic({
+  wallWidth,
+  wallHeight,
+  gap,
+  frames,
+}: ArrangeInput): Arrangement {
+  if (frames.length === 0) {
+    return { placements: [], contentHeight: 0, overflows: false };
+  }
+
+  const sorted = [...frames].sort((a, b) => area(b) - area(a) || (a.id < b.id ? -1 : 1));
+
+  // Pack into a cluster narrower than the wall, shaped like the wall itself.
+  // Given the full width the pack would just make one long row; constraining it
+  // is what forces frames to stack and interlock into a mosaic.
+  const totalArea = sorted.reduce(
+    (sum, f) => sum + (f.width + gap) * (f.height + gap),
+    0,
+  );
+  const widest = Math.max(...sorted.map((f) => f.width + gap));
+  const clusterWidth = Math.min(
+    wallWidth,
+    Math.max(widest, Math.sqrt(totalArea * (wallWidth / wallHeight))),
+  );
+
+  let skyline: Skyline[] = [{ x: 0, width: clusterWidth, y: 0 }];
+  const packed: Placement[] = [];
+
+  for (const frame of sorted) {
+    // Reserve the gap on the right and below, so neighbours never touch.
+    const slotWidth = Math.min(frame.width + gap, clusterWidth);
+    let best: { x: number; y: number } | null = null;
+
+    for (const run of skyline) {
+      for (const x of [run.x, run.x + run.width - slotWidth]) {
+        if (x < 0 || x + slotWidth > clusterWidth + 1e-9) continue;
+        const top = spanTop(skyline, x, slotWidth);
+        if (top === null) continue;
+        if (!best || top < best.y - 1e-9 || (Math.abs(top - best.y) < 1e-9 && x < best.x)) {
+          best = { x, y: top };
+        }
+      }
+    }
+
+    const spot = best ?? { x: 0, y: spanTop(skyline, 0, slotWidth) ?? 0 };
+    packed.push({
+      id: frame.id,
+      x: spot.x,
+      y: spot.y,
+      width: frame.width,
+      height: frame.height,
+    });
+    skyline = raise(skyline, spot.x, slotWidth, spot.y + frame.height + gap);
+  }
+
+  // Nudge each frame off the packing grid. Bottom-left packing snaps frames to
+  // each other's edges, which reads as columns; a small deterministic stagger
+  // breaks that into the loose salon look. The pack reserved a full gap around
+  // every frame, so shifting by a third of one can never cause an overlap.
+  const jitter = gap * 0.35;
+  const staggered = packed.map((p) => ({
+    ...p,
+    x: p.x + (hash01(`${p.id}:x`) - 0.5) * 2 * jitter,
+    y: p.y + (hash01(`${p.id}:y`) - 0.5) * 2 * jitter,
+  }));
+  packed.length = 0;
+  packed.push(...staggered);
+
+  // Centre the cluster as a block: the pack starts at the origin, so shift it by
+  // whatever margin is left over on each axis.
+  const left = Math.min(...packed.map((p) => p.x));
+  const right = Math.max(...packed.map((p) => p.x + p.width));
+  const top = Math.min(...packed.map((p) => p.y));
+  const bottom = Math.max(...packed.map((p) => p.y + p.height));
+  const contentHeight = bottom - top;
+  const offsetX = (wallWidth - (right - left)) / 2 - left;
+  const offsetY = (wallHeight - contentHeight) / 2 - top;
+
+  const placements = packed.map((p) => ({
+    ...p,
+    x: p.x + offsetX,
+    y: p.y + offsetY,
+  }));
+
+  const overflows = contentHeight > wallHeight || right - left > wallWidth;
+  return { placements, contentHeight, overflows };
+}
+
 /**
  * Arrange frames as a true staggered masonry: fixed-width columns, each new
  * frame dropped into the currently shortest column. Unlike the shelf layout the
