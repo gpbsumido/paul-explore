@@ -1,18 +1,38 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Caveat } from "next/font/google";
-import { chalkLayout } from "./chalkLayout";
+import { placeChalkWord, pickUnused, type ChalkPlacement } from "./chalkLayout";
 
 // A handwriting face, because the whole conceit is that someone is writing
 // these. A mono or a serif traces as a machine-drawn outline, however good the
 // stroke animation is.
 const caveat = Caveat({ subsets: ["latin"], weight: ["500"], display: "swap" });
 
+/** Most words on screen at once. Enough to feel alive, few enough to read. */
+const MAX_ON_SCREEN = 6;
+/** Gap between one word arriving and the next, in ms. */
+const SPAWN_MS = 1500;
+/** Gap between one character starting to draw and the next, in ms. */
+const CHAR_MS = 85;
+/** Dash length for a single glyph -- comfortably longer than any one outline. */
+const CHAR_DASH = 420;
+
+const TEXT: React.CSSProperties = {
+  fontSize: 74,
+  letterSpacing: "0.01em",
+};
+
 type ChalkTarget = { id: string; label: string; color: string };
 
+type ActiveWord = ChalkPlacement & {
+  /** Unique per appearance, so React remounts and the animation restarts. */
+  key: number;
+  target: ChalkTarget;
+};
+
 type Props = {
-  /** The apps to write, in reel order. */
+  /** The apps to write. */
   targets: readonly ChalkTarget[];
   /** Spin the machine to this app. */
   onPick: (id: string) => void;
@@ -21,25 +41,51 @@ type Props = {
 };
 
 /**
- * App names writing themselves across the background in chalk, then fading out
- * again, the way ink sinks into Riddle's diary.
+ * App names writing themselves across the background, then dissolving, the way
+ * ink sinks into Riddle's diary.
  *
- * The write-on is a stroke-dash trick: the glyph outlines are drawn as a dashed
- * line whose gap is the full path length, then the offset animates to zero, so
- * the letters appear to be traced. A soft fill comes in behind the stroke once
- * the tracing is done, which is what makes it read as chalk rather than as a
- * neon outline.
+ * Scheduled in JavaScript rather than looped in CSS, because the position has to
+ * change every time a name comes back -- a CSS loop rewrites the same word into
+ * the same spot forever. A timer brings in one word at a time, up to
+ * {@link MAX_ON_SCREEN}, dropping the oldest as it goes, so words are always
+ * arriving and leaving out of step with each other.
  *
- * Every word runs its own loop on its own delay, so at any moment some are
- * being written, some are sitting, and some are dissolving. Clicking one spins
- * the reels to that app rather than navigating -- the machine stays the way you
- * get anywhere.
+ * The first render is deliberately empty: positions come from `Math.random()`,
+ * and generating them during render would disagree between the server and the
+ * first client pass.
  */
 export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
-  const words = useMemo(
-    () => chalkLayout(targets.map((t) => t.label)),
-    [targets],
-  );
+  const [words, setWords] = useState<ActiveWord[]>([]);
+  const seq = useRef(0);
+
+  useEffect(() => {
+    if (targets.length === 0) return;
+    const timers: number[] = [];
+
+    const spawn = () => {
+      setWords((prev) => {
+        const target = pickUnused(
+          targets,
+          prev.map((w) => w.target.id),
+        );
+        if (!target) return prev;
+        seq.current += 1;
+        const next = prev.length >= MAX_ON_SCREEN ? prev.slice(1) : prev;
+        return [...next, { key: seq.current, target, ...placeChalkWord() }];
+      });
+    };
+
+    // Stagger the opening fill, then keep one arriving at a steady interval.
+    for (let i = 0; i < MAX_ON_SCREEN; i += 1) {
+      timers.push(window.setTimeout(spawn, i * SPAWN_MS));
+    }
+    const interval = window.setInterval(spawn, SPAWN_MS);
+
+    return () => {
+      timers.forEach((t) => window.clearTimeout(t));
+      window.clearInterval(interval);
+    };
+  }, [targets]);
 
   return (
     <div
@@ -48,16 +94,16 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
       }`}
       aria-hidden={hidden}
     >
-      {words.map((w, i) => {
-        const target = targets[i];
+      {words.map((w) => {
+        const chars = [...w.target.label];
         return (
           <button
-            key={w.id}
+            key={w.key}
             type="button"
             tabIndex={hidden ? -1 : 0}
-            onClick={() => onPick(target.id)}
-            aria-label={`Spin to ${w.label}`}
-            className="group pointer-events-auto absolute select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
+            onClick={() => onPick(w.target.id)}
+            aria-label={`Spin to ${w.target.label}`}
+            className="pointer-events-auto absolute select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50"
             style={{
               left: `${w.left}%`,
               top: `${w.top}%`,
@@ -66,46 +112,53 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
           >
             <svg
               height={`${w.size * 2}rem`}
-              width={`${w.label.length * w.size * 0.55}rem`}
-              viewBox={`0 0 ${w.label.length * 55} 110`}
+              width={`${chars.length * w.size * 0.55}rem`}
+              viewBox={`0 0 ${chars.length * 55} 110`}
               className="overflow-visible"
             >
-              <text
-                x="0"
-                y="78"
-                className={caveat.className}
-                style={{
-                  fontSize: 74,
-                  letterSpacing: "0.01em",
-                  fill: "none",
-                  stroke: target.color,
-                  strokeWidth: 1.1,
-                  strokeLinecap: "round",
-                  strokeLinejoin: "round",
-                  strokeDasharray: w.dash,
-                  strokeDashoffset: w.dash,
-                  // The dash length is per word, so the trace has to be too.
-                  ["--v4-dash" as string]: `${w.dash}`,
-                  animation: `v4-chalk-write ${w.duration}ms ${w.delay}ms linear infinite`,
-                  opacity: 0.55,
-                }}
-              >
-                {w.label}
+              {/* Two identical layers of the same tspans: the one behind fills
+                  in, the one on top traces its outline. Splitting into a tspan
+                  per character is what makes it read as writing -- tracing the
+                  whole word animates every glyph at once, which just looks like
+                  a fade. The `backwards` fill-mode matters: without it a glyph
+                  shows part of its dash before its delay elapses, which read as
+                  the next word's first letter arriving early. */}
+              <text x="0" y="78" className={caveat.className} style={TEXT}>
+                {chars.map((ch, ci) => (
+                  <tspan
+                    key={`f${ci}`}
+                    style={{
+                      fill: w.target.color,
+                      opacity: 0,
+                      animation: `v4-chalk-fill ${w.duration}ms ${
+                        ci * CHAR_MS
+                      }ms ease-in-out backwards`,
+                    }}
+                  >
+                    {ch === " " ? " " : ch}
+                  </tspan>
+                ))}
               </text>
-              {/* The soft body of the chalk, arriving behind the traced line. */}
-              <text
-                x="0"
-                y="78"
-                className={caveat.className}
-                style={{
-                  fontSize: 74,
-                  letterSpacing: "0.01em",
-                  fill: target.color,
-                  opacity: 0,
-                  animation: `v4-chalk-fill ${w.duration}ms ${w.delay}ms ease-in-out infinite`,
-                }}
-              >
-                {w.label}
+              <text x="0" y="78" className={caveat.className} style={TEXT}>
+                {chars.map((ch, ci) => (
+                  <tspan
+                    key={`s${ci}`}
+                    style={{
+                      fill: "none",
+                      stroke: w.target.color,
+                      strokeWidth: 1.4,
+                      strokeLinecap: "round",
+                      strokeLinejoin: "round",
+                      strokeDasharray: CHAR_DASH,
+                      strokeDashoffset: CHAR_DASH,
+                      animation: `v4-chalk-write ${w.duration}ms ${
+                        ci * CHAR_MS
+                      }ms linear backwards`,
+                    }}
+                  >
+                    {ch === " " ? " " : ch}
+                  </tspan>
+                ))}
               </text>
             </svg>
           </button>

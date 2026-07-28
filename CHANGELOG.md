@@ -4,7 +4,7 @@
 
 - added a chalk backdrop to the v4 landing page: app names write themselves in across the background between pulls, sit for a moment, then dissolve, the way ink sinks into Riddle's diary. Each word runs its own loop on its own delay, so at any moment some are being written while others are fading.
 - the write-on is a stroke-dash trace on SVG text in a handwriting face, with a soft fill arriving behind the traced line -- not an opacity fade. The dash length scales with the label, because a fixed one repeats on longer words and reveals them in chunks instead of drawing them.
-- words are spaced by index rather than by hash on both axes, alternating above and below the machine, so they spread evenly instead of clumping to one side, and nothing sits over the reels.
+- at most six words are on screen at once, arriving one at a time on a timer and dropping the oldest, each at a fresh random position in a band above or below the reels -- so a name never writes itself into the same spot twice and the page is never briefly empty or briefly crowded. Scheduled in JavaScript rather than looped in CSS, because a CSS loop can only rewrite the same word into the same place.
 - clicking a name spins the reels to that app rather than navigating, so the machine stays the way you get anywhere. `spin()` now takes an optional target.
 - hidden while the reels turn, and not rendered at all under reduced motion.
 

@@ -1,76 +1,63 @@
 import { describe, it, expect } from "vitest";
-import { chalkLayout } from "./chalkLayout";
+import { placeChalkWord, pickUnused } from "./chalkLayout";
 
-const LABELS = [
-  "Work Portfolio",
-  "Gallery Wall",
-  "Ketsup",
-  "Design System",
-  "Feature Flags",
-  "Vitals",
-];
+/** A seeded source, so placement maths is testable without real randomness. */
+const seeded = (values: number[]) => {
+  let i = 0;
+  return () => values[i++ % values.length];
+};
 
-describe("chalkLayout", () => {
-  it("is deterministic, so the server and first client pass agree", () => {
-    expect(chalkLayout(LABELS)).toEqual(chalkLayout(LABELS));
-  });
-
-  it("writes one word per label, keeping the label intact", () => {
-    const words = chalkLayout(LABELS);
-    expect(words).toHaveLength(LABELS.length);
-    expect(words.map((w) => w.label)).toEqual(LABELS);
-  });
-
-  it("keeps every word on screen", () => {
-    for (const w of chalkLayout(LABELS)) {
-      expect(w.left).toBeGreaterThanOrEqual(0);
-      expect(w.left).toBeLessThanOrEqual(100);
-      expect(w.top).toBeGreaterThanOrEqual(0);
-      expect(w.top).toBeLessThanOrEqual(100);
+describe("placeChalkWord", () => {
+  it("keeps the middle of the screen clear for the reels", () => {
+    // Whatever the draw, a word never lands over the machine.
+    for (let i = 0; i <= 10; i += 1) {
+      const rand = seeded([i / 10, i / 10, 0.5, 0.5, 0.5]);
+      const { top } = placeChalkWord(rand);
+      expect(top < 34 || top > 66).toBe(true);
     }
   });
 
-  it("keeps the middle of the screen clear for the machine", () => {
-    // Nothing sits over the reels, whatever column it is in.
-    for (const w of chalkLayout(LABELS)) {
-      expect(w.top < 34 || w.top > 66).toBe(true);
+  it("uses both the upper and lower band", () => {
+    expect(placeChalkWord(seeded([0.1, 0.5, 0.5, 0.5, 0.5])).top).toBeLessThan(34);
+    expect(placeChalkWord(seeded([0.9, 0.5, 0.5, 0.5, 0.5])).top).toBeGreaterThan(66);
+  });
+
+  it("keeps words on screen horizontally", () => {
+    for (const v of [0, 0.5, 1]) {
+      const { left } = placeChalkWord(seeded([0.2, v, 0.5, 0.5, 0.5]));
+      expect(left).toBeGreaterThanOrEqual(0);
+      expect(left).toBeLessThanOrEqual(100);
     }
   });
 
-  it("puts words above and below the machine, not all on one side", () => {
-    const words = chalkLayout(LABELS);
-    const above = words.filter((w) => w.top < 50).length;
-    const below = words.length - above;
-    expect(above).toBeGreaterThan(0);
-    expect(below).toBeGreaterThan(0);
-    expect(Math.abs(above - below)).toBeLessThanOrEqual(1);
+  it("varies position, so the same name never writes in the same spot twice", () => {
+    const a = placeChalkWord(seeded([0.2, 0.1, 0.3, 0.4, 0.5]));
+    const b = placeChalkWord(seeded([0.2, 0.8, 0.3, 0.4, 0.5]));
+    expect(a.left).not.toBe(b.left);
   });
 
-  it("staggers the words so some are writing while others fade", () => {
-    const delays = chalkLayout(LABELS).map((w) => w.delay);
-    expect(new Set(delays).size).toBe(LABELS.length);
-    expect(Math.max(...delays) - Math.min(...delays)).toBeGreaterThan(2000);
+  it("tilts either way and gives every word a finite lifetime", () => {
+    const left = placeChalkWord(seeded([0.2, 0.5, 0.5, 0.1, 0.5]));
+    const right = placeChalkWord(seeded([0.2, 0.5, 0.5, 0.9, 0.5]));
+    expect(left.rotate).toBeLessThan(0);
+    expect(right.rotate).toBeGreaterThan(0);
+    expect(left.duration).toBeGreaterThan(0);
+  });
+});
+
+describe("pickUnused", () => {
+  const pool = [{ id: "a" }, { id: "b" }, { id: "c" }];
+
+  it("never repeats a name that is already on screen", () => {
+    const picked = pickUnused(pool, ["a", "b"], () => 0);
+    expect(picked?.id).toBe("c");
   });
 
-  it("spreads the words across the width instead of clumping on one side", () => {
-    const words = chalkLayout(LABELS);
-    const left = words.filter((w) => w.left < 50).length;
-    const right = words.length - left;
-    // Hashing both axes used to pile them up on one side; spacing by index
-    // guarantees both halves are used.
-    expect(left).toBeGreaterThan(0);
-    expect(right).toBeGreaterThan(0);
-    expect(Math.abs(left - right)).toBeLessThanOrEqual(2);
+  it("falls back to the whole pool when everything is showing", () => {
+    expect(pickUnused(pool, ["a", "b", "c"], () => 0)?.id).toBe("a");
   });
 
-  it("varies size and tilt so nothing sits on a grid", () => {
-    const words = chalkLayout(LABELS);
-    expect(new Set(words.map((w) => w.size)).size).toBeGreaterThan(1);
-    expect(words.some((w) => w.rotate < 0)).toBe(true);
-    expect(words.some((w) => w.rotate > 0)).toBe(true);
-  });
-
-  it("copes with an empty list", () => {
-    expect(chalkLayout([])).toEqual([]);
+  it("copes with an empty pool", () => {
+    expect(pickUnused([], [], () => 0)).toBeUndefined();
   });
 });

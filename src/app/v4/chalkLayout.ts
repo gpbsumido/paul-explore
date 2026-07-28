@@ -1,94 +1,56 @@
 /**
- * Where each name sits in the chalk backdrop, and when it writes itself in.
+ * Placement for one chalk word.
  *
- * Deterministic, like the confetti: positions come from a hash of the label, not
- * `Math.random()`, so the server and the first client pass agree. It still looks
- * scattered because the hash is.
+ * Randomness is injected rather than reached for, so the caller decides when it
+ * happens and the maths stays testable against a seeded source. The backdrop
+ * calls this from a timer after mount, never during render -- a position drawn
+ * from `Math.random()` while rendering would disagree between the server and the
+ * first client pass.
  */
 
-function hash01(text: string): number {
-  let hash = 2166136261;
-  for (let i = 0; i < text.length; i += 1) {
-    hash ^= text.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return ((hash >>> 0) % 4096) / 4096;
-}
-
-export type ChalkWord = {
-  id: string;
-  label: string;
+export type ChalkPlacement = {
   /** Percentage across the viewport. */
   left: number;
   /** Percentage down the viewport. */
   top: number;
-  /** Slight tilt, in degrees, so nothing sits on a grid. */
+  /** Slight tilt, in degrees, so nothing sits straight. */
   rotate: number;
   /** Font size in rem. */
   size: number;
-  /** When this word starts writing itself, in ms. */
-  delay: number;
-  /** How long one write-hold-fade cycle takes, in ms. */
+  /** How long this word takes to write, hold, and dissolve, in ms. */
   duration: number;
-  /**
-   * Dash length for the trace, in user units. Has to exceed the glyph outline's
-   * total length or the dashes repeat and the word reveals in chunks instead of
-   * being drawn, so it scales with the label.
-   */
-  dash: number;
 };
 
 /**
- * Place a word for its slot.
+ * Place a word somewhere clear of the machine.
  *
- * Both axes are spaced by *index*, not by hash, with only a little hash jitter
- * on top. Hashing looked scattered in principle but clumped in practice -- with
- * a dozen words there is nothing forcing them apart, so they piled onto one
- * side and above the machine. Alternating bands guarantees the spread; the
- * jitter keeps it from reading as a grid.
- *
- * The middle of the screen belongs to the reels, so the bands sit clear of it:
- * even indices go above, odd indices below.
+ * The reels own the middle of the screen, so words sit in a band above or below
+ * it, picked at random. Column, tilt, size and lifetime are random too, so the
+ * same app never writes itself into the same spot twice.
  */
-function place(index: number, total: number, seedX: number, seedY: number) {
-  const band = 100 / Math.max(1, total);
-  const left = Math.min(
-    96,
-    Math.max(4, band * (index + 0.5) + (seedX - 0.5) * band * 0.7),
-  );
-  // Alternate above and below, so the backdrop frames the machine rather than
-  // sitting entirely over it.
-  const above = index % 2 === 0;
-  const top = above ? 5 + seedY * 26 : 68 + seedY * 26;
-  return { left, top };
+export function placeChalkWord(rand: () => number = Math.random): ChalkPlacement {
+  const above = rand() < 0.5;
+  return {
+    left: 5 + rand() * 90,
+    // Two bands, well clear of the reels across the middle of the viewport.
+    top: above ? 4 + rand() * 26 : 68 + rand() * 26,
+    rotate: (rand() - 0.5) * 14,
+    size: 1.05 + rand() * 1.1,
+    duration: 6500 + rand() * 3500,
+  };
 }
 
 /**
- * Lay out one word per label. `spread` staggers the whole set so they don't all
- * begin together -- the point is that some are being written while others are
- * already fading.
+ * Pick a name that isn't already on screen, so the same one never shows twice at
+ * once. Falls back to any name when everything is already showing.
  */
-export function chalkLayout(
-  labels: readonly string[],
-  spread = 9000,
-): ChalkWord[] {
-  return labels.map((label, i) => {
-    const a = hash01(`${label}:x`);
-    const b = hash01(`${label}:y`);
-    const c = hash01(`${label}:t`);
-    const { left, top } = place(i, labels.length, a, b);
-    return {
-      id: `${label}-${i}`,
-      label,
-      left,
-      top,
-      rotate: (a - 0.5) * 14,
-      size: 1.05 + c * 1.15,
-      // Spread across the whole cycle, plus a per-word offset, so the page is
-      // never briefly empty and never writes everything at once.
-      delay: (i / Math.max(1, labels.length)) * spread + c * 1200,
-      duration: 7000 + b * 5000,
-      dash: 260 * label.length + 400,
-    };
-  });
+export function pickUnused<T extends { id: string }>(
+  pool: readonly T[],
+  inUse: readonly string[],
+  rand: () => number = Math.random,
+): T | undefined {
+  if (pool.length === 0) return undefined;
+  const free = pool.filter((p) => !inUse.includes(p.id));
+  const from = free.length > 0 ? free : pool;
+  return from[Math.floor(rand() * from.length) % from.length];
 }

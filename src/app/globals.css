@@ -384,18 +384,18 @@
    handwriting does not ease. */
 @keyframes v4-chalk-write {
   0% {
-    stroke-dashoffset: var(--v4-dash, 900);
-    opacity: 0.55;
+    stroke-dashoffset: 420;
+    opacity: 0.95;
   }
-  30% {
+  14% {
     stroke-dashoffset: 0;
-    opacity: 0.55;
+    opacity: 0.95;
   }
   62% {
     stroke-dashoffset: 0;
-    opacity: 0.34;
+    opacity: 0.7;
   }
-  82%,
+  84%,
   100% {
     stroke-dashoffset: 0;
     opacity: 0;
@@ -405,16 +405,16 @@
 /* The chalk body, arriving behind the traced line and dissolving with it. */
 @keyframes v4-chalk-fill {
   0%,
-  26% {
+  12% {
     opacity: 0;
   }
-  40% {
-    opacity: 0.16;
+  24% {
+    opacity: 0.5;
   }
   62% {
-    opacity: 0.16;
+    opacity: 0.5;
   }
-  82%,
+  84%,
   100% {
     opacity: 0;
   }
