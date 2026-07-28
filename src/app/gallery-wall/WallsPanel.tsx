@@ -51,6 +51,7 @@ export default function WallsPanel({
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameText, setRenameText] = useState("");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [menuId, setMenuId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -246,35 +247,66 @@ export default function WallsPanel({
                         <span className="ml-1 text-[11px] text-muted">(open)</span>
                       ) : null}
                     </span>
-                    <div className="flex shrink-0 gap-1">
+                    {/* One menu rather than three buttons, so the wall's name
+                        keeps the room it needs instead of being truncated. */}
+                    <div className="relative shrink-0">
                       <button
                         type="button"
-                        onClick={() => open(wall)}
                         disabled={busy}
-                        aria-label={`Open ${wall.name}`}
-                        className="rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30 disabled:opacity-40"
+                        aria-label={`Actions for ${wall.name}`}
+                        aria-expanded={menuId === wall.id}
+                        aria-haspopup="menu"
+                        onClick={() =>
+                          setMenuId(menuId === wall.id ? null : wall.id)
+                        }
+                        className="rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground disabled:opacity-40"
                       >
-                        Open
+                        <span aria-hidden>&#8943;</span>
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRenamingId(wall.id);
-                          setRenameText(wall.name);
-                        }}
-                        aria-label={`Rename ${wall.name}`}
-                        className="rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground"
-                      >
-                        Rename
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmingId(wall.id)}
-                        aria-label={`Delete ${wall.name}`}
-                        className="rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:border-red-500/40 hover:text-red-500"
-                      >
-                        Delete
-                      </button>
+                      {menuId === wall.id ? (
+                        <div
+                          role="menu"
+                          className="absolute right-0 top-8 z-10 flex w-32 flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg"
+                        >
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuId(null);
+                              open(wall);
+                            }}
+                            aria-label={`Open ${wall.name}`}
+                            className="px-3 py-1.5 text-left text-[12px] text-foreground transition-colors hover:bg-surface"
+                          >
+                            Open
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuId(null);
+                              setRenamingId(wall.id);
+                              setRenameText(wall.name);
+                            }}
+                            aria-label={`Rename ${wall.name}`}
+                            className="px-3 py-1.5 text-left text-[12px] text-foreground transition-colors hover:bg-surface"
+                          >
+                            Rename
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              setMenuId(null);
+                              setConfirmingId(wall.id);
+                            }}
+                            aria-label={`Delete ${wall.name}`}
+                            className="px-3 py-1.5 text-left text-[12px] text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 )}

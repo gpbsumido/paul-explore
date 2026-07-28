@@ -31,6 +31,13 @@ const seeded: GalleryState = {
   ],
 };
 
+/** The per-wall actions now live behind a menu, so open it first. */
+const openMenu = async (name: string) => {
+  fireEvent.click(
+    await screen.findByRole("button", { name: new RegExp(`actions for ${name}`, "i") }),
+  );
+};
+
 const renderPanel = (overrides: Partial<React.ComponentProps<typeof WallsPanel>> = {}) =>
   render(
     <WallsPanel
@@ -63,19 +70,31 @@ beforeEach(() => {
 describe("WallsPanel", () => {
   it("lists the saved walls on mount", async () => {
     renderPanel();
-    expect(await screen.findByRole("button", { name: /open hallway/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: /actions for hallway/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps each wall's actions behind one menu", async () => {
+    renderPanel();
+    await openMenu("hallway");
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /open hallway/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /rename hallway/i })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /delete hallway/i })).toBeInTheDocument();
   });
 
   it("opens a saved wall and hands its state back", async () => {
     const onOpen = vi.fn();
     renderPanel({ onOpen });
-    fireEvent.click(await screen.findByRole("button", { name: /open hallway/i }));
+    await openMenu("hallway");
+    fireEvent.click(screen.getByRole("menuitem", { name: /open hallway/i }));
     await waitFor(() => expect(onOpen).toHaveBeenCalledWith(seeded));
   });
 
   it("saves a new wall under a name typed by the user", async () => {
     renderPanel();
-    await screen.findByRole("button", { name: /open hallway/i });
+    await screen.findByRole("button", { name: /actions for hallway/i });
     fireEvent.change(screen.getByLabelText(/wall name/i), {
       target: { value: "Den" },
     });
@@ -89,7 +108,8 @@ describe("WallsPanel", () => {
 
   it("updates the wall that is currently open instead of creating another", async () => {
     renderPanel();
-    fireEvent.click(await screen.findByRole("button", { name: /open hallway/i }));
+    await openMenu("hallway");
+    fireEvent.click(screen.getByRole("menuitem", { name: /open hallway/i }));
     await waitFor(() => expect(getWall).toHaveBeenCalled());
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
     await waitFor(() => expect(updateWall).toHaveBeenCalledWith("w1", expect.anything()));
@@ -98,7 +118,8 @@ describe("WallsPanel", () => {
 
   it("renames a saved wall", async () => {
     renderPanel();
-    fireEvent.click(await screen.findByRole("button", { name: /rename hallway/i }));
+    await openMenu("hallway");
+    fireEvent.click(screen.getByRole("menuitem", { name: /rename hallway/i }));
     const input = screen.getByLabelText(/new name for hallway/i);
     fireEvent.change(input, { target: { value: "Stairwell" } });
     fireEvent.click(screen.getByRole("button", { name: /^confirm rename$/i }));
@@ -109,7 +130,8 @@ describe("WallsPanel", () => {
 
   it("deletes a saved wall after confirming", async () => {
     renderPanel();
-    fireEvent.click(await screen.findByRole("button", { name: /delete hallway/i }));
+    await openMenu("hallway");
+    fireEvent.click(screen.getByRole("menuitem", { name: /delete hallway/i }));
     fireEvent.click(screen.getByRole("button", { name: /^confirm delete$/i }));
     await waitFor(() => expect(deleteWall).toHaveBeenCalledWith("w1"));
   });
@@ -123,14 +145,14 @@ describe("WallsPanel", () => {
 
   it("blocks saving while the arrangement is invalid", async () => {
     renderPanel({ canSave: false });
-    await screen.findByRole("button", { name: /open hallway/i });
+    await screen.findByRole("button", { name: /actions for hallway/i });
     expect(screen.getByRole("button", { name: /^save$/i })).toBeDisabled();
   });
 
   it("surfaces an error when the save fails", async () => {
     vi.mocked(createWall).mockRejectedValue(new Error("Backend unavailable"));
     renderPanel();
-    await screen.findByRole("button", { name: /open hallway/i });
+    await screen.findByRole("button", { name: /actions for hallway/i });
     fireEvent.change(screen.getByLabelText(/wall name/i), { target: { value: "Den" } });
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/backend unavailable/i);

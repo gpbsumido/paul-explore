@@ -63,7 +63,12 @@ function readImage(file: File): Promise<UploadedImage> {
     const probe = new Image();
     probe.onload = () => {
       const aspect = probe.naturalHeight === 0 ? 1 : probe.naturalWidth / probe.naturalHeight;
-      resolve({ id: `${file.name}-${file.size}-${file.lastModified}`, src, aspect });
+      resolve({
+        id: `${file.name}-${file.size}-${file.lastModified}`,
+        src,
+        aspect,
+        pixels: { width: probe.naturalWidth, height: probe.naturalHeight },
+      });
     };
     probe.onerror = () => {
       URL.revokeObjectURL(src);

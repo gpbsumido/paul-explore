@@ -39,8 +39,14 @@ export const FRAME_SIZES: readonly FrameSize[] = [
   { id: "24x36", label: "24 × 36", short: 24, long: 36 },
 ];
 
-/** The medium fallback used for unknown ids and to break aspect ties. */
-export const DEFAULT_FRAME_SIZE_ID = "8x10";
+/** What a photo gets framed at unless its resolution can't carry it. */
+export const DEFAULT_FRAME_SIZE_ID = "11x14";
+
+/**
+ * The lowest print resolution worth hanging. 300 DPI is lab quality, but 150
+ * still reads clean at arm's length, which is how a wall is actually viewed.
+ */
+export const MIN_PRINT_DPI = 150;
 
 /** Look up a frame size by id. */
 export function frameById(id: string): FrameSize | undefined {
@@ -62,35 +68,53 @@ export function frameDimensions(frame: Frame): FrameDimensions {
     : { width: size.short, height: size.long };
 }
 
-/** The frame's width/height aspect ratio in the given orientation. */
-function orientedAspect(size: FrameSize, orientation: Orientation): number {
-  return orientation === "landscape"
-    ? size.long / size.short
-    : size.short / size.long;
+/** Pixel dimensions of the source photo, used to check it can carry a size. */
+export type Resolution = { width: number; height: number };
+
+/** True when a photo has the pixels to print at this size and stay sharp. */
+export function canPrintAt(size: FrameSize, resolution: Resolution): boolean {
+  const shortPx = Math.min(resolution.width, resolution.height);
+  const longPx = Math.max(resolution.width, resolution.height);
+  return (
+    shortPx >= size.short * MIN_PRINT_DPI && longPx >= size.long * MIN_PRINT_DPI
+  );
 }
 
 /**
- * Pick the best frame for an image given its width/height aspect ratio.
+ * Pick the frame for a freshly added photo.
  *
- * Orientation follows the image: wider-than-tall goes landscape, otherwise
- * portrait (squares included). The size is the one whose oriented aspect ratio
- * sits closest to the image, and ties are broken toward the medium default so a
- * standard 8×10-shaped photo lands on an 8×10 rather than the largest match.
+ * Everything defaults to the {@link DEFAULT_FRAME_SIZE_ID}, because a wall of
+ * mixed sizes is a choice you make deliberately, not one you should have to undo
+ * on every upload. The exception is resolution: a photo that would print soft at
+ * that size steps down to the largest size it can actually carry at
+ * {@link MIN_PRINT_DPI}, rather than being blown up past what it has. With no
+ * resolution to go on we take the default and let the person judge it.
+ *
+ * Orientation still follows the photo: wider than tall goes landscape,
+ * otherwise portrait (squares included). Photos are fitted inside their frame
+ * rather than cropped, so the size no longer has to match the photo's aspect.
  */
-export function chooseBestFrame(imageAspect: number): Frame {
+export function chooseBestFrame(
+  imageAspect: number,
+  resolution?: Resolution,
+): Frame {
   const orientation: Orientation = imageAspect > 1 ? "landscape" : "portrait";
-  const defaultArea = (() => {
-    const d = frameById(DEFAULT_FRAME_SIZE_ID)!;
-    return d.short * d.long;
-  })();
+  const preferred = frameById(DEFAULT_FRAME_SIZE_ID)!;
 
-  const best = [...FRAME_SIZES]
-    .map((size) => ({
-      size,
-      aspectDiff: Math.abs(orientedAspect(size, orientation) - imageAspect),
-      areaDiff: Math.abs(size.short * size.long - defaultArea),
-    }))
-    .sort((a, b) => a.aspectDiff - b.aspectDiff || a.areaDiff - b.areaDiff)[0];
+  if (!resolution || resolution.width <= 0 || resolution.height <= 0) {
+    return { sizeId: preferred.id, orientation };
+  }
 
-  return { sizeId: best.size.id, orientation };
+  // Never upsize past the default, only step down from it.
+  const candidates = FRAME_SIZES.filter(
+    (size) => size.short * size.long <= preferred.short * preferred.long,
+  );
+  const affordable = [...candidates]
+    .reverse()
+    .find((size) => canPrintAt(size, resolution));
+
+  return {
+    sizeId: (affordable ?? candidates[0]).id,
+    orientation,
+  };
 }

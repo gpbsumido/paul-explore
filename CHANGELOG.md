@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-28 - version 1.17.0
+
+- photos now default to an **11 x 14** frame instead of a size chosen to match their aspect ratio. Since photos are fitted inside the mat rather than cropped, matching the aspect no longer buys anything, and a wall of mixed sizes should be a deliberate choice rather than something you undo on every upload. Orientation still follows the photo.
+- the exception is resolution: a photo without the pixels to print sharply at 11 x 14 steps down to the largest size it can actually carry at 150 DPI, rather than being blown up past what it has. `UploadedImage` now records the photo's natural pixel size to make that call.
+- default wall width is now 76 inches.
+- the per-wall Open / Rename / Delete buttons became a single actions menu, so a wall's name keeps the room it needs instead of being truncated.
+
 ## 2026-07-28 - version 1.16.0
 
 - added an **Aesthetic arrange** button that gathers every photo into one tightly interlocked cluster in the middle of the wall, the way a salon wall actually reads. It is a bottom-left skyline pack constrained to a cluster narrower than the wall (given the full width it would just make one long row), plus a deterministic stagger so nothing lines up into columns. Same wall, same arrangement, every time.

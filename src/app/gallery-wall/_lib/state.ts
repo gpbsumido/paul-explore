@@ -34,6 +34,9 @@ export type UploadedImage = {
   src: string;
   /** Natural width / height of the image. */
   aspect: number;
+  /** Natural pixel size, used to judge how big it can print. Optional so walls
+   * saved before this existed still load. */
+  pixels?: { width: number; height: number };
 };
 
 /** A point on the wall, in inches, measured from the top-left corner. */
@@ -75,10 +78,10 @@ export type GalleryAction =
   | { type: "set-gap"; gap: number }
   | { type: "replace"; state: GalleryState };
 
-/** A blank slate: no images, a typical 96 × 60 inch wall, a 3 inch gap. */
+/** A blank slate: no images, a typical 76 × 60 inch wall, a 3 inch gap. */
 export const initialGalleryState: GalleryState = {
   images: [],
-  wall: { width: 96, height: 60 },
+  wall: { width: 76, height: 60 },
   gap: 3,
   layout: "rows",
 };
@@ -87,7 +90,7 @@ const MIN_WALL = 1;
 const MIN_GAP = 0;
 
 function frameFor(image: UploadedImage): FramedImage {
-  return { ...image, frame: chooseBestFrame(image.aspect) };
+  return { ...image, frame: chooseBestFrame(image.aspect, image.pixels) };
 }
 
 const clamp = (value: number, min: number, max: number): number =>

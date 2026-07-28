@@ -44,9 +44,9 @@ describe("frameDimensions", () => {
     expect(dims).toEqual({ width: 10, height: 8 });
   });
 
-  it("falls back to the medium size for an unknown id", () => {
+  it("falls back to the default size for an unknown id", () => {
     const dims = frameDimensions({ sizeId: "nope", orientation: "portrait" });
-    expect(dims).toEqual({ width: 8, height: 10 });
+    expect(dims).toEqual({ width: 11, height: 14 });
   });
 });
 
@@ -63,16 +63,11 @@ describe("chooseBestFrame", () => {
     expect(chooseBestFrame(1).orientation).toBe("portrait");
   });
 
-  it("matches the frame whose aspect is closest to the image", () => {
-    // A 4:6 image (aspect 0.667) should land on a 4×6-shaped frame, not 8×10.
-    const chosen = chooseBestFrame(4 / 6);
-    const dims = frameDimensions(chosen);
-    expect(dims.width / dims.height).toBeCloseTo(4 / 6, 5);
-  });
-
-  it("breaks aspect ties toward the medium 8×10 size", () => {
-    // 8×10 and 16×20 share the 0.8 aspect ratio. A 0.8 portrait image should
-    // pick the medium default, not the largest matching frame.
-    expect(chooseBestFrame(0.8).sizeId).toBe("8x10");
+  it("uses the default size whatever the image aspect, since photos are fitted", () => {
+    // Photos are fitted inside the mat rather than cropped, so the frame size no
+    // longer chases the image's aspect ratio -- only the orientation does.
+    expect(chooseBestFrame(4 / 6).sizeId).toBe("11x14");
+    expect(chooseBestFrame(0.8).sizeId).toBe("11x14");
+    expect(chooseBestFrame(1.6).sizeId).toBe("11x14");
   });
 });
