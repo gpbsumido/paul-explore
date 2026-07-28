@@ -71,19 +71,36 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
         if (!target) return prev;
         seq.current += 1;
         const next = prev.length >= MAX_ON_SCREEN ? prev.slice(1) : prev;
-        return [...next, { key: seq.current, target, ...placeChalkWord() }];
+        return [
+          ...next,
+          {
+            key: seq.current,
+            target,
+            // Steer clear of what is already up, or six random positions
+            // collide often enough to look broken.
+            ...placeChalkWord(Math.random, next),
+          },
+        ];
       });
     };
 
     // Stagger the opening fill, then keep one arriving at a steady interval.
+    // The interval has to wait for the fill to finish: starting both at once
+    // spawned two words per tick, so words were dropped before they had
+    // finished writing and appeared to pop in fully formed.
+    let interval: number | undefined;
     for (let i = 0; i < MAX_ON_SCREEN; i += 1) {
       timers.push(window.setTimeout(spawn, i * SPAWN_MS));
     }
-    const interval = window.setInterval(spawn, SPAWN_MS);
+    timers.push(
+      window.setTimeout(() => {
+        interval = window.setInterval(spawn, SPAWN_MS);
+      }, MAX_ON_SCREEN * SPAWN_MS),
+    );
 
     return () => {
       timers.forEach((t) => window.clearTimeout(t));
-      window.clearInterval(interval);
+      if (interval !== undefined) window.clearInterval(interval);
     };
   }, [targets]);
 

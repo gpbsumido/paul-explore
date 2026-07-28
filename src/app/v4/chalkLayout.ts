@@ -28,7 +28,7 @@ export type ChalkPlacement = {
  * it, picked at random. Column, tilt, size and lifetime are random too, so the
  * same app never writes itself into the same spot twice.
  */
-export function placeChalkWord(rand: () => number = Math.random): ChalkPlacement {
+function candidate(rand: () => number): ChalkPlacement {
   const above = rand() < 0.5;
   return {
     left: 5 + rand() * 90,
@@ -38,6 +38,41 @@ export function placeChalkWord(rand: () => number = Math.random): ChalkPlacement
     size: 1.05 + rand() * 1.1,
     duration: 6500 + rand() * 3500,
   };
+}
+
+/** Roughly how far apart two words have to be, in viewport percent. */
+const MIN_GAP = 22;
+
+/** Squared distance, weighting the vertical since words are wide and short. */
+const spread = (a: { left: number; top: number }, b: { left: number; top: number }) =>
+  (a.left - b.left) ** 2 + ((a.top - b.top) * 2.2) ** 2;
+
+/**
+ * Place a word somewhere clear of the machine, and clear of the words already
+ * on screen.
+ *
+ * Purely random placement overlapped often enough to look like a bug -- with
+ * six words up at a time, collisions are common. This draws several candidates
+ * and keeps the one furthest from everything showing, settling early if it
+ * finds one comfortably clear.
+ */
+export function placeChalkWord(
+  rand: () => number = Math.random,
+  avoid: readonly { left: number; top: number }[] = [],
+): ChalkPlacement {
+  let best = candidate(rand);
+  if (avoid.length === 0) return best;
+
+  let bestGap = Math.min(...avoid.map((o) => spread(best, o)));
+  for (let i = 0; i < 8 && bestGap < MIN_GAP ** 2; i += 1) {
+    const next = candidate(rand);
+    const gap = Math.min(...avoid.map((o) => spread(next, o)));
+    if (gap > bestGap) {
+      best = next;
+      bestGap = gap;
+    }
+  }
+  return best;
 }
 
 /**
