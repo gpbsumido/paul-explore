@@ -371,3 +371,51 @@
     opacity: 1;
   }
 }
+
+/* The v4 chalk backdrop: app names tracing themselves in, sitting a moment,
+   then dissolving, the way ink sinks into Riddle's diary. Each word runs the
+   same loop on its own delay and duration, so at any moment some are being
+   written and some are fading. */
+
+/* The traced outline: a dashed line whose gap is the whole glyph, pulled to
+   zero so the letters appear to be drawn left to right. The dash length is set
+   per word (--v4-dash) because a fixed one repeats on longer labels, which
+   reveals the word in chunks instead of drawing it. Linear timing, because
+   handwriting does not ease. */
+@keyframes v4-chalk-write {
+  0% {
+    stroke-dashoffset: var(--v4-dash, 900);
+    opacity: 0.55;
+  }
+  30% {
+    stroke-dashoffset: 0;
+    opacity: 0.55;
+  }
+  62% {
+    stroke-dashoffset: 0;
+    opacity: 0.34;
+  }
+  82%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* The chalk body, arriving behind the traced line and dissolving with it. */
+@keyframes v4-chalk-fill {
+  0%,
+  26% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.16;
+  }
+  62% {
+    opacity: 0.16;
+  }
+  82%,
+  100% {
+    opacity: 0;
+  }
+}
