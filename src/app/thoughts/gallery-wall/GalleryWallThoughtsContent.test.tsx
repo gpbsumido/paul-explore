@@ -40,6 +40,12 @@ describe("Gallery Wall write-up", () => {
     expect(
       screen.getByRole("heading", { name: /centered rows/i }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /overlap is a hard stop/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /hang sheet/i }),
+    ).toBeInTheDocument();
   });
 
   it("links to the feature it documents", () => {

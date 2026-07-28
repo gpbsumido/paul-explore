@@ -114,6 +114,15 @@ describe("GalleryWallContent", () => {
     expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
   });
 
+  it("zooms the wall preview in and back out", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    expect(screen.getByText("100%")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    expect(screen.getByText("150%")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /zoom out/i }));
+    expect(screen.getByText("100%")).toBeInTheDocument();
+  });
+
   it("switches the auto layout to masonry", () => {
     render(<GalleryWallContent initialState={seededState()} />);
     const masonry = screen.getByRole("button", { name: /masonry/i });

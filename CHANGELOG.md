@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-27 - version 1.13.0
+
+- made the gallery wall arrangeable by hand. Drag any frame anywhere on the wall with a pointer, or focus one and nudge it with the arrow keys (Shift for a bigger step). The first drag freezes every frame at its current auto spot so moving one no longer reflows the others.
+- turned overlap into a hard stop. Frames that overlap or hang off the wall turn red, a warning pops over the preview, and Save is disabled until the wall is clean - all driven by pure `findOverlaps`/`findOutOfBounds` checks and a single `canSave` flag. Auto-arrange untangles everything back into a valid layout in one click.
+- added a true staggered masonry layout alongside the original rows, picked with a Layout toggle. Both are pure functions that seed the un-dragged frames.
+- added a printable hang sheet: a measured table giving each frame's hook position from the wall's left and top edges (following the unit toggle), so the on-screen plan becomes a tape-measure checklist.
+- added saving a wall to `localStorage` (gated on a valid arrangement) with a Restore button, and a zoom control on the preview that scrolls to let you pan - the SVG stays sharp at any zoom.
+
 ## 2026-07-27 - version 1.12.0
 
 - added a Gallery Wall arranger at `/gallery-wall`. Upload photos and each one is auto-framed with a best-fit standard size and orientation, every frame is yours to change, and the whole wall renders to scale against a wall size you enter, warning you when the frames don't fit. Built pure-core-first: an aspect-matching auto-framer with a medium tie-break, a centered shelf-packing layout with overflow detection, and an inches-internal model with a cm toggle only at the input edge. The preview is a single SVG whose viewBox is the wall's physical size, so there's no pixel math, and it reads as one labelled image region for screen readers.

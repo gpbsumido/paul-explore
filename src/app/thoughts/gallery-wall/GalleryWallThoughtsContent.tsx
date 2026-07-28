@@ -49,9 +49,10 @@ export default function GalleryWallThoughtsContent() {
             gallery wall arranger
           </Link>{" "}
           takes a pile of photos, frames each one, and lays them out to scale
-          against a wall you describe, so you can see whether it fits before a
-          single nail goes in. This is how it&rsquo;s built, and why almost all
-          of it is a pure function.
+          against a wall you describe. Drag the frames where you want them,
+          untangle any overlaps, and print a hang sheet with the exact
+          measurements before a single nail goes in. This is how it&rsquo;s built,
+          and why almost all of it is a pure function.
         </>
       }
     >
@@ -139,16 +140,96 @@ export default function GalleryWallThoughtsContent() {
           whole wall to whatever width the column gives it. Each frame is a white
           mat with a dark border and the photo cropped to fill (
           <C>preserveAspectRatio=&quot;xMidYMid slice&quot;</C>, the SVG spelling
-          of object-fit cover).
+          of object-fit cover). Zoom is pure CSS on top: the preview is drawn
+          wider than its column and a scroll wrapper lets you pan, and because the
+          SVG has no fixed pixel sizes anywhere it stays razor-sharp at any zoom.
         </p>
         <p className="mt-3">
-          For a screen reader the stage is a single labelled <C>img</C> region —
-          &ldquo;Gallery wall preview: 4 frames on a 96 by 60 inch wall&rdquo; —
-          rather than a heap of announced rectangles. The controls carry their
-          weight for accessibility: real <C>label</C>s on every field, each
-          photo&rsquo;s controls grouped in a <C>fieldset</C>, orientation as a
-          pair of <C>aria-pressed</C> buttons, and the overflow notice sat in a
-          live region with an icon so it isn&rsquo;t colour alone.
+          The stage has two accessibility shapes. A static preview is a single
+          labelled <C>img</C> region — &ldquo;Gallery wall preview: 4 frames on a
+          96 by 60 inch wall&rdquo; — so a screen reader hears one summary. Once
+          it&rsquo;s interactive each frame becomes a named button, so the SVG
+          switches from <C>role=&quot;img&quot;</C> to <C>role=&quot;group&quot;</C>
+          &mdash; an image with focusable children is a nested-interactive axe
+          violation. The rest of the controls carry their weight too: real{" "}
+          <C>label</C>s on every field, each photo&rsquo;s controls in a{" "}
+          <C>fieldset</C>, and warnings in a live region with an icon so they
+          aren&rsquo;t colour alone.
+        </p>
+      </Section>
+
+      <Section title="Drag anywhere, or nudge with the keyboard">
+        <p>
+          Auto layout is only the starting point. Every frame can be dragged
+          anywhere on the wall with a pointer, and the same frame is a focusable
+          button you can move with the arrow keys (hold <C>Shift</C> for a
+          five-inch step instead of one). Dragging with a mouse and nudging with
+          the keyboard both funnel through one <C>move-image</C> action, so
+          there&rsquo;s a single clamp keeping frames on the wall and a single
+          place the position changes.
+        </p>
+        <p className="mt-3">
+          Two quiet decisions make it feel right. The pixel delta from a pointer
+          drag is converted into wall inches through a tiny pure helper (
+          <C>clientDeltaToWall</C>) using the rendered size of the SVG, so a frame
+          tracks the cursor at any zoom. And the first time you drag <em>any</em>{" "}
+          frame, every frame is frozen at its current auto spot — otherwise moving
+          one would let the shelf pack reflow all the others out from under you.
+        </p>
+      </Section>
+
+      <Section title="Overlap is a hard stop">
+        <p>
+          A gallery wall where two frames occupy the same nail is not a plan you
+          can hang. So overlap isn&rsquo;t a warning you can ignore — it blocks
+          the save. A pure <C>findOverlaps</C> does an all-pairs rectangle
+          intersection (edges that merely touch don&rsquo;t count, so a tidy flush
+          layout stays valid), <C>findOutOfBounds</C> catches frames dragged off
+          the wall, and <C>computeValidation</C> folds both into an{" "}
+          <C>invalidIds</C> list and a single <C>canSave</C> boolean.
+        </p>
+        <p className="mt-3">
+          The UI reads straight off that: offending frames turn red in the
+          preview, a warning pops over the wall, and the Save button is disabled
+          until it&rsquo;s clean. One <C>role=&quot;alert&quot;</C> so a screen
+          reader is told once, not per frame. Auto-arrange is always one click
+          away to untangle everything back into a valid layout.
+        </p>
+      </Section>
+
+      <Section title="Rows or masonry">
+        <p>
+          The auto layout comes in two shapes. Rows is the original shelf pack;
+          masonry is a true staggered wall — fixed-width columns with each next
+          frame dropped into the shortest column, so the rows never line up and it
+          reads like a real salon hang. Both are pure functions over the same
+          input, and the layout mode just picks which one seeds the un-dragged
+          frames, so dragging and validation work identically on top of either.
+        </p>
+      </Section>
+
+      <Section title="The hang sheet does the arithmetic">
+        <p>
+          Knowing where a frame sits on screen isn&rsquo;t the same as knowing
+          where to put the nail. <C>computeHangSheet</C> turns each placement into
+          the numbers you actually measure on the wall: the hook sits at the
+          frame&rsquo;s top-centre, dropped a little for a taut wire, and the sheet
+          gives its distance from the left edge and from the top edge. It renders
+          as a plain table you can print (the values follow the unit toggle), so
+          the on-screen plan becomes a tape-measure checklist.
+        </p>
+      </Section>
+
+      <Section title="Saving a wall">
+        <p>
+          A finished arrangement serialises to JSON and lands in{" "}
+          <C>localStorage</C>; a Restore button reads it back through a{" "}
+          <C>replace</C> action. The save is gated on the same <C>canSave</C> — you
+          can&rsquo;t persist an invalid wall — and the read happens after mount,
+          not during render, so the server and client agree on first paint. The
+          honest caveat: photos are held as object URLs that don&rsquo;t survive a
+          reload, so a restored wall keeps its frames and measurements but wants
+          its images re-added.
         </p>
       </Section>
 
@@ -163,12 +244,12 @@ export default function GalleryWallThoughtsContent() {
           are never just filenames.
         </p>
         <p className="mt-3">
-          The layout is deliberately a shelf pack, not a true mason&rsquo;s wall
-          with staggered heights and a hung centre line. Drag-to-rearrange,
-          saving a wall, printing a hang sheet with measurements, and mat-colour
-          choices are all natural next steps — but the point of the first version
-          was to make the measuring problem disappear, and to keep the part that
-          does the measuring a function you can test.
+          The throughline across drag, overlap, masonry, the hang sheet, and save
+          is the same as the first version: every hard part is a pure function
+          you can test, and the component is just the accessible wiring around
+          them. Left for later: mat and frame-colour choices, snapping to a shared
+          baseline while dragging, and persisting the photos themselves so a saved
+          wall reloads whole.
         </p>
       </Section>
     </ThoughtLayout>

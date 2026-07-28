@@ -20,6 +20,9 @@ import {
 const ACCENT = "#e879f9";
 const CM_PER_INCH = 2.54;
 const SAVE_KEY = "gallery-wall:saved";
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 4;
+const ZOOM_STEP = 0.5;
 type Unit = "in" | "cm";
 
 /** Physical inches shown in the chosen unit, rounded for a tidy input. */
@@ -68,6 +71,7 @@ export default function GalleryWallContent({ initialState }: Props) {
     initialState ?? initialGalleryState,
   );
   const [unit, setUnit] = useState<Unit>("in");
+  const [zoom, setZoom] = useState(1);
   const [showHangSheet, setShowHangSheet] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [canRestore, setCanRestore] = useState(false);
@@ -146,15 +150,62 @@ export default function GalleryWallContent({ initialState }: Props) {
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
           <section aria-label="Wall preview" className="min-w-0">
             <div className="relative glass-card rounded-2xl p-4">
-              <WallStage
-                wall={state.wall}
-                placements={validation.placements}
-                images={state.images}
-                invalidIds={validation.invalidIds}
-                onMove={(id, position) =>
-                  dispatch({ type: "move-image", id, x: position.x, y: position.y })
-                }
-              />
+              <div className="mb-3 flex items-center justify-end gap-1.5">
+                <span
+                  aria-live="polite"
+                  className="mr-1 text-[12px] tabular-nums text-muted"
+                >
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  type="button"
+                  aria-label="Zoom out"
+                  disabled={zoom <= ZOOM_MIN}
+                  onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP))}
+                  className="h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <span aria-hidden>&minus;</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Zoom in"
+                  disabled={zoom >= ZOOM_MAX}
+                  onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))}
+                  className="h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <span aria-hidden>+</span>
+                </button>
+                {zoom !== 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => setZoom(1)}
+                    className="rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30"
+                  >
+                    Fit
+                  </button>
+                ) : null}
+              </div>
+              {/* Zoom scales the preview wider than its column; the wrapper
+                  scrolls so you can pan. Drag math reads the SVG's live size,
+                  so moving a frame stays accurate at any zoom. */}
+              <div className="max-h-[70vh] overflow-auto rounded-lg">
+                <div style={{ width: `${zoom * 100}%` }}>
+                  <WallStage
+                    wall={state.wall}
+                    placements={validation.placements}
+                    images={state.images}
+                    invalidIds={validation.invalidIds}
+                    onMove={(id, position) =>
+                      dispatch({
+                        type: "move-image",
+                        id,
+                        x: position.x,
+                        y: position.y,
+                      })
+                    }
+                  />
+                </div>
+              </div>
               {/* The warning popup: floats over the preview when saving is blocked. */}
               {validation.overlaps.length > 0 ? (
                 <div
