@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-28 - version 2.2.3
+
+- stopped chalk words landing on the interface. Placement now measures the header, the stats line, the loupe and the spin button at runtime and rejects any spot that would cover one, rather than trusting percentages read off a single window -- the header is a fixed pixel height, so it covers a fifth of a short window and a tenth of a tall one, and a hard-coded band drifted straight under it.
+
 ## 2026-07-28 - version 2.2.2
 
 - took the chalk words out of the tab order and hid them from assistive tech. They are decoration with a pointer shortcut attached, not a control: they come and go every few seconds, so a keyboard user could land on one and have focus vanish out from under them. Nothing is lost, because spinning to an app is fully keyboard-operable through the reels themselves (arrows to move, Enter to open) and the spin button.

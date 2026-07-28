@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Caveat } from "next/font/google";
-import { placeChalkWord, pickUnused, type ChalkPlacement } from "./chalkLayout";
+import {
+  placeChalkWord,
+  pickUnused,
+  type ChalkPlacement,
+  type KeepOut,
+} from "./chalkLayout";
 
 // A handwriting face, because the whole conceit is that someone is writing
 // these. A mono or a serif traces as a machine-drawn outline, however good the
@@ -57,6 +62,40 @@ type Props = {
 export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
   const [words, setWords] = useState<ActiveWord[]>([]);
   const seq = useRef(0);
+  // Held in a ref, not state: the spawn timer reads the latest zones without
+  // a re-measure restarting it, and nothing renders from them directly.
+  const keepOut = useRef<KeepOut>([]);
+
+  // Measure the bits of the interface a word must not cover. Percentages
+  // hard-coded from one window drift on every other, and the machine's
+  // container is taller than a short window, so avoiding the container wholesale
+  // banned the entire screen. These are the elements that actually matter.
+  useEffect(() => {
+    const measure = () => {
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      if (!vh || !vw) return;
+      const rect = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return {
+          left: (r.left / vw) * 100,
+          right: (r.right / vw) * 100,
+          top: (r.top / vh) * 100,
+          bottom: (r.bottom / vh) * 100,
+        };
+      };
+      const targetsToAvoid = [
+        document.querySelector("header"),
+        document.querySelector("[data-chalk-avoid]"),
+        document.querySelector('[data-testid="reel-lens"]'),
+        document.querySelector('[aria-label="Spin the reels"]'),
+      ].filter((el): el is Element => el !== null);
+      keepOut.current = targetsToAvoid.map(rect);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   useEffect(() => {
     if (targets.length === 0) return;
@@ -69,18 +108,14 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
           prev.map((w) => w.target.id),
         );
         if (!target) return prev;
-        seq.current += 1;
         const next = prev.length >= MAX_ON_SCREEN ? prev.slice(1) : prev;
-        return [
-          ...next,
-          {
-            key: seq.current,
-            target,
-            // Steer clear of what is already up, or six random positions
-            // collide often enough to look broken.
-            ...placeChalkWord(Math.random, next),
-          },
-        ];
+        // Steer clear of what is already up, or six random positions collide
+        // often enough to look broken. Null means the window is too short to
+        // place anything without covering the interface.
+        const placement = placeChalkWord(Math.random, next, keepOut.current);
+        if (!placement) return prev;
+        seq.current += 1;
+        return [...next, { key: seq.current, target, ...placement }];
       });
     };
 

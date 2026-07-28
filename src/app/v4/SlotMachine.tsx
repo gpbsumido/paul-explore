@@ -1032,6 +1032,7 @@ export default function SlotMachine({
           {/* A quiet data line instead of cabinet chrome. */}
           <m.p
             variants={revealItem}
+            data-chalk-avoid
             className="mb-8 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted"
           >
             {categories.length} categories · {totalWriteups} write-ups · one

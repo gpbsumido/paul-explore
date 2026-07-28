@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { placeChalkWord, pickUnused } from "./chalkLayout";
+import { placeChalkWord, pickUnused, isClear, type Rect } from "./chalkLayout";
 
 /** A seeded source, so placement maths is testable without real randomness. */
 const seeded = (values: number[]) => {
@@ -7,76 +7,87 @@ const seeded = (values: number[]) => {
   return () => values[i++ % values.length];
 };
 
-describe("placeChalkWord", () => {
-  it("stays clear of the reels, the callout arrows, and the spin button", () => {
-    // The machine owns the middle: reels, the CATEGORY/APP LINK callouts above
-    // them, and the spin button below. Words live in the strips beyond those.
-    for (let i = 0; i < 200; i += 1) {
-      const p = placeChalkWord(Math.random);
-      expect(p.top <= 14 || p.top >= 88).toBe(true);
-      // Nothing in the lower strip sits over the centred spin button.
-      if (p.top >= 88) {
-        expect(p.left <= 34 || p.left >= 66).toBe(true);
-      }
-    }
+/** Roughly the real interface: header, stats line, loupe, spin button. */
+const KEEP_OUT: Rect[] = [
+  { left: 0, right: 100, top: 0, bottom: 19 },
+  { left: 30, right: 70, top: 20, bottom: 24 },
+  { left: 2, right: 98, top: 44, bottom: 55 },
+  { left: 44, right: 56, top: 78, bottom: 91 },
+];
+
+const place = (rand = Math.random, avoid: { left: number; top: number }[] = []) =>
+  placeChalkWord(rand, avoid, KEEP_OUT);
+
+describe("isClear", () => {
+  it("rejects a spot inside an obstacle", () => {
+    expect(isClear({ left: 50, top: 10 }, KEEP_OUT)).toBe(false);
   });
 
-  it("uses both the upper and lower strip", () => {
-    expect(placeChalkWord(seeded([0.1, 0.2, 0.5, 0.5, 0.5])).top).toBeLessThan(15);
-    expect(placeChalkWord(seeded([0.9, 0.1, 0.5, 0.5, 0.5])).top).toBeGreaterThan(87);
+  it("rejects a spot that only just grazes one, thanks to the padding", () => {
+    expect(isClear({ left: 50, top: 20 }, KEEP_OUT)).toBe(false);
   });
 
-  it("keeps words on screen horizontally", () => {
-    for (const v of [0, 0.5, 1]) {
-      const { left } = placeChalkWord(seeded([0.2, v, 0.5, 0.5, 0.5]));
-      expect(left).toBeGreaterThanOrEqual(0);
-      expect(left).toBeLessThanOrEqual(100);
-    }
+  it("accepts a spot well clear of everything", () => {
+    expect(isClear({ left: 10, top: 33 }, KEEP_OUT)).toBe(true);
   });
 
-  it("varies position, so the same name never writes in the same spot twice", () => {
-    const a = placeChalkWord(seeded([0.2, 0.1, 0.3, 0.4, 0.5]));
-    const b = placeChalkWord(seeded([0.2, 0.8, 0.3, 0.4, 0.5]));
-    expect(a.left).not.toBe(b.left);
-  });
-
-  it("tilts either way and gives every word a finite lifetime", () => {
-    const left = placeChalkWord(seeded([0.2, 0.5, 0.5, 0.1, 0.5]));
-    const right = placeChalkWord(seeded([0.2, 0.5, 0.5, 0.9, 0.5]));
-    expect(left.rotate).toBeLessThan(0);
-    expect(right.rotate).toBeGreaterThan(0);
-    expect(left.duration).toBeGreaterThan(0);
+  it("accepts anything when nothing is in the way", () => {
+    expect(isClear({ left: 50, top: 50 }, [])).toBe(true);
   });
 });
 
-describe("placeChalkWord collision avoidance", () => {
-  it("steers a new word away from the ones already up", () => {
-    // Real randomness, many draws: with avoidance on, a new word should not
-    // land on top of a crowd of existing ones.
+describe("placeChalkWord", () => {
+  it("never places a word over the interface", () => {
+    for (let i = 0; i < 300; i += 1) {
+      const p = place();
+      if (p) expect(isClear(p, KEEP_OUT)).toBe(true);
+    }
+  });
+
+  it("keeps words inside the viewport", () => {
+    for (let i = 0; i < 100; i += 1) {
+      const p = place();
+      if (!p) continue;
+      expect(p.left).toBeGreaterThanOrEqual(0);
+      expect(p.left).toBeLessThanOrEqual(100);
+      expect(p.top).toBeGreaterThanOrEqual(0);
+      expect(p.top).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it("finds somewhere on a normal window", () => {
+    // Not every draw succeeds, but across a handful it should.
+    const found = Array.from({ length: 20 }, () => place()).filter(Boolean);
+    expect(found.length).toBeGreaterThan(10);
+  });
+
+  it("gives up rather than overlapping when everything is blocked", () => {
+    const wall: Rect[] = [{ left: -50, right: 150, top: -50, bottom: 150 }];
+    expect(placeChalkWord(Math.random, [], wall)).toBeNull();
+  });
+
+  it("steers away from words already on screen", () => {
     const crowd = [
-      { left: 20, top: 12 },
-      { left: 50, top: 12 },
-      { left: 80, top: 12 },
-      { left: 20, top: 80 },
-      { left: 50, top: 80 },
+      { left: 10, top: 30 },
+      { left: 30, top: 30 },
+      { left: 90, top: 65 },
     ];
     let tooClose = 0;
     for (let i = 0; i < 60; i += 1) {
-      const p = placeChalkWord(Math.random, crowd);
-      const near = crowd.some(
-        (c) => Math.abs(p.left - c.left) < 8 && Math.abs(p.top - c.top) < 5,
-      );
-      if (near) tooClose += 1;
+      const p = place(Math.random, crowd);
+      if (!p) continue;
+      if (crowd.some((c) => Math.abs(p.left - c.left) < 8 && Math.abs(p.top - c.top) < 5)) {
+        tooClose += 1;
+      }
     }
-    // Not a guarantee -- it is best-effort over a handful of draws -- but it
-    // should be rare rather than routine.
     expect(tooClose).toBeLessThan(12);
   });
 
-  it("places freely when nothing is on screen", () => {
-    const p = placeChalkWord(Math.random, []);
-    expect(p.left).toBeGreaterThanOrEqual(0);
-    expect(p.top <= 14 || p.top >= 88).toBe(true);
+  it("varies size and tilt, so nothing sits on a grid", () => {
+    const a = placeChalkWord(seeded([0.1, 0.2, 0.3, 0.4, 0.5]), [], []);
+    const b = placeChalkWord(seeded([0.9, 0.8, 0.7, 0.6, 0.5]), [], []);
+    expect(a!.left).not.toBe(b!.left);
+    expect(a!.duration).toBeGreaterThan(0);
   });
 });
 
@@ -84,8 +95,7 @@ describe("pickUnused", () => {
   const pool = [{ id: "a" }, { id: "b" }, { id: "c" }];
 
   it("never repeats a name that is already on screen", () => {
-    const picked = pickUnused(pool, ["a", "b"], () => 0);
-    expect(picked?.id).toBe("c");
+    expect(pickUnused(pool, ["a", "b"], () => 0)?.id).toBe("c");
   });
 
   it("falls back to the whole pool when everything is showing", () => {

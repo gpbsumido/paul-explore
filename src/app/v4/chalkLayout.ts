@@ -28,30 +28,38 @@ export type ChalkPlacement = {
  * it, picked at random. Column, tilt, size and lifetime are random too, so the
  * same app never writes itself into the same spot twice.
  */
+/** A rectangle of the viewport, in percent, that a word must not cover. */
+export type Rect = { left: number; top: number; right: number; bottom: number };
+
 /**
- * The machine owns more of the screen than just the reels: the CATEGORY and
- * APP LINK callouts with their arrows sit above the loupe, and the spin button
- * sits below it. A word landing in either reads as part of the controls, so the
- * usable bands are the strips beyond them.
+ * Keep-out zones, measured from the real interface.
+ *
+ * Bands were the wrong model. Avoiding two horizontal strips either banned the
+ * whole screen (the machine's container is taller than a short window) or let
+ * words land on the stats line and the header. What actually has to stay clear
+ * is a handful of specific elements -- the header, the stats line, the loupe,
+ * the spin button -- and the sparse space between the reel rows is fair game.
  */
-const TOP_BAND = { from: 2, to: 14 };
-const BOTTOM_BAND = { from: 88, to: 97 };
-/** The spin button is centred, so the lower strip keeps away from the middle. */
-const SPIN_COLUMN = { from: 34, to: 66 };
+export type KeepOut = readonly Rect[];
+
+/** Breathing room around every obstacle, in viewport percent. */
+const PAD = 2;
+
+const overlaps = (p: { left: number; top: number }, r: Rect) =>
+  p.left > r.left - PAD &&
+  p.left < r.right + PAD &&
+  p.top > r.top - PAD &&
+  p.top < r.bottom + PAD;
+
+/** True when a spot is clear of every obstacle. */
+export function isClear(p: { left: number; top: number }, keepOut: KeepOut): boolean {
+  return !keepOut.some((r) => overlaps(p, r));
+}
 
 function candidate(rand: () => number): ChalkPlacement {
-  const above = rand() < 0.5;
-  const band = above ? TOP_BAND : BOTTOM_BAND;
-  let left = 4 + rand() * 92;
-  if (!above && left > SPIN_COLUMN.from && left < SPIN_COLUMN.to) {
-    // Push it out to whichever side it was already nearer.
-    const mid = (SPIN_COLUMN.from + SPIN_COLUMN.to) / 2;
-    left = left < mid ? SPIN_COLUMN.from - (mid - left) * 0.9 : SPIN_COLUMN.to + (left - mid) * 0.9;
-    left = Math.min(96, Math.max(4, left));
-  }
   return {
-    left,
-    top: band.from + rand() * (band.to - band.from),
+    left: 4 + rand() * 92,
+    top: 3 + rand() * 94,
     rotate: (rand() - 0.5) * 14,
     size: 1.05 + rand() * 1.1,
     duration: 6500 + rand() * 3500,
@@ -77,18 +85,26 @@ const spread = (a: { left: number; top: number }, b: { left: number; top: number
 export function placeChalkWord(
   rand: () => number = Math.random,
   avoid: readonly { left: number; top: number }[] = [],
-): ChalkPlacement {
-  let best = candidate(rand);
-  if (avoid.length === 0) return best;
+  keepOut: KeepOut = [],
+): ChalkPlacement | null {
+  const gapTo = (p: ChalkPlacement) =>
+    avoid.length === 0 ? Infinity : Math.min(...avoid.map((o) => spread(p, o)));
 
-  let bestGap = Math.min(...avoid.map((o) => spread(best, o)));
-  for (let i = 0; i < 8 && bestGap < MIN_GAP ** 2; i += 1) {
+  let best: ChalkPlacement | null = null;
+  let bestGap = -1;
+
+  // Draw a handful of candidates and keep the best one that is clear of the
+  // interface. Rejecting rather than clamping means a crowded window simply
+  // writes fewer words instead of stacking them somewhere silly.
+  for (let i = 0; i < 24; i += 1) {
     const next = candidate(rand);
-    const gap = Math.min(...avoid.map((o) => spread(next, o)));
+    if (!isClear(next, keepOut)) continue;
+    const gap = gapTo(next);
     if (gap > bestGap) {
       best = next;
       bestGap = gap;
     }
+    if (bestGap >= MIN_GAP ** 2) break;
   }
   return best;
 }
