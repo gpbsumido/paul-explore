@@ -43,16 +43,22 @@ export function localImageIds(state: GalleryState): string[] {
 
 /**
  * The multipart body for a save: the wall's name (when it's being set), the
- * serialized arrangement, and a file per local image keyed by its id.
+ * serialized arrangement, and the photos still held locally.
+ *
+ * Photos are correlated to their images by position, not by field name. Image
+ * ids come from filenames, which can carry spaces and other characters that do
+ * not survive a round trip as a multipart field name -- when that happened the
+ * server could not match an upload back to its image and quietly left the dead
+ * `blob:` src in place, so the wall reopened blank.
  */
 export function buildWallFormData({ name, state, filesById }: SaveInput): FormData {
   const form = new FormData();
   if (name !== undefined) form.append("name", name);
   form.append("state", serializeGallery(state));
-  for (const id of localImageIds(state)) {
-    const file = filesById[id];
-    if (file) form.append(id, file);
-  }
+
+  const ids = localImageIds(state).filter((id) => filesById[id]);
+  form.append("imageIds", JSON.stringify(ids));
+  for (const id of ids) form.append("photos", filesById[id]);
   return form;
 }
 

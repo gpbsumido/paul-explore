@@ -44,8 +44,40 @@ describe("buildWallFormData", () => {
 
     expect(form.get("name")).toBe("Hallway");
     expect(JSON.parse(form.get("state") as string).images).toHaveLength(2);
-    expect(form.get("img0")).toBeInstanceOf(File);
-    expect(form.get("img1")).toBeNull();
+    expect(JSON.parse(form.get("imageIds") as string)).toEqual(["img0"]);
+    expect(form.getAll("photos")).toHaveLength(1);
+  });
+
+  it("keeps ids and photos in the same order so they can be matched by position", () => {
+    // Ids come from filenames, so they can hold spaces and other characters that
+    // would not survive being used as multipart field names.
+    const state: GalleryState = {
+      ...initialGalleryState,
+      images: ["blob:a", "blob:b"].map((src, i) => ({
+        id: `Screenshot 2025-11-18 at 10.4${i} AM.png-${i}`,
+        src,
+        aspect: 1,
+        frame: { sizeId: "8x10", orientation: "portrait" as const },
+      })),
+    };
+    const filesById = {
+      [state.images[0].id]: file("a.png"),
+      [state.images[1].id]: file("b.png"),
+    };
+    const form = buildWallFormData({ state, filesById });
+
+    expect(JSON.parse(form.get("imageIds") as string)).toEqual([
+      state.images[0].id,
+      state.images[1].id,
+    ]);
+    expect(form.getAll("photos")).toHaveLength(2);
+  });
+
+  it("only lists ids that actually have a file to upload", () => {
+    const state = stateWith(["blob:one", "blob:two"]);
+    const form = buildWallFormData({ state, filesById: { img1: file("b.png") } });
+    expect(JSON.parse(form.get("imageIds") as string)).toEqual(["img1"]);
+    expect(form.getAll("photos")).toHaveLength(1);
   });
 
   it("omits the name when renaming is not part of the save", () => {

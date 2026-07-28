@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-28 - version 1.15.3
+
+- fixed saved walls reopening blank. Photos were sent under a multipart field named after the image id, and ids come from filenames -- a screenshot named "... 10.40.57 AM.png" carries spaces and a narrow no-break space, which do not survive as a field name. The photo uploaded fine but the server could not match it back to its image, so the wall kept a `blob:` URL that dies with the page. Photos are now paired to images by position against an explicit `imageIds` list.
+- documented the whole debugging run on the gallery wall thoughts page: four separate bugs, all with the identical blank-wall symptom, and the piece of evidence that actually cracked it (the browser made no image requests at all).
+
 ## 2026-07-28 - version 1.15.2
 
 - fixed saved gallery walls opening blank. The photos come back from S3 on a different origin, but that origin was not in the CSP `img-src` allowlist, so the browser blocked every one of them -- frames drew, photos did not. The CSP now reads `NEXT_PUBLIC_MEDIA_ORIGIN` and adds it to `img-src` (and `connect-src`), so it can be pointed at a CloudFront or bucket URL per environment without a code change.

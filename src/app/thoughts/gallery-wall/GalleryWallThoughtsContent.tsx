@@ -225,16 +225,111 @@ export default function GalleryWallThoughtsContent() {
         </p>
       </Section>
 
-      <Section title="Saving a wall">
+      <Section title="Saving a wall, for real this time">
         <p>
-          A finished arrangement serialises to JSON and lands in{" "}
-          <C>localStorage</C>; a Restore button reads it back through a{" "}
-          <C>replace</C> action. The save is gated on the same <C>canSave</C> — you
-          can&rsquo;t persist an invalid wall — and the read happens after mount,
-          not during render, so the server and client agree on first paint. The
-          honest caveat: photos are held as object URLs that don&rsquo;t survive a
-          reload, so a restored wall keeps its frames and measurements but wants
-          its images re-added.
+          The first version serialised to <C>localStorage</C>: one slot, no name,
+          and photos held as object URLs that die on reload. A restored wall kept
+          its frames and measurements but wanted every image re-added. Walls now
+          live in S3 instead, one folder per wall, scoped to the signed-in user:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[12px] font-mono">
+{`gallery-walls/{userSegment}/{wallId}/manifest.json
+gallery-walls/{userSegment}/{wallId}/images/{id}.webp`}
+        </pre>
+        <p className="mt-3">
+          No database. A person saves a handful of walls, so a table plus a
+          migration buys nothing that a key prefix doesn&rsquo;t already give you:
+          per-user isolation is the path, and deleting a wall bulk-removes its
+          photos. Only images still held as <C>blob:</C> or <C>data:</C> URLs get
+          uploaded, so re-saving an unchanged wall re-uploads nothing.
+        </p>
+      </Section>
+
+      <Section title="Four ways a saved wall came back blank">
+        <p>
+          Saving worked on the first try. <em>Loading</em> took four separate
+          bugs, and each one produced the identical symptom — a wall with frames
+          and no photos — which is what made it interesting.
+        </p>
+        <ul className="mt-3 flex flex-col gap-2">
+          <Bullet>
+            <strong>The multipart field name.</strong> Each photo was uploaded
+            under a field named after its image id, and the id is built from the
+            filename. A screenshot called{" "}
+            <C>Screenshot 2025-11-18 at 10.40.57 AM.png</C> carries spaces and a
+            narrow no-break space (<C>U+202F</C>), and those don&rsquo;t survive a
+            round trip as a field name. The server got a subtly different string,
+            failed to match the upload back to its image, and left the dead{" "}
+            <C>blob:</C> URL in place. The photo was sitting in S3 the whole time.
+            Files are now paired to images <em>by position</em> against an
+            explicit <C>imageIds</C> list — never by name.
+          </Bullet>
+          <Bullet>
+            <strong>The Zod schema ate the fix.</strong> Adding that{" "}
+            <C>imageIds</C> field didn&rsquo;t work at first, because{" "}
+            <C>validateBody</C> replaces the body with the <em>parsed</em> result
+            and Zod strips keys it doesn&rsquo;t know about. The field has to be
+            declared in the schema or it silently vanishes between the middleware
+            and the controller.
+          </Bullet>
+          <Bullet>
+            <strong>The CSP blocked every photo.</strong> Photos come back from a
+            CDN — a different origin — and <C>img-src</C> didn&rsquo;t list it, so
+            the browser refused all of them. Frames drew, photos didn&rsquo;t. The
+            policy now reads <C>NEXT_PUBLIC_MEDIA_ORIGIN</C>, and lives in{" "}
+            <C>lib/csp.ts</C> so the part that varies by environment is unit
+            tested — including that a media origin can never widen{" "}
+            <C>script-src</C>.
+          </Bullet>
+          <Bullet>
+            <strong>
+              <C>CDN_BASE_URL</C> had no fallback.
+            </strong>{" "}
+            It&rsquo;s optional, and the URL was built by interpolation, so when
+            it was unset every stored src began with the literal string{" "}
+            <C>undefined</C>. It now falls back to the bucket&rsquo;s own URL.
+          </Bullet>
+        </ul>
+        <p className="mt-3">
+          The debugging lesson was about <em>evidence</em>, not any of these
+          causes. The thing that cracked it was noticing the browser made{" "}
+          <strong>no image requests at all</strong>. A blocked request still
+          appears in the network panel; zero requests means the element never had
+          a URL to fetch. That ruled out CSP and permissions in one step and
+          pointed straight at the stored data — where the manifest still held{" "}
+          <C>blob:http://localhost:3000/…</C>. Reading the actual saved object
+          beat every theory I had about it.
+        </p>
+      </Section>
+
+      <Section title="Ids from filenames are user input">
+        <p>
+          The deeper mistake was treating a filename-derived id as safe to use as
+          a key, a field name, and a URL segment. It is none of those things: it
+          is arbitrary text from whatever a person named a file. The id is still
+          useful for identity — re-adding the same photo reuses it — but it now
+          gets flattened to <C>[a-zA-Z0-9.-_]</C> before it becomes an S3 key, so
+          the resulting URL needs no escaping to be fetchable. Deterministically,
+          so the delete path rebuilds exactly the same key.
+        </p>
+      </Section>
+
+      <Section title="One pointer, two jobs">
+        <p>
+          A smaller bug in the same family: the floating settings panel could pop
+          out but not dock again. Its header is both the drag handle and the home
+          of the Dock button, so pressing that button started a drag and called{" "}
+          <C>setPointerCapture</C> — and capture retargets the pointer, which
+          swallowed the button&rsquo;s own click. Docked, the header has no drag
+          handlers at all, which is exactly why only one direction broke. Presses
+          that land on a control no longer start a drag.
+        </p>
+        <p className="mt-3">
+          Worth noting what didn&rsquo;t catch it: the unit tests passed, because
+          jsdom doesn&rsquo;t implement pointer-capture retargeting. It could
+          reproduce the <em>unwanted drag</em> but never the swallowed click. Some
+          bugs only exist in a real browser, and that is a reason to open one, not
+          a reason to trust the green checkmark.
         </p>
       </Section>
 
@@ -252,9 +347,18 @@ export default function GalleryWallThoughtsContent() {
           The throughline across drag, overlap, masonry, the hang sheet, and save
           is the same as the first version: every hard part is a pure function
           you can test, and the component is just the accessible wiring around
-          them. Left for later: mat and frame-colour choices, snapping to a shared
-          baseline while dragging, and persisting the photos themselves so a saved
-          wall reloads whole.
+          them. What the save work added to that is a boundary lesson — the pure
+          core was never the thing that broke. Every one of those four bugs lived
+          at an edge: a multipart field name, a schema that strips unknown keys, a
+          response header, an unset environment variable. Purity buys you a lot,
+          and none of it applies where your code hands something to a system it
+          doesn&rsquo;t control.
+        </p>
+        <p className="mt-3">
+          Left for later: mat and frame-colour choices, snapping to a shared
+          baseline while dragging, and a migration for walls saved before the
+          upload fix — their manifests still point at <C>blob:</C> URLs that will
+          never resolve, and the honest repair is to re-save them.
         </p>
       </Section>
     </ThoughtLayout>
