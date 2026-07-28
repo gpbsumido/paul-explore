@@ -25,6 +25,9 @@
 
 - added a Gallery Wall arranger at `/gallery-wall`. Upload photos and each one is auto-framed with a best-fit standard size and orientation, every frame is yours to change, and the whole wall renders to scale against a wall size you enter, warning you when the frames don't fit. Built pure-core-first: an aspect-matching auto-framer with a medium tie-break, a centered shelf-packing layout with overflow detection, and an inches-internal model with a cm toggle only at the input edge. The preview is a single SVG whose viewBox is the wall's physical size, so there's no pixel math, and it reads as one labelled image region for screen readers.
 - wired the feature into the hub grid, the v3 graph, the v4 slot machine, and the command palette from the same `FEATURES`/`THOUGHTS` data, added a `--color-feature-gallery-wall` token, and wrote the dev-notes page at `/thoughts/gallery-wall`.
+## 2026-07-27 - version 1.11.4
+
+- scrubbed the named "MicroMart" reference out of the operator dashboard so it just describes a generic smart-store retail company instead. The hub blurb now reads "a smart-store retail fleet", and the sample operator activity actors use a fictional `@smartstore.example` domain rather than a real-sounding company one.
 
 ## 2026-07-27 - version 1.11.3
 
