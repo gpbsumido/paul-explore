@@ -250,6 +250,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#06b6d4",
   },
   {
+    title: "PR Screenshots From an Unattended Agent",
+    href: "/thoughts/pr-screenshots",
+    preview:
+      "Embedding before/after screenshots inline in PR descriptions with only the gh CLI — why user-attachments, gists, and release assets all failed, and why we don't prune the PNGs",
+    color: "#fb923c",
+  },
+  {
     title: "Tiered Testing Strategy",
     href: "/thoughts/test-tiers",
     preview:
