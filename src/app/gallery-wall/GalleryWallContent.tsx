@@ -366,7 +366,6 @@ export default function GalleryWallContent({ initialState }: Props) {
     <PageShell colorA={ACCENT} colorB="#818cf8">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Gallery Wall" }]}
-        showLogout={false}
         maxWidth="max-w-5xl"
       />
 

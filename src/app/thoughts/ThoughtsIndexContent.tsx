@@ -57,7 +57,6 @@ export default function ThoughtsIndexContent() {
           { label: "Hub", href: "/" },
           { label: "Thoughts" },
         ]}
-        showLogout={false}
         maxWidth="max-w-5xl"
       />
 

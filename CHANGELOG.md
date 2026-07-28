@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-28 - version 2.0.1
+
+- restored the log in / log out control on the pages that had switched it off: Gallery Wall, Craft, Resume, the thoughts index and every thoughts page, and the design-system showcase. `showLogout={false}` predates the menu learning to resolve the real session, so it now just hides the only account control on those pages (issue #244). Added an integrity test so no page can suppress it again.
 ## 2026-07-28 - version 2.0.0
 
 Release to production. Rolls up everything since 1.11.3, headlined by the Gallery Wall arranger.
