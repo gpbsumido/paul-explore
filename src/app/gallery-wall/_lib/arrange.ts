@@ -103,6 +103,59 @@ export function arrangeWall({
   return { placements, contentHeight, overflows: tooTall || tooWide };
 }
 
+/**
+ * Arrange frames as a true staggered masonry: fixed-width columns, each new
+ * frame dropped into the currently shortest column. Unlike the shelf layout the
+ * columns rarely line up row-to-row, which reads as the classic gallery wall.
+ * Column count comes from how many average-width frames fit across the wall.
+ */
+export function arrangeMasonry({
+  wallWidth,
+  wallHeight,
+  gap,
+  frames,
+}: ArrangeInput): Arrangement {
+  if (frames.length === 0) {
+    return { placements: [], contentHeight: 0, overflows: false };
+  }
+
+  const avgWidth =
+    frames.reduce((sum, f) => sum + f.width, 0) / frames.length;
+  const columnCount = Math.max(
+    1,
+    Math.min(frames.length, Math.floor((wallWidth + gap) / (avgWidth + gap))),
+  );
+  const columnWidth = (wallWidth - gap * (columnCount - 1)) / columnCount;
+
+  // Bottom (in wall units) currently reached by each column.
+  const columnBottom = new Array<number>(columnCount).fill(0);
+  const placements: Placement[] = [];
+
+  for (const frame of frames) {
+    let col = 0;
+    for (let c = 1; c < columnCount; c++) {
+      if (columnBottom[c] < columnBottom[col]) col = c;
+    }
+    const top = columnBottom[col] === 0 ? 0 : columnBottom[col] + gap;
+    const colX = col * (columnWidth + gap);
+    // Centre the frame within its column so mixed widths still line up tidily.
+    placements.push({
+      id: frame.id,
+      x: colX + Math.max(0, (columnWidth - frame.width) / 2),
+      y: top,
+      width: frame.width,
+      height: frame.height,
+    });
+    columnBottom[col] = top + frame.height;
+  }
+
+  const contentHeight = Math.max(...columnBottom);
+  const overflows =
+    contentHeight > wallHeight || frames.some((f) => f.width > wallWidth);
+
+  return { placements, contentHeight, overflows };
+}
+
 // A hair of slack so floating-point drift doesn't report a flush frame as
 // overlapping or a perfectly-fitted frame as off the wall.
 const EPS = 1e-6;
