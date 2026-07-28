@@ -6,7 +6,8 @@
 - turned overlap into a hard stop. Frames that overlap or hang off the wall turn red, a warning pops over the preview, and Save is disabled until the wall is clean - all driven by pure `findOverlaps`/`findOutOfBounds` checks and a single `canSave` flag. Auto-arrange untangles everything back into a valid layout in one click.
 - added a true staggered masonry layout alongside the original rows, picked with a Layout toggle. Both are pure functions that seed the un-dragged frames.
 - added a printable hang sheet: a measured table giving each frame's hook position from the wall's left and top edges (following the unit toggle), so the on-screen plan becomes a tape-measure checklist.
-- added saving a wall to `localStorage` (gated on a valid arrangement) with a Restore button, and a zoom control on the preview that scrolls to let you pan - the SVG stays sharp at any zoom.
+- added saving a wall to `localStorage` (gated on a valid arrangement) with a Restore button.
+- added zoom to the preview: type a percentage or use the +/- buttons (clamped 100-400%). The preview window is now a fixed size no matter the wall or zoom - the wall fits and centres inside it, and zooming scrolls to let you pan. A minimap shows which slice of the wall you're looking at, and the SVG stays sharp at any zoom.
 
 ## 2026-07-27 - version 1.12.0
 

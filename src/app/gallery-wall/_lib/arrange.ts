@@ -214,9 +214,11 @@ export type WallPixels = {
 
 /**
  * Convert a pointer movement measured in screen pixels into wall units, given
- * how large the wall is currently rendered. Used by the drag handler so a
- * dragged frame tracks the cursor at any zoom level. Returns a zero delta when
- * the wall hasn't been laid out yet (rendered size of zero).
+ * how large the wall is currently rendered. The wall is drawn with
+ * `preserveAspectRatio` inside a fixed-size window, so it's scaled uniformly by
+ * the tighter of the two dimensions (letterboxed on the other); dividing the
+ * pixel delta by that single scale keeps a dragged frame under the cursor at any
+ * zoom and any window shape. Returns a zero delta before the wall is laid out.
  */
 export function clientDeltaToWall(
   dxPx: number,
@@ -224,8 +226,39 @@ export function clientDeltaToWall(
   { pxWidth, pxHeight, wallWidth, wallHeight }: WallPixels,
 ): { dx: number; dy: number } {
   if (pxWidth <= 0 || pxHeight <= 0) return { dx: 0, dy: 0 };
+  const scale = Math.min(pxWidth / wallWidth, pxHeight / wallHeight);
+  return { dx: dxPx / scale, dy: dyPx / scale };
+}
+
+/** Scroll geometry of the zoomed preview window. */
+export type ViewportMetrics = {
+  scrollLeft: number;
+  scrollTop: number;
+  scrollWidth: number;
+  scrollHeight: number;
+  clientWidth: number;
+  clientHeight: number;
+};
+
+/**
+ * The portion of the wall currently visible in the zoomed window, in wall units,
+ * for drawing the minimap indicator. When nothing is scrollable (zoomed out to
+ * fit) it covers the whole wall.
+ */
+export function viewportRect(
+  m: ViewportMetrics,
+  wall: { width: number; height: number },
+): Placement {
+  if (m.scrollWidth <= 0 || m.scrollHeight <= 0) {
+    return { id: "viewport", x: 0, y: 0, width: wall.width, height: wall.height };
+  }
+  const fw = Math.min(1, m.clientWidth / m.scrollWidth);
+  const fh = Math.min(1, m.clientHeight / m.scrollHeight);
   return {
-    dx: (dxPx * wallWidth) / pxWidth,
-    dy: (dyPx * wallHeight) / pxHeight,
+    id: "viewport",
+    x: (m.scrollLeft / m.scrollWidth) * wall.width,
+    y: (m.scrollTop / m.scrollHeight) * wall.height,
+    width: fw * wall.width,
+    height: fh * wall.height,
   };
 }

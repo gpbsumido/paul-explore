@@ -140,9 +140,14 @@ export default function GalleryWallThoughtsContent() {
           whole wall to whatever width the column gives it. Each frame is a white
           mat with a dark border and the photo cropped to fill (
           <C>preserveAspectRatio=&quot;xMidYMid slice&quot;</C>, the SVG spelling
-          of object-fit cover). Zoom is pure CSS on top: the preview is drawn
-          wider than its column and a scroll wrapper lets you pan, and because the
-          SVG has no fixed pixel sizes anywhere it stays razor-sharp at any zoom.
+          of object-fit cover). The preview window is a fixed size no matter the
+          wall or the zoom &mdash; the wall is fit and centred inside it, and
+          zooming (type a percentage or use the buttons) scales the content past
+          the edges so the window scrolls to pan. Because the SVG has no fixed
+          pixel sizes it stays razor-sharp at any zoom, a little minimap shows
+          which slice of the wall you&rsquo;re looking at, and the drag math
+          divides the pointer delta by the one uniform fit-scale so a frame stays
+          under the cursor even when the window letterboxes the wall.
         </p>
         <p className="mt-3">
           The stage has two accessibility shapes. A static preview is a single

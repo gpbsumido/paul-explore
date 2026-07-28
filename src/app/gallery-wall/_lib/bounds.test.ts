@@ -4,6 +4,7 @@ import {
   findOverlaps,
   findOutOfBounds,
   clientDeltaToWall,
+  viewportRect,
   type Placement,
 } from "./arrange";
 
@@ -90,6 +91,18 @@ describe("clientDeltaToWall", () => {
     expect(delta.dy).toBeCloseTo(5, 5);
   });
 
+  it("uses a single uniform scale when the window is letterboxed", () => {
+    // Window 400x400, wall 100x60 -> fits to width (scale 4), height letterboxed.
+    const delta = clientDeltaToWall(40, 40, {
+      pxWidth: 400,
+      pxHeight: 400,
+      wallWidth: 100,
+      wallHeight: 60,
+    });
+    expect(delta.dx).toBeCloseTo(10, 5);
+    expect(delta.dy).toBeCloseTo(10, 5);
+  });
+
   it("returns a zero delta when the rendered size is zero", () => {
     const delta = clientDeltaToWall(40, 20, {
       pxWidth: 0,
@@ -98,5 +111,58 @@ describe("clientDeltaToWall", () => {
       wallHeight: 60,
     });
     expect(delta).toEqual({ dx: 0, dy: 0 });
+  });
+});
+
+describe("viewportRect", () => {
+  const wall = { width: 100, height: 60 };
+
+  it("covers the whole wall when nothing is scrollable", () => {
+    const rect = viewportRect(
+      {
+        scrollLeft: 0,
+        scrollTop: 0,
+        scrollWidth: 400,
+        scrollHeight: 240,
+        clientWidth: 400,
+        clientHeight: 240,
+      },
+      wall,
+    );
+    expect(rect).toMatchObject({ x: 0, y: 0, width: 100, height: 60 });
+  });
+
+  it("shrinks and offsets with scroll when zoomed in", () => {
+    // Zoomed 2x and scrolled to the far corner.
+    const rect = viewportRect(
+      {
+        scrollLeft: 400,
+        scrollTop: 240,
+        scrollWidth: 800,
+        scrollHeight: 480,
+        clientWidth: 400,
+        clientHeight: 240,
+      },
+      wall,
+    );
+    expect(rect.width).toBeCloseTo(50, 5);
+    expect(rect.height).toBeCloseTo(30, 5);
+    expect(rect.x).toBeCloseTo(50, 5);
+    expect(rect.y).toBeCloseTo(30, 5);
+  });
+
+  it("falls back to the full wall before layout", () => {
+    const rect = viewportRect(
+      {
+        scrollLeft: 0,
+        scrollTop: 0,
+        scrollWidth: 0,
+        scrollHeight: 0,
+        clientWidth: 0,
+        clientHeight: 0,
+      },
+      wall,
+    );
+    expect(rect).toMatchObject({ width: 100, height: 60 });
   });
 });

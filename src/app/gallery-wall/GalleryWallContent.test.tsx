@@ -114,13 +114,43 @@ describe("GalleryWallContent", () => {
     expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
   });
 
-  it("zooms the wall preview in and back out", () => {
+  it("zooms in on repeated clicks of the same button without it moving", () => {
     render(<GalleryWallContent initialState={seededState()} />);
-    expect(screen.getByText("100%")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
-    expect(screen.getByText("150%")).toBeInTheDocument();
+    // The Fit control is always in the DOM so the +/- buttons never shift.
+    expect(screen.getByText("Fit")).toBeInTheDocument();
+    const zoomInput = screen.getByLabelText(/zoom percent/i);
+    expect(zoomInput).toHaveValue(100);
+    const zoomIn = screen.getByRole("button", { name: /zoom in/i });
+    fireEvent.click(zoomIn);
+    fireEvent.click(zoomIn);
+    expect(zoomInput).toHaveValue(200);
     fireEvent.click(screen.getByRole("button", { name: /zoom out/i }));
-    expect(screen.getByText("100%")).toBeInTheDocument();
+    expect(zoomInput).toHaveValue(150);
+  });
+
+  it("lets me type a zoom amount, clamped to the limits", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    const zoomInput = screen.getByLabelText(/zoom percent/i);
+    fireEvent.change(zoomInput, { target: { value: "175" } });
+    fireEvent.blur(zoomInput);
+    expect(zoomInput).toHaveValue(175);
+    fireEvent.change(zoomInput, { target: { value: "999" } });
+    fireEvent.blur(zoomInput);
+    expect(zoomInput).toHaveValue(400);
+    fireEvent.change(zoomInput, { target: { value: "5" } });
+    fireEvent.blur(zoomInput);
+    expect(zoomInput).toHaveValue(100);
+  });
+
+  it("shows the zoom preview minimap only once zoomed in", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    expect(
+      screen.queryByRole("img", { name: /zoom preview/i }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /zoom in/i }));
+    expect(
+      screen.getByRole("img", { name: /zoom preview/i }),
+    ).toBeInTheDocument();
   });
 
   it("switches the auto layout to masonry", () => {

@@ -130,10 +130,7 @@ export default function WallStage({
   };
 
   return (
-    <div
-      className="w-full overflow-hidden rounded-lg"
-      style={{ aspectRatio: `${wall.width} / ${wall.height}` }}
-    >
+    <div className="h-full w-full overflow-hidden rounded-lg">
       <svg
         ref={svgRef}
         // A static preview is one image; an interactive one is a group of frame

@@ -1,9 +1,16 @@
 "use client";
 
-import { useReducer, useState, useEffect, type ChangeEvent } from "react";
+import {
+  useReducer,
+  useState,
+  useEffect,
+  useRef,
+  type ChangeEvent,
+} from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import WallStage from "./WallStage";
+import { viewportRect, type ViewportMetrics } from "./_lib/arrange";
 import { FRAME_SIZES, type Orientation } from "./_lib/frames";
 import {
   galleryReducer,
@@ -72,9 +79,12 @@ export default function GalleryWallContent({ initialState }: Props) {
   );
   const [unit, setUnit] = useState<Unit>("in");
   const [zoom, setZoom] = useState(1);
+  const [zoomText, setZoomText] = useState<string | null>(null);
   const [showHangSheet, setShowHangSheet] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [canRestore, setCanRestore] = useState(false);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState<ViewportMetrics | null>(null);
 
   // Only look for a saved wall on the client, after mount, so the server and
   // first client render match. Skipped when a state is injected (tests).
@@ -86,7 +96,51 @@ export default function GalleryWallContent({ initialState }: Props) {
     setCanRestore(window.localStorage.getItem(SAVE_KEY) !== null);
   }, [initialState]);
 
+  const clampZoom = (z: number): number =>
+    Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+
+  const syncView = () => {
+    const el = viewportRef.current;
+    if (!el) return;
+    setView({
+      scrollLeft: el.scrollLeft,
+      scrollTop: el.scrollTop,
+      scrollWidth: el.scrollWidth,
+      scrollHeight: el.scrollHeight,
+      clientWidth: el.clientWidth,
+      clientHeight: el.clientHeight,
+    });
+  };
+
+  const setZoomTo = (z: number) => {
+    setZoom(clampZoom(z));
+    setZoomText(null);
+  };
+
+  const commitZoom = () => {
+    const percent = Number.parseInt(zoomText ?? "", 10);
+    if (Number.isFinite(percent)) setZoom(clampZoom(percent / 100));
+    setZoomText(null);
+  };
+
+  // Keep the minimap's viewport box in sync after a zoom change re-lays the wall.
+  useEffect(() => {
+    const raf = requestAnimationFrame(syncView);
+    return () => cancelAnimationFrame(raf);
+  }, [zoom]);
+
   const validation = computeValidation(state);
+  const minimapView = viewportRect(
+    view ?? {
+      scrollLeft: 0,
+      scrollTop: 0,
+      scrollWidth: 0,
+      scrollHeight: 0,
+      clientWidth: 0,
+      clientHeight: 0,
+    },
+    state.wall,
+  );
   const unitLabel = unit === "cm" ? "cm" : "in";
   const fmt = (inches: number): string => {
     const v = unit === "cm" ? inches * CM_PER_INCH : inches;
@@ -149,19 +203,33 @@ export default function GalleryWallContent({ initialState }: Props) {
 
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
           <section aria-label="Wall preview" className="min-w-0">
-            <div className="relative glass-card rounded-2xl p-4">
+            <div className="glass-card rounded-2xl p-4">
               <div className="mb-3 flex items-center justify-end gap-1.5">
-                <span
-                  aria-live="polite"
-                  className="mr-1 text-[12px] tabular-nums text-muted"
-                >
-                  {Math.round(zoom * 100)}%
-                </span>
+                <label className="mr-1 flex items-center gap-1 text-[12px] text-muted">
+                  <span className="sr-only">Zoom percent</span>
+                  <input
+                    type="number"
+                    min={ZOOM_MIN * 100}
+                    max={ZOOM_MAX * 100}
+                    step={10}
+                    value={zoomText ?? Math.round(zoom * 100)}
+                    onChange={(e) => setZoomText(e.target.value)}
+                    onBlur={commitZoom}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitZoom();
+                      }
+                    }}
+                    className="w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right tabular-nums text-foreground"
+                  />
+                  <span aria-hidden>%</span>
+                </label>
                 <button
                   type="button"
                   aria-label="Zoom out"
                   disabled={zoom <= ZOOM_MIN}
-                  onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP))}
+                  onClick={() => setZoomTo(zoom - ZOOM_STEP)}
                   className="h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <span aria-hidden>&minus;</span>
@@ -170,69 +238,131 @@ export default function GalleryWallContent({ initialState }: Props) {
                   type="button"
                   aria-label="Zoom in"
                   disabled={zoom >= ZOOM_MAX}
-                  onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))}
+                  onClick={() => setZoomTo(zoom + ZOOM_STEP)}
                   className="h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <span aria-hidden>+</span>
                 </button>
-                {zoom !== 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => setZoom(1)}
-                    className="rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30"
+                {/* Always in the DOM so the +/- buttons never shift under the
+                    cursor; just hidden and inert until you've zoomed in. */}
+                <button
+                  type="button"
+                  onClick={() => setZoomTo(1)}
+                  aria-hidden={zoom === 1}
+                  tabIndex={zoom === 1 ? -1 : 0}
+                  disabled={zoom === 1}
+                  className={`rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30 ${
+                    zoom === 1 ? "invisible" : ""
+                  }`}
+                >
+                  Fit
+                </button>
+              </div>
+
+              {/* The preview window is a fixed size no matter the wall or zoom.
+                  The wall is drawn to fit and centred inside it; zooming scales
+                  the content past the window edges and the window scrolls. */}
+              <div className="relative">
+                <div
+                  ref={viewportRef}
+                  onScroll={syncView}
+                  className="h-[clamp(320px,52vh,520px)] overflow-auto rounded-lg border border-border bg-surface/40"
+                >
+                  <div
+                    className="h-full w-full"
+                    style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}
                   >
-                    Fit
-                  </button>
+                    <WallStage
+                      wall={state.wall}
+                      placements={validation.placements}
+                      images={state.images}
+                      invalidIds={validation.invalidIds}
+                      onMove={(id, position) =>
+                        dispatch({
+                          type: "move-image",
+                          id,
+                          x: position.x,
+                          y: position.y,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Zoom preview: a minimap showing which part of the wall the
+                    window is looking at. Only useful once you're zoomed in. */}
+                {zoom > 1 ? (
+                  <div
+                    role="img"
+                    aria-label="Zoom preview minimap"
+                    className="pointer-events-none absolute right-3 top-3 w-32 overflow-hidden rounded-md border border-border bg-background/85 p-1 shadow-sm backdrop-blur"
+                  >
+                    <svg
+                      viewBox={`0 0 ${state.wall.width} ${state.wall.height}`}
+                      preserveAspectRatio="xMidYMid meet"
+                      className="w-full"
+                      style={{ aspectRatio: `${state.wall.width} / ${state.wall.height}` }}
+                    >
+                      <rect
+                        x={0}
+                        y={0}
+                        width={state.wall.width}
+                        height={state.wall.height}
+                        className="fill-surface stroke-border"
+                        strokeWidth={0.4}
+                      />
+                      {validation.placements.map((p) => (
+                        <rect
+                          key={p.id}
+                          x={p.x}
+                          y={p.y}
+                          width={p.width}
+                          height={p.height}
+                          fill={ACCENT}
+                          fillOpacity={0.4}
+                        />
+                      ))}
+                      <rect
+                        x={minimapView.x}
+                        y={minimapView.y}
+                        width={minimapView.width}
+                        height={minimapView.height}
+                        fill="none"
+                        stroke={ACCENT}
+                        strokeWidth={Math.max(state.wall.width, state.wall.height) * 0.012}
+                      />
+                    </svg>
+                  </div>
+                ) : null}
+
+                {/* The warning popup: floats over the preview when saving is blocked. */}
+                {validation.overlaps.length > 0 ? (
+                  <div
+                    role="alert"
+                    className="pointer-events-none absolute inset-x-3 bottom-3 flex items-start gap-2 rounded-lg border border-red-500/50 bg-red-500/15 px-3 py-2 text-[13px] font-medium text-red-700 shadow-sm backdrop-blur dark:text-red-300"
+                  >
+                    <span aria-hidden className="mt-0.5 font-bold">
+                      ⚠
+                    </span>
+                    <span>
+                      Some frames overlap. Move them apart before you can save.
+                    </span>
+                  </div>
+                ) : validation.outOfBounds.length > 0 ? (
+                  <div
+                    role="alert"
+                    className="pointer-events-none absolute inset-x-3 bottom-3 flex items-start gap-2 rounded-lg border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-[13px] font-medium text-amber-700 shadow-sm backdrop-blur dark:text-amber-300"
+                  >
+                    <span aria-hidden className="mt-0.5 font-bold">
+                      ⚠
+                    </span>
+                    <span>
+                      Some frames hang off the wall. Move them back on so they fit
+                      the wall before saving.
+                    </span>
+                  </div>
                 ) : null}
               </div>
-              {/* Zoom scales the preview wider than its column; the wrapper
-                  scrolls so you can pan. Drag math reads the SVG's live size,
-                  so moving a frame stays accurate at any zoom. */}
-              <div className="max-h-[70vh] overflow-auto rounded-lg">
-                <div style={{ width: `${zoom * 100}%` }}>
-                  <WallStage
-                    wall={state.wall}
-                    placements={validation.placements}
-                    images={state.images}
-                    invalidIds={validation.invalidIds}
-                    onMove={(id, position) =>
-                      dispatch({
-                        type: "move-image",
-                        id,
-                        x: position.x,
-                        y: position.y,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              {/* The warning popup: floats over the preview when saving is blocked. */}
-              {validation.overlaps.length > 0 ? (
-                <div
-                  role="alert"
-                  className="pointer-events-none absolute inset-x-4 bottom-4 flex items-start gap-2 rounded-lg border border-red-500/50 bg-red-500/15 px-3 py-2 text-[13px] font-medium text-red-700 shadow-sm backdrop-blur dark:text-red-300"
-                >
-                  <span aria-hidden className="mt-0.5 font-bold">
-                    ⚠
-                  </span>
-                  <span>
-                    Some frames overlap. Move them apart before you can save.
-                  </span>
-                </div>
-              ) : validation.outOfBounds.length > 0 ? (
-                <div
-                  role="alert"
-                  className="pointer-events-none absolute inset-x-4 bottom-4 flex items-start gap-2 rounded-lg border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-[13px] font-medium text-amber-700 shadow-sm backdrop-blur dark:text-amber-300"
-                >
-                  <span aria-hidden className="mt-0.5 font-bold">
-                    ⚠
-                  </span>
-                  <span>
-                    Some frames hang off the wall. Move them back on so they fit
-                    the wall before saving.
-                  </span>
-                </div>
-              ) : null}
             </div>
 
             {state.images.length === 0 ? (
