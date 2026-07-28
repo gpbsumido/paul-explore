@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useState, type ChangeEvent } from "react";
+import { useReducer, useState, useEffect, type ChangeEvent } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import WallStage from "./WallStage";
@@ -8,13 +8,18 @@ import { FRAME_SIZES, type Orientation } from "./_lib/frames";
 import {
   galleryReducer,
   initialGalleryState,
-  computeArrangement,
+  computeValidation,
+  computeHangSheet,
+  serializeGallery,
+  deserializeGallery,
   type GalleryState,
+  type LayoutMode,
   type UploadedImage,
 } from "./_lib/state";
 
 const ACCENT = "#e879f9";
 const CM_PER_INCH = 2.54;
+const SAVE_KEY = "gallery-wall:saved";
 type Unit = "in" | "cm";
 
 /** Physical inches shown in the chosen unit, rounded for a tidy input. */
@@ -48,9 +53,11 @@ type Props = { initialState?: GalleryState };
 
 /**
  * The Gallery Wall Arranger. Upload photos and each one is framed with an
- * auto-chosen size and orientation; the frame size and orientation are yours to
- * override per photo. Enter a wall size and the preview shows the arrangement to
- * scale, warning you when the frames won't fit.
+ * auto-chosen size and orientation; the size and orientation are yours to
+ * override per photo. Drag frames anywhere on the wall (or nudge with the arrow
+ * keys); overlapping or off-wall frames turn red and block saving. Auto-arrange
+ * re-tidies as rows or staggered masonry, and the hang sheet prints the exact
+ * measurements for every hook.
  *
  * The interesting logic lives in the pure reducer and layout modules under
  * `_lib/`; this component is the wiring and the accessible controls around them.
@@ -61,7 +68,26 @@ export default function GalleryWallContent({ initialState }: Props) {
     initialState ?? initialGalleryState,
   );
   const [unit, setUnit] = useState<Unit>("in");
-  const arrangement = computeArrangement(state);
+  const [showHangSheet, setShowHangSheet] = useState(false);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [canRestore, setCanRestore] = useState(false);
+
+  // Only look for a saved wall on the client, after mount, so the server and
+  // first client render match. Skipped when a state is injected (tests).
+  useEffect(() => {
+    if (initialState) return;
+    // localStorage is client-only, so this has to run after mount -- reading it
+    // during render would make the server and client disagree on the button.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCanRestore(window.localStorage.getItem(SAVE_KEY) !== null);
+  }, [initialState]);
+
+  const validation = computeValidation(state);
+  const unitLabel = unit === "cm" ? "cm" : "in";
+  const fmt = (inches: number): string => {
+    const v = unit === "cm" ? inches * CM_PER_INCH : inches;
+    return `${Math.round(v * 10) / 10} ${unitLabel}`;
+  };
 
   const onFiles = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
@@ -79,7 +105,20 @@ export default function GalleryWallContent({ initialState }: Props) {
     });
   };
 
-  const unitLabel = unit === "cm" ? "cm" : "in";
+  const save = () => {
+    if (!validation.canSave) return;
+    window.localStorage.setItem(SAVE_KEY, serializeGallery(state));
+    setSavedAt(new Date().toLocaleTimeString());
+    setCanRestore(true);
+  };
+
+  const restore = () => {
+    const raw = window.localStorage.getItem(SAVE_KEY);
+    const restored = raw ? deserializeGallery(raw) : null;
+    if (restored) dispatch({ type: "replace", state: restored });
+  };
+
+  const hangSheet = computeHangSheet(state);
 
   return (
     <PageShell colorA={ACCENT} colorB="#818cf8">
@@ -98,38 +137,115 @@ export default function GalleryWallContent({ initialState }: Props) {
             Gallery Wall
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
-            Upload your photos and the app frames each one, auto-picking a frame
-            size and orientation. Change any of them, set your wall size, and see
-            the whole wall laid out to scale before a single nail goes in.
+            Upload your photos and the app frames each one. Drag frames anywhere
+            on the wall to arrange them, set your wall size, and print the hang
+            sheet with the exact measurements before a single nail goes in.
           </p>
         </header>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
           <section aria-label="Wall preview" className="min-w-0">
-            <div className="glass-card rounded-2xl p-4">
+            <div className="relative glass-card rounded-2xl p-4">
               <WallStage
                 wall={state.wall}
-                placements={arrangement.placements}
+                placements={validation.placements}
                 images={state.images}
+                invalidIds={validation.invalidIds}
+                onMove={(id, position) =>
+                  dispatch({ type: "move-image", id, x: position.x, y: position.y })
+                }
               />
+              {/* The warning popup: floats over the preview when saving is blocked. */}
+              {validation.overlaps.length > 0 ? (
+                <div
+                  role="alert"
+                  className="pointer-events-none absolute inset-x-4 bottom-4 flex items-start gap-2 rounded-lg border border-red-500/50 bg-red-500/15 px-3 py-2 text-[13px] font-medium text-red-700 shadow-sm backdrop-blur dark:text-red-300"
+                >
+                  <span aria-hidden className="mt-0.5 font-bold">
+                    ⚠
+                  </span>
+                  <span>
+                    Some frames overlap. Move them apart before you can save.
+                  </span>
+                </div>
+              ) : validation.outOfBounds.length > 0 ? (
+                <div
+                  role="alert"
+                  className="pointer-events-none absolute inset-x-4 bottom-4 flex items-start gap-2 rounded-lg border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-[13px] font-medium text-amber-700 shadow-sm backdrop-blur dark:text-amber-300"
+                >
+                  <span aria-hidden className="mt-0.5 font-bold">
+                    ⚠
+                  </span>
+                  <span>
+                    Some frames hang off the wall. Move them back on so they fit
+                    the wall before saving.
+                  </span>
+                </div>
+              ) : null}
             </div>
+
             {state.images.length === 0 ? (
               <p className="mt-3 text-sm text-muted">
                 No photos yet. Add a few to start arranging your wall.
               </p>
-            ) : null}
-            {arrangement.overflows ? (
-              <div
-                role="status"
-                className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-700 dark:text-amber-400"
-              >
-                <span aria-hidden className="mt-0.5 font-bold">
-                  ⚠
-                </span>
-                <span>
-                  These frames don&rsquo;t fit the wall. Make the wall bigger, the
-                  spacing smaller, or use smaller frames.
-                </span>
+            ) : (
+              <p className="mt-3 text-[13px] text-muted">
+                Drag a frame to move it, or select one and use the arrow keys
+                (hold Shift for a bigger step).
+              </p>
+            )}
+
+            {showHangSheet && hangSheet.length > 0 ? (
+              <div className="mt-4 glass-card overflow-x-auto rounded-2xl p-4">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    Hang sheet
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="rounded-md border border-border px-3 py-1 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                  >
+                    Print
+                  </button>
+                </div>
+                <table className="w-full text-left text-[13px]">
+                  <caption className="sr-only">Hang sheet</caption>
+                  <thead>
+                    <tr className="text-[11px] uppercase tracking-wide text-muted">
+                      <th scope="col" className="py-1 pr-3 font-semibold">
+                        Photo
+                      </th>
+                      <th scope="col" className="py-1 pr-3 font-semibold">
+                        Frame
+                      </th>
+                      <th scope="col" className="py-1 pr-3 font-semibold">
+                        Hook from left
+                      </th>
+                      <th scope="col" className="py-1 font-semibold">
+                        Hook from top
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-foreground">
+                    {hangSheet.map((row) => (
+                      <tr key={row.id} className="border-t border-border">
+                        <td className="py-1.5 pr-3">{row.label}</td>
+                        <td className="py-1.5 pr-3">{row.size}</td>
+                        <td className="py-1.5 pr-3 tabular-nums">
+                          {fmt(row.hookFromLeft)}
+                        </td>
+                        <td className="py-1.5 tabular-nums">
+                          {fmt(row.hookFromTop)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="mt-2 text-[11px] text-muted">
+                  Measured to each frame&rsquo;s hook (top-centre), from the
+                  wall&rsquo;s left and top edges.
+                </p>
               </div>
             ) : null}
           </section>
@@ -207,6 +323,84 @@ export default function GalleryWallContent({ initialState }: Props) {
                   </label>
                 </div>
               </fieldset>
+
+              {state.images.length > 0 ? (
+                <div className="mt-4 border-t border-border pt-4">
+                  <div
+                    role="group"
+                    aria-label="Auto layout"
+                    className="mb-3"
+                  >
+                    <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wide text-muted">
+                      Layout
+                    </span>
+                    <div className="flex gap-1">
+                      {(["rows", "masonry"] as LayoutMode[]).map((mode) => {
+                        const active = state.layout === mode;
+                        return (
+                          <button
+                            key={mode}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() =>
+                              dispatch({ type: "set-layout", layout: mode })
+                            }
+                            className={`flex-1 rounded-md border px-2 py-1 text-[12px] capitalize transition-colors ${
+                              active
+                                ? "border-transparent text-white"
+                                : "border-border text-muted hover:text-foreground"
+                            }`}
+                            style={active ? { backgroundColor: ACCENT } : undefined}
+                          >
+                            {mode}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => dispatch({ type: "auto-arrange" })}
+                      className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                    >
+                      Auto-arrange
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowHangSheet((v) => !v)}
+                      aria-pressed={showHangSheet}
+                      className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                    >
+                      Hang sheet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={save}
+                      disabled={!validation.canSave}
+                      className="rounded-md border border-transparent px-3 py-1.5 text-[13px] font-semibold text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{ backgroundColor: ACCENT }}
+                    >
+                      Save
+                    </button>
+                    {canRestore ? (
+                      <button
+                        type="button"
+                        onClick={restore}
+                        className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                      >
+                        Restore
+                      </button>
+                    ) : null}
+                  </div>
+                  {savedAt ? (
+                    <p role="status" className="mt-2 text-[12px] text-muted">
+                      Saved at {savedAt}.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             {state.images.length > 0 ? (

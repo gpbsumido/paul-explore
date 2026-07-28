@@ -68,7 +68,8 @@ export type GalleryAction =
   | { type: "auto-arrange"; layout?: LayoutMode }
   | { type: "set-layout"; layout: LayoutMode }
   | { type: "set-wall"; width: number; height: number }
-  | { type: "set-gap"; gap: number };
+  | { type: "set-gap"; gap: number }
+  | { type: "replace"; state: GalleryState };
 
 /** A blank slate: no images, a typical 96 × 60 inch wall, a 3 inch gap. */
 export const initialGalleryState: GalleryState = {
@@ -222,6 +223,8 @@ export function galleryReducer(
       };
     case "set-gap":
       return { ...state, gap: Math.max(MIN_GAP, action.gap) };
+    case "replace":
+      return action.state;
   }
 }
 

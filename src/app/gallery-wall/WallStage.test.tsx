@@ -21,7 +21,7 @@ const images: FramedImage[] = [
 ];
 
 const wall = { width: 96, height: 60 };
-const arrangement = computeArrangement({ images, wall, gap: 3 });
+const arrangement = computeArrangement({ images, wall, gap: 3, layout: "rows" });
 const placementFor = (id: string) =>
   arrangement.placements.find((p) => p.id === id)!;
 

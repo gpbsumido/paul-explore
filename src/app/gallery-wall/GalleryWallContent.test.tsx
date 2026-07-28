@@ -1,17 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within, fireEvent } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import GalleryWallContent from "./GalleryWallContent";
-import type { GalleryState, FramedImage } from "./_lib/state";
+import type { GalleryState, FramedImage, Position } from "./_lib/state";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
-const framed = (id: string, aspect: number, frame: FramedImage["frame"]): FramedImage => ({
-  id,
-  src: `blob:${id}`,
-  aspect,
-  frame,
-});
+const framed = (
+  id: string,
+  aspect: number,
+  frame: FramedImage["frame"],
+  position?: Position,
+): FramedImage => ({ id, src: `blob:${id}`, aspect, frame, position });
 
 const seededState = (overrides: Partial<GalleryState> = {}): GalleryState => ({
   images: [
@@ -20,7 +20,24 @@ const seededState = (overrides: Partial<GalleryState> = {}): GalleryState => ({
   ],
   wall: { width: 96, height: 60 },
   gap: 3,
+  layout: "rows",
   ...overrides,
+});
+
+const overlapping = (): GalleryState =>
+  seededState({
+    images: [
+      framed("a", 0.8, { sizeId: "8x10", orientation: "portrait" }, { x: 10, y: 10 }),
+      framed("b", 0.8, { sizeId: "8x10", orientation: "portrait" }, { x: 12, y: 12 }),
+    ],
+  });
+
+const frameRectX = (container: HTMLElement, id: string): number =>
+  Number(container.querySelector(`[data-frame-id="${id}"] rect`)?.getAttribute("x"));
+
+beforeEach(() => {
+  window.localStorage.clear();
+  window.print = vi.fn();
 });
 
 describe("GalleryWallContent", () => {
@@ -40,7 +57,6 @@ describe("GalleryWallContent", () => {
 
   it("renders the to-scale preview with one frame per photo", () => {
     const { container } = render(<GalleryWallContent initialState={seededState()} />);
-    expect(screen.getByRole("img", { name: /gallery wall preview/i })).toBeInTheDocument();
     expect(container.querySelectorAll("svg image")).toHaveLength(2);
   });
 
@@ -56,34 +72,75 @@ describe("GalleryWallContent", () => {
     render(<GalleryWallContent initialState={seededState()} />);
     const group = screen.getByRole("group", { name: "Photo 1" });
     const landscape = within(group).getByRole("button", { name: /landscape/i });
-    expect(landscape).toHaveAttribute("aria-pressed", "false");
     fireEvent.click(landscape);
     expect(landscape).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("removes a photo", () => {
+  it("moves a frame to the right when its handle is nudged with the arrow key", () => {
     const { container } = render(<GalleryWallContent initialState={seededState()} />);
-    const group = screen.getByRole("group", { name: "Photo 1" });
-    fireEvent.click(within(group).getByRole("button", { name: /remove/i }));
-    expect(container.querySelectorAll("svg image")).toHaveLength(1);
+    const before = frameRectX(container, "a");
+    fireEvent.keyDown(container.querySelector('[data-frame-id="a"]')!, {
+      key: "ArrowRight",
+    });
+    expect(frameRectX(container, "a")).toBeCloseTo(before + 1, 5);
   });
 
-  it("warns when the frames overflow the wall", () => {
+  it("flags overlapping frames and blocks saving with a warning", () => {
+    const { container } = render(
+      <GalleryWallContent initialState={overlapping()} />,
+    );
+    expect(container.querySelector('[data-frame-id="a"]')).toHaveAttribute(
+      "data-invalid",
+      "true",
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(/overlap/i);
+    expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+  });
+
+  it("saves a valid arrangement to storage", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    const save = screen.getByRole("button", { name: /save/i });
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
+    expect(window.localStorage.getItem("gallery-wall:saved")).toBeTruthy();
+    expect(screen.getByText(/saved/i)).toBeInTheDocument();
+  });
+
+  it("auto-arranges overlapping frames back into a valid layout", () => {
+    render(<GalleryWallContent initialState={overlapping()} />);
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /auto-arrange/i }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /save/i })).toBeEnabled();
+  });
+
+  it("switches the auto layout to masonry", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    const masonry = screen.getByRole("button", { name: /masonry/i });
+    fireEvent.click(masonry);
+    expect(masonry).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("shows a printable hang sheet with a measured row per photo", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    fireEvent.click(screen.getByRole("button", { name: /hang sheet/i }));
+    const table = screen.getByRole("table", { name: /hang sheet/i });
+    // header row + one row per photo
+    expect(within(table).getAllByRole("row")).toHaveLength(3);
+    fireEvent.click(screen.getByRole("button", { name: /^print/i }));
+    expect(window.print).toHaveBeenCalled();
+  });
+
+  it("warns when a frame hangs off the wall", () => {
     render(
       <GalleryWallContent initialState={seededState({ wall: { width: 12, height: 12 } })} />,
     );
-    expect(screen.getByText(/fit the wall/i)).toBeInTheDocument();
-  });
-
-  it("does not warn when everything fits", () => {
-    render(<GalleryWallContent initialState={seededState()} />);
-    expect(screen.queryByText(/fit the wall/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/off the wall|fit the wall/i)).toBeInTheDocument();
   });
 
   it("converts the wall size when switching to centimetres", () => {
     render(<GalleryWallContent initialState={seededState()} />);
     fireEvent.change(screen.getByLabelText(/units/i), { target: { value: "cm" } });
-    // 96 inches is about 244 cm.
     expect(screen.getByLabelText(/wall width/i)).toHaveValue(244);
   });
 

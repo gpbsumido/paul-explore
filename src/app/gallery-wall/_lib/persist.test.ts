@@ -95,4 +95,13 @@ describe("serialize / deserialize", () => {
     expect(deserializeGallery("not json")).toBeNull();
     expect(deserializeGallery(JSON.stringify({ nope: true }))).toBeNull();
   });
+
+  it("restores a whole gallery through the replace action", () => {
+    const saved = withImages();
+    const restored = galleryReducer(initialGalleryState, {
+      type: "replace",
+      state: saved,
+    });
+    expect(restored).toEqual(saved);
+  });
 });
