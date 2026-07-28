@@ -40,7 +40,14 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Performance",
-    slugs: ["perf", "render-perf", "vitals", "bundle", "tree-shaking"],
+    slugs: [
+      "perf",
+      "render-perf",
+      "vitals",
+      "bundle",
+      "tree-shaking",
+      "tree-shaking-2",
+    ],
   },
   {
     name: "Architecture & Backend",

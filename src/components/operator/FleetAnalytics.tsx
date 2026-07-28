@@ -1,12 +1,31 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import nextDynamic from "next/dynamic";
 import { AnimatePresence, m } from "framer-motion";
 import type { Store, AlertTrendBucket } from "@/types/operator";
-import FleetHealthChart from "./FleetHealthChart";
-import AlertTrendChart from "./AlertTrendChart";
-import InventoryComparisonChart from "./InventoryComparisonChart";
 import { ChevronDownIcon } from "./icons";
+
+// The charts are the only thing on the operator page that pulls in recharts
+// (~66KB), and this whole section defaults to collapsed, so that weight was
+// pure unused JS on first load. Loading the three chart components through
+// next/dynamic keeps recharts out of the operator bundle until someone actually
+// opens the section. ssr:false because they render client-side only anyway.
+const chartFallback = (
+  <div className="h-56 animate-pulse rounded-lg bg-surface-raised" />
+);
+const FleetHealthChart = nextDynamic(() => import("./FleetHealthChart"), {
+  ssr: false,
+  loading: () => chartFallback,
+});
+const AlertTrendChart = nextDynamic(() => import("./AlertTrendChart"), {
+  ssr: false,
+  loading: () => chartFallback,
+});
+const InventoryComparisonChart = nextDynamic(
+  () => import("./InventoryComparisonChart"),
+  { ssr: false, loading: () => chartFallback },
+);
 
 interface InventoryComparisonDatum {
   readonly name: string;

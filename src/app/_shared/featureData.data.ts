@@ -398,6 +398,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#22c55e",
   },
   {
+    title: "Tree Shaking, Round 2",
+    href: "/thoughts/tree-shaking-2",
+    preview:
+      "A second pass from green dead-code checks: tree-shaking the barrels Next doesn't optimize by default for a measured 148KB, then a real LCP fix — moving the entrance reveal off the JS bundle and lazy-loading the operator charts",
+    color: "#16a34a",
+  },
+  {
     title: "Work Portfolio",
     href: "/thoughts/work-portfolio",
     preview:

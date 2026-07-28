@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { m } from "framer-motion";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
-import { fadeInUp, spring, staggerContainer, cardFlipIn } from "@/lib/animations";
 import {
   TcgPreview,
   PocketPreview,
@@ -63,13 +61,7 @@ export default function PokemonHub() {
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Pokémon" }]}
       />
 
-      <m.main
-        className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6"
-        variants={fadeInUp}
-        initial="hidden"
-        animate="visible"
-        transition={spring.smooth}
-      >
+      <main className="reveal-up mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Pokémon</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted">
@@ -78,28 +70,22 @@ export default function PokemonHub() {
           </p>
         </div>
 
-        <m.div
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-          variants={staggerContainer()}
-          initial="hidden"
-          animate="visible"
-        >
-          {APPS.map((app) => (
-            <AppCard key={app.href} app={app} />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {APPS.map((app, i) => (
+            <AppCard key={app.href} app={app} index={i} />
           ))}
-        </m.div>
-      </m.main>
+        </div>
+      </main>
     </PageShell>
   );
 }
 
 /** One link card for a sub-app: a themed preview, the blurb, and the links. */
-function AppCard({ app }: { app: PokemonApp }) {
+function AppCard({ app, index }: { app: PokemonApp; index: number }) {
   return (
-    <m.div
-      variants={cardFlipIn}
-      whileHover={{ y: -4, transition: { ...spring.snappy } }}
-      className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface"
+    <div
+      style={{ animationDelay: `${0.08 + index * 0.06}s` }}
+      className="reveal-up flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-transform duration-200 ease-out hover:-translate-y-1"
     >
       <div
         className="overflow-hidden"
@@ -148,6 +134,6 @@ function AppCard({ app }: { app: PokemonApp }) {
           </Link>
         </div>
       </div>
-    </m.div>
+    </div>
   );
 }
