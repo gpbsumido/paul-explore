@@ -39,6 +39,30 @@ function Section({
   );
 }
 
+/** A little before/after stat row for the LCP tables. */
+function Stat({
+  label,
+  before,
+  after,
+  note,
+}: {
+  label: string;
+  before: string;
+  after: string;
+  note?: string;
+}) {
+  return (
+    <li className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <span className="mt-1 h-1.5 w-1.5 shrink-0 self-start rounded-full bg-foreground/30" />
+      <span className="font-medium text-foreground">{label}</span>
+      <span className="font-mono text-[13px] text-muted">{before}</span>
+      <span className="text-muted">→</span>
+      <span className="font-mono text-[13px] text-foreground">{after}</span>
+      {note ? <span className="text-[13px] text-muted">{note}</span> : null}
+    </li>
+  );
+}
+
 export default function TreeShakingTwoContent() {
   return (
     <ThoughtLayout
@@ -46,11 +70,13 @@ export default function TreeShakingTwoContent() {
       title="Tree Shaking, Round 2"
       intro={
         <>
-          A second pass at dead weight for 2.3.0, this time starting from a
-          codebase that was already clean. The interesting question wasn&apos;t
-          what to delete — the deletion checks were green — it was where the
-          remaining bytes actually hide, and whether the page speed people feel
-          was suffering because of them.
+          A second pass at dead weight for 2.3.0, starting from a codebase that
+          was already clean. The deletion checks were green, so the interesting
+          question wasn&apos;t what to delete. It was where the remaining bytes
+          hide, whether the page speed people feel was suffering, and what
+          actually fixes it. That last part had a twist I did not expect: the
+          fix that helped real users the most is the one my lab tool refused to
+          give credit for.
         </>
       }
       chat={
@@ -103,12 +129,8 @@ export default function TreeShakingTwoContent() {
                 client JS went 13,468 to 13,320 KB. real, but small
               </Sent>
 
-              <Received pos="first">
-                148K. that&apos;s it?
-              </Received>
-              <Received pos="last">
-                feels like barely worth it
-              </Received>
+              <Received pos="first">148K. that&apos;s it?</Received>
+              <Received pos="last">feels like barely worth it</Received>
 
               <Sent pos="first">
                 that&apos;s the honest number, and it&apos;s small on purpose.
@@ -117,71 +139,125 @@ export default function TreeShakingTwoContent() {
                 were already taken. this is the tail
               </Sent>
               <Sent pos="last">
-                small and free and permanent beats big and risky. it&apos;s a
-                config flag, not a refactor — nothing to maintain, nothing to
-                break
+                but the vitals check found something worth chasing, so i went
+                back and actually did the LCP work this time
               </Sent>
 
               <Timestamp>11:52 AM</Timestamp>
 
               <Received>
-                and the web vitals? you said you&apos;d actually check this time
+                right, last time you flagged LCP and left it. home 4.1, operator
+                4.8, pokemon 4.4
               </Received>
 
               <Sent pos="first">
-                ran Lighthouse against the prod build on the main pages. scores
-                82 to 94. CLS basically zero, blocking time tiny, server
-                responds in 10ms. nothing&apos;s on fire
+                yeah. so i dug into what was actually gating it. and it was dumb,
+                in a good way — the largest text on each page was sitting at{" "}
+                <code>opacity:0</code> in the server HTML
               </Sent>
               <Sent pos="last">
-                one soft spot though — LCP. home 4.1s, operator 4.8s, pokemon
-                4.4s on throttled mobile. that&apos;s the &quot;needs
-                work&quot; band
+                every page wraps its content in a framer-motion entrance —{" "}
+                <code>initial=&quot;hidden&quot;</code>, fade up on mount. framer
+                renders that hidden state into the SSR markup as{" "}
+                <code>opacity:0</code>. so the paint is there, but it&apos;s
+                invisible until the JS bundle downloads, hydrates, and runs the
+                animation. on throttled mobile that&apos;s ~4 seconds
               </Sent>
 
-              <Received>so the pages are slow</Received>
+              <Received>so the content is done, it&apos;s just hiding</Received>
 
               <Sent pos="first">
-                not slow to interact — slow to paint the big element. and when i
-                opened the one red audit on every page, it was the same line:
-                &quot;reduce unused JavaScript.&quot; 72K on home, 118K on
-                operator
+                exactly. the fix is to stop gating the first paint on JS. i moved
+                the entrance to a CSS keyframe. same fade-up, but it runs on the
+                compositor the moment the element renders — no bundle, no
+                hydration, no wait
               </Sent>
               <Sent pos="last">
-                which is the exact thing the tree-shaking pass chips at. the
-                bundle lever and the LCP lever turned out to be the same lever
+                reduced-motion falls out for free too, it&apos;s just a{" "}
+                <code>@media</code> rule now instead of a JS hook
+              </Sent>
+
+              <Received>and Lighthouse went green?</Received>
+
+              <Sent pos="first">
+                no. and that&apos;s the part that got interesting. Lighthouse
+                barely moved — home still read ~4.7s
+              </Sent>
+              <Sent pos="last">
+                so i measured it a different way. real Chrome, real CPU and
+                network throttling, watching the actual LCP event. before: home
+                4284ms. after: 1712ms. that&apos;s 2.5 seconds faster for a real
+                person
               </Sent>
 
               <Received pos="first">
-                then why not just fix LCP hard, right now
+                so the tool said no change and the real thing said 2.5s
               </Received>
-              <Received pos="last">
-                chase it to green
+              <Received pos="last">which one&apos;s lying</Received>
+
+              <Sent pos="first">
+                the tool, kind of. Lighthouse&apos;s default score is a{" "}
+                <em>simulation</em> — it loads the page fast, then models slow
+                mobile with a math model of the JS dependency graph. that model
+                is great for JS-bound delays and blind to a compositor animation
+                that paints early
+              </Sent>
+              <Sent pos="last">
+                the field number is the one users live in. so i trusted it. the
+                lab number is a proxy, and here the proxy was wrong
+              </Sent>
+
+              <Received>
+                but you also said trim unused JS on operator and pokemon. did
+                that do anything
               </Received>
 
               <Sent pos="first">
-                because a big LCP refactor is exactly the kind of change you
-                don&apos;t land without a human watching the numbers. splitting a
-                hero, reordering a canvas, moving work off the main path — each
-                one can regress something else, and &quot;green in the lab&quot;
-                isn&apos;t &quot;better for real users&quot;
+                operator, yes, and it was the clean one. its charts pull in
+                recharts, ~66KB, and that whole section defaults to collapsed. so
+                recharts was 100% unused on load. i lazy-loaded the three chart
+                components — now it only downloads when you open the section.
+                unused JS 118K to 70K, and that one actually moved Lighthouse too:
+                4.8 to 4.2
               </Sent>
               <Sent pos="last">
-                the vitals aren&apos;t bad enough to gamble on a speculative
-                rewrite. so: apply the safe, measured nudge, and write the LCP +
-                unused-JS finding down as the next thing to look at with intent
+                pokemon was the honest let-down. its &quot;unused JS&quot; is zod,
+                but pokemon never imports zod. Next is prefetching the routes the
+                hub links to — the graphql and pocket pages — and those use zod.
+                it&apos;s prefetch, a nav speedup, not real page weight. trimming
+                it would mean turning off prefetch, which is worse. so i left it
+                and wrote down why
+              </Sent>
+
+              <Received>
+                and you only touched those three pages?
+              </Received>
+
+              <Sent pos="first">
+                started there because they were the worst. but the{" "}
+                <code>initial=&quot;hidden&quot;</code> pattern was everywhere, so
+                i applied the same CSS reveal to every page that gates its
+                above-the-fold content on mount — flags, the store detail, the
+                design-system sections, the learn hero
+              </Sent>
+              <Sent pos="last">
+                what i did <em>not</em> touch: the scroll-triggered reveals (those
+                fire on <code>whileInView</code>, they&apos;re below the fold and
+                correct as-is), the interactive animations, and the retired v1/v2
+                pages. the fix only belongs where JS was gating the first paint
               </Sent>
 
               <Received>what&apos;s the one-line version</Received>
 
               <Sent pos="first">
-                when the delete checks are already green, the next win is a
-                config that ships less of the code you kept — not a bigger delete
+                a nice entrance animation shouldn&apos;t decide when your content
+                becomes visible. paint first, animate second — in CSS, off the
+                bundle
               </Sent>
               <Sent pos="last">
-                and measure before you claim a fix. 148K is a small honest win;
-                a 4.8s LCP is a real finding, not a thing to paper over in one
-                unattended pass
+                and measure in the thing users actually feel. my lab tool said
+                nothing changed while real Chrome painted 2.5 seconds sooner. when
+                the proxy and the field disagree, the field wins
               </Sent>
             </div>
           </div>
@@ -238,104 +314,203 @@ export default function TreeShakingTwoContent() {
           <Bullet>
             The fix is one config block: <C>experimental.optimizePackageImports</C>{" "}
             listing those four. No source changes, no import rewrites by hand.
-          </Bullet>
-        </ul>
-      </Section>
-
-      <Section title="Measure, then claim">
-        <p className="mb-3 text-muted">
-          The rule from round one still holds: name the currency before you
-          celebrate. So the change was measured against a real baseline, not
-          asserted.
-        </p>
-        <ul className="mt-2 space-y-2 text-muted">
-          <Bullet>
-            Built the app cold, summed every client chunk under{" "}
-            <C>.next/static/chunks</C>: <strong className="text-foreground">
-            13,468 KB
+            Total client JS went <strong className="text-foreground">
+            13,468 KB → 13,320 KB
             </strong>{" "}
-            baseline.
-          </Bullet>
-          <Bullet>
-            Added the config, rebuilt, re-summed:{" "}
-            <strong className="text-foreground">13,320 KB</strong> — a{" "}
-            <strong className="text-foreground">148 KB</strong> reduction in
-            total shipped JS, with the build and typecheck still clean.
-          </Bullet>
-          <Bullet>
-            Small, and that&apos;s the honest framing. The app had already taken
-            the big wins (lazy motion, split 3D). This is the long tail — but
-            it&apos;s free, permanent, and carries zero maintenance because
-            it&apos;s a flag, not a rewrite.
+            — a real 148 KB, small on purpose, since the big wins were already
+            taken.
           </Bullet>
         </ul>
       </Section>
 
-      <Section title="The web-vitals check (and where they actually hurt)">
+      <Section title="The web-vitals check, and the one soft spot">
         <p className="mb-3 text-muted">
           A bundle number is a proxy. The real question was whether page speed
-          is suffering, so this pass also ran Lighthouse against the production
-          build on the main routes — home, calendar, NBA, thoughts, vitals,
-          operator, pokemon — under throttled mobile.
+          is suffering, so this pass ran Lighthouse against the production build
+          on the main routes under throttled mobile. Scores landed 82–94, CLS
+          was effectively zero, blocking time was tiny, the server responded in
+          10ms. Nothing structurally broken — except one metric.
         </p>
         <ul className="mt-2 space-y-2 text-muted">
           <Bullet>
-            <strong className="text-foreground">Mostly healthy.</strong>{" "}
-            Performance scores landed 82–94. Cumulative layout shift was
-            effectively zero, total blocking time was tiny, and the server
-            responded in 10ms. Nothing structurally broken.
-          </Bullet>
-          <Bullet>
-            <strong className="text-foreground">LCP is the soft spot.</strong>{" "}
+            <strong className="text-foreground">LCP was the soft spot.</strong>{" "}
             Largest Contentful Paint sat in the &quot;needs improvement&quot;
             band on the heaviest pages — home 4.1s, operator 4.8s, pokemon 4.4s.
+            Fast to interact, slow to paint the big element.
+          </Bullet>
+          <Bullet>
+            The failing audit on every slow page was the same line:{" "}
+            <em>reduce unused JavaScript</em>. No render-blocking stylesheet, no
+            slow server, no unprioritized hero image. So there were two threads
+            to pull: whatever was <em>gating</em> the paint, and whatever JS was
+            genuinely <em>unused</em>.
+          </Bullet>
+        </ul>
+      </Section>
+
+      <Section title="What was actually gating the paint">
+        <p className="mb-3 text-muted">
+          I checked what the LCP element even was on each page. Same shape every
+          time: a big block of text, sitting in the server-rendered HTML, but
+          shipped with an inline <C>opacity:0</C>.
+        </p>
+        <ul className="mt-2 space-y-2 text-muted">
+          <Bullet>
+            Every page wraps its content in a framer-motion entrance —{" "}
+            <C>{`initial="hidden"`}</C>, fade-and-rise on mount. Framer renders
+            that hidden state into the SSR markup, so the largest content is
+            painted but invisible.
+          </Bullet>
+          <Bullet>
+            It only becomes visible after the JS bundle downloads, React
+            hydrates, and framer runs <C>{`animate="visible"`}</C>. On throttled
+            mobile that whole chain is roughly four seconds — which is exactly
+            where LCP landed, while first paint (FCP) was ~1.1s. The gap between
+            them <em>was</em> the animation waiting on JS.
+          </Bullet>
+          <Bullet>
+            So this was never a &quot;too much content&quot; problem. The content
+            was ready at FCP. A decorative entrance was deciding when it got to
+            be seen.
+          </Bullet>
+        </ul>
+      </Section>
+
+      <Section title="The fix: paint first, animate second">
+        <p className="mb-3 text-muted">
+          The entrance is worth keeping — I just don&apos;t want it on the
+          critical path. So I moved it from JS to CSS.
+        </p>
+        <ul className="mt-2 space-y-2 text-muted">
+          <Bullet>
+            A single <C>@keyframes reveal-up</C> (fade + translateY) and a{" "}
+            <C>.reveal-up</C> class in globals. It runs on the compositor the
+            instant the element renders, with no bundle and no hydration in the
+            way, so the content is visible at FCP and LCP lands with it.
+          </Bullet>
+          <Bullet>
+            Fill mode is <C>backwards</C> on purpose: the from-state applies
+            before the animation starts, but the element reverts to plain styles
+            when it ends, so a later <C>:hover</C> transform isn&apos;t pinned by
+            a forwards fill. Staggered groups just set an inline{" "}
+            <C>animation-delay</C> per child, kept small so the largest element
+            never waits long.
+          </Bullet>
+          <Bullet>
+            Reduced motion is handled by a{" "}
+            <C>@media (prefers-reduced-motion: reduce)</C> rule that switches the
+            animation off — no JS hook, honoured before a single script runs.
+          </Bullet>
+        </ul>
+      </Section>
+
+      <Section title="Trimming the JS that really was unused">
+        <p className="mb-3 text-muted">
+          The other thread was the <em>reduce unused JavaScript</em> audit.
+          Operator had a clean, real win. Pokemon taught me to read the audit
+          more carefully.
+        </p>
+        <ul className="mt-2 space-y-2 text-muted">
+          <Bullet>
+            <strong className="text-foreground">Operator: lazy charts.</strong>{" "}
+            The Fleet Analytics section pulls in <C>recharts</C> (~66 KB) and
+            defaults to <em>collapsed</em>, so that whole library was 100% unused
+            on load. I loaded the three chart components through{" "}
+            <C>next/dynamic</C>, so recharts only downloads when someone actually
+            opens the section. Unused JS 118 KiB → 70 KiB, and this one moved the
+            lab number too — operator LCP 4.8s → 4.2s.
           </Bullet>
           <Bullet>
             <strong className="text-foreground">
-              Same lever, twice.
+              Pokemon: it was prefetch, not weight.
             </strong>{" "}
-            The single failing audit on every slow page was the same one:{" "}
-            <em>reduce unused JavaScript</em> (72 KiB on home, 118 KiB on
-            operator). There was no render-blocking stylesheet, no slow server,
-            no unprioritized hero image — the LCP delay is JS the page ships but
-            doesn&apos;t need to paint. The bundle lever and the LCP lever are
-            the same lever.
+            Its flagged chunk is zod, but the pokemon hub never imports zod. The
+            hub links to the GraphQL and TCG Pocket pages, and Next prefetches
+            those routes — they use zod, so their chunk rides along. That&apos;s
+            a navigation speedup, not page weight. Killing it would mean turning
+            off prefetch, which is a worse trade. So I left it, and this is me
+            writing down why.
           </Bullet>
         </ul>
       </Section>
 
-      <Section title="Why not just fix LCP right now">
+      <Section title="The number that lied: lab vs field">
         <p className="mb-3 text-muted">
-          Tempting to chase LCP to green in the same pass. The decision was to
-          apply the safe nudge and write the rest down as an intentional
-          follow-up, not to speculatively refactor.
+          Here&apos;s the twist. After the CSS-reveal fix, Lighthouse&apos;s LCP
+          barely budged — home still read ~4.7s. If that were the only number I
+          looked at, I&apos;d have called the fix a failure and reverted it.
         </p>
         <ul className="mt-2 space-y-3 text-muted">
           <Bullet>
-            <strong className="text-foreground">The nudge is safe.</strong>{" "}
-            <C>optimizePackageImports</C> is a config flag with a measured,
-            positive effect on the exact metric Lighthouse flagged. Low risk,
-            already shipped.
+            So I measured it a second way: real headless Chrome, real 4× CPU and
+            Slow-4G throttling, reading the actual{" "}
+            <C>largest-contentful-paint</C> entry. That&apos;s the field, not a
+            model.
+          </Bullet>
+          <li className="flex flex-col gap-1.5">
+            <span className="flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+              <span className="text-muted">
+                Real-user LCP, before → after (throttled Chrome):
+              </span>
+            </span>
+            <ul className="ml-3.5 space-y-1.5">
+              <Stat label="home" before="4284 ms" after="1712 ms" note="−2.5s" />
+              <Stat
+                label="operator"
+                before="3228 ms"
+                after="1320 ms"
+                note="−1.9s"
+              />
+              <Stat
+                label="pokemon"
+                before="2640 ms"
+                after="1472 ms"
+                note="−1.2s"
+              />
+            </ul>
+          </li>
+          <Bullet>
+            The lab tool and the field disagreed hard, and the field was right.
+            Lighthouse&apos;s default score is a <em>simulation</em>: it loads
+            the page quickly, then estimates slow-mobile timings from a model of
+            the JS dependency graph. That model is sharp for JS-bound delays and
+            effectively blind to a compositor animation that paints early — so it
+            kept crediting the old JS-graph timing that no longer described
+            reality.
           </Bullet>
           <Bullet>
-            <strong className="text-foreground">
-              A hard LCP fix is not.
-            </strong>{" "}
-            Splitting the LCP element, reordering a canvas mount, or moving work
-            off the critical path each risks regressing something else, and a
-            lab score improving is not the same as real users being better off.
-            That&apos;s a change you land with a human watching the field
-            numbers, not blind in one unattended pass.
+            The lesson I&apos;m keeping: a lab metric is a proxy, and a proxy can
+            be wrong. When it disagrees with what a real throttled browser paints,
+            trust the browser. I&apos;d have thrown away the best fix in this whole
+            pass if I&apos;d stopped at the Lighthouse column.
+          </Bullet>
+        </ul>
+      </Section>
+
+      <Section title="Applying it everywhere it fit (and where it didn't)">
+        <p className="mb-3 text-muted">
+          Home, operator and pokemon were where I started because they measured
+          worst. But the <C>{`initial="hidden"`}</C> entrance was all over the
+          app, so the same fix applied anywhere a page gates its above-the-fold
+          content on mount.
+        </p>
+        <ul className="mt-2 space-y-2 text-muted">
+          <Bullet>
+            <strong className="text-foreground">Converted:</strong> the landing
+            and signed-in hub (both the slot machine), operator, pokemon, the
+            flags console, the store-detail page, every design-system section,
+            and the learn hero — each one was shipping its largest text at{" "}
+            <C>opacity:0</C> until hydration.
           </Bullet>
           <Bullet>
-            <strong className="text-foreground">
-              The vitals don&apos;t justify a gamble.
-            </strong>{" "}
-            Scores in the 80s–90s with great CLS and TBT aren&apos;t an
-            emergency. The responsible move is the measured nudge now, and a
-            clearly-named follow-up — trim unused JS on operator and pokemon
-            first, since they carry the most — rather than a rewrite chasing a
-            lab number.
+            <strong className="text-foreground">Left alone on purpose:</strong>{" "}
+            the scroll-triggered reveals (they fire on <C>whileInView</C>,
+            they&apos;re below the fold, and turning them into mount animations
+            would make off-screen content animate to nobody), the interactive
+            animations like the slot spin, and the retired v1/v2 pages. The fix
+            only belongs where JS was gating the <em>first</em> paint — not on
+            every animation in the codebase.
           </Bullet>
         </ul>
       </Section>
@@ -344,19 +519,20 @@ export default function TreeShakingTwoContent() {
         <ul className="mt-2 space-y-2 text-muted">
           <Bullet>
             When the delete checks are already green, the next win isn&apos;t a
-            bigger delete — it&apos;s telling the bundler to ship less of the
-            code you kept. Config beats cleanup once cleanup is done.
+            bigger delete — it&apos;s telling the bundler to ship less of the code
+            you kept, and not shipping the code you kept as <C>opacity:0</C> until
+            hydration.
           </Bullet>
           <Bullet>
-            Measure before you claim. 148 KB is a small, honest win named in the
-            currency that moves bytes; a 4.8s LCP is a real finding, not
-            something to quietly paper over.
+            An entrance animation should never decide when your content becomes
+            visible. Paint first, animate second, and do the animation in CSS so
+            it never rides the JS bundle.
           </Bullet>
           <Bullet>
-            Ship the safe, measured change and write down the risky one. An
-            unattended pass should leave the codebase better and the next
-            decision clearer — not gamble a page&apos;s render path on a lab
-            score.
+            Measure in the thing users actually feel. The lab number said the LCP
+            fix did nothing while a real throttled browser painted 2.5 seconds
+            sooner. When the proxy and the field disagree, the field wins — and
+            it&apos;s worth building the second measurement so you can tell.
           </Bullet>
         </ul>
       </Section>

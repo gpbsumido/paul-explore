@@ -52,10 +52,28 @@ describe("TreeShakingTwoContent", () => {
     expect(body).toMatch(/unused JavaScript/i);
   });
 
-  it("explains why a hard LCP fix was deferred rather than gambled on", () => {
+  it("explains the LCP fix: moving the entrance reveal off the JS bundle", () => {
     render(<TreeShakingTwoContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/follow-up|deferred|next thing/i);
+    expect(body).toMatch(/opacity:0/);
+    expect(body).toMatch(/hydrat/i);
+    expect(body).toMatch(/CSS/);
+  });
+
+  it("documents the operator recharts lazy-load as the clean unused-JS trim", () => {
+    render(<TreeShakingTwoContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/recharts/);
+    expect(body).toMatch(/collapsed/i);
+    expect(body).toMatch(/118 KiB.*70 KiB|118.*70/);
+  });
+
+  it("records the lab-vs-field divergence, and that the field number won", () => {
+    render(<TreeShakingTwoContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/simulation/i);
+    expect(body).toMatch(/4284 ms/);
+    expect(body).toMatch(/1712 ms/);
   });
 });
 
