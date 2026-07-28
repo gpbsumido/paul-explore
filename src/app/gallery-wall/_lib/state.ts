@@ -11,7 +11,7 @@ import {
   type Frame,
   type Orientation,
 } from "./frames";
-import { arrangeWall, type Arrangement } from "./layout";
+import { arrangeWall, type Arrangement } from "./arrange";
 
 /** An uploaded image before it is framed. */
 export type UploadedImage = {

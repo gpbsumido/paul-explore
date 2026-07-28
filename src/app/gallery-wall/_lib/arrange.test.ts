@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { arrangeWall } from "./layout";
+import { arrangeWall } from "./arrange";
 
 const frame = (id: string, width: number, height: number) => ({
   id,
