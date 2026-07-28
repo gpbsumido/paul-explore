@@ -15,10 +15,12 @@ import VersionBanner from "./v2/VersionBanner";
 
 import LandingContentV3 from "./v3/LandingContentV3";
 import FeatureHubV3 from "./v3/FeatureHubV3";
+import LandingContentV4 from "./v4/LandingContentV4";
+import FeatureHubV4 from "./v4/FeatureHubV4";
 
 type MeData = { name: string | null; email: string | null };
 
-const CURRENT_VERSION = "v3";
+const CURRENT_VERSION = "v4";
 
 const VERSIONS = {
   v1: {
@@ -32,6 +34,10 @@ const VERSIONS = {
   v3: {
     Landing: LandingContentV3,
     Hub: FeatureHubV3,
+  },
+  v4: {
+    Landing: LandingContentV4,
+    Hub: FeatureHubV4,
   },
 } satisfies Record<
   string,

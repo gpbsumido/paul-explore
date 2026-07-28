@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-07-27 - version 1.11.3
+
+- removed a duplicate "Feature Flags" write-up entry that the develop merge left in `THOUGHTS` (both sides had added it). The duplicate was breaking two suites - the graph built one fewer node than the non-deprecated write-up count, and the command registry generated two commands with the same id. Also regenerated the v4 docs screenshots to match the current look (single loupe, populated combos, footer version picker).
+
+## 2026-07-27 - version 1.11.2
+
+- kept every column visibly spinning during a pull, even the ones with nothing to cycle. A write-up-only middle reel (a single "Write-up only" placeholder) or an empty write-up reel (an app with no notes yet) now scrolls a blurred filler strip of labels while it turns, then snaps to its real single or empty state the instant it lands, instead of sitting dead still while the outer reels spin. The greyed-out look for a write-up-only reel only applies once it has landed.
+
+## 2026-07-27 - version 1.11.1
+
+- shrank the "No write-up yet" empty-state label and its "Browse all" link on small screens so they fit the narrow write-up column instead of spilling past the loupe.
+
+## 2026-07-27 - version 1.11.0
+
+- reworked the v4 machine's reveal so the reels no longer look decided before they land. A column only shows its landed value (the big serif, the dot glow, the drawn-in arrow label) once it stops turning, which happens strictly left to right; until then it stays a plain smear. The loupe's edge follows the same rule — each third of the border is a neutral hairline until its column lands, then takes that column's accent, so the colour never resolves ahead of the pick.
+- merged the three separate magnifier bars into one continuous glass loupe spanning all three columns. The glass is clear with the accent living only on the border ring (painted and masked so nothing bleeds into the middle), and the bar now runs a little past the outer columns so its sides aren't flush with the text.
+- let the reel rows wrap to multiple lines instead of clipping with an ellipsis, and shrank the display type on small screens so labels fit the narrow three-column layout.
+- restored the footer version picker on v4: a small Versions dropdown listing the retired v3/v2/v1 landings, replacing the single hard-coded v3 link so it stays right as versions come and go.
+- an empty write-up reel is now a labelled group rather than an empty listbox, so its "Browse all" link is valid and the machine has no axe violations.
+- added an ambient `*.css` type declaration so side-effect stylesheet imports stop tripping the editor's ts(2882), and dropped a duplicate `CommandPaletteRoot` import in the root layout.
+
+## 2026-07-27 - version 1.3.0
+
+- reworked the v4 slot machine's reels. The numbered column headers are gone; instead, once a column settles a small arrow draws itself in to name the result, and write-up-only reels stay unlabelled since they're just a greyed placeholder. The landed row now sits large and sharp under a glass "magnifier" bar while its neighbours soften, so the eye lands on the middle the way a loupe reads. Columns are wider with slightly smaller display type so labels no longer ellipsize, the middle reel reads "App link" under Apps, and the third reel is "Write-up".
+- gave the pull a proper casino feel: all three reels now spin at once the moment you hit Spin and lock in left to right, rather than the right-hand columns sitting still until their turn. Every still-turning column wears a vertical motion blur that snaps sharp the instant it lands (single-item reels never smear, since they've nothing to cycle). Columns that free-wheel now just decelerate the short remaining distance onto their target instead of adding a second full rotation, so the middle and right reels no longer look like they spin twice. The result caption sits at a fixed height so the centred machine no longer shifts as blurbs and links change between landings.
+- spread the odds: a spin now picks uniformly across every category → option → write-up combination (Apps weighted a little higher) instead of choosing a category first and over-favouring small ones. Each column also draws its own arrow shape, touching its label, so the three marks read as hand-sketched rather than stamped from one template.
+- surfaced the feature-flags write-up in the machine, so the newest dev note is reachable through the reels and the /thoughts index.
+- fixed the reel keyboard model: Left/Right now hop focus between the three columns (skipping greyed-out reels), Up/Down still step within a reel, and Enter on the category reel opens the landed destination so the leftmost column is never a dead end.
+- brought the command palette back. Mounted `CommandPaletteRoot` in the root layout so ⌘/Ctrl+K works on every route again, and since the floating trigger hides itself on the landing, the v4 header gets an inline Search affordance in its place.
+
+## 2026-07-27 - version 1.2.0
+
+- rebuilt the landing page and hub as v4: a full-screen slot machine of three dependent reels (category, option, write-up) over the same ambient backdrop. Everything on the reels is derived by `buildSlots()` from the same `FEATURES`/`THOUGHTS` data the v3 graph reads, including the feature-to-write-up bridge rule, so the machine and the graph can never drift apart. Pulling the Spin key settles the columns one at a time, left to right, through a quick decelerating step (reduced-motion jumps straight to the target); reels 2 and 3 lock their contents to the landed target while reel 1 is still turning, so they no longer thrash through every category the first reel passes.
+- categories with no app, just write-ups (Build & Tooling, Deprecated, and the rest of the /thoughts index) show a greyed-out, disabled "Write-up only" marker in the middle reel and stack their write-ups in reel 3, so the result bar offers a single Read link rather than a redundant Open. Apps keep a real middle reel and a Read link to each feature's own notes; options with no write-up show a friendly reel-3 empty state linking to /thoughts. Deprecated notes get an amber tag wherever they surface.
+- gave it an editorial, frameless look to suit the new layout: no cabinet windows, reels that fade out at their edges with a hairline payline glowing in the landed accent, the landed row set in a Fraunces serif, and a Spin key tinted to whatever category is up. Short reels render each item once instead of repeating a label to fill the wheel.
+- under the chrome each reel is a proper listbox: focusable, `aria-activedescendant`, arrow/Home/End/Enter keyboard support, and a polite live region announcing each landed combo. v4 is now the default version (v3 keeps working at `/?version=v3` and picks up the older-version banner), with a `/thoughts/v4-redesign` write-up covering the design, a dev-only `/dev/v4` hub preview, and tests over the slot data model.
 ## 2026-07-27 - version 1.9.0
 
 - added a "Motion Components" dev-thoughts write-up at `/thoughts/motion-components`, documenting the pointer-driven motion primitives built for the shared design system — TiltCard, GradientBackground, and Spotlight. Covers the static-first approach (each renders a plain, usable component before any motion attaches), reduced motion as the default rather than an afterthought via one shared `usePrefersReducedMotion` hook, and the pointer math behind the tilt and spotlight effects. Registered in `THOUGHTS` and the Design & UI category, with a matching test asserting registration, categorization, and that the page renders its sections.

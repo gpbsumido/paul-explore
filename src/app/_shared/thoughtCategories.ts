@@ -33,6 +33,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "ui-redesign",
       "v2-redesign",
       "v3-redesign",
+      "v4-redesign",
       "accessibility",
     ],
   },
@@ -67,7 +68,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Build & Tooling",
-    slugs: ["npm-to-pnpm", "bundlers", "deployment"],
+    slugs: ["npm-to-pnpm", "bundlers", "deployment", "pr-screenshots"],
   },
 ];
 

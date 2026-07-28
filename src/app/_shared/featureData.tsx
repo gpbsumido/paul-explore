@@ -250,6 +250,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#06b6d4",
   },
   {
+    title: "PR Screenshots From an Unattended Agent",
+    href: "/thoughts/pr-screenshots",
+    preview:
+      "Embedding before/after screenshots inline in PR descriptions with only the gh CLI — why user-attachments, gists, and release assets all failed, and why we don't prune the PNGs",
+    color: "#fb923c",
+  },
+  {
     title: "Tiered Testing Strategy",
     href: "/thoughts/test-tiers",
     preview:
@@ -283,6 +290,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "The whole site as a node graph — a hand-rolled force sim, fit-to-viewport rendering, the drag/hover bugs, and an a11y audit",
     color: "#8b5cf6",
+  },
+  {
+    title: "V4 Redesign",
+    href: "/thoughts/v4-redesign",
+    preview:
+      "The landing and hub as a slot machine: three dependent reels (category, option, write-up) derived from the same data as the graph, dependent-reel selection, a decelerating spin, and a listbox-based a11y model",
+    color: "#f472b6",
   },
   {
     title: "Project Review",
