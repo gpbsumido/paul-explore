@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-28 - version 2.3.0
+
+- ran a second tree-shaking and efficiency pass. Both dead-code checks (`depcheck`, `ts-prune`) were already green, framer-motion already runs on the lazy `m` build, and every Three.js scene is code-split behind `ssr: false`, so the only weight left was live code dragging unused barrel siblings along. Named the four barrel packages Next doesn't optimize by default (`@paul-portfolio/react`, `@react-three/drei`, `@unovis/react`, `framer-motion`) in `experimental.optimizePackageImports`, which trimmed total client JS from 13,468 KB to 13,320 KB (-148 KB) with no source changes.
+- checked web vitals on the main pages with Lighthouse against the production build. Scores landed 82-94 with near-zero CLS, low blocking time, and a 10ms server response. LCP is the soft spot on the heaviest pages (home 4.1s, operator 4.8s, pokemon 4.4s), and the single failing audit on each was "reduce unused JavaScript" -- the same lever the tree-shaking change chips at. Left the harder LCP work as a named follow-up rather than a speculative unattended refactor.
+- wrote up the pass in a new **Tree Shaking, Round 2** dev-thoughts page.
+
 ## 2026-07-28 - version 2.0.3
 
 - added a one-hop link between a feature and its dev-thoughts write-up, in both directions: a **Write-up** pill in the header on a feature page, and an **Open app** pill on the write-up. Getting between the two used to mean going back to the hub (issue #247). The pairing already existed in the feature data, so nothing new is maintained by hand; the link renders only on pages that are half of a pair.
