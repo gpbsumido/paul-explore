@@ -3,8 +3,9 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import SlotMachine from "./SlotMachine";
 
+const push = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: (href: string) => push(href) }),
 }));
 
 vi.mock("next/font/google", () => ({
@@ -65,6 +66,21 @@ describe("SlotMachine reels", () => {
 
     fireEvent.keyDown(options, { key: "ArrowLeft" });
     expect(category).toHaveFocus();
+  });
+
+  it("opens the landed row when its label is clicked", () => {
+    push.mockClear();
+    const { container } = renderMachine();
+    // The middle reel has landed on an app; its big label is the obvious thing
+    // to click, and it used to just re-select the row it was already on.
+    const optReel = screen.getByRole("listbox", { name: "App link" });
+    const landed = within(optReel).getByText(/\S/, {
+      selector: ".font-fraunces",
+    });
+    fireEvent.click(landed.closest("div.group") as HTMLElement);
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(push.mock.calls[0][0]).toMatch(/^\//);
+    expect(container).toBeTruthy();
   });
 
   it("has no axe violations", async () => {
