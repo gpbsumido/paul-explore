@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-28 - version 2.2.0
+
+- added a win celebration to the v4 slot machine. When all three columns settle on an app you can actually open, party confetti falls across the whole window, the loupe already over the reels catches a shine and glows in the landed colour, and a short square-wave jingle plays.
+- the confetti is foil rectangles in a party palette led by the landed option's colour, each with its own size, drift, spin and tumble, and one of **four** fall behaviours (straight tumble, pendulum swing, flutter-and-stall, tight spiral) so it never reads as one repeated animation. It falls behind the machine, so it frames the win rather than covering the glass you are reading.
+- the jingle is synthesised through the Web Audio API rather than shipped as an audio file: no payload, no licence question, and a timbre that matches. It only ever fires from the click that started the spin, and a persisted mute toggle sits beside the spin button.
+- raised the Apps weighting from 1.5 to 4, so wins are common enough to be worth the animation.
+- honours `prefers-reduced-motion` by not rendering the celebration at all.
+
 ## 2026-07-28 - version 2.0.3
 
 - added a one-hop link between a feature and its dev-thoughts write-up, in both directions: a **Write-up** pill in the header on a feature page, and an **Open app** pill on the write-up. Getting between the two used to mean going back to the hub (issue #247). The pairing already existed in the feature data, so nothing new is maintained by hand; the link renders only on pages that are half of a pair.

@@ -293,3 +293,118 @@
     color-scheme: light;
   }
 }
+
+/* The v4 slot machine's win flourish. The shine rides the existing loupe; the
+   confetti and streamers fall across the whole window. All of it is gated on
+   prefers-reduced-motion in the component, which simply does not render. */
+@keyframes v4-win-sweep {
+  0% {
+    transform: translateX(-140%) skewX(-14deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(420%) skewX(-14deg);
+    opacity: 0;
+  }
+}
+
+/* Four fall behaviours, picked per piece. Real confetti does not all move
+   alike: one shared animation reads as a particle system, four reads as paper.
+   Each ends off the bottom of the window, so nothing pops out of existence. */
+
+/* 1. Straight tumble: falls fairly true, spinning on both axes. */
+@keyframes v4-win-confetti-1 {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg) rotate3d(1, 1, 0, 0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--v4-drift, 0px), 110vh, 0)
+      rotate(var(--v4-spin, 360deg)) rotate3d(1, 1, 0, var(--v4-flip, 720deg));
+    opacity: 0;
+  }
+}
+
+/* 2. Pendulum: swings hard across as it drops, like a wide sheet catching air. */
+@keyframes v4-win-confetti-2 {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  30% {
+    transform: translate3d(calc(var(--v4-drift, 0px) * 1.4), 22vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 0.3)) rotate3d(0, 1, 0, 180deg);
+  }
+  60% {
+    transform: translate3d(calc(var(--v4-drift, 0px) * -0.9), 58vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 0.7)) rotate3d(0, 1, 0, 420deg);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--v4-drift, 0px), 110vh, 0)
+      rotate(var(--v4-spin, 360deg)) rotate3d(0, 1, 0, var(--v4-flip, 720deg));
+    opacity: 0;
+  }
+}
+
+/* 3. Flutter: stalls partway down, turning almost edge-on before dropping. */
+@keyframes v4-win-confetti-3 {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate3d(1, 0, 0, 0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate3d(calc(var(--v4-drift, 0px) * 0.4), 34vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 0.35)) rotate3d(1, 0.4, 0, 260deg);
+  }
+  55% {
+    /* The stall: it hangs for a beat, the way paper does. */
+    transform: translate3d(calc(var(--v4-drift, 0px) * 0.5), 40vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 0.4)) rotate3d(1, 0.4, 0, 300deg);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--v4-drift, 0px), 110vh, 0)
+      rotate(var(--v4-spin, 360deg)) rotate3d(1, 0.4, 0, var(--v4-flip, 720deg));
+    opacity: 0;
+  }
+}
+
+/* 4. Spiral: tight, fast corkscrew straight down with little sideways travel. */
+@keyframes v4-win-confetti-4 {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate3d(0, 1, 0, 0deg) scaleX(1);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(calc(var(--v4-drift, 0px) * 0.25), 110vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 1.6))
+      rotate3d(0, 1, 0, calc(var(--v4-flip, 720deg) * 1.8));
+    opacity: 0;
+  }
+}
