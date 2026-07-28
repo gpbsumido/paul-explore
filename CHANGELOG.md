@@ -5,6 +5,58 @@
 - ran a second tree-shaking and efficiency pass. Both dead-code checks (`depcheck`, `ts-prune`) were already green, framer-motion already runs on the lazy `m` build, and every Three.js scene is code-split behind `ssr: false`, so the only weight left was live code dragging unused barrel siblings along. Named the four barrel packages Next doesn't optimize by default (`@paul-portfolio/react`, `@react-three/drei`, `@unovis/react`, `framer-motion`) in `experimental.optimizePackageImports`, which trimmed total client JS from 13,468 KB to 13,320 KB (-148 KB) with no source changes.
 - checked web vitals on the main pages with Lighthouse against the production build. Scores landed 82-94 with near-zero CLS, low blocking time, and a 10ms server response. LCP is the soft spot on the heaviest pages (home 4.1s, operator 4.8s, pokemon 4.4s), and the single failing audit on each was "reduce unused JavaScript" -- the same lever the tree-shaking change chips at. Left the harder LCP work as a named follow-up rather than a speculative unattended refactor.
 - wrote up the pass in a new **Tree Shaking, Round 2** dev-thoughts page.
+Release to production. Rolls up everything since 2.0.0, headlined by the v4 slot machine learning to celebrate a win and to write app names across its background in chalk.
+
+- **A win celebration on the v4 slot machine** -- when all three columns settle on an app you can open, confetti falls across the window in a palette led by the landed colour, the loupe already over the reels catches a shine, and a synthesised square-wave jingle plays. One of four fall styles per win, never the same one twice running, each a single continuous drop. Mute toggle beside the spin button, and nothing renders under `prefers-reduced-motion`.
+- **A chalk backdrop on the v4 landing page** -- app names write themselves in between pulls, hold, then dissolve, drawn by **tegaki** so the pen's own stroke path shows rather than an outline trace. Four at a time at most, each at a fresh spot measured to clear the interface, sized uniformly, with lifetime scaled to label length. Clicking a name spins the reels to that app.
+- **A one-hop link between a feature and its write-up**, both directions: a Write-up pill on the feature page's header, an Open app pill on the write-up (issue #247).
+- **A dev-thoughts write-up at `/thoughts/typescript-7`** on why this project stays on TypeScript 5.9 now that 7.0 is GA: `typescript-eslint` peer-caps below 6.1, TypeScript 7.0 shipped without the stable programmatic API type-aware linting needs, and a measured 4.05s type-check over 725 files makes the 8-12x speedup worth about three and a half seconds.
+- Fixes: the log in / log out control is back on the six pages that had switched it off (issue #244), and the landed v4 reel row opens its destination instead of re-selecting the row you were already on (issue #241).
+- Internals: the raw feature and write-up data now lives in a plain `featureData.data.ts`, so the v3 graph data, the v4 slot data and the header link no longer drag a `"use client"` module and framer-motion in for a list of hrefs.
+
+## 2026-07-28 - version 2.2.5
+
+- every chalk word is now the same size, and clearance is checked against measured render dimensions rather than guessed ones. The height was the one that mattered: a script face renders about 3.6em tall once ascenders, descenders and canvas padding are counted, against the 1.4em I had assumed, which is why words kept clipping the interface even after the keep-out list was right.
+- long labels no longer fade mid-stroke -- the per-character time budget now clears tegaki's actual draw rate, and the hold runs to 76% of the cycle rather than 62%.
+- the footer, the reel columns and the result panel joined the keep-out list.
+
+## 2026-07-28 - version 2.2.4
+
+- the chalk backdrop now draws with **tegaki**, which renders the pen's own stroke path rather than tracing around the glyph outline the way a stroke-dasharray on SVG text does. That difference is the whole point: an outline trace reads as a shape being outlined, this reads as handwriting. Costs about 135 KB net over the wire, and needs a `FontFace` stub in the test setup because jsdom has no such API.
+- at most four words on screen at a time, arriving less often, and each word's lifetime scales with its length -- a fixed one faded long labels like "Work Portfolio" mid-stroke.
+- words no longer reappear fully drawn: the life animation used a `backwards` fill-mode, so once it finished the element reverted to its base style and the finished word popped back into view.
+- placement now measures eight parts of the interface (header, stats line, loupe, reel columns, spin button, result panel) and tests a word's whole box rather than its centre point, since a long word reached across an obstacle while its midpoint sat clear.
+
+## 2026-07-28 - version 2.2.3
+
+- stopped chalk words landing on the interface. Placement now measures the header, the stats line, the loupe and the spin button at runtime and rejects any spot that would cover one, rather than trusting percentages read off a single window -- the header is a fixed pixel height, so it covers a fifth of a short window and a tenth of a tall one, and a hard-coded band drifted straight under it.
+
+## 2026-07-28 - version 2.2.2
+
+- took the chalk words out of the tab order and hid them from assistive tech. They are decoration with a pointer shortcut attached, not a control: they come and go every few seconds, so a keyboard user could land on one and have focus vanish out from under them. Nothing is lost, because spinning to an app is fully keyboard-operable through the reels themselves (arrows to move, Enter to open) and the spin button.
+
+## 2026-07-28 - version 2.2.1
+
+- added a chalk backdrop to the v4 landing page: app names write themselves in across the background between pulls, sit for a moment, then dissolve, the way ink sinks into Riddle's diary. Each word runs its own loop on its own delay, so at any moment some are being written while others are fading.
+- the write-on is a stroke-dash trace on SVG text in a handwriting face, with a soft fill arriving behind the traced line -- not an opacity fade. The dash length scales with the label, because a fixed one repeats on longer words and reveals them in chunks instead of drawing them.
+- at most six words are on screen at once, arriving one at a time on a timer and dropping the oldest, each at a fresh random position in a band above or below the reels -- so a name never writes itself into the same spot twice and the page is never briefly empty or briefly crowded. Scheduled in JavaScript rather than looped in CSS, because a CSS loop can only rewrite the same word into the same place.
+- clicking a name spins the reels to that app rather than navigating, so the machine stays the way you get anywhere. `spin()` now takes an optional target.
+- hidden while the reels turn, and not rendered at all under reduced motion.
+
+## 2026-07-28 - version 2.2.0
+
+- added a win celebration to the v4 slot machine. When all three columns settle on an app you can actually open, party confetti falls across the whole window, the loupe already over the reels catches a shine and glows in the landed colour, and a short square-wave jingle plays.
+- the confetti is foil rectangles in a party palette led by the landed option's colour, each with its own size, drift, spin and tumble. One of **four** fall styles is picked per win -- drift, sweep, tumble, spiral -- and never the same one twice running, so consecutive wins don't look alike. Each style is a single continuous drop: a piece never pauses mid-air, since a stall reads as a glitch rather than as air. It falls behind the machine, so it frames the win rather than covering the glass you are reading.
+- the jingle is synthesised through the Web Audio API rather than shipped as an audio file: no payload, no licence question, and a timbre that matches. It only ever fires from the click that started the spin, and a persisted mute toggle sits beside the spin button.
+- raised the Apps weighting from 1.5 to 4, so wins are common enough to be worth the animation.
+- honours `prefers-reduced-motion` by not rendering the celebration at all.
+## 2026-07-28 - version 2.1.1
+
+- split the raw feature and write-up data out of `featureData.tsx` into a plain `featureData.data.ts`. The data has no JSX in it, but living beside the preview components meant it was a `"use client"` module importing framer-motion -- so the v3 graph data, the v4 slot data, and the header's feature/write-up link all dragged that in for a list of hrefs, and no server component could read it at all. The `.tsx` re-exports everything, so all existing importers are untouched; the three data-only modules now import the plain one. Added a guard test that the data module never gains a client directive, an animation import, or JSX.
+
+## 2026-07-28 - version 2.1.0
+
+- added a dev-thoughts write-up at `/thoughts/typescript-7` on why this project is staying on TypeScript 5.9 rather than taking the Go-native compiler: `typescript-eslint` peer-caps at `<6.1.0` (and arrives via `eslint-config-next`, so it is easy to miss), TypeScript 7.0 shipped without the stable programmatic API that type-aware linting needs, and a measured 4.05s type-check over 725 files makes the 8-12x speedup worth about three and a half seconds. Ends with how to take the speed anyway via `@typescript/native-preview`, and what to actually watch for (7.1, not 7.0).
 
 ## 2026-07-28 - version 2.0.3
 

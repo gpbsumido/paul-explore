@@ -76,7 +76,13 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Build & Tooling",
-    slugs: ["npm-to-pnpm", "bundlers", "deployment", "pr-screenshots"],
+    slugs: [
+      "npm-to-pnpm",
+      "bundlers",
+      "deployment",
+      "pr-screenshots",
+      "typescript-7",
+    ],
   },
 ];
 

@@ -1,4 +1,4 @@
-import { FEATURES } from "@/app/_shared/featureData";
+import { FEATURES } from "@/app/_shared/featureData.data";
 
 /**
  * Every feature that has a write-up, paired both ways.

@@ -22,6 +22,23 @@ if (typeof window !== "undefined") {
     }));
   }
 
+  // jsdom has no FontFace API, which tegaki uses to load its handwriting font.
+  // Without this every component that renders the chalk backdrop throws.
+  if (typeof (globalThis as { FontFace?: unknown }).FontFace === "undefined") {
+    class MockFontFace {
+      load() {
+        return Promise.resolve(this);
+      }
+    }
+    (globalThis as unknown as { FontFace: unknown }).FontFace = MockFontFace;
+  }
+  if (!document.fonts) {
+    Object.defineProperty(document, "fonts", {
+      configurable: true,
+      value: { add: vi.fn(), delete: vi.fn(), ready: Promise.resolve() },
+    });
+  }
+
   class MockObserver {
     observe() {}
     unobserve() {}
