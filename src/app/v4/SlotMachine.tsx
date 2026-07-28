@@ -1294,6 +1294,7 @@ export default function SlotMachine({
       {/* Interaction hint, purely visual */}
       <div
         aria-hidden
+        data-chalk-avoid
         className="pointer-events-none absolute bottom-5 left-5 z-40 hidden font-mono text-[10px] uppercase tracking-[0.2em] text-muted sm:block"
       >
         ↑↓ select · enter opens
@@ -1302,6 +1303,7 @@ export default function SlotMachine({
       {/* Corner nav */}
       <nav
         aria-label="Site"
+        data-chalk-avoid
         className="pointer-events-auto absolute bottom-5 right-5 z-40 flex items-center gap-3 text-xs text-muted"
       >
         <Link

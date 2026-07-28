@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { TegakiRenderer } from "tegaki/react";
 import caveat from "tegaki/fonts/caveat";
 import {
+  CHALK_SIZE_REM,
   placeChalkWord,
   pickUnused,
   type ChalkPlacement,
@@ -110,10 +111,16 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
         // Words are centred on their anchor, so the placement has to know how
         // far they reach or a long one hangs across the interface while its
         // midpoint sits clear. Rough is fine: it only has to bound the word.
+        // Factors measured against what tegaki actually renders, not guessed:
+        // a script face is narrower per character than the em size suggests
+        // (~0.42em) but far taller than one line (ascenders, descenders and the
+        // canvas padding come to roughly 3.4em). The height was the one that
+        // mattered -- under-reserving it was why words still clipped the UI.
         const remPx = 16;
-        const halfW =
-          ((target.label.length * 1.6 * 0.55 * remPx) / 2 / window.innerWidth) * 100;
-        const halfH = ((1.6 * remPx) / 2 / window.innerHeight) * 100;
+        const widthPx = target.label.length * CHALK_SIZE_REM * 0.45 * remPx;
+        const heightPx = CHALK_SIZE_REM * 3.6 * remPx;
+        const halfW = (widthPx / 2 / window.innerWidth) * 100;
+        const halfH = (heightPx / 2 / window.innerHeight) * 100;
         const placement = placeChalkWord(
           Math.random,
           next,

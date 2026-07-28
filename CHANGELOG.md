@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-28 - version 2.2.5
+
+- every chalk word is now the same size, and clearance is checked against measured render dimensions rather than guessed ones. The height was the one that mattered: a script face renders about 3.6em tall once ascenders, descenders and canvas padding are counted, against the 1.4em I had assumed, which is why words kept clipping the interface even after the keep-out list was right.
+- long labels no longer fade mid-stroke -- the per-character time budget now clears tegaki's actual draw rate, and the hold runs to 76% of the cycle rather than 62%.
+- the footer, the reel columns and the result panel joined the keep-out list.
+
 ## 2026-07-28 - version 2.2.4
 
 - the chalk backdrop now draws with **tegaki**, which renders the pen's own stroke path rather than tracing around the glyph outline the way a stroke-dasharray on SVG text does. That difference is the whole point: an outline trace reads as a shape being outlined, this reads as handwriting. Costs about 135 KB net over the wire, and needs a `FontFace` stub in the test setup because jsdom has no such API.

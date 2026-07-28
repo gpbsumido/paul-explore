@@ -15,7 +15,9 @@ export type ChalkPlacement = {
   top: number;
   /** Slight tilt, in degrees, so nothing sits straight. */
   rotate: number;
-  /** Font size in rem. */
+  /** Font size in rem. Fixed across every word, so the backdrop reads as one
+   *  hand rather than a ransom note -- and so the box used for clearance
+   *  matches what actually renders. */
   size: number;
   /** How long this word takes to write, hold, and dissolve, in ms. */
   duration: number;
@@ -44,6 +46,9 @@ export type KeepOut = readonly Rect[];
 
 /** Breathing room around every obstacle, in viewport percent. */
 const PAD = 2;
+
+/** One size for every word, in rem. */
+export const CHALK_SIZE_REM = 1.5;
 
 /**
  * How much of the viewport a word covers either side of its anchor, in percent.
@@ -82,7 +87,10 @@ export function isClear(
  * dissolved regardless of length.
  */
 export function lifetimeFor(charCount: number, rand: () => number): number {
-  return 2600 + charCount * 340 + rand() * 1200;
+  // 460ms a character comfortably clears tegaki's own draw time (a glyph plus
+  // its stagger runs ~300ms); 340 sat right on the edge and long labels like
+  // "Work Portfolio" began fading before the pen finished.
+  return 2600 + charCount * 460 + rand() * 1200;
 }
 
 function candidate(rand: () => number, charCount: number): ChalkPlacement {
@@ -90,7 +98,7 @@ function candidate(rand: () => number, charCount: number): ChalkPlacement {
     left: 4 + rand() * 92,
     top: 3 + rand() * 94,
     rotate: (rand() - 0.5) * 14,
-    size: 1.05 + rand() * 1.1,
+    size: CHALK_SIZE_REM,
     duration: lifetimeFor(charCount, rand),
   };
 }
