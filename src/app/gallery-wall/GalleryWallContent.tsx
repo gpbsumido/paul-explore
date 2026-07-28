@@ -99,6 +99,16 @@ export default function GalleryWallContent({ initialState }: Props) {
   );
   const [panning, setPanning] = useState(false);
   const draggingMinimap = useRef(false);
+  // Pop the settings column out into a floating, draggable panel so the wall
+  // gets the full width.
+  const [floating, setFloating] = useState(false);
+  const [panelPos, setPanelPos] = useState({ x: 24, y: 96 });
+  const panelDrag = useRef<{
+    x: number;
+    y: number;
+    left: number;
+    top: number;
+  } | null>(null);
 
   // Only look for a saved wall on the client, after mount, so the server and
   // first client render match. Skipped when a state is injected (tests).
@@ -201,6 +211,32 @@ export default function GalleryWallContent({ initialState }: Props) {
     event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
+  // Drag the floating settings panel around by its header.
+  const onPanelPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    panelDrag.current = {
+      x: event.clientX,
+      y: event.clientY,
+      left: panelPos.x,
+      top: panelPos.y,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const onPanelPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const start = panelDrag.current;
+    if (!start) return;
+    setPanelPos({
+      x: start.left + (event.clientX - start.x),
+      y: start.top + (event.clientY - start.y),
+    });
+  };
+
+  const endPanelDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!panelDrag.current) return;
+    panelDrag.current = null;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+
   const setZoomTo = (z: number) => {
     setZoom(clampZoom(z));
     setZoomText(null);
@@ -290,7 +326,11 @@ export default function GalleryWallContent({ initialState }: Props) {
           </p>
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+        <div
+          className={`grid gap-8 ${
+            floating ? "lg:grid-cols-1" : "lg:grid-cols-[1fr_320px]"
+          }`}
+        >
           <section aria-label="Wall preview" className="min-w-0">
             <div className="glass-card rounded-2xl p-4">
               <div className="mb-3 flex items-center justify-end gap-1.5">
@@ -532,7 +572,40 @@ export default function GalleryWallContent({ initialState }: Props) {
             ) : null}
           </section>
 
-          <aside className="flex flex-col gap-6">
+          <aside
+            className={
+              floating
+                ? "fixed z-50 flex max-h-[80vh] w-[340px] flex-col overflow-hidden rounded-2xl border border-border bg-background/95 shadow-xl backdrop-blur"
+                : "flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1"
+            }
+            style={floating ? { left: panelPos.x, top: panelPos.y } : undefined}
+          >
+            <div
+              onPointerDown={floating ? onPanelPointerDown : undefined}
+              onPointerMove={floating ? onPanelPointerMove : undefined}
+              onPointerUp={floating ? endPanelDrag : undefined}
+              onPointerCancel={floating ? endPanelDrag : undefined}
+              className={`flex items-center justify-between gap-2 ${
+                floating ? "cursor-move touch-none border-b border-border px-3 py-2" : ""
+              }`}
+            >
+              {floating ? (
+                <span className="text-[12px] font-semibold text-foreground">
+                  Wall settings
+                </span>
+              ) : (
+                <span aria-hidden />
+              )}
+              <button
+                type="button"
+                onClick={() => setFloating((f) => !f)}
+                aria-pressed={floating}
+                className="rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
+              >
+                {floating ? "Dock panel" : "Float panel"}
+              </button>
+            </div>
+            <div className={floating ? "flex flex-col gap-6 overflow-y-auto p-3" : "contents"}>
             <div className="glass-card rounded-2xl p-4">
               <h2 className="mb-3 text-sm font-semibold text-foreground">
                 Wall &amp; photos
@@ -774,6 +847,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                 ))}
               </ul>
             ) : null}
+            </div>
           </aside>
         </div>
       </main>

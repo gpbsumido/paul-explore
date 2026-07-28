@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-28 - version 1.14.0
+
+- made the zoomed wall pannable: grab and drag the wall itself to move around when zoomed in (frames still drag on their own), and drag inside the zoom preview to jump the window to that part of the wall. The minimap-to-scroll mapping is a pure `minimapPointToScroll` that inverts `viewportRect`.
+- moved the zoom preview minimap to the bottom-right and padded it clear of the preview window's scrollbar when one is showing.
+- gave the settings column its own scroll so a tall stack of per-photo boxes no longer scrolls the whole page, and added a Float panel toggle that pops the settings out into a draggable floating panel so the wall gets the full width.
+
 ## 2026-07-27 - version 1.13.0
 
 - made the gallery wall arrangeable by hand. Drag any frame anywhere on the wall with a pointer, or focus one and nudge it with the arrow keys (Shift for a bigger step). The first drag freezes every frame at its current auto spot so moving one no longer reflows the others.

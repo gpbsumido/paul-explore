@@ -153,6 +153,19 @@ describe("GalleryWallContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("floats the settings panel out and docks it back", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    const toggle = screen.getByRole("button", { name: /float panel/i });
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(toggle);
+    const docked = screen.getByRole("button", { name: /dock panel/i });
+    expect(docked).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(docked);
+    expect(
+      screen.getByRole("button", { name: /float panel/i }),
+    ).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("switches the auto layout to masonry", () => {
     render(<GalleryWallContent initialState={seededState()} />);
     const masonry = screen.getByRole("button", { name: /masonry/i });
