@@ -102,3 +102,77 @@ export function arrangeWall({
 
   return { placements, contentHeight, overflows: tooTall || tooWide };
 }
+
+// A hair of slack so floating-point drift doesn't report a flush frame as
+// overlapping or a perfectly-fitted frame as off the wall.
+const EPS = 1e-6;
+
+/**
+ * Whether two placed frames intersect. Frames that only touch edges (one starts
+ * exactly where the other ends) count as apart, so a tidy flush layout is valid.
+ */
+export function rectsOverlap(a: Placement, b: Placement): boolean {
+  return (
+    a.x + EPS < b.x + b.width &&
+    b.x + EPS < a.x + a.width &&
+    a.y + EPS < b.y + b.height &&
+    b.y + EPS < a.y + a.height
+  );
+}
+
+/** The ids of every frame that overlaps at least one other frame. */
+export function findOverlaps(placements: readonly Placement[]): string[] {
+  const hit = new Set<string>();
+  for (let i = 0; i < placements.length; i++) {
+    for (let j = i + 1; j < placements.length; j++) {
+      if (rectsOverlap(placements[i], placements[j])) {
+        hit.add(placements[i].id);
+        hit.add(placements[j].id);
+      }
+    }
+  }
+  return [...hit];
+}
+
+/** The ids of every frame that pokes past an edge of the wall. */
+export function findOutOfBounds(
+  placements: readonly Placement[],
+  wall: { width: number; height: number },
+): string[] {
+  return placements
+    .filter(
+      (p) =>
+        p.x < -EPS ||
+        p.y < -EPS ||
+        p.x + p.width > wall.width + EPS ||
+        p.y + p.height > wall.height + EPS,
+    )
+    .map((p) => p.id);
+}
+
+export type WallPixels = {
+  /** Rendered width of the wall in CSS pixels. */
+  pxWidth: number;
+  /** Rendered height of the wall in CSS pixels. */
+  pxHeight: number;
+  wallWidth: number;
+  wallHeight: number;
+};
+
+/**
+ * Convert a pointer movement measured in screen pixels into wall units, given
+ * how large the wall is currently rendered. Used by the drag handler so a
+ * dragged frame tracks the cursor at any zoom level. Returns a zero delta when
+ * the wall hasn't been laid out yet (rendered size of zero).
+ */
+export function clientDeltaToWall(
+  dxPx: number,
+  dyPx: number,
+  { pxWidth, pxHeight, wallWidth, wallHeight }: WallPixels,
+): { dx: number; dy: number } {
+  if (pxWidth <= 0 || pxHeight <= 0) return { dx: 0, dy: 0 };
+  return {
+    dx: (dxPx * wallWidth) / pxWidth,
+    dy: (dyPx * wallHeight) / pxHeight,
+  };
+}
