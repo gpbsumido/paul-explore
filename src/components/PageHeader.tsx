@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { type ReactNode } from "react";
 import HeaderMenu from "@/components/HeaderMenu";
+import FeatureThoughtsLink from "@/components/FeatureThoughtsLink";
 
 export interface BreadcrumbItem {
   /** Display text. */
@@ -192,8 +193,12 @@ export default function PageHeader({
             </ol>
           ))}
 
-        {/* Right: optional slot + dropdown menu */}
+        {/* Right: hop to the other half of this page, optional slot, menu */}
         <div className="ml-auto flex items-center gap-3">
+          {/* Renders only on a feature with a write-up, or a write-up about a
+              feature -- nothing everywhere else. Thoughts pages get it too,
+              since ThoughtLayout renders this same header. */}
+          <FeatureThoughtsLink />
           {right}
           <HeaderMenu showSettings={showSettings} showLogout={showLogout} />
         </div>
