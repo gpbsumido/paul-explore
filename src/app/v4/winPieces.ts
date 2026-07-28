@@ -4,6 +4,10 @@
  * Aiming at real party confetti: foil rectangles in a bright palette, each
  * tumbling on its own axis at its own speed, drifting sideways as it falls.
  *
+ * The fall *style* is chosen per win, not per piece, so one burst reads as one
+ * gust of air rather than four unrelated behaviours in the same room. Pieces
+ * still differ from each other inside a burst -- size, drift, spin, timing.
+ *
  * Deliberately deterministic: positions come from a hash of the piece index,
  * not `Math.random()`. Random values during render disagree between the server
  * and the first client pass, and a burst of confetti is exactly the sort of
@@ -39,12 +43,6 @@ export type ConfettiPiece = {
   drift: number;
   /** Tumble on the Y axis, so pieces flip edge-on mid-fall. */
   flip: number;
-  /**
-   * Which of the four fall behaviours this piece uses (1-4). Real confetti does
-   * not all move alike -- some tumbles straight down, some sways, some flutters
-   * and stalls -- so one shared animation reads as a particle system.
-   */
-  variant: 1 | 2 | 3 | 4;
   color: string;
 };
 
@@ -79,7 +77,6 @@ export function confettiPieces(
       drift: (b - 0.5) * 360,
       // The tumble is what sells it -- pieces turn edge-on and briefly vanish.
       flip: 540 + Math.round(c * 1440),
-      variant: ((Math.floor(hash01(`c${i}:v`) * 4) % 4) + 1) as 1 | 2 | 3 | 4,
       color: pick(colors, c),
     };
   });

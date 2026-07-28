@@ -30,11 +30,16 @@ const PARTY = [
   "#4ade80",
 ] as const;
 
+/** How the whole burst falls. Chosen per win, so wins don't all look alike. */
+export type FallStyle = 1 | 2 | 3 | 4;
+
 type Props = {
   /** The landed option's colour, so the celebration matches what you won. */
   optionColor: string;
   /** The category accent, as the second note in the palette. */
   accent: string;
+  /** Which fall style this win uses. */
+  style: FallStyle;
 };
 
 /**
@@ -48,7 +53,7 @@ type Props = {
  * Entirely decorative: `aria-hidden` and pointer-transparent, and the caller
  * does not render it at all under reduced motion.
  */
-export default function WinCelebration({ optionColor, accent }: Props) {
+export default function WinCelebration({ optionColor, accent, style }: Props) {
   // Deterministic, so the burst is identical on the server and the first client
   // pass. Memoised per palette so a re-render mid-flourish doesn't restart it.
   const palette = useMemo(
@@ -86,7 +91,7 @@ export default function WinCelebration({ optionColor, accent }: Props) {
               "--v4-drift": `${c.drift}px`,
               "--v4-spin": `${c.spin}deg`,
               "--v4-flip": `${c.flip}deg`,
-              animation: `v4-win-confetti-${c.variant} ${c.duration}ms ${c.delay}ms cubic-bezier(0.25, 0.6, 0.5, 1) forwards`,
+              animation: `v4-win-confetti-${style} ${c.duration}ms ${c.delay}ms linear forwards`,
             } as React.CSSProperties
           }
         />

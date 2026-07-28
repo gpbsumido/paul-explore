@@ -311,100 +311,63 @@
   }
 }
 
-/* Four fall behaviours, picked per piece. Real confetti does not all move
-   alike: one shared animation reads as a particle system, four reads as paper.
-   Each ends off the bottom of the window, so nothing pops out of existence. */
+/* Four fall styles, one chosen per win. Each is a single continuous drop --
+   no stalls or direction changes mid-keyframe, because a pause reads as a
+   glitch rather than as air. Pieces still differ inside a burst: size, drift,
+   spin and timing all vary per piece, and the drift value is signed, so within
+   one style pieces still travel opposite ways. */
 
-/* 1. Straight tumble: falls fairly true, spinning on both axes. */
+/* 1. Drift: a steady fall with a long, even sideways glide. */
 @keyframes v4-win-confetti-1 {
-  0% {
-    transform: translate3d(0, -10vh, 0) rotate(0deg) rotate3d(1, 1, 0, 0deg);
-    opacity: 0;
-  }
-  8% {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate(0deg) rotate3d(1, 1, 0, 0deg);
     opacity: 1;
   }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate3d(var(--v4-drift, 0px), 110vh, 0)
+  to {
+    transform: translate3d(var(--v4-drift, 0px), 112vh, 0)
       rotate(var(--v4-spin, 360deg)) rotate3d(1, 1, 0, var(--v4-flip, 720deg));
-    opacity: 0;
+    opacity: 1;
   }
 }
 
-/* 2. Pendulum: swings hard across as it drops, like a wide sheet catching air. */
+/* 2. Sweep: travels much further sideways, as if caught by a draught. */
 @keyframes v4-win-confetti-2 {
-  0% {
-    transform: translate3d(0, -10vh, 0) rotate(0deg);
-    opacity: 0;
-  }
-  8% {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate(0deg) rotate3d(0, 1, 0, 0deg);
     opacity: 1;
   }
-  30% {
-    transform: translate3d(calc(var(--v4-drift, 0px) * 1.4), 22vh, 0)
-      rotate(calc(var(--v4-spin, 360deg) * 0.3)) rotate3d(0, 1, 0, 180deg);
-  }
-  60% {
-    transform: translate3d(calc(var(--v4-drift, 0px) * -0.9), 58vh, 0)
-      rotate(calc(var(--v4-spin, 360deg) * 0.7)) rotate3d(0, 1, 0, 420deg);
-  }
-  90% {
+  to {
+    transform: translate3d(calc(var(--v4-drift, 0px) * 2.4), 112vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 0.8))
+      rotate3d(0, 1, 0, var(--v4-flip, 720deg));
     opacity: 1;
-  }
-  100% {
-    transform: translate3d(var(--v4-drift, 0px), 110vh, 0)
-      rotate(var(--v4-spin, 360deg)) rotate3d(0, 1, 0, var(--v4-flip, 720deg));
-    opacity: 0;
   }
 }
 
-/* 3. Flutter: stalls partway down, turning almost edge-on before dropping. */
+/* 3. Tumble: barely any sideways travel, turning over and over as it drops. */
 @keyframes v4-win-confetti-3 {
-  0% {
-    transform: translate3d(0, -10vh, 0) rotate3d(1, 0, 0, 0deg);
-    opacity: 0;
-  }
-  10% {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate(0deg) rotate3d(1, 0.6, 0, 0deg);
     opacity: 1;
   }
-  45% {
-    transform: translate3d(calc(var(--v4-drift, 0px) * 0.4), 34vh, 0)
-      rotate(calc(var(--v4-spin, 360deg) * 0.35)) rotate3d(1, 0.4, 0, 260deg);
-  }
-  55% {
-    /* The stall: it hangs for a beat, the way paper does. */
-    transform: translate3d(calc(var(--v4-drift, 0px) * 0.5), 40vh, 0)
-      rotate(calc(var(--v4-spin, 360deg) * 0.4)) rotate3d(1, 0.4, 0, 300deg);
-  }
-  90% {
+  to {
+    transform: translate3d(calc(var(--v4-drift, 0px) * 0.3), 112vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 1.8))
+      rotate3d(1, 0.6, 0, calc(var(--v4-flip, 720deg) * 1.6));
     opacity: 1;
-  }
-  100% {
-    transform: translate3d(var(--v4-drift, 0px), 110vh, 0)
-      rotate(var(--v4-spin, 360deg)) rotate3d(1, 0.4, 0, var(--v4-flip, 720deg));
-    opacity: 0;
   }
 }
 
-/* 4. Spiral: tight, fast corkscrew straight down with little sideways travel. */
+/* 4. Spiral: a tight corkscrew, spinning fast on the vertical axis. */
 @keyframes v4-win-confetti-4 {
-  0% {
-    transform: translate3d(0, -10vh, 0) rotate3d(0, 1, 0, 0deg) scaleX(1);
-    opacity: 0;
-  }
-  6% {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate3d(0, 1, 0, 0deg);
     opacity: 1;
   }
-  90% {
+  to {
+    transform: translate3d(calc(var(--v4-drift, 0px) * -0.8), 112vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 1.2))
+      rotate3d(0, 1, 0, calc(var(--v4-flip, 720deg) * 2.4));
     opacity: 1;
-  }
-  100% {
-    transform: translate3d(calc(var(--v4-drift, 0px) * 0.25), 110vh, 0)
-      rotate(calc(var(--v4-spin, 360deg) * 1.6))
-      rotate3d(0, 1, 0, calc(var(--v4-flip, 720deg) * 1.8));
-    opacity: 0;
   }
 }

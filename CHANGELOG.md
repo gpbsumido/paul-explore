@@ -3,7 +3,7 @@
 ## 2026-07-28 - version 2.2.0
 
 - added a win celebration to the v4 slot machine. When all three columns settle on an app you can actually open, party confetti falls across the whole window, the loupe already over the reels catches a shine and glows in the landed colour, and a short square-wave jingle plays.
-- the confetti is foil rectangles in a party palette led by the landed option's colour, each with its own size, drift, spin and tumble, and one of **four** fall behaviours (straight tumble, pendulum swing, flutter-and-stall, tight spiral) so it never reads as one repeated animation. It falls behind the machine, so it frames the win rather than covering the glass you are reading.
+- the confetti is foil rectangles in a party palette led by the landed option's colour, each with its own size, drift, spin and tumble. One of **four** fall styles is picked per win -- drift, sweep, tumble, spiral -- and never the same one twice running, so consecutive wins don't look alike. Each style is a single continuous drop: a piece never pauses mid-air, since a stall reads as a glitch rather than as air. It falls behind the machine, so it frames the win rather than covering the glass you are reading.
 - the jingle is synthesised through the Web Audio API rather than shipped as an audio file: no payload, no licence question, and a timbre that matches. It only ever fires from the click that started the spin, and a persisted mute toggle sits beside the spin button.
 - raised the Apps weighting from 1.5 to 4, so wins are common enough to be worth the animation.
 - honours `prefers-reduced-motion` by not rendering the celebration at all.

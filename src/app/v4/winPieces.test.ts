@@ -9,9 +9,10 @@ describe("confettiPieces", () => {
     expect(confettiPieces(20, COLORS)).toEqual(confettiPieces(20, COLORS));
   });
 
-  it("spreads the pieces across all four fall behaviours", () => {
-    const variants = new Set(confettiPieces(60, COLORS).map((c) => c.variant));
-    expect(variants).toEqual(new Set([1, 2, 3, 4]));
+  it("varies drift per piece, so one burst is not a block of identical paper", () => {
+    // The fall *style* is per win; the variation inside a burst comes from here.
+    const drifts = new Set(confettiPieces(60, COLORS).map((c) => Math.round(c.drift)));
+    expect(drifts.size).toBeGreaterThan(20);
   });
 
   it("gives every piece its own timing, so it falls as a shower not a wall", () => {

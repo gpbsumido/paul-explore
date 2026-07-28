@@ -18,7 +18,7 @@ import {
 // A characterful serif for the landed rows and nothing else. The chrome and
 // body stay in Geist so the serif reads as the machine's voice, not a theme.
 import { isWinningPull } from "./win";
-import WinCelebration, { WIN_MS } from "./WinCelebration";
+import WinCelebration, { WIN_MS, type FallStyle } from "./WinCelebration";
 import { playWinSound, soundEnabled, setSoundEnabled } from "./winSound";
 
 const fraunces = Fraunces({ subsets: ["latin"], display: "swap" });
@@ -655,6 +655,9 @@ export default function SlotMachine({
   // mount, so without a fresh key a second win would reuse the same elements
   // and sit there motionless.
   const [winKey, setWinKey] = useState(0);
+  // Which fall style this win uses. Picked at win time (client-only, well after
+  // hydration) so consecutive wins don't look identical.
+  const [fallStyle, setFallStyle] = useState<FallStyle>(1);
   // Read after mount: localStorage is client-only, and reading it during render
   // would make the server and first client pass disagree on the icon.
   const [sound, setSound] = useState(true);
@@ -901,6 +904,12 @@ export default function SlotMachine({
         landedCategory?.options[wrapIndex(optTarget, optList.length)];
       if (isWinningPull({ category: landedCategory, option: landedOption, reduced })) {
         setWinKey((k) => k + 1);
+        setFallStyle((prev) => {
+          // Never the same style twice in a row -- repetition is the thing that
+          // makes a celebration feel canned.
+          const options = ([1, 2, 3, 4] as FallStyle[]).filter((v) => v !== prev);
+          return options[Math.floor(Math.random() * options.length)];
+        });
         setWon(true);
         playWinSound();
         schedule(() => setWon(false), WIN_MS);
@@ -945,6 +954,7 @@ export default function SlotMachine({
           key={winKey}
           optionColor={optAccent}
           accent={catAccent}
+          style={fallStyle}
         />
       ) : null}
       <GraphBackground />
