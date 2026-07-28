@@ -17,6 +17,10 @@ import {
 
 // A characterful serif for the landed rows and nothing else. The chrome and
 // body stay in Geist so the serif reads as the machine's voice, not a theme.
+import { isWinningPull } from "./win";
+import WinCelebration, { WIN_MS, type FallStyle } from "./WinCelebration";
+import { playWinSound, soundEnabled, setSoundEnabled } from "./winSound";
+
 const fraunces = Fraunces({ subsets: ["latin"], display: "swap" });
 
 /** Height of one reel row in px; the track math and the edge fade share it. */
@@ -600,7 +604,10 @@ export default function SlotMachine({
     const list: { cat: number; opt: number; note: number; weight: number }[] =
       [];
     categories.forEach((c, ci) => {
-      const weight = c.id === "apps" ? 1.5 : 1;
+      // Apps carry the payoff (they are the only column that can win), so
+      // they are weighted well above the rest -- a machine that rarely pays is
+      // a machine nobody pulls twice.
+      const weight = c.id === "apps" ? 4 : 1;
       c.options.forEach((o, oi) => {
         if (o.thoughts.length === 0) {
           list.push({ cat: ci, opt: oi, note: 0, weight });
@@ -640,6 +647,24 @@ export default function SlotMachine({
   // target instead of the mid-flight reel-1 position, so they never thrash
   // through every category the first reel passes on its way down.
   const [frozen, setFrozen] = useState<Frozen | null>(null);
+  // Set the moment all three columns lock in on a real app, cleared when the
+  // flourish finishes. Landing on something you can actually open is the win;
+  // a write-up-only or disabled pull is not.
+  const [won, setWon] = useState(false);
+  // Bumped on every win so the celebration remounts. CSS animations only run on
+  // mount, so without a fresh key a second win would reuse the same elements
+  // and sit there motionless.
+  const [winKey, setWinKey] = useState(0);
+  // Which fall style this win uses. Picked at win time (client-only, well after
+  // hydration) so consecutive wins don't look identical.
+  const [fallStyle, setFallStyle] = useState<FallStyle>(1);
+  // Read after mount: localStorage is client-only, and reading it during render
+  // would make the server and first client pass disagree on the icon.
+  const [sound, setSound] = useState(true);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSound(soundEnabled());
+  }, []);
 
   const timers = useRef<number[]>([]);
   useEffect(() => {
@@ -775,6 +800,10 @@ export default function SlotMachine({
     }
 
     clearTimers();
+    // clearTimers kills the pending "stop celebrating" timer, so a spin started
+    // mid-celebration would otherwise strand `won` at true forever and every
+    // later win would render into already-mounted, already-finished elements.
+    setWon(false);
     setFrozen({ cat: catTarget, opt: optTarget, note: noteTarget });
     setSpinning(true);
     setSettledCount(0);
@@ -867,6 +896,24 @@ export default function SlotMachine({
       setSpinning(false);
       setSettledCount(3);
       setFrozen(null);
+
+      // The payoff: three columns land on an openable app. Reduced-motion gets
+      // the outcome without the flashing, so it just skips straight past.
+      const landedCategory = categories[wrapIndex(catTarget, categories.length)];
+      const landedOption =
+        landedCategory?.options[wrapIndex(optTarget, optList.length)];
+      if (isWinningPull({ category: landedCategory, option: landedOption, reduced })) {
+        setWinKey((k) => k + 1);
+        setFallStyle((prev) => {
+          // Never the same style twice in a row -- repetition is the thing that
+          // makes a celebration feel canned.
+          const options = ([1, 2, 3, 4] as FallStyle[]).filter((v) => v !== prev);
+          return options[Math.floor(Math.random() * options.length)];
+        });
+        setWon(true);
+        playWinSound();
+        schedule(() => setWon(false), WIN_MS);
+      }
     }, Math.max(t1, t2, t3) + 200);
   };
 
@@ -899,6 +946,17 @@ export default function SlotMachine({
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-background text-foreground">
+      {/* Confetti falls behind the machine: it should frame the win, not sit on
+          top of the glass you are trying to read. Not rendered under reduced
+          motion. */}
+      {won ? (
+        <WinCelebration
+          key={winKey}
+          optionColor={optAccent}
+          accent={catAccent}
+          style={fallStyle}
+        />
+      ) : null}
       <GraphBackground />
 
       {/* Header, same chrome pattern as v3: title + badge left, actions right. */}
@@ -944,6 +1002,7 @@ export default function SlotMachine({
           </m.p>
 
           <div className="relative grid grid-cols-3 gap-4 sm:gap-8">
+
             <m.div variants={revealItem} className="min-w-0">
               <Reel
                 label="Category"
@@ -1044,11 +1103,26 @@ export default function SlotMachine({
               style={{
                 top: LENS_TOP,
                 height: LENS_H,
-                boxShadow: spinning
-                  ? "inset 0 1px 0 rgba(255,255,255,0.18)"
-                  : "inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px rgba(0,0,0,0.12)",
+                boxShadow: won
+                  ? `inset 0 1px 0 rgba(255,255,255,0.5), 0 0 30px 6px color-mix(in srgb, ${optAccent} 45%, transparent)`
+                  : spinning
+                    ? "inset 0 1px 0 rgba(255,255,255,0.18)"
+                    : "inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 24px rgba(0,0,0,0.12)",
               }}
             >
+              {/* The win shine sweeps across the glass that is already here,
+                  rather than a second box floating over it. */}
+              {won ? (
+                <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                  <div
+                    className="absolute inset-y-0 w-1/3"
+                    style={{
+                      background: `linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent)`,
+                      animation: `v4-win-sweep 900ms ease-out forwards`,
+                    }}
+                  />
+                </div>
+              ) : null}
               <div
                 className="absolute inset-0 rounded-2xl"
                 style={{
@@ -1068,7 +1142,7 @@ export default function SlotMachine({
               whatever category is currently up. */}
           <m.div
             variants={revealItem}
-            className="mt-7 flex items-center justify-center gap-6 sm:mt-9"
+            className="relative mt-7 flex items-center justify-center gap-6 sm:mt-9"
           >
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
             <button
@@ -1085,6 +1159,24 @@ export default function SlotMachine({
               }}
             >
               {spinning ? "···" : "Spin"}
+            </button>
+            {/* A win makes noise, so there has to be a way to stop it. The
+                preference persists; the control is quiet until you look for it. */}
+            <button
+              type="button"
+              onClick={() => {
+                const next = !sound;
+                setSound(next);
+                setSoundEnabled(next);
+              }}
+              aria-pressed={sound}
+              aria-label={sound ? "Mute win sound" : "Unmute win sound"}
+              title={sound ? "Mute win sound" : "Unmute win sound"}
+              className="absolute right-0 flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+            >
+              <span aria-hidden className="font-mono text-[13px]">
+                {sound ? "♪" : "×"}
+              </span>
             </button>
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
           </m.div>

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-28 - version 2.2.0
+
+- added a win celebration to the v4 slot machine. When all three columns settle on an app you can actually open, party confetti falls across the whole window, the loupe already over the reels catches a shine and glows in the landed colour, and a short square-wave jingle plays.
+- the confetti is foil rectangles in a party palette led by the landed option's colour, each with its own size, drift, spin and tumble. One of **four** fall styles is picked per win -- drift, sweep, tumble, spiral -- and never the same one twice running, so consecutive wins don't look alike. Each style is a single continuous drop: a piece never pauses mid-air, since a stall reads as a glitch rather than as air. It falls behind the machine, so it frames the win rather than covering the glass you are reading.
+- the jingle is synthesised through the Web Audio API rather than shipped as an audio file: no payload, no licence question, and a timbre that matches. It only ever fires from the click that started the spin, and a persisted mute toggle sits beside the spin button.
+- raised the Apps weighting from 1.5 to 4, so wins are common enough to be worth the animation.
+- honours `prefers-reduced-motion` by not rendering the celebration at all.
 ## 2026-07-28 - version 2.1.1
 
 - split the raw feature and write-up data out of `featureData.tsx` into a plain `featureData.data.ts`. The data has no JSX in it, but living beside the preview components meant it was a `"use client"` module importing framer-motion -- so the v3 graph data, the v4 slot data, and the header's feature/write-up link all dragged that in for a list of hrefs, and no server component could read it at all. The `.tsx` re-exports everything, so all existing importers are untouched; the three data-only modules now import the plain one. Added a guard test that the data module never gains a client directive, an animation import, or JSX.

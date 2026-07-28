@@ -293,3 +293,81 @@
     color-scheme: light;
   }
 }
+
+/* The v4 slot machine's win flourish. The shine rides the existing loupe; the
+   confetti and streamers fall across the whole window. All of it is gated on
+   prefers-reduced-motion in the component, which simply does not render. */
+@keyframes v4-win-sweep {
+  0% {
+    transform: translateX(-140%) skewX(-14deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(420%) skewX(-14deg);
+    opacity: 0;
+  }
+}
+
+/* Four fall styles, one chosen per win. Each is a single continuous drop --
+   no stalls or direction changes mid-keyframe, because a pause reads as a
+   glitch rather than as air. Pieces still differ inside a burst: size, drift,
+   spin and timing all vary per piece, and the drift value is signed, so within
+   one style pieces still travel opposite ways. */
+
+/* 1. Drift: a steady fall with a long, even sideways glide. */
+@keyframes v4-win-confetti-1 {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate(0deg) rotate3d(1, 1, 0, 0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(var(--v4-drift, 0px), 112vh, 0)
+      rotate(var(--v4-spin, 360deg)) rotate3d(1, 1, 0, var(--v4-flip, 720deg));
+    opacity: 1;
+  }
+}
+
+/* 2. Sweep: travels much further sideways, as if caught by a draught. */
+@keyframes v4-win-confetti-2 {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate(0deg) rotate3d(0, 1, 0, 0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(calc(var(--v4-drift, 0px) * 2.4), 112vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 0.8))
+      rotate3d(0, 1, 0, var(--v4-flip, 720deg));
+    opacity: 1;
+  }
+}
+
+/* 3. Tumble: barely any sideways travel, turning over and over as it drops. */
+@keyframes v4-win-confetti-3 {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate(0deg) rotate3d(1, 0.6, 0, 0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(calc(var(--v4-drift, 0px) * 0.3), 112vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 1.8))
+      rotate3d(1, 0.6, 0, calc(var(--v4-flip, 720deg) * 1.6));
+    opacity: 1;
+  }
+}
+
+/* 4. Spiral: a tight corkscrew, spinning fast on the vertical axis. */
+@keyframes v4-win-confetti-4 {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate3d(0, 1, 0, 0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(calc(var(--v4-drift, 0px) * -0.8), 112vh, 0)
+      rotate(calc(var(--v4-spin, 360deg) * 1.2))
+      rotate3d(0, 1, 0, calc(var(--v4-flip, 720deg) * 2.4));
+    opacity: 1;
+  }
+}
