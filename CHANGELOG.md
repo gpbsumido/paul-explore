@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-27 - version 1.11.3
+
+- removed a duplicate "Feature Flags" write-up entry that the develop merge left in `THOUGHTS` (both sides had added it). The duplicate was breaking two suites - the graph built one fewer node than the non-deprecated write-up count, and the command registry generated two commands with the same id. Also regenerated the v4 docs screenshots to match the current look (single loupe, populated combos, footer version picker).
+
 ## 2026-07-27 - version 1.11.2
 
 - kept every column visibly spinning during a pull, even the ones with nothing to cycle. A write-up-only middle reel (a single "Write-up only" placeholder) or an empty write-up reel (an app with no notes yet) now scrolls a blurred filler strip of labels while it turns, then snaps to its real single or empty state the instant it lands, instead of sitting dead still while the outer reels spin. The greyed-out look for a write-up-only reel only applies once it has landed.
