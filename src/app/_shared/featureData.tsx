@@ -131,6 +131,13 @@ export const FEATURES: FeatureItem[] = [
 
 export const THOUGHTS: ThoughtItem[] = [
   {
+    title: "TypeScript 7",
+    href: "/thoughts/typescript-7",
+    preview:
+      "Why the Go-native compiler is a no for now: the lint stack peer-caps below it, and a 4-second type-check makes the 10x moot",
+    color: "#3178c6",
+  },
+  {
     title: "React Doctor",
     href: "/thoughts/react-doctor",
     preview:

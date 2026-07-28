@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-28 - version 2.1.0
+
+- added a dev-thoughts write-up at `/thoughts/typescript-7` on why this project is staying on TypeScript 5.9 rather than taking the Go-native compiler: `typescript-eslint` peer-caps at `<6.1.0` (and arrives via `eslint-config-next`, so it is easy to miss), TypeScript 7.0 shipped without the stable programmatic API that type-aware linting needs, and a measured 4.05s type-check over 725 files makes the 8-12x speedup worth about three and a half seconds. Ends with how to take the speed anyway via `@typescript/native-preview`, and what to actually watch for (7.1, not 7.0).
+
 ## 2026-07-28 - version 2.0.3
 
 - added a one-hop link between a feature and its dev-thoughts write-up, in both directions: a **Write-up** pill in the header on a feature page, and an **Open app** pill on the write-up. Getting between the two used to mean going back to the hub (issue #247). The pairing already existed in the feature data, so nothing new is maintained by hand; the link renders only on pages that are half of a pair.
