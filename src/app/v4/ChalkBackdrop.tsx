@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Caveat } from "next/font/google";
+import { TegakiRenderer } from "tegaki/react";
+import caveat from "tegaki/fonts/caveat";
 import {
   placeChalkWord,
   pickUnused,
@@ -9,24 +10,13 @@ import {
   type KeepOut,
 } from "./chalkLayout";
 
-// A handwriting face, because the whole conceit is that someone is writing
-// these. A mono or a serif traces as a machine-drawn outline, however good the
-// stroke animation is.
-const caveat = Caveat({ subsets: ["latin"], weight: ["500"], display: "swap" });
-
-/** Most words on screen at once. Enough to feel alive, few enough to read. */
-const MAX_ON_SCREEN = 6;
-/** Gap between one word arriving and the next, in ms. */
-const SPAWN_MS = 1500;
-/** Gap between one character starting to draw and the next, in ms. */
-const CHAR_MS = 85;
-/** Dash length for a single glyph -- comfortably longer than any one outline. */
-const CHAR_DASH = 420;
-
-const TEXT: React.CSSProperties = {
-  fontSize: 74,
-  letterSpacing: "0.01em",
-};
+/** Most words on screen at once. Few enough that each one is readable. */
+const MAX_ON_SCREEN = 4;
+/** Gap between one word arriving and the next, in ms. Unhurried on purpose. */
+const SPAWN_MS = 2600;
+/** Pause between glyphs, in seconds -- tegaki's own stagger. Brisk: a backdrop
+ *  that writes slowly reads as sluggish rather than considered. */
+const GLYPH_GAP = 0.025;
 
 type ChalkTarget = { id: string; label: string; color: string };
 
@@ -86,9 +76,14 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
       };
       const targetsToAvoid = [
         document.querySelector("header"),
-        document.querySelector("[data-chalk-avoid]"),
+        ...document.querySelectorAll("[data-chalk-avoid]"),
         document.querySelector('[data-testid="reel-lens"]'),
+        // The reel columns carry the dimmed option lists; a word written across
+        // one makes both unreadable.
+        ...document.querySelectorAll('[role="listbox"]'),
         document.querySelector('[aria-label="Spin the reels"]'),
+        // The result panel sits below the machine and is easy to write over.
+        document.querySelector("[data-chalk-result]"),
       ].filter((el): el is Element => el !== null);
       keepOut.current = targetsToAvoid.map(rect);
     };
@@ -112,7 +107,20 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
         // Steer clear of what is already up, or six random positions collide
         // often enough to look broken. Null means the window is too short to
         // place anything without covering the interface.
-        const placement = placeChalkWord(Math.random, next, keepOut.current);
+        // Words are centred on their anchor, so the placement has to know how
+        // far they reach or a long one hangs across the interface while its
+        // midpoint sits clear. Rough is fine: it only has to bound the word.
+        const remPx = 16;
+        const halfW =
+          ((target.label.length * 1.6 * 0.55 * remPx) / 2 / window.innerWidth) * 100;
+        const halfH = ((1.6 * remPx) / 2 / window.innerHeight) * 100;
+        const placement = placeChalkWord(
+          Math.random,
+          next,
+          keepOut.current,
+          target.label.length,
+          { halfW, halfH },
+        );
         if (!placement) return prev;
         seq.current += 1;
         return [...next, { key: seq.current, target, ...placement }];
@@ -153,7 +161,6 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
       aria-hidden
     >
       {words.map((w) => {
-        const chars = [...w.target.label];
         return (
           <button
             key={w.key}
@@ -167,57 +174,24 @@ export default function ChalkBackdrop({ targets, onPick, hidden }: Props) {
               transform: `translate(-50%, -50%) rotate(${w.rotate}deg)`,
             }}
           >
-            <svg
-              height={`${w.size * 2}rem`}
-              width={`${chars.length * w.size * 0.55}rem`}
-              viewBox={`0 0 ${chars.length * 55} 110`}
-              className="overflow-visible"
+            {/* tegaki draws the pen's own path, stroke by stroke, rather than
+                tracing around the glyph outline the way a stroke-dasharray on
+                SVG text does. That difference is the whole reason to take the
+                dependency: an outline trace reads as a shape being outlined,
+                this reads as handwriting. */}
+            <TegakiRenderer
+              font={caveat}
+              timing={{ glyphGap: GLYPH_GAP }}
+              style={{
+                fontSize: `${w.size}rem`,
+                color: w.target.color,
+                // The written line then dissolves, the way ink sinks into the
+                // page. Held here rather than in tegaki, which only draws.
+                animation: `v4-chalk-life ${w.duration}ms ease-in-out both`,
+              }}
             >
-              {/* Two identical layers of the same tspans: the one behind fills
-                  in, the one on top traces its outline. Splitting into a tspan
-                  per character is what makes it read as writing -- tracing the
-                  whole word animates every glyph at once, which just looks like
-                  a fade. The `backwards` fill-mode matters: without it a glyph
-                  shows part of its dash before its delay elapses, which read as
-                  the next word's first letter arriving early. */}
-              <text x="0" y="78" className={caveat.className} style={TEXT}>
-                {chars.map((ch, ci) => (
-                  <tspan
-                    key={`f${ci}`}
-                    style={{
-                      fill: w.target.color,
-                      opacity: 0,
-                      animation: `v4-chalk-fill ${w.duration}ms ${
-                        ci * CHAR_MS
-                      }ms ease-in-out backwards`,
-                    }}
-                  >
-                    {ch === " " ? " " : ch}
-                  </tspan>
-                ))}
-              </text>
-              <text x="0" y="78" className={caveat.className} style={TEXT}>
-                {chars.map((ch, ci) => (
-                  <tspan
-                    key={`s${ci}`}
-                    style={{
-                      fill: "none",
-                      stroke: w.target.color,
-                      strokeWidth: 1.4,
-                      strokeLinecap: "round",
-                      strokeLinejoin: "round",
-                      strokeDasharray: CHAR_DASH,
-                      strokeDashoffset: CHAR_DASH,
-                      animation: `v4-chalk-write ${w.duration}ms ${
-                        ci * CHAR_MS
-                      }ms linear backwards`,
-                    }}
-                  >
-                    {ch === " " ? " " : ch}
-                  </tspan>
-                ))}
-              </text>
-            </svg>
+              {w.target.label}
+            </TegakiRenderer>
           </button>
         );
       })}

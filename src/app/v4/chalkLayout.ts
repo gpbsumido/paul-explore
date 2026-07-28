@@ -45,24 +45,53 @@ export type KeepOut = readonly Rect[];
 /** Breathing room around every obstacle, in viewport percent. */
 const PAD = 2;
 
-const overlaps = (p: { left: number; top: number }, r: Rect) =>
-  p.left > r.left - PAD &&
-  p.left < r.right + PAD &&
-  p.top > r.top - PAD &&
-  p.top < r.bottom + PAD;
+/**
+ * How much of the viewport a word covers either side of its anchor, in percent.
+ * Words are centred on their position, so testing the anchor alone let long
+ * ones hang across an obstacle while their midpoint sat safely clear.
+ */
+export type Extent = { halfW: number; halfH: number };
 
-/** True when a spot is clear of every obstacle. */
-export function isClear(p: { left: number; top: number }, keepOut: KeepOut): boolean {
-  return !keepOut.some((r) => overlaps(p, r));
+const ZERO_EXTENT: Extent = { halfW: 0, halfH: 0 };
+
+const overlaps = (
+  p: { left: number; top: number },
+  r: Rect,
+  e: Extent,
+): boolean =>
+  p.left + e.halfW > r.left - PAD &&
+  p.left - e.halfW < r.right + PAD &&
+  p.top + e.halfH > r.top - PAD &&
+  p.top - e.halfH < r.bottom + PAD;
+
+/** True when a word centred here, of this size, clears every obstacle. */
+export function isClear(
+  p: { left: number; top: number },
+  keepOut: KeepOut,
+  extent: Extent = ZERO_EXTENT,
+): boolean {
+  return !keepOut.some((r) => overlaps(p, r, extent));
 }
 
-function candidate(rand: () => number): ChalkPlacement {
+/**
+ * How long a word lives, scaled to its length.
+ *
+ * A fixed lifetime fades long words mid-stroke: "Work Portfolio" takes roughly
+ * three times as long to write as "Craft", so a shared duration cut it off
+ * before the pen finished. This gives every word time to be written, held, and
+ * dissolved regardless of length.
+ */
+export function lifetimeFor(charCount: number, rand: () => number): number {
+  return 2600 + charCount * 340 + rand() * 1200;
+}
+
+function candidate(rand: () => number, charCount: number): ChalkPlacement {
   return {
     left: 4 + rand() * 92,
     top: 3 + rand() * 94,
     rotate: (rand() - 0.5) * 14,
     size: 1.05 + rand() * 1.1,
-    duration: 6500 + rand() * 3500,
+    duration: lifetimeFor(charCount, rand),
   };
 }
 
@@ -86,6 +115,8 @@ export function placeChalkWord(
   rand: () => number = Math.random,
   avoid: readonly { left: number; top: number }[] = [],
   keepOut: KeepOut = [],
+  charCount = 8,
+  extent: Extent = ZERO_EXTENT,
 ): ChalkPlacement | null {
   const gapTo = (p: ChalkPlacement) =>
     avoid.length === 0 ? Infinity : Math.min(...avoid.map((o) => spread(p, o)));
@@ -97,8 +128,8 @@ export function placeChalkWord(
   // interface. Rejecting rather than clamping means a crowded window simply
   // writes fewer words instead of stacking them somewhere silly.
   for (let i = 0; i < 24; i += 1) {
-    const next = candidate(rand);
-    if (!isClear(next, keepOut)) continue;
+    const next = candidate(rand, charCount);
+    if (!isClear(next, keepOut, extent)) continue;
     const gap = gapTo(next);
     if (gap > bestGap) {
       best = next;

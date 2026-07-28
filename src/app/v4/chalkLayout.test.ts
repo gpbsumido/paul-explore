@@ -91,6 +91,20 @@ describe("placeChalkWord", () => {
   });
 });
 
+describe("extent-aware clearance", () => {
+  const zone = [{ left: 40, right: 60, top: 40, bottom: 50 }];
+
+  it("rejects a wide word whose centre is clear but whose end is not", () => {
+    // The anchor sits outside the zone; the word reaches into it.
+    expect(isClear({ left: 30, top: 45 }, zone)).toBe(true);
+    expect(isClear({ left: 30, top: 45 }, zone, { halfW: 12, halfH: 2 })).toBe(false);
+  });
+
+  it("accepts a narrow word in the same spot", () => {
+    expect(isClear({ left: 20, top: 45 }, zone, { halfW: 3, halfH: 2 })).toBe(true);
+  });
+});
+
 describe("pickUnused", () => {
   const pool = [{ id: "a" }, { id: "b" }, { id: "c" }];
 

@@ -377,42 +377,14 @@
    same loop on its own delay and duration, so at any moment some are being
    written and some are fading. */
 
-/* The traced outline: a dashed line whose gap is the whole glyph, pulled to
-   zero so the letters appear to be drawn left to right. The dash length is set
-   per word (--v4-dash) because a fixed one repeats on longer labels, which
-   reveals the word in chunks instead of drawing it. Linear timing, because
-   handwriting does not ease. */
-@keyframes v4-chalk-write {
+/* tegaki draws the strokes; this only handles the life of the word after it is
+   written -- it holds, then dissolves, the way ink sinks into the page. */
+@keyframes v4-chalk-life {
   0% {
-    stroke-dashoffset: 420;
-    opacity: 0.95;
-  }
-  14% {
-    stroke-dashoffset: 0;
-    opacity: 0.95;
+    opacity: 0.85;
   }
   62% {
-    stroke-dashoffset: 0;
-    opacity: 0.7;
-  }
-  84%,
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
-}
-
-/* The chalk body, arriving behind the traced line and dissolving with it. */
-@keyframes v4-chalk-fill {
-  0%,
-  12% {
-    opacity: 0;
-  }
-  24% {
-    opacity: 0.5;
-  }
-  62% {
-    opacity: 0.5;
+    opacity: 0.85;
   }
   84%,
   100% {

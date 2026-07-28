@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-28 - version 2.2.4
+
+- the chalk backdrop now draws with **tegaki**, which renders the pen's own stroke path rather than tracing around the glyph outline the way a stroke-dasharray on SVG text does. That difference is the whole point: an outline trace reads as a shape being outlined, this reads as handwriting. Costs about 135 KB net over the wire, and needs a `FontFace` stub in the test setup because jsdom has no such API.
+- at most four words on screen at a time, arriving less often, and each word's lifetime scales with its length -- a fixed one faded long labels like "Work Portfolio" mid-stroke.
+- words no longer reappear fully drawn: the life animation used a `backwards` fill-mode, so once it finished the element reverted to its base style and the finished word popped back into view.
+- placement now measures eight parts of the interface (header, stats line, loupe, reel columns, spin button, result panel) and tests a word's whole box rather than its centre point, since a long word reached across an obstacle while its midpoint sat clear.
+
 ## 2026-07-28 - version 2.2.3
 
 - stopped chalk words landing on the interface. Placement now measures the header, the stats line, the loupe and the spin button at runtime and rejects any spot that would cover one, rather than trusting percentages read off a single window -- the header is a fixed pixel height, so it covers a fifth of a short window and a tenth of a tall one, and a hard-coded band drifted straight under it.

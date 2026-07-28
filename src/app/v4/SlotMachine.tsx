@@ -1180,6 +1180,7 @@ export default function SlotMachine({
               whatever category is currently up. */}
           <m.div
             variants={revealItem}
+            data-chalk-avoid
             className="relative mt-7 flex items-center justify-center gap-6 sm:mt-9"
           >
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
@@ -1225,6 +1226,7 @@ export default function SlotMachine({
               links change between selections. */}
           <m.div
             variants={revealItem}
+            data-chalk-result
             className="mx-auto mt-7 flex h-32 w-full max-w-2xl flex-col items-center justify-start overflow-hidden text-center sm:mt-9"
           >
             {spinning ? (

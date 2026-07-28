@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "private": true,
   "packageManager": "pnpm@8.5.1",
   "engines": {
@@ -50,6 +50,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.8.1",
+    "tegaki": "^0.22.1",
     "three": "^0.183.2",
     "three-stdlib": "^2.36.1",
     "viem": "^2.55.4",
