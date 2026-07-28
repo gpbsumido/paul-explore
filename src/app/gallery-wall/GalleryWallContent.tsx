@@ -221,7 +221,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                         {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded blob URL, no known dimensions for next/image */}
                         <img
                           src={image.src}
-                          alt={`Uploaded photo ${index + 1}`}
+                          alt={`Frame ${index + 1}`}
                           className="h-14 w-14 shrink-0 rounded-md object-cover"
                         />
                         <div className="flex min-w-0 flex-1 flex-col gap-2">
