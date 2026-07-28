@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-28 - version 1.15.0
+
+- replaced the single-slot `localStorage` save with named walls you can keep. A new Saved walls panel lets you name the current wall, save it, open a saved wall, rename it, and delete it, all backed by the portfolio API's S3 storage (one folder per wall, scoped to the signed-in user). Saving with a wall open updates that wall; saving without one creates a new one.
+- photos upload on save: the original `File` behind each photo is kept alongside the wall state (out of the reducer, so state stays serializable), and only images still held as `blob:`/`data:` URLs are sent. The server optimizes them to WebP and hands back CDN URLs, so re-saving an unchanged wall never re-uploads a thing.
+- added the `/api/walls` and `/api/walls/[id]` BFF routes that attach the Auth0 token and forward to the portfolio API, streaming the multipart body through verbatim so the upload boundary survives.
+
 ## 2026-07-28 - version 1.14.0
 
 - made the zoomed wall pannable: grab and drag the wall itself to move around when zoomed in (frames still drag on their own), and drag inside the zoom preview to jump the window to that part of the wall. The minimap-to-scroll mapping is a pure `minimapPointToScroll` that inverts `viewportRect`.

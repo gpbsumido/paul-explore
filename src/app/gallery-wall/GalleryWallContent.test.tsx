@@ -1,10 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within, fireEvent } from "@testing-library/react";
+import { render, screen, within, fireEvent, waitFor } from "@testing-library/react";
 import { axe } from "vitest-axe";
 import GalleryWallContent from "./GalleryWallContent";
 import type { GalleryState, FramedImage, Position } from "./_lib/state";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
+
+// The walls API is exercised in its own tests; here it just needs to not fetch.
+vi.mock("./_lib/walls-api", () => ({
+  listWalls: vi.fn(async () => []),
+  getWall: vi.fn(),
+  createWall: vi.fn(async () => ({ id: "w1", name: "Hallway", updatedAt: "t" })),
+  updateWall: vi.fn(async () => ({ id: "w1", name: "Hallway", updatedAt: "t" })),
+  deleteWall: vi.fn(async () => undefined),
+}));
+
+import { createWall } from "./_lib/walls-api";
 
 const framed = (
   id: string,
@@ -97,13 +108,19 @@ describe("GalleryWallContent", () => {
     expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
   });
 
-  it("saves a valid arrangement to storage", () => {
+  it("saves a valid arrangement as a named wall", async () => {
     render(<GalleryWallContent initialState={seededState()} />);
-    const save = screen.getByRole("button", { name: /save/i });
+    const save = screen.getByRole("button", { name: /^save$/i });
     expect(save).toBeEnabled();
+    fireEvent.change(screen.getByLabelText(/wall name/i), {
+      target: { value: "Hallway" },
+    });
     fireEvent.click(save);
-    expect(window.localStorage.getItem("gallery-wall:saved")).toBeTruthy();
-    expect(screen.getByText(/saved/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(createWall).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "Hallway" }),
+      ),
+    );
   });
 
   it("auto-arranges overlapping frames back into a valid layout", () => {

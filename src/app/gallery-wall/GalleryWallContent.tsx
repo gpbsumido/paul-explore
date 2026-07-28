@@ -11,6 +11,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import WallStage from "./WallStage";
+import WallsPanel from "./WallsPanel";
 import {
   viewportRect,
   minimapPointToScroll,
@@ -22,8 +23,6 @@ import {
   initialGalleryState,
   computeValidation,
   computeHangSheet,
-  serializeGallery,
-  deserializeGallery,
   type GalleryState,
   type LayoutMode,
   type UploadedImage,
@@ -31,7 +30,6 @@ import {
 
 const ACCENT = "#e879f9";
 const CM_PER_INCH = 2.54;
-const SAVE_KEY = "gallery-wall:saved";
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 4;
 const ZOOM_STEP = 0.5;
@@ -47,7 +45,10 @@ function toInches(value: number, unit: Unit): number {
   return unit === "cm" ? value / CM_PER_INCH : value;
 }
 
-/** Read one file into an {@link UploadedImage}, measuring its natural aspect. */
+/**
+ * Read one file into an {@link UploadedImage}, measuring its natural aspect. The
+ * id is derived from the file itself so re-adding the same photo reuses it.
+ */
 function readImage(file: File): Promise<UploadedImage> {
   return new Promise((resolve, reject) => {
     const src = URL.createObjectURL(file);
@@ -86,8 +87,6 @@ export default function GalleryWallContent({ initialState }: Props) {
   const [zoom, setZoom] = useState(1);
   const [zoomText, setZoomText] = useState<string | null>(null);
   const [showHangSheet, setShowHangSheet] = useState(false);
-  const [savedAt, setSavedAt] = useState<string | null>(null);
-  const [canRestore, setCanRestore] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<SVGSVGElement>(null);
   const [view, setView] = useState<ViewportMetrics | null>(null);
@@ -101,6 +100,9 @@ export default function GalleryWallContent({ initialState }: Props) {
   const draggingMinimap = useRef(false);
   // Pop the settings column out into a floating, draggable panel so the wall
   // gets the full width.
+  // The original File behind each uploaded photo, kept out of the reducer so the
+  // wall state stays serializable. Saving uploads whatever is still local.
+  const filesById = useRef<Record<string, File>>({});
   const [floating, setFloating] = useState(false);
   const [panelPos, setPanelPos] = useState({ x: 24, y: 96 });
   const panelDrag = useRef<{
@@ -109,16 +111,6 @@ export default function GalleryWallContent({ initialState }: Props) {
     left: number;
     top: number;
   } | null>(null);
-
-  // Only look for a saved wall on the client, after mount, so the server and
-  // first client render match. Skipped when a state is injected (tests).
-  useEffect(() => {
-    if (initialState) return;
-    // localStorage is client-only, so this has to run after mount -- reading it
-    // during render would make the server and client disagree on the button.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCanRestore(window.localStorage.getItem(SAVE_KEY) !== null);
-  }, [initialState]);
 
   const clampZoom = (z: number): number =>
     Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
@@ -276,6 +268,10 @@ export default function GalleryWallContent({ initialState }: Props) {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
     const images = await Promise.all(files.map(readImage));
+    // Hold on to the original File for each photo so saving can upload it.
+    images.forEach((image, index) => {
+      filesById.current[image.id] = files[index];
+    });
     if (images.length > 0) dispatch({ type: "add-images", images });
   };
 
@@ -288,17 +284,14 @@ export default function GalleryWallContent({ initialState }: Props) {
     });
   };
 
-  const save = () => {
-    if (!validation.canSave) return;
-    window.localStorage.setItem(SAVE_KEY, serializeGallery(state));
-    setSavedAt(new Date().toLocaleTimeString());
-    setCanRestore(true);
+  const openWall = (saved: GalleryState) => {
+    filesById.current = {};
+    dispatch({ type: "replace", state: saved });
   };
 
-  const restore = () => {
-    const raw = window.localStorage.getItem(SAVE_KEY);
-    const restored = raw ? deserializeGallery(raw) : null;
-    if (restored) dispatch({ type: "replace", state: restored });
+  const newWall = () => {
+    filesById.current = {};
+    dispatch({ type: "replace", state: initialGalleryState });
   };
 
   const hangSheet = computeHangSheet(state);
@@ -730,33 +723,18 @@ export default function GalleryWallContent({ initialState }: Props) {
                     >
                       Hang sheet
                     </button>
-                    <button
-                      type="button"
-                      onClick={save}
-                      disabled={!validation.canSave}
-                      className="rounded-md border border-transparent px-3 py-1.5 text-[13px] font-semibold text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                      style={{ backgroundColor: ACCENT }}
-                    >
-                      Save
-                    </button>
-                    {canRestore ? (
-                      <button
-                        type="button"
-                        onClick={restore}
-                        className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
-                      >
-                        Restore
-                      </button>
-                    ) : null}
                   </div>
-                  {savedAt ? (
-                    <p role="status" className="mt-2 text-[12px] text-muted">
-                      Saved at {savedAt}.
-                    </p>
-                  ) : null}
                 </div>
               ) : null}
             </div>
+
+            <WallsPanel
+              state={state}
+              getFiles={() => filesById.current}
+              canSave={validation.canSave}
+              onOpen={openWall}
+              onNew={newWall}
+            />
 
             {state.images.length > 0 ? (
               <ul className="flex flex-col gap-3">
