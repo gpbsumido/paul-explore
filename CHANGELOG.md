@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-28 - version 2.3.0
+
+Release to production. Rolls up everything since 2.0.0, headlined by the v4 slot machine learning to celebrate a win and to write app names across its background in chalk.
+
+- **A win celebration on the v4 slot machine** -- when all three columns settle on an app you can open, confetti falls across the window in a palette led by the landed colour, the loupe already over the reels catches a shine, and a synthesised square-wave jingle plays. One of four fall styles per win, never the same one twice running, each a single continuous drop. Mute toggle beside the spin button, and nothing renders under `prefers-reduced-motion`.
+- **A chalk backdrop on the v4 landing page** -- app names write themselves in between pulls, hold, then dissolve, drawn by **tegaki** so the pen's own stroke path shows rather than an outline trace. Four at a time at most, each at a fresh spot measured to clear the interface, sized uniformly, with lifetime scaled to label length. Clicking a name spins the reels to that app.
+- **A one-hop link between a feature and its write-up**, both directions: a Write-up pill on the feature page's header, an Open app pill on the write-up (issue #247).
+- **A dev-thoughts write-up at `/thoughts/typescript-7`** on why this project stays on TypeScript 5.9 now that 7.0 is GA: `typescript-eslint` peer-caps below 6.1, TypeScript 7.0 shipped without the stable programmatic API type-aware linting needs, and a measured 4.05s type-check over 725 files makes the 8-12x speedup worth about three and a half seconds.
+- Fixes: the log in / log out control is back on the six pages that had switched it off (issue #244), and the landed v4 reel row opens its destination instead of re-selecting the row you were already on (issue #241).
+- Internals: the raw feature and write-up data now lives in a plain `featureData.data.ts`, so the v3 graph data, the v4 slot data and the header link no longer drag a `"use client"` module and framer-motion in for a list of hrefs.
+
 ## 2026-07-28 - version 2.2.5
 
 - every chalk word is now the same size, and clearance is checked against measured render dimensions rather than guessed ones. The height was the one that mattered: a script face renders about 3.6em tall once ascenders, descenders and canvas padding are counted, against the 1.4em I had assumed, which is why words kept clipping the interface even after the keep-out list was right.
