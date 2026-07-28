@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-27 - version 1.12.0
+
+- added a Gallery Wall arranger at `/gallery-wall`. Upload photos and each one is auto-framed with a best-fit standard size and orientation, every frame is yours to change, and the whole wall renders to scale against a wall size you enter, warning you when the frames don't fit. Built pure-core-first: an aspect-matching auto-framer with a medium tie-break, a centered shelf-packing layout with overflow detection, and an inches-internal model with a cm toggle only at the input edge. The preview is a single SVG whose viewBox is the wall's physical size, so there's no pixel math, and it reads as one labelled image region for screen readers.
+- wired the feature into the hub grid, the v3 graph, the v4 slot machine, and the command palette from the same `FEATURES`/`THOUGHTS` data, added a `--color-feature-gallery-wall` token, and wrote the dev-notes page at `/thoughts/gallery-wall`.
+
 ## 2026-07-27 - version 1.11.3
 
 - removed a duplicate "Feature Flags" write-up entry that the develop merge left in `THOUGHTS` (both sides had added it). The duplicate was breaking two suites - the graph built one fewer node than the non-deprecated write-up count, and the command registry generated two commands with the same id. Also regenerated the v4 docs screenshots to match the current look (single loupe, populated combos, footer version picker).
