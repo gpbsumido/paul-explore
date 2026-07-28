@@ -12,15 +12,18 @@ Every feature has a `/thoughts` write-up covering the architecture decisions beh
 
 ## Features
 
-Public (no login):
+Public (no login). Listed most-to-least prominent, matching the apps order across the site:
 
-- [Landing](https://paulsumido.com/) — interactive node-graph of the whole site
+- [Landing](https://paulsumido.com/) — a three-reel slot machine over every feature and write-up (the v3 node-graph is still at `/?version=v3`)
+- [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
+- [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground
+- [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine
 - [Fleet Operator](https://paulsumido.com/operator) — real-time fleet monitoring dashboard
 - [Learn](https://paulsumido.com/learn) — 14 interactive algorithm & frontend-pattern deep-dives
-- [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
-- [Particle Lab](https://paulsumido.com/lab/particles) · [Motion Lab](https://paulsumido.com/lab/motion) — R3F and Framer Motion experiments
-- [Pokémon TCG Browser](https://paulsumido.com/tcg/pokemon) · [GraphQL Pokédex](https://paulsumido.com/graphql)
+- [Craft](https://paulsumido.com/craft) — lead front-end traits, each expandable to the real work here that proves it
+- [Pokémon](https://paulsumido.com/pokemon) — one hub for the [TCG browser](https://paulsumido.com/tcg/pokemon), [TCG Pocket](https://paulsumido.com/tcg/pocket) expansions, and the [GraphQL Pokédex](https://paulsumido.com/graphql)
 - Fantasy NBA — [playoffs bracket](https://paulsumido.com/fantasy/nba/playoffs) (public leaderboard), [player stats](https://paulsumido.com/fantasy/nba/player/stats), [league history](https://paulsumido.com/fantasy/nba/league-history), [court vision](https://paulsumido.com/fantasy/nba/court-vision), [matchups](https://paulsumido.com/fantasy/nba/matchups)
+- [Particle Lab](https://paulsumido.com/lab/particles) · [Motion Lab](https://paulsumido.com/lab/motion) — R3F and Framer Motion experiments
 - [Thoughts](https://paulsumido.com/thoughts) — write-ups on design decisions
 
 Requires login (redirected to Auth0 by the middleware):
@@ -110,9 +113,10 @@ CI runs on GitHub Actions — lint, typecheck, and full test suite on every push
 ```
 src/
 ├── app/
-│   ├── api/             # BFF proxy routes (calendar, nba, tcg, vitals)
+│   ├── api/             # BFF proxy routes (calendar, nba, tcg, vitals, flags)
 │   ├── calendar/        # Calendar page, events list + detail, countdowns
 │   ├── fantasy/nba/     # League history, player stats, playoffs bracket
+│   ├── flags/           # Feature-flag console (test a user, live per-flag verdicts)
 │   ├── lab/             # Interactive experiments (particles, motion)
 │   ├── learn/           # Algorithm & frontend-pattern deep-dives
 │   ├── operator/        # Fleet monitoring dashboard (overview + store detail)

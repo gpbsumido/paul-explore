@@ -8,6 +8,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   {
     name: "Features",
     slugs: [
+      "feature-flags",
       "search-bar",
       "tcg",
       "calendar",
@@ -16,6 +17,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "work-portfolio",
       "ketsup",
       "ai-agent-patterns",
+      "mac-menu-bar",
       "craft",
       "command-palette",
     ],
@@ -25,11 +27,13 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
     slugs: [
       "design-system",
       "design-system-showcase",
+      "motion-components",
       "styling",
       "landing-page",
       "ui-redesign",
       "v2-redesign",
       "v3-redesign",
+      "v4-redesign",
       "accessibility",
     ],
   },
@@ -64,7 +68,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Build & Tooling",
-    slugs: ["npm-to-pnpm", "bundlers", "deployment"],
+    slugs: ["npm-to-pnpm", "bundlers", "deployment", "pr-screenshots"],
   },
 ];
 
