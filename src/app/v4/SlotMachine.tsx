@@ -480,7 +480,17 @@ function Reel({
                   <div
                     key={item.id}
                     aria-hidden
-                    onClick={inert ? undefined : () => onPosChange(k)}
+                    // Clicking a neighbour spins the reel to it; clicking the
+                    // row you already landed on opens it. Before this the
+                    // centre row's click just re-selected the same position, so
+                    // the big label looked clickable and did nothing, leaving
+                    // the small links underneath as the only way through.
+                    onClick={
+                      inert
+                        ? undefined
+                        : () => (isLanded ? onActivate?.(i) : onPosChange(k))
+                    }
+                    title={isLanded && !muted ? item.label : undefined}
                     className={[
                       "group absolute inset-x-0 flex items-center px-1",
                       inert ? "" : "cursor-pointer",

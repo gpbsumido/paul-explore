@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-28 - version 2.0.2
+
+- made the landed row on the v4 slot machine open its destination when you click it. Clicking a row spins the reel to that row, which on the row you had already landed on meant re-selecting where you already were -- so the big label looked clickable and did nothing, leaving the small links underneath as the only way through (issue #241). Clicking a neighbour still spins to it.
+
 ## 2026-07-28 - version 2.0.1
 
 - restored the log in / log out control on the pages that had switched it off: Gallery Wall, Craft, Resume, the thoughts index and every thoughts page, and the design-system showcase. `showLogout={false}` predates the menu learning to resolve the real session, so it now just hides the only account control on those pages (issue #244). Added an integrity test so no page can suppress it again.
