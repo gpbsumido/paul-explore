@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-28 - version 1.15.2
+
+- fixed saved gallery walls opening blank. The photos come back from S3 on a different origin, but that origin was not in the CSP `img-src` allowlist, so the browser blocked every one of them -- frames drew, photos did not. The CSP now reads `NEXT_PUBLIC_MEDIA_ORIGIN` and adds it to `img-src` (and `connect-src`), so it can be pointed at a CloudFront or bucket URL per environment without a code change.
+- moved the CSP out of `src/proxy.ts` into `src/lib/csp.ts` so the part that varies by environment is unit tested, including that a media origin can never widen `script-src`.
+
 ## 2026-07-28 - version 1.15.1
 
 - fixed the floating settings panel not docking again. The panel header doubles as the drag handle and holds the Dock button, so pressing that button started a drag and captured the pointer, which swallowed the button's own click. Presses that land on a control no longer start a drag, so Float and Dock both work. Docked the header has no drag handlers at all, which is why only one direction was broken.

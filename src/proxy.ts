@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { buildCsp } from "@/lib/csp";
 import {
   VISITOR_COOKIE,
   VISITOR_COOKIE_MAX_AGE,
@@ -33,23 +34,10 @@ import {
  *    See README for the full reasoning.
  */
 
-const CSP = [
-  `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://vercel.live https://va.vercel-scripts.com`,
-  `style-src 'self' 'unsafe-inline'`,
-  `img-src 'self' blob: data: https://assets.tcgdex.net https://raw.githubusercontent.com https://a.espncdn.com https://explorer-api.walletconnect.com`,
-  `font-src 'self'`,
-  `connect-src 'self' blob: https://vitals.vercel-insights.com https://vercel.live https://api.open-meteo.com https://api.paulsumido.com https://ethereum-rpc.publicnode.com https://ethereum-sepolia-rpc.publicnode.com wss://relay.walletconnect.org https://relay.walletconnect.org https://explorer-api.walletconnect.com https://api.web3modal.org https://pulse.walletconnect.org`,
-  // 'self' lets the résumé page embed its own PDF in an iframe; frame-ancestors
-  // below still stops anyone else from framing us.
-  `frame-src 'self' https://vercel.live https://verify.walletconnect.org https://verify.walletconnect.com`,
-  `object-src 'none'`,
-  `base-uri 'self'`,
-  `form-action 'self'`,
-  // 'self' (not 'none') so the résumé page can frame its own PDF; cross-origin
-  // framing — the actual clickjacking risk — is still blocked.
-  `frame-ancestors 'self'`,
-].join("; ");
+// Built in src/lib/csp.ts so the one environment-dependent part -- the origin
+// serving user-uploaded photos -- is testable and configurable. Without it,
+// saved gallery walls render blank because the browser blocks every photo.
+const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN);
 
 /**
  * Rate limit config for API routes.
