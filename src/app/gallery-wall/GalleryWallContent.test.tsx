@@ -183,6 +183,37 @@ describe("GalleryWallContent", () => {
     ).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("docks the panel again when the header button is pressed with a real pointer", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    fireEvent.click(screen.getByRole("button", { name: /float panel/i }));
+
+    // A real press lands on the draggable header before the button's click. The
+    // header must not capture the pointer, or the click never reaches the button.
+    const dock = screen.getByRole("button", { name: /dock panel/i });
+    fireEvent.pointerDown(dock, { clientX: 40, clientY: 20, pointerId: 1 });
+    fireEvent.pointerMove(dock, { clientX: 90, clientY: 70, pointerId: 1 });
+    fireEvent.pointerUp(dock, { clientX: 90, clientY: 70, pointerId: 1 });
+    fireEvent.click(dock);
+
+    expect(screen.getByRole("button", { name: /float panel/i })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("does not drag the floating panel when its header button is pressed", () => {
+    render(<GalleryWallContent initialState={seededState()} />);
+    fireEvent.click(screen.getByRole("button", { name: /float panel/i }));
+    const panel = document.querySelector("aside") as HTMLElement;
+    const before = panel.style.left;
+
+    const dock = screen.getByRole("button", { name: /dock panel/i });
+    fireEvent.pointerDown(dock, { clientX: 40, clientY: 20, pointerId: 1 });
+    fireEvent.pointerMove(dock, { clientX: 300, clientY: 400, pointerId: 1 });
+
+    expect(panel.style.left).toBe(before);
+  });
+
   it("switches the auto layout to masonry", () => {
     render(<GalleryWallContent initialState={seededState()} />);
     const masonry = screen.getByRole("button", { name: /masonry/i });

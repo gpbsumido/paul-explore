@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-28 - version 1.15.1
+
+- fixed the floating settings panel not docking again. The panel header doubles as the drag handle and holds the Dock button, so pressing that button started a drag and captured the pointer, which swallowed the button's own click. Presses that land on a control no longer start a drag, so Float and Dock both work. Docked the header has no drag handlers at all, which is why only one direction was broken.
+
 ## 2026-07-28 - version 1.15.0
 
 - replaced the single-slot `localStorage` save with named walls you can keep. A new Saved walls panel lets you name the current wall, save it, open a saved wall, rename it, and delete it, all backed by the portfolio API's S3 storage (one folder per wall, scoped to the signed-in user). Saving with a wall open updates that wall; saving without one creates a new one.

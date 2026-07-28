@@ -142,7 +142,7 @@ export default function GalleryWallContent({ initialState }: Props) {
       top: el.scrollTop,
     };
     setPanning(true);
-    el.setPointerCapture(event.pointerId);
+    el.setPointerCapture?.(event.pointerId);
   };
 
   const onWallPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -157,7 +157,7 @@ export default function GalleryWallContent({ initialState }: Props) {
     if (!pan.current) return;
     pan.current = null;
     setPanning(false);
-    viewportRef.current?.releasePointerCapture(event.pointerId);
+    viewportRef.current?.releasePointerCapture?.(event.pointerId);
   };
 
   // Drag inside the minimap to jump the window to that part of the wall.
@@ -189,7 +189,7 @@ export default function GalleryWallContent({ initialState }: Props) {
 
   const onMinimapPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
     draggingMinimap.current = true;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
     panToMinimap(event.clientX, event.clientY);
   };
 
@@ -200,18 +200,22 @@ export default function GalleryWallContent({ initialState }: Props) {
   const endMinimapDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
     if (!draggingMinimap.current) return;
     draggingMinimap.current = false;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
   };
 
   // Drag the floating settings panel around by its header.
   const onPanelPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    // The header doubles as the drag handle and holds the Dock button. Capturing
+    // the pointer on a press that started on a control would swallow its click,
+    // so leave those alone -- only bare header presses start a drag.
+    if ((event.target as Element).closest("button, input, select, a")) return;
     panelDrag.current = {
       x: event.clientX,
       y: event.clientY,
       left: panelPos.x,
       top: panelPos.y,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
   const onPanelPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -226,7 +230,7 @@ export default function GalleryWallContent({ initialState }: Props) {
   const endPanelDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!panelDrag.current) return;
     panelDrag.current = null;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
   };
 
   const setZoomTo = (z: number) => {
