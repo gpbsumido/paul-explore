@@ -48,7 +48,6 @@ export default function ThoughtLayout({
         right={
           hasChat ? <ViewToggle view={view} setView={setView} /> : undefined
         }
-        showLogout={false}
         maxWidth="max-w-3xl"
       />
 

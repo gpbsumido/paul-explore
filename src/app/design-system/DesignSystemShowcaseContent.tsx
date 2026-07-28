@@ -579,7 +579,6 @@ export default function DesignSystemShowcaseContent() {
     <PageShell colorA={ACCENT} colorB="#818cf8">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Design System" }]}
-        showLogout={false}
       />
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:py-14">

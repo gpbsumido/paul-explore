@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-28 - version 1.17.1
+
+- restored the log in / log out control on the pages that had switched it off: Gallery Wall, Craft, Resume, the thoughts index and every thoughts page, and the design-system showcase. `showLogout={false}` predates the menu learning to resolve the real session, so it now just hides the only account control on those pages (issue #244). Added an integrity test so no page can suppress it again.
+
 ## 2026-07-28 - version 1.17.0
 
 - photos now default to an **11 x 14** frame instead of a size chosen to match their aspect ratio. Since photos are fitted inside the mat rather than cropped, matching the aspect no longer buys anything, and a wall of mixed sizes should be a deliberate choice rather than something you undo on every upload. Orientation still follows the photo.

@@ -88,15 +88,19 @@ function BackChevron() {
  * />
  * ```
  *
- * @example Thoughts page (no logout, narrow container, view toggle)
+ * @example Thoughts page (narrow container, view toggle)
  * ```tsx
  * <PageHeader
  *   breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Calendar" }]}
  *   right={<ViewToggle view={view} setView={setView} />}
- *   showLogout={false}
  *   maxWidth="max-w-3xl"
  * />
  * ```
+ *
+ * Leave `showLogout` alone unless a page genuinely has no business offering
+ * an account control. It defaults to true, and the menu resolves the real
+ * session to show "Log in" or "Log out" -- so switching it off just hides the
+ * only way in or out of an account on that page.
  *
  * @example Hub header with custom left side, settings link, and gradient overlay
  * ```tsx
