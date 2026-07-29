@@ -29,6 +29,8 @@ export function makeWindowTexture(litChance = 0.4, tintHex = "#0e1420"): THREE.C
   }
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+  // Without anisotropy the window grid shimmers badly at grazing angles.
+  texture.anisotropy = 8;
   return texture;
 }
 
