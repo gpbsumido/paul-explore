@@ -23,6 +23,7 @@ import {
 } from "@/lib/world/ghost";
 import { explorerName } from "@/lib/world/presence";
 import { defaultFidelity } from "@/lib/world/fidelity";
+import { isWembyUnlocked, LOCKED_OUTFIT_ID } from "@/lib/world/unlocks";
 import { seasonFor, SEASON_DRESSING, type Season } from "@/lib/world/seasons";
 import type { Vec2 } from "@/types/world";
 import type { InteractionKind } from "./WorldScene";
@@ -81,8 +82,8 @@ const loadStoredGhost = (): GhostPath | null => {
     return null;
   }
 };
-// If a speedrun somehow never arrives, just open the feature.
-const AUTO_RUN_TIMEOUT_MS = 12_000;
+// If the guided walk somehow never arrives, just open the feature.
+const AUTO_RUN_TIMEOUT_MS = 45_000;
 
 const fidelityLabel = (value: number) => {
   if (value < 0.25) return "Low poly";
@@ -156,7 +157,7 @@ function Minimap({
       </p>
       <svg
         viewBox={`${WORLD_BOUNDS.minX} ${WORLD_BOUNDS.minZ} 156 144`}
-        className="block h-[132px] w-[144px] overflow-hidden rounded-lg bg-black/40"
+        className="block h-[116px] w-[144px] overflow-hidden rounded-lg bg-black/40"
         aria-label="Minimap of the city with exhibit locations"
         role="img"
       >
@@ -311,6 +312,8 @@ export default function WorldContent() {
   const [collected, setCollected] = useState<readonly string[]>([]);
   const [visited, setVisited] = useState<readonly string[]>([]);
   const [lastFind, setLastFind] = useState<{ id: string; count: number } | null>(null);
+  const [unlockToast, setUnlockToast] = useState(false);
+  const wembyUnlocked = isWembyUnlocked(collected);
   const collectedRef = useRef<readonly string[]>([]);
   const visitedRef = useRef<readonly string[]>([]);
   const findToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -412,6 +415,8 @@ export default function WorldContent() {
     const next = [...current, id];
     collectedRef.current = next;
     setCollected(next);
+    // The token that completes the ground set is the one that earns the suit.
+    if (!isWembyUnlocked(current) && isWembyUnlocked(next)) setUnlockToast(true);
     setLastFind({ id, count: next.length });
     if (findToastTimer.current) clearTimeout(findToastTimer.current);
     findToastTimer.current = setTimeout(() => setLastFind(null), 3000);
@@ -435,19 +440,23 @@ export default function WorldContent() {
   }, []);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [runningTo, setRunningTo] = useState<string | null>(null);
+  const [arrivedAt, setArrivedAt] = useState<string | null>(null);
   const activeIdRef = useRef<string | null>(null);
   const playerRef = useRef<PlayerSnapshot>({ x: SPAWN.x, z: SPAWN.z, heading: Math.PI });
   const joystickRef = useRef<JoystickState>({ x: 0, z: 0 });
   const autoTargetRef = useRef<string | null>(null);
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const teleportRef = useRef<Vec2 | null>(null);
-  const [prompt, setPrompt] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState<{ label: string; key: string } | null>(null);
   const [riding, setRiding] = useState(false);
   const [lookout, setLookout] = useState(false);
 
-  const handleInteractionChange = useCallback((_kind: InteractionKind, label: string | null) => {
-    setPrompt(label);
-  }, []);
+  const handleInteractionChange = useCallback(
+    (_kind: InteractionKind, label: string | null, key = "E") => {
+      setPrompt(label === null ? null : { label, key });
+    },
+    [],
+  );
 
   const handleActiveExhibit = useCallback((featureId: string | null) => {
     activeIdRef.current = featureId;
@@ -507,7 +516,7 @@ export default function WorldContent() {
       autoTimerRef.current = setTimeout(() => {
         autoTargetRef.current = null;
         setRunningTo(null);
-        router.push(feature.href);
+        setArrivedAt(featureId);
       }, AUTO_RUN_TIMEOUT_MS);
     },
     [prefersReduced, router, clearAutoTimer],
@@ -517,13 +526,10 @@ export default function WorldContent() {
     (featureId: string, arrived: boolean) => {
       clearAutoTimer();
       setRunningTo(null);
-      if (!arrived) return;
-      const feature = FEATURES.find((f) => f.id === featureId);
-      if (!feature) return;
-      // Small beat so the arrival and placard register before leaving.
-      autoTimerRef.current = setTimeout(() => router.push(feature.href), 450);
+      // Arriving is not the same as agreeing to leave — ask first.
+      if (arrived) setArrivedAt(featureId);
     },
-    [router, clearAutoTimer],
+    [clearAutoTimer],
   );
 
   const activeExhibit = activeId ? EXHIBITS.find((e) => e.featureId === activeId) : null;
@@ -629,35 +635,44 @@ export default function WorldContent() {
         </p>
       </div>
 
-      {/* minimap + accessible exhibit index */}
+      {/* right rail: one column top to bottom, so nothing can overlap */}
       <div
-        className="absolute right-4 top-4 flex flex-col items-end gap-2"
+        className="pointer-events-none absolute bottom-6 right-4 top-4 flex flex-col items-end gap-2"
         hidden={photoMode}
       >
-        <Minimap playerRef={playerRef} visited={visited} />
-        <p className="rounded-2xl px-3 py-1.5 text-[11px] text-white/70" style={GLASS_STYLE}>
+        <div className="pointer-events-auto shrink-0">
+          <Minimap playerRef={playerRef} visited={visited} />
+        </div>
+        <p
+          className="pointer-events-auto shrink-0 rounded-2xl px-3 py-1.5 text-[11px] text-white/70"
+          style={GLASS_STYLE}
+        >
           🪙 {collected.length}/{COLLECTIBLES.length}
           <span className="mx-1.5 text-white/25">·</span>
-          {explorationPercent(visited)}% explored
-        </p>
-        <p className="rounded-2xl px-3 py-1.5 text-[11px] text-white/60" style={GLASS_STYLE}>
-          {SEASON_DRESSING[season].label} · {WEATHER_DRESSING[condition].label}
-          {live.temperature !== null && !forcedWeather ? ` · ${live.temperature}°` : ""}
+          {explorationPercent(visited)}%
+          <span className="mx-1.5 text-white/25">·</span>
+          <span className="text-white/55">
+            {SEASON_DRESSING[season].label} · {WEATHER_DRESSING[condition].label}
+            {live.temperature !== null && !forcedWeather ? ` ${live.temperature}°` : ""}
+          </span>
         </p>
         {peers.length > 0 && (
           <p
-            className="rounded-2xl px-3 py-1.5 text-[11px] text-white/75"
+            className="pointer-events-auto rounded-2xl px-3 py-1.5 text-[11px] text-white/75"
             style={GLASS_STYLE}
             role="status"
           >
             🧑‍🤝‍🧑 {peers.length} other explorer{peers.length === 1 ? "" : "s"} here
           </p>
         )}
-        <details className="w-[168px] rounded-2xl" style={GLASS_STYLE}>
-          <summary className="cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
+        <details
+          className="pointer-events-auto flex min-h-0 w-[168px] shrink flex-col overflow-hidden rounded-2xl open:min-h-[7rem] open:flex-1"
+          style={GLASS_STYLE}
+        >
+          <summary className="shrink-0 cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
             All exhibits
           </summary>
-          <ul className="max-h-56 overflow-y-auto px-2 pb-2">
+          <ul className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
             {[...EXHIBITS]
               .sort((a, b) => Number(!!b.featured) - Number(!!a.featured))
               .map((exhibit) => {
@@ -698,6 +713,94 @@ export default function WorldContent() {
               })}
           </ul>
         </details>
+        {/* outfit picker */}
+        <div
+          className="pointer-events-auto mt-auto w-44 shrink-0 rounded-2xl p-3"
+          style={GLASS_STYLE}
+        >
+        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
+          Outfit
+        </p>
+        <div className="grid grid-cols-2 gap-1.5">
+          {OUTFITS.map((option) => {
+            const locked = !!option.locked && !wembyUnlocked;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                disabled={locked}
+                title={
+                  locked
+                    ? "Locked — find every token you can reach on foot"
+                    : option.label
+                }
+                onClick={() => {
+                  if (locked) return;
+                  setOutfitId(option.id);
+                  window.localStorage.setItem(OUTFIT_KEY, option.id);
+                }}
+                aria-pressed={outfitId === option.id}
+                className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
+                  locked
+                    ? "cursor-not-allowed text-white/30"
+                    : outfitId === option.id
+                      ? "bg-white/15 text-white"
+                      : "text-white/60 hover:bg-white/5 hover:text-white/85"
+                }`}
+              >
+                <span
+                  aria-hidden
+                  className="h-2.5 w-2.5 shrink-0 rounded-full border border-white/25"
+                  style={{ backgroundColor: locked ? "transparent" : option.accent }}
+                />
+                {locked ? "🔒 ???" : option.label}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          aria-pressed={ghostVisible}
+          onClick={() => {
+            const next = !ghostVisible;
+            setGhostVisible(next);
+            window.localStorage.setItem(GHOST_VISIBLE_KEY, next ? "on" : "off");
+          }}
+          className="mt-2 flex w-full items-center justify-between rounded-lg border-t border-white/10 px-2 pb-0.5 pt-2 text-[11px] text-white/60 hover:text-white/85"
+        >
+          <span>👻 Ghost stroll</span>
+          <span className={ghostVisible ? "text-white/85" : "text-white/35"}>
+            {ghostVisible ? "on" : "off"}
+          </span>
+        </button>
+      </div>
+        {/* fidelity slider */}
+        <div className="pointer-events-auto w-44 shrink-0 rounded-2xl p-3" style={GLASS_STYLE}>
+        <div className="mb-1.5 flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
+            Fidelity
+          </span>
+          <span className="text-[10px] text-white/45">{fidelityLabel(fidelity)}</span>
+        </div>
+        <input
+          type="range"
+          aria-label="World fidelity, low poly to very high poly"
+          min={0}
+          max={1}
+          step={0.05}
+          value={fidelity}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setFidelity(value);
+            window.localStorage.setItem(FIDELITY_KEY, String(value));
+          }}
+          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
+        />
+        <div className="mt-1 flex justify-between text-[9px] text-white/35">
+          <span>Low poly</span>
+          <span>Very high</span>
+        </div>
+        </div>
       </div>
 
       {/* touch controls */}
@@ -771,7 +874,7 @@ export default function WorldContent() {
       <AnimatePresence>
         {prompt && !lookout && (
           <m.div
-            key={prompt}
+            key={prompt.label}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
@@ -779,7 +882,7 @@ export default function WorldContent() {
             className="absolute bottom-32 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-2xl px-3 py-1.5 text-[12px] text-white/80"
             style={GLASS_STYLE}
           >
-            <Key>E</Key> {prompt}
+            <Key>{prompt.key}</Key> {prompt.label}
           </m.div>
         )}
       </AnimatePresence>
@@ -794,6 +897,97 @@ export default function WorldContent() {
           🚋 Riding the 501 Queen
         </p>
       )}
+
+      {/* arrived on foot — going in is still the visitor's call */}
+      <AnimatePresence>
+        {arrivedAt && !lookout && !photoMode && (() => {
+          const feature = FEATURES.find((f) => f.id === arrivedAt);
+          const exhibit = EXHIBITS.find((e) => e.featureId === arrivedAt);
+          if (!feature || !exhibit) return null;
+          return (
+            <m.div
+              key={`arrived-${arrivedAt}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={prefersReduced ? instantTransition : { ...spring.smooth }}
+              className="absolute bottom-6 left-1/2 w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl p-4"
+              style={{
+                ...GLASS_STYLE,
+                borderColor: `color-mix(in srgb, ${feature.color} 40%, rgba(255,255,255,0.1))`,
+              }}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
+                Arrived · {exhibit.landmark}
+              </p>
+              <h2 className="mt-0.5 text-[16px] font-semibold" style={{ color: feature.color }}>
+                Go inside {feature.title}?
+              </h2>
+              <div className="mt-3 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setArrivedAt(null)}
+                  className="text-[12px] text-white/55 hover:text-white/85"
+                >
+                  Stay in the city
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setArrivedAt(null);
+                    router.push(feature.href);
+                  }}
+                  className="rounded-lg px-3 py-1.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85"
+                  style={{ backgroundColor: feature.color }}
+                >
+                  Open {feature.title} →
+                </button>
+              </div>
+            </m.div>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* the mystery costume, earned */}
+      <AnimatePresence>
+        {unlockToast && (
+          <m.div
+            key="unlock"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={prefersReduced ? instantTransition : { ...spring.bounce }}
+            className="absolute left-1/2 top-1/3 w-[min(400px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl p-4 text-center"
+            style={{
+              ...GLASS_STYLE,
+              borderColor: "rgba(196, 206, 212, 0.5)",
+            }}
+            role="status"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
+              Costume unlocked
+            </p>
+            <h2 className="mt-1 text-[17px] font-semibold text-white/90">
+              Every token you could reach on foot — nice
+            </h2>
+            <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/70">
+              The mystery suit turns out to be very, very tall. Put it on and
+              those last three tokens are just… there.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setOutfitId(LOCKED_OUTFIT_ID);
+                window.localStorage.setItem(OUTFIT_KEY, LOCKED_OUTFIT_ID);
+                setUnlockToast(false);
+              }}
+              className="mt-3 rounded-lg bg-white px-3 py-1.5 text-[13px] font-semibold text-black transition-opacity hover:opacity-85"
+            >
+              Wear it →
+            </button>
+          </m.div>
+        )}
+      </AnimatePresence>
 
       {/* token pickup toast */}
       <AnimatePresence>
@@ -836,92 +1030,9 @@ export default function WorldContent() {
         )}
       </AnimatePresence>
 
-      {/* outfit picker */}
-      <div
-        className="absolute bottom-[7.5rem] right-4 w-44 rounded-2xl p-3"
-        style={GLASS_STYLE}
-        hidden={photoMode}
-      >
-        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
-          Outfit
-        </p>
-        <div className="grid grid-cols-2 gap-1.5">
-          {OUTFITS.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => {
-                setOutfitId(option.id);
-                window.localStorage.setItem(OUTFIT_KEY, option.id);
-              }}
-              aria-pressed={outfitId === option.id}
-              className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
-                outfitId === option.id
-                  ? "bg-white/15 text-white"
-                  : "text-white/60 hover:bg-white/5 hover:text-white/85"
-              }`}
-            >
-              <span
-                aria-hidden
-                className="h-2.5 w-2.5 shrink-0 rounded-full border border-white/25"
-                style={{ backgroundColor: option.accent }}
-              />
-              {option.label}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          aria-pressed={ghostVisible}
-          onClick={() => {
-            const next = !ghostVisible;
-            setGhostVisible(next);
-            window.localStorage.setItem(GHOST_VISIBLE_KEY, next ? "on" : "off");
-          }}
-          className="mt-2 flex w-full items-center justify-between rounded-lg border-t border-white/10 px-2 pb-0.5 pt-2 text-[11px] text-white/60 hover:text-white/85"
-        >
-          <span>👻 Ghost stroll</span>
-          <span className={ghostVisible ? "text-white/85" : "text-white/35"}>
-            {ghostVisible ? "on" : "off"}
-          </span>
-        </button>
-      </div>
-
-      {/* fidelity slider */}
-      <div
-        className="absolute bottom-6 right-4 w-44 rounded-2xl p-3"
-        style={GLASS_STYLE}
-        hidden={photoMode}
-      >
-        <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
-            Fidelity
-          </span>
-          <span className="text-[10px] text-white/45">{fidelityLabel(fidelity)}</span>
-        </div>
-        <input
-          type="range"
-          aria-label="World fidelity, low poly to very high poly"
-          min={0}
-          max={1}
-          step={0.05}
-          value={fidelity}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            setFidelity(value);
-            window.localStorage.setItem(FIDELITY_KEY, String(value));
-          }}
-          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
-        />
-        <div className="mt-1 flex justify-between text-[9px] text-white/35">
-          <span>Low poly</span>
-          <span>Very high</span>
-        </div>
-      </div>
-
       {/* exhibit placard */}
       <AnimatePresence>
-        {activeExhibit && activeFeature && !lookout && !riding && (
+        {activeExhibit && activeFeature && !lookout && !riding && !arrivedAt && (
           <m.div
             key={activeFeature.id}
             initial={{ opacity: 0, y: 24 }}
