@@ -25,6 +25,8 @@ import {
   RIDE_OFFSET,
 } from "@/lib/world/transit";
 import { reachHeight } from "@/lib/world/unlocks";
+import { ambienceMix, footstepInterval } from "@/lib/world/soundscape";
+import type { WorldAudio } from "./audio/engine";
 import { LANDMARKS } from "@/lib/world/cityLayout";
 import type { Season } from "@/lib/world/seasons";
 import { SEASON_DRESSING } from "@/lib/world/seasons";
@@ -112,6 +114,8 @@ export type WorldSceneProps = {
   readonly captureRef: RefObject<boolean>;
   readonly onCapture: (dataUrl: string) => void;
   readonly condition: WeatherCondition;
+  // The synthesised soundscape, once the visitor has interacted.
+  readonly audioRef: RefObject<WorldAudio | null>;
 };
 
 const rotate = (input: MoveInput, angle: number): MoveInput => ({
@@ -156,6 +160,7 @@ export default function WorldScene({
   captureRef,
   onCapture,
   condition,
+  audioRef,
 }: WorldSceneProps) {
   const outerRef = useRef<Group>(null);
   const bobRef = useRef<Group>(null);
@@ -184,6 +189,8 @@ export default function WorldScene({
   const lookoutRef = useRef(false);
   const interactionRef = useRef<InteractionKind>(null);
   const photoOrbitRef = useRef({ yaw: 0, pitch: 0.5, distance: 12 });
+  const stepClockRef = useRef(0);
+  const airborneRef = useRef(false);
 
   useFrame(({ camera, clock, gl, scene }, dt) => {
     // Photo mode: park the simulation and fly the camera around the explorer.
@@ -503,13 +510,35 @@ export default function WorldScene({
       });
     }
 
+    // Soundscape: the mix follows the player, footsteps follow their stride.
+    const audio = audioRef.current;
+    if (audio) {
+      audio.setMix(ambienceMix({ player: next.position, carX: car.x, condition }));
+      const grounded = next.y <= 0.01;
+      const interval = grounded ? footstepInterval(speed) : null;
+      if (interval === null) {
+        stepClockRef.current = 0;
+      } else {
+        stepClockRef.current += dt;
+        if (stepClockRef.current >= interval) {
+          stepClockRef.current = 0;
+          audio.footstep();
+        }
+      }
+      if (!grounded && !airborneRef.current) audio.jump();
+      airborneRef.current = !grounded;
+    }
+
     const found = findCollectible(
       next.position,
       next.y,
       collectedRef.current ?? [],
       reachHeight(outfit.id),
     );
-    if (found) onCollect(found.id);
+    if (found) {
+      audio?.chime();
+      onCollect(found.id);
+    }
     if (visitedRef.current) {
       const explored = markVisited(visitedRef.current, next.position);
       if (explored !== visitedRef.current) {
