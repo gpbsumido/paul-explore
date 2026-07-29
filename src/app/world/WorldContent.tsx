@@ -14,6 +14,8 @@ import { currentTimeOfDay, type TimeOfDay } from "@/lib/world/daylight";
 import { spring, instantTransition } from "@/lib/animations";
 import { useWorldKeys } from "./useWorldKeys";
 import WorldNav from "./WorldNav";
+import WorldHudSheet from "./WorldHudSheet";
+import { GLASS_STYLE } from "./glass";
 import { OUTFITS, outfitById } from "./outfits";
 import { useWorldPresence } from "./presence/useWorldPresence";
 import { useWorldAudio } from "./audio/useWorldAudio";
@@ -107,13 +109,6 @@ const WorldCanvas = dynamic(() => import("./WorldCanvas"), {
     </div>
   ),
 });
-
-const GLASS_STYLE = {
-  background: "rgba(7, 10, 18, 0.6)",
-  backdropFilter: "blur(16px)",
-  WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.1)",
-} as const;
 
 function Key({ children }: { readonly children: string }) {
   return (
@@ -270,7 +265,7 @@ function Joystick({ joystickRef }: { readonly joystickRef: RefObject<JoystickSta
       ref={baseRef}
       role="application"
       aria-label="Movement joystick"
-      className="relative flex h-28 w-28 touch-none items-center justify-center rounded-full"
+      className="pointer-events-auto relative flex h-28 w-28 touch-none items-center justify-center rounded-full"
       style={GLASS_STYLE}
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -542,7 +537,7 @@ export default function WorldContent() {
   const activeFeature = activeId ? FEATURES.find((f) => f.id === activeId) : null;
 
   return (
-    <main className="relative overflow-hidden bg-black" style={{ height: "calc(100dvh - 3.5rem)" }}>
+    <main className="relative overflow-hidden bg-black" style={{ height: "100dvh" }}>
       <h1 className="sr-only">Explore Toronto — a 3D world of this site&apos;s features</h1>
 
       {/* Photo mode takes over the screen: no HUD, just the shutter. */}
@@ -616,9 +611,10 @@ export default function WorldContent() {
         audioRef={audioRef}
       />
 
-      {/* controls legend — pointless on touch, hidden there */}
+      {/* Controls legend — pointless on touch, and too wide for a phone-sized
+          window, so it waits for a real keyboard on a real screen. */}
       <div
-        className="absolute left-4 top-4 hidden flex-col gap-2 pointer-fine:flex"
+        className="absolute left-4 top-4 hidden flex-col gap-2 md:pointer-fine:flex"
         hidden={photoMode}
       >
         <div className="flex items-center gap-2 rounded-2xl px-3 py-2" style={GLASS_STYLE}>
@@ -644,9 +640,15 @@ export default function WorldContent() {
 
       {/* Right rail: one column of equal-width panels. Opening the exhibit
           list takes the space the outfit and fidelity panels were using, so
-          the rail itself never needs a scrollbar. */}
+          the rail itself never needs a scrollbar. On a phone the whole rail
+          moves inside the sheet, where it just stacks and scrolls. */}
+      <WorldHudSheet
+        hidden={photoMode}
+        menu={!photoMode && <WorldNav />}
+        summary={`🪙 ${collected.length}/${COLLECTIBLES.length} · ${explorationPercent(visited)}%`}
+      >
       <div
-        className={`pointer-events-none absolute bottom-6 right-4 top-4 grid w-44 gap-2 ${
+        className={`pointer-events-none absolute bottom-6 right-4 top-4 grid w-44 gap-2 max-md:static max-md:flex max-md:w-full max-md:flex-col max-md:pointer-events-auto ${
           // Collapsed, the list hugs its summary bar; expanded, it takes the
           // leftover space. Either way the controls stay pinned to the bottom.
           listOpen ? "grid-rows-[auto_minmax(0,1fr)_auto]" : "grid-rows-[auto_auto_1fr]"
@@ -691,7 +693,7 @@ export default function WorldContent() {
           <summary className="shrink-0 cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
             All exhibits
           </summary>
-          <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2">
+          <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2 max-md:max-h-[40vh]">
             {[...EXHIBITS]
               .sort((a, b) => Number(!!b.featured) - Number(!!a.featured))
               .map((exhibit) => {
@@ -733,7 +735,7 @@ export default function WorldContent() {
           </ul>
         </details>
         {/* bottom group */}
-        <div className="flex flex-col justify-end gap-2 self-end">
+        <div className="flex flex-col justify-end gap-2 self-end max-md:self-stretch">
         {/* outfit picker */}
         <div className="pointer-events-auto rounded-2xl p-3" style={GLASS_STYLE}>
           <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
@@ -829,26 +831,39 @@ export default function WorldContent() {
         </div>
         </div>
       </div>
+      </WorldHudSheet>
 
-      {!photoMode && <WorldNav />}
-
-      {/* touch controls — lifted clear of the site menu in the corner */}
+      {/* Touch controls. On a phone they span the bottom — thumb on the stick,
+          buttons under the other hand — so the middle stays clear for the
+          placard. Wider touch screens keep the old huddle in the corner. */}
       <div
-        className="absolute bottom-20 left-5 hidden items-end gap-3 pointer-coarse:flex"
+        className="pointer-events-none absolute bottom-20 left-5 hidden items-end gap-3 pointer-coarse:flex max-md:bottom-6 max-md:right-5 max-md:justify-between"
         hidden={photoMode}
       >
         <Joystick joystickRef={joystickRef} />
-        <button
-          type="button"
-          aria-label="Jump"
-          className="flex h-14 w-14 touch-none items-center justify-center rounded-full text-[11px] font-bold uppercase tracking-wider text-white/80"
-          style={GLASS_STYLE}
-          onPointerDown={() => keysRef.current?.add("Space")}
-          onPointerUp={() => keysRef.current?.delete("Space")}
-          onPointerCancel={() => keysRef.current?.delete("Space")}
-        >
-          Jump
-        </button>
+        <div className="flex items-end gap-3">
+          {/* Touch has no E key, so the one thing E does gets a button. */}
+          <button
+            type="button"
+            aria-label="Interact"
+            className="pointer-events-auto flex h-14 w-14 touch-none items-center justify-center rounded-full text-[13px] font-bold uppercase tracking-wider text-white/80"
+            style={GLASS_STYLE}
+            onPointerDown={requestInteract}
+          >
+            E
+          </button>
+          <button
+            type="button"
+            aria-label="Jump"
+            className="pointer-events-auto flex h-14 w-14 touch-none items-center justify-center rounded-full text-[11px] font-bold uppercase tracking-wider text-white/80"
+            style={GLASS_STYLE}
+            onPointerDown={() => keysRef.current?.add("Space")}
+            onPointerUp={() => keysRef.current?.delete("Space")}
+            onPointerCancel={() => keysRef.current?.delete("Space")}
+          >
+            Jump
+          </button>
+        </div>
       </div>
 
       {/* observation deck: the city from the pod, one click from anywhere */}
@@ -860,7 +875,7 @@ export default function WorldContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={prefersReduced ? instantTransition : { ...spring.smooth }}
-            className="absolute bottom-6 left-1/2 w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl p-4"
+            className="absolute bottom-6 left-1/2 w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-2xl p-4 max-md:max-h-[55dvh] max-md:pointer-coarse:bottom-36 md:w-[min(520px,calc(100vw-25rem))]"
             style={GLASS_STYLE}
           >
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
@@ -908,7 +923,7 @@ export default function WorldContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={prefersReduced ? instantTransition : { ...spring.snappy }}
-            className="absolute bottom-32 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-2xl px-3 py-1.5 text-[12px] text-white/80"
+            className="absolute bottom-32 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-2xl px-3 py-1.5 text-[12px] text-white/80 max-md:pointer-coarse:bottom-24 max-md:pointer-coarse:left-auto max-md:pointer-coarse:right-5 max-md:pointer-coarse:translate-x-0"
             style={GLASS_STYLE}
           >
             <Key>{prompt.key}</Key> {prompt.label}
@@ -919,7 +934,7 @@ export default function WorldContent() {
       {/* riding the 501 */}
       {riding && (
         <p
-          className="absolute left-1/2 top-4 -translate-x-1/2 rounded-2xl px-4 py-2 text-[12px] text-white/85"
+          className="absolute left-1/2 top-4 -translate-x-1/2 rounded-2xl px-4 py-2 text-[12px] text-white/85 max-md:top-16"
           style={GLASS_STYLE}
           role="status"
         >
@@ -940,7 +955,7 @@ export default function WorldContent() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={prefersReduced ? instantTransition : { ...spring.smooth }}
-              className="absolute bottom-6 left-1/2 w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl p-4"
+              className="absolute bottom-6 left-1/2 w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-2xl p-4 max-md:max-h-[55dvh] max-md:pointer-coarse:bottom-36 md:w-[min(420px,calc(100vw-25rem))]"
               style={{
                 ...GLASS_STYLE,
                 borderColor: `color-mix(in srgb, ${feature.color} 40%, rgba(255,255,255,0.1))`,
@@ -1027,7 +1042,7 @@ export default function WorldContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={prefersReduced ? instantTransition : { ...spring.snappy }}
-            className="absolute left-1/2 top-16 -translate-x-1/2 rounded-2xl px-4 py-2 text-[12px] text-white/85"
+            className="absolute left-1/2 top-16 -translate-x-1/2 rounded-2xl px-4 py-2 text-[12px] text-white/85 max-md:top-28"
             style={GLASS_STYLE}
             role="status"
           >
@@ -1047,7 +1062,7 @@ export default function WorldContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={prefersReduced ? instantTransition : { ...spring.snappy }}
-            className="absolute left-1/2 top-4 -translate-x-1/2 rounded-2xl px-4 py-2 text-[12px] text-white/85"
+            className="absolute left-1/2 top-4 -translate-x-1/2 rounded-2xl px-4 py-2 text-[12px] text-white/85 max-md:top-16"
             style={GLASS_STYLE}
           >
             ⏩ Running to{" "}
@@ -1068,7 +1083,7 @@ export default function WorldContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 24 }}
             transition={prefersReduced ? instantTransition : { ...spring.smooth }}
-            className="absolute bottom-6 left-1/2 w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl p-4"
+            className="absolute bottom-6 left-1/2 w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-2xl p-4 max-md:max-h-[55dvh] max-md:pointer-coarse:bottom-36 md:w-[min(420px,calc(100vw-25rem))]"
             style={{
               ...GLASS_STYLE,
               borderColor: `color-mix(in srgb, ${activeFeature.color} 40%, rgba(255,255,255,0.1))`,

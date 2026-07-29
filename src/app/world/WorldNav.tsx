@@ -3,17 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { COMMAND_PALETTE_OPEN_EVENT } from "@/lib/command-palette/open-event";
+import { GLASS_STYLE } from "./glass";
 
 // The world runs without the site header or footer, so the usual way out —
 // home, write-ups, résumé, settings, search — lives in a small floating menu
-// instead.
-
-const GLASS = {
-  background: "rgba(7, 10, 18, 0.6)",
-  backdropFilter: "blur(16px)",
-  WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.1)",
-} as const;
+// instead. On a phone it sits in the top-right corner beside the HUD toggle.
 
 const LINKS = [
   { href: "/", label: "Home", icon: "🏠" },
@@ -44,11 +38,14 @@ export default function WorldNav() {
   }, [open]);
 
   return (
-    <div ref={rootRef} className="pointer-events-auto absolute bottom-6 left-5 z-20">
+    <div
+      ref={rootRef}
+      className="pointer-events-auto absolute bottom-6 left-5 z-20 max-md:relative max-md:bottom-auto max-md:left-auto"
+    >
       {open && (
         <div
-          className="absolute bottom-12 left-0 w-48 overflow-hidden rounded-2xl py-1"
-          style={GLASS}
+          className="absolute bottom-12 left-0 w-48 overflow-hidden rounded-2xl py-1 max-md:bottom-auto max-md:left-auto max-md:right-0 max-md:top-12"
+          style={GLASS_STYLE}
         >
           {LINKS.map((link) => (
             <Link
@@ -81,13 +78,15 @@ export default function WorldNav() {
         aria-expanded={open}
         aria-label="Site menu"
         onClick={() => setOpen((wasOpen) => !wasOpen)}
-        className="flex h-10 items-center gap-2 rounded-2xl px-3.5 text-[12px] font-semibold text-white/75 transition-colors hover:text-white"
-        style={GLASS}
+        className="flex h-10 items-center gap-2 rounded-2xl px-3.5 text-[12px] font-semibold text-white/75 transition-colors hover:text-white max-md:px-3"
+        style={GLASS_STYLE}
       >
         <span aria-hidden className="text-[14px] leading-none">
           {open ? "✕" : "☰"}
         </span>
-        paul-explore
+        {/* On a phone the corner is shared with the HUD toggle, so the icon
+            carries it — the button is still labelled "Site menu". */}
+        <span className="max-md:hidden">paul-explore</span>
       </button>
     </div>
   );

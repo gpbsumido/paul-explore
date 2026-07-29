@@ -263,6 +263,37 @@ export default function WorldThoughtsContent() {
         </p>
       </Section>
 
+      <Section title="Three bands on a phone">
+        <p>
+          The desktop HUD is a rail down the right edge and a placard along the
+          bottom, which on a 390px screen turned into one pile: the rail took
+          nearly half the width, the placard ran the rest of it, and the site
+          menu sat on top of both. Widths that never touch on a laptop all
+          land in the same place on a phone.
+        </p>
+        <p className="mt-3">
+          So the phone gets a budget instead of a layout. The top 64px is the
+          site menu and one toggle — which doubles as the token counter, so the
+          number you glance at is also the button you press. The bottom 144px is
+          the joystick on one thumb and <C>E</C> and Jump on the other. Everything
+          between the two belongs to the cards. Tapping the toggle slides the
+          whole rail in over the city and dims it; tapping the city puts it back.
+        </p>
+        <p className="mt-3">
+          It&rsquo;s all <C>max-md:</C> overrides rather than a mobile-first
+          rewrite: the variant can&rsquo;t match above 768px, so the desktop HUD
+          is provably the same file it was. A viewport hook would have been
+          easier to unit test and wrong on the first paint — this route renders
+          on the server, which has no viewport to read. The geometry is checked
+          in a real browser at 390×844 instead, because jsdom has no layout
+          engine and would have happily agreed that the placard was fine.
+        </p>
+        <p className="mt-3">
+          The bug hiding underneath all that: touch had no way to press E at
+          all. You could walk to the streetcar and never board it.
+        </p>
+      </Section>
+
       <Section title="A 3D page that screen readers can use">
         <p>
           The canvas is decoration by ARIA standards, so everything it can do
