@@ -15,7 +15,16 @@ import { routeWaypoints } from "@/lib/world/routing";
 import { recordSample, type GhostPath, type GhostPoint } from "@/lib/world/ghost";
 import { pushTrailPoint, type TrailPoint } from "@/lib/world/trail";
 import { findCollectible, markVisited } from "@/lib/world/collectibles";
-import { streetcarAt, nearestStop, carIsAtStop, RIDE_OFFSET } from "@/lib/world/transit";
+import {
+  streetcarAt,
+  nearestStop,
+  carIsAtStop,
+  landsOnRoof,
+  isOverCarRoof,
+  ROOF_HEIGHT,
+  RIDE_OFFSET,
+} from "@/lib/world/transit";
+import { reachHeight } from "@/lib/world/unlocks";
 import { LANDMARKS } from "@/lib/world/cityLayout";
 import type { Season } from "@/lib/world/seasons";
 import { SEASON_DRESSING } from "@/lib/world/seasons";
@@ -41,8 +50,9 @@ const CAMERA_OFFSET = { x: 0, y: 10.5, z: 12.5 };
 const CAMERA_LAG = 4.5;
 const LOOK_AHEAD = 0.35;
 
-// Exhibit speedrun: run at this multiple of top run speed, veer when stuck.
-const AUTO_SPEED_SCALE = 2.2;
+// Guided walk to an exhibit: the explorer runs there at a speed a player
+// could manage themselves, veering when it gets wedged on a corner.
+const AUTO_SPEED_SCALE = 1;
 const STUCK_SPEED = 1.5;
 const STUCK_AFTER = 0.35;
 
@@ -87,7 +97,11 @@ export type WorldSceneProps = {
   readonly interactRef: RefObject<boolean>;
   readonly onVisitExhibit: (featureId: string) => void;
   // What E would do right now, for the HUD prompt.
-  readonly onInteractionChange: (kind: InteractionKind, label: string | null) => void;
+  readonly onInteractionChange: (
+    kind: InteractionKind,
+    label: string | null,
+    key?: string,
+  ) => void;
   readonly onRideChange: (riding: boolean) => void;
   readonly onLookoutChange: (active: boolean) => void;
   // Set by the lookout panel to warp the explorer to an exhibit.
@@ -160,6 +174,13 @@ export default function WorldScene({
   const trailRef = useRef<readonly TrailPoint[]>([]);
   const camFractionRef = useRef(1);
   const ridingRef = useRef(false);
+  // Riding on the roof is a separate, sillier thing from riding the board:
+  // you get there by jumping, and you keep your footing wherever you landed.
+  const roofRef = useRef<{ riding: boolean; offsetX: number; offsetZ: number }>({
+    riding: false,
+    offsetX: 0,
+    offsetZ: 0,
+  });
   const lookoutRef = useRef(false);
   const interactionRef = useRef<InteractionKind>(null);
   const photoOrbitRef = useRef({ yaw: 0, pitch: 0.5, distance: 12 });
@@ -217,6 +238,7 @@ export default function WorldScene({
         vy: 0,
       };
       ridingRef.current = false;
+      roofRef.current = { riding: false, offsetX: 0, offsetZ: 0 };
       lookoutRef.current = false;
       onRideChange(false);
       onLookoutChange(false);
@@ -258,6 +280,59 @@ export default function WorldScene({
         } else if (activeIdRef.current) {
           onVisitExhibit(activeIdRef.current);
         }
+      }
+    }
+
+    // Roof riding: keep your footing where you landed, jump to get off.
+    if (roofRef.current.riding) {
+      const roof = roofRef.current;
+      const stillAboard = isOverCarRoof(
+        { x: car.x + roof.offsetX, z: car.z + roof.offsetZ },
+        car,
+      );
+      const jumpedOff = keys.jump;
+      if (!stillAboard || jumpedOff) {
+        roof.riding = false;
+        onRideChange(false);
+        stateRef.current = {
+          position: { x: car.x + roof.offsetX, z: car.z + roof.offsetZ },
+          velocity: { x: jumpedOff ? car.direction * 6 : 0, z: 0 },
+          heading: stateRef.current.heading,
+          y: ROOF_HEIGHT,
+          vy: jumpedOff ? 9 : 0,
+        };
+      } else {
+        const onRoof: PlayerState = {
+          position: { x: car.x + roof.offsetX, z: car.z + roof.offsetZ },
+          velocity: { x: car.dwelling ? 0 : car.direction * 9, z: 0 },
+          heading: stateRef.current.heading,
+          y: ROOF_HEIGHT,
+          vy: 0,
+        };
+        stateRef.current = onRoof;
+        const outerRoof = outerRef.current;
+        if (outerRoof) {
+          outerRoof.position.set(onRoof.position.x, ROOF_HEIGHT, onRoof.position.z);
+          outerRoof.rotation.y = onRoof.heading;
+        }
+        motionRef.current.stride = 0;
+        motionRef.current.air = 0;
+        if (playerRef.current) {
+          playerRef.current.x = onRoof.position.x;
+          playerRef.current.z = onRoof.position.z;
+          playerRef.current.heading = onRoof.heading;
+        }
+        const anchorRoof = { x: onRoof.position.x, y: ROOF_HEIGHT + 1.4, z: onRoof.position.z };
+        const blendRoof = 1 - Math.exp(-CAMERA_LAG * dt);
+        camera.position.x += (anchorRoof.x + CAMERA_OFFSET.x - camera.position.x) * blendRoof;
+        camera.position.y += (CAMERA_OFFSET.y + 2 - camera.position.y) * blendRoof;
+        camera.position.z += (anchorRoof.z + CAMERA_OFFSET.z - camera.position.z) * blendRoof;
+        camera.lookAt(anchorRoof.x, anchorRoof.y, anchorRoof.z);
+        if (interactionRef.current !== "alight") {
+          interactionRef.current = "alight";
+          onInteractionChange("alight", "to get off the roof", "Space");
+        }
+        return;
       }
     }
 
@@ -378,6 +453,16 @@ export default function WorldScene({
     });
     stateRef.current = next;
 
+    // Come down on top of a passing streetcar and you've earned the ride.
+    if (!ridingRef.current && landsOnRoof(next.position, next.y, next.vy, car)) {
+      roofRef.current = {
+        riding: true,
+        offsetX: next.position.x - car.x,
+        offsetZ: next.position.z - car.z,
+      };
+      onRideChange(true);
+    }
+
     const speed = Math.hypot(next.velocity.x, next.velocity.z);
     const outer = outerRef.current;
     if (outer) {
@@ -418,7 +503,12 @@ export default function WorldScene({
       });
     }
 
-    const found = findCollectible(next.position, next.y, collectedRef.current ?? []);
+    const found = findCollectible(
+      next.position,
+      next.y,
+      collectedRef.current ?? [],
+      reachHeight(outfit.id),
+    );
     if (found) onCollect(found.id);
     if (visitedRef.current) {
       const explored = markVisited(visitedRef.current, next.position);
