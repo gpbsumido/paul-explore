@@ -14,7 +14,9 @@ import { routeWaypoints } from "@/lib/world/routing";
 import { resolveColliders } from "@/lib/world/colliders";
 import { recordSample, type GhostPath, type GhostPoint } from "@/lib/world/ghost";
 import { pushTrailPoint, type TrailPoint } from "@/lib/world/trail";
+import { findCollectible, markVisited } from "@/lib/world/collectibles";
 import GhostPlayer from "./GhostPlayer";
+import Collectibles from "./Collectibles";
 import Trail from "./Trail";
 import RemoteExplorers from "./RemoteExplorers";
 import type { PeerMeta, PeerState } from "./presence/useWorldPresence";
@@ -55,6 +57,13 @@ export type WorldSceneProps = {
   // Live visitors, if any — when someone real is here, the ghost stays home.
   readonly peers: readonly PeerMeta[];
   readonly peersRef: RefObject<Map<string, PeerState>>;
+  // The collectathon: what's been found, who to tell about a new find, and
+  // the exploration fog bookkeeping.
+  readonly collected: readonly string[];
+  readonly collectedRef: RefObject<readonly string[]>;
+  readonly onCollect: (id: string) => void;
+  readonly visitedRef: RefObject<readonly string[]>;
+  readonly onExplore: (visited: readonly string[]) => void;
 };
 
 const rotate = (input: MoveInput, angle: number): MoveInput => ({
@@ -83,6 +92,11 @@ export default function WorldScene({
   ghostPath,
   peers,
   peersRef,
+  collected,
+  collectedRef,
+  onCollect,
+  visitedRef,
+  onExplore,
 }: WorldSceneProps) {
   const outerRef = useRef<Group>(null);
   const bobRef = useRef<Group>(null);
@@ -214,6 +228,16 @@ export default function WorldScene({
       });
     }
 
+    const found = findCollectible(next.position, next.y, collectedRef.current ?? []);
+    if (found) onCollect(found.id);
+    if (visitedRef.current) {
+      const explored = markVisited(visitedRef.current, next.position);
+      if (explored !== visitedRef.current) {
+        visitedRef.current = explored;
+        onExplore(explored);
+      }
+    }
+
     const targetX = next.position.x + next.velocity.x * LOOK_AHEAD;
     const targetZ = next.position.z + next.velocity.z * LOOK_AHEAD;
     const blend = 1 - Math.exp(-CAMERA_LAG * dt);
@@ -255,6 +279,7 @@ export default function WorldScene({
       <Exhibits playerRef={playerRef} prefersReduced={prefersReduced} activeIdRef={activeIdRef} />
       {ghostPath && !prefersReduced && peers.length === 0 && <GhostPlayer path={ghostPath} />}
       {!prefersReduced && <Trail pointsRef={trailRef} color={outfit.accent} />}
+      <Collectibles collected={collected} playerRef={playerRef} prefersReduced={prefersReduced} />
       <RemoteExplorers peers={peers} peersRef={peersRef} />
       <Player
         outerRef={outerRef}
