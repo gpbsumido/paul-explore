@@ -68,8 +68,11 @@ export function createWorldAudio(): WorldAudio | null {
   if (!Ctor) return null;
 
   const context = new Ctor();
+  // Contexts are born suspended; without this nothing is ever audible even
+  // though the whole graph is running.
+  void context.resume();
   const master = context.createGain();
-  master.gain.value = 0.5;
+  master.gain.value = 0.7;
   master.connect(context.destination);
 
   const noise = makeNoiseBuffer(context);
@@ -136,16 +139,16 @@ export function createWorldAudio(): WorldAudio | null {
 
   return {
     setMix(mix) {
-      rampTo(city.gain.gain, mix.city * 0.25);
-      rampTo(waves.gain.gain, mix.waves * 0.3);
-      rampTo(rain.gain.gain, mix.rain * 0.16);
-      rampTo(carGain.gain, mix.streetcar * 0.09);
+      rampTo(city.gain.gain, mix.city * 0.55);
+      rampTo(waves.gain.gain, mix.waves * 0.6);
+      rampTo(rain.gain.gain, mix.rain * 0.32);
+      rampTo(carGain.gain, mix.streetcar * 0.22);
     },
     footstep() {
-      burst(700 + Math.random() * 260, 0.09, 0.07);
+      burst(700 + Math.random() * 260, 0.09, 0.15);
     },
     jump() {
-      burst(1500, 0.16, 0.05);
+      burst(1500, 0.16, 0.11);
     },
     chime() {
       const osc = context.createOscillator();
@@ -153,14 +156,17 @@ export function createWorldAudio(): WorldAudio | null {
       osc.frequency.setValueAtTime(880, context.currentTime);
       osc.frequency.exponentialRampToValueAtTime(1320, context.currentTime + 0.12);
       const gain = context.createGain();
-      gain.gain.setValueAtTime(0.12, context.currentTime);
+      gain.gain.setValueAtTime(0.2, context.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.45);
       osc.connect(gain).connect(master);
       osc.start();
       osc.stop(context.currentTime + 0.5);
     },
     setMuted(muted) {
-      rampTo(master.gain, muted ? 0 : 0.5);
+      // Unmuting can happen long after the page loaded, by which point the
+      // browser may have suspended us again.
+      if (!muted) void context.resume();
+      rampTo(master.gain, muted ? 0 : 0.7);
     },
     dispose() {
       [city.source, waves.source, rain.source].forEach((source) => source.stop());
