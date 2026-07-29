@@ -14,10 +14,42 @@ import { currentTimeOfDay, type TimeOfDay } from "@/lib/world/daylight";
 import { spring, instantTransition } from "@/lib/animations";
 import { useWorldKeys } from "./useWorldKeys";
 import { OUTFITS, outfitById } from "./outfits";
+import {
+  tourPath,
+  MIN_REPLAY_POINTS,
+  type GhostPath,
+  type GhostPoint,
+} from "@/lib/world/ghost";
 import type { JoystickState, PlayerSnapshot } from "./refs";
 
 const FIDELITY_KEY = "world-fidelity";
 const OUTFIT_KEY = "world-outfit";
+const GHOST_KEY = "world-ghost-path";
+const GHOST_VISIBLE_KEY = "world-ghost-visible";
+const GHOST_SAVE_INTERVAL_MS = 15_000;
+
+const loadStoredGhost = (): GhostPath | null => {
+  try {
+    const raw = window.localStorage.getItem(GHOST_KEY);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const candidate = parsed as { outfitId?: unknown; points?: unknown };
+    if (typeof candidate.outfitId !== "string" || !Array.isArray(candidate.points)) return null;
+    if (candidate.points.length < MIN_REPLAY_POINTS) return null;
+    const valid = candidate.points.every(
+      (p: unknown) =>
+        typeof p === "object" &&
+        p !== null &&
+        typeof (p as GhostPoint).x === "number" &&
+        typeof (p as GhostPoint).z === "number" &&
+        typeof (p as GhostPoint).t === "number",
+    );
+    return valid ? { outfitId: candidate.outfitId, points: candidate.points as GhostPoint[] } : null;
+  } catch {
+    return null;
+  }
+};
 // If a speedrun somehow never arrives, just open the feature.
 const AUTO_RUN_TIMEOUT_MS = 12_000;
 
@@ -215,6 +247,41 @@ export default function WorldContent() {
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>("night");
   const [fidelity, setFidelity] = useState(0.6);
   const [outfitId, setOutfitId] = useState(OUTFITS[0].id);
+  const [ghostPath, setGhostPath] = useState<GhostPath | null>(null);
+  const [ghostVisible, setGhostVisible] = useState(true);
+  const recordingRef = useRef<readonly GhostPoint[]>([]);
+  const outfitIdRef = useRef(outfitId);
+  useEffect(() => {
+    outfitIdRef.current = outfitId;
+  }, [outfitId]);
+
+  // Persist this visit's stroll so the NEXT visit gets haunted by it. Saved on
+  // an interval, when the tab hides, and on unmount; too-short walks are
+  // ignored and the timestamps are rebased to zero.
+  useEffect(() => {
+    const save = () => {
+      const points = recordingRef.current;
+      if (points.length < MIN_REPLAY_POINTS) return;
+      const start = points[0].t;
+      const rebased = points.map((p) => ({ x: p.x, z: p.z, t: p.t - start }));
+      try {
+        window.localStorage.setItem(
+          GHOST_KEY,
+          JSON.stringify({ outfitId: outfitIdRef.current, points: rebased }),
+        );
+      } catch {
+        // Storage full or blocked — the ghost just doesn't get updated.
+      }
+    };
+    const interval = setInterval(save, GHOST_SAVE_INTERVAL_MS);
+    window.addEventListener("pagehide", save);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("pagehide", save);
+      save();
+    };
+  }, []);
+
   useEffect(() => {
     const forced = new URLSearchParams(window.location.search).get("t");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from browser-only sources (clock, URL, localStorage) after hydration; initializing state from them directly desyncs the server-rendered HUD
@@ -225,6 +292,9 @@ export default function WorldContent() {
     const parsed = raw === null ? Number.NaN : Number(raw);
     if (Number.isFinite(parsed)) setFidelity(Math.min(Math.max(parsed, 0), 1));
     setOutfitId(outfitById(window.localStorage.getItem(OUTFIT_KEY)).id);
+    // A previous stroll haunts the city; first-timers get the guided tour.
+    setGhostPath(loadStoredGhost() ?? tourPath());
+    setGhostVisible(window.localStorage.getItem(GHOST_VISIBLE_KEY) !== "off");
   }, []);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [runningTo, setRunningTo] = useState<string | null>(null);
@@ -307,6 +377,8 @@ export default function WorldContent() {
         outfit={outfitById(outfitId)}
         autoTargetRef={autoTargetRef}
         onAutoRunEnd={handleAutoRunEnd}
+        recordingRef={recordingRef}
+        ghostPath={ghostVisible ? ghostPath : null}
       />
 
       {/* controls legend — pointless on touch, hidden there */}
@@ -449,6 +521,21 @@ export default function WorldContent() {
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          aria-pressed={ghostVisible}
+          onClick={() => {
+            const next = !ghostVisible;
+            setGhostVisible(next);
+            window.localStorage.setItem(GHOST_VISIBLE_KEY, next ? "on" : "off");
+          }}
+          className="mt-2 flex w-full items-center justify-between rounded-lg border-t border-white/10 px-2 pb-0.5 pt-2 text-[11px] text-white/60 hover:text-white/85"
+        >
+          <span>👻 Ghost stroll</span>
+          <span className={ghostVisible ? "text-white/85" : "text-white/35"}>
+            {ghostVisible ? "on" : "off"}
+          </span>
+        </button>
       </div>
 
       {/* fidelity slider */}

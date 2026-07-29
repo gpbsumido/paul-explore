@@ -12,6 +12,8 @@ import { EXHIBITS } from "@/lib/world/exhibits";
 import { nearestExhibit, INTERACT_RADIUS } from "@/lib/world/proximity";
 import { routeWaypoints } from "@/lib/world/routing";
 import { resolveColliders } from "@/lib/world/colliders";
+import { recordSample, type GhostPath, type GhostPoint } from "@/lib/world/ghost";
+import GhostPlayer from "./GhostPlayer";
 import type { JoystickState, PlayerSnapshot } from "./refs";
 import type { SkyPreset } from "./skyPresets";
 import type { Outfit } from "./outfits";
@@ -42,6 +44,10 @@ export type WorldSceneProps = {
   // Feature id to auto-run to; the scene clears it and reports the outcome.
   readonly autoTargetRef: RefObject<string | null>;
   readonly onAutoRunEnd: (featureId: string, arrived: boolean) => void;
+  // This visit's stroll, sampled by the loop; the page persists it.
+  readonly recordingRef: RefObject<readonly GhostPoint[]>;
+  // A previous stroll (or the generated tour) to haunt the city with.
+  readonly ghostPath: GhostPath | null;
 };
 
 const rotate = (input: MoveInput, angle: number): MoveInput => ({
@@ -66,6 +72,8 @@ export default function WorldScene({
   outfit,
   autoTargetRef,
   onAutoRunEnd,
+  recordingRef,
+  ghostPath,
 }: WorldSceneProps) {
   const outerRef = useRef<Group>(null);
   const bobRef = useRef<Group>(null);
@@ -82,7 +90,7 @@ export default function WorldScene({
   const stuckForRef = useRef(0);
   const routeRef = useRef<{ forId: string; waypoints: readonly Vec2[]; leg: number } | null>(null);
 
-  useFrame(({ camera }, dt) => {
+  useFrame(({ camera, clock }, dt) => {
     const state = stateRef.current;
     const keys = directionFromKeys(keysRef.current ?? new Set());
     const joystick = joystickRef.current ?? { x: 0, z: 0 };
@@ -180,6 +188,13 @@ export default function WorldScene({
       playerRef.current.z = next.position.z;
       playerRef.current.heading = next.heading;
     }
+    if (recordingRef.current) {
+      recordingRef.current = recordSample(recordingRef.current, {
+        x: next.position.x,
+        z: next.position.z,
+        t: clock.elapsedTime,
+      });
+    }
 
     const targetX = next.position.x + next.velocity.x * LOOK_AHEAD;
     const targetZ = next.position.z + next.velocity.z * LOOK_AHEAD;
@@ -220,6 +235,7 @@ export default function WorldScene({
       <CityScene prefersReduced={prefersReduced} preset={preset} />
       <Landmarks prefersReduced={prefersReduced} preset={preset} />
       <Exhibits playerRef={playerRef} prefersReduced={prefersReduced} activeIdRef={activeIdRef} />
+      {ghostPath && !prefersReduced && <GhostPlayer path={ghostPath} />}
       <Player
         outerRef={outerRef}
         bobRef={bobRef}

@@ -137,6 +137,15 @@ export default function WorldThoughtsContent() {
           through the actual street grid, planned by a tiny road-graph router,
           before opening the feature.
         </p>
+        <p className="mt-3">
+          And the city is haunted, gently. A translucent ghost replays your own
+          previous stroll — sampled locally, capped, and stored only in your
+          browser — or, on a first visit, a generated tour that walks six
+          exhibits along real streets. It&rsquo;s the multiplayer-shaped
+          feature with zero infrastructure: the recording throttle, snapshot
+          shape, and replay interpolation are exactly the pieces a live
+          presence layer would reuse.
+        </p>
       </Section>
 
       <Section title="A 3D page that screen readers can use">
