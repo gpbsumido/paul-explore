@@ -14,6 +14,14 @@ import type { FeatureItem, ThoughtItem } from "@/types/hub";
 // graph's feature cluster, and the signed-in hub grid.
 export const FEATURES: FeatureItem[] = [
   {
+    id: "work-portfolio",
+    title: "Work Portfolio",
+    description:
+      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
+    href: "/work-portfolio",
+    color: "#60a5fa",
+  },
+  {
     id: "world",
     title: "Explore Toronto",
     description:
@@ -21,14 +29,6 @@ export const FEATURES: FeatureItem[] = [
     href: "/world",
     color: "#38bdf8",
     thoughtsHref: "/thoughts/world",
-  },
-  {
-    id: "work-portfolio",
-    title: "Work Portfolio",
-    description:
-      "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
-    href: "/work-portfolio",
-    color: "#60a5fa",
   },
   {
     id: "design-system",
