@@ -160,6 +160,26 @@ export default function WorldThoughtsContent() {
         </p>
       </Section>
 
+      <Section title="Reasons to keep walking">
+        <p>
+          Twenty-five TTC tokens are hidden around the city and three of them
+          float above the street, so the jump exists for a reason. The minimap
+          starts fogged and clears block by block as you walk it, counting only
+          cells you can actually stand in — a test derives that set from the
+          collision data, so &ldquo;100% explored&rdquo; is a promise the world
+          can keep rather than a number that taunts you.
+        </p>
+        <p className="mt-3">
+          Two fixes ride along. The chase camera used to get shoved out of
+          building footprints and occasionally lose the explorer behind a
+          tower; now it samples its own sightline and shortens the boom until
+          you&rsquo;re visible, snapping in fast and easing back out. And the
+          fidelity slider no longer starts at a blind guess — a first visit
+          reads core count, memory, and pointer type, so phones open low-poly
+          and workstations open near the top.
+        </p>
+      </Section>
+
       <Section title="A 3D page that screen readers can use">
         <p>
           The canvas is decoration by ARIA standards, so everything it can do
