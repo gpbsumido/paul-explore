@@ -13,6 +13,7 @@ import { WORLD_BOUNDS } from "@/lib/world/movement";
 import { currentTimeOfDay, type TimeOfDay } from "@/lib/world/daylight";
 import { spring, instantTransition } from "@/lib/animations";
 import { useWorldKeys } from "./useWorldKeys";
+import WorldNav from "./WorldNav";
 import { OUTFITS, outfitById } from "./outfits";
 import { useWorldPresence } from "./presence/useWorldPresence";
 import { useWorldAudio } from "./audio/useWorldAudio";
@@ -645,9 +646,15 @@ export default function WorldContent() {
           list takes the space the outfit and fidelity panels were using, so
           the rail itself never needs a scrollbar. */}
       <div
-        className="pointer-events-none absolute bottom-6 right-4 top-4 flex w-44 flex-col items-stretch gap-2"
+        className={`pointer-events-none absolute bottom-6 right-4 top-4 grid w-44 gap-2 ${
+          // Collapsed, the list hugs its summary bar; expanded, it takes the
+          // leftover space. Either way the controls stay pinned to the bottom.
+          listOpen ? "grid-rows-[auto_minmax(0,1fr)_auto]" : "grid-rows-[auto_auto_1fr]"
+        }`}
         hidden={photoMode}
       >
+        {/* top group */}
+        <div className="flex flex-col gap-2">
         <div className="pointer-events-auto shrink-0">
           <Minimap playerRef={playerRef} visited={visited} />
         </div>
@@ -673,15 +680,18 @@ export default function WorldContent() {
             🧑‍🤝‍🧑 {peers.length} other explorer{peers.length === 1 ? "" : "s"} here
           </p>
         )}
+        </div>
+
+        {/* the list gets exactly the room the other two groups leave */}
         <details
-          className="pointer-events-auto shrink-0 overflow-hidden rounded-2xl"
+          className="pointer-events-auto flex min-h-0 flex-col overflow-hidden rounded-2xl"
           style={GLASS_STYLE}
           onToggle={(e) => setListOpen(e.currentTarget.open)}
         >
-          <summary className="cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
+          <summary className="shrink-0 cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
             All exhibits
           </summary>
-          <ul className="max-h-[min(18rem,38dvh)] overflow-y-auto overscroll-contain px-2 pb-2">
+          <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2">
             {[...EXHIBITS]
               .sort((a, b) => Number(!!b.featured) - Number(!!a.featured))
               .map((exhibit) => {
@@ -722,67 +732,65 @@ export default function WorldContent() {
               })}
           </ul>
         </details>
-        {/* outfit picker — yields to the exhibit list when it's open */}
-        <div
-          className="pointer-events-auto mt-auto shrink-0 rounded-2xl p-3"
-          style={GLASS_STYLE}
-          hidden={listOpen}
-        >
-        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
-          Outfit
-        </p>
-        <div className="grid grid-cols-2 gap-1.5">
-          {OUTFITS.map((option) => {
-            const locked = !!option.locked && !wembyUnlocked;
-            return (
-              <button
-                key={option.id}
-                type="button"
-                disabled={locked}
-                title={
-                  locked
-                    ? "Locked — find every token you can reach on foot"
-                    : option.label
-                }
-                onClick={() => {
-                  if (locked) return;
-                  setOutfitId(option.id);
-                  window.localStorage.setItem(OUTFIT_KEY, option.id);
-                }}
-                aria-pressed={outfitId === option.id}
-                className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
-                  locked
-                    ? "cursor-not-allowed text-white/30"
-                    : outfitId === option.id
-                      ? "bg-white/15 text-white"
-                      : "text-white/60 hover:bg-white/5 hover:text-white/85"
-                }`}
-              >
-                <span
-                  aria-hidden
-                  className="h-2.5 w-2.5 shrink-0 rounded-full border border-white/25"
-                  style={{ backgroundColor: locked ? "transparent" : option.accent }}
-                />
-                {locked ? "🔒 ???" : option.label}
-              </button>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          aria-pressed={ghostVisible}
-          onClick={() => {
-            const next = !ghostVisible;
-            setGhostVisible(next);
-            window.localStorage.setItem(GHOST_VISIBLE_KEY, next ? "on" : "off");
-          }}
-          className="mt-2 flex w-full items-center justify-between rounded-lg border-t border-white/10 px-2 pb-0.5 pt-2 text-[11px] text-white/60 hover:text-white/85"
-        >
-          <span>👻 Ghost stroll</span>
-          <span className={ghostVisible ? "text-white/85" : "text-white/35"}>
-            {ghostVisible ? "on" : "off"}
-          </span>
-        </button>
+        {/* bottom group */}
+        <div className="flex flex-col justify-end gap-2 self-end">
+        {/* outfit picker */}
+        <div className="pointer-events-auto rounded-2xl p-3" style={GLASS_STYLE}>
+          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
+            Outfit
+          </p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {OUTFITS.map((option) => {
+              const locked = !!option.locked && !wembyUnlocked;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  disabled={locked}
+                  title={
+                    locked
+                      ? "Locked — find every token you can reach on foot"
+                      : option.label
+                  }
+                  onClick={() => {
+                    if (locked) return;
+                    setOutfitId(option.id);
+                    window.localStorage.setItem(OUTFIT_KEY, option.id);
+                  }}
+                  aria-pressed={outfitId === option.id}
+                  className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
+                    locked
+                      ? "cursor-not-allowed text-white/30"
+                      : outfitId === option.id
+                        ? "bg-white/15 text-white"
+                        : "text-white/60 hover:bg-white/5 hover:text-white/85"
+                  }`}
+                >
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-2.5 shrink-0 rounded-full border border-white/25"
+                    style={{ backgroundColor: locked ? "transparent" : option.accent }}
+                  />
+                  {locked ? "🔒 ???" : option.label}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            aria-pressed={ghostVisible}
+            onClick={() => {
+              const next = !ghostVisible;
+              setGhostVisible(next);
+              window.localStorage.setItem(GHOST_VISIBLE_KEY, next ? "on" : "off");
+            }}
+            className="mt-2 flex w-full items-center justify-between rounded-lg border-t border-white/10 px-2 pb-0.5 pt-2 text-[11px] text-white/60 hover:text-white/85"
+          >
+            <span>👻 Ghost stroll</span>
+            <span className={ghostVisible ? "text-white/85" : "text-white/35"}>
+              {ghostVisible ? "on" : "off"}
+            </span>
+          </button>
         <button
           type="button"
           aria-pressed={!muted}
@@ -794,43 +802,39 @@ export default function WorldContent() {
             {muted ? "off" : "on"}
           </span>
         </button>
-      </div>
-        {/* fidelity slider — also yields to the exhibit list */}
-        <div
-          className="pointer-events-auto shrink-0 rounded-2xl p-3"
-          style={GLASS_STYLE}
-          hidden={listOpen}
-        >
-          <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
-            Fidelity
-          </span>
-          <span className="text-[10px] text-white/45">{fidelityLabel(fidelity)}</span>
         </div>
-        <input
-          type="range"
-          aria-label="World fidelity, low poly to very high poly"
-          min={0}
-          max={1}
-          step={0.05}
-          value={fidelity}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            setFidelity(value);
-            window.localStorage.setItem(FIDELITY_KEY, String(value));
-          }}
-          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
-        />
-        <div className="mt-1 flex justify-between text-[9px] text-white/35">
-          <span>Low poly</span>
-          <span>Very high</span>
+        {/* Fidelity: one line plus the slider — the value label on the right
+            already says which end you're at. */}
+        <div className="pointer-events-auto shrink-0 rounded-2xl px-3 py-2" style={GLASS_STYLE}>
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
+              Fidelity
+            </span>
+            <span className="text-[10px] text-white/45">{fidelityLabel(fidelity)}</span>
+          </div>
+          <input
+            type="range"
+            aria-label="World fidelity, low poly to very high poly"
+            min={0}
+            max={1}
+            step={0.05}
+            value={fidelity}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              setFidelity(value);
+              window.localStorage.setItem(FIDELITY_KEY, String(value));
+            }}
+            className="h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
+          />
         </div>
         </div>
       </div>
 
-      {/* touch controls */}
+      {!photoMode && <WorldNav />}
+
+      {/* touch controls — lifted clear of the site menu in the corner */}
       <div
-        className="absolute bottom-6 left-5 hidden items-end gap-3 pointer-coarse:flex"
+        className="absolute bottom-20 left-5 hidden items-end gap-3 pointer-coarse:flex"
         hidden={photoMode}
       >
         <Joystick joystickRef={joystickRef} />
