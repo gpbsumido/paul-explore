@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { m } from "framer-motion";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
 import {
@@ -31,8 +30,6 @@ import {
   Ticker,
   VisuallyHidden,
 } from "@paul-portfolio/react";
-import { fadeUp, spring, instantTransition } from "@/lib/animations";
-import { useHubReducedMotion } from "@/app/providers";
 import {
   COMPONENTS,
   COLOR_SCALES,
@@ -85,7 +82,11 @@ function StarIcon() {
   );
 }
 
-/** Section wrapper that fades up on mount and honours reduced motion. */
+/**
+ * Section wrapper that fades up on mount. Uses the CSS reveal so the content
+ * paints straight away instead of sitting at opacity:0 until hydration, and the
+ * reduced-motion case is handled by the @media rule on .reveal-up in globals.
+ */
 function Reveal({
   children,
   id,
@@ -95,18 +96,10 @@ function Reveal({
   id?: string;
   className?: string;
 }) {
-  const reduced = useHubReducedMotion();
   return (
-    <m.section
-      id={id}
-      variants={fadeUp}
-      initial="hidden"
-      animate="visible"
-      transition={reduced ? instantTransition : spring.smooth}
-      className={className}
-    >
+    <section id={id} className={["reveal-up", className].filter(Boolean).join(" ")}>
       {children}
-    </m.section>
+    </section>
   );
 }
 

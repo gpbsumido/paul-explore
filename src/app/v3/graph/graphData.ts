@@ -1,4 +1,4 @@
-import { FEATURES, THOUGHTS } from "@/app/_shared/featureData";
+import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 
 /** What a node represents, which drives its size and styling. */

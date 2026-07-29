@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { m } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import type {
   Environment,
@@ -10,7 +9,6 @@ import type {
   Flag,
   RolloutWeight,
 } from "@/types/flags";
-import { fadeInUp, spring } from "@/lib/animations";
 import { queryKeys } from "@/lib/queryKeys";
 import { msUntilNextReset, formatResetCountdown } from "@/lib/flags-reset";
 import { evaluateAllFlags } from "@/lib/flags-engine";
@@ -98,13 +96,7 @@ export default function FlagsConsole() {
   }
 
   return (
-    <m.main
-      className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6"
-      variants={fadeInUp}
-      initial="hidden"
-      animate="visible"
-      transition={spring.smooth}
-    >
+    <main className="reveal-up mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Feature flags</h1>
         <p className="mt-1 text-sm text-muted">
@@ -181,7 +173,7 @@ export default function FlagsConsole() {
       )}
 
       <AuditLog audit={audit} />
-    </m.main>
+    </main>
   );
 }
 
