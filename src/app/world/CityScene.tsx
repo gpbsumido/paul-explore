@@ -4,6 +4,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { ROADS, BUILDINGS, LAKE_EDGE_Z, STREETCAR_ROUTE } from "@/lib/world/cityLayout";
+import { streetcarAt, STREETCAR_STOPS } from "@/lib/world/transit";
+import { SEASON_DRESSING, type Season } from "@/lib/world/seasons";
 import { WORLD_BOUNDS } from "@/lib/world/movement";
 import type { SkyPreset } from "./skyPresets";
 import { makeWindowTexture, makeDashTexture, makeTextTexture } from "./textures";
@@ -168,22 +170,20 @@ function Roads({ preset }: { readonly preset: SkyPreset }) {
 
 function Streetcar({ prefersReduced }: { readonly prefersReduced: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
-  const travelRef = useRef({ x: 10, direction: 1 });
   const rollsign = useMemo(
     () => makeTextTexture("501 QUEEN", { fontSize: 60, color: "#ffb300" }),
     [],
   );
   useEffect(() => () => rollsign.dispose(), [rollsign]);
 
-  useFrame((_, dt) => {
+  // Position comes from the same pure function the ride mechanic uses, so the
+  // car you see is exactly the car you can board.
+  useFrame(({ clock }) => {
     const group = groupRef.current;
     if (!group || prefersReduced) return;
-    const travel = travelRef.current;
-    travel.x += travel.direction * 7 * dt;
-    if (travel.x > STREETCAR_ROUTE.maxX) travel.direction = -1;
-    if (travel.x < STREETCAR_ROUTE.minX) travel.direction = 1;
-    group.position.x = travel.x;
-    group.rotation.y = travel.direction > 0 ? 0 : Math.PI;
+    const car = streetcarAt(clock.elapsedTime);
+    group.position.x = car.x;
+    group.rotation.y = car.direction > 0 ? 0 : Math.PI;
   });
 
   return (
@@ -305,7 +305,33 @@ const TREE_SPOTS: readonly { x: number; z: number }[] = [
   { x: 66, z: 24 }, { x: 60, z: 14 }, { x: -74, z: -31 }, { x: -66, z: -55 }, { x: -68, z: 34 },
 ];
 
-function Trees() {
+/** Streetcar stop poles along Queen — where you can flag down the 501. */
+function StreetcarStops() {
+  return (
+    <group>
+      {STREETCAR_STOPS.map((stop) => (
+        <group key={stop.name} position={[stop.x, 0, STREETCAR_ROUTE.z + 2.6]}>
+          <mesh position={[0, 1.5, 0]}>
+            <cylinderGeometry args={[0.07, 0.07, 3, 8]} />
+            <meshStandardMaterial color="#3a4150" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 3.05, 0]}>
+            <boxGeometry args={[0.7, 0.5, 0.08]} />
+            <meshStandardMaterial
+              color="#c8102e"
+              emissive="#c8102e"
+              emissiveIntensity={0.35}
+              roughness={0.6}
+            />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function Trees({ season }: { readonly season: Season }) {
+  const dressing = SEASON_DRESSING[season];
   return (
     <group>
       {TREE_SPOTS.map((spot, i) => {
@@ -319,6 +345,7 @@ function Trees() {
             </mesh>
             {conifer ? (
               <>
+                {/* conifers keep their needles all year */}
                 <mesh position={[0, 1.6, 0]}>
                   <coneGeometry args={[0.85, 1.7, 12]} />
                   <meshStandardMaterial color="#25503a" roughness={0.85} />
@@ -327,20 +354,26 @@ function Trees() {
                   <coneGeometry args={[0.55, 1.2, 12]} />
                   <meshStandardMaterial color="#2c5f44" roughness={0.85} />
                 </mesh>
+                {dressing.snow && (
+                  <mesh position={[0, 2.85, 0]}>
+                    <coneGeometry args={[0.42, 0.5, 12]} />
+                    <meshStandardMaterial color="#e8eef5" roughness={0.9} />
+                  </mesh>
+                )}
               </>
             ) : (
               <>
                 <mesh position={[0, 1.75, 0]}>
                   <sphereGeometry args={[0.85, 16, 12]} />
-                  <meshStandardMaterial color="#2e6045" roughness={0.85} />
+                  <meshStandardMaterial color={dressing.foliage} roughness={0.85} />
                 </mesh>
                 <mesh position={[0.45, 2.2, 0.15]}>
                   <sphereGeometry args={[0.5, 14, 10]} />
-                  <meshStandardMaterial color="#376e50" roughness={0.85} />
+                  <meshStandardMaterial color={dressing.foliage} roughness={0.85} />
                 </mesh>
                 <mesh position={[-0.4, 2.15, -0.15]}>
                   <sphereGeometry args={[0.45, 14, 10]} />
-                  <meshStandardMaterial color="#295640" roughness={0.85} />
+                  <meshStandardMaterial color={dressing.foliage} roughness={0.85} />
                 </mesh>
               </>
             )}
@@ -437,10 +470,14 @@ function Lake({ preset }: { readonly preset: SkyPreset }) {
 type CitySceneProps = {
   readonly prefersReduced: boolean;
   readonly preset: SkyPreset;
+  readonly season: Season;
 };
 
 /** Everything that makes it Toronto except the landmark set pieces. */
-export default function CityScene({ prefersReduced, preset }: CitySceneProps) {
+export default function CityScene({ prefersReduced, preset, season }: CitySceneProps) {
+  const dressing = SEASON_DRESSING[season];
+  // Winter whitens the parks; other seasons follow the time-of-day grade.
+  const parkColor = dressing.snow ? dressing.park : preset.park;
   return (
     <group>
       {/* ground */}
@@ -451,12 +488,12 @@ export default function CityScene({ prefersReduced, preset }: CitySceneProps) {
       {/* campus green (Queen's Park's lawn lives with its landmark) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-46, Y_PARK, -71]}>
         <planeGeometry args={[22, 15]} />
-        <meshStandardMaterial color={preset.park} roughness={1} />
+        <meshStandardMaterial color={parkColor} roughness={1} />
       </mesh>
       {/* Grange Park, between the AGO and OCAD */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-45, Y_PARK, -22.5]}>
         <planeGeometry args={[13, 5]} />
-        <meshStandardMaterial color={preset.park} roughness={1} />
+        <meshStandardMaterial color={parkColor} roughness={1} />
       </mesh>
       {/* waterfront boardwalk */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, Y_BOARDWALK, (WORLD_BOUNDS.maxZ + LAKE_EDGE_Z) / 2 - 2]}>
@@ -466,7 +503,8 @@ export default function CityScene({ prefersReduced, preset }: CitySceneProps) {
       <Roads preset={preset} />
       <Buildings preset={preset} />
       <StreetLamps preset={preset} />
-      <Trees />
+      <Trees season={season} />
+      <StreetcarStops />
       <Streetcar prefersReduced={prefersReduced} />
       <Lake preset={preset} />
       <Sky preset={preset} />
