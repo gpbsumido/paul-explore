@@ -23,6 +23,10 @@ export type Outfit = {
   readonly numberColor?: string;
   // Swatch dot in the HUD picker.
   readonly accent: string;
+  // Earned, not given — hidden behind the token hunt until unlocked.
+  readonly locked?: boolean;
+  // Height multiplier; the tall one stands twice as high and reaches further.
+  readonly height?: number;
 };
 
 export const OUTFITS: readonly Outfit[] = [
@@ -78,6 +82,8 @@ export const OUTFITS: readonly Outfit[] = [
   {
     id: "spurs-wemby",
     label: "Wemby",
+    locked: true,
+    height: 2,
     cap: "#0b0b0e",
     capBrim: "#23272f",
     capMark: "#c4ced4",

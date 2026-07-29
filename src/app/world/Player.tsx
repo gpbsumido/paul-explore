@@ -76,11 +76,30 @@ export default function Player({ outerRef, bobRef, motionRef, lantern, outfit }:
     }
   });
 
+  // The unlocked outfit is all limbs: the torso and head stay ordinary while
+  // the legs and arms stretch, which lifts the whole upper body off the
+  // ground. Hip height rises by exactly the extra leg length so the feet
+  // still land on the pavement.
+  const lanky = (outfit.height ?? 1) > 1;
+  const legStretch = lanky ? 4.2 : 1;
+  const armStretch = lanky ? 1.9 : 1;
+  const limbSlim = lanky ? 0.72 : 1;
+  const hip = 0.46;
+  const lift = lanky ? 0.44 * (legStretch - 1) : 0;
+
   return (
     <group ref={outerRef}>
       {/* a warm lantern glow that travels with the explorer */}
-      <pointLight position={[0, 3, 1]} intensity={lantern} distance={16} decay={1.8} color="#ffd9a0" />
+      <pointLight
+        position={[0, 3 + lift, 1]}
+        intensity={lantern}
+        distance={16}
+        decay={1.8}
+        color="#ffd9a0"
+      />
       <group ref={bobRef}>
+        {/* everything above the hips rides up as the legs get longer */}
+        <group position={[0, lift, 0]}>
         {/* jersey torso */}
         <mesh position={[0, 0.72, 0]}>
           <capsuleGeometry args={[0.34, 0.42, 8, round]} />
@@ -108,7 +127,12 @@ export default function Player({ outerRef, bobRef, motionRef, lantern, outfit }:
           { ref: leftArmRef, side: -1 },
           { ref: rightArmRef, side: 1 },
         ].map(({ ref, side }) => (
-          <group key={side} ref={ref} position={[side * 0.42, 1.02, 0]}>
+          <group
+            key={side}
+            ref={ref}
+            position={[side * 0.42, 1.02, 0]}
+            scale={[limbSlim, armStretch, limbSlim]}
+          >
             <mesh position={[0, -0.13, 0]}>
               <capsuleGeometry args={[0.115, 0.12, 6, round]} />
               <meshStandardMaterial color={outfit.sleeve} roughness={0.65} />
@@ -123,12 +147,18 @@ export default function Player({ outerRef, bobRef, motionRef, lantern, outfit }:
             </mesh>
           </group>
         ))}
-        {/* legs: shorts, calves, sneakers */}
+        </group>
+        {/* legs: shorts, calves, sneakers — hung from the raised hip */}
         {[
           { ref: leftLegRef, side: -1 },
           { ref: rightLegRef, side: 1 },
         ].map(({ ref, side }) => (
-          <group key={side} ref={ref} position={[side * 0.15, 0.46, 0]}>
+          <group
+            key={side}
+            ref={ref}
+            position={[side * 0.15, hip + lift, 0]}
+            scale={[limbSlim, legStretch, limbSlim]}
+          >
             <mesh position={[0, -0.1, 0]}>
               <capsuleGeometry args={[0.14, 0.1, 6, round]} />
               <meshStandardMaterial color={outfit.shorts} roughness={0.75} />
@@ -184,7 +214,7 @@ export default function Player({ outerRef, bobRef, motionRef, lantern, outfit }:
       </group>
       {/* soft blob shadow — cheaper than a real shadow map */}
       <mesh ref={shadowRef} position={[0, 0.065, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.5, 28]} />
+        <circleGeometry args={[lanky ? 0.55 : 0.5, 28]} />
         <meshBasicMaterial color="#000000" transparent opacity={0.35} depthWrite={false} />
       </mesh>
     </group>
