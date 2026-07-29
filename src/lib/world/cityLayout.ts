@@ -194,3 +194,17 @@ export const COLLIDERS: readonly RectCollider[] = [
   ...BUILDINGS.map((b) => ({ x: b.x, z: b.z, halfX: b.width / 2, halfZ: b.depth / 2 })),
   ...LANDMARK_COLLIDERS,
 ];
+
+// The same footprints with rooftop heights, for camera sightline checks.
+// Landmarks get a nominal height — close enough for a camera that mostly
+// fights the generated towers.
+export const OCCLUDERS = [
+  ...BUILDINGS.map((b) => ({
+    x: b.x,
+    z: b.z,
+    halfX: b.width / 2,
+    halfZ: b.depth / 2,
+    height: b.height,
+  })),
+  ...LANDMARK_COLLIDERS.map((c) => ({ ...c, height: 9 })),
+];

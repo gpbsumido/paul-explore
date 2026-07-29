@@ -7,14 +7,16 @@ import type { RefObject } from "react";
 import type { MoveInput, PlayerState, Vec2 } from "@/types/world";
 import { directionFromKeys } from "@/lib/world/input";
 import { stepPlayer, WALK_SPEED } from "@/lib/world/movement";
-import { COLLIDERS, SPAWN } from "@/lib/world/cityLayout";
+import { COLLIDERS, OCCLUDERS, SPAWN } from "@/lib/world/cityLayout";
+import { visibleFraction } from "@/lib/world/camera";
 import { EXHIBITS } from "@/lib/world/exhibits";
 import { nearestExhibit, INTERACT_RADIUS } from "@/lib/world/proximity";
 import { routeWaypoints } from "@/lib/world/routing";
-import { resolveColliders } from "@/lib/world/colliders";
 import { recordSample, type GhostPath, type GhostPoint } from "@/lib/world/ghost";
 import { pushTrailPoint, type TrailPoint } from "@/lib/world/trail";
+import { findCollectible, markVisited } from "@/lib/world/collectibles";
 import GhostPlayer from "./GhostPlayer";
+import Collectibles from "./Collectibles";
 import Trail from "./Trail";
 import RemoteExplorers from "./RemoteExplorers";
 import type { PeerMeta, PeerState } from "./presence/useWorldPresence";
@@ -55,6 +57,13 @@ export type WorldSceneProps = {
   // Live visitors, if any — when someone real is here, the ghost stays home.
   readonly peers: readonly PeerMeta[];
   readonly peersRef: RefObject<Map<string, PeerState>>;
+  // The collectathon: what's been found, who to tell about a new find, and
+  // the exploration fog bookkeeping.
+  readonly collected: readonly string[];
+  readonly collectedRef: RefObject<readonly string[]>;
+  readonly onCollect: (id: string) => void;
+  readonly visitedRef: RefObject<readonly string[]>;
+  readonly onExplore: (visited: readonly string[]) => void;
 };
 
 const rotate = (input: MoveInput, angle: number): MoveInput => ({
@@ -83,6 +92,11 @@ export default function WorldScene({
   ghostPath,
   peers,
   peersRef,
+  collected,
+  collectedRef,
+  onCollect,
+  visitedRef,
+  onExplore,
 }: WorldSceneProps) {
   const outerRef = useRef<Group>(null);
   const bobRef = useRef<Group>(null);
@@ -99,6 +113,7 @@ export default function WorldScene({
   const stuckForRef = useRef(0);
   const routeRef = useRef<{ forId: string; waypoints: readonly Vec2[]; leg: number } | null>(null);
   const trailRef = useRef<readonly TrailPoint[]>([]);
+  const camFractionRef = useRef(1);
 
   useFrame(({ camera, clock }, dt) => {
     const state = stateRef.current;
@@ -214,22 +229,41 @@ export default function WorldScene({
       });
     }
 
-    const targetX = next.position.x + next.velocity.x * LOOK_AHEAD;
-    const targetZ = next.position.z + next.velocity.z * LOOK_AHEAD;
+    const found = findCollectible(next.position, next.y, collectedRef.current ?? []);
+    if (found) onCollect(found.id);
+    if (visitedRef.current) {
+      const explored = markVisited(visitedRef.current, next.position);
+      if (explored !== visitedRef.current) {
+        visitedRef.current = explored;
+        onExplore(explored);
+      }
+    }
+
+    // Chase camera: frame the player from a boom that shortens whenever a
+    // building would stand in the way, so the explorer is never lost behind a
+    // tower. Pulling in is quick, easing back out is gentle.
+    const anchor = {
+      x: next.position.x + next.velocity.x * LOOK_AHEAD,
+      y: 1.8 + next.y * 0.5,
+      z: next.position.z + next.velocity.z * LOOK_AHEAD,
+    };
+    const desired = {
+      x: anchor.x + CAMERA_OFFSET.x,
+      y: CAMERA_OFFSET.y + next.y * 0.5,
+      z: anchor.z + CAMERA_OFFSET.z,
+    };
+    const clearFraction = visibleFraction(anchor, desired, OCCLUDERS);
+    const previousFraction = camFractionRef.current;
+    const settleRate = clearFraction < previousFraction ? 18 : 3;
+    camFractionRef.current =
+      previousFraction + (clearFraction - previousFraction) * (1 - Math.exp(-settleRate * dt));
+    const boom = camFractionRef.current;
+
     const blend = 1 - Math.exp(-CAMERA_LAG * dt);
-    camera.position.x += (targetX + CAMERA_OFFSET.x - camera.position.x) * blend;
-    camera.position.y += (CAMERA_OFFSET.y + next.y * 0.5 - camera.position.y) * blend;
-    camera.position.z += (targetZ + CAMERA_OFFSET.z - camera.position.z) * blend;
-    // Keep the camera out of building interiors — treat it as a fat circle
-    // against the same footprints the player collides with.
-    const clearCam = resolveColliders(
-      { x: camera.position.x, z: camera.position.z },
-      1,
-      COLLIDERS,
-    );
-    camera.position.x = clearCam.x;
-    camera.position.z = clearCam.z;
-    camera.lookAt(camera.position.x, 1.8, camera.position.z - CAMERA_OFFSET.z - 1);
+    camera.position.x += (anchor.x + (desired.x - anchor.x) * boom - camera.position.x) * blend;
+    camera.position.y += (anchor.y + (desired.y - anchor.y) * boom - camera.position.y) * blend;
+    camera.position.z += (anchor.z + (desired.z - anchor.z) * boom - camera.position.z) * blend;
+    camera.lookAt(anchor.x, anchor.y, anchor.z);
 
     const nearest = nearestExhibit(next.position, EXHIBITS);
     const nearestId = nearest?.featureId ?? null;
@@ -255,6 +289,7 @@ export default function WorldScene({
       <Exhibits playerRef={playerRef} prefersReduced={prefersReduced} activeIdRef={activeIdRef} />
       {ghostPath && !prefersReduced && peers.length === 0 && <GhostPlayer path={ghostPath} />}
       {!prefersReduced && <Trail pointsRef={trailRef} color={outfit.accent} />}
+      <Collectibles collected={collected} playerRef={playerRef} prefersReduced={prefersReduced} />
       <RemoteExplorers peers={peers} peersRef={peersRef} />
       <Player
         outerRef={outerRef}

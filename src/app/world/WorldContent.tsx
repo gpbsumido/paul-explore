@@ -22,6 +22,25 @@ import {
   type GhostPoint,
 } from "@/lib/world/ghost";
 import { explorerName } from "@/lib/world/presence";
+import { defaultFidelity } from "@/lib/world/fidelity";
+import {
+  COLLECTIBLES,
+  REACHABLE_CELLS,
+  CELL_SIZE,
+  explorationPercent,
+} from "@/lib/world/collectibles";
+
+const COLLECTED_KEY = "world-collected";
+const VISITED_KEY = "world-visited";
+
+const loadStringArray = (key: string): readonly string[] => {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(key) ?? "[]");
+    return Array.isArray(parsed) && parsed.every((v) => typeof v === "string") ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 import type { JoystickState, PlayerSnapshot } from "./refs";
 
 const FIDELITY_KEY = "world-fidelity";
@@ -101,7 +120,13 @@ function Key({ children }: { readonly children: string }) {
 // player arrow updated imperatively from the render loop's shared ref.
 // ---------------------------------------------------------------------------
 
-function Minimap({ playerRef }: { readonly playerRef: RefObject<PlayerSnapshot> }) {
+function Minimap({
+  playerRef,
+  visited,
+}: {
+  readonly playerRef: RefObject<PlayerSnapshot>;
+  readonly visited: readonly string[];
+}) {
   const arrowRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
@@ -169,6 +194,23 @@ function Minimap({ playerRef }: { readonly playerRef: RefObject<PlayerSnapshot> 
             </circle>
           );
         })}
+        {/* fog of war — unexplored blocks stay dim until walked */}
+        {[...REACHABLE_CELLS]
+          .filter((cell) => !visited.includes(cell))
+          .map((cell) => {
+            const [cx, cz] = cell.split(",").map(Number);
+            return (
+              <rect
+                key={cell}
+                x={WORLD_BOUNDS.minX + cx * CELL_SIZE}
+                y={WORLD_BOUNDS.minZ + cz * CELL_SIZE}
+                width={CELL_SIZE}
+                height={CELL_SIZE}
+                fill="#070a12"
+                opacity={0.55}
+              />
+            );
+          })}
         <g ref={arrowRef} transform={`translate(${SPAWN.x} ${SPAWN.z})`}>
           <polygon points="0,-4.6 3.4,3.8 0,1.9 -3.4,3.8" fill="#ffffff" stroke="#070a12" strokeWidth={0.8} />
         </g>
@@ -256,6 +298,12 @@ export default function WorldContent() {
   const [outfitId, setOutfitId] = useState(OUTFITS[0].id);
   const [ghostPath, setGhostPath] = useState<GhostPath | null>(null);
   const [ghostVisible, setGhostVisible] = useState(true);
+  const [collected, setCollected] = useState<readonly string[]>([]);
+  const [visited, setVisited] = useState<readonly string[]>([]);
+  const [lastFind, setLastFind] = useState<{ id: string; count: number } | null>(null);
+  const collectedRef = useRef<readonly string[]>([]);
+  const visitedRef = useRef<readonly string[]>([]);
+  const findToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordingRef = useRef<readonly GhostPoint[]>([]);
   const outfitIdRef = useRef(outfitId);
   useEffect(() => {
@@ -300,7 +348,19 @@ export default function WorldContent() {
     );
     const raw = window.localStorage.getItem(FIDELITY_KEY);
     const parsed = raw === null ? Number.NaN : Number(raw);
-    if (Number.isFinite(parsed)) setFidelity(Math.min(Math.max(parsed, 0), 1));
+    if (Number.isFinite(parsed)) {
+      setFidelity(Math.min(Math.max(parsed, 0), 1));
+    } else {
+      // First visit: size the default to the hardware instead of guessing.
+      setFidelity(
+        defaultFidelity({
+          cores: navigator.hardwareConcurrency,
+          // Chromium-only hint; absent elsewhere.
+          memory: "deviceMemory" in navigator ? (navigator as { deviceMemory?: number }).deviceMemory : undefined,
+          coarsePointer: window.matchMedia("(pointer: coarse)").matches,
+        }),
+      );
+    }
     setOutfitId(outfitById(window.localStorage.getItem(OUTFIT_KEY)).id);
     // A previous stroll haunts the city; first-timers get the guided tour.
     // Either way the ghost carries a curated name — the recording's own, or a
@@ -308,6 +368,40 @@ export default function WorldContent() {
     const base = loadStoredGhost() ?? tourPath();
     setGhostPath(base.name ? base : { ...base, name: explorerName(Math.random()) });
     setGhostVisible(window.localStorage.getItem(GHOST_VISIBLE_KEY) !== "off");
+    const storedCollected = loadStringArray(COLLECTED_KEY);
+    const storedVisited = loadStringArray(VISITED_KEY);
+    collectedRef.current = storedCollected;
+    visitedRef.current = storedVisited;
+    setCollected(storedCollected);
+    setVisited(storedVisited);
+  }, []);
+
+  const handleCollect = useCallback((id: string) => {
+    const current = collectedRef.current;
+    if (current.includes(id)) return;
+    const next = [...current, id];
+    collectedRef.current = next;
+    setCollected(next);
+    setLastFind({ id, count: next.length });
+    if (findToastTimer.current) clearTimeout(findToastTimer.current);
+    findToastTimer.current = setTimeout(() => setLastFind(null), 3000);
+    try {
+      window.localStorage.setItem(COLLECTED_KEY, JSON.stringify(next));
+    } catch {
+      // Storage full or blocked — progress just isn't remembered.
+    }
+  }, []);
+  useEffect(() => () => {
+    if (findToastTimer.current) clearTimeout(findToastTimer.current);
+  }, []);
+
+  const handleExplore = useCallback((explored: readonly string[]) => {
+    setVisited(explored);
+    try {
+      window.localStorage.setItem(VISITED_KEY, JSON.stringify(explored));
+    } catch {
+      // Same deal as above.
+    }
   }, []);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [runningTo, setRunningTo] = useState<string | null>(null);
@@ -398,6 +492,11 @@ export default function WorldContent() {
         ghostPath={ghostVisible ? ghostPath : null}
         peers={peers}
         peersRef={peersRef}
+        collected={collected}
+        collectedRef={collectedRef}
+        onCollect={handleCollect}
+        visitedRef={visitedRef}
+        onExplore={handleExplore}
       />
 
       {/* controls legend — pointless on touch, hidden there */}
@@ -425,7 +524,12 @@ export default function WorldContent() {
 
       {/* minimap + accessible exhibit index */}
       <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
-        <Minimap playerRef={playerRef} />
+        <Minimap playerRef={playerRef} visited={visited} />
+        <p className="rounded-2xl px-3 py-1.5 text-[11px] text-white/70" style={GLASS_STYLE}>
+          🪙 {collected.length}/{COLLECTIBLES.length}
+          <span className="mx-1.5 text-white/25">·</span>
+          {explorationPercent(visited)}% explored
+        </p>
         {peers.length > 0 && (
           <p
             className="rounded-2xl px-3 py-1.5 text-[11px] text-white/75"
@@ -497,6 +601,26 @@ export default function WorldContent() {
           Jump
         </button>
       </div>
+
+      {/* token pickup toast */}
+      <AnimatePresence>
+        {lastFind && (
+          <m.div
+            key={`find-${lastFind.id}`}
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={prefersReduced ? instantTransition : { ...spring.snappy }}
+            className="absolute left-1/2 top-16 -translate-x-1/2 rounded-2xl px-4 py-2 text-[12px] text-white/85"
+            style={GLASS_STYLE}
+            role="status"
+          >
+            {lastFind.count === COLLECTIBLES.length
+              ? "🎉 All 25 tokens found — you own this city!"
+              : `🪙 Token found — ${lastFind.count}/${COLLECTIBLES.length}`}
+          </m.div>
+        )}
+      </AnimatePresence>
 
       {/* speedrun banner */}
       <AnimatePresence>
