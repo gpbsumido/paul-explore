@@ -180,6 +180,27 @@ export default function WorldThoughtsContent() {
         </p>
       </Section>
 
+      <Section title="City things">
+        <p>
+          The 501 Queen runs a real timetable — steady between stops, four
+          seconds waiting at each — which is what makes it boardable: you walk
+          to a stop, the car pulls up, and E puts you on the running board with
+          the camera along for the ride. One pure function drives both the car
+          you see and the car you&rsquo;re standing on, so they can never
+          disagree.
+        </p>
+        <p className="mt-3">
+          At the foot of the CN Tower, E takes the elevator: the camera lifts to
+          the pod and the city lays itself out below with every landmark one
+          click away. The interact key is context-sensitive now, and the scene
+          decides what it means from where you&rsquo;re standing. Elsewhere the
+          leaves turn with the calendar, December strings lights over Nathan
+          Phillips Square and snow onto the conifers, and five raccoons work
+          short patrols that they abandon the instant you get close — the most
+          accurate thing in the entire city.
+        </p>
+      </Section>
+
       <Section title="A 3D page that screen readers can use">
         <p>
           The canvas is decoration by ARIA standards, so everything it can do
