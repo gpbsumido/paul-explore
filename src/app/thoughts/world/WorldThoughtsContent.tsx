@@ -221,6 +221,28 @@ export default function WorldThoughtsContent() {
         </p>
       </Section>
 
+      <Section title="A costume you have to earn">
+        <p>
+          Three of the twenty-five tokens float above the street, and the
+          fourth outfit in the picker is a locked <C>???</C>. Collect every
+          token you can reach on foot — pointedly not those three — and the
+          mystery turns out to be a very tall man. Put him on and the last
+          three are simply within reach, no jumping required. The whole loop
+          is four small pure functions and it took longer to describe than to
+          test.
+        </p>
+        <p className="mt-3">
+          Building him taught me something about rigs: scaling the whole body
+          made a giant, not a lanky one. The fix is to keep the torso and head
+          ordinary and let only the limbs grow, raising the hips by exactly the
+          extra leg length so the feet still meet the pavement. Elsewhere, you
+          can now jump onto a passing streetcar and ride the roof, and the
+          walk-me-there feature stops on arrival to ask whether you actually
+          want to go in — getting somewhere is not the same as agreeing to
+          leave.
+        </p>
+      </Section>
+
       <Section title="A 3D page that screen readers can use">
         <p>
           The canvas is decoration by ARIA standards, so everything it can do
