@@ -15,6 +15,7 @@ Every feature has a `/thoughts` write-up covering the architecture decisions beh
 Public (no login). Listed most-to-least prominent, matching the apps order across the site:
 
 - [Landing](https://paulsumido.com/) — a three-reel slot machine over every feature and write-up (the v3 node-graph is still at `/?version=v3`)
+- [Explore Toronto](https://paulsumido.com/world) — a walkable 3D low-poly downtown Toronto at night; WASD past the CN Tower and City Hall to exhibits that open every feature on this site
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
 - [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground
 - [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine

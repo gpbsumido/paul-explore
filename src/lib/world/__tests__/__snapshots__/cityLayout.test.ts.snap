@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`city layout > is deterministic — the same layout every load 1`] = `
+[
+  "-73.25,-73.25,5.713",
+  "-67.75,-73.25,7.814",
+  "-73.25,-67.75,9.204",
+  "-67.75,-67.75,10.137",
+  "-73.25,-27.54908147341186,13.906",
+]
+`;
