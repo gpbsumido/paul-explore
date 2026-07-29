@@ -15,3 +15,8 @@ export function useSegments(base: number): number {
   return Math.max(4, Math.round(base * (0.35 + fidelity * 1.4)));
 }
 
+/** Raw fidelity for anything that isn't a segment count (particle budgets). */
+export function useDetail(): number {
+  return useContext(DetailContext);
+}
+

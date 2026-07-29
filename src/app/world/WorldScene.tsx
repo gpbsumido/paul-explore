@@ -19,6 +19,8 @@ import { streetcarAt, nearestStop, carIsAtStop, RIDE_OFFSET } from "@/lib/world/
 import { LANDMARKS } from "@/lib/world/cityLayout";
 import type { Season } from "@/lib/world/seasons";
 import { SEASON_DRESSING } from "@/lib/world/seasons";
+import type { WeatherCondition } from "@/hooks/useWeather";
+import Weather from "./Weather";
 import GhostPlayer from "./GhostPlayer";
 import Collectibles from "./Collectibles";
 import Raccoons from "./Raccoons";
@@ -90,6 +92,12 @@ export type WorldSceneProps = {
   readonly onLookoutChange: (active: boolean) => void;
   // Set by the lookout panel to warp the explorer to an exhibit.
   readonly teleportRef: RefObject<Vec2 | null>;
+  // Photo mode: free orbit around the explorer, HUD out of the way.
+  readonly photoMode: boolean;
+  // Flipped true by the shutter; the scene renders and hands back a PNG.
+  readonly captureRef: RefObject<boolean>;
+  readonly onCapture: (dataUrl: string) => void;
+  readonly condition: WeatherCondition;
 };
 
 const rotate = (input: MoveInput, angle: number): MoveInput => ({
@@ -130,6 +138,10 @@ export default function WorldScene({
   onRideChange,
   onLookoutChange,
   teleportRef,
+  photoMode,
+  captureRef,
+  onCapture,
+  condition,
 }: WorldSceneProps) {
   const outerRef = useRef<Group>(null);
   const bobRef = useRef<Group>(null);
@@ -150,8 +162,43 @@ export default function WorldScene({
   const ridingRef = useRef(false);
   const lookoutRef = useRef(false);
   const interactionRef = useRef<InteractionKind>(null);
+  const photoOrbitRef = useRef({ yaw: 0, pitch: 0.5, distance: 12 });
 
-  useFrame(({ camera, clock }, dt) => {
+  useFrame(({ camera, clock, gl, scene }, dt) => {
+    // Photo mode: park the simulation and fly the camera around the explorer.
+    if (photoMode) {
+      const held = keysRef.current ?? new Set();
+      const orbit = photoOrbitRef.current;
+      const turn = (held.has("KeyD") ? 1 : 0) - (held.has("KeyA") ? 1 : 0);
+      const dolly = (held.has("KeyS") ? 1 : 0) - (held.has("KeyW") ? 1 : 0);
+      const lift =
+        (held.has("Space") ? 1 : 0) -
+        (held.has("ShiftLeft") || held.has("ShiftRight") ? 1 : 0);
+      orbit.yaw += turn * 1.4 * dt;
+      orbit.distance = Math.min(Math.max(orbit.distance + dolly * 14 * dt, 3), 60);
+      orbit.pitch = Math.min(Math.max(orbit.pitch + lift * 0.9 * dt, -0.2), 1.35);
+
+      const focus = stateRef.current.position;
+      camera.position.set(
+        focus.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * orbit.distance,
+        1.4 + Math.sin(orbit.pitch) * orbit.distance,
+        focus.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * orbit.distance,
+      );
+      camera.lookAt(focus.x, 1.2, focus.z);
+
+      if (captureRef.current) {
+        captureRef.current = false;
+        // Render synchronously so the buffer is still there to read back.
+        gl.render(scene, camera);
+        onCapture(gl.domElement.toDataURL("image/png"));
+      }
+      return;
+    }
+    if (captureRef.current) {
+      captureRef.current = false;
+      gl.render(scene, camera);
+      onCapture(gl.domElement.toDataURL("image/png"));
+    }
     const state = stateRef.current;
     const keys = directionFromKeys(keysRef.current ?? new Set());
     const joystick = joystickRef.current ?? { x: 0, z: 0 };
@@ -458,6 +505,7 @@ export default function WorldScene({
         festive={SEASON_DRESSING[season].festive}
       />
       <Raccoons playerRef={playerRef} prefersReduced={prefersReduced} />
+      <Weather condition={condition} prefersReduced={prefersReduced} />
       <Exhibits playerRef={playerRef} prefersReduced={prefersReduced} activeIdRef={activeIdRef} />
       {ghostPath && !prefersReduced && peers.length === 0 && <GhostPlayer path={ghostPath} />}
       {!prefersReduced && <Trail pointsRef={trailRef} color={outfit.accent} />}

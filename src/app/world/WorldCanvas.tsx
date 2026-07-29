@@ -5,6 +5,7 @@ import { PauseWhenOffscreen } from "@/app/landing/models/PauseWhenOffscreen";
 import { SPAWN } from "@/lib/world/cityLayout";
 import type { TimeOfDay } from "@/lib/world/daylight";
 import { SKY_PRESETS } from "./skyPresets";
+import { WEATHER_DRESSING } from "@/lib/world/weather";
 import { DetailContext } from "./detail";
 import WorldScene, { type WorldSceneProps } from "./WorldScene";
 
@@ -13,6 +14,10 @@ export type WorldCanvasProps = Omit<WorldSceneProps, "preset"> & {
   // 0..1 from the HUD fidelity slider.
   readonly fidelity: number;
 };
+
+// Rain, snow, and fog close the city in; clear skies leave it alone.
+const fogScaleFor = (condition: WorldCanvasProps["condition"]) =>
+  WEATHER_DRESSING[condition].fogScale;
 
 /**
  * The WebGL layer. Always rendering while on screen (it's a game loop), but
@@ -23,6 +28,7 @@ export type WorldCanvasProps = Omit<WorldSceneProps, "preset"> & {
  */
 export default function WorldCanvas({ timeOfDay, fidelity, ...sceneProps }: WorldCanvasProps) {
   const preset = SKY_PRESETS[timeOfDay];
+  const fogScale = fogScaleFor(sceneProps.condition);
   return (
     <Canvas
       className="absolute inset-0"
@@ -31,7 +37,10 @@ export default function WorldCanvas({ timeOfDay, fidelity, ...sceneProps }: Worl
       gl={{ antialias: true, alpha: false }}
     >
       <color attach="background" args={[preset.background]} />
-      <fog attach="fog" args={[preset.fog[0], preset.fog[1], preset.fog[2]]} />
+      <fog
+        attach="fog"
+        args={[preset.fog[0], preset.fog[1] * fogScale, preset.fog[2] * fogScale]}
+      />
       <PauseWhenOffscreen />
       <DetailContext.Provider value={fidelity}>
         <WorldScene {...sceneProps} preset={preset} />

@@ -26,6 +26,8 @@ import { defaultFidelity } from "@/lib/world/fidelity";
 import { seasonFor, SEASON_DRESSING, type Season } from "@/lib/world/seasons";
 import type { Vec2 } from "@/types/world";
 import type { InteractionKind } from "./WorldScene";
+import { useWeather, type WeatherCondition } from "@/hooks/useWeather";
+import { WEATHER_DRESSING } from "@/lib/world/weather";
 import {
   COLLECTIBLES,
   REACHABLE_CELLS,
@@ -33,8 +35,15 @@ import {
   explorationPercent,
 } from "@/lib/world/collectibles";
 
+import type { JoystickState, PlayerSnapshot } from "./refs";
+
 const COLLECTED_KEY = "world-collected";
 const VISITED_KEY = "world-visited";
+const FIDELITY_KEY = "world-fidelity";
+const OUTFIT_KEY = "world-outfit";
+const GHOST_KEY = "world-ghost-path";
+const GHOST_VISIBLE_KEY = "world-ghost-visible";
+const GHOST_SAVE_INTERVAL_MS = 15_000;
 
 const loadStringArray = (key: string): readonly string[] => {
   try {
@@ -44,13 +53,6 @@ const loadStringArray = (key: string): readonly string[] => {
     return [];
   }
 };
-import type { JoystickState, PlayerSnapshot } from "./refs";
-
-const FIDELITY_KEY = "world-fidelity";
-const OUTFIT_KEY = "world-outfit";
-const GHOST_KEY = "world-ghost-path";
-const GHOST_VISIBLE_KEY = "world-ghost-visible";
-const GHOST_SAVE_INTERVAL_MS = 15_000;
 
 const loadStoredGhost = (): GhostPath | null => {
   try {
@@ -298,6 +300,10 @@ export default function WorldContent() {
   // hydration leaves the server-rendered HUD out of sync with the state.
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>("night");
   const [season, setSeason] = useState<Season>("summer");
+  // Real weather where the visitor is, unless ?w= forces a condition.
+  const live = useWeather();
+  const [forcedWeather, setForcedWeather] = useState<WeatherCondition | null>(null);
+  const condition: WeatherCondition = forcedWeather ?? live.condition;
   const [fidelity, setFidelity] = useState(0.6);
   const [outfitId, setOutfitId] = useState(OUTFITS[0].id);
   const [ghostPath, setGhostPath] = useState<GhostPath | null>(null);
@@ -350,6 +356,17 @@ export default function WorldContent() {
     setTimeOfDay(
       forced === "day" || forced === "dusk" || forced === "night" ? forced : currentTimeOfDay(),
     );
+    const forcedW = new URLSearchParams(window.location.search).get("w");
+    if (
+      forcedW === "clear" ||
+      forcedW === "partly-cloudy" ||
+      forcedW === "fog" ||
+      forcedW === "rain" ||
+      forcedW === "snow" ||
+      forcedW === "storm"
+    ) {
+      setForcedWeather(forcedW);
+    }
     const forcedSeason = new URLSearchParams(window.location.search).get("season");
     setSeason(
       forcedSeason === "winter" ||
@@ -443,7 +460,18 @@ export default function WorldContent() {
   const requestInteract = useCallback(() => {
     interactRef.current = true;
   }, []);
-  const keysRef = useWorldKeys(requestInteract);
+  const [photoMode, setPhotoMode] = useState(false);
+  const togglePhotoMode = useCallback(() => setPhotoMode((on) => !on), []);
+  const keysRef = useWorldKeys(requestInteract, togglePhotoMode);
+
+  // Photo mode hands back a data URL; turn it into a download.
+  const captureRef = useRef(false);
+  const handleCapture = useCallback((dataUrl: string) => {
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = "explore-toronto.png";
+    link.click();
+  }, []);
 
   const visitFeature = useCallback(
     (featureId: string) => {
@@ -505,6 +533,43 @@ export default function WorldContent() {
     <main className="relative overflow-hidden bg-black" style={{ height: "calc(100dvh - 3.5rem)" }}>
       <h1 className="sr-only">Explore Toronto — a 3D world of this site&apos;s features</h1>
 
+      {/* Photo mode takes over the screen: no HUD, just the shutter. */}
+      {photoMode && (
+        <div className="pointer-events-none absolute inset-0 z-10">
+          <div
+            className="pointer-events-auto absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-2xl px-4 py-2.5"
+            style={GLASS_STYLE}
+          >
+            <span className="hidden items-center gap-1.5 text-[11px] text-white/55 pointer-fine:flex">
+              <Key>A</Key>
+              <Key>D</Key> orbit
+              <span className="text-white/20">·</span>
+              <Key>W</Key>
+              <Key>S</Key> zoom
+              <span className="text-white/20">·</span>
+              <Key>Space</Key>
+              <Key>Shift</Key> height
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                captureRef.current = true;
+              }}
+              className="rounded-lg bg-white px-3 py-1.5 text-[12px] font-semibold text-black transition-opacity hover:opacity-85"
+            >
+              📷 Save photo
+            </button>
+            <button
+              type="button"
+              onClick={togglePhotoMode}
+              className="text-[11px] text-white/55 hover:text-white/85"
+            >
+              exit (P)
+            </button>
+          </div>
+        </div>
+      )}
+
       <WorldCanvas
         keysRef={keysRef}
         joystickRef={joystickRef}
@@ -532,10 +597,17 @@ export default function WorldContent() {
         onRideChange={setRiding}
         onLookoutChange={setLookout}
         teleportRef={teleportRef}
+        photoMode={photoMode}
+        captureRef={captureRef}
+        onCapture={handleCapture}
+        condition={condition}
       />
 
       {/* controls legend — pointless on touch, hidden there */}
-      <div className="absolute left-4 top-4 hidden flex-col gap-2 pointer-fine:flex">
+      <div
+        className="absolute left-4 top-4 hidden flex-col gap-2 pointer-fine:flex"
+        hidden={photoMode}
+      >
         <div className="flex items-center gap-2 rounded-2xl px-3 py-2" style={GLASS_STYLE}>
           <Key>W</Key>
           <Key>A</Key>
@@ -558,12 +630,19 @@ export default function WorldContent() {
       </div>
 
       {/* minimap + accessible exhibit index */}
-      <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
+      <div
+        className="absolute right-4 top-4 flex flex-col items-end gap-2"
+        hidden={photoMode}
+      >
         <Minimap playerRef={playerRef} visited={visited} />
         <p className="rounded-2xl px-3 py-1.5 text-[11px] text-white/70" style={GLASS_STYLE}>
           🪙 {collected.length}/{COLLECTIBLES.length}
           <span className="mx-1.5 text-white/25">·</span>
           {explorationPercent(visited)}% explored
+        </p>
+        <p className="rounded-2xl px-3 py-1.5 text-[11px] text-white/60" style={GLASS_STYLE}>
+          {SEASON_DRESSING[season].label} · {WEATHER_DRESSING[condition].label}
+          {live.temperature !== null && !forcedWeather ? ` · ${live.temperature}°` : ""}
         </p>
         {peers.length > 0 && (
           <p
@@ -622,7 +701,10 @@ export default function WorldContent() {
       </div>
 
       {/* touch controls */}
-      <div className="absolute bottom-6 left-5 hidden items-end gap-3 pointer-coarse:flex">
+      <div
+        className="absolute bottom-6 left-5 hidden items-end gap-3 pointer-coarse:flex"
+        hidden={photoMode}
+      >
         <Joystick joystickRef={joystickRef} />
         <button
           type="button"
@@ -755,7 +837,11 @@ export default function WorldContent() {
       </AnimatePresence>
 
       {/* outfit picker */}
-      <div className="absolute bottom-[7.5rem] right-4 w-44 rounded-2xl p-3" style={GLASS_STYLE}>
+      <div
+        className="absolute bottom-[7.5rem] right-4 w-44 rounded-2xl p-3"
+        style={GLASS_STYLE}
+        hidden={photoMode}
+      >
         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
           Outfit
         </p>
@@ -802,7 +888,11 @@ export default function WorldContent() {
       </div>
 
       {/* fidelity slider */}
-      <div className="absolute bottom-6 right-4 w-44 rounded-2xl p-3" style={GLASS_STYLE}>
+      <div
+        className="absolute bottom-6 right-4 w-44 rounded-2xl p-3"
+        style={GLASS_STYLE}
+        hidden={photoMode}
+      >
         <div className="mb-1.5 flex items-center justify-between">
           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
             Fidelity

@@ -28,13 +28,15 @@ const isTypingTarget = (target: EventTarget | null) =>
  * prevented from scrolling the page, and everything releases on window blur so
  * the avatar never runs off on its own after a tab switch.
  */
-export function useWorldKeys(onInteract: () => void) {
+export function useWorldKeys(onInteract: () => void, onPhotoToggle?: () => void) {
   const keysRef = useRef<Set<string>>(new Set());
   const interactRef = useRef(onInteract);
+  const photoRef = useRef(onPhotoToggle);
 
   useEffect(() => {
     interactRef.current = onInteract;
-  }, [onInteract]);
+    photoRef.current = onPhotoToggle;
+  }, [onInteract, onPhotoToggle]);
 
   useEffect(() => {
     const handleDown = (event: KeyboardEvent) => {
@@ -42,6 +44,7 @@ export function useWorldKeys(onInteract: () => void) {
       if (MOVEMENT_CODES.has(event.code)) event.preventDefault();
       keysRef.current.add(event.code);
       if (event.code === "KeyE" || event.code === "Enter") interactRef.current();
+      if (event.code === "KeyP") photoRef.current?.();
     };
     const handleUp = (event: KeyboardEvent) => {
       keysRef.current.delete(event.code);

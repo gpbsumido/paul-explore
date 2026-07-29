@@ -201,6 +201,26 @@ export default function WorldThoughtsContent() {
         </p>
       </Section>
 
+      <Section title="Whatever it's doing outside">
+        <p>
+          The site already knew the visitor&rsquo;s weather — the landing page
+          has been using it for ages — so the world just asks the same hook
+          and dresses accordingly. Rain goes straight down, snow wanders, fog
+          pulls the skyline in close, and a thunderstorm gets a light that
+          flashes on an irregular timer. The particle budget rides the fidelity
+          slider, and the whole field follows the camera so a few hundred
+          points cover a whole city.
+        </p>
+        <p className="mt-3">
+          Photo mode is the other half: <C>P</C> parks the simulation, clears
+          the HUD, and hands the camera over to orbit freely. The shutter is
+          the interesting part — instead of paying the cost of a preserved
+          drawing buffer on every frame forever, it renders one frame
+          synchronously and reads it straight back out before the browser
+          clears it.
+        </p>
+      </Section>
+
       <Section title="A 3D page that screen readers can use">
         <p>
           The canvas is decoration by ARIA standards, so everything it can do
