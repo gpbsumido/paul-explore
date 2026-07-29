@@ -198,11 +198,24 @@ function UnionStation({ night }: { readonly night: boolean }) {
   );
 }
 
-function CityHall() {
+const FESTIVE_COLORS = ["#e5484d", "#4ade80", "#fbbf24", "#38bdf8", "#f472b6"];
+
+function CityHall({ festive }: { readonly festive: boolean }) {
   const round = useSegments(32);
   const { x, z } = LANDMARKS.cityHall;
   return (
     <group position={[x, 0, z]}>
+      {/* holiday lights strung across the square in December */}
+      {festive &&
+        Array.from({ length: 18 }, (_, i) => {
+          const t = i / 17;
+          return (
+            <mesh key={i} position={[-8 + t * 16, 3.4 + Math.sin(t * Math.PI) * 1.4, 5]}>
+              <sphereGeometry args={[0.13, 8, 8]} />
+              <meshBasicMaterial color={FESTIVE_COLORS[i % FESTIVE_COLORS.length]} />
+            </mesh>
+          );
+        })}
       {/* two curved towers facing each other over the saucer — the east one is
           taller, as in life */}
       <mesh position={[-4, 6, 0]} rotation={[0, Math.PI * 0.5, 0]}>
@@ -594,10 +607,11 @@ function Kensington({ night }: { readonly night: boolean }) {
 type LandmarksProps = {
   readonly prefersReduced: boolean;
   readonly preset: SkyPreset;
+  readonly festive: boolean;
 };
 
 /** Every bespoke Toronto set piece, anchored to the shared city layout. */
-export default function Landmarks({ prefersReduced, preset }: LandmarksProps) {
+export default function Landmarks({ prefersReduced, preset, festive }: LandmarksProps) {
   const night = preset.lampsOn;
   return (
     <group>
@@ -605,7 +619,7 @@ export default function Landmarks({ prefersReduced, preset }: LandmarksProps) {
       <RogersCentre />
       <ScotiabankArena night={night} />
       <UnionStation night={night} />
-      <CityHall />
+      <CityHall festive={festive} />
       <TorontoSign prefersReduced={prefersReduced} />
       <EatonCentre />
       <YongeDundasBillboards prefersReduced={prefersReduced} />

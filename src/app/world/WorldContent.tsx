@@ -23,6 +23,9 @@ import {
 } from "@/lib/world/ghost";
 import { explorerName } from "@/lib/world/presence";
 import { defaultFidelity } from "@/lib/world/fidelity";
+import { seasonFor, SEASON_DRESSING, type Season } from "@/lib/world/seasons";
+import type { Vec2 } from "@/types/world";
+import type { InteractionKind } from "./WorldScene";
 import {
   COLLECTIBLES,
   REACHABLE_CELLS,
@@ -294,6 +297,7 @@ export default function WorldContent() {
   // (clock, URL, localStorage) are read after mount — reading them during
   // hydration leaves the server-rendered HUD out of sync with the state.
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>("night");
+  const [season, setSeason] = useState<Season>("summer");
   const [fidelity, setFidelity] = useState(0.6);
   const [outfitId, setOutfitId] = useState(OUTFITS[0].id);
   const [ghostPath, setGhostPath] = useState<GhostPath | null>(null);
@@ -345,6 +349,15 @@ export default function WorldContent() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from browser-only sources (clock, URL, localStorage) after hydration; initializing state from them directly desyncs the server-rendered HUD
     setTimeOfDay(
       forced === "day" || forced === "dusk" || forced === "night" ? forced : currentTimeOfDay(),
+    );
+    const forcedSeason = new URLSearchParams(window.location.search).get("season");
+    setSeason(
+      forcedSeason === "winter" ||
+        forcedSeason === "spring" ||
+        forcedSeason === "summer" ||
+        forcedSeason === "fall"
+        ? forcedSeason
+        : seasonFor(),
     );
     const raw = window.localStorage.getItem(FIDELITY_KEY);
     const parsed = raw === null ? Number.NaN : Number(raw);
@@ -410,20 +423,35 @@ export default function WorldContent() {
   const joystickRef = useRef<JoystickState>({ x: 0, z: 0 });
   const autoTargetRef = useRef<string | null>(null);
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const teleportRef = useRef<Vec2 | null>(null);
+  const [prompt, setPrompt] = useState<string | null>(null);
+  const [riding, setRiding] = useState(false);
+  const [lookout, setLookout] = useState(false);
+
+  const handleInteractionChange = useCallback((_kind: InteractionKind, label: string | null) => {
+    setPrompt(label);
+  }, []);
 
   const handleActiveExhibit = useCallback((featureId: string | null) => {
     activeIdRef.current = featureId;
     setActiveId(featureId);
   }, []);
 
-  const visit = useCallback(() => {
-    const id = activeIdRef.current;
-    if (!id) return;
-    const feature = FEATURES.find((f) => f.id === id);
-    if (feature) router.push(feature.href);
-  }, [router]);
+  // E is context-sensitive now — the scene knows where the player is standing,
+  // so it decides between visiting, boarding, hopping off, and the elevator.
+  const interactRef = useRef(false);
+  const requestInteract = useCallback(() => {
+    interactRef.current = true;
+  }, []);
+  const keysRef = useWorldKeys(requestInteract);
 
-  const keysRef = useWorldKeys(visit);
+  const visitFeature = useCallback(
+    (featureId: string) => {
+      const feature = FEATURES.find((f) => f.id === featureId);
+      if (feature) router.push(feature.href);
+    },
+    [router],
+  );
 
   // Live presence: Ably when a key is configured, this browser's other tabs
   // otherwise, nothing when the world-live-presence flag is off.
@@ -497,6 +525,13 @@ export default function WorldContent() {
         onCollect={handleCollect}
         visitedRef={visitedRef}
         onExplore={handleExplore}
+        season={season}
+        interactRef={interactRef}
+        onVisitExhibit={visitFeature}
+        onInteractionChange={handleInteractionChange}
+        onRideChange={setRiding}
+        onLookoutChange={setLookout}
+        teleportRef={teleportRef}
       />
 
       {/* controls legend — pointless on touch, hidden there */}
@@ -601,6 +636,82 @@ export default function WorldContent() {
           Jump
         </button>
       </div>
+
+      {/* observation deck: the city from the pod, one click from anywhere */}
+      <AnimatePresence>
+        {lookout && (
+          <m.div
+            key="lookout"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={prefersReduced ? instantTransition : { ...spring.smooth }}
+            className="absolute bottom-6 left-1/2 w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl p-4"
+            style={GLASS_STYLE}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
+              CN Tower · Observation deck
+            </p>
+            <h2 className="mt-0.5 text-[15px] font-semibold text-white/90">
+              Pick a landmark and I&apos;ll take you there
+            </h2>
+            <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+              {EXHIBITS.map((exhibit) => {
+                const feature = FEATURES.find((f) => f.id === exhibit.featureId);
+                if (!feature) return null;
+                return (
+                  <button
+                    key={exhibit.featureId}
+                    type="button"
+                    onClick={() => {
+                      teleportRef.current = { x: exhibit.position.x, z: exhibit.position.z + 3 };
+                    }}
+                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-[11px] text-white/70 hover:bg-white/10 hover:text-white"
+                  >
+                    <span
+                      aria-hidden
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: feature.color }}
+                    />
+                    <span className="truncate">{exhibit.landmark}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-white/45">
+              <Key>E</Key> to take the elevator down
+            </p>
+          </m.div>
+        )}
+      </AnimatePresence>
+
+      {/* context prompt: what E does from here */}
+      <AnimatePresence>
+        {prompt && !lookout && (
+          <m.div
+            key={prompt}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={prefersReduced ? instantTransition : { ...spring.snappy }}
+            className="absolute bottom-32 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-2xl px-3 py-1.5 text-[12px] text-white/80"
+            style={GLASS_STYLE}
+          >
+            <Key>E</Key> {prompt}
+          </m.div>
+        )}
+      </AnimatePresence>
+
+      {/* riding the 501 */}
+      {riding && (
+        <p
+          className="absolute left-1/2 top-4 -translate-x-1/2 rounded-2xl px-4 py-2 text-[12px] text-white/85"
+          style={GLASS_STYLE}
+          role="status"
+        >
+          🚋 Riding the 501 Queen
+        </p>
+      )}
 
       {/* token pickup toast */}
       <AnimatePresence>
@@ -720,7 +831,7 @@ export default function WorldContent() {
 
       {/* exhibit placard */}
       <AnimatePresence>
-        {activeExhibit && activeFeature && (
+        {activeExhibit && activeFeature && !lookout && !riding && (
           <m.div
             key={activeFeature.id}
             initial={{ opacity: 0, y: 24 }}

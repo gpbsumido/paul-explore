@@ -15,8 +15,13 @@ import { routeWaypoints } from "@/lib/world/routing";
 import { recordSample, type GhostPath, type GhostPoint } from "@/lib/world/ghost";
 import { pushTrailPoint, type TrailPoint } from "@/lib/world/trail";
 import { findCollectible, markVisited } from "@/lib/world/collectibles";
+import { streetcarAt, nearestStop, carIsAtStop, RIDE_OFFSET } from "@/lib/world/transit";
+import { LANDMARKS } from "@/lib/world/cityLayout";
+import type { Season } from "@/lib/world/seasons";
+import { SEASON_DRESSING } from "@/lib/world/seasons";
 import GhostPlayer from "./GhostPlayer";
 import Collectibles from "./Collectibles";
+import Raccoons from "./Raccoons";
 import Trail from "./Trail";
 import RemoteExplorers from "./RemoteExplorers";
 import type { PeerMeta, PeerState } from "./presence/useWorldPresence";
@@ -38,6 +43,17 @@ const LOOK_AHEAD = 0.35;
 const AUTO_SPEED_SCALE = 2.2;
 const STUCK_SPEED = 1.5;
 const STUCK_AFTER = 0.35;
+
+// How close to the tower's foot you must stand to take the elevator up.
+const TOWER_RADIUS = 6;
+// Where the observation-deck camera sits, and what it looks at.
+const DECK_HEIGHT = 46;
+const DECK_PULLBACK = 26;
+// Riders stand on the car's running board, a step above the street.
+const RIDE_HEIGHT = 0.3;
+
+/** What pressing E would do from where the player is standing. */
+export type InteractionKind = "exhibit" | "board" | "alight" | "lookout" | "descend" | null;
 
 export type WorldSceneProps = {
   readonly keysRef: RefObject<Set<string>>;
@@ -64,6 +80,16 @@ export type WorldSceneProps = {
   readonly onCollect: (id: string) => void;
   readonly visitedRef: RefObject<readonly string[]>;
   readonly onExplore: (visited: readonly string[]) => void;
+  readonly season: Season;
+  // Set true by the page when E is pressed; the scene decides what it means.
+  readonly interactRef: RefObject<boolean>;
+  readonly onVisitExhibit: (featureId: string) => void;
+  // What E would do right now, for the HUD prompt.
+  readonly onInteractionChange: (kind: InteractionKind, label: string | null) => void;
+  readonly onRideChange: (riding: boolean) => void;
+  readonly onLookoutChange: (active: boolean) => void;
+  // Set by the lookout panel to warp the explorer to an exhibit.
+  readonly teleportRef: RefObject<Vec2 | null>;
 };
 
 const rotate = (input: MoveInput, angle: number): MoveInput => ({
@@ -97,6 +123,13 @@ export default function WorldScene({
   onCollect,
   visitedRef,
   onExplore,
+  season,
+  interactRef,
+  onVisitExhibit,
+  onInteractionChange,
+  onRideChange,
+  onLookoutChange,
+  teleportRef,
 }: WorldSceneProps) {
   const outerRef = useRef<Group>(null);
   const bobRef = useRef<Group>(null);
@@ -114,6 +147,9 @@ export default function WorldScene({
   const routeRef = useRef<{ forId: string; waypoints: readonly Vec2[]; leg: number } | null>(null);
   const trailRef = useRef<readonly TrailPoint[]>([]);
   const camFractionRef = useRef(1);
+  const ridingRef = useRef(false);
+  const lookoutRef = useRef(false);
+  const interactionRef = useRef<InteractionKind>(null);
 
   useFrame(({ camera, clock }, dt) => {
     const state = stateRef.current;
@@ -121,6 +157,112 @@ export default function WorldScene({
     const joystick = joystickRef.current ?? { x: 0, z: 0 };
     const userMoving =
       keys.x !== 0 || keys.z !== 0 || keys.jump || joystick.x !== 0 || joystick.z !== 0;
+
+    // Fast travel from the tower lookout drops the explorer at a booth.
+    const warp = teleportRef.current;
+    if (warp) {
+      teleportRef.current = null;
+      stateRef.current = {
+        position: { x: warp.x, z: warp.z },
+        velocity: { x: 0, z: 0 },
+        heading: Math.PI,
+        y: 0,
+        vy: 0,
+      };
+      ridingRef.current = false;
+      lookoutRef.current = false;
+      onRideChange(false);
+      onLookoutChange(false);
+      trailRef.current = [];
+      return;
+    }
+
+    const car = streetcarAt(clock.elapsedTime);
+
+    // Context-sensitive E: get off the car, come down from the tower, board a
+    // passing 501, ride the elevator up, or visit the exhibit you're standing at.
+    if (interactRef.current) {
+      interactRef.current = false;
+      if (ridingRef.current) {
+        ridingRef.current = false;
+        onRideChange(false);
+        stateRef.current = {
+          position: { x: car.x, z: car.z + RIDE_OFFSET - 1.4 },
+          velocity: { x: 0, z: 0 },
+          heading: Math.PI,
+          y: 0,
+          vy: 0,
+        };
+      } else if (lookoutRef.current) {
+        lookoutRef.current = false;
+        onLookoutChange(false);
+      } else {
+        const tower = LANDMARKS.cnTower;
+        const atTower =
+          Math.hypot(state.position.x - tower.x, state.position.z - tower.z) < TOWER_RADIUS;
+        const stop = nearestStop(state.position);
+        const carIsHere = stop ? carIsAtStop(car, stop) : false;
+        if (atTower) {
+          lookoutRef.current = true;
+          onLookoutChange(true);
+        } else if (stop && carIsHere) {
+          ridingRef.current = true;
+          onRideChange(true);
+        } else if (activeIdRef.current) {
+          onVisitExhibit(activeIdRef.current);
+        }
+      }
+    }
+
+    // Riding: the explorer is carried by the car until they hop off.
+    if (ridingRef.current) {
+      const riding: PlayerState = {
+        position: { x: car.x, z: car.z + RIDE_OFFSET },
+        velocity: { x: car.direction * 9, z: 0 },
+        heading: car.direction > 0 ? Math.PI / 2 : -Math.PI / 2,
+        y: RIDE_HEIGHT,
+        vy: 0,
+      };
+      stateRef.current = riding;
+      const outerRiding = outerRef.current;
+      if (outerRiding) {
+        outerRiding.position.set(riding.position.x, riding.y, riding.position.z);
+        outerRiding.rotation.y = riding.heading;
+      }
+      motionRef.current.stride = 0;
+      motionRef.current.air = 0;
+      if (playerRef.current) {
+        playerRef.current.x = riding.position.x;
+        playerRef.current.z = riding.position.z;
+        playerRef.current.heading = riding.heading;
+      }
+      const anchorRide = { x: riding.position.x, y: 2.6, z: riding.position.z };
+      const blendRide = 1 - Math.exp(-CAMERA_LAG * dt);
+      camera.position.x += (anchorRide.x + CAMERA_OFFSET.x - camera.position.x) * blendRide;
+      camera.position.y += (CAMERA_OFFSET.y - camera.position.y) * blendRide;
+      camera.position.z += (anchorRide.z + CAMERA_OFFSET.z - camera.position.z) * blendRide;
+      camera.lookAt(anchorRide.x, anchorRide.y, anchorRide.z);
+      if (interactionRef.current !== "alight") {
+        interactionRef.current = "alight";
+        onInteractionChange("alight", "hop off the 501");
+      }
+      return;
+    }
+
+    // Up the tower: the city laid out below, movement parked.
+    if (lookoutRef.current) {
+      const tower = LANDMARKS.cnTower;
+      const blendUp = 1 - Math.exp(-1.8 * dt);
+      camera.position.x += (tower.x - camera.position.x) * blendUp;
+      camera.position.y += (DECK_HEIGHT - camera.position.y) * blendUp;
+      camera.position.z += (tower.z + DECK_PULLBACK - camera.position.z) * blendUp;
+      camera.lookAt(0, 0, -6);
+      if (interactionRef.current !== "descend") {
+        interactionRef.current = "descend";
+        onInteractionChange("descend", "take the elevator down");
+      }
+      return;
+    }
 
     // Exhibit speedrun: steer straight at the target, veer along walls when
     // wedged, and hand control back the moment the user touches anything.
@@ -271,6 +413,31 @@ export default function WorldScene({
       activeIdRef.current = nearestId;
       onActiveExhibit(nearestId);
     }
+
+    // Tell the HUD what E would do from here.
+    const tower = LANDMARKS.cnTower;
+    const atTower =
+      Math.hypot(next.position.x - tower.x, next.position.z - tower.z) < TOWER_RADIUS;
+    const stop = nearestStop(next.position);
+    const carIsHere = stop ? carIsAtStop(car, stop) : false;
+    const kind: InteractionKind = atTower
+      ? "lookout"
+      : stop && carIsHere
+        ? "board"
+        : nearestId
+          ? "exhibit"
+          : null;
+    if (kind !== interactionRef.current) {
+      interactionRef.current = kind;
+      onInteractionChange(
+        kind,
+        kind === "lookout"
+          ? "ride up the CN Tower"
+          : kind === "board"
+            ? `board the 501 at ${stop?.name ?? "the stop"}`
+            : null,
+      );
+    }
   });
 
   return (
@@ -284,8 +451,13 @@ export default function WorldScene({
         color={preset.sun.color}
       />
       <ambientLight intensity={preset.ambient.intensity} color={preset.ambient.color} />
-      <CityScene prefersReduced={prefersReduced} preset={preset} />
-      <Landmarks prefersReduced={prefersReduced} preset={preset} />
+      <CityScene prefersReduced={prefersReduced} preset={preset} season={season} />
+      <Landmarks
+        prefersReduced={prefersReduced}
+        preset={preset}
+        festive={SEASON_DRESSING[season].festive}
+      />
+      <Raccoons playerRef={playerRef} prefersReduced={prefersReduced} />
       <Exhibits playerRef={playerRef} prefersReduced={prefersReduced} activeIdRef={activeIdRef} />
       {ghostPath && !prefersReduced && peers.length === 0 && <GhostPlayer path={ghostPath} />}
       {!prefersReduced && <Trail pointsRef={trailRef} color={outfit.accent} />}
