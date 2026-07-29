@@ -158,7 +158,7 @@ function Minimap({
       </p>
       <svg
         viewBox={`${WORLD_BOUNDS.minX} ${WORLD_BOUNDS.minZ} 156 144`}
-        className="block h-[116px] w-[144px] overflow-hidden rounded-lg bg-black/40"
+        className="block h-[104px] w-full overflow-hidden rounded-lg bg-black/40"
         aria-label="Minimap of the city with exhibit locations"
         role="img"
       >
@@ -442,6 +442,7 @@ export default function WorldContent() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [runningTo, setRunningTo] = useState<string | null>(null);
   const [arrivedAt, setArrivedAt] = useState<string | null>(null);
+  const [listOpen, setListOpen] = useState(false);
   const activeIdRef = useRef<string | null>(null);
   const playerRef = useRef<PlayerSnapshot>({ x: SPAWN.x, z: SPAWN.z, heading: Math.PI });
   const joystickRef = useRef<JoystickState>({ x: 0, z: 0 });
@@ -640,9 +641,11 @@ export default function WorldContent() {
         </p>
       </div>
 
-      {/* right rail: one column top to bottom, so nothing can overlap */}
+      {/* Right rail: one column of equal-width panels. Opening the exhibit
+          list takes the space the outfit and fidelity panels were using, so
+          the rail itself never needs a scrollbar. */}
       <div
-        className="pointer-events-none absolute bottom-6 right-4 top-4 flex flex-col items-end gap-2"
+        className="pointer-events-none absolute bottom-6 right-4 top-4 flex w-44 flex-col items-stretch gap-2"
         hidden={photoMode}
       >
         <div className="pointer-events-auto shrink-0">
@@ -653,17 +656,17 @@ export default function WorldContent() {
           style={GLASS_STYLE}
         >
           🪙 {collected.length}/{COLLECTIBLES.length}
-          <span className="mx-1.5 text-white/25">·</span>
+          <span className="mx-1 text-white/25">·</span>
           {explorationPercent(visited)}%
-          <span className="mx-1.5 text-white/25">·</span>
-          <span className="text-white/55">
-            {SEASON_DRESSING[season].label} · {WEATHER_DRESSING[condition].label}
+          <span className="mx-1 text-white/25">·</span>
+          <span className="text-white/55" title={`${SEASON_DRESSING[season].label} · ${WEATHER_DRESSING[condition].label}`}>
+            {WEATHER_DRESSING[condition].label}
             {live.temperature !== null && !forcedWeather ? ` ${live.temperature}°` : ""}
           </span>
         </p>
         {peers.length > 0 && (
           <p
-            className="pointer-events-auto rounded-2xl px-3 py-1.5 text-[11px] text-white/75"
+            className="pointer-events-auto shrink-0 rounded-2xl px-3 py-1.5 text-[11px] text-white/75"
             style={GLASS_STYLE}
             role="status"
           >
@@ -671,13 +674,14 @@ export default function WorldContent() {
           </p>
         )}
         <details
-          className="pointer-events-auto flex min-h-0 w-[168px] shrink flex-col overflow-hidden rounded-2xl open:min-h-[7rem] open:flex-1"
+          className="pointer-events-auto shrink-0 overflow-hidden rounded-2xl"
           style={GLASS_STYLE}
+          onToggle={(e) => setListOpen(e.currentTarget.open)}
         >
-          <summary className="shrink-0 cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
+          <summary className="cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
             All exhibits
           </summary>
-          <ul className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+          <ul className="max-h-[min(18rem,38dvh)] overflow-y-auto overscroll-contain px-2 pb-2">
             {[...EXHIBITS]
               .sort((a, b) => Number(!!b.featured) - Number(!!a.featured))
               .map((exhibit) => {
@@ -718,10 +722,11 @@ export default function WorldContent() {
               })}
           </ul>
         </details>
-        {/* outfit picker */}
+        {/* outfit picker — yields to the exhibit list when it's open */}
         <div
-          className="pointer-events-auto mt-auto w-44 shrink-0 rounded-2xl p-3"
+          className="pointer-events-auto mt-auto shrink-0 rounded-2xl p-3"
           style={GLASS_STYLE}
+          hidden={listOpen}
         >
         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
           Outfit
@@ -790,9 +795,13 @@ export default function WorldContent() {
           </span>
         </button>
       </div>
-        {/* fidelity slider */}
-        <div className="pointer-events-auto w-44 shrink-0 rounded-2xl p-3" style={GLASS_STYLE}>
-        <div className="mb-1.5 flex items-center justify-between">
+        {/* fidelity slider — also yields to the exhibit list */}
+        <div
+          className="pointer-events-auto shrink-0 rounded-2xl p-3"
+          style={GLASS_STYLE}
+          hidden={listOpen}
+        >
+          <div className="mb-1.5 flex items-center justify-between">
           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">
             Fidelity
           </span>
