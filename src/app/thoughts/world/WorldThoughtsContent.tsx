@@ -125,6 +125,20 @@ export default function WorldThoughtsContent() {
         </p>
       </Section>
 
+      <Section title="The toys on top">
+        <p>
+          The world dresses for your clock — day, golden hour, or night,
+          computed from local time with night as the fallback. A fidelity
+          slider scales every curve from chunky low-poly to very smooth (it
+          feeds a context inside the canvas that geometry segment counts read).
+          The explorer has a wardrobe — Jays, Raptors, Tempo, and a silver
+          number 1 — plus a jump with real gravity in the tested core. And the
+          exhibit list doesn&rsquo;t teleport: it speed-runs the character
+          through the actual street grid, planned by a tiny road-graph router,
+          before opening the feature.
+        </p>
+      </Section>
+
       <Section title="A 3D page that screen readers can use">
         <p>
           The canvas is decoration by ARIA standards, so everything it can do
