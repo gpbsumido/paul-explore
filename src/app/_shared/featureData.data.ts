@@ -21,6 +21,15 @@ export const FEATURES: FeatureItem[] = [
     color: "#60a5fa",
   },
   {
+    id: "world",
+    title: "Explore Toronto",
+    description:
+      "A 3D low-poly downtown Toronto you walk through like an RPG \u2014 steer an explorer with WASD past the CN Tower and City Hall to glowing exhibits that open every feature on this site.",
+    href: "/world",
+    color: "#38bdf8",
+    thoughtsHref: "/thoughts/world",
+  },
+  {
     id: "design-system",
     title: "Design System",
     description:
@@ -452,6 +461,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "An arranger built pure-core-first: standard frame sizes, an aspect-matching auto-framer with a medium tie-break, a centered shelf-packing layout with overflow detection, and an inches-internal model with a cm toggle at the input edge",
     color: "#e879f9",
+  },
+  {
+    title: "Explore Toronto",
+    href: "/thoughts/world",
+    preview:
+      "A walkable 3D Toronto built from primitives: a TDD'd pure movement core, an R3F shell around it, a seeded procedural skyline over a real street grid, and exhibits that deep-link every feature",
+    color: "#38bdf8",
   },
 ].reverse();
 

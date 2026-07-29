@@ -681,12 +681,74 @@ export function GalleryWallPreview() {
   );
 }
 
+// A mini night skyline for the Explore Toronto card: CN Tower silhouette,
+// lit towers, exhibit dots, and the WASD keys that drive the world.
+export const WORLD_SKYLINE = [
+  { x: 6, w: 9, h: 22 },
+  { x: 17, w: 7, h: 30 },
+  { x: 40, w: 8, h: 26 },
+  { x: 50, w: 10, h: 34 },
+  { x: 62, w: 7, h: 20 },
+  { x: 80, w: 9, h: 28 },
+  { x: 91, w: 6, h: 16 },
+] as const;
+
+export const WORLD_DOTS = [
+  { x: 20, color: "#f59e0b" },
+  { x: 45, color: "#22c55e" },
+  { x: 68, color: "#e879f9" },
+  { x: 88, color: "#f43f5e" },
+] as const;
+
+export function WorldPreview() {
+  return (
+    <div className="flex h-full flex-col justify-between">
+      <svg viewBox="0 0 100 44" className="w-full" aria-hidden>
+        <rect x="0" y="0" width="100" height="44" rx="4" fill="#0b1220" />
+        {WORLD_SKYLINE.map((b) => (
+          <rect
+            key={b.x}
+            x={b.x}
+            y={42 - b.h}
+            width={b.w}
+            height={b.h}
+            fill="#2c3850"
+          />
+        ))}
+        {/* CN Tower */}
+        <rect x="31" y="10" width="2" height="32" fill="#4a5878" />
+        <ellipse cx="32" cy="14" rx="3.2" ry="2" fill="#5c6c90" />
+        <rect x="31.6" y="4" width="0.8" height="6" fill="#4a5878" />
+        <circle cx="32" cy="4" r="0.9" fill="#f43f5e" />
+        {WORLD_DOTS.map((d) => (
+          <circle key={d.x} cx={d.x} cy={40} r={1.6} fill={d.color} />
+        ))}
+        <rect x="0" y="42" width="100" height="2" fill="#12263f" />
+      </svg>
+      <div className="flex items-center justify-center gap-1 pt-1.5">
+        {["W", "A", "S", "D"].map((key) => (
+          <span
+            key={key}
+            className="rounded border border-black/15 bg-black/5 px-1.5 py-0.5 font-mono text-[8px] font-bold text-black/50 dark:border-white/15 dark:bg-white/10 dark:text-white/60"
+          >
+            {key}
+          </span>
+        ))}
+        <span className="ml-1 text-[8px] text-black/40 dark:text-white/40">
+          walk the city
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Maps & tokens
 // ---------------------------------------------------------------------------
 
 // Maps feature.id to its design-token CSS variable name.
 export const FEATURE_TOKEN: Record<string, string> = {
+  world: "--color-feature-world",
   "fantasy-nba": "--color-feature-nba",
   pokemon: "--color-feature-tcg",
   calendar: "--color-feature-calendar",
@@ -704,6 +766,7 @@ export const FEATURE_TOKEN: Record<string, string> = {
 
 // Keyed by feature.id so FeatureCard can look up the right preview without a switch.
 export const PREVIEW_MAP: Record<string, React.ComponentType> = {
+  world: WorldPreview,
   "fantasy-nba": PlayoffsPreview,
   pokemon: PokemonPreview,
   calendar: CalendarPreview,

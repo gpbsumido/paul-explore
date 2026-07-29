@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-07-29 - version 2.9.0
+
+Release to production. Rolls up everything since 2.3.0, all of it the same feature: **Explore Toronto**, a walkable 3D low-poly downtown at `/world` where every landmark hosts one of this site's features.
+
+- **The world itself.** A night-time downtown built from primitives over the real street grid -- Yonge, Queen, Spadina, University, Front -- with the CN Tower, City Hall, Union, the arena, OCAD and the Gooderham flatiron built by hand and the blocks between them filled by a seeded generator (the seed is 416). Every texture is drawn on a canvas at mount, so nothing is downloaded. The whole game core -- movement, collision, proximity, routing -- is pure functions in `src/lib/world`, TDD'd without ever mounting a canvas; the R3F layer only copies results onto three.js objects.
+- **Ghost stroll**, the multiplayer-shaped feature with no infrastructure: a translucent replay of your own last walk, sampled and stored locally, or a generated tour of six exhibits on a first visit.
+- **Live presence.** With a realtime key configured, other visitors walk the same city as outfit-coloured explorers with curated animal names -- snapshots throttled to ten a second, zod-checked at the boundary, interpolated a beat behind, gone after five silent seconds. Without a key your own other tabs count as company. Behind a real flag in the flag console; the ghost covers the empty room.
+- **Reasons to keep walking**: twenty-five TTC tokens hidden around the city (three of them only reachable by jumping), a minimap that starts fogged and clears block by block, and a camera that stops hiding behind buildings.
+- **City life**: ride the 501 Queen, take the CN Tower elevator to an observation deck that will walk you to any landmark, and meet the raccoons that scurry off when you get close.
+- **Real weather and a photo mode.** The city reads the live forecast through the site's existing weather hook -- rain, snow, thicker fog, storm lightning -- and photo mode drops the HUD for a free orbit and a working shutter.
+- **A costume you have to earn** by sweeping every street for tokens, plus roof rides on the streetcar and a guided walk that asks before it opens anything.
+- **Sound with nothing to download.** Every sound is synthesised in the browser: filtered noise for traffic and the lake, detuned saws for the streetcar motor, noise bursts for footsteps. The mix is a pure function of where you stand, and snow muffles the city. No audio files at all.
+- **A HUD that works on a phone.** The rail, the placard and the site menu used to land on each other on a 390px screen. Phones now get three bands -- menu and one toggle up top, cards in the middle, joystick and E/Jump on the bottom corners -- with the whole rail behind that toggle as a sheet. Touch also gained an **E** button, without which the streetcar and the elevator were unreachable. The page also stopped subtracting a 3.5rem header it never had, which was a white strip under the city in light theme.
+- Accessibility: the canvas is decoration, so everything it does has a DOM twin -- an "All exhibits" panel of real links (also the no-WebGL fallback), a real `<Link>` in the placard, a labelled SVG minimap. Geometry on phones is verified in a real browser at 390x844, since jsdom has no layout engine.
+
 ## 2026-07-28 - version 2.3.0
 
 - ran a second tree-shaking and efficiency pass. Both dead-code checks (`depcheck`, `ts-prune`) were already green, framer-motion already runs on the lazy `m` build, and every Three.js scene is code-split behind `ssr: false`, so the only weight left was live code dragging unused barrel siblings along. Named the four barrel packages Next doesn't optimize by default (`@paul-portfolio/react`, `@react-three/drei`, `@unovis/react`, `framer-motion`) in `experimental.optimizePackageImports`, which trimmed total client JS from 13,468 KB to 13,320 KB (-148 KB) with no source changes.
