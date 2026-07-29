@@ -1,0 +1,78 @@
+import type { MoveInput, PlayerState, RectCollider, Vec2 } from "@/types/world";
+import { resolveColliders } from "./colliders";
+
+export const PLAYER_RADIUS = 0.55;
+export const WALK_SPEED = 7;
+export const RUN_MULTIPLIER = 1.65;
+
+// Exponential smoothing rates (per second). Higher = snappier.
+const ACCEL_RATE = 8;
+const TURN_RATE = 12;
+
+// Above this dt the browser was almost certainly backgrounded; integrating it
+// would teleport the player, so treat it as a single normal frame.
+const MAX_DT = 1 / 20;
+
+// Walkable extent of downtown. The lake starts past maxZ, Queen's Park sits
+// near minZ.
+export const WORLD_BOUNDS = { minX: -78, maxX: 78, minZ: -78, maxZ: 60 } as const;
+
+const rotateY = (v: Vec2, angle: number): Vec2 => ({
+  x: v.x * Math.cos(angle) + v.z * Math.sin(angle),
+  z: -v.x * Math.sin(angle) + v.z * Math.cos(angle),
+});
+
+const shortestArc = (from: number, to: number) => {
+  const raw = (to - from) % (Math.PI * 2);
+  if (raw > Math.PI) return raw - Math.PI * 2;
+  if (raw < -Math.PI) return raw + Math.PI * 2;
+  return raw;
+};
+
+type StepOptions = {
+  readonly state: PlayerState;
+  readonly input: MoveInput;
+  // Y rotation of the follow camera; movement input is relative to it.
+  readonly cameraYaw: number;
+  readonly colliders: readonly RectCollider[];
+  readonly dt: number;
+};
+
+/**
+ * Advances the player one frame: camera-relative acceleration with exponential
+ * approach to top speed, friction when idle, collision pushout with sliding,
+ * bounds clamping, and shortest-arc turning toward the direction of travel.
+ * Pure and frame-rate independent.
+ */
+export function stepPlayer({ state, input, cameraYaw, colliders, dt }: StepOptions): PlayerState {
+  const clampedDt = Math.min(dt, MAX_DT);
+  const worldDir = rotateY({ x: input.x, z: input.z }, cameraYaw);
+  const topSpeed = WALK_SPEED * (input.running ? RUN_MULTIPLIER : 1);
+  const target = { x: worldDir.x * topSpeed, z: worldDir.z * topSpeed };
+
+  const blend = 1 - Math.exp(-ACCEL_RATE * clampedDt);
+  const velocity = {
+    x: state.velocity.x + (target.x - state.velocity.x) * blend,
+    z: state.velocity.z + (target.z - state.velocity.z) * blend,
+  };
+
+  const unclamped = {
+    x: state.position.x + velocity.x * clampedDt,
+    z: state.position.z + velocity.z * clampedDt,
+  };
+  const resolved = resolveColliders(unclamped, PLAYER_RADIUS, colliders);
+  const position = {
+    x: Math.min(Math.max(resolved.x, WORLD_BOUNDS.minX + PLAYER_RADIUS), WORLD_BOUNDS.maxX - PLAYER_RADIUS),
+    z: Math.min(Math.max(resolved.z, WORLD_BOUNDS.minZ + PLAYER_RADIUS), WORLD_BOUNDS.maxZ - PLAYER_RADIUS),
+  };
+
+  const speed = Math.hypot(velocity.x, velocity.z);
+  const heading =
+    speed < 0.1
+      ? state.heading
+      : state.heading +
+        shortestArc(state.heading, Math.atan2(velocity.x, velocity.z)) *
+          (1 - Math.exp(-TURN_RATE * clampedDt));
+
+  return { position, velocity, heading };
+}
