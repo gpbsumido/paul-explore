@@ -23,6 +23,11 @@ describe("world exhibits", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it("crowns exactly one main exhibition", () => {
+    const featured = EXHIBITS.filter((e) => e.featured);
+    expect(featured.map((e) => e.featureId)).toEqual(["work-portfolio"]);
+  });
+
   it("gives every exhibit a landmark and a placard blurb", () => {
     for (const exhibit of EXHIBITS) {
       expect(exhibit.landmark.length).toBeGreaterThan(0);

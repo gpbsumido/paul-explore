@@ -50,7 +50,8 @@ export const STREETCAR_ROUTE = { z: -12, minX: -72, maxX: 72 } as const;
 
 // Anchor points the scene builds its bespoke landmark meshes around.
 export const LANDMARKS = {
-  cnTower: { x: -38, z: 42 },
+  // right beside the Rogers Centre, as in life
+  cnTower: { x: -44, z: 42 },
   rogersCentre: { x: -58, z: 44 },
   scotiabankArena: { x: 6, z: 46 },
   unionStation: { x: -14, z: 36 },
@@ -60,11 +61,13 @@ export const LANDMARKS = {
   ydBillboards: { x: 28, z: -44 },
   ago: { x: -46, z: -28 },
   ocad: { x: -44, z: -18 },
-  flatiron: { x: 50, z: 20 },
+  // the Gooderham sits WEST of Church, its point aimed at downtown
+  flatiron: { x: 36, z: 20 },
   stLawrenceMarket: { x: 56, z: 36.5 },
   queensPark: { x: -30, z: -70 },
   kensington: { x: -70, z: -48 },
-  campus: { x: 0, z: -74 },
+  // King's College Circle sits west of Queen's Park in real life.
+  campus: { x: -46, z: -72 },
 } as const;
 
 // Footprints of the hand-built landmark meshes. OCAD is deliberately absent —
@@ -82,12 +85,12 @@ const LANDMARK_COLLIDERS: readonly RectCollider[] = [
   { x: 28, z: -44, halfX: 6, halfZ: 4 }, // Yonge-Dundas billboard block
   { x: -14, z: 36, halfX: 11, halfZ: 3 }, // Union Station
   { x: 6, z: 46, halfX: 7, halfZ: 4 }, // Scotiabank Arena
-  { x: -38, z: 42, halfX: 2.5, halfZ: 2.5 }, // CN Tower base
+  { x: -44, z: 42, halfX: 2.5, halfZ: 2.5 }, // CN Tower base
   { x: -58, z: 44, halfX: 9, halfZ: 8 }, // Rogers Centre
   { x: 56, z: 36.5, halfX: 8, halfZ: 3.5 }, // St. Lawrence Market
-  { x: 50, z: 20, halfX: 3, halfZ: 2 }, // Gooderham Flatiron
-  { x: -8, z: -74, halfX: 4, halfZ: 2.5 }, // U of T halls
-  { x: 8, z: -74, halfX: 4, halfZ: 2.5 },
+  { x: 36, z: 20, halfX: 3, halfZ: 2 }, // Gooderham Flatiron
+  { x: -52, z: -73, halfX: 4, halfZ: 2.5 }, // U of T halls
+  { x: -40, z: -76, halfX: 3.5, halfZ: 2.5 },
 ];
 
 // Open ground the generator must leave alone: plazas, parks, the spawn point,
@@ -97,8 +100,8 @@ const RESERVED: readonly RectCollider[] = [
   { x: -44, z: -18, halfX: 7, halfZ: 3.5 }, // OCAD tabletop shadow
   { x: -18, z: -20, halfX: 10, halfZ: 7 }, // Nathan Phillips Square
   { x: 28, z: -27, halfX: 8, halfZ: 6 }, // Yonge-Dundas Square
-  { x: -30, z: -68, halfX: 12, halfZ: 10 }, // Queen's Park green
-  { x: 0, z: -71, halfX: 13, halfZ: 8 }, // campus green
+  { x: -30, z: -68, halfX: 15, halfZ: 12 }, // Queen's Park green
+  { x: -46, z: -71, halfX: 11, halfZ: 8 }, // campus green
   { x: -70, z: -48, halfX: 9, halfZ: 9 }, // Kensington laneways
   { x: SPAWN.x, z: SPAWN.z, halfX: 4, halfZ: 4 },
   ...EXHIBITS.map((e) => ({ x: e.position.x, z: e.position.z, halfX: 3.5, halfZ: 3.5 })),
@@ -152,17 +155,33 @@ const buildingsForCell = (cellIndex: number, x0: number, x1: number, z0: number,
   if (innerW < 6 || innerD < 6) return [];
 
   const draw = (slot: number) => randAt(cellIndex * 64 + slot);
-  const count = 2 + Math.floor(draw(0) * 3);
 
-  return Array.from({ length: count }, (_, i) => {
-    const width = Math.min(5 + draw(i * 6 + 1) * 9, innerW);
-    const depth = Math.min(5 + draw(i * 6 + 2) * 9, innerD);
-    const x = innerX0 + width / 2 + draw(i * 6 + 3) * (innerW - width);
-    const z = innerZ0 + depth / 2 + draw(i * 6 + 4) * (innerD - depth);
+  // One building per quadrant of the block. Disjoint slots mean buildings can
+  // never intersect each other — interpenetrating boxes put two window facades
+  // in the same plane, and that z-fighting reads as flicker.
+  const quadrants = [0, 1, 2, 3].map((q) => ({
+    x0: innerX0 + (q % 2) * (innerW / 2),
+    z0: innerZ0 + Math.floor(q / 2) * (innerD / 2),
+    w: innerW / 2,
+    d: innerD / 2,
+  }));
+
+  return quadrants.reduce<BuildingSpec[]>((placed, slot, i) => {
+    if (draw(i * 8) < 0.18) return placed; // leave the odd empty lot
+    const maxW = slot.w - 1;
+    const maxD = slot.d - 1;
+    if (maxW < 4 || maxD < 4) return placed;
+    const width = Math.min(4.5 + draw(i * 8 + 1) * 8, maxW);
+    const depth = Math.min(4.5 + draw(i * 8 + 2) * 8, maxD);
+    const x = slot.x0 + 0.5 + width / 2 + draw(i * 8 + 3) * (maxW - width);
+    const z = slot.z0 + 0.5 + depth / 2 + draw(i * 8 + 4) * (maxD - depth);
     const footprint = { x, z, halfX: width / 2, halfZ: depth / 2 };
-    if (RESERVED.some((zone) => inflatedOverlap(footprint, zone, 1.5))) return null;
-    return { x, z, width, depth, height: heightFor(x, z, draw(i * 6 + 5)), tint: draw(i * 6 + 6) };
-  }).filter((b): b is BuildingSpec => b !== null);
+    if (RESERVED.some((zone) => inflatedOverlap(footprint, zone, 1.5))) return placed;
+    return [
+      ...placed,
+      { x, z, width, depth, height: heightFor(x, z, draw(i * 8 + 5)), tint: draw(i * 8 + 6) },
+    ];
+  }, []);
 };
 
 export const BUILDINGS: readonly BuildingSpec[] = NS_EDGES.slice(0, -1).flatMap((x0, i) =>

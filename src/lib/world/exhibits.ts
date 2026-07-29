@@ -8,7 +8,7 @@ export const EXHIBITS: readonly WorldExhibit[] = [
     featureId: "particles",
     landmark: "CN Tower",
     blurb: "The tower's LED show, bottled — an interactive particle network you can steer.",
-    position: { x: -38, z: 37 },
+    position: { x: -44, z: 37 },
   },
   {
     featureId: "fantasy-nba",
@@ -21,6 +21,7 @@ export const EXHIBITS: readonly WorldExhibit[] = [
     landmark: "Union Station",
     blurb: "Every commute ends somewhere — rebuilt features from a decade of past products.",
     position: { x: -14, z: 31.5 },
+    featured: true,
   },
   {
     featureId: "calendar",
@@ -62,7 +63,7 @@ export const EXHIBITS: readonly WorldExhibit[] = [
     featureId: "craft",
     landmark: "Gooderham Flatiron",
     blurb: "Built in 1892, still standing: the traits of a lead front-end dev, with receipts.",
-    position: { x: 50, z: 24.5 },
+    position: { x: 36, z: 24.5 },
   },
   {
     featureId: "flags",
@@ -74,6 +75,6 @@ export const EXHIBITS: readonly WorldExhibit[] = [
     featureId: "learn",
     landmark: "University of Toronto",
     blurb: "Lecture hall optional: interactive deep-dives into algorithms and patterns.",
-    position: { x: 0, z: -68 },
+    position: { x: -46, z: -68 },
   },
 ];
