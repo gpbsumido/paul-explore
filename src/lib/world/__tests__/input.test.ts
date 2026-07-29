@@ -5,14 +5,24 @@ const keys = (...codes: string[]) => new Set(codes);
 
 describe("directionFromKeys", () => {
   it("returns no movement when nothing is pressed", () => {
-    expect(directionFromKeys(keys())).toEqual({ x: 0, z: 0, running: false });
+    expect(directionFromKeys(keys())).toEqual({ x: 0, z: 0, running: false, jump: false });
   });
 
   it("maps WASD to camera-space directions", () => {
-    expect(directionFromKeys(keys("KeyW"))).toEqual({ x: 0, z: -1, running: false });
-    expect(directionFromKeys(keys("KeyS"))).toEqual({ x: 0, z: 1, running: false });
-    expect(directionFromKeys(keys("KeyA"))).toEqual({ x: -1, z: 0, running: false });
-    expect(directionFromKeys(keys("KeyD"))).toEqual({ x: 1, z: 0, running: false });
+    expect(directionFromKeys(keys("KeyW"))).toEqual({ x: 0, z: -1, running: false, jump: false });
+    expect(directionFromKeys(keys("KeyS"))).toEqual({ x: 0, z: 1, running: false, jump: false });
+    expect(directionFromKeys(keys("KeyA"))).toEqual({ x: -1, z: 0, running: false, jump: false });
+    expect(directionFromKeys(keys("KeyD"))).toEqual({ x: 1, z: 0, running: false, jump: false });
+  });
+
+  it("flags a jump while space is held", () => {
+    expect(directionFromKeys(keys("Space")).jump).toBe(true);
+    expect(directionFromKeys(keys("KeyW", "Space"))).toEqual({
+      x: 0,
+      z: -1,
+      running: false,
+      jump: true,
+    });
   });
 
   it("maps arrow keys the same as WASD", () => {
@@ -30,8 +40,18 @@ describe("directionFromKeys", () => {
   });
 
   it("cancels opposing keys", () => {
-    expect(directionFromKeys(keys("KeyW", "KeyS"))).toEqual({ x: 0, z: 0, running: false });
-    expect(directionFromKeys(keys("KeyA", "KeyD", "KeyW"))).toEqual({ x: 0, z: -1, running: false });
+    expect(directionFromKeys(keys("KeyW", "KeyS"))).toEqual({
+      x: 0,
+      z: 0,
+      running: false,
+      jump: false,
+    });
+    expect(directionFromKeys(keys("KeyA", "KeyD", "KeyW"))).toEqual({
+      x: 0,
+      z: -1,
+      running: false,
+      jump: false,
+    });
   });
 
   it("flags running while shift is held", () => {
@@ -41,10 +61,11 @@ describe("directionFromKeys", () => {
   });
 
   it("ignores unrelated keys", () => {
-    expect(directionFromKeys(keys("KeyQ", "Space", "Enter"))).toEqual({
+    expect(directionFromKeys(keys("KeyQ", "KeyZ", "Enter"))).toEqual({
       x: 0,
       z: 0,
       running: false,
+      jump: false,
     });
   });
 });

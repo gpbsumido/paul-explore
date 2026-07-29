@@ -2,12 +2,16 @@ import type { MoveInput, PlayerState, RectCollider, Vec2 } from "@/types/world";
 import { resolveColliders } from "./colliders";
 
 export const PLAYER_RADIUS = 0.55;
-export const WALK_SPEED = 7;
-export const RUN_MULTIPLIER = 1.65;
+export const WALK_SPEED = 10;
+export const RUN_MULTIPLIER = 1.8;
 
 // Exponential smoothing rates (per second). Higher = snappier.
-const ACCEL_RATE = 8;
+const ACCEL_RATE = 10;
 const TURN_RATE = 12;
+
+// Jump tuning: v²/2g puts the apex a bit over two units up.
+const GRAVITY = 34;
+const JUMP_SPEED = 12;
 
 // Above this dt the browser was almost certainly backgrounded; integrating it
 // would teleport the player, so treat it as a single normal frame.
@@ -36,6 +40,8 @@ type StepOptions = {
   readonly cameraYaw: number;
   readonly colliders: readonly RectCollider[];
   readonly dt: number;
+  // Multiplies top speed; the exhibit speedrun uses > 1.
+  readonly speedScale?: number;
 };
 
 /**
@@ -44,10 +50,17 @@ type StepOptions = {
  * bounds clamping, and shortest-arc turning toward the direction of travel.
  * Pure and frame-rate independent.
  */
-export function stepPlayer({ state, input, cameraYaw, colliders, dt }: StepOptions): PlayerState {
+export function stepPlayer({
+  state,
+  input,
+  cameraYaw,
+  colliders,
+  dt,
+  speedScale = 1,
+}: StepOptions): PlayerState {
   const clampedDt = Math.min(dt, MAX_DT);
   const worldDir = rotateY({ x: input.x, z: input.z }, cameraYaw);
-  const topSpeed = WALK_SPEED * (input.running ? RUN_MULTIPLIER : 1);
+  const topSpeed = WALK_SPEED * (input.running ? RUN_MULTIPLIER : 1) * speedScale;
   const target = { x: worldDir.x * topSpeed, z: worldDir.z * topSpeed };
 
   const blend = 1 - Math.exp(-ACCEL_RATE * clampedDt);
@@ -74,5 +87,11 @@ export function stepPlayer({ state, input, cameraYaw, colliders, dt }: StepOptio
         shortestArc(state.heading, Math.atan2(velocity.x, velocity.z)) *
           (1 - Math.exp(-TURN_RATE * clampedDt));
 
-  return { position, velocity, heading };
+  const grounded = state.y <= 0 && state.vy <= 0;
+  const launched = grounded && input.jump;
+  const vy = launched ? JUMP_SPEED : state.vy - GRAVITY * clampedDt;
+  const y = grounded && !launched ? 0 : Math.max(0, state.y + vy * clampedDt);
+  const settled = y === 0 && vy < 0;
+
+  return { position, velocity, heading, y, vy: settled ? 0 : vy };
 }

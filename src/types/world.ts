@@ -22,6 +22,9 @@ export type PlayerState = {
   // Y rotation in radians. 0 faces +z, matching atan2(v.x, v.z), so the avatar
   // group can use it directly as rotation.y.
   readonly heading: number;
+  // Height above the ground and vertical speed, for jumping.
+  readonly y: number;
+  readonly vy: number;
 };
 
 // Camera-space move intent: x is strafe (right positive), z is forward/back
@@ -30,6 +33,7 @@ export type MoveInput = {
   readonly x: number;
   readonly z: number;
   readonly running: boolean;
+  readonly jump: boolean;
 };
 
 export type WorldExhibit = {
@@ -41,4 +45,7 @@ export type WorldExhibit = {
   // One-line placard blurb, written for the world (not the hub description).
   readonly blurb: string;
   readonly position: Vec2;
+  // The main exhibition gets the grand treatment (bigger ring, banner, star
+  // on the minimap). Exactly one exhibit carries this.
+  readonly featured?: boolean;
 };

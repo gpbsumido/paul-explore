@@ -13,6 +13,7 @@ const MOVEMENT_CODES = new Set([
   "ArrowRight",
   "ShiftLeft",
   "ShiftRight",
+  "Space",
 ]);
 
 const isTypingTarget = (target: EventTarget | null) =>
