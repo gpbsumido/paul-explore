@@ -68,6 +68,31 @@ function seedFlags(): Flag[] {
       },
     },
     {
+      key: "world-live-presence",
+      name: "World live presence",
+      description:
+        "Kill switch for live multiplayer presence on /world — other explorers rendered from realtime snapshots. A real flag: off means visitors walk the city alone and the ghost stroll takes back over.",
+      real: true,
+      kind: "boolean",
+      tags: ["world", "release"],
+      variations: [...BOOLEAN],
+      createdAt: "2026-07-29T12:00:00.000Z",
+      environments: {
+        development: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+        staging: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+        production: boolEnv({
+          enabled: true,
+          fallthrough: [{ variation: "on", weight: 100 }],
+        }),
+      },
+    },
+    {
       key: "new-checkout",
       name: "New checkout flow",
       description:
