@@ -53,17 +53,19 @@ export const COLLECTIBLES: readonly Collectible[] = [
 
 /**
  * The token under the player, if any: within reach, not yet collected, and —
- * for elevated tokens — only while airborne.
+ * for elevated tokens — only when the player can actually get up there, by
+ * jumping or by being tall enough that `reach` covers it.
  */
 export function findCollectible(
   pos: Vec2,
   playerY: number,
   collected: readonly string[],
+  reach = 0,
 ): Collectible | null {
   return (
     COLLECTIBLES.find((token) => {
       if (collected.includes(token.id)) return false;
-      if (token.elevated && playerY < ELEVATED_MIN_Y) return false;
+      if (token.elevated && playerY + reach < ELEVATED_MIN_Y) return false;
       return Math.hypot(token.x - pos.x, token.z - pos.z) <= PICKUP_RADIUS;
     }) ?? null
   );
