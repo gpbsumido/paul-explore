@@ -146,6 +146,18 @@ export default function WorldThoughtsContent() {
           shape, and replay interpolation are exactly the pieces a live
           presence layer would reuse.
         </p>
+        <p className="mt-3">
+          And now it does: with a realtime key configured, other live visitors
+          walk the same city as outfit-colored explorers with curated animal
+          names — snapshots throttled to ten a second, zod-checked at the
+          boundary, interpolated a beat behind so movement stays smooth, gone
+          after five silent seconds. Without a key, your own other tabs count
+          as company. It all sits behind a real flag in the{" "}
+          <Link href="/flags" className="underline underline-offset-2">
+            flag console
+          </Link>
+          , and when the room is empty the ghost takes the shift again.
+        </p>
       </Section>
 
       <Section title="A 3D page that screen readers can use">

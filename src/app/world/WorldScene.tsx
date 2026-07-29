@@ -13,7 +13,11 @@ import { nearestExhibit, INTERACT_RADIUS } from "@/lib/world/proximity";
 import { routeWaypoints } from "@/lib/world/routing";
 import { resolveColliders } from "@/lib/world/colliders";
 import { recordSample, type GhostPath, type GhostPoint } from "@/lib/world/ghost";
+import { pushTrailPoint, type TrailPoint } from "@/lib/world/trail";
 import GhostPlayer from "./GhostPlayer";
+import Trail from "./Trail";
+import RemoteExplorers from "./RemoteExplorers";
+import type { PeerMeta, PeerState } from "./presence/useWorldPresence";
 import type { JoystickState, PlayerSnapshot } from "./refs";
 import type { SkyPreset } from "./skyPresets";
 import type { Outfit } from "./outfits";
@@ -48,6 +52,9 @@ export type WorldSceneProps = {
   readonly recordingRef: RefObject<readonly GhostPoint[]>;
   // A previous stroll (or the generated tour) to haunt the city with.
   readonly ghostPath: GhostPath | null;
+  // Live visitors, if any — when someone real is here, the ghost stays home.
+  readonly peers: readonly PeerMeta[];
+  readonly peersRef: RefObject<Map<string, PeerState>>;
 };
 
 const rotate = (input: MoveInput, angle: number): MoveInput => ({
@@ -74,6 +81,8 @@ export default function WorldScene({
   onAutoRunEnd,
   recordingRef,
   ghostPath,
+  peers,
+  peersRef,
 }: WorldSceneProps) {
   const outerRef = useRef<Group>(null);
   const bobRef = useRef<Group>(null);
@@ -89,6 +98,7 @@ export default function WorldScene({
   const walkPhaseRef = useRef(0);
   const stuckForRef = useRef(0);
   const routeRef = useRef<{ forId: string; waypoints: readonly Vec2[]; leg: number } | null>(null);
+  const trailRef = useRef<readonly TrailPoint[]>([]);
 
   useFrame(({ camera, clock }, dt) => {
     const state = stateRef.current;
@@ -195,6 +205,14 @@ export default function WorldScene({
         t: clock.elapsedTime,
       });
     }
+    // The wake only grows while actually moving; standing still lets it fade.
+    if (!prefersReduced && speed > 1) {
+      trailRef.current = pushTrailPoint(trailRef.current, {
+        x: next.position.x,
+        z: next.position.z,
+        t: clock.elapsedTime,
+      });
+    }
 
     const targetX = next.position.x + next.velocity.x * LOOK_AHEAD;
     const targetZ = next.position.z + next.velocity.z * LOOK_AHEAD;
@@ -235,7 +253,9 @@ export default function WorldScene({
       <CityScene prefersReduced={prefersReduced} preset={preset} />
       <Landmarks prefersReduced={prefersReduced} preset={preset} />
       <Exhibits playerRef={playerRef} prefersReduced={prefersReduced} activeIdRef={activeIdRef} />
-      {ghostPath && !prefersReduced && <GhostPlayer path={ghostPath} />}
+      {ghostPath && !prefersReduced && peers.length === 0 && <GhostPlayer path={ghostPath} />}
+      {!prefersReduced && <Trail pointsRef={trailRef} color={outfit.accent} />}
+      <RemoteExplorers peers={peers} peersRef={peersRef} />
       <Player
         outerRef={outerRef}
         bobRef={bobRef}

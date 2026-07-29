@@ -14,12 +14,14 @@ import { currentTimeOfDay, type TimeOfDay } from "@/lib/world/daylight";
 import { spring, instantTransition } from "@/lib/animations";
 import { useWorldKeys } from "./useWorldKeys";
 import { OUTFITS, outfitById } from "./outfits";
+import { useWorldPresence } from "./presence/useWorldPresence";
 import {
   tourPath,
   MIN_REPLAY_POINTS,
   type GhostPath,
   type GhostPoint,
 } from "@/lib/world/ghost";
+import { explorerName } from "@/lib/world/presence";
 import type { JoystickState, PlayerSnapshot } from "./refs";
 
 const FIDELITY_KEY = "world-fidelity";
@@ -34,7 +36,7 @@ const loadStoredGhost = (): GhostPath | null => {
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return null;
-    const candidate = parsed as { outfitId?: unknown; points?: unknown };
+    const candidate = parsed as { outfitId?: unknown; name?: unknown; points?: unknown };
     if (typeof candidate.outfitId !== "string" || !Array.isArray(candidate.points)) return null;
     if (candidate.points.length < MIN_REPLAY_POINTS) return null;
     const valid = candidate.points.every(
@@ -45,7 +47,12 @@ const loadStoredGhost = (): GhostPath | null => {
         typeof (p as GhostPoint).z === "number" &&
         typeof (p as GhostPoint).t === "number",
     );
-    return valid ? { outfitId: candidate.outfitId, points: candidate.points as GhostPoint[] } : null;
+    if (!valid) return null;
+    const name =
+      typeof candidate.name === "string" && candidate.name.length <= 24
+        ? candidate.name
+        : undefined;
+    return { outfitId: candidate.outfitId, name, points: candidate.points as GhostPoint[] };
   } catch {
     return null;
   }
@@ -259,6 +266,9 @@ export default function WorldContent() {
   // an interval, when the tab hides, and on unmount; too-short walks are
   // ignored and the timestamps are rebased to zero.
   useEffect(() => {
+    // The stroll keeps one curated identity for the whole session, so the
+    // ghost it becomes replays under a stable name.
+    const strollName = explorerName(Math.random());
     const save = () => {
       const points = recordingRef.current;
       if (points.length < MIN_REPLAY_POINTS) return;
@@ -267,7 +277,7 @@ export default function WorldContent() {
       try {
         window.localStorage.setItem(
           GHOST_KEY,
-          JSON.stringify({ outfitId: outfitIdRef.current, points: rebased }),
+          JSON.stringify({ outfitId: outfitIdRef.current, name: strollName, points: rebased }),
         );
       } catch {
         // Storage full or blocked — the ghost just doesn't get updated.
@@ -293,7 +303,10 @@ export default function WorldContent() {
     if (Number.isFinite(parsed)) setFidelity(Math.min(Math.max(parsed, 0), 1));
     setOutfitId(outfitById(window.localStorage.getItem(OUTFIT_KEY)).id);
     // A previous stroll haunts the city; first-timers get the guided tour.
-    setGhostPath(loadStoredGhost() ?? tourPath());
+    // Either way the ghost carries a curated name — the recording's own, or a
+    // fresh random pick for the tour and for older nameless recordings.
+    const base = loadStoredGhost() ?? tourPath();
+    setGhostPath(base.name ? base : { ...base, name: explorerName(Math.random()) });
     setGhostVisible(window.localStorage.getItem(GHOST_VISIBLE_KEY) !== "off");
   }, []);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -317,6 +330,10 @@ export default function WorldContent() {
   }, [router]);
 
   const keysRef = useWorldKeys(visit);
+
+  // Live presence: Ably when a key is configured, this browser's other tabs
+  // otherwise, nothing when the world-live-presence flag is off.
+  const { peersRef, peers } = useWorldPresence({ enabled: true, playerRef, outfitId });
 
   const clearAutoTimer = useCallback(() => {
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
@@ -379,6 +396,8 @@ export default function WorldContent() {
         onAutoRunEnd={handleAutoRunEnd}
         recordingRef={recordingRef}
         ghostPath={ghostVisible ? ghostPath : null}
+        peers={peers}
+        peersRef={peersRef}
       />
 
       {/* controls legend — pointless on touch, hidden there */}
@@ -407,6 +426,15 @@ export default function WorldContent() {
       {/* minimap + accessible exhibit index */}
       <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
         <Minimap playerRef={playerRef} />
+        {peers.length > 0 && (
+          <p
+            className="rounded-2xl px-3 py-1.5 text-[11px] text-white/75"
+            style={GLASS_STYLE}
+            role="status"
+          >
+            🧑‍🤝‍🧑 {peers.length} other explorer{peers.length === 1 ? "" : "s"} here
+          </p>
+        )}
         <details className="w-[168px] rounded-2xl" style={GLASS_STYLE}>
           <summary className="cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
             All exhibits
