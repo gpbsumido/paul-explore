@@ -14,6 +14,8 @@ import { routeWaypoints } from "@/lib/world/routing";
 import { resolveColliders } from "@/lib/world/colliders";
 import { recordSample, type GhostPath, type GhostPoint } from "@/lib/world/ghost";
 import GhostPlayer from "./GhostPlayer";
+import RemoteExplorers from "./RemoteExplorers";
+import type { PeerMeta, PeerState } from "./presence/useWorldPresence";
 import type { JoystickState, PlayerSnapshot } from "./refs";
 import type { SkyPreset } from "./skyPresets";
 import type { Outfit } from "./outfits";
@@ -48,6 +50,9 @@ export type WorldSceneProps = {
   readonly recordingRef: RefObject<readonly GhostPoint[]>;
   // A previous stroll (or the generated tour) to haunt the city with.
   readonly ghostPath: GhostPath | null;
+  // Live visitors, if any — when someone real is here, the ghost stays home.
+  readonly peers: readonly PeerMeta[];
+  readonly peersRef: RefObject<Map<string, PeerState>>;
 };
 
 const rotate = (input: MoveInput, angle: number): MoveInput => ({
@@ -74,6 +79,8 @@ export default function WorldScene({
   onAutoRunEnd,
   recordingRef,
   ghostPath,
+  peers,
+  peersRef,
 }: WorldSceneProps) {
   const outerRef = useRef<Group>(null);
   const bobRef = useRef<Group>(null);
@@ -235,7 +242,8 @@ export default function WorldScene({
       <CityScene prefersReduced={prefersReduced} preset={preset} />
       <Landmarks prefersReduced={prefersReduced} preset={preset} />
       <Exhibits playerRef={playerRef} prefersReduced={prefersReduced} activeIdRef={activeIdRef} />
-      {ghostPath && !prefersReduced && <GhostPlayer path={ghostPath} />}
+      {ghostPath && !prefersReduced && peers.length === 0 && <GhostPlayer path={ghostPath} />}
+      <RemoteExplorers peers={peers} peersRef={peersRef} />
       <Player
         outerRef={outerRef}
         bobRef={bobRef}

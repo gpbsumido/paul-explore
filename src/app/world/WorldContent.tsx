@@ -14,6 +14,7 @@ import { currentTimeOfDay, type TimeOfDay } from "@/lib/world/daylight";
 import { spring, instantTransition } from "@/lib/animations";
 import { useWorldKeys } from "./useWorldKeys";
 import { OUTFITS, outfitById } from "./outfits";
+import { useWorldPresence } from "./presence/useWorldPresence";
 import {
   tourPath,
   MIN_REPLAY_POINTS,
@@ -318,6 +319,10 @@ export default function WorldContent() {
 
   const keysRef = useWorldKeys(visit);
 
+  // Live presence: Ably when a key is configured, this browser's other tabs
+  // otherwise, nothing when the world-live-presence flag is off.
+  const { peersRef, peers } = useWorldPresence({ enabled: true, playerRef, outfitId });
+
   const clearAutoTimer = useCallback(() => {
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     autoTimerRef.current = null;
@@ -379,6 +384,8 @@ export default function WorldContent() {
         onAutoRunEnd={handleAutoRunEnd}
         recordingRef={recordingRef}
         ghostPath={ghostVisible ? ghostPath : null}
+        peers={peers}
+        peersRef={peersRef}
       />
 
       {/* controls legend — pointless on touch, hidden there */}
@@ -407,6 +414,15 @@ export default function WorldContent() {
       {/* minimap + accessible exhibit index */}
       <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
         <Minimap playerRef={playerRef} />
+        {peers.length > 0 && (
+          <p
+            className="rounded-2xl px-3 py-1.5 text-[11px] text-white/75"
+            style={GLASS_STYLE}
+            role="status"
+          >
+            🧑‍🤝‍🧑 {peers.length} other explorer{peers.length === 1 ? "" : "s"} here
+          </p>
+        )}
         <details className="w-[168px] rounded-2xl" style={GLASS_STYLE}>
           <summary className="cursor-pointer select-none px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-white/60 hover:text-white/90">
             All exhibits
