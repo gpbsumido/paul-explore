@@ -108,3 +108,30 @@ export function nearestStop(pos: Vec2): Stop | null {
 export function carIsAtStop(car: StreetcarState, stop: Stop): boolean {
   return Math.abs(car.x - stop.x) <= BOARD_RADIUS;
 }
+
+// The car body, for anyone bold enough to climb on top of it.
+export const CAR_HALF_LENGTH = 3.5;
+export const CAR_HALF_WIDTH = 1.6;
+export const ROOF_HEIGHT = 2.15;
+
+/** Whether a position is over the car's roof — the landing zone for a jump. */
+export function isOverCarRoof(pos: Vec2, car: StreetcarState): boolean {
+  return (
+    Math.abs(pos.x - car.x) <= CAR_HALF_LENGTH && Math.abs(pos.z - car.z) <= CAR_HALF_WIDTH
+  );
+}
+
+/**
+ * Whether a jump ends on the roof: over the car, coming down, and high enough
+ * to clear it. Anything lower just walks past the side of the streetcar.
+ */
+export function landsOnRoof(
+  pos: Vec2,
+  playerY: number,
+  playerVy: number,
+  car: StreetcarState,
+): boolean {
+  if (!isOverCarRoof(pos, car)) return false;
+  if (playerVy > 0) return false;
+  return playerY >= ROOF_HEIGHT - 0.55 && playerY <= ROOF_HEIGHT + 1.6;
+}

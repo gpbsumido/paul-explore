@@ -11,7 +11,7 @@ const TURN_RATE = 12;
 
 // Jump tuning: v²/2g puts the apex a bit over two units up.
 const GRAVITY = 34;
-const JUMP_SPEED = 12;
+const JUMP_SPEED = 13;
 
 // Above this dt the browser was almost certainly backgrounded; integrating it
 // would teleport the player, so treat it as a single normal frame.
