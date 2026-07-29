@@ -18,6 +18,9 @@ export type GhostPoint = {
 
 export type GhostPath = {
   readonly outfitId: string;
+  // The curated explorer name of the visit that recorded this stroll; absent
+  // on older recordings and the generated tour, where the renderer picks one.
+  readonly name?: string;
   readonly points: readonly GhostPoint[];
 };
 

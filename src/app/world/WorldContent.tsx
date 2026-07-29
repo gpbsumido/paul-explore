@@ -21,6 +21,7 @@ import {
   type GhostPath,
   type GhostPoint,
 } from "@/lib/world/ghost";
+import { explorerName } from "@/lib/world/presence";
 import type { JoystickState, PlayerSnapshot } from "./refs";
 
 const FIDELITY_KEY = "world-fidelity";
@@ -35,7 +36,7 @@ const loadStoredGhost = (): GhostPath | null => {
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return null;
-    const candidate = parsed as { outfitId?: unknown; points?: unknown };
+    const candidate = parsed as { outfitId?: unknown; name?: unknown; points?: unknown };
     if (typeof candidate.outfitId !== "string" || !Array.isArray(candidate.points)) return null;
     if (candidate.points.length < MIN_REPLAY_POINTS) return null;
     const valid = candidate.points.every(
@@ -46,7 +47,12 @@ const loadStoredGhost = (): GhostPath | null => {
         typeof (p as GhostPoint).z === "number" &&
         typeof (p as GhostPoint).t === "number",
     );
-    return valid ? { outfitId: candidate.outfitId, points: candidate.points as GhostPoint[] } : null;
+    if (!valid) return null;
+    const name =
+      typeof candidate.name === "string" && candidate.name.length <= 24
+        ? candidate.name
+        : undefined;
+    return { outfitId: candidate.outfitId, name, points: candidate.points as GhostPoint[] };
   } catch {
     return null;
   }
@@ -260,6 +266,9 @@ export default function WorldContent() {
   // an interval, when the tab hides, and on unmount; too-short walks are
   // ignored and the timestamps are rebased to zero.
   useEffect(() => {
+    // The stroll keeps one curated identity for the whole session, so the
+    // ghost it becomes replays under a stable name.
+    const strollName = explorerName(Math.random());
     const save = () => {
       const points = recordingRef.current;
       if (points.length < MIN_REPLAY_POINTS) return;
@@ -268,7 +277,7 @@ export default function WorldContent() {
       try {
         window.localStorage.setItem(
           GHOST_KEY,
-          JSON.stringify({ outfitId: outfitIdRef.current, points: rebased }),
+          JSON.stringify({ outfitId: outfitIdRef.current, name: strollName, points: rebased }),
         );
       } catch {
         // Storage full or blocked — the ghost just doesn't get updated.
@@ -294,7 +303,10 @@ export default function WorldContent() {
     if (Number.isFinite(parsed)) setFidelity(Math.min(Math.max(parsed, 0), 1));
     setOutfitId(outfitById(window.localStorage.getItem(OUTFIT_KEY)).id);
     // A previous stroll haunts the city; first-timers get the guided tour.
-    setGhostPath(loadStoredGhost() ?? tourPath());
+    // Either way the ghost carries a curated name — the recording's own, or a
+    // fresh random pick for the tour and for older nameless recordings.
+    const base = loadStoredGhost() ?? tourPath();
+    setGhostPath(base.name ? base : { ...base, name: explorerName(Math.random()) });
     setGhostVisible(window.localStorage.getItem(GHOST_VISIBLE_KEY) !== "off");
   }, []);
   const [activeId, setActiveId] = useState<string | null>(null);
