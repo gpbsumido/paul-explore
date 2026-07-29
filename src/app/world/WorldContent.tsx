@@ -16,6 +16,7 @@ import { useWorldKeys } from "./useWorldKeys";
 import WorldNav from "./WorldNav";
 import { OUTFITS, outfitById } from "./outfits";
 import { useWorldPresence } from "./presence/useWorldPresence";
+import { useWorldAudio } from "./audio/useWorldAudio";
 import {
   tourPath,
   MIN_REPLAY_POINTS,
@@ -496,6 +497,9 @@ export default function WorldContent() {
   // otherwise, nothing when the world-live-presence flag is off.
   const { peersRef, peers } = useWorldPresence({ enabled: true, playerRef, outfitId });
 
+  // The city only makes noise once the visitor has touched something.
+  const { audioRef, muted, toggleMuted } = useWorldAudio(!prefersReduced);
+
   const clearAutoTimer = useCallback(() => {
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     autoTimerRef.current = null;
@@ -609,6 +613,7 @@ export default function WorldContent() {
         captureRef={captureRef}
         onCapture={handleCapture}
         condition={condition}
+        audioRef={audioRef}
       />
 
       {/* controls legend — pointless on touch, hidden there */}
@@ -786,6 +791,17 @@ export default function WorldContent() {
               {ghostVisible ? "on" : "off"}
             </span>
           </button>
+        <button
+          type="button"
+          aria-pressed={!muted}
+          onClick={toggleMuted}
+          className="flex w-full items-center justify-between rounded-lg px-2 pb-0.5 pt-1.5 text-[11px] text-white/60 hover:text-white/85"
+        >
+          <span>{muted ? "🔇" : "🔊"} Sound</span>
+          <span className={muted ? "text-white/35" : "text-white/85"}>
+            {muted ? "off" : "on"}
+          </span>
+        </button>
         </div>
         {/* Fidelity: one line plus the slider — the value label on the right
             already says which end you're at. */}

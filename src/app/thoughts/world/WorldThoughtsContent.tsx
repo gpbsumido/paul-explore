@@ -243,6 +243,26 @@ export default function WorldThoughtsContent() {
         </p>
       </Section>
 
+      <Section title="Sound with nothing to download">
+        <p>
+          The city is audible now, and there isn&rsquo;t a single audio file in
+          the repo. Traffic is low-passed noise with a slow swell on the
+          cutoff; the lake is the same noise through a band-pass breathing in
+          and out; rain is brighter and denser; the streetcar is two detuned
+          saws behind a filter, which turns out to be most of the way to an
+          electric motor. Footsteps and jumps are short noise bursts with an
+          exponential decay, and picking up a token is a triangle sweep.
+        </p>
+        <p className="mt-3">
+          What you hear is a pure function of where you&rsquo;re standing —
+          traffic swells toward the core, waves only exist near the shore, the
+          streetcar rises and falls as it passes, and snow muffles the whole
+          thing. Browsers rightly refuse to let a page make noise unprompted,
+          so the audio context isn&rsquo;t created until you actually press
+          something, and the toggle remembers your answer.
+        </p>
+      </Section>
+
       <Section title="A 3D page that screen readers can use">
         <p>
           The canvas is decoration by ARIA standards, so everything it can do
