@@ -82,6 +82,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "deployment",
       "pr-screenshots",
       "typescript-7",
+      "harness-visual-plan",
     ],
   },
 ];
