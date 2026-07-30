@@ -20,7 +20,12 @@ import {
 import { isWinningPull } from "./win";
 import WinCelebration, { WIN_MS, type FallStyle } from "./WinCelebration";
 import ChalkBackdrop from "./ChalkBackdrop";
-import { playWinSound, soundEnabled, setSoundEnabled } from "./winSound";
+import {
+  playWinSound,
+  soundEnabled,
+  setSoundEnabled,
+  unlockWinAudio,
+} from "./winSound";
 
 const fraunces = Fraunces({ subsets: ["latin"], display: "swap" });
 
@@ -794,6 +799,10 @@ export default function SlotMachine({
    */
   const spin = (target?: { cat: number; opt: number; note: number }) => {
     if (spinning) return;
+    // Arm the audio here, inside the click, so the win jingle a couple of
+    // seconds later plays on a context the browser already trusts. On mobile a
+    // context opened at jingle time is born suspended and stays silent.
+    unlockWinAudio();
     const combo = target ?? pickCombo();
     const catTarget = combo.cat;
     const optList = categories[catTarget].options;
@@ -1197,6 +1206,9 @@ export default function SlotMachine({
                 const next = !sound;
                 setSound(next);
                 setSoundEnabled(next);
+                // Unmuting is itself a gesture, so take it to arm the context
+                // now rather than waiting on the next spin.
+                if (next) unlockWinAudio();
               }}
               aria-pressed={sound}
               aria-label={sound ? "Mute win sound" : "Unmute win sound"}
