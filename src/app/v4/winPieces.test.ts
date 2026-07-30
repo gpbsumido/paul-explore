@@ -51,4 +51,10 @@ describe("confettiCount", () => {
     // No point cutting it if it does not meaningfully lighten the load.
     expect(confettiCount(true)).toBeLessThanOrEqual(confettiCount(false) / 2);
   });
+
+  it("thins the phone burst well below a quarter of the desktop count", () => {
+    // 45 still stuttered on a real phone. Each piece is its own tumbling layer,
+    // so the count has to come down further than the first cut managed.
+    expect(confettiCount(true)).toBeLessThanOrEqual(confettiCount(false) / 4);
+  });
 });
