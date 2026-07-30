@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { confettiCount, confettiPieces } from "./winPieces";
+import { confettiPieces } from "./winPieces";
 
 const COLORS = ["#f43f5e", "#fbbf24", "#34d399", "#38bdf8"];
 
@@ -38,23 +38,5 @@ describe("confettiPieces", () => {
   it("only uses colours from the palette it was given", () => {
     const used = new Set(confettiPieces(40, COLORS).map((p) => p.color));
     for (const c of used) expect(COLORS).toContain(c);
-  });
-});
-
-describe("confettiCount", () => {
-  it("thins the burst on a phone, where 110 tumbling layers drop frames", () => {
-    expect(confettiCount(true)).toBeLessThan(confettiCount(false));
-  });
-
-  it("keeps enough pieces on a phone to still read as a party", () => {
-    expect(confettiCount(true)).toBeGreaterThan(0);
-    // No point cutting it if it does not meaningfully lighten the load.
-    expect(confettiCount(true)).toBeLessThanOrEqual(confettiCount(false) / 2);
-  });
-
-  it("thins the phone burst well below a quarter of the desktop count", () => {
-    // 45 still stuttered on a real phone. Each piece is its own tumbling layer,
-    // so the count has to come down further than the first cut managed.
-    expect(confettiCount(true)).toBeLessThanOrEqual(confettiCount(false) / 4);
   });
 });

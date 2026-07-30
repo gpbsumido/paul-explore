@@ -32,17 +32,15 @@ const renderBurst = () =>
 afterEach(cleanup);
 
 describe("WinCelebration", () => {
-  it("drops the foil sheen on a phone, so the GPU has no alpha to overdraw", () => {
+  it("renders nothing on a phone, where the fall of layers can't hold frame rate", () => {
     setViewport(true);
     const { container } = renderBurst();
-    const rendered = pieces(container);
-    expect(rendered.length).toBeGreaterThan(0);
-    for (const p of rendered) {
-      expect(p.style.backgroundImage).toBe("");
-    }
+    expect(
+      container.querySelector('[data-testid="win-celebration"]'),
+    ).toBeNull();
   });
 
-  it("keeps the foil sheen on a roomy screen", () => {
+  it("falls in full on a roomy screen, foil sheen and all", () => {
     setViewport(false);
     const { container } = renderBurst();
     const rendered = pieces(container);
@@ -52,10 +50,12 @@ describe("WinCelebration", () => {
     }
   });
 
-  it("promotes every piece upfront, so the burst does not jump as it starts", () => {
-    setViewport(true);
+  it("promotes every piece upfront, so the desktop burst doesn't hitch as it starts", () => {
+    setViewport(false);
     const { container } = renderBurst();
-    for (const p of pieces(container)) {
+    const rendered = pieces(container);
+    expect(rendered.length).toBeGreaterThan(0);
+    for (const p of rendered) {
       expect(p.style.willChange).toBe("transform");
     }
   });
