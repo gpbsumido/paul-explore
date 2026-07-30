@@ -5,6 +5,7 @@ import {
   permissionDeniedReturnTo,
 } from "@/lib/authCallback";
 import { REAUTH_COOKIE } from "@/lib/loginReturnTo";
+import { sessionConfig } from "@/lib/authSession";
 
 export const auth0 = new Auth0Client({
   logoutStrategy: "v2",
@@ -12,10 +13,8 @@ export const auth0 = new Auth0Client({
     // without an audience Auth0 issues an opaque token — useless for the API
     audience: process.env.AUTH0_AUDIENCE,
   },
-  session: {
-    absoluteDuration: 86400,
-    rolling: true,
-  },
+  // A hard six-hour session, capped from login. See src/lib/authSession.ts.
+  session: sessionConfig,
   // The SDK's default onCallback returns a bare 500 on any callback error, so
   // declining the consent screen (error=access_denied) used to dump you on an
   // error page. Send that one case back to where you started with a flag the
