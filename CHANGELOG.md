@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-30 - version 2.9.1
+
+- **Fixed the v4 win celebration on mobile.** Two things were broken on a phone. The jingle never played, because it built its AudioContext inside the post-spin timeout -- outside the click -- and iOS leaves a context born without a gesture suspended for good. It now opens and resumes one context during the spin click and reuses it when the jingle fires, so the win actually makes noise. And the confetti stuttered, since 110 tumbling pieces are 110 GPU layers; phones now drop 45, enough to still read as a party without dropping frames.
+
 ## 2026-07-29 - version 2.9.0
 
 Release to production. Rolls up everything since 2.3.0, all of it the same feature: **Explore Toronto**, a walkable 3D low-poly downtown at `/world` where every landmark hosts one of this site's features.
