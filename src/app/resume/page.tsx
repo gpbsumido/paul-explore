@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import PageHeader from "@/components/PageHeader";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import InterviewNotice from "./InterviewNotice";
 
 // Files live in /public/resume, so they are served statically at these paths.
 const PDF_HREF = "/resume/Resume-Developer-Sumido.pdf";
@@ -68,6 +70,12 @@ function DownloadLink({ href, label }: { href: string; label: string }) {
 export default function ResumePage() {
   return (
     <div className="min-h-dvh bg-background">
+      {/* Reads a search param, so it needs a Suspense boundary to keep this page
+          statically rendered. */}
+      <Suspense fallback={null}>
+        <InterviewNotice />
+      </Suspense>
+
       <PageHeader
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Résumé" }]}
       />
