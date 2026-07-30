@@ -160,6 +160,30 @@ export default function V4RedesignContent() {
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Later: the win, and fixing it on phones
+        </h2>
+        <p className="text-muted">
+          The payout animation from the list below has since shipped: line three
+          reels up on a feature and its write-up and the window fills with a fall
+          of party confetti, colour-matched to what you landed on. It looked
+          great on my laptop and stuttered on my phone. The first pass just cut
+          the piece count, and it still stuttered, because count wasn&rsquo;t the
+          real cost. Each piece carried a translucent foil sheen, and a phone
+          re-blends that alpha across dozens of overlapping, tumbling layers
+          every single frame, which an emulator on a laptop&rsquo;s GPU never
+          shows you. So on a phone I drop the sheen for a solid fill, thin the
+          burst further, and promote every piece with{" "}
+          <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
+            will-change: transform
+          </code>{" "}
+          up front so the layers don&rsquo;t all get allocated at burst
+          start, which was the jump on the first frame. Desktop keeps the full
+          count and the foil.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">What I&rsquo;d do next</h2>
         <p className="text-muted">
           A weighted spin that favours things the visitor hasn&rsquo;t landed
