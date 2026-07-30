@@ -469,6 +469,13 @@ export const THOUGHTS: ThoughtItem[] = [
       "A walkable 3D Toronto built from primitives: a TDD'd pure movement core, an R3F shell around it, a seeded procedural skyline over a real street grid, and exhibits that deep-link every feature",
     color: "#38bdf8",
   },
+  {
+    title: "Visual Plans",
+    href: "/thoughts/harness-visual-plan",
+    preview:
+      "Why I bracket every change with a visual plan before code and a recap after: structured wireframes over prose, the RED list as the plan, and an honest record of where reality drifted",
+    color: "#818cf8",
+  },
 ].reverse();
 
 // ---------------------------------------------------------------------------
