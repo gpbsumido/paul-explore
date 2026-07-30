@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-30 - version 2.10.0
+
+- **Added the Visual Plans dev-note**, a write-up on how I bracket every real change with a visual plan before any code and a visual recap after it ships -- the reasoning, the pros and cons, and how I run it step by step. The first couple of paragraphs are open; the rest sits behind an owner-only gate. New `Paywall` component reuses the existing `GET /api/me` session read, so only the signed-in owner sees the full thing and everyone else gets an "interview me first" panel. It fails closed on purpose, so the gated prose never flashes for a visitor while the session request is in flight.
+
 ## 2026-07-30 - version 2.9.1
 
 - **Fixed the v4 win celebration on mobile.** Two things were broken on a phone. The jingle never played, because it built its AudioContext inside the post-spin timeout -- outside the click -- and iOS leaves a context born without a gesture suspended for good. It now opens and resumes one context during the spin click and reuses it when the jingle fires, so the win actually makes noise. And the confetti stuttered, since 110 tumbling pieces are 110 GPU layers; phones now drop 45, enough to still read as a party without dropping frames.
