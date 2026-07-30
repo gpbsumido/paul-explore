@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { loginReturnToFromReferer } from "@/lib/loginReturnTo";
+import {
+  loginReturnToFromReferer,
+  loginRedirectAdditions,
+} from "@/lib/loginReturnTo";
 
 const ORIGIN = "https://paulsumido.com";
 
@@ -36,5 +39,56 @@ describe("loginReturnToFromReferer", () => {
 
   it("does not return the bare root (nothing worth redirecting to)", () => {
     expect(loginReturnToFromReferer(`${ORIGIN}/`, ORIGIN)).toBe(null);
+  });
+});
+
+describe("loginRedirectAdditions", () => {
+  const additions = (
+    partial: Partial<Parameters<typeof loginRedirectAdditions>[0]>,
+  ) =>
+    loginRedirectAdditions({
+      searchParams: new URLSearchParams(),
+      referer: null,
+      origin: ORIGIN,
+      reauthCookie: undefined,
+      ...partial,
+    });
+
+  it("adds nothing for a bare login with no referer and no reauth flag", () => {
+    expect(additions({})).toEqual({});
+  });
+
+  it("adds a returnTo from a same-origin referer", () => {
+    expect(additions({ referer: `${ORIGIN}/calendar` })).toEqual({
+      returnTo: "/calendar",
+    });
+  });
+
+  it("forces a fresh login prompt when the reauth flag is set", () => {
+    expect(additions({ reauthCookie: "1" })).toEqual({ prompt: "login" });
+  });
+
+  it("adds both a returnTo and the prompt after a denied consent", () => {
+    expect(
+      additions({ referer: `${ORIGIN}/calendar`, reauthCookie: "1" }),
+    ).toEqual({ returnTo: "/calendar", prompt: "login" });
+  });
+
+  it("does not override a returnTo already on the request", () => {
+    expect(
+      additions({
+        searchParams: new URLSearchParams("returnTo=/vitals"),
+        referer: `${ORIGIN}/calendar`,
+      }),
+    ).toEqual({});
+  });
+
+  it("does not override a prompt already on the request", () => {
+    expect(
+      additions({
+        searchParams: new URLSearchParams("prompt=none"),
+        reauthCookie: "1",
+      }),
+    ).toEqual({});
   });
 });

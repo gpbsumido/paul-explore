@@ -33,3 +33,44 @@ export function loginReturnToFromReferer(
 
   return `${url.pathname}${url.search}`;
 }
+
+/**
+ * One-shot cookie set when a login is declined at the consent screen. Its
+ * presence tells the proxy to force a fresh "who's logging in" prompt on the
+ * very next /auth/login, then it's cleared. Without it Auth0 reuses the still-
+ * live session and jumps straight back to the permission screen.
+ */
+export const REAUTH_COOKIE = "auth_reauth";
+
+/** Query params the proxy should add to an /auth/login request. */
+export type LoginRedirectAdditions = {
+  returnTo?: string;
+  prompt?: string;
+};
+
+/**
+ * Works out what an /auth/login request is missing: a returnTo so the user
+ * lands back where they started, and a prompt=login after a denied consent so
+ * Auth0 asks who's logging in again instead of silently reusing the session.
+ * Neither is added when the request already carries it, so an explicit param
+ * always wins.
+ */
+export function loginRedirectAdditions(opts: {
+  searchParams: URLSearchParams;
+  referer: string | null;
+  origin: string;
+  reauthCookie: string | undefined;
+}): LoginRedirectAdditions {
+  const additions: LoginRedirectAdditions = {};
+
+  if (!opts.searchParams.has("returnTo")) {
+    const returnTo = loginReturnToFromReferer(opts.referer, opts.origin);
+    if (returnTo) additions.returnTo = returnTo;
+  }
+
+  if (opts.reauthCookie && !opts.searchParams.has("prompt")) {
+    additions.prompt = "login";
+  }
+
+  return additions;
+}

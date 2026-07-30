@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { loginReturnToFromReferer } from "@/lib/loginReturnTo";
+import { loginRedirectAdditions, REAUTH_COOKIE } from "@/lib/loginReturnTo";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
 import {
@@ -119,18 +119,26 @@ export async function proxy(request: NextRequest) {
     // The login links across the app point at a bare /auth/login, so the SDK
     // would default the post-login redirect to "/". Fill in a returnTo from the
     // page they came from (the Referer) so they land back where they started.
-    if (
-      pathname === "/auth/login" &&
-      !request.nextUrl.searchParams.has("returnTo")
-    ) {
-      const returnTo = loginReturnToFromReferer(
-        request.headers.get("referer"),
-        request.nextUrl.origin,
-      );
-      if (returnTo) {
+    // And after a denied consent, force a fresh prompt so Auth0 asks who's
+    // logging in again instead of jumping straight back to the permission
+    // screen — the reauth cookie set by onCallback is a one-shot, cleared here.
+    if (pathname === "/auth/login") {
+      const reauthCookie = request.cookies.get(REAUTH_COOKIE)?.value;
+      const additions = loginRedirectAdditions({
+        searchParams: request.nextUrl.searchParams,
+        referer: request.headers.get("referer"),
+        origin: request.nextUrl.origin,
+        reauthCookie,
+      });
+      if (Object.keys(additions).length > 0 || reauthCookie) {
         const loginUrl = request.nextUrl.clone();
-        loginUrl.searchParams.set("returnTo", returnTo);
-        return NextResponse.redirect(loginUrl);
+        if (additions.returnTo)
+          loginUrl.searchParams.set("returnTo", additions.returnTo);
+        if (additions.prompt)
+          loginUrl.searchParams.set("prompt", additions.prompt);
+        const res = NextResponse.redirect(loginUrl);
+        if (reauthCookie) res.cookies.delete(REAUTH_COOKIE);
+        return res;
       }
     }
     try {
