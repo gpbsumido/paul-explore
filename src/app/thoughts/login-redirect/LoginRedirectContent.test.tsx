@@ -41,6 +41,14 @@ describe("LoginRedirectContent", () => {
     expect(body).toMatch(/prompt=login/);
     expect(body).toMatch(/who.s logging in/i);
   });
+
+  it("explains the rolling session and timeout", () => {
+    render(<LoginRedirectContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/six-hour/i);
+    expect(body).toMatch(/authError=timeout/);
+    expect(body).toMatch(/prompt=consent/);
+  });
 });
 
 describe("login-redirect write-up registration", () => {

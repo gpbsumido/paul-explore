@@ -230,6 +230,35 @@ export default function LoginRedirectContent() {
           needs no config at all.
         </p>
       </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">Sessions that time out</h2>
+        <p className="text-muted">
+          The last piece was session length. I wanted a rolling six-hour idle
+          window: being on the site and doing things keeps you signed in, but
+          sit idle for six hours and you&rsquo;re logged out and have to sign in
+          again — and re-grant permissions. The SDK&rsquo;s rolling sessions
+          make the first half easy: with{" "}
+          <code className={code}>inactivityDuration</code> at six hours and a
+          longer <code className={code}>absoluteDuration</code> ceiling, every
+          request pushes the expiry to six hours out, so activity resets the
+          clock.
+        </p>
+        <p className="mt-3 text-muted">
+          The hard part is noticing the timeout. Once the session cookie
+          expires it&rsquo;s just gone — there&rsquo;s nothing left to tell a
+          timed-out user apart from one who was never logged in. So I set a
+          second, longer-lived marker cookie on every authenticated response. It
+          outlives the session, and when the proxy sees a missing session but a
+          lingering marker, that&rsquo;s a timeout: it bounces the user to the
+          landing page with a <code className={code}>?authError=timeout</code>{" "}
+          flag so the toast can render, clears the marker so it only says it
+          once, and arms the next login with{" "}
+          <code className={code}>prompt=consent</code> so Auth0 re-shows the
+          permission screen. Same one-shot cookie mechanism as the denied-consent
+          case, just a different prompt.
+        </p>
+      </section>
     </ThoughtLayout>
   );
 }

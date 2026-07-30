@@ -1,8 +1,8 @@
 # Changelog
 
-## 2026-07-30 - version 2.10.4
+## 2026-07-30 - version 2.10.5
 
-- **Sessions now expire six hours after login instead of a day.** I dropped the session lifetime from 24 hours to a hard six-hour cap measured from when you signed in. Because the cap is pinned to login rather than last activity, staying active doesn't extend it — six hours after logging in the cookie is gone, so coming back later lands you logged out and you sign in again. The duration lives in one named constant (`SESSION_DURATION_SECONDS`) so the units are obvious and can't drift.
+- **Sessions now roll on a six-hour idle timer, and timing out tells you so.** Being on the site and doing things keeps you signed in — each request pushes the expiry six hours out, under a seven-day absolute ceiling. Sit idle for six hours and the session expires; come back and a toast says "Your session timed out. Please log in again," and the next login re-shows the Auth0 permission screen. The timeout is detected with a longer-lived marker cookie that outlives the session, so a timed-out user is told apart from someone who was never logged in, and the re-consent rides the same one-shot prompt cookie as the denied-consent case (`prompt=consent` here, `prompt=login` there). Replaces the earlier 24-hour session.
 
 ## 2026-07-30 - version 2.10.3
 
