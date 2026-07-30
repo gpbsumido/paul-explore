@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { confettiPieces } from "./winPieces";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { confettiCount, confettiPieces } from "./winPieces";
 
 /**
  * How long the celebration stays mounted.
@@ -11,8 +12,6 @@ import { confettiPieces } from "./winPieces";
  * (~4.8s), with a beat spare.
  */
 export const WIN_MS = 6200;
-
-const CONFETTI_COUNT = 110;
 
 /**
  * A real party palette. The landed option's colour leads so the celebration
@@ -54,6 +53,11 @@ type Props = {
  * does not render it at all under reduced motion.
  */
 export default function WinCelebration({ optionColor, accent, style }: Props) {
+  // Fewer pieces on a phone, where each tumbling layer costs and a hundred of
+  // them stutters. Safe against hydration since the layer only ever mounts
+  // client-side, on a win, well after the first pass.
+  const isMobile = useIsMobile();
+  const count = confettiCount(isMobile);
   // Deterministic, so the burst is identical on the server and the first client
   // pass. Memoised per palette so a re-render mid-flourish doesn't restart it.
   const palette = useMemo(
@@ -61,8 +65,8 @@ export default function WinCelebration({ optionColor, accent, style }: Props) {
     [optionColor, accent],
   );
   const confetti = useMemo(
-    () => confettiPieces(CONFETTI_COUNT, palette),
-    [palette],
+    () => confettiPieces(count, palette),
+    [count, palette],
   );
 
   return (
