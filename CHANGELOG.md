@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-30 - version 2.10.1
+
+- **Fixed the v4 win confetti on real phones.** It fell smoothly on my laptop and in the mobile emulator but was laggy and jumpy on an actual phone -- the emulator borrows the laptop's GPU and hides it. The earlier fix only cut the piece count, which wasn't the real cost. Each piece carried a translucent foil sheen, and a phone re-blends that alpha across dozens of overlapping, tumbling layers every frame. So on mobile it now drops the sheen for a solid fill, thins the burst from 45 to 26, and promotes every piece with `will-change: transform` up front so the layers aren't all allocated at burst start -- that allocation hitch was the jump on the first frame. Desktop keeps the full 110 pieces and the foil look.
+
 ## 2026-07-30 - version 2.10.0
 
 - **Added the Visual Plans dev-note**, a write-up on how I bracket every real change with a visual plan before any code and a visual recap after it ships -- the reasoning, the pros and cons, and how I run it step by step. The first couple of paragraphs are open; the rest sits behind an owner-only gate. New `Paywall` component reuses the existing `GET /api/me` session read, so only the signed-in owner sees the full thing and everyone else gets an "interview me first" panel. It fails closed on purpose, so the gated prose never flashes for a visitor while the session request is in flight, and none of it reaches the browser at all.
