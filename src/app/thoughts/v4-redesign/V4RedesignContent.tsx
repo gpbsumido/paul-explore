@@ -181,14 +181,48 @@ export default function V4RedesignContent() {
           start, which was the jump on the first frame. Desktop keeps the full
           count and the foil.
         </p>
+        <p className="mt-4 text-muted">
+          I wanted to measure the fix before trusting it, so I benched the real
+          confetti in headless and headed Chromium at an iPhone-class viewport,
+          with the CPU throttled four to six times and the device-pixel-ratio
+          pushed from 3 all the way to 14. Every single run held a locked 60fps.
+          That sounds like a pass, but it isn&rsquo;t: it&rsquo;s the bench
+          failing to reproduce the bug. A transform-only animation runs entirely
+          on the compositor thread, so CPU throttling never touches it, and a GPU
+          trace confirmed it &mdash; under a millisecond of raster across the
+          whole burst, because nothing repaints, it only re-composites. The cost
+          is fill-rate: blending translucent pixels, which a desktop GPU has so
+          much headroom for that it never breaks a sweat. That headroom is the
+          whole reason the stutter only ever showed up on the actual phone and
+          never in an emulator, which is a good lesson to write down: emulating a
+          phone&rsquo;s screen is not emulating a phone&rsquo;s GPU.
+        </p>
+        <p className="mt-4 text-muted">
+          So I measured the thing that is real and does carry over to the phone:
+          the per-frame work the fix removes. The burst drops from 45 tumbling
+          layers to 26, and because the sheen is gone on mobile, the count of
+          translucent gradient layers the GPU re-blends every frame goes from 45
+          to zero. Put in pixels at a 3x DPR, the alpha-blended area the compositor
+          touches per frame falls from about 99,000 device-pixels to about 28,000
+          &mdash; roughly a 72% cut in exactly the work that was dropping frames.
+          The decision I settled on: I can&rsquo;t prove smoothness in an emulator
+          for a bug an emulator can&rsquo;t feel, but I can show the fix removes
+          most of the per-frame GPU load that causes it, and confirm the rest on a
+          real device. The mobile count lives in one constant,{" "}
+          <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
+            MOBILE_CONFETTI_COUNT
+          </code>
+          , so if 26 still isn&rsquo;t enough on some older phone, there&rsquo;s
+          one number to turn.
+        </p>
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-bold">What I&rsquo;d do next</h2>
         <p className="text-muted">
           A weighted spin that favours things the visitor hasn&rsquo;t landed
-          on yet, a little payout animation when all three reels line up on a
-          feature and its own write-up, and sound, obviously off by default.
+          on yet, and an on-device pass to tune the mobile confetti count against
+          a few real phones rather than one number I picked by reasoning.
         </p>
       </section>
     </ThoughtLayout>
