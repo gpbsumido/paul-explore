@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-30 - version 2.10.4
+
+- **Sessions now expire six hours after login instead of a day.** I dropped the session lifetime from 24 hours to a hard six-hour cap measured from when you signed in. Because the cap is pinned to login rather than last activity, staying active doesn't extend it — six hours after logging in the cookie is gone, so coming back later lands you logged out and you sign in again. The duration lives in one named constant (`SESSION_DURATION_SECONDS`) so the units are obvious and can't drift.
+
 ## 2026-07-30 - version 2.10.3
 
 - **After denying the consent screen, log in again actually asks who's logging in.** Declining consent doesn't end the Auth0 session — I authenticated fine, I just said no to the permissions — so the next login saw the live session and jumped straight back to the consent screen without ever asking who I was. Now a denied consent sets a one-shot cookie, and the proxy adds `prompt=login` to the very next `/auth/login` (then clears the cookie), so Auth0 re-authenticates once and normal logins stay smooth. I used the prompt rather than a full Auth0 logout because logout's return URL has to be whitelisted in the tenant and this needs no config.
