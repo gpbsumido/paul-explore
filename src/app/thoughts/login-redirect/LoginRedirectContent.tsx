@@ -77,6 +77,25 @@ export default function LoginRedirectContent() {
                 real misconfig still shows
               </Sent>
 
+              <Timestamp>9:24 AM</Timestamp>
+
+              <Received pos="first">
+                one more. after i deny, i click log in again and it goes
+                straight back to the permission screen
+              </Received>
+              <Received pos="last">never asks who&apos;s logging in</Received>
+
+              <Sent pos="first">
+                right, because the Auth0 session is still alive. you
+                authenticated, you just declined consent, so the next login sees
+                the session and skips to consent
+              </Sent>
+              <Sent pos="last">
+                so on deny i set a one-shot cookie, and the proxy adds
+                prompt=login to the next /auth/login and clears the cookie. one
+                fresh prompt, then back to normal
+              </Sent>
+
               <div className={styles.typingDots}>
                 <span />
                 <span />
@@ -182,6 +201,33 @@ export default function LoginRedirectContent() {
           toast provider either; it&rsquo;s mounted per-page, so wiring it in
           app-wide would double-render its notifications on the operator screens.
           A self-contained toast keeps the two apart.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">Asking who&rsquo;s logging in</h2>
+        <p className="text-muted">
+          One more thing surfaced after the toast shipped. Declining consent
+          doesn&rsquo;t end the Auth0 session — you authenticated fine, you just
+          said no to the permissions. So the session cookie on the Auth0 domain
+          is still live, and the next time you click log in, Auth0 sees it and
+          jumps straight back to the consent screen. It never asks who&rsquo;s
+          logging in, which is exactly what you want to reconsider after a deny.
+        </p>
+        <p className="mt-3 text-muted">
+          The SDK&rsquo;s login handler forwards every query param it&rsquo;s
+          given straight onto the authorization request, so{" "}
+          <code className={code}>prompt=login</code> forces Auth0 to
+          re-authenticate. I didn&rsquo;t want that on every login though —
+          normal sign-ins should stay smooth. So on a denied consent the{" "}
+          <code className={code}>onCallback</code> also sets a short-lived
+          one-shot cookie, and the proxy adds{" "}
+          <code className={code}>prompt=login</code> to the very next{" "}
+          <code className={code}>/auth/login</code> and clears the cookie in the
+          same response. One fresh prompt right after a deny, then straight back
+          to normal. I reached for this instead of a full Auth0 logout because
+          logout&rsquo;s return URL has to be whitelisted in the tenant, and this
+          needs no config at all.
         </p>
       </section>
     </ThoughtLayout>

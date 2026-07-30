@@ -34,6 +34,13 @@ describe("LoginRedirectContent", () => {
     expect(body).toMatch(/authError=permissions/);
     expect(body).toMatch(/without granting permissions/i);
   });
+
+  it("explains forcing a fresh prompt after a denial", () => {
+    render(<LoginRedirectContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/prompt=login/);
+    expect(body).toMatch(/who.s logging in/i);
+  });
 });
 
 describe("login-redirect write-up registration", () => {
