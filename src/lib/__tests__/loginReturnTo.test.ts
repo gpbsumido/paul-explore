@@ -50,11 +50,11 @@ describe("loginRedirectAdditions", () => {
       searchParams: new URLSearchParams(),
       referer: null,
       origin: ORIGIN,
-      reauthCookie: undefined,
+      promptCookie: undefined,
       ...partial,
     });
 
-  it("adds nothing for a bare login with no referer and no reauth flag", () => {
+  it("adds nothing for a bare login with no referer and no prompt flag", () => {
     expect(additions({})).toEqual({});
   });
 
@@ -64,14 +64,24 @@ describe("loginRedirectAdditions", () => {
     });
   });
 
-  it("forces a fresh login prompt when the reauth flag is set", () => {
-    expect(additions({ reauthCookie: "1" })).toEqual({ prompt: "login" });
+  it("carries the prompt from the cookie (login, to re-ask who's logging in)", () => {
+    expect(additions({ promptCookie: "login" })).toEqual({ prompt: "login" });
   });
 
-  it("adds both a returnTo and the prompt after a denied consent", () => {
+  it("carries the prompt from the cookie (consent, to re-enter permissions)", () => {
+    expect(additions({ promptCookie: "consent" })).toEqual({
+      prompt: "consent",
+    });
+  });
+
+  it("ignores a prompt cookie value that isn't allow-listed", () => {
+    expect(additions({ promptCookie: "evil" })).toEqual({});
+  });
+
+  it("adds both a returnTo and the prompt", () => {
     expect(
-      additions({ referer: `${ORIGIN}/calendar`, reauthCookie: "1" }),
-    ).toEqual({ returnTo: "/calendar", prompt: "login" });
+      additions({ referer: `${ORIGIN}/calendar`, promptCookie: "consent" }),
+    ).toEqual({ returnTo: "/calendar", prompt: "consent" });
   });
 
   it("does not override a returnTo already on the request", () => {
@@ -87,7 +97,7 @@ describe("loginRedirectAdditions", () => {
     expect(
       additions({
         searchParams: new URLSearchParams("prompt=none"),
-        reauthCookie: "1",
+        promptCookie: "login",
       }),
     ).toEqual({});
   });

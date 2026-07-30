@@ -20,6 +20,12 @@ describe("AuthErrorToast", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/permission/i);
   });
 
+  it("tells you when the session timed out", () => {
+    params.mockReturnValue(new URLSearchParams("authError=timeout"));
+    render(<AuthErrorToast />);
+    expect(screen.getByRole("alert")).toHaveTextContent(/timed out/i);
+  });
+
   it("ignores auth error codes it doesn't recognise", () => {
     params.mockReturnValue(new URLSearchParams("authError=whatever"));
     render(<AuthErrorToast />);

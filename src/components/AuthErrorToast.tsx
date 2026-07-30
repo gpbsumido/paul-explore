@@ -5,30 +5,36 @@ import { useSearchParams } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
 import { useHubReducedMotion } from "@/app/providers";
 
-/** The onCallback in auth0.ts sends declined logins here with this flag. */
-const PERMISSIONS = "permissions";
+/**
+ * Messages for each ?authError the auth flow sends the user back with:
+ * "permissions" from a declined consent (onCallback in src/lib/auth0.ts),
+ * "timeout" from an expired session (the proxy).
+ */
+const MESSAGES: Record<string, string> = {
+  permissions: "You can't log in without granting permissions.",
+  timeout: "Your session timed out. Please log in again.",
+};
 
 const AUTO_DISMISS_MS = 6_000;
 
 /**
- * Shows a toast when a login was declined. Auth0 sends the user back to the page
- * they started on with ?authError=permissions (see the onCallback in
- * src/lib/auth0.ts), and this reads that flag and explains why they aren't
- * signed in. Dismissing is local state, so it doesn't rewrite the URL or break
- * the back button, mirroring InterviewNotice.
+ * Shows a toast when the auth flow bounced the user back with an ?authError:
+ * a declined login or an expired session. Dismissing is local state, so it
+ * doesn't rewrite the URL or break the back button, mirroring InterviewNotice.
  */
 export default function AuthErrorToast() {
-  const denied = useSearchParams().get("authError") === PERMISSIONS;
+  const code = useSearchParams().get("authError");
+  const message = code ? MESSAGES[code] : undefined;
   const [dismissed, setDismissed] = useState(false);
   const reduceMotion = useHubReducedMotion();
 
   useEffect(() => {
-    if (!denied) return;
+    if (!message) return;
     const timer = setTimeout(() => setDismissed(true), AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
-  }, [denied]);
+  }, [message]);
 
-  const show = denied && !dismissed;
+  const show = Boolean(message) && !dismissed;
 
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-50">
@@ -43,7 +49,7 @@ export default function AuthErrorToast() {
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.95 }}
             transition={{ duration: reduceMotion ? 0 : 0.2 }}
           >
-            <span>You can&rsquo;t log in without granting permissions.</span>
+            <span>{message}</span>
             <button
               type="button"
               onClick={() => setDismissed(true)}

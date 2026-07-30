@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { loginRedirectAdditions, REAUTH_COOKIE } from "@/lib/loginReturnTo";
+import { loginRedirectAdditions, LOGIN_PROMPT_COOKIE } from "@/lib/loginReturnTo";
+import {
+  SESSION_MARKER_COOKIE,
+  SESSION_ABSOLUTE_SECONDS,
+  isSessionTimeout,
+} from "@/lib/authSession";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
 import {
@@ -83,6 +88,43 @@ function getIp(req: NextRequest): string {
   );
 }
 
+/**
+ * Stamps the long-lived marker on an authenticated response. It outlives the
+ * session cookie, so once the session has expired its lingering presence is how
+ * we know the user timed out rather than never logging in.
+ */
+function markSessionActive(res: NextResponse): NextResponse {
+  res.cookies.set(SESSION_MARKER_COOKIE, "1", {
+    path: "/",
+    maxAge: SESSION_ABSOLUTE_SECONDS,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+  });
+  return res;
+}
+
+/**
+ * Sends a timed-out user to the landing page with a toast flag, clears the
+ * marker so we only say it once, and arms the next login to re-show the
+ * permission screen. We land them on a real page rather than bouncing straight
+ * to Auth0 so the "session timed out" toast actually gets a chance to render.
+ */
+function sessionTimeoutRedirect(request: NextRequest): NextResponse {
+  const url = new URL("/", request.url);
+  url.searchParams.set("authError", "timeout");
+  const res = NextResponse.redirect(url);
+  res.cookies.delete(SESSION_MARKER_COOKIE);
+  res.cookies.set(LOGIN_PROMPT_COOKIE, "consent", {
+    path: "/",
+    maxAge: 600,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+  });
+  return res;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -123,21 +165,21 @@ export async function proxy(request: NextRequest) {
     // logging in again instead of jumping straight back to the permission
     // screen — the reauth cookie set by onCallback is a one-shot, cleared here.
     if (pathname === "/auth/login") {
-      const reauthCookie = request.cookies.get(REAUTH_COOKIE)?.value;
+      const promptCookie = request.cookies.get(LOGIN_PROMPT_COOKIE)?.value;
       const additions = loginRedirectAdditions({
         searchParams: request.nextUrl.searchParams,
         referer: request.headers.get("referer"),
         origin: request.nextUrl.origin,
-        reauthCookie,
+        promptCookie,
       });
-      if (Object.keys(additions).length > 0 || reauthCookie) {
+      if (Object.keys(additions).length > 0 || promptCookie) {
         const loginUrl = request.nextUrl.clone();
         if (additions.returnTo)
           loginUrl.searchParams.set("returnTo", additions.returnTo);
         if (additions.prompt)
           loginUrl.searchParams.set("prompt", additions.prompt);
         const res = NextResponse.redirect(loginUrl);
-        if (reauthCookie) res.cookies.delete(REAUTH_COOKIE);
+        if (promptCookie) res.cookies.delete(LOGIN_PROMPT_COOKIE);
         return res;
       }
     }
@@ -162,13 +204,17 @@ export async function proxy(request: NextRequest) {
   ) {
     const session = await auth0.getSession(request);
     if (!session) {
+      const marker = request.cookies.get(SESSION_MARKER_COOKIE)?.value;
+      if (isSessionTimeout(false, marker)) {
+        return sessionTimeoutRedirect(request);
+      }
       const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("returnTo", pathname);
       return NextResponse.redirect(loginUrl);
     }
     const res = await auth0.middleware(request);
     res.headers.set("Content-Security-Policy", CSP);
-    return res;
+    return markSessionActive(res);
   }
 
   // Root route — run auth0.middleware() when a session cookie is present so
@@ -181,7 +227,17 @@ export async function proxy(request: NextRequest) {
     if (session) {
       const res = await auth0.middleware(request);
       res.headers.set("Content-Security-Policy", CSP);
-      return res;
+      return markSessionActive(res);
+    }
+    // No session on the landing page. If the marker is still around the session
+    // just timed out, so bounce once to show the toast; the redirect clears the
+    // marker so the followup falls through and the landing renders.
+    const marker = request.cookies.get(SESSION_MARKER_COOKIE)?.value;
+    if (
+      isSessionTimeout(false, marker) &&
+      !request.nextUrl.searchParams.has("authError")
+    ) {
+      return sessionTimeoutRedirect(request);
     }
   }
 
