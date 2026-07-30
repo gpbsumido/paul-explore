@@ -1,8 +1,8 @@
 # Changelog
 
-## 2026-07-30 - version 2.10.5
+## 2026-07-30 - version 2.10.6
 
-- **Sessions now roll on a six-hour idle timer, and timing out tells you so.** Being on the site and doing things keeps you signed in — each request pushes the expiry six hours out, under a seven-day absolute ceiling. Sit idle for six hours and the session expires; come back and a toast says "Your session timed out. Please log in again," and the next login re-shows the Auth0 permission screen. The timeout is detected with a longer-lived marker cookie that outlives the session, so a timed-out user is told apart from someone who was never logged in, and the re-consent rides the same one-shot prompt cookie as the denied-consent case (`prompt=consent` here, `prompt=login` there). Replaces the earlier 24-hour session.
+- **Sessions now roll on a six-hour idle timer, and timing out tells you so.** Being on the site and doing anything keeps you signed in — every request from a signed-in user, whether it's the hub, a protected feature, a public write-up, an API call or a client-side navigation, pushes the expiry six hours out, under a seven-day absolute ceiling. Sit idle for six hours and the session expires; come back and a toast says "Your session timed out. Please log in again," and the next login re-shows the Auth0 permission screen. The timeout is detected with a longer-lived marker cookie that outlives the session, so a timed-out user is told apart from someone who was never logged in, and the re-consent rides the same one-shot prompt cookie as the denied-consent case (`prompt=consent` here, `prompt=login` there). Replaces the earlier 24-hour session.
 
 ## 2026-07-30 - version 2.10.3
 
