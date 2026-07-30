@@ -41,6 +41,42 @@ describe("HarnessVisualPlanContent", () => {
     expect(screen.queryByTestId("gated-content")).not.toBeInTheDocument();
   });
 
+  it("fills the haze behind the lock with the pitch, not the write-up", () => {
+    const client = makeClient();
+    client.setQueryData(queryKeys.me(), { email: "someone@example.com" });
+    renderWith(client);
+    const haze = screen.getByTestId("paywall-teaser");
+    expect(haze).toHaveAttribute("aria-hidden", "true");
+    expect(haze).toHaveTextContent(/interview/i);
+    expect(haze).not.toHaveTextContent(/I used to jump straight into the code/i);
+  });
+
+  it("sends the locked-out reader to the resume rather than straight to mail", () => {
+    const client = makeClient();
+    client.setQueryData(queryKeys.me(), { email: "someone@example.com" });
+    renderWith(client);
+    expect(screen.getByRole("link", { name: /get in touch/i })).toHaveAttribute(
+      "href",
+      "/resume?from=interview",
+    );
+  });
+
+  it("keeps the gated prose out of the page entirely for a non-owner", () => {
+    const client = makeClient();
+    client.setQueryData(queryKeys.me(), { email: "someone@example.com" });
+    const { container } = renderWith(client);
+    expect(container.textContent).not.toMatch(
+      /I used to jump straight into the code/i,
+    );
+  });
+
+  it("drops the haze once the owner can read the real thing", () => {
+    const client = makeClient();
+    client.setQueryData(queryKeys.me(), { email: "psumido@gmail.com" });
+    renderWith(client);
+    expect(screen.queryByTestId("paywall-teaser")).not.toBeInTheDocument();
+  });
+
   it("unlocks the full write-up for the owner", () => {
     const client = makeClient();
     client.setQueryData(queryKeys.me(), { email: "psumido@gmail.com" });
