@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import CommandPaletteRoot from "@/components/CommandPalette/CommandPaletteRoot";
+import AuthErrorToast from "@/components/AuthErrorToast";
 import { Providers } from "./providers";
 import WebVitalsReporter from "@/components/WebVitalsReporter";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
@@ -68,6 +70,10 @@ export default function RootLayout({
               {children}
             </div>
             <CommandPaletteRoot />
+            {/* Reads ?authError from the URL, so it needs a Suspense boundary. */}
+            <Suspense fallback={null}>
+              <AuthErrorToast />
+            </Suspense>
           </ThemeProvider>
         </Providers>
         <SpeedInsights />

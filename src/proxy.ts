@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
+import { loginReturnToFromReferer } from "@/lib/loginReturnTo";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
 import {
@@ -115,6 +116,23 @@ export async function proxy(request: NextRequest) {
   // Auth0 OIDC routes — the SDK owns the full login / callback / logout flow.
   // v4 of @auth0/nextjs-auth0 uses /auth/* (not /api/auth/*).
   if (pathname.startsWith("/auth/")) {
+    // The login links across the app point at a bare /auth/login, so the SDK
+    // would default the post-login redirect to "/". Fill in a returnTo from the
+    // page they came from (the Referer) so they land back where they started.
+    if (
+      pathname === "/auth/login" &&
+      !request.nextUrl.searchParams.has("returnTo")
+    ) {
+      const returnTo = loginReturnToFromReferer(
+        request.headers.get("referer"),
+        request.nextUrl.origin,
+      );
+      if (returnTo) {
+        const loginUrl = request.nextUrl.clone();
+        loginUrl.searchParams.set("returnTo", returnTo);
+        return NextResponse.redirect(loginUrl);
+      }
+    }
     try {
       return await auth0.middleware(request);
     } catch (err) {

@@ -1,4 +1,9 @@
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
+import { NextResponse } from "next/server";
+import {
+  isPermissionDenied,
+  permissionDeniedReturnTo,
+} from "@/lib/authCallback";
 
 export const auth0 = new Auth0Client({
   logoutStrategy: "v2",
@@ -9,5 +14,22 @@ export const auth0 = new Auth0Client({
   session: {
     absoluteDuration: 86400,
     rolling: true,
+  },
+  // The SDK's default onCallback returns a bare 500 on any callback error, so
+  // declining the consent screen (error=access_denied) used to dump you on an
+  // error page. Send that one case back to where you started with a flag the
+  // AuthErrorToast picks up. Success and every other error keep the default
+  // behaviour so real misconfig still surfaces.
+  onCallback: async (error, ctx) => {
+    const baseUrl = process.env.APP_BASE_URL as string;
+    if (error) {
+      if (isPermissionDenied(error)) {
+        return NextResponse.redirect(
+          permissionDeniedReturnTo(ctx.returnTo, baseUrl),
+        );
+      }
+      return new NextResponse(error.message, { status: 500 });
+    }
+    return NextResponse.redirect(new URL(ctx.returnTo ?? "/", baseUrl));
   },
 });
