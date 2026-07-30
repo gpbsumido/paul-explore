@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-30 - version 2.10.1
+
+- **Turned the v4 win confetti off on phones.** It fell smoothly on my laptop and in the mobile emulator but was laggy and jumpy on an actual phone -- the emulator borrows the laptop's GPU and hides it. I tried thinning the count and dropping the translucent foil sheen (which a phone re-blends across dozens of overlapping, tumbling layers every frame), and promoting the layers upfront to kill the start-of-burst hitch. On real hardware it still stuttered: a fall of dozens of tumbling layers is a fill-rate cost a phone GPU can't carry, and no emulator on a desktop GPU reproduces it. So the confetti is decoration, and decoration is the thing that gives -- it's disabled on mobile entirely. The win still reads there through the reels landing, the result bar, and the sound. Desktop keeps the full 110 pieces and the foil look, now promoted upfront with `will-change: transform`.
+
 ## 2026-07-30 - version 2.10.0
 
 - **Added the Visual Plans dev-note**, a write-up on how I bracket every real change with a visual plan before any code and a visual recap after it ships -- the reasoning, the pros and cons, and how I run it step by step. The first couple of paragraphs are open; the rest sits behind an owner-only gate. New `Paywall` component reuses the existing `GET /api/me` session read, so only the signed-in owner sees the full thing and everyone else gets an "interview me first" panel. It fails closed on purpose, so the gated prose never flashes for a visitor while the session request is in flight, and none of it reaches the browser at all.

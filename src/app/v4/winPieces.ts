@@ -46,16 +46,10 @@ export type ConfettiPiece = {
   color: string;
 };
 
-/** How many pieces fall on a roomy screen -- a proper faceful of confetti. */
-const DESKTOP_CONFETTI_COUNT = 110;
-/** Far fewer on a phone: each piece is its own tumbling GPU layer, and a
-    hundred of them drops frames on mobile. Enough left to still read as a
-    party, not so many the celebration stutters. */
-const MOBILE_CONFETTI_COUNT = 45;
-
-/** How many confetti pieces to drop, thinned on phones where the layers cost. */
-export const confettiCount = (isMobile: boolean): number =>
-  isMobile ? MOBILE_CONFETTI_COUNT : DESKTOP_CONFETTI_COUNT;
+/** How many pieces fall -- a proper faceful of confetti. Desktop only: the
+    burst is skipped on phones, where dozens of tumbling GPU layers can't hold
+    frame rate no matter how far the count is thinned. */
+export const CONFETTI_COUNT = 110;
 
 /** Pick from a palette by hash, so colour is scattered but stable. */
 const pick = (colors: readonly string[], seed: number): string =>
