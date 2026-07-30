@@ -90,8 +90,17 @@ export default function WinCelebration({ optionColor, accent, style }: Props) {
               height: c.height,
               backgroundColor: c.color,
               // A touch of sheen so each piece reads as foil rather than paper.
-              backgroundImage:
-                "linear-gradient(120deg, rgba(255,255,255,0.5), rgba(255,255,255,0) 55%)",
+              // Skipped on a phone: a translucent gradient across dozens of
+              // overlapping, tumbling layers is a per-frame alpha overdraw the
+              // compositor can't keep up with. The solid colour still reads.
+              backgroundImage: isMobile
+                ? undefined
+                : "linear-gradient(120deg, rgba(255,255,255,0.5), rgba(255,255,255,0) 55%)",
+              // Promote every piece to its own layer upfront. Without this the
+              // browser promotes them all at burst start, and that allocation
+              // hitch is the jump you see on the first frame.
+              willChange: "transform",
+              backfaceVisibility: "hidden",
               "--v4-drift": `${c.drift}px`,
               "--v4-spin": `${c.spin}deg`,
               "--v4-flip": `${c.flip}deg`,

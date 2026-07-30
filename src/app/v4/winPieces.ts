@@ -48,10 +48,11 @@ export type ConfettiPiece = {
 
 /** How many pieces fall on a roomy screen -- a proper faceful of confetti. */
 const DESKTOP_CONFETTI_COUNT = 110;
-/** Far fewer on a phone: each piece is its own tumbling GPU layer, and a
-    hundred of them drops frames on mobile. Enough left to still read as a
-    party, not so many the celebration stutters. */
-const MOBILE_CONFETTI_COUNT = 45;
+/** Far fewer on a phone: each piece is its own tumbling GPU layer, and even 45
+    of them still stuttered on a real phone (emulators borrow the laptop's GPU
+    and hide it). Enough left to still read as a party, few enough that the
+    compositor keeps up. */
+const MOBILE_CONFETTI_COUNT = 26;
 
 /** How many confetti pieces to drop, thinned on phones where the layers cost. */
 export const confettiCount = (isMobile: boolean): number =>
