@@ -36,6 +36,47 @@ function Section({
   );
 }
 
+/** Body of the first gated section, pulled out just to keep the tree readable. */
+const WHY_I_PLAN_BODY = (
+  <>
+    <p>
+      I used to jump straight into the code and let the design emerge from the
+      diff. It works right up until it doesn&rsquo;t — until I&rsquo;m three
+      files deep and realize the shape is wrong, or I&rsquo;ve quietly built a
+      bespoke mechanism where an existing one would have done. Writing the plan
+      first forces me to answer the questions that are cheap to change on paper
+      and expensive to change in code.
+    </p>
+    <ul className="mt-3 space-y-2">
+      <Bullet>
+        <span className="font-medium">Is this the simplest correct approach</span>
+        , or am I adding indirection the task doesn&rsquo;t need?
+      </Bullet>
+      <Bullet>
+        <span className="font-medium">Does it fit the system</span> — reusing
+        real components and boundaries — or am I bolting a new pattern onto the
+        side?
+      </Bullet>
+      <Bullet>
+        <span className="font-medium">What&rsquo;s the performance story</span>,
+        and is there something I can measure to know it works — a test, a
+        counter, a benchmark?
+      </Bullet>
+      <Bullet>
+        <span className="font-medium">Am I overfitting</span> the architecture to
+        this one feature, baking in an assumption that only holds for
+        today&rsquo;s case?
+      </Bullet>
+    </ul>
+    <p className="mt-3">
+      If any answer exposes a problem, I fix the plan before I present it, and I
+      leave the tradeoff in the document so it&rsquo;s visible. That design gate
+      is the real work of planning — the wireframes are just how I make the
+      answers concrete.
+    </p>
+  </>
+);
+
 export default function HarnessVisualPlanContent() {
   return (
     <ThoughtLayout
@@ -58,9 +99,9 @@ export default function HarnessVisualPlanContent() {
         <p>
           The idea is small and a little stubborn: before I touch a line of
           implementation code, I write the plan down as a{" "}
-          <span className="font-medium">contract</span> and commit it to the
-          branch. Not a paragraph in a chat window that scrolls away, but a real
-          file — <C>plans/&lt;slug&gt;/plan.mdx</C> — with rendered low-fidelity
+          <span className="font-medium">contract</span>. Not a paragraph in a
+          chat window that scrolls away, but a real file on disk —{" "}
+          <C>plans/&lt;slug&gt;/plan.mdx</C> — with rendered low-fidelity
           wireframes for each screen state, an <C>erDiagram</C> for anything that
           touches data, a table of the files I&rsquo;ll add versus the ones I
           already have, and the RED test list that pins the behavior I&rsquo;m
@@ -68,6 +109,12 @@ export default function HarnessVisualPlanContent() {
           image: a <span className="font-medium">recap</span> that lifts the
           actual diff back into those same blocks and calls out every place
           reality drifted from the plan.
+        </p>
+        <p className="mt-3">
+          Both files stay on my machine — <C>plans/</C> is gitignored in this
+          repo — so what travels with the change is the work itself, not the
+          paperwork. The documents are for me, and for anyone I walk through
+          them.
         </p>
         <p className="mt-3">
           The whole point is the gap between those two documents. A plan nobody
@@ -81,44 +128,7 @@ export default function HarnessVisualPlanContent() {
 
       <Paywall>
         <div data-testid="gated-content" className="space-y-10">
-          <Section title="Why I plan before I type">
-            <p>
-              I used to jump straight into the code and let the design emerge from
-              the diff. It works right up until it doesn&rsquo;t — until I&rsquo;m
-              three files deep and realize the shape is wrong, or I&rsquo;ve
-              quietly built a bespoke mechanism where an existing one would have
-              done. Writing the plan first forces me to answer the questions that
-              are cheap to change on paper and expensive to change in code.
-            </p>
-            <ul className="mt-3 space-y-2">
-              <Bullet>
-                <span className="font-medium">Is this the simplest correct
-                approach</span>, or am I adding indirection the task doesn&rsquo;t
-                need?
-              </Bullet>
-              <Bullet>
-                <span className="font-medium">Does it fit the system</span> —
-                reusing real components and boundaries — or am I bolting a new
-                pattern onto the side?
-              </Bullet>
-              <Bullet>
-                <span className="font-medium">What&rsquo;s the performance
-                story</span>, and is there something I can measure to know it
-                works — a test, a counter, a benchmark?
-              </Bullet>
-              <Bullet>
-                <span className="font-medium">Am I overfitting</span> the
-                architecture to this one feature, baking in an assumption that
-                only holds for today&rsquo;s case?
-              </Bullet>
-            </ul>
-            <p className="mt-3">
-              If any answer exposes a problem, I fix the plan before I present it,
-              and I leave the tradeoff in the document so it&rsquo;s visible. That
-              design gate is the real work of planning — the wireframes are just
-              how I make the answers concrete.
-            </p>
-          </Section>
+          <Section title="Why I plan before I type">{WHY_I_PLAN_BODY}</Section>
 
           <Section title="How it actually helps">
             <p>
@@ -161,8 +171,8 @@ export default function HarnessVisualPlanContent() {
                 it&rsquo;s a comment on a wireframe instead of a rewrite.
               </Bullet>
               <Bullet>
-                A durable record. The plan and recap live in the branch and land
-                in the PR, so the reasoning travels with the change instead of
+                A durable record. The plan and recap are files I can reopen
+                months later, so the reasoning outlives the change instead of
                 evaporating in a chat log.
               </Bullet>
               <Bullet>
@@ -224,9 +234,10 @@ export default function HarnessVisualPlanContent() {
                 one from a code block.
               </li>
               <li>
-                <span className="font-medium">Ship the plan as the first
-                commit</span> and open the draft PR before writing implementation
-                code — the earliest a change of direction is cheap.
+                <span className="font-medium">Open the draft PR</span> before
+                writing implementation code — the earliest a change of direction
+                is cheap. The plan stays on disk; the PR is where the work
+                becomes visible.
               </li>
               <li>
                 <span className="font-medium">Work the test list RED, then
@@ -240,12 +251,6 @@ export default function HarnessVisualPlanContent() {
                 drift from the plan called out. Then the closing summary.
               </li>
             </ol>
-            <p className="mt-3 text-muted">
-              One local quirk worth noting: in this repo <C>plans/</C> is
-              gitignored, so the plan and recap stay on my machine rather than
-              riding along in the PR. The process is the same; only the storage
-              is local here.
-            </p>
           </Section>
 
           <Section title="What I&rsquo;d revisit">
