@@ -241,6 +241,18 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // Any other request from a signed-in user — a public write-up, an API call, a
+  // client-side navigation — rolls the session too, so any activity anywhere
+  // resets the idle timer, not just the hub and the protected features.
+  // getSession() is a cheap cookie read that returns null with no work when
+  // there's no session, so anonymous traffic falls straight through.
+  const session = await auth0.getSession(request);
+  if (session) {
+    const res = await auth0.middleware(request);
+    res.headers.set("Content-Security-Policy", CSP);
+    return markSessionActive(res);
+  }
+
   // All other routes: pass through with CSP headers, minting a stable visitor
   // id on first contact. Server-side flag rollouts (the /tcg/pocket gate) key
   // off this cookie, so a visitor's bucket stays fixed across visits. When it is
