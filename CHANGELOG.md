@@ -2,7 +2,7 @@
 
 ## 2026-07-30 - version 2.10.1
 
-- **Fixed the v4 win confetti on real phones.** It fell smoothly on my laptop and in the mobile emulator but was laggy and jumpy on an actual phone -- the emulator borrows the laptop's GPU and hides it. The earlier fix only cut the piece count, which wasn't the real cost. Each piece carried a translucent foil sheen, and a phone re-blends that alpha across dozens of overlapping, tumbling layers every frame. So on mobile it now drops the sheen for a solid fill, thins the burst from 45 to 26, and promotes every piece with `will-change: transform` up front so the layers aren't all allocated at burst start -- that allocation hitch was the jump on the first frame. Desktop keeps the full 110 pieces and the foil look.
+- **Turned the v4 win confetti off on phones.** It fell smoothly on my laptop and in the mobile emulator but was laggy and jumpy on an actual phone -- the emulator borrows the laptop's GPU and hides it. I tried thinning the count and dropping the translucent foil sheen (which a phone re-blends across dozens of overlapping, tumbling layers every frame), and promoting the layers upfront to kill the start-of-burst hitch. On real hardware it still stuttered: a fall of dozens of tumbling layers is a fill-rate cost a phone GPU can't carry, and no emulator on a desktop GPU reproduces it. So the confetti is decoration, and decoration is the thing that gives -- it's disabled on mobile entirely. The win still reads there through the reels landing, the result bar, and the sound. Desktop keeps the full 110 pieces and the foil look, now promoted upfront with `will-change: transform`.
 
 ## 2026-07-30 - version 2.10.0
 
