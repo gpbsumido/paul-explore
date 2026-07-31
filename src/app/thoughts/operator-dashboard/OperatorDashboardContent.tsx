@@ -331,159 +331,38 @@ export default function OperatorDashboardContent() {
         </div>
       }
     >
-      <section className="rounded-xl border border-primary-400/40 bg-primary-500/5 p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
-                Update &mdash; July 31, 2026
+      <nav
+              aria-label="Update timeline"
+              className="rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="text-sm font-semibold text-foreground">Timeline</h2>
+              <p className="mt-1 text-xs text-muted">
+                Newest first &mdash; this write-up has updates, jump to one.
               </p>
-              <h2 className="mt-1 mb-3 text-lg font-bold">
-                Running the store, not just watching it
-              </h2>
-              <p className="text-muted">
-                Picking this back up today. The original dashboard answers one
-                question well: which stores need attention right now. But an
-                operator also runs each store as a small business, and the tabs
-                didn&apos;t help with any of that. So this is a continuation, not
-                a rewrite &mdash; three new capabilities layered onto the same
-                in-memory demo data and the same pure-function-plus-schema
-                patterns the rest of the feature already uses.
-              </p>
-              <ul className="mt-3 list-disc pl-5 text-muted space-y-1">
-                <li>
-                  <strong className="text-foreground">Store arrangement</strong>{" "}
-                  &mdash; know which product is in which spot, and what to refill
-                  on the next visit.
+              <ol className="mt-3 space-y-2 text-sm">
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Jul 31, 2026
+                  </span>
+                  <a
+                    href="#update-2026-07-31"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Running the store: arrangement, sales history, tax calculator
+                  </a>
                 </li>
-                <li>
-                  <strong className="text-foreground">Sales history</strong>{" "}
-                  &mdash; see what actually sold, not just what&apos;s in stock.
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Initial
+                  </span>
+                  <span className="text-muted">
+                    Operator dashboard &mdash; fleet monitoring, alerts,
+                    inventory health, analytics
+                  </span>
                 </li>
-                <li>
-                  <strong className="text-foreground">Tax calculator</strong>{" "}
-                  &mdash; Canada, so GST/HST/PST/QST worked out per province with
-                  a remittance history.
-                </li>
-              </ul>
+              </ol>
+            </nav>
 
-              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
-                Store arrangement: slots have addresses now
-              </h3>
-              <p className="text-muted">
-                The planogram already drew the shelves, but a slot was just a
-                box in a grid. If I&apos;m standing in front of the fridge, &quot;box
-                three on the second shelf&quot; means nothing. So every slot now
-                carries an address &mdash; shelf letter plus 1-based position, so
-                the fifth item on shelves of four is{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  B1
-                </code>
-                . One helper,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  slotLabelFor(index, shelfWidth)
-                </code>
-                , owns that math so the grid and the refill list can&apos;t
-                disagree about where something lives.
-              </p>
-              <p className="mt-3 text-muted">
-                On top of that is a &quot;refill run&quot;:{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  getRefillList
-                </code>{" "}
-                pulls out every slot below the healthy fill line, tags it with
-                its address, and sorts most-empty first. That&apos;s the actual
-                job &mdash; not &quot;here&apos;s the whole planogram,&quot; but
-                &quot;go to A2, then B1, then C4, in that order.&quot; I kept it
-                to addressing and a refill list rather than drag-and-drop
-                rearranging. Drag-and-drop is a lot of surface area for a demo,
-                it&apos;s fiddly to test, and it doesn&apos;t answer the question
-                the operator actually has, which is where things are and what
-                needs topping up.
-              </p>
-
-              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
-                Sales history
-              </h3>
-              <p className="text-muted">
-                New Sales tab, backed by a seeded sales store and a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  GET /api/operator/stores/[storeId]/sales
-                </code>{" "}
-                route, fetched by a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  useOperatorSales
-                </code>{" "}
-                hook on the same 60-second polling tier as inventory &mdash;
-                sales drain stock, so they move at roughly the same cadence. The
-                display numbers are all pure functions over the sales list:{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  summarizeSales
-                </code>{" "}
-                for the headline totals,{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  topSellingProducts
-                </code>{" "}
-                for the per-product rollup ordered by revenue, and{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  salesByDay
-                </code>{" "}
-                for a last-7-days revenue trend. Keeping them pure means they
-                test without a component in sight, and the tab is just a thin
-                view over their output.
-              </p>
-
-              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
-                Tax calculator: Canada, by province
-              </h3>
-              <p className="text-muted">
-                This is the piece with real domain logic. Operators are assumed
-                to be in Canada for now, so a store gained a{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  province
-                </code>{" "}
-                field and the tax lib carries a table of GST/HST/PST rates for
-                all thirteen provinces and territories. Three regimes: HST
-                provinces charge one combined rate (Ontario 13%, the Maritimes
-                15%, Nova Scotia&apos;s reduced 14%), GST-only jurisdictions
-                charge the flat 5% federal rate, and GST+PST provinces stack the
-                5% on a provincial rate &mdash; including Quebec, whose QST of
-                9.975% sits in the provincial slot.
-              </p>
-              <p className="mt-3 text-muted">
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  computeTax(subtotal, province)
-                </code>{" "}
-                rounds each component to the cent independently and then sums
-                them, which is how a real invoice itemizes tax &mdash; you
-                don&apos;t round the total, you round each line. And{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  buildTaxHistory
-                </code>{" "}
-                rolls the sales into per-month remittance rows, newest first, so
-                there&apos;s a record to file against.
-              </p>
-              <p className="mt-3 text-muted">
-                The decision I&apos;m happiest with here: the tax is derived from
-                the sales data, not stored in its own ledger. The sales are the
-                source of truth; a second tax store would just be a copy that can
-                fall out of sync. Recomputing from the sales every time is cheap
-                at this scale and there&apos;s nothing to drift. The rates are
-                the one thing that genuinely lives outside the sales &mdash;
-                they&apos;re a small table, and if a province changes a rate
-                that&apos;s a one-line edit in{" "}
-                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  operator-tax.ts
-                </code>
-                .
-              </p>
-              <p className="mt-3 text-muted">
-                Same tradeoffs as the original still apply. The rate table is a
-                point-in-time snapshot, not a live tax service, so a real
-                deployment would want dated rate schedules and probably a
-                proper accounting integration rather than a demo remittance
-                table. But for showing the shape of the thing &mdash; the
-                province regimes, the itemized breakdown, the monthly history
-                &mdash; a pure lib over seeded sales is exactly enough.
-              </p>
-            </section>
 
             <section>
               <h2 className="mb-3 text-lg font-bold">Why this exists</h2>
@@ -1122,6 +1001,170 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-07-31"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; July 31, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Running the store, not just watching it
+              </h2>
+              <p className="text-muted">
+                Picking this back up today. The original dashboard answers one
+                question well: which stores need attention right now. But an
+                operator also runs each store as a small business, and the tabs
+                didn&apos;t help with any of that. So this is a continuation, not
+                a rewrite &mdash; three new capabilities layered onto the same
+                in-memory demo data and the same pure-function-plus-schema
+                patterns the rest of the feature already uses.
+              </p>
+              <ul className="mt-3 list-disc pl-5 text-muted space-y-1">
+                <li>
+                  <strong className="text-foreground">Store arrangement</strong>{" "}
+                  &mdash; know which product is in which spot, and what to refill
+                  on the next visit.
+                </li>
+                <li>
+                  <strong className="text-foreground">Sales history</strong>{" "}
+                  &mdash; see what actually sold, not just what&apos;s in stock.
+                </li>
+                <li>
+                  <strong className="text-foreground">Tax calculator</strong>{" "}
+                  &mdash; Canada, so GST/HST/PST/QST worked out per province with
+                  a remittance history.
+                </li>
+              </ul>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Store arrangement: slots have addresses now
+              </h3>
+              <p className="text-muted">
+                The planogram already drew the shelves, but a slot was just a
+                box in a grid. If I&apos;m standing in front of the fridge, &quot;box
+                three on the second shelf&quot; means nothing. So every slot now
+                carries an address &mdash; shelf letter plus 1-based position, so
+                the fifth item on shelves of four is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  B1
+                </code>
+                . One helper,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  slotLabelFor(index, shelfWidth)
+                </code>
+                , owns that math so the grid and the refill list can&apos;t
+                disagree about where something lives.
+              </p>
+              <p className="mt-3 text-muted">
+                On top of that is a &quot;refill run&quot;:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  getRefillList
+                </code>{" "}
+                pulls out every slot below the healthy fill line, tags it with
+                its address, and sorts most-empty first. That&apos;s the actual
+                job &mdash; not &quot;here&apos;s the whole planogram,&quot; but
+                &quot;go to A2, then B1, then C4, in that order.&quot; I kept it
+                to addressing and a refill list rather than drag-and-drop
+                rearranging. Drag-and-drop is a lot of surface area for a demo,
+                it&apos;s fiddly to test, and it doesn&apos;t answer the question
+                the operator actually has, which is where things are and what
+                needs topping up.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Sales history
+              </h3>
+              <p className="text-muted">
+                New Sales tab, backed by a seeded sales store and a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GET /api/operator/stores/[storeId]/sales
+                </code>{" "}
+                route, fetched by a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  useOperatorSales
+                </code>{" "}
+                hook on the same 60-second polling tier as inventory &mdash;
+                sales drain stock, so they move at roughly the same cadence. The
+                display numbers are all pure functions over the sales list:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  summarizeSales
+                </code>{" "}
+                for the headline totals,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  topSellingProducts
+                </code>{" "}
+                for the per-product rollup ordered by revenue, and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  salesByDay
+                </code>{" "}
+                for a last-7-days revenue trend. Keeping them pure means they
+                test without a component in sight, and the tab is just a thin
+                view over their output.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Tax calculator: Canada, by province
+              </h3>
+              <p className="text-muted">
+                This is the piece with real domain logic. Operators are assumed
+                to be in Canada for now, so a store gained a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  province
+                </code>{" "}
+                field and the tax lib carries a table of GST/HST/PST rates for
+                all thirteen provinces and territories. Three regimes: HST
+                provinces charge one combined rate (Ontario 13%, the Maritimes
+                15%, Nova Scotia&apos;s reduced 14%), GST-only jurisdictions
+                charge the flat 5% federal rate, and GST+PST provinces stack the
+                5% on a provincial rate &mdash; including Quebec, whose QST of
+                9.975% sits in the provincial slot.
+              </p>
+              <p className="mt-3 text-muted">
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  computeTax(subtotal, province)
+                </code>{" "}
+                rounds each component to the cent independently and then sums
+                them, which is how a real invoice itemizes tax &mdash; you
+                don&apos;t round the total, you round each line. And{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  buildTaxHistory
+                </code>{" "}
+                rolls the sales into per-month remittance rows, newest first, so
+                there&apos;s a record to file against. On top of that,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  summarizeRemittance
+                </code>{" "}
+                totals what&apos;s actually owed and splits it into the federal
+                portion (GST/HST, off to the CRA) and the provincial portion
+                (PST/QST), which is the number the operator really wants: how
+                much do I owe, and to whom.
+              </p>
+              <p className="mt-3 text-muted">
+                The decision I&apos;m happiest with here: the tax is derived from
+                the sales data, not stored in its own ledger. The sales are the
+                source of truth; a second tax store would just be a copy that can
+                fall out of sync. Recomputing from the sales every time is cheap
+                at this scale and there&apos;s nothing to drift. The rates are
+                the one thing that genuinely lives outside the sales &mdash;
+                they&apos;re a small table, and if a province changes a rate
+                that&apos;s a one-line edit in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-tax.ts
+                </code>
+                .
+              </p>
+              <p className="mt-3 text-muted">
+                Same tradeoffs as the original still apply. The rate table is a
+                point-in-time snapshot, not a live tax service, so a real
+                deployment would want dated rate schedules and probably a
+                proper accounting integration rather than a demo remittance
+                table. But for showing the shape of the thing &mdash; the
+                province regimes, the itemized breakdown, the monthly history
+                &mdash; a pure lib over seeded sales is exactly enough.
+              </p>
+            </section>
+
     </ThoughtLayout>
   );
 }

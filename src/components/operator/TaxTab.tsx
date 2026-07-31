@@ -3,7 +3,11 @@
 import { useMemo } from "react";
 import { useOperatorSales } from "@/hooks/useOperatorSales";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
-import { getProvinceTax, buildTaxHistory } from "@/lib/operator-tax";
+import {
+  getProvinceTax,
+  buildTaxHistory,
+  summarizeRemittance,
+} from "@/lib/operator-tax";
 import { formatCAD } from "@/lib/operator-sales";
 
 interface TaxTabProps {
@@ -31,6 +35,8 @@ export default function TaxTab({ storeId }: TaxTabProps) {
     () => (store ? buildTaxHistory(sales, store.province) : []),
     [sales, store],
   );
+
+  const owed = useMemo(() => summarizeRemittance(history), [history]);
 
   const provincialLabel = store?.province === "QC" ? "QST" : "PST";
   const rateSummary = province
@@ -70,6 +76,35 @@ export default function TaxTab({ storeId }: TaxTabProps) {
           </span>
         </div>
       )}
+
+      {/* How much the operator needs to remit */}
+      <section className="rounded-lg border border-primary-400/40 bg-primary-500/5 p-4">
+        <h3 className="text-sm font-semibold text-foreground">Tax to remit</h3>
+        <p className="mt-0.5 text-xs text-muted">
+          Collected across all periods and owed to the tax authorities.
+        </p>
+        <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">
+          {formatCAD(owed.totalOwed)}
+        </p>
+        <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div className="rounded-md bg-surface px-3 py-2">
+            <dt className="text-[11px] uppercase tracking-wide text-muted">
+              Federal (GST/HST) &middot; CRA
+            </dt>
+            <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
+              {formatCAD(owed.federalOwed)}
+            </dd>
+          </div>
+          <div className="rounded-md bg-surface px-3 py-2">
+            <dt className="text-[11px] uppercase tracking-wide text-muted">
+              Provincial ({provincialLabel}){province ? ` · ${province.name}` : ""}
+            </dt>
+            <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
+              {formatCAD(owed.provincialOwed)}
+            </dd>
+          </div>
+        </dl>
+      </section>
 
       {/* Latest remittance period */}
       {latest ? (

@@ -47,6 +47,12 @@ export type TaxBreakdown = {
 
 export type TaxHistoryRow = TaxBreakdown & { period: string };
 
+export type RemittanceOwed = {
+  federalOwed: number;
+  provincialOwed: number;
+  totalOwed: number;
+};
+
 /**
  * Returns the rate config for a province with its code attached, so callers
  * have the code, human name, and rates in one object.
@@ -114,4 +120,27 @@ export function buildTaxHistory(
       const subtotal = toCents(rawSubtotal);
       return { period, ...computeTax(subtotal, code) };
     });
+}
+
+/**
+ * Totals the tax the operator has collected and must remit across every period,
+ * split into the federal portion (GST/HST, remitted to the CRA) and the
+ * provincial portion (PST/QST, remitted to the province).
+ */
+export function summarizeRemittance(
+  history: readonly TaxHistoryRow[],
+): RemittanceOwed {
+  let federalOwed = 0;
+  let provincialOwed = 0;
+  for (const row of history) {
+    federalOwed += row.gst + row.hst;
+    provincialOwed += row.pst;
+  }
+  federalOwed = toCents(federalOwed);
+  provincialOwed = toCents(provincialOwed);
+  return {
+    federalOwed,
+    provincialOwed,
+    totalOwed: toCents(federalOwed + provincialOwed),
+  };
 }

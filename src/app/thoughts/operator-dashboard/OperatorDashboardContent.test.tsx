@@ -26,6 +26,21 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/continuation/i);
   });
 
+  it("has a timeline at the top linking down to the update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /running the store: arrangement, sales history, tax calculator/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-07-31");
+  });
+
+  it("documents the tax-to-remit summary", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/summarizeRemittance/);
+    expect(body).toMatch(/how much do I owe/i);
+  });
+
   it("documents the store-arrangement slot addressing and refill run", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

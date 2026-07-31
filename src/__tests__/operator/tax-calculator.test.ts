@@ -4,6 +4,7 @@ import {
   getProvinceTax,
   computeTax,
   buildTaxHistory,
+  summarizeRemittance,
 } from "@/lib/operator-tax";
 import { buildSale } from "@/test/factories/operator";
 
@@ -168,5 +169,42 @@ describe("buildTaxHistory", () => {
 
   it("returns an empty history when there are no sales", () => {
     expect(buildTaxHistory([], "ON", now)).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// summarizeRemittance — total tax the operator owes across all periods
+// ---------------------------------------------------------------------------
+
+describe("summarizeRemittance", () => {
+  const now = new Date("2026-07-15T12:00:00Z");
+
+  it("totals the federal (GST/HST) portion across periods", () => {
+    const sales = [
+      buildSale({ total: 100, timestamp: "2026-07-01T10:00:00Z" }),
+      buildSale({ total: 100, timestamp: "2026-06-01T10:00:00Z" }),
+    ];
+    const history = buildTaxHistory(sales, "ON", now);
+    const owed = summarizeRemittance(history);
+    // 13% HST on 100 twice = 26 federal, no provincial for HST
+    expect(owed.federalOwed).toBe(26);
+    expect(owed.provincialOwed).toBe(0);
+    expect(owed.totalOwed).toBe(26);
+  });
+
+  it("splits federal and provincial for GST+PST provinces", () => {
+    const sales = [buildSale({ total: 100, timestamp: "2026-07-01T10:00:00Z" })];
+    const history = buildTaxHistory(sales, "BC", now);
+    const owed = summarizeRemittance(history);
+    expect(owed.federalOwed).toBe(5);
+    expect(owed.provincialOwed).toBe(7);
+    expect(owed.totalOwed).toBe(12);
+  });
+
+  it("returns zeroes for an empty history", () => {
+    const owed = summarizeRemittance([]);
+    expect(owed.federalOwed).toBe(0);
+    expect(owed.provincialOwed).toBe(0);
+    expect(owed.totalOwed).toBe(0);
   });
 });
