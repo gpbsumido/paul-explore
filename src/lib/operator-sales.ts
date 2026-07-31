@@ -282,14 +282,20 @@ export function aggregateFleetSales(
   const allSales = stores.flatMap((s) => [...s.sales]);
   const buckets = salesByPeriod(allSales, granularity, now);
 
+  // Per-store totals are windowed to the same range as the chart, so the
+  // ranking and the fleet total move with the granularity toggle and stay
+  // consistent with the bars. Summing each store's period buckets guarantees
+  // the ranking totals equal the charted totals.
   const byStore = stores
     .map((s) => {
-      const summary = summarizeSales(s.sales);
+      const storeBuckets = salesByPeriod(s.sales, granularity, now);
       return {
         storeId: s.storeId,
         storeName: s.storeName,
-        totalRevenue: summary.totalRevenue,
-        unitsSold: summary.unitsSold,
+        totalRevenue: toCents(
+          storeBuckets.reduce((sum, b) => sum + b.revenue, 0),
+        ),
+        unitsSold: storeBuckets.reduce((sum, b) => sum + b.units, 0),
       };
     })
     .sort((a, b) => b.totalRevenue - a.totalRevenue);

@@ -123,3 +123,35 @@ describe("aggregateFleetSales", () => {
     expect(result.buckets).toHaveLength(7);
   });
 });
+
+describe("aggregateFleetSales windows totals by granularity", () => {
+  const fleet = [
+    {
+      storeId: "s1",
+      storeName: "One",
+      sales: [
+        buildSale({ total: 10, quantity: 1, timestamp: "2026-07-14T09:00:00Z" }), // last 7 days
+        buildSale({ total: 90, quantity: 1, timestamp: "2026-05-01T09:00:00Z" }), // ~75 days ago
+      ],
+    },
+  ];
+
+  it("counts only in-window sales for the day range", () => {
+    const day = aggregateFleetSales(fleet, "day", NOW);
+    expect(day.byStore[0].totalRevenue).toBe(10);
+    expect(day.totalRevenue).toBe(10);
+  });
+
+  it("counts more sales for the month range", () => {
+    const month = aggregateFleetSales(fleet, "month", NOW);
+    expect(month.byStore[0].totalRevenue).toBe(100);
+    expect(month.totalRevenue).toBe(100);
+  });
+
+  it("keeps per-store totals consistent with the charted buckets", () => {
+    const month = aggregateFleetSales(fleet, "month", NOW);
+    const charted = month.buckets.reduce((sum, b) => sum + b.revenue, 0);
+    const ranked = month.byStore.reduce((sum, s) => sum + s.totalRevenue, 0);
+    expect(ranked).toBe(charted);
+  });
+});
