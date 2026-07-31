@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useOperatorInventory } from "@/hooks/useOperatorInventory";
-import { generatePlanogramGrid } from "@/lib/operator-detail";
+import { generatePlanogramGrid, getRefillList } from "@/lib/operator-detail";
 import PlanogramSlot from "./PlanogramSlot";
 
 interface PlanogramTabProps {
@@ -22,6 +22,11 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
 
   const grid = useMemo(
     () => generatePlanogramGrid(items, SHELF_WIDTH),
+    [items],
+  );
+
+  const refillList = useMemo(
+    () => getRefillList(items, SHELF_WIDTH),
     [items],
   );
 
@@ -64,6 +69,41 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
           <span className="text-warning-700 dark:text-warning-500 font-medium">
             {mismatchCount} sensor mismatch{mismatchCount !== 1 ? "es" : ""}
           </span>
+        )}
+      </div>
+
+      {/* Refill run — which slot needs restocking, most urgent first */}
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground">Refill run</h3>
+          <span className="text-xs text-muted">
+            {refillList.length} slot{refillList.length !== 1 ? "s" : ""} to
+            refill
+          </span>
+        </div>
+        {refillList.length === 0 ? (
+          <p className="mt-2 text-xs text-muted">
+            Every slot is stocked. Nothing to refill.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-1.5">
+            {refillList.map((entry) => (
+              <li
+                key={entry.slotLabel}
+                className="flex items-center gap-3 text-xs"
+              >
+                <span className="w-8 shrink-0 rounded bg-primary-500/10 px-1.5 py-0.5 text-center font-semibold tabular-nums text-primary-600 dark:text-primary-400">
+                  {entry.slotLabel}
+                </span>
+                <span className="flex-1 truncate text-foreground">
+                  {entry.productName}
+                </span>
+                <span className="shrink-0 tabular-nums text-muted">
+                  {entry.currentStock}/{entry.capacity}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 

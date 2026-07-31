@@ -7,6 +7,8 @@ import {
   inventoryItemSchema,
   alertSchema,
   activityEventSchema,
+  saleSchema,
+  provinceCodeSchema,
 } from "@/lib/operator-schemas";
 import {
   buildStore,
@@ -17,6 +19,8 @@ import {
   buildAlertList,
   buildActivityEvent,
   buildActivityList,
+  buildSale,
+  buildSalesList,
   resetFactoryCounter,
 } from "@/test/factories/operator";
 
@@ -320,6 +324,25 @@ describe("factory functions produce schema-valid data", () => {
       expect(e.storeId).toBe("store-099");
       expect(() => activityEventSchema.parse(e)).not.toThrow();
     }
+  });
+
+  it("buildSale output passes saleSchema", () => {
+    const sale = buildSale();
+    expect(() => saleSchema.parse(sale)).not.toThrow();
+  });
+
+  it("buildSalesList produces valid sales tied to a store", () => {
+    const sales = buildSalesList("store-055", 6);
+    expect(sales).toHaveLength(6);
+    for (const s of sales) {
+      expect(s.storeId).toBe("store-055");
+      expect(() => saleSchema.parse(s)).not.toThrow();
+    }
+  });
+
+  it("buildStore assigns a valid Canadian province", () => {
+    const store = buildStore();
+    expect(() => provinceCodeSchema.parse(store.province)).not.toThrow();
   });
 
   it("buildStore accepts overrides", () => {

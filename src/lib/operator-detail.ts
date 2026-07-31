@@ -10,7 +10,13 @@ import type {
   StoreStatus,
 } from "@/types/operator";
 
-export type TabId = "inventory" | "alerts" | "activity" | "planogram";
+export type TabId =
+  | "inventory"
+  | "alerts"
+  | "activity"
+  | "planogram"
+  | "sales"
+  | "tax";
 
 export type ConnectionQuality = "strong" | "weak" | "poor" | "offline";
 
@@ -57,6 +63,8 @@ export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "alerts", label: "Alerts" },
   { id: "activity", label: "Activity" },
   { id: "planogram", label: "Planogram" },
+  { id: "sales", label: "Sales" },
+  { id: "tax", label: "Tax" },
 ] as const;
 
 const VALID_TAB_IDS = new Set<string>(TABS.map((t) => t.id));

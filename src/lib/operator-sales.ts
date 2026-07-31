@@ -26,6 +26,16 @@ export type SalesDayBucket = {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+const CAD = new Intl.NumberFormat("en-CA", {
+  style: "currency",
+  currency: "CAD",
+});
+
+/** Formats a number as a Canadian-dollar amount, e.g. 1234.5 -> "$1,234.50". */
+export function formatCAD(value: number): string {
+  return CAD.format(value);
+}
+
 /** Rounds a currency value to the nearest cent. */
 function toCents(value: number): number {
   return Math.round(value * 100) / 100;
