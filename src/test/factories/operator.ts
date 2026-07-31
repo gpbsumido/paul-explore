@@ -300,8 +300,12 @@ export function buildSale(overrides: Partial<Sale> = {}): Sale {
 export function buildSalesList(
   storeId: string,
   count: number = 24,
+  spanDays: number = 7,
 ): readonly Sale[] {
-  return Array.from({ length: count }, () => buildSale({ storeId }));
+  return Array.from({ length: count }, (_, i) => {
+    const hoursAgo = spanDays * 24 * ((i + Math.random()) / count);
+    return buildSale({ storeId, timestamp: recentTimestamp(hoursAgo) });
+  });
 }
 
 // ---------------------------------------------------------------------------

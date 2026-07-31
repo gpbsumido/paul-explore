@@ -68,8 +68,9 @@ function initDataStore(): OperatorDataStore {
     stores.map((s) => [s.id, [...buildActivityList(s.id, 15)]]),
   );
 
+  // Spread ~18 months of sales so the day/week/month/year analytics all have data.
   const salesByStore = new Map<string, Sale[]>(
-    stores.map((s) => [s.id, [...buildSalesList(s.id, 40)]]),
+    stores.map((s) => [s.id, [...buildSalesList(s.id, 90, 540)]]),
   );
 
   // Planogram order starts as the inventory order; sensor match is seeded

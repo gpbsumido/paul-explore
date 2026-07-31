@@ -11,6 +11,10 @@ import type {
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
 import { deriveSensorMatch } from "@/lib/operator-detail";
 import {
+  aggregateFleetSales,
+  type SalesGranularity,
+} from "@/lib/operator-sales";
+import {
   buildStoreList,
   buildInventoryList,
   buildAlertList,
@@ -53,7 +57,7 @@ const activityByStore = new Map<string, ActivityEvent[]>(
 );
 
 const salesByStore = new Map<string, Sale[]>(
-  stores.map((s) => [s.id, [...buildSalesList(s.id, 40)]]),
+  stores.map((s) => [s.id, [...buildSalesList(s.id, 90, 540)]]),
 );
 
 const planogramByStore = new Map<string, PlanogramSlot[]>(
@@ -146,6 +150,26 @@ export const operatorHandlers = [
     const alertTrend = toAlertTrendData(allAlertsFlat);
 
     return HttpResponse.json({ summaries, fleetStats, alertTrend });
+  }),
+
+  // GET /api/operator/sales-analytics — fleet-wide sales rollup
+  http.get("/api/operator/sales-analytics", async ({ request }) => {
+    await randomDelay();
+    const url = new URL(request.url);
+    const granularities: SalesGranularity[] = ["day", "week", "month", "year"];
+    const param = url.searchParams.get("granularity");
+    const granularity =
+      param && granularities.includes(param as SalesGranularity)
+        ? (param as SalesGranularity)
+        : "month";
+
+    const fleet = stores.map((store) => ({
+      storeId: store.id,
+      storeName: store.name,
+      sales: salesByStore.get(store.id) ?? [],
+    }));
+
+    return HttpResponse.json(aggregateFleetSales(fleet, granularity));
   }),
 
   // GET /api/operator/stores — fleet list
