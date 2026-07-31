@@ -1329,6 +1329,37 @@ export default function OperatorDashboardContent() {
                 dashboard&apos;s &quot;Fleet sales&quot; section reads it through
                 a hook keyed by granularity, so each range caches on its own.
               </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Counting the calls
+              </h3>
+              <p className="text-muted">
+                The whole point here is efficiency, so it&apos;s worth being
+                explicit about the request budget. Fleet analytics is{" "}
+                <strong className="text-foreground">one request</strong>{" "}
+                regardless of fleet size &mdash; the server does the fan-in, not
+                the browser. The naive version (fetch every store&apos;s sales
+                and sum in the client) is one request per store, so at 30 stores
+                that&apos;s 30 requests versus 1. Switching the range on the
+                per-store tab is{" "}
+                <strong className="text-foreground">zero requests</strong>: the
+                sales are already in cache and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  salesByPeriod
+                </code>{" "}
+                re-buckets them in memory. Each granularity caches under its own
+                query key, so flipping back to a range you&apos;ve already seen
+                is instant and makes no call either. It&apos;s the same instinct
+                as the rest of the dashboard: the fleet overview already
+                collapsed a 2N+1 per-poll fan-out into a single{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  fleet-summary
+                </code>{" "}
+                request, the tiered polling only asks as often as each data type
+                actually changes, and operator actions update optimistically so a
+                click never blocks on a round-trip. Fewer calls, and the ones we
+                make do more.
+              </p>
               <p className="mt-3 text-muted">
                 One demo-data note: the seed used to scatter sales across the last
                 week, which made the month and year views basically empty. I
