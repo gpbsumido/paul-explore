@@ -41,6 +41,23 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/how much do I owe/i);
   });
 
+  it("has a timeline entry linking to the interactive-planogram update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /interactive planogram: rearrange slots and re-sync sensors/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-07-31-planogram");
+  });
+
+  it("documents the interactive planogram: reorder, re-sync, and persistence", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/moveSlot/);
+    expect(body).toMatch(/assemblePlanogram/);
+    expect(body).toMatch(/Re-sync/);
+    expect(body).toMatch(/persist/i);
+  });
+
   it("documents the store-arrangement slot addressing and refill run", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

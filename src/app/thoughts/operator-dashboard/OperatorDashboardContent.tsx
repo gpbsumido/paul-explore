@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Jul 31, 2026
                   </span>
                   <a
+                    href="#update-2026-07-31-planogram"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Interactive planogram: rearrange slots and re-sync sensors
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Jul 31, 2026
+                  </span>
+                  <a
                     href="#update-2026-07-31"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1162,6 +1173,87 @@ export default function OperatorDashboardContent() {
                 table. But for showing the shape of the thing &mdash; the
                 province regimes, the itemized breakdown, the monthly history
                 &mdash; a pure lib over seeded sales is exactly enough.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-07-31-planogram"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; July 31, 2026 (later the same day)
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Making the planogram do something
+              </h2>
+              <p className="text-muted">
+                The addresses and the refill run were a good start, but the
+                planogram was still something you only looked at. Two things it
+                should let you actually do: rearrange where products sit, and
+                deal with a slot whose sensor has drifted. So I made it
+                interactive.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Rearranging, and why it had to persist
+              </h3>
+              <p className="text-muted">
+                The catch with an editable planogram is the 60-second inventory
+                poll. If a rearrange only lived in component state, the next poll
+                would wipe it out and the shelf would snap back. So the layout
+                got its own persisted store &mdash; an ordered list of slots,
+                each with a sensor flag &mdash; behind{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GET
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  PATCH /api/operator/stores/[storeId]/planogram
+                </code>
+                . A move optimistically reorders the cached slots so the shelf
+                shifts the instant you act, then the PATCH commits it and a
+                rollback restores order if the request fails &mdash; the same
+                optimistic pattern the restock and dismiss actions already use.
+              </p>
+              <p className="mt-3 text-muted">
+                The reordering itself is a pure function,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  moveSlot(order, from, to)
+                </code>
+                , and the render-ready grid comes from{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  assemblePlanogram
+                </code>
+                , which joins the persisted slot order and sensor flags with the
+                live inventory. Both are unit-tested with no component in sight,
+                which is exactly why I keep the moving parts out of the UI.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Keyboard first, drag second
+              </h3>
+              <p className="text-muted">
+                Drag-and-drop is the obvious way to rearrange a grid, but
+                drag-only isn&apos;t accessible &mdash; you can&apos;t tab and
+                drop. So the primary control on each slot is a pair of arrow
+                buttons with real labels (&quot;Move Cola to the next slot&quot;),
+                fully keyboard-operable, and native HTML5 drag is layered on top
+                as a mouse convenience that calls the same reorder path. The
+                buttons are also what the tests drive, so the behavior I ship is
+                the behavior that&apos;s covered.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Doing something about a sensor mismatch
+              </h3>
+              <p className="text-muted">
+                A slot can read as a &quot;mismatch&quot; &mdash; the sensor
+                thinks something other than the planned product is there. Before,
+                that was just an amber badge with no way to resolve it. Now a
+                mismatched slot shows a Re-sync button that clears the flag
+                (optimistically, then persisted). Because the sensor state lives
+                on the persisted slot rather than being recomputed from the item
+                id on every render, a re-sync actually sticks.
               </p>
             </section>
 
