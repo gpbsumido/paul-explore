@@ -10,8 +10,8 @@ import {
 import { useToast } from "@/contexts/ToastContext";
 import {
   assemblePlanogram,
-  getRefillList,
-  moveSlot,
+  moveToBox,
+  categorizeStock,
 } from "@/lib/operator-detail";
 import type { InventoryItem } from "@/types/operator";
 import PlanogramSlot from "./PlanogramSlot";
@@ -23,10 +23,11 @@ interface PlanogramTabProps {
 const SHELF_WIDTH = 4;
 
 /**
- * Planogram tab showing the store layout the operator can act on. Each slot
- * carries its address, and the operator can rearrange slots (arrow buttons or
- * drag) and re-sync a slot whose sensor reading has drifted. Layout persists
- * server-side so it survives the poll. Built with CSS grid for accessibility.
+ * Planogram tab: the store layout as a grid of boxes the operator can act on.
+ * Shelves have fixed boxes, some empty, so a product can be moved into an empty
+ * box (drag it there, or use the arrows) rather than only swapping two spots.
+ * A slot whose sensor has drifted can be re-synced. Layout persists server-side
+ * so edits survive the poll. Built with CSS grid for accessibility.
  */
 export default function PlanogramTab({ storeId }: PlanogramTabProps) {
   const {
@@ -49,44 +50,40 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
     return map;
   }, [items]);
 
-  const order = useMemo(() => slots.map((s) => s.itemId), [slots]);
-
   const grid = useMemo(
     () => assemblePlanogram(slots, itemsById, SHELF_WIDTH),
     [slots, itemsById],
   );
 
-  const refillList = useMemo(() => {
-    const orderedItems = slots
-      .map((s) => itemsById.get(s.itemId))
-      .filter((item): item is InventoryItem => item !== undefined);
-    return getRefillList(orderedItems, SHELF_WIDTH);
-  }, [slots, itemsById]);
-
-  const move = useCallback(
-    (itemId: string, delta: number) => {
-      const from = order.indexOf(itemId);
-      if (from === -1) return;
-      const next = moveSlot(order, from, from + delta);
-      reorderPlanogram({ storeId, order: next }).catch(() => {
-        addToast({ message: "Failed to rearrange slot", variant: "error" });
-      });
-    },
-    [order, storeId, reorderPlanogram, addToast],
+  const refillList = useMemo(
+    () =>
+      grid
+        .flat()
+        .filter(
+          (s) =>
+            !s.empty &&
+            categorizeStock(s.currentStock, s.capacity) !== "healthy",
+        )
+        .sort(
+          (a, b) => a.currentStock / a.capacity - b.currentStock / b.capacity,
+        )
+        .map((s) => ({
+          slotLabel: s.slotLabel,
+          productName: s.productName,
+          currentStock: s.currentStock,
+          capacity: s.capacity,
+        })),
+    [grid],
   );
 
-  const handleDrop = useCallback(
-    (targetItemId: string, sourceItemId: string) => {
-      if (targetItemId === sourceItemId) return;
-      const from = order.indexOf(sourceItemId);
-      const to = order.indexOf(targetItemId);
-      if (from === -1 || to === -1) return;
-      const next = moveSlot(order, from, to);
-      reorderPlanogram({ storeId, order: next }).catch(() => {
-        addToast({ message: "Failed to rearrange slot", variant: "error" });
+  const rearrange = useCallback(
+    (from: number, to: number) => {
+      const boxes = moveToBox(slots, from, to);
+      reorderPlanogram({ storeId, boxes }).catch(() => {
+        addToast({ message: "Failed to move product", variant: "error" });
       });
     },
-    [order, storeId, reorderPlanogram, addToast],
+    [slots, storeId, reorderPlanogram, addToast],
   );
 
   const handleResync = useCallback(
@@ -116,8 +113,10 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
     );
   }
 
-  const mismatchCount = grid.flat().filter((slot) => !slot.sensorMatch).length;
-  const lastIndex = order.length - 1;
+  const mismatchCount = grid
+    .flat()
+    .filter((slot) => !slot.empty && !slot.sensorMatch).length;
+  const lastIndex = slots.length - 1;
 
   return (
     <div className="space-y-4">
@@ -144,8 +143,8 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
       </div>
 
       <p className="text-xs text-muted">
-        Drag a slot onto another, or use the arrows, to rearrange. Re-sync a
-        slot to clear a sensor mismatch.
+        Drag a product into any box (empty or occupied), or use the arrows, to
+        rearrange. Re-sync a slot to clear a sensor mismatch.
       </p>
 
       {/* Refill run — which slot needs restocking, most urgent first */}
@@ -159,7 +158,7 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
         </div>
         {refillList.length === 0 ? (
           <p className="mt-2 text-xs text-muted">
-            Every slot is stocked. Nothing to refill.
+            Every stocked slot is healthy. Nothing to refill.
           </p>
         ) : (
           <ul className="mt-3 space-y-1.5">
@@ -191,20 +190,19 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
               Shelf {shelfIndex + 1}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {shelf.map((slot) => {
-                const idx = order.indexOf(slot.itemId);
+              {shelf.map((slot, colIndex) => {
+                const boxIndex = shelfIndex * SHELF_WIDTH + colIndex;
                 return (
                   <PlanogramSlot
-                    key={slot.itemId}
+                    key={slot.slotLabel}
                     slot={slot}
-                    canMoveLeft={idx > 0}
-                    canMoveRight={idx < lastIndex}
-                    onMoveLeft={() => move(slot.itemId, -1)}
-                    onMoveRight={() => move(slot.itemId, 1)}
-                    onResync={() => handleResync(slot.itemId)}
-                    onDropItem={(sourceItemId) =>
-                      handleDrop(slot.itemId, sourceItemId)
-                    }
+                    boxIndex={boxIndex}
+                    canMoveLeft={boxIndex > 0}
+                    canMoveRight={boxIndex < lastIndex}
+                    onMoveLeft={() => rearrange(boxIndex, boxIndex - 1)}
+                    onMoveRight={() => rearrange(boxIndex, boxIndex + 1)}
+                    onResync={() => slot.itemId && handleResync(slot.itemId)}
+                    onDropItem={(sourceIndex) => rearrange(sourceIndex, boxIndex)}
                   />
                 );
               })}

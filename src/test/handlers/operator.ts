@@ -60,14 +60,20 @@ const salesByStore = new Map<string, Sale[]>(
   stores.map((s) => [s.id, [...buildSalesList(s.id, 90, 540)]]),
 );
 
+const PLANOGRAM_SHELF_WIDTH = 4;
 const planogramByStore = new Map<string, PlanogramSlot[]>(
-  stores.map((s) => [
-    s.id,
-    (inventoryByStore.get(s.id) ?? []).map((item) => ({
-      itemId: item.id,
-      sensorMatch: deriveSensorMatch(item.id),
-    })),
-  ]),
+  stores.map((s) => {
+    const boxes: PlanogramSlot[] = (inventoryByStore.get(s.id) ?? []).map(
+      (item) => ({ itemId: item.id, sensorMatch: deriveSensorMatch(item.id) }),
+    );
+    const targetLen =
+      (Math.ceil(boxes.length / PLANOGRAM_SHELF_WIDTH) + 1) *
+      PLANOGRAM_SHELF_WIDTH;
+    while (boxes.length < targetLen) {
+      boxes.push({ itemId: null, sensorMatch: true });
+    }
+    return [s.id, boxes];
+  }),
 );
 
 const allAlerts = new Map<string, Alert>();
@@ -250,25 +256,14 @@ export const operatorHandlers = [
       }
 
       const body = (await request.json()) as {
-        order?: string[];
+        boxes?: PlanogramSlot[];
         resyncItemId?: string;
       };
 
-      if (body.order) {
-        const remaining = new Map(slots.map((s) => [s.itemId, s]));
-        const reordered: PlanogramSlot[] = [];
-        for (const id of body.order) {
-          const slot = remaining.get(id);
-          if (slot) {
-            reordered.push(slot);
-            remaining.delete(id);
-          }
-        }
-        for (const slot of slots) {
-          if (remaining.has(slot.itemId)) reordered.push(slot);
-        }
-        planogramByStore.set(storeId, reordered);
-        return HttpResponse.json({ slots: reordered });
+      if (body.boxes) {
+        const stored = body.boxes.map((b) => ({ ...b }));
+        planogramByStore.set(storeId, stored);
+        return HttpResponse.json({ slots: stored });
       }
 
       if (body.resyncItemId) {

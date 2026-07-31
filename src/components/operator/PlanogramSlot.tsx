@@ -6,12 +6,13 @@ import { categorizeStock } from "@/lib/operator-detail";
 
 interface PlanogramSlotProps {
   slot: AssembledSlot;
+  boxIndex: number;
   canMoveLeft: boolean;
   canMoveRight: boolean;
   onMoveLeft: () => void;
   onMoveRight: () => void;
   onResync: () => void;
-  onDropItem: (sourceItemId: string) => void;
+  onDropItem: (sourceBoxIndex: number) => void;
 }
 
 const STOCK_DOT: Record<string, string> = {
@@ -25,13 +26,14 @@ const CONTROL_CLASS =
   "flex h-6 w-6 items-center justify-center rounded border border-border text-muted transition-colors hover:bg-surface-raised hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 disabled:opacity-30 disabled:pointer-events-none";
 
 /**
- * Single slot in the planogram grid: product, address, stock dot, and sensor
- * status. The operator can rearrange it (drag onto another slot, or the arrow
- * buttons) and re-sync its sensor when it reads as a mismatch. Mismatched slots
- * get an amber border.
+ * Single box in the planogram grid. An occupied box shows its product, address,
+ * stock, and sensor status, and can be dragged onto another box or moved with
+ * the arrows; a mismatched box can be re-synced. An empty box shows its address
+ * and accepts a product dropped onto it. Every box is a drop target.
  */
 export default function PlanogramSlot({
   slot,
+  boxIndex,
   canMoveLeft,
   canMoveRight,
   onMoveLeft,
@@ -39,22 +41,43 @@ export default function PlanogramSlot({
   onResync,
   onDropItem,
 }: PlanogramSlotProps) {
-  const status = categorizeStock(slot.currentStock, slot.capacity);
-  const pct =
-    slot.capacity > 0
-      ? Math.round((slot.currentStock / slot.capacity) * 100)
-      : 0;
-
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
-    e.dataTransfer.setData("text/plain", slot.itemId);
+    e.dataTransfer.setData("text/plain", String(boxIndex));
     e.dataTransfer.effectAllowed = "move";
   };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const sourceItemId = e.dataTransfer.getData("text/plain");
-    if (sourceItemId) onDropItem(sourceItemId);
+    const raw = e.dataTransfer.getData("text/plain");
+    const sourceBoxIndex = Number(raw);
+    if (raw !== "" && !Number.isNaN(sourceBoxIndex)) {
+      onDropItem(sourceBoxIndex);
+    }
   };
+
+  if (slot.empty) {
+    return (
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        aria-label={`Empty box ${slot.slotLabel}`}
+        className="flex min-h-[72px] flex-col justify-between rounded-lg border border-dashed border-border/70 bg-surface/40 p-3"
+      >
+        <div className="flex items-center justify-between gap-1.5">
+          <span className="text-[11px] text-muted">Empty</span>
+          <span className="shrink-0 rounded bg-surface px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted">
+            {slot.slotLabel}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const status = categorizeStock(slot.currentStock, slot.capacity);
+  const pct =
+    slot.capacity > 0
+      ? Math.round((slot.currentStock / slot.capacity) * 100)
+      : 0;
 
   return (
     <div
@@ -99,7 +122,7 @@ export default function PlanogramSlot({
             type="button"
             className={CONTROL_CLASS}
             disabled={!canMoveLeft}
-            aria-label={`Move ${slot.productName} to the previous slot`}
+            aria-label={`Move ${slot.productName} to the previous box`}
             onClick={onMoveLeft}
           >
             <span aria-hidden="true">‹</span>
@@ -108,7 +131,7 @@ export default function PlanogramSlot({
             type="button"
             className={CONTROL_CLASS}
             disabled={!canMoveRight}
-            aria-label={`Move ${slot.productName} to the next slot`}
+            aria-label={`Move ${slot.productName} to the next box`}
             onClick={onMoveRight}
           >
             <span aria-hidden="true">›</span>

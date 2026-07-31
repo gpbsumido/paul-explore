@@ -3,7 +3,7 @@ import { planogramUpdateSchema } from "@/lib/operator-schemas";
 import { parseBody } from "@/lib/parseBody";
 import {
   getPlanogram,
-  reorderPlanogram,
+  setPlanogram,
   resyncPlanogramSlot,
 } from "@/lib/operator-data";
 
@@ -34,8 +34,8 @@ export async function PATCH(
 
   const body = bodyResult.data;
   const slots =
-    "order" in body
-      ? reorderPlanogram(storeId, body.order)
+    "boxes" in body
+      ? setPlanogram(storeId, body.boxes)
       : resyncPlanogramSlot(storeId, body.resyncItemId);
 
   if (!slots) {

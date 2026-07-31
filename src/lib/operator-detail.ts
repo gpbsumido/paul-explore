@@ -270,14 +270,30 @@ export type RefillEntry = {
   capacity: number;
 };
 
-/** A persisted planogram slot: which item occupies it and its sensor state. */
+/**
+ * A persisted planogram box: which item occupies it (null when empty) and its
+ * sensor state. Shelves have fixed boxes, so an operator can move a product
+ * into an empty box, not just swap two occupied spots.
+ */
 export type PlanogramSlotRecord = {
-  itemId: string;
+  itemId: string | null;
   sensorMatch: boolean;
 };
 
-/** A planogram slot joined with its item, ready to render. */
-export type AssembledSlot = PlanogramSlot & { itemId: string };
+/** A planogram box joined with its item, ready to render (empty when vacant). */
+export type AssembledSlot = {
+  slotLabel: string;
+  itemId: string | null;
+  empty: boolean;
+  productName: string;
+  category: string;
+  currentStock: number;
+  capacity: number;
+  sensorMatch: boolean;
+};
+
+/** An empty box: no item, sensor reads clean. */
+const EMPTY_BOX: PlanogramSlotRecord = { itemId: null, sensorMatch: true };
 
 /**
  * Builds a slot address from a flat item index and shelf width: the shelf
@@ -363,49 +379,65 @@ export function getRefillList(
 }
 
 /**
- * Moves the occupant at `from` to index `to`, shifting the rest. Both indices
- * are clamped into range, and the input is never mutated. This is how an
- * operator rearranges the shelf: pick a slot, drop it somewhere else.
+ * Moves the contents of box `from` into box `to`. If the target box is empty
+ * the source is vacated; if it is occupied the two boxes swap contents. Both
+ * indices are clamped and the input is never mutated. This is how an operator
+ * places a product into an empty box, not just swaps two full ones.
  */
-export function moveSlot(
-  order: readonly string[],
+export function moveToBox(
+  boxes: readonly PlanogramSlotRecord[],
   from: number,
   to: number,
-): string[] {
-  const next = [...order];
+): PlanogramSlotRecord[] {
+  const next = boxes.map((b) => ({ ...b }));
   if (next.length === 0) return next;
   const clampedFrom = Math.max(0, Math.min(from, next.length - 1));
   const clampedTo = Math.max(0, Math.min(to, next.length - 1));
-  const [moved] = next.splice(clampedFrom, 1);
-  next.splice(clampedTo, 0, moved);
+  if (clampedFrom === clampedTo) return next;
+
+  const moving = next[clampedFrom];
+  const target = next[clampedTo];
+  next[clampedTo] = moving;
+  next[clampedFrom] = target.itemId === null ? { ...EMPTY_BOX } : target;
   return next;
 }
 
 /**
- * Joins the persisted slot order and sensor flags with the current inventory
- * to produce a render-ready shelf grid. Slots whose item has left inventory
- * are dropped, and addresses are assigned by final position so they stay
- * contiguous.
+ * Joins the persisted boxes and sensor flags with the current inventory to
+ * produce a render-ready shelf grid. Every box keeps its position and address;
+ * empty boxes (and boxes whose item has left inventory) render as vacant.
  */
 export function assemblePlanogram(
-  slots: readonly PlanogramSlotRecord[],
+  boxes: readonly PlanogramSlotRecord[],
   itemsById: ReadonlyMap<string, InventoryItem>,
   shelfWidth: number = 4,
 ): readonly (readonly AssembledSlot[])[] {
-  const assembled: AssembledSlot[] = [];
-  for (const slot of slots) {
-    const item = itemsById.get(slot.itemId);
-    if (!item) continue;
-    assembled.push({
+  const assembled: AssembledSlot[] = boxes.map((box, index) => {
+    const item = box.itemId ? itemsById.get(box.itemId) : undefined;
+    const slotLabel = slotLabelFor(index, shelfWidth);
+    if (!item) {
+      return {
+        slotLabel,
+        itemId: null,
+        empty: true,
+        productName: "",
+        category: "",
+        currentStock: 0,
+        capacity: 0,
+        sensorMatch: true,
+      };
+    }
+    return {
+      slotLabel,
       itemId: item.id,
+      empty: false,
       productName: item.productName,
       category: item.category,
       currentStock: item.currentStock,
       capacity: item.capacity,
-      sensorMatch: slot.sensorMatch,
-      slotLabel: slotLabelFor(assembled.length, shelfWidth),
-    });
-  }
+      sensorMatch: box.sensorMatch,
+    };
+  });
 
   const shelves: AssembledSlot[][] = [];
   for (let i = 0; i < assembled.length; i += shelfWidth) {

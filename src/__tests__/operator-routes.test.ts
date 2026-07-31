@@ -262,7 +262,7 @@ describe("GET /api/operator/stores/:storeId/planogram", () => {
 });
 
 describe("PATCH /api/operator/stores/:storeId/planogram", () => {
-  it("reorders slots to match the given item-id order", async () => {
+  it("stores a new box arrangement", async () => {
     const { GET: listGET } = await import("@/app/api/operator/stores/route");
     const { stores } = await (await listGET()).json();
     const firstId = stores[0].id;
@@ -276,23 +276,23 @@ describe("PATCH /api/operator/stores/:storeId/planogram", () => {
       )
     ).json();
 
-    const reversed = current.slots
-      .map((s: { itemId: string }) => s.itemId)
-      .reverse();
+    const reversed = [...current.slots].reverse();
 
     const res = await routeMod.PATCH(
       makeRequest(`/api/operator/stores/${firstId}/planogram`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: reversed }),
+        body: JSON.stringify({ boxes: reversed }),
       }),
       makeParams({ storeId: firstId }),
     );
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.slots.map((s: { itemId: string }) => s.itemId)).toEqual(
-      reversed,
-    );
+    expect(body.slots).toEqual(reversed);
+    // includes at least one empty box from the padded shelves
+    expect(
+      body.slots.some((s: { itemId: string | null }) => s.itemId === null),
+    ).toBe(true);
   });
 
   it("re-syncs a slot's sensor when given a resyncItemId", async () => {

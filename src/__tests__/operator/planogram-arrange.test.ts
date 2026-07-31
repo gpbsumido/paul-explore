@@ -1,45 +1,52 @@
 import { describe, it, expect } from "vitest";
-import { moveSlot, assemblePlanogram } from "@/lib/operator-detail";
+import { moveToBox, assemblePlanogram } from "@/lib/operator-detail";
+import type { PlanogramSlotRecord } from "@/lib/operator-detail";
 import { buildInventoryItem } from "@/test/factories/operator";
 import type { InventoryItem } from "@/types/operator";
 
+const A: PlanogramSlotRecord = { itemId: "item-a", sensorMatch: true };
+const B: PlanogramSlotRecord = { itemId: "item-b", sensorMatch: false };
+const EMPTY: PlanogramSlotRecord = { itemId: null, sensorMatch: true };
+
 // ---------------------------------------------------------------------------
-// moveSlot — reorder an ordered list of slot occupants
+// moveToBox — place a box's contents into another box
 // ---------------------------------------------------------------------------
 
-describe("moveSlot", () => {
-  it("moves an item forward", () => {
-    expect(moveSlot(["a", "b", "c", "d"], 0, 2)).toEqual(["b", "c", "a", "d"]);
+describe("moveToBox", () => {
+  it("moves contents into an empty box and vacates the source", () => {
+    const result = moveToBox([A, EMPTY], 0, 1);
+    expect(result[1]).toEqual(A);
+    expect(result[0]).toEqual({ itemId: null, sensorMatch: true });
   });
 
-  it("moves an item backward", () => {
-    expect(moveSlot(["a", "b", "c", "d"], 3, 1)).toEqual(["a", "d", "b", "c"]);
+  it("swaps contents when the target box is occupied", () => {
+    const result = moveToBox([A, B], 0, 1);
+    expect(result[0]).toEqual(B);
+    expect(result[1]).toEqual(A);
   });
 
-  it("returns an unchanged copy when from equals to", () => {
-    const order = ["a", "b", "c"];
-    const result = moveSlot(order, 1, 1);
-    expect(result).toEqual(["a", "b", "c"]);
-    expect(result).not.toBe(order);
+  it("returns an unchanged copy when source and target are the same", () => {
+    const boxes = [A, B];
+    const result = moveToBox(boxes, 1, 1);
+    expect(result).toEqual([A, B]);
+    expect(result).not.toBe(boxes);
   });
 
-  it("clamps a target index past the end to the last position", () => {
-    expect(moveSlot(["a", "b", "c"], 0, 9)).toEqual(["b", "c", "a"]);
+  it("clamps out-of-range indices", () => {
+    const result = moveToBox([A, EMPTY, EMPTY], 0, 9);
+    expect(result[2]).toEqual(A);
+    expect(result[0]).toEqual({ itemId: null, sensorMatch: true });
   });
 
-  it("clamps a negative target index to the first position", () => {
-    expect(moveSlot(["a", "b", "c"], 2, -3)).toEqual(["c", "a", "b"]);
-  });
-
-  it("does not mutate the input array", () => {
-    const order = ["a", "b", "c"];
-    moveSlot(order, 0, 2);
-    expect(order).toEqual(["a", "b", "c"]);
+  it("does not mutate the input", () => {
+    const boxes = [A, EMPTY];
+    moveToBox(boxes, 0, 1);
+    expect(boxes).toEqual([A, EMPTY]);
   });
 });
 
 // ---------------------------------------------------------------------------
-// assemblePlanogram — join persisted slot order + flags with inventory
+// assemblePlanogram — join persisted boxes (some empty) with inventory
 // ---------------------------------------------------------------------------
 
 function itemsMap(items: readonly InventoryItem[]): Map<string, InventoryItem> {
@@ -47,31 +54,34 @@ function itemsMap(items: readonly InventoryItem[]): Map<string, InventoryItem> {
 }
 
 describe("assemblePlanogram", () => {
-  it("lays occupants out in slot order with addresses", () => {
+  it("renders occupied and empty boxes in order with addresses", () => {
     const items = [
       buildInventoryItem({ id: "item-a" }),
       buildInventoryItem({ id: "item-b" }),
-      buildInventoryItem({ id: "item-c" }),
     ];
-    const slots = [
-      { itemId: "item-b", sensorMatch: true },
+    const boxes: PlanogramSlotRecord[] = [
       { itemId: "item-a", sensorMatch: true },
-      { itemId: "item-c", sensorMatch: true },
+      { itemId: null, sensorMatch: true },
+      { itemId: "item-b", sensorMatch: true },
     ];
-    const grid = assemblePlanogram(slots, itemsMap(items), 4);
+    const grid = assemblePlanogram(boxes, itemsMap(items), 4);
     expect(grid[0][0].slotLabel).toBe("A1");
-    expect(grid[0][0].itemId).toBe("item-b");
-    expect(grid[0][1].itemId).toBe("item-a");
+    expect(grid[0][0].itemId).toBe("item-a");
+    expect(grid[0][0].empty).toBe(false);
+    expect(grid[0][1].slotLabel).toBe("A2");
+    expect(grid[0][1].empty).toBe(true);
+    expect(grid[0][1].itemId).toBeNull();
+    expect(grid[0][2].itemId).toBe("item-b");
   });
 
-  it("carries sensorMatch from the slot record, not from the item", () => {
+  it("carries sensorMatch from the box record", () => {
     const items = [buildInventoryItem({ id: "item-a" })];
-    const slots = [{ itemId: "item-a", sensorMatch: false }];
-    const grid = assemblePlanogram(slots, itemsMap(items), 4);
+    const boxes = [{ itemId: "item-a", sensorMatch: false }];
+    const grid = assemblePlanogram(boxes, itemsMap(items), 4);
     expect(grid[0][0].sensorMatch).toBe(false);
   });
 
-  it("joins product details from the inventory map", () => {
+  it("joins product details for occupied boxes", () => {
     const items = [
       buildInventoryItem({
         id: "item-a",
@@ -80,24 +90,28 @@ describe("assemblePlanogram", () => {
         capacity: 12,
       }),
     ];
-    const slots = [{ itemId: "item-a", sensorMatch: true }];
-    const slot = assemblePlanogram(slots, itemsMap(items), 4)[0][0];
+    const slot = assemblePlanogram(
+      [{ itemId: "item-a", sensorMatch: true }],
+      itemsMap(items),
+      4,
+    )[0][0];
     expect(slot.productName).toBe("Cola");
     expect(slot.currentStock).toBe(3);
     expect(slot.capacity).toBe(12);
   });
 
-  it("skips slots whose item is no longer in inventory", () => {
+  it("renders a box whose item has left inventory as empty", () => {
     const items = [buildInventoryItem({ id: "item-a" })];
-    const slots = [
+    const boxes = [
       { itemId: "item-a", sensorMatch: true },
       { itemId: "item-gone", sensorMatch: true },
     ];
-    const grid = assemblePlanogram(slots, itemsMap(items), 4);
-    expect(grid.flat()).toHaveLength(1);
+    const grid = assemblePlanogram(boxes, itemsMap(items), 4);
+    expect(grid.flat()).toHaveLength(2);
+    expect(grid[0][1].empty).toBe(true);
   });
 
-  it("returns an empty grid for no slots", () => {
+  it("returns an empty grid for no boxes", () => {
     expect(assemblePlanogram([], itemsMap([]), 4)).toEqual([]);
   });
 });
