@@ -1,6 +1,17 @@
 # Changelog
 
-## 2026-07-30 - version 2.10.1
+## 2026-07-30 - version 2.10.6
+
+- **Sessions now roll on a six-hour idle timer, and timing out tells you so.** Being on the site and doing anything keeps you signed in — every request from a signed-in user, whether it's the hub, a protected feature, a public write-up, an API call or a client-side navigation, pushes the expiry six hours out, under a seven-day absolute ceiling. Sit idle for six hours and the session expires; come back and a toast says "Your session timed out. Please log in again," and the next login re-shows the Auth0 permission screen. The timeout is detected with a longer-lived marker cookie that outlives the session, so a timed-out user is told apart from someone who was never logged in, and the re-consent rides the same one-shot prompt cookie as the denied-consent case (`prompt=consent` here, `prompt=login` there). Replaces the earlier 24-hour session.
+
+## 2026-07-30 - version 2.10.3
+
+- **After denying the consent screen, log in again actually asks who's logging in.** Declining consent doesn't end the Auth0 session — I authenticated fine, I just said no to the permissions — so the next login saw the live session and jumped straight back to the consent screen without ever asking who I was. Now a denied consent sets a one-shot cookie, and the proxy adds `prompt=login` to the very next `/auth/login` (then clears the cookie), so Auth0 re-authenticates once and normal logins stay smooth. I used the prompt rather than a full Auth0 logout because logout's return URL has to be whitelisted in the tenant and this needs no config.
+
+## 2026-07-30 - version 2.10.2
+
+- **Login lands you back where you started.** Every "Log in" link across the app pointed at a bare `/auth/login`, so Auth0 defaulted the post-login redirect to the home page no matter which route I signed in from. The proxy now fills in a `returnTo` from the same-origin `Referer` before handing off to Auth0, so logging in from the calendar (or anywhere) brings me back to the calendar. It's one fix at the choke point instead of touching ten link sites, and any future login link gets it for free. Cross-origin and `/auth/*` referers are dropped so it can't become an open redirect or loop.
+- **Declining the consent screen no longer 500s.** The SDK's default callback returns a raw 500 on any callback error, so hitting "Deny" on the Auth0 permission screen dropped me on a bare error page. I added an `onCallback` that catches `access_denied` specifically and sends me back to the page I came from with a small toast -- "You can't log in without granting permissions." -- while every other error keeps the 500 so genuine misconfig still surfaces.
 
 - **Turned the v4 win confetti off on phones.** It fell smoothly on my laptop and in the mobile emulator but was laggy and jumpy on an actual phone -- the emulator borrows the laptop's GPU and hides it. I tried thinning the count and dropping the translucent foil sheen (which a phone re-blends across dozens of overlapping, tumbling layers every frame), and promoting the layers upfront to kill the start-of-burst hitch. On real hardware it still stuttered: a fall of dozens of tumbling layers is a fill-rate cost a phone GPU can't carry, and no emulator on a desktop GPU reproduces it. So the confetti is decoration, and decoration is the thing that gives -- it's disabled on mobile entirely. The win still reads there through the reels landing, the result bar, and the sound. Desktop keeps the full 110 pieces and the foil look, now promoted upfront with `will-change: transform`.
 

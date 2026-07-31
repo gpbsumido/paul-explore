@@ -254,6 +254,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#f97316",
   },
   {
+    title: "Login Redirect",
+    href: "/thoughts/login-redirect",
+    preview:
+      "Landing back on the route you logged in from, and turning a denied consent screen from a bare 500 into a toast, both fixed at the Auth0 choke point",
+    color: "#eb5424",
+  },
+  {
     title: "Messenger Auth Bug",
     href: "/thoughts/messenger-auth",
     preview:
