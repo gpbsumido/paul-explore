@@ -270,6 +270,15 @@ export type RefillEntry = {
   capacity: number;
 };
 
+/** A persisted planogram slot: which item occupies it and its sensor state. */
+export type PlanogramSlotRecord = {
+  itemId: string;
+  sensorMatch: boolean;
+};
+
+/** A planogram slot joined with its item, ready to render. */
+export type AssembledSlot = PlanogramSlot & { itemId: string };
+
 /**
  * Builds a slot address from a flat item index and shelf width: the shelf
  * letter (A, B, C...) followed by the 1-based position on that shelf. Item 5
@@ -346,6 +355,58 @@ export function getRefillList(
       currentStock: item.currentStock,
       capacity: item.capacity,
     }));
+}
+
+/**
+ * Moves the occupant at `from` to index `to`, shifting the rest. Both indices
+ * are clamped into range, and the input is never mutated. This is how an
+ * operator rearranges the shelf: pick a slot, drop it somewhere else.
+ */
+export function moveSlot(
+  order: readonly string[],
+  from: number,
+  to: number,
+): string[] {
+  const next = [...order];
+  if (next.length === 0) return next;
+  const clampedFrom = Math.max(0, Math.min(from, next.length - 1));
+  const clampedTo = Math.max(0, Math.min(to, next.length - 1));
+  const [moved] = next.splice(clampedFrom, 1);
+  next.splice(clampedTo, 0, moved);
+  return next;
+}
+
+/**
+ * Joins the persisted slot order and sensor flags with the current inventory
+ * to produce a render-ready shelf grid. Slots whose item has left inventory
+ * are dropped, and addresses are assigned by final position so they stay
+ * contiguous.
+ */
+export function assemblePlanogram(
+  slots: readonly PlanogramSlotRecord[],
+  itemsById: ReadonlyMap<string, InventoryItem>,
+  shelfWidth: number = 4,
+): readonly (readonly AssembledSlot[])[] {
+  const assembled: AssembledSlot[] = [];
+  for (const slot of slots) {
+    const item = itemsById.get(slot.itemId);
+    if (!item) continue;
+    assembled.push({
+      itemId: item.id,
+      productName: item.productName,
+      category: item.category,
+      currentStock: item.currentStock,
+      capacity: item.capacity,
+      sensorMatch: slot.sensorMatch,
+      slotLabel: slotLabelFor(assembled.length, shelfWidth),
+    });
+  }
+
+  const shelves: AssembledSlot[][] = [];
+  for (let i = 0; i < assembled.length; i += shelfWidth) {
+    shelves.push(assembled.slice(i, i + shelfWidth));
+  }
+  return shelves;
 }
 
 // ---------------------------------------------------------------------------
