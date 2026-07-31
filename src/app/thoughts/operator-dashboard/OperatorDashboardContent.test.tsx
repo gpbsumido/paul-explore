@@ -74,6 +74,29 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/sales-analytics/);
   });
 
+  it("explains how calls are kept low and performant", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/one request/i);
+    expect(body).toMatch(/zero requests/i);
+    expect(body).toMatch(/optimistic/i);
+  });
+
+  it("has a timeline entry linking to the planogram-boxes update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /planogram boxes: move products into empty spots/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-07-31-boxes");
+  });
+
+  it("documents the planogram boxes model and moveToBox", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/moveToBox/);
+    expect(body).toMatch(/empty box/i);
+  });
+
   it("documents the store-arrangement slot addressing and refill run", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

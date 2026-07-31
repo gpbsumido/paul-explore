@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-31 - version 2.14.0
+
+- **The planogram has real boxes now — move a product into an empty spot, not just swap two full ones.** The shelves used to be a dense list of occupied slots, so "rearranging" could only reorder products that were already placed; there was nowhere empty to put anything. Now each shelf has a fixed set of boxes, seeded with the store's products plus a spare empty shelf, and a product can be dropped (or arrow-moved) into any empty box — the box it came from is left empty, and if the target already holds something the two swap. A planogram box is now `{ itemId, sensorMatch }` where a null `itemId` means empty; the pure `moveToBox` handles place/vacate/swap and `assemblePlanogram` renders the empty boxes as labelled drop targets. `PATCH /api/operator/stores/[id]/planogram` now takes the new box layout the client computed, still optimistic and still persisted. Re-syncing a drifted sensor is unchanged.
+
 ## 2026-07-31 - version 2.13.0
 
 - **Sales analytics: pick a range, per store and across the whole fleet.** The Sales tab's revenue trend gained a Day / Week / Month / Year toggle, so the operator can see the last 7 days, 8 weeks, 12 months, or 5 years of a store's revenue. And the fleet dashboard gained a "Fleet sales" section that rolls every store's sales into the same time buckets, ranks stores by revenue, and totals fleet-wide revenue — with its own range toggle. The bucketing (`salesByPeriod`) and the fleet rollup (`aggregateFleetSales`) are pure functions, unit-tested across all four granularities, and the fleet view aggregates server-side behind `GET /api/operator/sales-analytics?granularity=…` so the dashboard makes one request no matter how many stores there are. The demo sales seed now spreads roughly 18 months of history per store so every range has something to show.
