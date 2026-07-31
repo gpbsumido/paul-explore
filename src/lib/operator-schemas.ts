@@ -118,6 +118,15 @@ export const saleSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Planogram (persisted shelf layout: which item occupies each slot + sensor)
+// ---------------------------------------------------------------------------
+
+export const planogramSlotSchema = z.object({
+  itemId: z.string(),
+  sensorMatch: z.boolean(),
+});
+
+// ---------------------------------------------------------------------------
 // Fleet summary (aggregated per-store data for the dashboard)
 // ---------------------------------------------------------------------------
 
@@ -154,3 +163,12 @@ export const fleetSummaryResponseSchema = z.object({
 export const restockBodySchema = z.object({
   itemIds: z.array(z.string()).min(1),
 });
+
+/**
+ * A planogram update is either a reorder (the new slot order, by item id) or a
+ * single-slot sensor re-sync (the item to mark as matching again).
+ */
+export const planogramUpdateSchema = z.union([
+  z.object({ order: z.array(z.string()).min(1) }),
+  z.object({ resyncItemId: z.string() }),
+]);

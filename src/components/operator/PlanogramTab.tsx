@@ -1,8 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useOperatorInventory } from "@/hooks/useOperatorInventory";
-import { generatePlanogramGrid, getRefillList } from "@/lib/operator-detail";
+import { useOperatorPlanogram } from "@/hooks/useOperatorPlanogram";
+import {
+  useReorderPlanogram,
+  useResyncSlot,
+} from "@/hooks/useOperatorMutations";
+import { useToast } from "@/contexts/ToastContext";
+import {
+  assemblePlanogram,
+  getRefillList,
+  moveSlot,
+} from "@/lib/operator-detail";
+import type { InventoryItem } from "@/types/operator";
 import PlanogramSlot from "./PlanogramSlot";
 
 interface PlanogramTabProps {
@@ -12,33 +23,92 @@ interface PlanogramTabProps {
 const SHELF_WIDTH = 4;
 
 /**
- * Planogram tab showing a simplified grid of the store layout. Inventory
- * items are laid out across shelves, each slot showing the product, stock
- * level, and whether the sensor reading matches the expected placement.
- * Mismatches highlight in amber. Built with CSS grid for accessibility.
+ * Planogram tab showing the store layout the operator can act on. Each slot
+ * carries its address, and the operator can rearrange slots (arrow buttons or
+ * drag) and re-sync a slot whose sensor reading has drifted. Layout persists
+ * server-side so it survives the poll. Built with CSS grid for accessibility.
  */
 export default function PlanogramTab({ storeId }: PlanogramTabProps) {
-  const { items, loading, error } = useOperatorInventory(storeId);
+  const {
+    items,
+    loading: itemsLoading,
+    error: itemsError,
+  } = useOperatorInventory(storeId);
+  const {
+    slots,
+    loading: planogramLoading,
+    error: planogramError,
+  } = useOperatorPlanogram(storeId);
+  const { reorderPlanogram } = useReorderPlanogram();
+  const { resyncSlot } = useResyncSlot();
+  const { addToast } = useToast();
+
+  const itemsById = useMemo(() => {
+    const map = new Map<string, InventoryItem>();
+    for (const item of items) map.set(item.id, item);
+    return map;
+  }, [items]);
+
+  const order = useMemo(() => slots.map((s) => s.itemId), [slots]);
 
   const grid = useMemo(
-    () => generatePlanogramGrid(items, SHELF_WIDTH),
-    [items],
+    () => assemblePlanogram(slots, itemsById, SHELF_WIDTH),
+    [slots, itemsById],
   );
 
-  const refillList = useMemo(
-    () => getRefillList(items, SHELF_WIDTH),
-    [items],
+  const refillList = useMemo(() => {
+    const orderedItems = slots
+      .map((s) => itemsById.get(s.itemId))
+      .filter((item): item is InventoryItem => item !== undefined);
+    return getRefillList(orderedItems, SHELF_WIDTH);
+  }, [slots, itemsById]);
+
+  const move = useCallback(
+    (itemId: string, delta: number) => {
+      const from = order.indexOf(itemId);
+      if (from === -1) return;
+      const next = moveSlot(order, from, from + delta);
+      reorderPlanogram({ storeId, order: next }).catch(() => {
+        addToast({ message: "Failed to rearrange slot", variant: "error" });
+      });
+    },
+    [order, storeId, reorderPlanogram, addToast],
   );
 
+  const handleDrop = useCallback(
+    (targetItemId: string, sourceItemId: string) => {
+      if (targetItemId === sourceItemId) return;
+      const from = order.indexOf(sourceItemId);
+      const to = order.indexOf(targetItemId);
+      if (from === -1 || to === -1) return;
+      const next = moveSlot(order, from, to);
+      reorderPlanogram({ storeId, order: next }).catch(() => {
+        addToast({ message: "Failed to rearrange slot", variant: "error" });
+      });
+    },
+    [order, storeId, reorderPlanogram, addToast],
+  );
+
+  const handleResync = useCallback(
+    (itemId: string) => {
+      resyncSlot({ storeId, itemId }).catch(() => {
+        addToast({ message: "Failed to re-sync sensor", variant: "error" });
+      });
+    },
+    [storeId, resyncSlot, addToast],
+  );
+
+  const error = itemsError ?? planogramError;
   if (error) {
     return <p className="text-sm text-error-500 py-4">{error}</p>;
   }
 
-  if (loading && items.length === 0) {
+  const loading = planogramLoading || itemsLoading;
+  if (loading && slots.length === 0) {
     return <PlanogramTabSkeleton />;
   }
 
-  if (items.length === 0) {
+  if (grid.flat().length === 0) {
     return (
       <p className="text-sm text-muted py-8 text-center">
         No planogram data available.
@@ -47,6 +117,7 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
   }
 
   const mismatchCount = grid.flat().filter((slot) => !slot.sensorMatch).length;
+  const lastIndex = order.length - 1;
 
   return (
     <div className="space-y-4">
@@ -71,6 +142,11 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
           </span>
         )}
       </div>
+
+      <p className="text-xs text-muted">
+        Drag a slot onto another, or use the arrows, to rearrange. Re-sync a
+        slot to clear a sensor mismatch.
+      </p>
 
       {/* Refill run — which slot needs restocking, most urgent first */}
       <div className="rounded-lg border border-border bg-surface p-4">
@@ -115,9 +191,23 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
               Shelf {shelfIndex + 1}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {shelf.map((slot, slotIndex) => (
-                <PlanogramSlot key={`${shelfIndex}-${slotIndex}`} slot={slot} />
-              ))}
+              {shelf.map((slot) => {
+                const idx = order.indexOf(slot.itemId);
+                return (
+                  <PlanogramSlot
+                    key={slot.itemId}
+                    slot={slot}
+                    canMoveLeft={idx > 0}
+                    canMoveRight={idx < lastIndex}
+                    onMoveLeft={() => move(slot.itemId, -1)}
+                    onMoveRight={() => move(slot.itemId, 1)}
+                    onResync={() => handleResync(slot.itemId)}
+                    onDropItem={(sourceItemId) =>
+                      handleDrop(slot.itemId, sourceItemId)
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
         ))}

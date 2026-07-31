@@ -151,6 +151,10 @@ export const queryKeys = {
     sales: (storeId: string) =>
       ["operator", "stores", storeId, "sales"] as const,
 
+    /** Persisted planogram layout for a specific store. Polled every 60s. */
+    planogram: (storeId: string) =>
+      ["operator", "stores", storeId, "planogram"] as const,
+
     /** Aggregated alert counts + inventory health for the fleet dashboard. Polled every 15s. */
     fleetSummary: () => ["operator", "fleet-summary"] as const,
   },

@@ -291,6 +291,19 @@ export function slotLabelFor(index: number, shelfWidth: number): string {
 }
 
 /**
+ * Deterministic sensor-match flag for a slot, seeded from the item id so the
+ * same item always starts in the same state. Roughly one slot in five reads as
+ * a mismatch until an operator re-syncs it.
+ */
+export function deriveSensorMatch(itemId: string): boolean {
+  let hash = 0;
+  for (let i = 0; i < itemId.length; i++) {
+    hash = (hash * 31 + itemId.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) % 5 !== 0;
+}
+
+/**
  * Generates a simplified planogram grid from inventory items. Items are laid
  * out left-to-right across shelves of the given width. Each slot carries its
  * address (slotLabel) so an operator knows which spot it is, plus a
@@ -303,22 +316,14 @@ export function generatePlanogramGrid(
 ): readonly (readonly PlanogramSlot[])[] {
   if (items.length === 0) return [];
 
-  const slots: PlanogramSlot[] = items.map((item, index) => {
-    let hash = 0;
-    for (let i = 0; i < item.id.length; i++) {
-      hash = (hash * 31 + item.id.charCodeAt(i)) | 0;
-    }
-    const sensorMatch = Math.abs(hash) % 5 !== 0;
-
-    return {
-      productName: item.productName,
-      category: item.category,
-      currentStock: item.currentStock,
-      capacity: item.capacity,
-      sensorMatch,
-      slotLabel: slotLabelFor(index, shelfWidth),
-    };
-  });
+  const slots: PlanogramSlot[] = items.map((item, index) => ({
+    productName: item.productName,
+    category: item.category,
+    currentStock: item.currentStock,
+    capacity: item.capacity,
+    sensorMatch: deriveSensorMatch(item.id),
+    slotLabel: slotLabelFor(index, shelfWidth),
+  }));
 
   const shelves: PlanogramSlot[][] = [];
   for (let i = 0; i < slots.length; i += shelfWidth) {
