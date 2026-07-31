@@ -81,6 +81,7 @@ describe("storeSchema", () => {
     id: "store-001",
     name: "Lobby Fridge - Building A",
     location: "Building A, Floor 1",
+    province: "ON" as const,
     status: "online" as const,
     temperature: 3.2,
     lastPing: "2026-06-29T10:30:00Z",
