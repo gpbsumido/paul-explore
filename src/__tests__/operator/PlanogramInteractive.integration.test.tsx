@@ -24,14 +24,15 @@ function makeWrapper() {
   };
 }
 
-// A controlled store so assertions are deterministic.
+// A controlled store with three products and one trailing empty box.
 const items = [
   buildInventoryItem({ id: "it-cola", productName: "Cola", storeId: STORE_ID }),
   buildInventoryItem({ id: "it-water", productName: "Water", storeId: STORE_ID }),
   buildInventoryItem({ id: "it-chips", productName: "Chips", storeId: STORE_ID }),
 ];
 
-let slots: { itemId: string; sensorMatch: boolean }[];
+type Box = { itemId: string | null; sensorMatch: boolean };
+let slots: Box[];
 
 function installHandlers() {
   server.use(
@@ -41,23 +42,23 @@ function installHandlers() {
     http.get(`/api/operator/stores/${STORE_ID}/planogram`, () =>
       HttpResponse.json({ slots }),
     ),
-    http.patch(`/api/operator/stores/${STORE_ID}/planogram`, async ({ request }) => {
-      const body = (await request.json()) as {
-        order?: string[];
-        resyncItemId?: string;
-      };
-      if (body.order) {
-        const byId = new Map(slots.map((s) => [s.itemId, s]));
-        slots = body.order
-          .map((id) => byId.get(id))
-          .filter((s): s is (typeof slots)[number] => s !== undefined);
-      } else if (body.resyncItemId) {
-        slots = slots.map((s) =>
-          s.itemId === body.resyncItemId ? { ...s, sensorMatch: true } : s,
-        );
-      }
-      return HttpResponse.json({ slots });
-    }),
+    http.patch(
+      `/api/operator/stores/${STORE_ID}/planogram`,
+      async ({ request }) => {
+        const body = (await request.json()) as {
+          boxes?: Box[];
+          resyncItemId?: string;
+        };
+        if (body.boxes) {
+          slots = body.boxes.map((b) => ({ ...b }));
+        } else if (body.resyncItemId) {
+          slots = slots.map((s) =>
+            s.itemId === body.resyncItemId ? { ...s, sensorMatch: true } : s,
+          );
+        }
+        return HttpResponse.json({ slots });
+      },
+    ),
   );
 }
 
@@ -66,32 +67,29 @@ beforeEach(() => {
     { itemId: "it-cola", sensorMatch: true },
     { itemId: "it-water", sensorMatch: false },
     { itemId: "it-chips", sensorMatch: true },
+    { itemId: null, sensorMatch: true },
   ];
   installHandlers();
 });
 
-describe("PlanogramTab rearranging", () => {
-  it("moves a product to the next slot when its move-right control is used", async () => {
+describe("PlanogramTab moving into an empty box", () => {
+  it("vacates the source box when a product moves into the empty box", async () => {
     const user = userEvent.setup();
     const { container } = render(<PlanogramTab storeId={STORE_ID} />, {
       wrapper: makeWrapper(),
     });
     const view = within(container);
 
-    // Cola starts in slot A1 — its move-right control is the first one.
-    const colaMoveRight = await view.findByRole("button", {
-      name: /move cola to the next slot/i,
+    // Chips sits in A3; A4 is empty. Move Chips to the next box (A4).
+    const chipsMoveRight = await view.findByRole("button", {
+      name: /move chips to the next box/i,
     });
-    await user.click(colaMoveRight);
+    await user.click(chipsMoveRight);
 
-    // After the move, order is [Water, Cola, Chips] so the first move-right
-    // control now belongs to Water.
-    await waitFor(() => {
-      const moveRight = view.getAllByRole("button", {
-        name: /to the next slot/i,
-      });
-      expect(moveRight[0].getAttribute("aria-label")).toMatch(/water/i);
-    });
+    // A3 is now empty (Chips left it for A4).
+    await waitFor(() =>
+      expect(view.getByLabelText("Empty box A3")).toBeInTheDocument(),
+    );
   });
 });
 
@@ -108,11 +106,11 @@ describe("PlanogramTab resolving a sensor mismatch", () => {
     });
     await user.click(resync);
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(
         view.queryByRole("button", { name: /re-sync sensor for water/i }),
-      ).not.toBeInTheDocument();
-    });
+      ).not.toBeInTheDocument(),
+    );
     expect(view.queryByText("Mismatch")).not.toBeInTheDocument();
   });
 });

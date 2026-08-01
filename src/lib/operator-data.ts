@@ -73,16 +73,23 @@ function initDataStore(): OperatorDataStore {
     stores.map((s) => [s.id, [...buildSalesList(s.id, 90, 540)]]),
   );
 
-  // Planogram order starts as the inventory order; sensor match is seeded
-  // deterministically from the item id so the same slots always start mismatched.
+  // Planogram starts with each item in its own box, then pads to full shelves
+  // plus one spare empty shelf so there's room to move products into empty
+  // boxes. Sensor match is seeded deterministically from the item id.
+  const PLANOGRAM_SHELF_WIDTH = 4;
   const planogramByStore = new Map<string, PlanogramSlot[]>(
-    stores.map((s) => [
-      s.id,
-      (inventoryByStore.get(s.id) ?? []).map((item) => ({
-        itemId: item.id,
-        sensorMatch: deriveSensorMatch(item.id),
-      })),
-    ]),
+    stores.map((s) => {
+      const boxes: PlanogramSlot[] = (inventoryByStore.get(s.id) ?? []).map(
+        (item) => ({ itemId: item.id, sensorMatch: deriveSensorMatch(item.id) }),
+      );
+      const targetLen =
+        (Math.ceil(boxes.length / PLANOGRAM_SHELF_WIDTH) + 1) *
+        PLANOGRAM_SHELF_WIDTH;
+      while (boxes.length < targetLen) {
+        boxes.push({ itemId: null, sensorMatch: true });
+      }
+      return [s.id, boxes];
+    }),
   );
 
   const allAlerts = new Map<string, Alert>();
@@ -162,33 +169,19 @@ export function getPlanogram(storeId: string): PlanogramSlot[] | undefined {
 }
 
 /**
- * Reorders a store's planogram slots to match the given item-id order. Ids not
- * present are skipped; slots the order omits keep their relative order at the
- * end, so a partial order never drops a slot.
+ * Replaces a store's planogram boxes with a new arrangement (produced by the
+ * client moving a product between boxes). Stored as fresh objects so reference
+ * identity changes for React.
  */
-export function reorderPlanogram(
+export function setPlanogram(
   storeId: string,
-  orderedIds: readonly string[],
+  boxes: readonly PlanogramSlot[],
 ): PlanogramSlot[] | undefined {
   const ds = getDataStore();
-  const slots = ds.planogramByStore.get(storeId);
-  if (!slots) return undefined;
-
-  const remaining = new Map(slots.map((s) => [s.itemId, s]));
-  const reordered: PlanogramSlot[] = [];
-  for (const id of orderedIds) {
-    const slot = remaining.get(id);
-    if (slot) {
-      reordered.push(slot);
-      remaining.delete(id);
-    }
-  }
-  for (const slot of slots) {
-    if (remaining.has(slot.itemId)) reordered.push(slot);
-  }
-
-  ds.planogramByStore.set(storeId, reordered);
-  return reordered;
+  if (!ds.planogramByStore.has(storeId)) return undefined;
+  const stored = boxes.map((b) => ({ ...b }));
+  ds.planogramByStore.set(storeId, stored);
+  return stored;
 }
 
 /**

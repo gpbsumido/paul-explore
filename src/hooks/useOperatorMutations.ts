@@ -174,7 +174,7 @@ export function useRestockStore(): UseRestockStoreReturn {
 
 interface ReorderPlanogramInput {
   storeId: string;
-  order: string[];
+  boxes: PlanogramSlot[];
 }
 
 export interface UseReorderPlanogramReturn {
@@ -182,29 +182,11 @@ export interface UseReorderPlanogramReturn {
   isReordering: boolean;
 }
 
-/** Reorders cached slots to match a new item-id order. */
-function applyOrder(
-  slots: readonly PlanogramSlot[],
-  order: readonly string[],
-): PlanogramSlot[] {
-  const remaining = new Map(slots.map((s) => [s.itemId, s]));
-  const reordered: PlanogramSlot[] = [];
-  for (const id of order) {
-    const slot = remaining.get(id);
-    if (slot) {
-      reordered.push(slot);
-      remaining.delete(id);
-    }
-  }
-  for (const slot of slots) {
-    if (remaining.has(slot.itemId)) reordered.push(slot);
-  }
-  return reordered;
-}
-
 /**
- * Mutation that rearranges a store's planogram. Optimistically reorders the
- * cached slots so the shelf moves immediately; rolls back on failure.
+ * Mutation that rearranges a store's planogram boxes. The client computes the
+ * new box layout (moving a product into another box) and sends it; this
+ * optimistically writes it to the cache so the shelf moves immediately and
+ * rolls back on failure.
  */
 export function useReorderPlanogram(): UseReorderPlanogramReturn {
   const queryClient = useQueryClient();
@@ -212,25 +194,23 @@ export function useReorderPlanogram(): UseReorderPlanogramReturn {
   const mutation = useMutation({
     mutationFn: async ({
       storeId,
-      order,
+      boxes,
     }: ReorderPlanogramInput): Promise<PlanogramSlot[]> => {
       const res = await fetch(`/api/operator/stores/${storeId}/planogram`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order }),
+        body: JSON.stringify({ boxes }),
       });
       if (!res.ok) throw new Error("Failed to rearrange planogram");
       const json = await res.json();
       return z.array(planogramSlotSchema).parse(json.slots);
     },
 
-    onMutate: async ({ storeId, order }) => {
+    onMutate: async ({ storeId, boxes }) => {
       const key = queryKeys.operator.planogram(storeId);
       await queryClient.cancelQueries({ queryKey: key });
       const snapshot = queryClient.getQueryData<PlanogramSlot[]>(key);
-      queryClient.setQueryData<PlanogramSlot[]>(key, (prev) =>
-        applyOrder(prev ?? [], order),
-      );
+      queryClient.setQueryData<PlanogramSlot[]>(key, boxes);
       return { snapshot, key };
     },
 

@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Jul 31, 2026
                   </span>
                   <a
+                    href="#update-2026-07-31-boxes"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Planogram boxes: move products into empty spots
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Jul 31, 2026
+                  </span>
+                  <a
                     href="#update-2026-07-31-analytics"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1367,6 +1378,81 @@ export default function OperatorDashboardContent() {
                 so every range actually has bars to show. It&apos;s still seeded
                 mock data &mdash; the point is the shape of the analytics, not the
                 numbers.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-07-31-boxes"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; July 31, 2026 (last one today)
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Planogram boxes: somewhere to put things
+              </h2>
+              <p className="text-muted">
+                The interactive planogram let you rearrange products, but there
+                was a gap I glossed over: the shelf was a dense list of occupied
+                slots, so &quot;moving&quot; a product could only reorder or swap
+                things that were already placed. There was nowhere{" "}
+                <em>empty</em> to put anything. A real shelf has empty spots. So
+                the model changed.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                A box can be empty
+              </h3>
+              <p className="text-muted">
+                A planogram box is now{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  {"{ itemId, sensorMatch }"}
+                </code>{" "}
+                where a null{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  itemId
+                </code>{" "}
+                means the box is empty. Each shelf is seeded with the store&apos;s
+                products plus a spare empty shelf, so there&apos;s room to move
+                things around. The move itself is one pure function,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  moveToBox(boxes, from, to)
+                </code>
+                : drop into an empty box and the source is vacated; drop onto an
+                occupied box and the two swap. Nulls make{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  assemblePlanogram
+                </code>{" "}
+                render an empty box as a labelled drop target instead of skipping
+                it, so every position keeps its address whether it&apos;s full or
+                not.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What it costs in calls
+              </h3>
+              <p className="text-muted">
+                Worth being honest about the request pattern here too, since
+                that&apos;s a theme across this whole feature. A move is{" "}
+                <strong className="text-foreground">one</strong>{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  PATCH
+                </code>
+                , and it&apos;s optimistic: the client computes the new box
+                layout with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  moveToBox
+                </code>
+                , writes it straight into the query cache so the shelf moves on
+                the same frame, then sends it. The layout is persisted
+                server-side, so it survives the 60-second poll instead of
+                snapping back &mdash; but nothing about the interaction blocks on
+                the network. It&apos;s the same rule the rest of the dashboard
+                follows: read paths are pooled into as few requests as possible
+                (one fleet-summary, one sales-analytics), write paths update
+                optimistically and reconcile in the background, and the poll
+                cadence matches how fast each kind of data actually changes.
+                Fewer round-trips, and the UI never waits on one.
               </p>
             </section>
 

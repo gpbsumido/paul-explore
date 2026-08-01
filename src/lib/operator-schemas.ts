@@ -149,7 +149,7 @@ export const fleetSalesAnalyticsSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const planogramSlotSchema = z.object({
-  itemId: z.string(),
+  itemId: z.string().nullable(),
   sensorMatch: z.boolean(),
 });
 
@@ -196,6 +196,6 @@ export const restockBodySchema = z.object({
  * single-slot sensor re-sync (the item to mark as matching again).
  */
 export const planogramUpdateSchema = z.union([
-  z.object({ order: z.array(z.string()).min(1) }),
+  z.object({ boxes: z.array(planogramSlotSchema) }),
   z.object({ resyncItemId: z.string() }),
 ]);
