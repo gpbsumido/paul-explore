@@ -5,9 +5,11 @@ import type {
   Alert,
   ActivityEvent,
   Sale,
+  PlanogramSlot,
   StoreSummary,
 } from "@/types/operator";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
+import { deriveSensorMatch } from "@/lib/operator-detail";
 import {
   buildStoreList,
   buildInventoryList,
@@ -52,6 +54,16 @@ const activityByStore = new Map<string, ActivityEvent[]>(
 
 const salesByStore = new Map<string, Sale[]>(
   stores.map((s) => [s.id, [...buildSalesList(s.id, 40)]]),
+);
+
+const planogramByStore = new Map<string, PlanogramSlot[]>(
+  stores.map((s) => [
+    s.id,
+    (inventoryByStore.get(s.id) ?? []).map((item) => ({
+      itemId: item.id,
+      sensorMatch: deriveSensorMatch(item.id),
+    })),
+  ]),
 );
 
 const allAlerts = new Map<string, Alert>();
@@ -191,6 +203,61 @@ export const operatorHandlers = [
     }
     return HttpResponse.json({ sales });
   }),
+
+  // GET /api/operator/stores/:id/planogram — persisted shelf layout
+  http.get("/api/operator/stores/:id/planogram", async ({ params }) => {
+    await randomDelay();
+    const slots = planogramByStore.get(params.id as string);
+    if (!slots) {
+      return HttpResponse.json({ error: "Store not found" }, { status: 404 });
+    }
+    return HttpResponse.json({ slots });
+  }),
+
+  // PATCH /api/operator/stores/:id/planogram — reorder or re-sync a slot
+  http.patch(
+    "/api/operator/stores/:id/planogram",
+    async ({ params, request }) => {
+      await randomDelay();
+      const storeId = params.id as string;
+      const slots = planogramByStore.get(storeId);
+      if (!slots) {
+        return HttpResponse.json({ error: "Store not found" }, { status: 404 });
+      }
+
+      const body = (await request.json()) as {
+        order?: string[];
+        resyncItemId?: string;
+      };
+
+      if (body.order) {
+        const remaining = new Map(slots.map((s) => [s.itemId, s]));
+        const reordered: PlanogramSlot[] = [];
+        for (const id of body.order) {
+          const slot = remaining.get(id);
+          if (slot) {
+            reordered.push(slot);
+            remaining.delete(id);
+          }
+        }
+        for (const slot of slots) {
+          if (remaining.has(slot.itemId)) reordered.push(slot);
+        }
+        planogramByStore.set(storeId, reordered);
+        return HttpResponse.json({ slots: reordered });
+      }
+
+      if (body.resyncItemId) {
+        const updated = slots.map((s) =>
+          s.itemId === body.resyncItemId ? { ...s, sensorMatch: true } : s,
+        );
+        planogramByStore.set(storeId, updated);
+        return HttpResponse.json({ slots: updated });
+      }
+
+      return HttpResponse.json({ error: "Invalid body" }, { status: 400 });
+    },
+  ),
 
   // PATCH /api/operator/alerts/:id/dismiss — dismiss an alert
   http.patch("/api/operator/alerts/:id/dismiss", async ({ params }) => {

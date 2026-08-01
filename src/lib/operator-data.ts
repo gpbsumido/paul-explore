@@ -4,7 +4,9 @@ import type {
   Alert,
   ActivityEvent,
   Sale,
+  PlanogramSlot,
 } from "@/types/operator";
+import { deriveSensorMatch } from "@/lib/operator-detail";
 import {
   buildStoreList,
   buildInventoryList,
@@ -30,6 +32,7 @@ type OperatorDataStore = {
   alertsByStore: Map<string, Alert[]>;
   activityByStore: Map<string, ActivityEvent[]>;
   salesByStore: Map<string, Sale[]>;
+  planogramByStore: Map<string, PlanogramSlot[]>;
   allAlerts: Map<string, Alert>;
 };
 
@@ -69,6 +72,18 @@ function initDataStore(): OperatorDataStore {
     stores.map((s) => [s.id, [...buildSalesList(s.id, 40)]]),
   );
 
+  // Planogram order starts as the inventory order; sensor match is seeded
+  // deterministically from the item id so the same slots always start mismatched.
+  const planogramByStore = new Map<string, PlanogramSlot[]>(
+    stores.map((s) => [
+      s.id,
+      (inventoryByStore.get(s.id) ?? []).map((item) => ({
+        itemId: item.id,
+        sensorMatch: deriveSensorMatch(item.id),
+      })),
+    ]),
+  );
+
   const allAlerts = new Map<string, Alert>();
   for (const alerts of alertsByStore.values()) {
     for (const a of alerts) {
@@ -82,6 +97,7 @@ function initDataStore(): OperatorDataStore {
     alertsByStore,
     activityByStore,
     salesByStore,
+    planogramByStore,
     allAlerts,
   };
 }
@@ -138,6 +154,59 @@ export function getActivity(storeId: string): ActivityEvent[] | undefined {
 
 export function getSales(storeId: string): Sale[] | undefined {
   return getDataStore().salesByStore.get(storeId);
+}
+
+export function getPlanogram(storeId: string): PlanogramSlot[] | undefined {
+  return getDataStore().planogramByStore.get(storeId);
+}
+
+/**
+ * Reorders a store's planogram slots to match the given item-id order. Ids not
+ * present are skipped; slots the order omits keep their relative order at the
+ * end, so a partial order never drops a slot.
+ */
+export function reorderPlanogram(
+  storeId: string,
+  orderedIds: readonly string[],
+): PlanogramSlot[] | undefined {
+  const ds = getDataStore();
+  const slots = ds.planogramByStore.get(storeId);
+  if (!slots) return undefined;
+
+  const remaining = new Map(slots.map((s) => [s.itemId, s]));
+  const reordered: PlanogramSlot[] = [];
+  for (const id of orderedIds) {
+    const slot = remaining.get(id);
+    if (slot) {
+      reordered.push(slot);
+      remaining.delete(id);
+    }
+  }
+  for (const slot of slots) {
+    if (remaining.has(slot.itemId)) reordered.push(slot);
+  }
+
+  ds.planogramByStore.set(storeId, reordered);
+  return reordered;
+}
+
+/**
+ * Clears a slot's sensor mismatch by marking it as matching again, returning
+ * new slot objects so reference identity changes for React.
+ */
+export function resyncPlanogramSlot(
+  storeId: string,
+  itemId: string,
+): PlanogramSlot[] | undefined {
+  const ds = getDataStore();
+  const slots = ds.planogramByStore.get(storeId);
+  if (!slots) return undefined;
+
+  const updated = slots.map((s) =>
+    s.itemId === itemId ? { ...s, sensorMatch: true } : s,
+  );
+  ds.planogramByStore.set(storeId, updated);
+  return updated;
 }
 
 export function dismissAlert(alertId: string): Alert | undefined {

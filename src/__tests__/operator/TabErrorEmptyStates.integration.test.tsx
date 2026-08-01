@@ -176,10 +176,13 @@ describe("tab empty states", () => {
     ).toBeInTheDocument();
   });
 
-  it("PlanogramTab shows empty message when no inventory items exist", async () => {
+  it("PlanogramTab shows empty message when no slots exist", async () => {
     server.use(
       http.get("/api/operator/stores/:id/inventory", () =>
         HttpResponse.json({ items: [] }),
+      ),
+      http.get("/api/operator/stores/:id/planogram", () =>
+        HttpResponse.json({ slots: [] }),
       ),
     );
 

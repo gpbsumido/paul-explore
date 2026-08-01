@@ -6,6 +6,7 @@ import {
   alertSchema,
   activityEventSchema,
   saleSchema,
+  planogramSlotSchema,
   fleetSummaryResponseSchema,
 } from "@/lib/operator-schemas";
 import { z } from "zod";
@@ -183,6 +184,124 @@ describe("GET /api/operator/stores/:storeId/sales", () => {
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999/sales"),
       makeParams({ storeId: "nonexistent-999" }),
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET + PATCH /api/operator/stores/:storeId/planogram
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/stores/:storeId/planogram", () => {
+  it("returns the store's planogram slots", async () => {
+    const { GET: listGET } = await import("@/app/api/operator/stores/route");
+    const { stores } = await (await listGET()).json();
+    const firstId = stores[0].id;
+
+    const { GET } =
+      await import("@/app/api/operator/stores/[storeId]/planogram/route");
+    const res = await GET(
+      makeRequest(`/api/operator/stores/${firstId}/planogram`),
+      makeParams({ storeId: firstId }),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = z.array(planogramSlotSchema).safeParse(body.slots);
+    expect(result.success).toBe(true);
+    expect(body.slots.length).toBeGreaterThan(0);
+  });
+
+  it("returns 404 for unknown store id", async () => {
+    const { GET } =
+      await import("@/app/api/operator/stores/[storeId]/planogram/route");
+    const res = await GET(
+      makeRequest("/api/operator/stores/nope-999/planogram"),
+      makeParams({ storeId: "nope-999" }),
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe("PATCH /api/operator/stores/:storeId/planogram", () => {
+  it("reorders slots to match the given item-id order", async () => {
+    const { GET: listGET } = await import("@/app/api/operator/stores/route");
+    const { stores } = await (await listGET()).json();
+    const firstId = stores[0].id;
+
+    const routeMod =
+      await import("@/app/api/operator/stores/[storeId]/planogram/route");
+    const current = await (
+      await routeMod.GET(
+        makeRequest(`/api/operator/stores/${firstId}/planogram`),
+        makeParams({ storeId: firstId }),
+      )
+    ).json();
+
+    const reversed = current.slots
+      .map((s: { itemId: string }) => s.itemId)
+      .reverse();
+
+    const res = await routeMod.PATCH(
+      makeRequest(`/api/operator/stores/${firstId}/planogram`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: reversed }),
+      }),
+      makeParams({ storeId: firstId }),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.slots.map((s: { itemId: string }) => s.itemId)).toEqual(
+      reversed,
+    );
+  });
+
+  it("re-syncs a slot's sensor when given a resyncItemId", async () => {
+    const { GET: listGET } = await import("@/app/api/operator/stores/route");
+    const { stores } = await (await listGET()).json();
+    const firstId = stores[0].id;
+
+    const routeMod =
+      await import("@/app/api/operator/stores/[storeId]/planogram/route");
+    const current = await (
+      await routeMod.GET(
+        makeRequest(`/api/operator/stores/${firstId}/planogram`),
+        makeParams({ storeId: firstId }),
+      )
+    ).json();
+
+    const mismatched = current.slots.find(
+      (s: { sensorMatch: boolean }) => !s.sensorMatch,
+    );
+    expect(mismatched).toBeDefined();
+
+    const res = await routeMod.PATCH(
+      makeRequest(`/api/operator/stores/${firstId}/planogram`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resyncItemId: mismatched.itemId }),
+      }),
+      makeParams({ storeId: firstId }),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const updated = body.slots.find(
+      (s: { itemId: string }) => s.itemId === mismatched.itemId,
+    );
+    expect(updated.sensorMatch).toBe(true);
+  });
+
+  it("returns 404 for unknown store id", async () => {
+    const { PATCH } =
+      await import("@/app/api/operator/stores/[storeId]/planogram/route");
+    const res = await PATCH(
+      makeRequest("/api/operator/stores/nope-999/planogram", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resyncItemId: "x" }),
+      }),
+      makeParams({ storeId: "nope-999" }),
     );
     expect(res.status).toBe(404);
   });
