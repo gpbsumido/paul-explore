@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-01 - version 2.15.0
+
+- **The operator dashboard is real now — it reads and writes the portfolio_api database instead of an in-memory store.** Every operator route (`/api/operator/*`) is now a thin BFF over the live operator service: stores, store detail, inventory, alerts, activity, sales, planogram, fleet-summary, sales-analytics, plus the restock, dismiss, and planogram writes. New `operator-client.ts` makes the validated HTTP calls (reusing the same Zod schemas the UI uses, so a drifting API is a clear error, not bad state), and `operator-bff.ts` prefers the API but falls back to the in-memory seed when the backend is unreachable — so the demo keeps working and looks identical whether or not portfolio_api is running. Same pattern as the flags console. The fleet-summary and sales-analytics endpoints now hit the DB-backed aggregations (one grouped query each) rather than looping the seed. One contract nudge: list reads for an unknown store now return `200` with an empty list instead of `404`, matching the backend. No visual change — this is a data-source swap.
+
 ## 2026-07-31 - version 2.14.1
 
 - **Fixed the operator page hydration error.** The Fleet Analytics section seeded its collapsed state straight from `localStorage` in the initial `useState`, so the server rendered it collapsed (no `localStorage`) while the client rendered it expanded for anyone who had opened it — a server/client mismatch that failed hydration (`aria-expanded` differed). It now reads the preference through `useSyncExternalStore` with a fixed collapsed server snapshot, so the hydrated HTML always matches and the stored preference is applied cleanly on the client.
