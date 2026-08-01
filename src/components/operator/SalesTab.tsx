@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useOperatorSales } from "@/hooks/useOperatorSales";
 import {
   summarizeSales,
   topSellingProducts,
-  salesByDay,
+  salesByPeriod,
   formatCAD,
+  type SalesGranularity,
 } from "@/lib/operator-sales";
+import SalesRangeToggle from "./SalesRangeToggle";
 
 interface SalesTabProps {
   storeId: string;
@@ -22,13 +24,17 @@ const MAX_TOP_PRODUCTS = 5;
  */
 export default function SalesTab({ storeId }: SalesTabProps) {
   const { sales, loading, error } = useOperatorSales(storeId);
+  const [granularity, setGranularity] = useState<SalesGranularity>("month");
 
   const summary = useMemo(() => summarizeSales(sales), [sales]);
   const topProducts = useMemo(
     () => topSellingProducts(sales, MAX_TOP_PRODUCTS),
     [sales],
   );
-  const trend = useMemo(() => salesByDay(sales), [sales]);
+  const trend = useMemo(
+    () => salesByPeriod(sales, granularity),
+    [sales, granularity],
+  );
   const recent = useMemo(
     () =>
       [...sales]
@@ -66,11 +72,14 @@ export default function SalesTab({ storeId }: SalesTabProps) {
         <SummaryStat label="Avg sale" value={formatCAD(summary.averageSale)} />
       </dl>
 
-      {/* 7-day revenue trend */}
+      {/* Revenue trend with a day/week/month/year range */}
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-foreground">
-          Last 7 days
-        </h3>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold text-foreground">
+            Revenue trend
+          </h3>
+          <SalesRangeToggle value={granularity} onChange={setGranularity} />
+        </div>
         <div className="flex items-end gap-2" aria-hidden="true">
           {trend.map((bucket, i) => (
             <div key={i} className="flex flex-1 flex-col items-center gap-1">
@@ -81,14 +90,14 @@ export default function SalesTab({ storeId }: SalesTabProps) {
                   minHeight: bucket.revenue > 0 ? 2 : 0,
                 }}
               />
-              <span className="text-[10px] text-muted">{bucket.day}</span>
+              <span className="text-[10px] text-muted">{bucket.label}</span>
             </div>
           ))}
         </div>
         <ul className="sr-only">
           {trend.map((bucket, i) => (
             <li key={i}>
-              {bucket.day}: {formatCAD(bucket.revenue)}
+              {bucket.label}: {formatCAD(bucket.revenue)}
             </li>
           ))}
         </ul>

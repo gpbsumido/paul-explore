@@ -8,6 +8,7 @@ import {
   saleSchema,
   planogramSlotSchema,
   fleetSummaryResponseSchema,
+  fleetSalesAnalyticsSchema,
 } from "@/lib/operator-schemas";
 import { z } from "zod";
 
@@ -186,6 +187,43 @@ describe("GET /api/operator/stores/:storeId/sales", () => {
       makeParams({ storeId: "nonexistent-999" }),
     );
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/sales-analytics
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/sales-analytics", () => {
+  it("returns a valid fleet analytics payload defaulting to month", async () => {
+    const { GET } = await import("@/app/api/operator/sales-analytics/route");
+    const res = await GET(makeRequest("/api/operator/sales-analytics"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const parsed = fleetSalesAnalyticsSchema.safeParse(body);
+    expect(parsed.success).toBe(true);
+    expect(body.granularity).toBe("month");
+    expect(body.buckets).toHaveLength(12);
+    expect(body.byStore.length).toBeGreaterThan(0);
+  });
+
+  it("honours the granularity query param", async () => {
+    const { GET } = await import("@/app/api/operator/sales-analytics/route");
+    const res = await GET(
+      makeRequest("/api/operator/sales-analytics?granularity=year"),
+    );
+    const body = await res.json();
+    expect(body.granularity).toBe("year");
+    expect(body.buckets).toHaveLength(5);
+  });
+
+  it("falls back to month for an invalid granularity", async () => {
+    const { GET } = await import("@/app/api/operator/sales-analytics/route");
+    const res = await GET(
+      makeRequest("/api/operator/sales-analytics?granularity=decade"),
+    );
+    const body = await res.json();
+    expect(body.granularity).toBe("month");
   });
 });
 

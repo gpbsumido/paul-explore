@@ -17,6 +17,7 @@ import FleetStatsBar from "@/components/operator/FleetStatsBar";
 import RefreshBar from "@/components/operator/RefreshBar";
 import StoreCard from "@/components/operator/StoreCard";
 import FleetAnalytics from "@/components/operator/FleetAnalytics";
+import FleetSalesAnalytics from "@/components/operator/FleetSalesAnalytics";
 import StoreFilters from "@/components/operator/StoreFilters";
 
 const MAX_CHART_NAME_LENGTH = 20;
@@ -176,6 +177,9 @@ export default function OperatorDashboard() {
         alertTrend={alertTrend}
         inventoryComparison={inventoryComparison}
       />
+
+      {/* Fleet-wide sales analytics with a day/week/month/year range */}
+      <FleetSalesAnalytics />
 
       {/* Filters */}
       <StoreFilters

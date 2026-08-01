@@ -58,6 +58,22 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/persist/i);
   });
 
+  it("has a timeline entry linking to the sales-analytics update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /sales analytics: day\/week\/month\/year, per store and fleet/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-07-31-analytics");
+  });
+
+  it("documents the sales analytics: ranges and the fleet rollup", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/salesByPeriod/);
+    expect(body).toMatch(/aggregateFleetSales/);
+    expect(body).toMatch(/sales-analytics/);
+  });
+
   it("documents the store-arrangement slot addressing and refill run", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

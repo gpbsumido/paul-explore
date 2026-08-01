@@ -118,6 +118,33 @@ export const saleSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Sales analytics (time-range buckets + fleet rollup)
+// ---------------------------------------------------------------------------
+
+export const salesGranularitySchema = z.enum(["day", "week", "month", "year"]);
+
+export const salesPeriodBucketSchema = z.object({
+  label: z.string(),
+  start: z.string(),
+  revenue: z.number().min(0),
+  units: z.number().int().min(0),
+});
+
+export const fleetStoreTotalSchema = z.object({
+  storeId: z.string(),
+  storeName: z.string(),
+  totalRevenue: z.number().min(0),
+  unitsSold: z.number().int().min(0),
+});
+
+export const fleetSalesAnalyticsSchema = z.object({
+  granularity: salesGranularitySchema,
+  buckets: z.array(salesPeriodBucketSchema),
+  byStore: z.array(fleetStoreTotalSchema),
+  totalRevenue: z.number().min(0),
+});
+
+// ---------------------------------------------------------------------------
 // Planogram (persisted shelf layout: which item occupies each slot + sensor)
 // ---------------------------------------------------------------------------
 

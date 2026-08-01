@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Jul 31, 2026
                   </span>
                   <a
+                    href="#update-2026-07-31-analytics"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Sales analytics: day/week/month/year, per store and fleet
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Jul 31, 2026
+                  </span>
+                  <a
                     href="#update-2026-07-31-planogram"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1254,6 +1265,108 @@ export default function OperatorDashboardContent() {
                 (optimistically, then persisted). Because the sensor state lives
                 on the persisted slot rather than being recomputed from the item
                 id on every render, a re-sync actually sticks.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-07-31-analytics"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; July 31, 2026 (later still)
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Sales analytics: ranges, and the whole fleet
+              </h2>
+              <p className="text-muted">
+                The Sales tab showed a single &quot;last 7 days&quot; trend, which
+                is fine for a glance but useless for spotting a monthly pattern or
+                a year-over-year trend. And it was per-store only &mdash; there
+                was no way to ask &quot;how is the whole fleet doing.&quot; So two
+                things: range views, and a fleet rollup.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                One bucketing function, four ranges
+              </h3>
+              <p className="text-muted">
+                The trend is now driven by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  salesByPeriod(sales, granularity, now)
+                </code>
+                , which builds a fixed set of windows &mdash; 7 days, 8 weeks, 12
+                months, or 5 years &mdash; ending at now, then drops each sale
+                into its window. A Day/Week/Month/Year toggle on the Sales tab
+                just changes the granularity argument; the re-bucketing is
+                client-side over the sales already in cache, so switching ranges
+                is instant and makes no request. Month and year use real calendar
+                boundaries (UTC), day and week use fixed-width windows &mdash;
+                same idea, and it takes an injectable{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  now
+                </code>{" "}
+                so every bucket boundary is testable without mocking the clock.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The fleet rollup, aggregated server-side
+              </h3>
+              <p className="text-muted">
+                &quot;Per whole fleet&quot; is where the request count matters. I
+                could have fetched every store&apos;s sales and summed them in the
+                browser, but that&apos;s N requests that grow with the fleet
+                &mdash; the exact fan-out I killed on the dashboard the first time
+                around. So the fleet analytics aggregate server-side:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GET /api/operator/sales-analytics?granularity=…
+                </code>{" "}
+                runs{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aggregateFleetSales
+                </code>{" "}
+                over every store and returns shared time buckets, a per-store
+                revenue ranking, and the fleet total in one response. The
+                dashboard&apos;s &quot;Fleet sales&quot; section reads it through
+                a hook keyed by granularity, so each range caches on its own.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Counting the calls
+              </h3>
+              <p className="text-muted">
+                The whole point here is efficiency, so it&apos;s worth being
+                explicit about the request budget. Fleet analytics is{" "}
+                <strong className="text-foreground">one request</strong>{" "}
+                regardless of fleet size &mdash; the server does the fan-in, not
+                the browser. The naive version (fetch every store&apos;s sales
+                and sum in the client) is one request per store, so at 30 stores
+                that&apos;s 30 requests versus 1. Switching the range on the
+                per-store tab is{" "}
+                <strong className="text-foreground">zero requests</strong>: the
+                sales are already in cache and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  salesByPeriod
+                </code>{" "}
+                re-buckets them in memory. Each granularity caches under its own
+                query key, so flipping back to a range you&apos;ve already seen
+                is instant and makes no call either. It&apos;s the same instinct
+                as the rest of the dashboard: the fleet overview already
+                collapsed a 2N+1 per-poll fan-out into a single{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  fleet-summary
+                </code>{" "}
+                request, the tiered polling only asks as often as each data type
+                actually changes, and operator actions update optimistically so a
+                click never blocks on a round-trip. Fewer calls, and the ones we
+                make do more.
+              </p>
+              <p className="mt-3 text-muted">
+                One demo-data note: the seed used to scatter sales across the last
+                week, which made the month and year views basically empty. I
+                widened it to spread about eighteen months of history per store,
+                so every range actually has bars to show. It&apos;s still seeded
+                mock data &mdash; the point is the shape of the analytics, not the
+                numbers.
               </p>
             </section>
 
