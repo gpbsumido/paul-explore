@@ -10,7 +10,13 @@ import type {
   StoreStatus,
 } from "@/types/operator";
 
-export type TabId = "inventory" | "alerts" | "activity" | "planogram";
+export type TabId =
+  | "inventory"
+  | "alerts"
+  | "activity"
+  | "planogram"
+  | "sales"
+  | "tax";
 
 export type ConnectionQuality = "strong" | "weak" | "poor" | "offline";
 
@@ -57,6 +63,8 @@ export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "alerts", label: "Alerts" },
   { id: "activity", label: "Activity" },
   { id: "planogram", label: "Planogram" },
+  { id: "sales", label: "Sales" },
+  { id: "tax", label: "Tax" },
 ] as const;
 
 const VALID_TAB_IDS = new Set<string>(TABS.map((t) => t.id));
@@ -251,11 +259,32 @@ export type PlanogramSlot = {
   currentStock: number;
   capacity: number;
   sensorMatch: boolean;
+  slotLabel: string;
+};
+
+export type RefillEntry = {
+  slotLabel: string;
+  productName: string;
+  category: string;
+  currentStock: number;
+  capacity: number;
 };
 
 /**
+ * Builds a slot address from a flat item index and shelf width: the shelf
+ * letter (A, B, C...) followed by the 1-based position on that shelf. Item 5
+ * on shelves of width 4 is "B2".
+ */
+export function slotLabelFor(index: number, shelfWidth: number): string {
+  const shelf = Math.floor(index / shelfWidth);
+  const position = (index % shelfWidth) + 1;
+  return `${String.fromCharCode(65 + shelf)}${position}`;
+}
+
+/**
  * Generates a simplified planogram grid from inventory items. Items are laid
- * out left-to-right across shelves of the given width. Each slot includes a
+ * out left-to-right across shelves of the given width. Each slot carries its
+ * address (slotLabel) so an operator knows which spot it is, plus a
  * deterministic sensorMatch flag derived from the item ID so the visual is
  * stable across renders.
  */
@@ -265,7 +294,7 @@ export function generatePlanogramGrid(
 ): readonly (readonly PlanogramSlot[])[] {
   if (items.length === 0) return [];
 
-  const slots: PlanogramSlot[] = items.map((item) => {
+  const slots: PlanogramSlot[] = items.map((item, index) => {
     let hash = 0;
     for (let i = 0; i < item.id.length; i++) {
       hash = (hash * 31 + item.id.charCodeAt(i)) | 0;
@@ -278,6 +307,7 @@ export function generatePlanogramGrid(
       currentStock: item.currentStock,
       capacity: item.capacity,
       sensorMatch,
+      slotLabel: slotLabelFor(index, shelfWidth),
     };
   });
 
@@ -287,6 +317,35 @@ export function generatePlanogramGrid(
   }
 
   return shelves;
+}
+
+/**
+ * Returns the slots that need restocking (anything below healthy fill), each
+ * tagged with its slot address, ordered most-urgent first (lowest fill ratio).
+ * This is the operator's refill run: which spot, which product, how empty.
+ */
+export function getRefillList(
+  items: readonly InventoryItem[],
+  shelfWidth: number = 4,
+): readonly RefillEntry[] {
+  return items
+    .map((item, index) => ({ item, index }))
+    .filter(
+      ({ item }) =>
+        categorizeStock(item.currentStock, item.capacity) !== "healthy",
+    )
+    .sort(
+      (a, b) =>
+        a.item.currentStock / a.item.capacity -
+        b.item.currentStock / b.item.capacity,
+    )
+    .map(({ item, index }) => ({
+      slotLabel: slotLabelFor(index, shelfWidth),
+      productName: item.productName,
+      category: item.category,
+      currentStock: item.currentStock,
+      capacity: item.capacity,
+    }));
 }
 
 // ---------------------------------------------------------------------------

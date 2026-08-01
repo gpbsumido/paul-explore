@@ -3,6 +3,7 @@ import type {
   InventoryItem,
   Alert,
   ActivityEvent,
+  Sale,
 } from "@/types/operator";
 import {
   buildStoreList,
@@ -10,6 +11,7 @@ import {
   buildAlertList,
   buildActivityList,
   buildActivityEvent,
+  buildSalesList,
   resetFactoryCounter,
 } from "@/test/factories/operator";
 
@@ -27,6 +29,7 @@ type OperatorDataStore = {
   inventoryByStore: Map<string, InventoryItem[]>;
   alertsByStore: Map<string, Alert[]>;
   activityByStore: Map<string, ActivityEvent[]>;
+  salesByStore: Map<string, Sale[]>;
   allAlerts: Map<string, Alert>;
 };
 
@@ -62,6 +65,10 @@ function initDataStore(): OperatorDataStore {
     stores.map((s) => [s.id, [...buildActivityList(s.id, 15)]]),
   );
 
+  const salesByStore = new Map<string, Sale[]>(
+    stores.map((s) => [s.id, [...buildSalesList(s.id, 40)]]),
+  );
+
   const allAlerts = new Map<string, Alert>();
   for (const alerts of alertsByStore.values()) {
     for (const a of alerts) {
@@ -74,6 +81,7 @@ function initDataStore(): OperatorDataStore {
     inventoryByStore,
     alertsByStore,
     activityByStore,
+    salesByStore,
     allAlerts,
   };
 }
@@ -126,6 +134,10 @@ export function getAlerts(storeId: string): Alert[] | undefined {
 
 export function getActivity(storeId: string): ActivityEvent[] | undefined {
   return getDataStore().activityByStore.get(storeId);
+}
+
+export function getSales(storeId: string): Sale[] | undefined {
+  return getDataStore().salesByStore.get(storeId);
 }
 
 export function dismissAlert(alertId: string): Alert | undefined {

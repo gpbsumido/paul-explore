@@ -31,6 +31,7 @@ function makeStore(overrides: Partial<Store>): Store {
     id: "store-001",
     name: "Test Store",
     location: "Floor 1",
+    province: "ON",
     status: "online",
     temperature: 3.5,
     lastPing: recentPing(),

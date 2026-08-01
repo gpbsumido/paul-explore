@@ -5,6 +5,7 @@ import {
   inventoryItemSchema,
   alertSchema,
   activityEventSchema,
+  saleSchema,
   fleetSummaryResponseSchema,
 } from "@/lib/operator-schemas";
 import { z } from "zod";
@@ -142,6 +143,45 @@ describe("GET /api/operator/stores/:storeId/alerts", () => {
       await import("@/app/api/operator/stores/[storeId]/alerts/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999/alerts"),
+      makeParams({ storeId: "nonexistent-999" }),
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/stores/:storeId/sales
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/stores/:storeId/sales", () => {
+  it("returns sales linked to the store", async () => {
+    const { GET: listGET } = await import("@/app/api/operator/stores/route");
+    const listRes = await listGET();
+    const { stores } = await listRes.json();
+    const firstId = stores[0].id;
+
+    const { GET } =
+      await import("@/app/api/operator/stores/[storeId]/sales/route");
+    const res = await GET(
+      makeRequest(`/api/operator/stores/${firstId}/sales`),
+      makeParams({ storeId: firstId }),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body.sales)).toBe(true);
+    expect(body.sales.length).toBeGreaterThan(0);
+    const result = z.array(saleSchema).safeParse(body.sales);
+    expect(result.success).toBe(true);
+    for (const sale of body.sales) {
+      expect(sale.storeId).toBe(firstId);
+    }
+  });
+
+  it("returns 404 for unknown store id", async () => {
+    const { GET } =
+      await import("@/app/api/operator/stores/[storeId]/sales/route");
+    const res = await GET(
+      makeRequest("/api/operator/stores/nonexistent-999/sales"),
       makeParams({ storeId: "nonexistent-999" }),
     );
     expect(res.status).toBe(404);

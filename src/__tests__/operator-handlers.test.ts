@@ -6,6 +6,7 @@ import {
   inventoryItemSchema,
   alertSchema,
   activityEventSchema,
+  saleSchema,
   fleetSummaryResponseSchema,
 } from "@/lib/operator-schemas";
 import { z } from "zod";
@@ -100,6 +101,33 @@ describe("GET /api/operator/stores/:id/inventory", () => {
 
   it("returns 404 for unknown store id", async () => {
     const res = await fetch("/api/operator/stores/nonexistent-999/inventory");
+    expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/stores/:id/sales — sales history
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/stores/:id/sales", () => {
+  it("returns sales that pass schema validation", async () => {
+    const listRes = await fetch("/api/operator/stores");
+    const { stores } = await listRes.json();
+    const firstId = stores[0].id;
+
+    const res = await fetch(`/api/operator/stores/${firstId}/sales`);
+    expect(res.ok).toBe(true);
+    const body = await res.json();
+    expect(body.sales.length).toBeGreaterThan(0);
+    const result = z.array(saleSchema).safeParse(body.sales);
+    expect(result.success).toBe(true);
+    for (const sale of body.sales) {
+      expect(sale.storeId).toBe(firstId);
+    }
+  });
+
+  it("returns 404 for unknown store id", async () => {
+    const res = await fetch("/api/operator/stores/nonexistent-999/sales");
     expect(res.status).toBe(404);
   });
 });

@@ -33,9 +33,14 @@ export default function PlanogramSlot({ slot }: PlanogramSlotProps) {
           : "border-warning-400 bg-warning-500/5"
       }`}
     >
-      <p className="text-xs font-medium text-foreground truncate">
-        {slot.productName}
-      </p>
+      <div className="flex items-center justify-between gap-1.5">
+        <p className="text-xs font-medium text-foreground truncate">
+          {slot.productName}
+        </p>
+        <span className="shrink-0 rounded bg-primary-500/10 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-primary-600 dark:text-primary-400">
+          {slot.slotLabel}
+        </span>
+      </div>
       <p className="text-[10px] text-muted truncate">{slot.category}</p>
 
       <div className="flex items-center justify-between">

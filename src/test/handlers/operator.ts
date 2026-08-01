@@ -4,6 +4,7 @@ import type {
   InventoryItem,
   Alert,
   ActivityEvent,
+  Sale,
   StoreSummary,
 } from "@/types/operator";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
@@ -13,6 +14,7 @@ import {
   buildAlertList,
   buildActivityList,
   buildActivityEvent,
+  buildSalesList,
   resetFactoryCounter,
 } from "@/test/factories/operator";
 
@@ -46,6 +48,10 @@ const alertsByStore = new Map<string, Alert[]>(
 
 const activityByStore = new Map<string, ActivityEvent[]>(
   stores.map((s) => [s.id, [...buildActivityList(s.id, 15)]]),
+);
+
+const salesByStore = new Map<string, Sale[]>(
+  stores.map((s) => [s.id, [...buildSalesList(s.id, 40)]]),
 );
 
 const allAlerts = new Map<string, Alert>();
@@ -174,6 +180,16 @@ export const operatorHandlers = [
       return HttpResponse.json({ error: "Store not found" }, { status: 404 });
     }
     return HttpResponse.json({ events });
+  }),
+
+  // GET /api/operator/stores/:id/sales — sales history
+  http.get("/api/operator/stores/:id/sales", async ({ params }) => {
+    await randomDelay();
+    const sales = salesByStore.get(params.id as string);
+    if (!sales) {
+      return HttpResponse.json({ error: "Store not found" }, { status: 404 });
+    }
+    return HttpResponse.json({ sales });
   }),
 
   // PATCH /api/operator/alerts/:id/dismiss — dismiss an alert

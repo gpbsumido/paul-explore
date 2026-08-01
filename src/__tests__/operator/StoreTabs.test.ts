@@ -19,6 +19,8 @@ describe("parseTab", () => {
     expect(parseTab("activity")).toBe("activity");
     expect(parseTab("planogram")).toBe("planogram");
     expect(parseTab("inventory")).toBe("inventory");
+    expect(parseTab("sales")).toBe("sales");
+    expect(parseTab("tax")).toBe("tax");
   });
 
   it("falls back to 'inventory' for an unknown param", () => {
@@ -26,9 +28,16 @@ describe("parseTab", () => {
     expect(parseTab("ALERTS")).toBe("inventory");
   });
 
-  it("exposes all four tabs in the TABS constant", () => {
+  it("exposes every store-detail tab in the TABS constant", () => {
     const ids = TABS.map((t) => t.id);
-    expect(ids).toEqual(["inventory", "alerts", "activity", "planogram"]);
+    expect(ids).toEqual([
+      "inventory",
+      "alerts",
+      "activity",
+      "planogram",
+      "sales",
+      "tax",
+    ]);
   });
 
   it("gives every tab a human-readable label", () => {

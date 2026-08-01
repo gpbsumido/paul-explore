@@ -24,6 +24,26 @@ export const activityTypeSchema = z.enum([
   "price-update",
 ]);
 
+/**
+ * Two-letter codes for every Canadian province and territory. Operators are
+ * assumed to be in Canada, so a store's province drives its sales tax.
+ */
+export const provinceCodeSchema = z.enum([
+  "AB",
+  "BC",
+  "MB",
+  "NB",
+  "NL",
+  "NS",
+  "NT",
+  "NU",
+  "ON",
+  "PE",
+  "QC",
+  "SK",
+  "YT",
+]);
+
 // ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
@@ -32,6 +52,7 @@ export const storeSchema = z.object({
   id: z.string(),
   name: z.string(),
   location: z.string(),
+  province: provinceCodeSchema,
   status: storeStatusSchema,
   temperature: z.number(),
   lastPing: z.string().datetime(),
@@ -79,6 +100,21 @@ export const activityEventSchema = z.object({
   description: z.string(),
   timestamp: z.string().datetime(),
   actor: z.string().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Sale (a single completed transaction at a store)
+// ---------------------------------------------------------------------------
+
+export const saleSchema = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  productName: z.string(),
+  category: z.string(),
+  unitPrice: z.number().min(0),
+  quantity: z.number().int().min(1),
+  total: z.number().min(0),
+  timestamp: z.string().datetime(),
 });
 
 // ---------------------------------------------------------------------------

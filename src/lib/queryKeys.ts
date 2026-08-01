@@ -147,6 +147,10 @@ export const queryKeys = {
     activity: (storeId: string) =>
       ["operator", "stores", storeId, "activity"] as const,
 
+    /** Sales history for a specific store. Polled every 60s. */
+    sales: (storeId: string) =>
+      ["operator", "stores", storeId, "sales"] as const,
+
     /** Aggregated alert counts + inventory health for the fleet dashboard. Polled every 15s. */
     fleetSummary: () => ["operator", "fleet-summary"] as const,
   },
