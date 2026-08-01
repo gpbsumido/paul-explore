@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-31 - version 2.14.1
+
+- **Fixed the operator page hydration error.** The Fleet Analytics section seeded its collapsed state straight from `localStorage` in the initial `useState`, so the server rendered it collapsed (no `localStorage`) while the client rendered it expanded for anyone who had opened it — a server/client mismatch that failed hydration (`aria-expanded` differed). It now reads the preference through `useSyncExternalStore` with a fixed collapsed server snapshot, so the hydrated HTML always matches and the stored preference is applied cleanly on the client.
+- **The Sales tab range toggle now filters the whole tab, not just the chart.** Day/Week/Month/Year only re-bucketed the trend; the summary, top sellers, and recent list still counted every sale. A new `filterSalesForRange` scopes all of them to the selected window, so switching the range changes the top sellers and totals too — matching how the fleet analytics already behaves.
+
 ## 2026-07-31 - version 2.14.0
 
 - **The planogram has real boxes now — move a product into an empty spot, not just swap two full ones.** The shelves used to be a dense list of occupied slots, so "rearranging" could only reorder products that were already placed; there was nowhere empty to put anything. Now each shelf has a fixed set of boxes, seeded with the store's products plus a spare empty shelf, and a product can be dropped (or arrow-moved) into any empty box — the box it came from is left empty, and if the target already holds something the two swap. A planogram box is now `{ itemId, sensorMatch }` where a null `itemId` means empty; the pure `moveToBox` handles place/vacate/swap and `assemblePlanogram` renders the empty boxes as labelled drop targets. `PATCH /api/operator/stores/[id]/planogram` now takes the new box layout the client computed, still optimistic and still persisted. Re-syncing a drifted sensor is unchanged.

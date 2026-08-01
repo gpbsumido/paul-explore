@@ -234,6 +234,26 @@ function buildPeriods(granularity: SalesGranularity, now: Date): PeriodDef[] {
 }
 
 /**
+ * Returns the sales that fall inside the visible window for a granularity
+ * (last 7 days / 8 weeks / 12 months / 5 years). Used to scope every figure on
+ * the sales tab — summary, top sellers, recent — to the selected range, not
+ * just the trend chart.
+ */
+export function filterSalesForRange(
+  sales: readonly Sale[],
+  granularity: SalesGranularity,
+  now: Date = new Date(),
+): Sale[] {
+  const periods = buildPeriods(granularity, now);
+  const start = periods[0].startMs;
+  const end = periods[periods.length - 1].endMs;
+  return sales.filter((sale) => {
+    const t = new Date(sale.timestamp).getTime();
+    return t >= start && t < end;
+  });
+}
+
+/**
  * Buckets sales into fixed windows for the chosen granularity (day/week/month/
  * year), oldest bucket first. Each bucket carries its label, ISO start, summed
  * revenue, and units. Sales outside the visible window are ignored.
