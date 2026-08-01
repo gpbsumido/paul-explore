@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import nextDynamic from "next/dynamic";
 import { AnimatePresence, m } from "framer-motion";
 import type { Store, AlertTrendBucket } from "@/types/operator";
@@ -54,6 +54,31 @@ function readCollapsed(): boolean {
   }
 }
 
+// A tiny external store for the collapse preference. useSyncExternalStore reads
+// localStorage on the client and a fixed collapsed=true on the server, so the
+// hydrated HTML always matches; no localStorage read happens in the initial
+// render. Toggling writes localStorage and notifies subscribers so the same tab
+// re-reads immediately (the storage event only fires in *other* tabs).
+const collapseListeners = new Set<() => void>();
+
+function subscribeCollapsed(callback: () => void): () => void {
+  collapseListeners.add(callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    collapseListeners.delete(callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function writeCollapsed(value: boolean): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, String(value));
+  } catch {
+    // storage full or unavailable -- no-op
+  }
+  for (const listener of collapseListeners) listener();
+}
+
 /**
  * Collapsible analytics section housing fleet health, alert trend, and
  * inventory comparison charts. Collapse state persists in localStorage
@@ -64,19 +89,15 @@ export default function FleetAnalytics({
   alertTrend,
   inventoryComparison,
 }: FleetAnalyticsProps) {
-  const [collapsed, setCollapsed] = useState(readCollapsed);
+  // Server snapshot is always collapsed, so the hydrated HTML matches; the
+  // client snapshot reads the stored preference. No hydration divergence.
+  const collapsed = useSyncExternalStore(
+    subscribeCollapsed,
+    readCollapsed,
+    () => true,
+  );
 
-  const toggle = useCallback(() => setCollapsed((prev) => !prev), []);
-
-  // Persist the collapsed preference as a side effect of the state change,
-  // rather than inside the updater (which React may replay).
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, String(collapsed));
-    } catch {
-      // storage full or unavailable -- no-op
-    }
-  }, [collapsed]);
+  const toggle = useCallback(() => writeCollapsed(!readCollapsed()), []);
 
   return (
     <section className="rounded-xl border border-border bg-surface">

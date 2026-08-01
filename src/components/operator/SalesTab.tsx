@@ -6,6 +6,7 @@ import {
   summarizeSales,
   topSellingProducts,
   salesByPeriod,
+  filterSalesForRange,
   formatCAD,
   type SalesGranularity,
 } from "@/lib/operator-sales";
@@ -26,21 +27,28 @@ export default function SalesTab({ storeId }: SalesTabProps) {
   const { sales, loading, error } = useOperatorSales(storeId);
   const [granularity, setGranularity] = useState<SalesGranularity>("month");
 
-  const summary = useMemo(() => summarizeSales(sales), [sales]);
+  // Scope every figure to the selected range, not just the trend chart, so the
+  // toggle actually filters the summary, top sellers, and recent list too.
+  const windowed = useMemo(
+    () => filterSalesForRange(sales, granularity),
+    [sales, granularity],
+  );
+
+  const summary = useMemo(() => summarizeSales(windowed), [windowed]);
   const topProducts = useMemo(
-    () => topSellingProducts(sales, MAX_TOP_PRODUCTS),
-    [sales],
+    () => topSellingProducts(windowed, MAX_TOP_PRODUCTS),
+    [windowed],
   );
   const trend = useMemo(
-    () => salesByPeriod(sales, granularity),
-    [sales, granularity],
+    () => salesByPeriod(windowed, granularity),
+    [windowed, granularity],
   );
   const recent = useMemo(
     () =>
-      [...sales]
+      [...windowed]
         .sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1))
         .slice(0, 8),
-    [sales],
+    [windowed],
   );
 
   const maxTrend = Math.max(1, ...trend.map((t) => t.revenue));

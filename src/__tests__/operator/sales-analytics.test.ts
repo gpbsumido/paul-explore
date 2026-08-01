@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { salesByPeriod, aggregateFleetSales } from "@/lib/operator-sales";
+import {
+  salesByPeriod,
+  aggregateFleetSales,
+  filterSalesForRange,
+} from "@/lib/operator-sales";
 import { buildSale } from "@/test/factories/operator";
 
 const NOW = new Date("2026-07-15T12:00:00Z");
@@ -121,6 +125,27 @@ describe("aggregateFleetSales", () => {
     expect(result.totalRevenue).toBe(0);
     expect(result.byStore).toEqual([]);
     expect(result.buckets).toHaveLength(7);
+  });
+});
+
+describe("filterSalesForRange", () => {
+  const now = new Date("2026-07-15T12:00:00Z");
+  const sales = [
+    buildSale({ timestamp: "2026-07-14T09:00:00Z" }), // within the last 7 days
+    buildSale({ timestamp: "2026-05-01T09:00:00Z" }), // ~75 days ago
+    buildSale({ timestamp: "2024-01-01T09:00:00Z" }), // years ago
+  ];
+
+  it("keeps only sales inside the day window", () => {
+    expect(filterSalesForRange(sales, "day", now)).toHaveLength(1);
+  });
+
+  it("keeps sales inside the month window", () => {
+    expect(filterSalesForRange(sales, "month", now)).toHaveLength(2);
+  });
+
+  it("keeps sales inside the year window", () => {
+    expect(filterSalesForRange(sales, "year", now)).toHaveLength(3);
   });
 });
 
