@@ -474,3 +474,15 @@ export function getDismissableAlerts(
 ): readonly Alert[] {
   return alerts.filter((a) => !a.acknowledged && a.severity !== "critical");
 }
+
+/**
+ * Label for the "Acknowledge All" quick action. Bulk-ack only applies to
+ * non-critical alerts, so when the only active alerts are critical the button
+ * is disabled but says "Critical only" rather than falsely claiming there are
+ * no alerts. It only reads "No Alerts" when nothing is active.
+ */
+export function acknowledgeAllLabel(alerts: readonly Alert[]): string {
+  const dismissable = getDismissableAlerts(alerts).length;
+  if (dismissable > 0) return `Acknowledge All (${dismissable})`;
+  return countActiveAlerts(alerts) > 0 ? "Critical only" : "No Alerts";
+}

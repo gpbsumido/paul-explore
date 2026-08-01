@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   getLowStockItemIds,
   getDismissableAlerts,
+  acknowledgeAllLabel,
 } from "@/lib/operator-detail";
 import { buildInventoryItem, buildAlert } from "@/test/factories/operator";
 
@@ -96,5 +97,37 @@ describe("getDismissableAlerts", () => {
       buildAlert({ severity: "info", acknowledged: true }),
     ];
     expect(getDismissableAlerts(alerts)).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// acknowledgeAllLabel — the "Acknowledge All" quick-action label
+// ---------------------------------------------------------------------------
+
+describe("acknowledgeAllLabel", () => {
+  it("counts the dismissable (non-critical) alerts when there are some", () => {
+    const alerts = [
+      buildAlert({ severity: "warning", acknowledged: false }),
+      buildAlert({ severity: "info", acknowledged: false }),
+      buildAlert({ severity: "critical", acknowledged: false }),
+    ];
+    expect(acknowledgeAllLabel(alerts)).toBe("Acknowledge All (2)");
+  });
+
+  it("says 'Critical only' when the only active alerts are critical", () => {
+    const alerts = [
+      buildAlert({ severity: "critical", acknowledged: false }),
+      buildAlert({ severity: "warning", acknowledged: true }),
+    ];
+    expect(acknowledgeAllLabel(alerts)).toBe("Critical only");
+  });
+
+  it("says 'No Alerts' when nothing is active", () => {
+    const alerts = [
+      buildAlert({ severity: "warning", acknowledged: true }),
+      buildAlert({ severity: "critical", acknowledged: true }),
+    ];
+    expect(acknowledgeAllLabel(alerts)).toBe("No Alerts");
+    expect(acknowledgeAllLabel([])).toBe("No Alerts");
   });
 });
