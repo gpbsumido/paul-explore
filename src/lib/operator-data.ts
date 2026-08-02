@@ -7,6 +7,7 @@ import type {
   PlanogramSlot,
   RestockSession,
   RestockLine,
+  Promotion,
 } from "@/types/operator";
 import { deriveSensorMatch } from "@/lib/operator-detail";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
@@ -16,6 +17,7 @@ import {
   resultingStock,
   summarizeDraft,
 } from "@/lib/operator-restock";
+import { promotionStatus } from "@/lib/operator-promotions";
 import {
   buildStoreList,
   buildInventoryList,
@@ -46,6 +48,7 @@ type OperatorDataStore = {
   /** Restock sessions, so the flow still works with the backend unreachable. */
   restockSessions: Map<string, RestockSession>;
   restockLines: Map<string, RestockLine[]>;
+  promotions: Map<string, Promotion>;
 };
 
 const GLOBAL_KEY = "__operatorDataStore" as const;
@@ -121,6 +124,7 @@ function initDataStore(): OperatorDataStore {
     allAlerts,
     restockSessions: new Map<string, RestockSession>(),
     restockLines: new Map<string, RestockLine[]>(),
+    promotions: new Map<string, Promotion>(),
   };
 }
 
@@ -391,4 +395,72 @@ export function completeRestockSession(
   ds.activityByStore.set(session.storeId, [activity, ...events]);
 
   return { session: closed, lines: frozen, items: applied, activity };
+}
+
+// ---------------------------------------------------------------------------
+// Promotions (seed fallback)
+// ---------------------------------------------------------------------------
+
+let promotionCounter = 0;
+
+export function listPromotions(storeId: string): Promotion[] {
+  return [...getDataStore().promotions.values()]
+    .filter((p) => p.storeId === storeId)
+    .sort((a, b) => (a.startsAt < b.startsAt ? 1 : -1))
+    .map(withDerivedStatus);
+}
+
+export function getPromotion(id: string): Promotion | undefined {
+  const found = getDataStore().promotions.get(id);
+  return found ? withDerivedStatus(found) : undefined;
+}
+
+export function insertPromotion(
+  storeId: string,
+  body: {
+    productName: string | null;
+    percent: number;
+    startsAt: string;
+    endsAt: string | null;
+  },
+): Promotion | undefined {
+  const ds = getDataStore();
+  if (!ds.stores.some((s) => s.id === storeId)) return undefined;
+
+  promotionCounter += 1;
+  const promo: Promotion = {
+    id: `promo-${String(promotionCounter).padStart(3, "0")}`,
+    storeId,
+    productName: body.productName,
+    percent: body.percent,
+    startsAt: body.startsAt,
+    endsAt: body.endsAt,
+    status: "scheduled",
+  };
+
+  ds.promotions.set(promo.id, promo);
+
+  const activity = buildActivityEvent({
+    storeId,
+    type: "price-update",
+    description: `Scheduled ${body.percent}% off ${body.productName ?? "every product"}`,
+  });
+  const events = ds.activityByStore.get(storeId) ?? [];
+  ds.activityByStore.set(storeId, [activity, ...events]);
+
+  return withDerivedStatus(promo);
+}
+
+export function endPromotion(id: string): Promotion | undefined {
+  const ds = getDataStore();
+  const found = ds.promotions.get(id);
+  if (!found) return undefined;
+
+  const ended: Promotion = { ...found, endsAt: new Date().toISOString() };
+  ds.promotions.set(id, ended);
+  return withDerivedStatus(ended);
+}
+
+function withDerivedStatus(promo: Promotion): Promotion {
+  return { ...promo, status: promotionStatus(promo) };
 }

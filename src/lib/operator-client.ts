@@ -11,6 +11,8 @@ import {
   activityEventSchema,
   saleSchema,
   planogramSlotSchema,
+  promotionPerformanceSchema,
+  promotionSchema,
   restockLineSchema,
   restockSessionSchema,
   fleetSummaryResponseSchema,
@@ -236,5 +238,52 @@ export async function postCompleteRestock(
     "POST",
     { notes },
     completePayload,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Promotions
+// ---------------------------------------------------------------------------
+
+const promotionsPayload = z.object({ promotions: z.array(promotionSchema) });
+const promotionPayload = z.object({ promotion: promotionSchema });
+
+export type PromotionBody = {
+  productName: string | null;
+  percent: number;
+  startsAt: string;
+  endsAt: string | null;
+};
+
+export async function fetchPromotions(
+  storeId: string,
+): Promise<z.infer<typeof promotionSchema>[]> {
+  return (await getJson(`/stores/${storeId}/promotions`, promotionsPayload))
+    .promotions;
+}
+
+export async function postPromotion(
+  storeId: string,
+  body: PromotionBody,
+): Promise<z.infer<typeof promotionSchema>> {
+  return (
+    await sendJson(`/stores/${storeId}/promotions`, "POST", body, promotionPayload)
+  ).promotion;
+}
+
+export async function patchEndPromotion(
+  promotionId: string,
+): Promise<z.infer<typeof promotionSchema>> {
+  return (
+    await sendJson(`/promotions/${promotionId}/end`, "PATCH", {}, promotionPayload)
+  ).promotion;
+}
+
+export async function fetchPromotionPerformance(
+  promotionId: string,
+): Promise<z.infer<typeof promotionPerformanceSchema>> {
+  return getJson(
+    `/promotions/${promotionId}/performance`,
+    promotionPerformanceSchema,
   );
 }

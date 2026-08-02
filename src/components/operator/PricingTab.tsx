@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import PromotionsPanel from "./promotions/PromotionsPanel";
 import { useOperatorInventory } from "@/hooks/useOperatorInventory";
 import { useOperatorSales } from "@/hooks/useOperatorSales";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
@@ -41,6 +42,27 @@ export default function PricingTab({ storeId }: PricingTabProps) {
   // goods is derived from this so the calculator can show profit, not just
   // revenue.
   const [marginPercent, setMarginPercent] = useState<number>(45);
+
+  // Whatever the calculator is showing right now pre-fills the schedule form,
+  // so "model it, then run it" is two clicks rather than re-entering it.
+  const modelled = useMemo(() => {
+    const entries = Object.entries(promoByItemId).filter(([, pct]) => pct > 0);
+    if (entries.length === 0) return { percent: 0, product: null as string | null };
+
+    const deepest = entries.reduce((a, b) => (b[1] > a[1] ? b : a));
+    const everySame =
+      entries.length === items.length &&
+      entries.every(([, pct]) => pct === deepest[1]);
+
+    return {
+      percent: deepest[1],
+      product: everySame
+        ? null
+        : (items.find((i) => i.id === deepest[0])?.productName ?? null),
+    };
+  }, [promoByItemId, items]);
+  const modelledPercent = modelled.percent;
+  const modelledProduct = modelled.product;
 
   const rows = useMemo(
     () => buildPricingTable(items, sales, promoByItemId),
@@ -324,6 +346,18 @@ export default function PricingTab({ storeId }: PricingTabProps) {
           </table>
         </div>
       </section>
+
+      {/*
+        The calculator above is a model. This turns the model into something
+        that runs and then reports back, which is the half that was missing:
+        a prediction nobody ever checks is just an opinion.
+      */}
+      <PromotionsPanel
+        storeId={storeId}
+        items={items}
+        modelledPercent={modelledPercent}
+        modelledProduct={modelledProduct}
+      />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import type {
   activityEventSchema,
   saleSchema,
   planogramSlotSchema,
+  promotionSchema,
   removalReasonSchema,
   restockLineSchema,
   restockSessionSchema,
@@ -31,6 +32,7 @@ export type Alert = z.infer<typeof alertSchema>;
 export type ActivityEvent = z.infer<typeof activityEventSchema>;
 export type Sale = z.infer<typeof saleSchema>;
 export type PlanogramSlot = z.infer<typeof planogramSlotSchema>;
+export type Promotion = z.infer<typeof promotionSchema>;
 export type RestockSession = z.infer<typeof restockSessionSchema>;
 export type RestockLine = z.infer<typeof restockLineSchema>;
 export type RemovalReason = z.infer<typeof removalReasonSchema>;

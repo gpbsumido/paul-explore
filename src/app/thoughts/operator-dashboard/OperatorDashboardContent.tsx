@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-02-promotions"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Promotions: my calculator could predict but never be wrong
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-restocking"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1090,6 +1101,153 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-02-promotions"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Promotions: my calculator could predict but never be wrong
+              </h2>
+              <p className="text-muted">
+                The Pricing tab I built models a discount and shows the revenue
+                and profit tradeoff. It is careful to say it assumes volume
+                holds, and it is a genuinely useful modelling tool. But it
+                persists nothing, which means it can never be wrong out loud. You
+                cannot run the promotion, and you certainly cannot go back
+                afterwards and find out whether the prediction was any good.
+              </p>
+              <p className="mt-3 text-muted">
+                Micromart shipped self-serve promotions about a month ago: create
+                them, target by location or product, schedule them, and read
+                built-in performance analytics. The scheduling and the
+                after-the-fact measurement were the parts I did not have.
+              </p>
+              <p className="mt-3 text-muted">
+                There was also a loose end in my own schema pointing straight at
+                this. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  price-update
+                </code>{" "}
+                activity type had been in the enum since the beginning, with a
+                label, a colour and an icon in the feed &mdash; and nothing had
+                ever created one. Dead configuration waiting for a write path.
+                This is that write path.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two things I deliberately did not build
+              </h3>
+              <p className="text-muted">
+                <strong>No status column.</strong> A promotion looks like it
+                wants one &mdash; scheduled, active, ended &mdash; but a stored
+                status needs a job to flip it and is wrong in between runs. Status
+                is a comparison between the window and the clock, so it is
+                derived on every read. The client derives it again rather than
+                trusting the payload, because a tab left open overnight should
+                not keep calling a finished promotion live. That is one of the
+                tests.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>No price mutation.</strong> Nothing writes the discounted
+                price into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator_inventory.price
+                </code>
+                . The discount applies at read time, so the list price survives
+                &mdash; and the list price is the number every margin calculation
+                needs. Overwriting it would mean losing the original the moment a
+                promotion starts, and then reconstructing it from an audit log to
+                answer the simplest question about profitability. Same
+                derive-don&apos;t-store call the Tax tab and the calculator
+                already make.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The measurement, and being honest about it
+              </h3>
+              <p className="text-muted">
+                Performance compares units and revenue inside the promotion
+                window against an{" "}
+                <strong>equal-length baseline immediately before it</strong>.
+                Equal length matters: comparing a two-week promotion against the
+                previous month would flatter or punish it purely on duration.
+                It is two grouped queries filtered in SQL, so measuring a
+                fortnight does not drag eighteen months of sales into Node.
+              </p>
+              <p className="mt-3 text-muted">
+                The part I care more about is what it does <em>not</em> claim.
+                This is a before-and-after, not attribution. Seasonality, a new
+                product on the next shelf, and a fridge that ran warm for a week
+                all move the same number. So the API returns both raw totals
+                rather than only a headline delta, ships a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  note
+                </code>{" "}
+                field saying so in words, and the UI repeats it. A dashboard that
+                quietly implies causation is worse than one that admits what it
+                is showing &mdash; and it is the same instinct as the calculator
+                saying it assumes volume holds rather than inventing an
+                elasticity model.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where the three pieces meet
+              </h3>
+              <p className="text-muted">
+                This is the feature that made the other two worth doing in that
+                order. A promotion window is a pair of instants that an operator
+                thinks about as &quot;starts Monday morning&quot;, and Monday
+                morning is only meaningful in the store&apos;s timezone &mdash;
+                which is why the timezone work had to land first, and why the
+                schedule form names the zone rather than hoping. And the promotion
+                writes a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  price-update
+                </code>{" "}
+                into the same activity feed the restock sessions write to, so the
+                store&apos;s history reads as one narrative instead of three
+                disconnected logs.
+              </p>
+              <p className="mt-3 text-muted">
+                It also forced me to pay a debt. Both earlier features shipped
+                deliberately duplicated helpers &mdash; the same arithmetic in the
+                Express service and the Next app, on purpose, because two tested
+                copies of thirty lines beat coupling two deploys. Both times I
+                wrote in the recap that the test justifying the duplication did
+                not exist. It exists now: a parity block that runs the same
+                vectors the API asserts through the client copies, so a change to
+                one that is not mirrored fails the build. A design decision
+                without the test that holds it up is just a comment.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Who this helps
+              </h3>
+              <p className="text-muted">
+                <strong>Operators</strong> get a loop instead of a guess. Model a
+                discount, schedule it in two clicks with the modelled numbers
+                pre-filled, and afterwards see what actually happened next to what
+                was predicted. Overlapping promotions resolve to the deepest
+                rather than stacking, which is both predictable and the one that
+                favours the person standing at the fridge.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Developers</strong> get a promotions table with no
+                lifecycle job attached to it, which is one fewer thing that can be
+                subtly wrong at 3am. Widening it to fleet-wide campaigns is a
+                single migration making{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  store_id
+                </code>{" "}
+                nullable &mdash; I left it NOT NULL because guessing the grouping
+                semantics before anyone has asked for them is how you end up
+                maintaining a shape nobody wanted.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-02-restocking"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"

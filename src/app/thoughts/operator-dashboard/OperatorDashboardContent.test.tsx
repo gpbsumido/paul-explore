@@ -170,6 +170,30 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/leaves the same trail as a walked shelf/);
   });
 
+  it("documents the promotions work: derived status, no price mutation", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/price-update/);
+    expect(body).toMatch(/No status column/);
+    expect(body).toMatch(/No price mutation/);
+    expect(body).toMatch(/before-and-after, not attribution/);
+  });
+
+  it("records paying back the mirrored-helper parity test debt", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/It exists now/);
+    expect(body).toMatch(/just a comment/);
+  });
+
+  it("has a timeline entry linking to the promotions update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /promotions: my calculator could predict/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-promotions");
+  });
+
   it("has a timeline entry linking to the restocking update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {

@@ -22,6 +22,7 @@ import type {
   PlanogramSlot,
   RestockSession,
   RestockLine,
+  Promotion,
   StoreSummary,
   FleetSummaryResponse,
 } from "@/types/operator";
@@ -291,5 +292,38 @@ export async function applyRestockSession(
     return await api.postCompleteRestock(sessionId, notes);
   } catch {
     return seed.completeRestockSession(sessionId, notes);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Promotions
+// ---------------------------------------------------------------------------
+
+export async function loadPromotions(storeId: string): Promise<Promotion[]> {
+  try {
+    return await api.fetchPromotions(storeId);
+  } catch {
+    return seed.listPromotions(storeId);
+  }
+}
+
+export async function createPromotion(
+  storeId: string,
+  body: api.PromotionBody,
+): Promise<Promotion | undefined> {
+  try {
+    return await api.postPromotion(storeId, body);
+  } catch {
+    return seed.insertPromotion(storeId, body);
+  }
+}
+
+export async function stopPromotion(
+  promotionId: string,
+): Promise<Promotion | undefined> {
+  try {
+    return await api.patchEndPromotion(promotionId);
+  } catch {
+    return seed.endPromotion(promotionId);
   }
 }
