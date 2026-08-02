@@ -113,6 +113,22 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/falls back/i);
   });
 
+  it("has a timeline entry linking to the pricing update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /pricing & promotions: a profit calculator per store/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-pricing");
+  });
+
+  it("documents the pricing calculator helpers and the derive-not-store choice", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/summarizePricing/);
+    expect(body).toMatch(/promoPrice/);
+    expect(body).toMatch(/volume holds/i);
+  });
+
   it("has a timeline entry linking to the alert-history update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {

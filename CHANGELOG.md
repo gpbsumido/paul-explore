@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-02 - version 2.17.0
+
+- **A Pricing & Promotions tab on the store detail page.** Scanning what the commercial smart-store platforms give operators, the one whole section mine was missing was products and pricing — manage what you sell and how you price it, run a discount across the shelf, and a profit calculator for what a promotion does to the numbers. The new tab (between Sales and Tax) lets an operator model a per-product or store-wide discount and see the immediate weekly revenue tradeoff: projected revenue at list vs with the promos, the delta, tax-included price per product, and how many items are on promo at what average discount. It's a calculator, not a price editor — deliberately derived client-side from the sales and list prices already in cache (the same derive-not-store call as the Tax tab), so there's no second price ledger to drift and no write round-trip. New pure `operator-pricing.ts` helpers (`promoPrice`, `weeklyUnitsFor`, `buildProductPricing`, `summarizePricing`) carry the math; tax-included price reuses `computeTax`. The projection assumes weekly volume holds at the new price and says so, rather than inventing an elasticity model. Discount controls are accessible buttons with `aria-pressed` and readable labels, and the breakdown is a proper table.
+
 ## 2026-08-02 - version 2.16.0
 
 - **Alert history and analytics on the store's Alerts tab.** Dismissed alerts don't vanish anymore — the tab now has an overview (active vs resolved, a severity split, the most common categories, and a 7-day "alerts raised" trend) and an Active / Resolved toggle so an operator can look back at what was dismissed. Resolved rows are read-only and marked resolved. It's all derived client-side from the alerts the backend already returns (it keeps every alert, active or not), via new pure `summarizeAlerts` and `alertsByDay` helpers, so there's no extra request.

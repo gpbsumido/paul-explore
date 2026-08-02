@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-02-pricing"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Pricing &amp; promotions: a profit calculator per store
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-alerts"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1056,6 +1067,111 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-02-pricing"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Pricing &amp; promotions: a profit calculator per store
+              </h2>
+              <p className="text-muted">
+                I went and looked at what the commercial smart-store platforms
+                actually put in front of an operator, and the same section kept
+                coming up that mine didn&apos;t have: products and pricing.
+                Manage what you sell and how you price it, run a discount across
+                the shelf, and a profit calculator to see what a promotion does
+                to the numbers. My tabs could tell an operator what sold and what
+                tax they owed, but nothing helped them decide what to charge. So
+                this is a new Pricing tab, sitting between Sales and Tax where the
+                revenue tabs cluster.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                A calculator, not a price editor
+              </h3>
+              <p className="text-muted">
+                The obvious version of this persists a new price back to the
+                store. I deliberately didn&apos;t. Committing a price is a real
+                write with a real schema change flowing through the backend, and
+                the question an operator actually asks first is &quot;what would
+                happen if I did this&quot; &mdash; not &quot;change it now.&quot;
+                So the tab is a model: pick a discount per product, or one
+                discount across the whole shelf, and watch the projected weekly
+                revenue move. It&apos;s the same derive-not-store call I made for
+                tax &mdash; the sales and the list prices are the source of
+                truth, and the calculator is a pure function over them, so
+                there&apos;s no second price ledger to drift and no round-trip to
+                wait on. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  price-update
+                </code>{" "}
+                activity type is already in the model for the day a persisted
+                write lands.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The numbers
+              </h3>
+              <p className="text-muted">
+                Everything is in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-pricing.ts
+                </code>
+                , pure and unit-tested with no component in sight.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  promoPrice(list, percent)
+                </code>{" "}
+                applies and rounds the discount (and clamps a fat-fingered
+                percent into 0&ndash;100),{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  weeklyUnitsFor
+                </code>{" "}
+                pulls the trailing-7-day demand for a product out of the sales
+                list, and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  summarizePricing
+                </code>{" "}
+                rolls the rows into the headline: projected weekly revenue at
+                list versus with the promos, the delta between them, and how many
+                products are discounted at what average. Tax-included price per
+                row reuses the existing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  computeTax
+                </code>{" "}
+                by the store&apos;s province, so the pre-tax and with-tax numbers
+                can&apos;t disagree with the Tax tab.
+              </p>
+              <p className="mt-3 text-muted">
+                The one honesty note I made sure to put in the UI: the projection
+                assumes volume holds at the new price. A real discount usually
+                lifts volume, but modelling elasticity from a demo&apos;s seeded
+                sales would be inventing a number. So the tab measures the thing
+                it can actually measure &mdash; the revenue you give up (or keep)
+                per week if the same units move &mdash; and says so, rather than
+                dressing up a guess as a forecast.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Usable and accessible
+              </h3>
+              <p className="text-muted">
+                The discount controls are real buttons with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-pressed
+                </code>{" "}
+                on the selected step and labels a screen reader can read (&quot;Set
+                Coca-Cola 355ml discount to 10%&quot;), the per-product breakdown
+                is a proper table with scoped headers and a caption, and the
+                revenue impact carries a sign and a label so colour is never the
+                only signal. Store-wide &quot;apply to all&quot; is one row of
+                buttons at the top so setting a shelf-wide campaign is a single
+                click, then you fine-tune individual products from there.
+              </p>
+            </section>
+
       <section
               id="update-2026-07-31"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
