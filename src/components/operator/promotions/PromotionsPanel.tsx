@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { useToast } from "@/contexts/ToastContext";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/operator-promotions";
 import { promotionSchema } from "@/lib/operator-schemas";
 import { storeTimeZone, zoneLabel } from "@/lib/operator-timezone";
+import { queryKeys } from "@/lib/queryKeys";
 import type { InventoryItem, Promotion } from "@/types/operator";
 import TimeZoneNote from "../TimeZoneNote";
 
@@ -22,6 +24,9 @@ interface PromotionsPanelProps {
   modelledPercent: number;
   modelledProduct: string | null;
 }
+
+// Module-level so the default never changes identity between renders.
+const EMPTY_PROMOTIONS: readonly Promotion[] = [];
 
 const STATUS_STYLES: Record<string, string> = {
   active: "bg-success-500/15 text-success-600 dark:text-success-400",
@@ -49,7 +54,7 @@ export default function PromotionsPanel({
   const { store } = useOperatorStore(storeId);
   const { addToast } = useToast();
 
-  const [promotions, setPromotions] = useState<readonly Promotion[]>([]);
+  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,20 +66,28 @@ export default function PromotionsPanel({
   const [startsAt, setStartsAt] = useState(() => toLocalInputValue(new Date()));
   const [endsAt, setEndsAt] = useState("");
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/operator/stores/${storeId}/promotions`);
-      if (!res.ok) throw new Error("failed");
-      const json = await res.json();
-      setPromotions(promotionSchema.array().parse(json.promotions));
-    } catch {
-      setError("Could not load promotions.");
-    }
-  }, [storeId]);
+  // Read through the same query cache as every other operator surface rather
+  // than a bespoke fetch inside an effect, so refetching after a write is one
+  // invalidate and there is no second copy of loading state to keep in sync.
+  const { data: promotions = EMPTY_PROMOTIONS, isError } = useQuery({
+    queryKey: queryKeys.operator.promotions(storeId),
+    queryFn: async ({ signal }): Promise<Promotion[]> => {
+      const res = await fetch(`/api/operator/stores/${storeId}/promotions`, {
+        signal,
+      });
+      if (!res.ok) throw new Error("Failed to fetch promotions");
+      return promotionSchema.array().parse((await res.json()).promotions);
+    },
+    staleTime: 30_000,
+  });
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const load = useCallback(
+    () =>
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.operator.promotions(storeId),
+      }),
+    [queryClient, storeId],
+  );
 
   const live = useMemo(() => activePromotions(promotions), [promotions]);
 
@@ -153,9 +166,9 @@ export default function PromotionsPanel({
         </button>
       </div>
 
-      {error && (
+      {(error || isError) && (
         <p role="alert" className="text-sm text-error-500">
-          {error}
+          {error ?? "Could not load promotions."}
         </p>
       )}
 

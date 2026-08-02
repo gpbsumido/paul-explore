@@ -11,7 +11,6 @@ import {
   activityEventSchema,
   saleSchema,
   planogramSlotSchema,
-  promotionPerformanceSchema,
   promotionSchema,
   restockLineSchema,
   restockSessionSchema,
@@ -277,13 +276,4 @@ export async function patchEndPromotion(
   return (
     await sendJson(`/promotions/${promotionId}/end`, "PATCH", {}, promotionPayload)
   ).promotion;
-}
-
-export async function fetchPromotionPerformance(
-  promotionId: string,
-): Promise<z.infer<typeof promotionPerformanceSchema>> {
-  return getJson(
-    `/promotions/${promotionId}/performance`,
-    promotionPerformanceSchema,
-  );
 }

@@ -15,19 +15,6 @@ export type PromotionStatus = "scheduled" | "active" | "ended";
 
 export const DISCOUNT_PRESETS = [10, 15, 20, 25, 30, 40] as const;
 
-export type PerformanceTotals = {
-  units: number;
-  revenue: number;
-};
-
-export type PromotionPerformance = {
-  window: PerformanceTotals;
-  baseline: PerformanceTotals;
-  unitsChangePercent: number | null;
-  revenueChangePercent: number | null;
-  note: string;
-};
-
 function roundCents(value: number): number {
   return Math.round(value * 100) / 100;
 }

@@ -227,20 +227,6 @@ export const promotionBodySchema = z
     { message: "The end must be after the start", path: ["endsAt"] },
   );
 
-const performanceTotalsSchema = z.object({
-  units: z.number().int().min(0),
-  revenue: z.number().min(0),
-});
-
-export const promotionPerformanceSchema = z.object({
-  promotion: promotionSchema,
-  window: performanceTotalsSchema,
-  baseline: performanceTotalsSchema,
-  unitsChangePercent: z.number().nullable(),
-  revenueChangePercent: z.number().nullable(),
-  note: z.string(),
-});
-
 // ---------------------------------------------------------------------------
 // Planogram (persisted shelf layout: which item occupies each slot + sensor)
 // ---------------------------------------------------------------------------
