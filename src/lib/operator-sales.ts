@@ -73,7 +73,6 @@ const MONTH_LABELS = [
   "Nov",
   "Dec",
 ] as const;
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const PERIOD_COUNT: Record<SalesGranularity, number> = {
   day: 7,
