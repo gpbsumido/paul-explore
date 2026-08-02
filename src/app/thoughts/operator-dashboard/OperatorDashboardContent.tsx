@@ -345,6 +345,18 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-02-timezones"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Timezones: I went looking for a missing feature and found a
+                    bug
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-pricing"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1067,6 +1079,263 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-02-timezones"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Timezones: I went looking for a missing feature and found a bug
+              </h2>
+              <p className="text-muted">
+                I sat down and went through Micromart&apos;s product properly
+                &mdash; the platform pages, the help centre, and most usefully
+                their public changelog, which is dated and only lists what
+                actually shipped. Their operator platform is organised as six
+                areas: stores and monitoring, products and pricing, inventory and
+                restocking, marketing and promotions, sales and insights, and
+                finances and taxes. About seven months ago they shipped a release
+                note that reads: dashboard data, timestamps, reports and CSV
+                exports now display in local North American timezones.
+              </p>
+              <p className="mt-3 text-muted">
+                I went to compare that against mine, expecting to write down a
+                missing feature. What I found instead was that mine was wrong.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The bug
+              </h3>
+              <p className="text-muted">
+                Every bucket boundary in the whole stack was UTC.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  buildPeriods
+                </code>{" "}
+                floored with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Date.UTC
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  alertsByDay
+                </code>{" "}
+                divided epoch milliseconds by 86,400,000, and on the API side the
+                SQL truncated with a bare{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  date_trunc(granularity, occurred_at)
+                </code>
+                , which resolves in whatever timezone the database session
+                happens to be in.
+              </p>
+              <p className="mt-3 text-muted">
+                For a Toronto store in summer that puts the day boundary at 8pm
+                the previous evening. For Vancouver it&apos;s 5pm. The busiest
+                part of an operator&apos;s afternoon was being filed under
+                tomorrow. Nobody noticed because the seed data is spread evenly
+                and every store was treated identically &mdash; the bug is
+                invisible right up until you care which day a sale landed in,
+                which is the entire reason a sales chart exists.
+              </p>
+              <p className="mt-3 text-muted">
+                That&apos;s the honest version of &quot;competitive analysis&quot;
+                for me. Reading someone else&apos;s changelog is worth doing not
+                because you copy the feature, but because it points a flashlight
+                at the assumption you never checked.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where the timezone lives, and why that&apos;s a product decision
+              </h3>
+              <p className="text-muted">
+                The first real question isn&apos;t technical. A timezone could
+                reasonably come from the browser or from the store, and picking
+                wrong makes the whole feature feel broken. I went with the store.
+                An operator servicing a Vancouver route from a hotel room in
+                Toronto should not watch every chart shift three hours because
+                they got on a plane. The store&apos;s day belongs to the store.
+              </p>
+              <p className="mt-3 text-muted">
+                That decision is what makes the rest of the design fall out
+                cleanly: the zone is resolved server-side, travels in the store
+                DTO, and the client only ever formats with it. The frontend never
+                re-derives policy, which means there is exactly one place a
+                Vancouver store can be told it&apos;s in Vancouver.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                How the backend shaped the frontend
+              </h3>
+              <p className="text-muted">
+                This is the part I find most interesting, because three
+                constraints that live entirely in the API ended up dictating
+                frontend code.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Postgres 15, not 16.</strong> The clean way to do this in
+                SQL is the three-argument{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  date_trunc(field, source, zone)
+                </code>
+                , which landed in Postgres 16. This project runs 15. So the SQL
+                does the round trip by hand: shift the timestamptz into local
+                wall clock with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AT TIME ZONE
+                </code>
+                , truncate there, shift the result back. It works on both
+                versions, so the fix doesn&apos;t quietly depend on someone
+                bumping a Docker tag. The knock-on for the client is that the
+                instants coming back are local period starts, not UTC midnights
+                &mdash; which is why the bucket join key is now the raw instant
+                rather than a sliced ISO string.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Migrations run by hand.</strong> Nothing in CI, the
+                Dockerfile or the start script runs the migration. Deploying code
+                that selects a column which doesn&apos;t exist yet would 500 the
+                entire stores endpoint. So the column is nullable, the API
+                resolves{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  store.timezone ?? timezoneForProvince(store.province)
+                </code>
+                , and on the client the field is optional in the Zod schema with
+                the province as a fallback. A browser holding the new bundle
+                against an API that hasn&apos;t deployed yet still renders
+                correctly. That&apos;s not defensive padding &mdash; it&apos;s
+                the only reason the two PRs can land in either order.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>The same calendar math had to exist twice.</strong> The
+                API buckets for the fleet rollup; the client buckets for
+                per-store views over data it already has in cache. I deliberately
+                did not extract a shared package for this. Two small, tested,
+                independently-versioned copies of about eighty lines beat a
+                shared dependency that couples a Next app&apos;s deploy to an
+                Express service&apos;s, for a function whose inputs are two dates
+                and a string. The compromise is that the two can drift; the
+                mitigation is that the DST cases are pinned by tests on both
+                sides, and drift there fails loudly.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                No date library, and what that cost
+              </h3>
+              <p className="text-muted">
+                The only question zone-aware bucketing actually asks is: given
+                this instant and this zone, what is the local year, month, day
+                and hour.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Intl.DateTimeFormat.formatToParts
+                </code>{" "}
+                answers exactly that, using tzdata the runtime already ships.
+                Pulling in Luxon or date-fns-tz would send 20 to 60kB of a second
+                copy of tzdata down the wire, on a release cadence I don&apos;t
+                control, to do a job the platform already does.
+              </p>
+              <p className="mt-3 text-muted">
+                The cost is real though, and it&apos;s the thing people get wrong
+                with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Intl
+                </code>
+                : constructing a formatter is genuinely expensive, while calling
+                one is cheap. So formatters are built once per zone and cached in
+                a module-level Map. But the bigger win is structural rather than
+                a cache: rather than asking &quot;what local day is this
+                sale in&quot; once per sale,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  dayBoundaries
+                </code>{" "}
+                resolves the eight local-midnight boundaries up front and then
+                places every sale with plain integer comparisons. Over eighteen
+                months of history that&apos;s eight zone resolutions instead of
+                tens of thousands, and it&apos;s the difference between a chart
+                that renders instantly and one that stutters when you flip the
+                range toggle.
+              </p>
+              <p className="mt-3 text-muted">
+                Getting DST right is the whole reason this needs care. A local
+                day is not 86,400,000 milliseconds twice a year: in 2026 March 8
+                is 23 hours long and November 1 is 25. The instant lookup runs
+                two passes, because the UTC offset you need depends on the
+                instant you&apos;re trying to find. Three tests pin exactly that,
+                plus one for Newfoundland, which sits at minus three thirty and
+                breaks any code that assumes zone offsets are whole hours.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The compromise I actually had to think about
+              </h3>
+              <p className="text-muted">
+                Per-store views have an obvious right answer. The fleet view does
+                not. The fleet spans BC through Ontario, so a bucket labelled
+                &quot;Tue&quot; cannot simultaneously be Vancouver&apos;s Tuesday
+                and Toronto&apos;s &mdash; those are different, three-hour-offset
+                spans of real time.
+              </p>
+              <p className="mt-3 text-muted">
+                The tempting answer is to bucket each store in its own zone and
+                add the results up. That&apos;s the one genuinely wrong option,
+                and it&apos;s wrong in a way that hides: local days are offset
+                spans, so the windows overlap and leave gaps, the buckets stop
+                being a partition of time, and the bar heights become quietly
+                meaningless. Nothing about the chart looks broken. It just
+                isn&apos;t true.
+              </p>
+              <p className="mt-3 text-muted">
+                So the fleet chart buckets in one zone &mdash; the
+                viewer&apos;s, because &quot;my Tuesday&quot; is how someone
+                reading a roll-up actually thinks &mdash; and the UI says so, in
+                plain text, right under the range toggle. The label is not
+                decoration or a disclaimer. It is the thing that makes the number
+                honest, and it&apos;s text rather than a tooltip so a screen
+                reader gets the same disclosure as a mouse does.
+              </p>
+              <p className="mt-3 text-muted">
+                One more small inconsistency I chose on purpose: the existing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  granularity
+                </code>{" "}
+                param falls back silently on garbage, but a bad{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  tz
+                </code>{" "}
+                returns a 400. A wrong granularity shows you the wrong range and
+                you can see that immediately. A wrong zone shifts every boundary
+                in the response by hours and looks completely normal. Failing
+                loudly is worth breaking a convention for.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Who this actually helps
+              </h3>
+              <p className="text-muted">
+                <strong>Operators</strong> get a day that starts when their day
+                starts. The late-afternoon rush shows up on the afternoon it
+                happened, the restock they did at 7pm is on that evening, and the
+                7-day trend is seven of their days rather than seven arbitrary
+                24-hour windows. On the fleet view they get something subtler but
+                more valuable: a number they can trust, because it tells them
+                what it&apos;s measuring.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Developers</strong> get one module that owns the
+                conversion between an instant and a local wall clock, on each
+                side, instead of{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Date.UTC
+                </code>{" "}
+                scattered through four files. Every new time-bucketed feature
+                takes a zone parameter and inherits correct DST behaviour for
+                free. That matters immediately, because the next two things I
+                want to build on this dashboard are a restock audit trail and
+                scheduled promotions &mdash; and both of those are worthless if
+                &quot;when&quot; is wrong.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-02-pricing"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"

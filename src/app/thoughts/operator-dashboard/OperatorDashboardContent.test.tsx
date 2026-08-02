@@ -137,6 +137,31 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/below cost/i);
   });
 
+  it("documents the timezone fix: the bug, the DST cases, and the fleet tradeoff", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/Micromart/);
+    expect(body).toMatch(/8pm the previous evening/);
+    expect(body).toMatch(/23 hours long/);
+    expect(body).toMatch(/AT TIME ZONE/);
+    expect(body).toMatch(/formatToParts/);
+  });
+
+  it("explains why the fleet chart picks a single timezone", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/partition of time/);
+    expect(body).toMatch(/makes the number honest/);
+  });
+
+  it("has a timeline entry linking to the timezone update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /timezones: i went looking for a missing feature/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-timezones");
+  });
+
   it("has a timeline entry linking to the alert-history update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {
