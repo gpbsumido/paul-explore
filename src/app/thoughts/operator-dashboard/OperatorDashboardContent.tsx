@@ -1204,14 +1204,46 @@ export default function OperatorDashboardContent() {
                 summary, actively harmful in practice.
               </p>
               <p className="mt-3 text-muted">
-                What actually bounds the exposure here is a rate limit, so every
-                route got one, at the numbers the flags module already uses. The
-                worst an anonymous caller can do now is churn demo data at 30
-                writes a minute, and there&apos;s a nightly job that reseeds it
-                anyway. Auth belongs here the moment there&apos;s a real tenant
-                to protect, and at that point it&apos;s a wiring job rather than
-                a design one. It just isn&apos;t a decision to make quietly
-                inside a cleanup.
+                What actually bounds the exposure is a rate limit, so every route
+                got one. The blast radius is genuinely only demo data too: the
+                operator repository touches nine tables and every one of them is
+                an operator table, so there is nothing else in the API for those
+                endpoints to reach. Anything an anonymous caller creates cascades
+                off the stores, and the nightly reseed deletes the stores.
+              </p>
+              <p className="mt-3 text-muted">
+                Then I got the limiter wrong, which is the more interesting half.
+                I copied the numbers from the feature flags module without
+                thinking about where the traffic comes from. Flags requests
+                arrive from the visitor&apos;s browser, one bucket each. Operator
+                requests do not: they all reach the API server side from the
+                dashboard&apos;s own backend-for-frontend, so they share a handful
+                of hosting IPs. One open dashboard polls about eight times a
+                minute, which meant a 120 per minute ceiling would have started
+                refusing real users at roughly fifteen concurrent tabs, while
+                doing nothing whatsoever about distributed abuse, since anyone
+                calling the API directly gets a fresh bucket. The limiter I added
+                to protect the thing would have hurt it more than an attacker
+                would.
+              </p>
+              <p className="mt-3 text-muted">
+                So the numbers are much higher now, high enough that no amount of
+                normal browsing trips them and low enough to stop a runaway loop,
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  trust proxy
+                </code>{" "}
+                is set to one hop so the key is the real caller rather than the
+                platform&apos;s edge. It&apos;s a backstop, not per-user
+                fairness. Doing fairness properly needs the backend-for-frontend
+                to forward who the caller is, which is the same plumbing auth
+                would need, and that&apos;s the point at which both become one
+                piece of work rather than two.
+              </p>
+              <p className="mt-3 text-muted">
+                Auth belongs here the moment there&apos;s a real tenant to
+                protect. It just isn&apos;t a decision to make quietly inside a
+                cleanup.
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">

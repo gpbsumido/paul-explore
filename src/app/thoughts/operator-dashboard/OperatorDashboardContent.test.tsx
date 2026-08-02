@@ -202,6 +202,14 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/rate limit/i);
   });
 
+  it("owns up to getting the rate limiter wrong the first time", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/Then I got the limiter wrong/);
+    expect(body).toMatch(/backend-for-frontend/);
+    expect(body).toMatch(/trust proxy/);
+  });
+
   it("has a timeline entry linking to the hardening update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {
