@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-02 - version 2.16.0
+
+- **Alert history and analytics on the store's Alerts tab.** Dismissed alerts don't vanish anymore — the tab now has an overview (active vs resolved, a severity split, the most common categories, and a 7-day "alerts raised" trend) and an Active / Resolved toggle so an operator can look back at what was dismissed. Resolved rows are read-only and marked resolved. It's all derived client-side from the alerts the backend already returns (it keeps every alert, active or not), via new pure `summarizeAlerts` and `alertsByDay` helpers, so there's no extra request.
+- **A heads-up note on the operator dashboard.** Now that the demo runs on a real database that re-seeds on a schedule, the dashboard says so up front — your changes (a dismissed alert, a rearranged planogram) are saved for real but reset periodically to keep the demo fresh, so the periodic reset isn't a surprise.
+
 ## 2026-08-01 - version 2.15.0
 
 - **The operator dashboard is real now — it reads and writes the portfolio_api database instead of an in-memory store.** Every operator route (`/api/operator/*`) is now a thin BFF over the live operator service: stores, store detail, inventory, alerts, activity, sales, planogram, fleet-summary, sales-analytics, plus the restock, dismiss, and planogram writes. New `operator-client.ts` makes the validated HTTP calls (reusing the same Zod schemas the UI uses, so a drifting API is a clear error, not bad state), and `operator-bff.ts` prefers the API but falls back to the in-memory seed when the backend is unreachable — so the demo keeps working and looks identical whether or not portfolio_api is running. Same pattern as the flags console. The fleet-summary and sales-analytics endpoints now hit the DB-backed aggregations (one grouped query each) rather than looping the seed. One contract nudge: list reads for an unknown store now return `200` with an empty list instead of `404`, matching the backend. No visual change — this is a data-source swap.
