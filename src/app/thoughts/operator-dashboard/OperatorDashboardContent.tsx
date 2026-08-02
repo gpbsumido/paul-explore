@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-02-hardening"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    The bit before merging, where I found out I was wrong
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-promotions"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1101,6 +1112,142 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-02-hardening"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                The bit before merging, where I found out I was wrong
+              </h2>
+              <p className="text-muted">
+                Three features were sitting in stacked pull requests waiting to
+                go in. Before merging I went back over them the way I&apos;d want
+                someone to go over mine, and the most useful thing that came out
+                of it was a claim of my own that turned out to be false.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                I said it would degrade gracefully. It wouldn&apos;t.
+              </h3>
+              <p className="text-muted">
+                The timezone work added a nullable{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  timezone
+                </code>{" "}
+                column, and I&apos;d written in the pull request that the API
+                would keep working if the migration hadn&apos;t run yet, because
+                the resolver falls back to the province. Nullable column, safe
+                fallback, no problem.
+              </p>
+              <p className="mt-3 text-muted">
+                Except migrations in this project are manual. Nothing in CI, the
+                Dockerfile or the start script runs them. So the gap between
+                merging and migrating is real, and I wanted to know exactly how
+                bad it was rather than assume. I generated the SQL Drizzle
+                actually emits:
+              </p>
+              <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+{`select "id", "name", "location", "province", "timezone",
+       "status", "temperature", "uptime", "revenue_24h",
+       "last_ping", "created_at"
+  from "operator_stores"`}
+              </pre>
+              <p className="mt-3 text-muted">
+                An explicit column list, not{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  select *
+                </code>
+                . Before the migration, Postgres raises 42703 and every store
+                read returns a 500, which takes the fleet list, the store detail
+                page, the fleet summary and everything that looks a store up on
+                the way to doing something else. My fallback never runs, because
+                the query never returns a row for it to run on.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix is not complicated once you know: run the migrations
+                first, then merge. They&apos;re additive, one nullable column and
+                three new tables, and the version currently in production
+                doesn&apos;t select the column or know the tables exist, so the
+                schema can sit ahead of the code with nothing noticing. Expand
+                first, deploy second. What I find worth writing down is that I
+                had the shape of the answer right and the direction backwards,
+                and the only reason I caught it was checking a claim I was
+                already confident about.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Why I didn&apos;t put auth on the write endpoints
+              </h3>
+              <p className="text-muted">
+                By this point the operator module had twenty routes, nine of them
+                writes, none of them authenticated or rate limited. The obvious
+                move is to add{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  checkJwt
+                </code>{" "}
+                to the writes, and there&apos;s already a pattern for it in this
+                codebase: the feature flags console forwards the visitor&apos;s
+                Auth0 token through its BFF.
+              </p>
+              <p className="mt-3 text-muted">
+                I didn&apos;t, and the reason is worth more than the change would
+                have been. The operator client sends no token. So adding auth
+                would 401 every restock and every promotion coming from the
+                dashboard, the BFF would catch it and fall back to its in-memory
+                seed, and the demo would carry on looking like it worked while
+                persisting nothing. That&apos;s exactly the fiction I&apos;d
+                spent three features removing. Reintroducing it in the name of
+                security would be the worst kind of change: defensible in a
+                summary, actively harmful in practice.
+              </p>
+              <p className="mt-3 text-muted">
+                What actually bounds the exposure here is a rate limit, so every
+                route got one, at the numbers the flags module already uses. The
+                worst an anonymous caller can do now is churn demo data at 30
+                writes a minute, and there&apos;s a nightly job that reseeds it
+                anyway. Auth belongs here the moment there&apos;s a real tenant
+                to protect, and at that point it&apos;s a wiring job rather than
+                a design one. It just isn&apos;t a decision to make quietly
+                inside a cleanup.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two smaller things I&apos;d have missed
+              </h3>
+              <p className="text-muted">
+                The promotion performance query had no upper bound. An open-ended
+                promotion left running for a year gives you a year-long window,
+                and the baseline doubles the fetch, so measuring one would drag
+                two years of sales through the app to answer a single question.
+                It clamps to the most recent 180 days now, and the response
+                reports the range it actually measured plus a note when the clamp
+                applied. A smaller number honestly labelled beats a bigger one
+                quietly measured over a period the reader didn&apos;t expect.
+              </p>
+              <p className="mt-3 text-muted">
+                And the operator module had zero OpenAPI registrations while the
+                rest of the API had 43. Adding twelve was routine. The part that
+                wasn&apos;t was realising both new request schemas use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  .refine()
+                </code>
+                , and that the library throws on some schema shapes with no
+                symptom until the docs page falls over at runtime, long after CI
+                went green. So there&apos;s a test now that just generates the
+                document and asserts it didn&apos;t throw. Cheap, and it covers a
+                failure that would otherwise surface as a support question.
+              </p>
+              <p className="mt-3 text-muted">
+                None of this is glamorous work. It&apos;s the difference between
+                three features that demo well and three features I&apos;d be
+                comfortable putting in front of real operators, which is the only
+                distinction that matters once something is actually running.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-02-promotions"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"

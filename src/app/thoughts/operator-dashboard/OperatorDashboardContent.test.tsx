@@ -186,6 +186,30 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/just a comment/);
   });
 
+  it("documents the migration ordering bug and the correction", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/42703/);
+    expect(body).toMatch(/explicit column list/);
+    expect(body).toMatch(/Expand\s+first, deploy second/);
+  });
+
+  it("records why auth was not added to the write endpoints", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/checkJwt/);
+    expect(body).toMatch(/persisting nothing/);
+    expect(body).toMatch(/rate limit/i);
+  });
+
+  it("has a timeline entry linking to the hardening update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /the bit before merging, where i found out i was wrong/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-hardening");
+  });
+
   it("has a timeline entry linking to the promotions update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {
