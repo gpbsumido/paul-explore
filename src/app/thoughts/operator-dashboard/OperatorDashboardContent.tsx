@@ -342,6 +342,17 @@ export default function OperatorDashboardContent() {
               <ol className="mt-3 space-y-2 text-sm">
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-alerts"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Alert history, analytics, and keeping the demo honest
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
                     Aug 1, 2026
                   </span>
                   <a
@@ -1541,6 +1552,93 @@ export default function OperatorDashboardContent() {
                 rows&quot; is a fine answer. The store-detail read still 404s,
                 because asking for a store that isn&apos;t there is a real
                 not-found.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-alerts"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Alert history, analytics, and keeping the demo honest
+              </h2>
+              <p className="text-muted">
+                Going live surfaced a few things worth fixing, and one feature
+                worth adding.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The &quot;always offline&quot; bug
+              </h3>
+              <p className="text-muted">
+                As soon as the dashboard read from the database, every store went
+                &quot;offline.&quot; A store&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  lastPing
+                </code>{" "}
+                is sensor telemetry &mdash; a real device reports it continuously
+                &mdash; but the seed writes it once, so it aged past the 10-minute
+                offline threshold and stuck there, with nothing the operator could
+                do. The in-memory demo had quietly recomputed a fresh ping on
+                every read; the DB path lost that. The fix puts it back where the
+                data lives: the backend synthesizes a recent ping per read from
+                the store&apos;s status (online reads strong, degraded reads
+                stale), so the freshness tiers still mean something. I audited the
+                rest of the read path too &mdash;{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  lastPing
+                </code>{" "}
+                was the only value ever freshened on read, so it was the only
+                place with the bug.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                A scheduled re-seed, and saying so
+              </h3>
+              <p className="text-muted">
+                Static seed data has a subtler version of the same problem: the
+                historical timestamps don&apos;t move, so now-relative windows
+                (the 24-hour alert trend, the day/week sales ranges) slowly empty
+                out. Rather than fake those on read, a cron job re-seeds the whole
+                fleet on a schedule &mdash; the same pattern the feature-flags demo
+                uses to restore itself. The CLI seed and the job now share one{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  seedOperator()
+                </code>{" "}
+                so they can&apos;t drift. And because a periodic reset would be
+                confusing if it just happened, the dashboard now says so up front:
+                your changes are saved for real, but reset periodically to keep
+                the demo fresh.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Alert history and analytics
+              </h3>
+              <p className="text-muted">
+                Dismissing an alert used to feel like deleting it. But the backend
+                keeps every alert &mdash; the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  acknowledged
+                </code>{" "}
+                flag just hides resolved ones from the active list &mdash; so the
+                history was already there, unused. The Alerts tab now has an
+                overview (active vs resolved, a severity split, the most common
+                categories, a 7-day trend) and an Active / Resolved toggle so an
+                operator can look back at what was dismissed. It&apos;s all
+                derived client-side with two pure helpers,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  summarizeAlerts
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  alertsByDay
+                </code>
+                , from the alerts already fetched &mdash; no new request. The
+                cross-store version (fleet-wide alert analytics from a grouped SQL
+                query) is the natural next step if it&apos;s useful.
               </p>
             </section>
 

@@ -113,6 +113,22 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/falls back/i);
   });
 
+  it("has a timeline entry linking to the alert-history update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /alert history, analytics, and keeping the demo honest/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-alerts");
+  });
+
+  it("documents the offline fix, the re-seed, and the alert history", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/always offline/i);
+    expect(body).toMatch(/re-seed/i);
+    expect(body).toMatch(/summarizeAlerts/);
+  });
+
   it("documents the store-arrangement slot addressing and refill run", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

@@ -4,7 +4,6 @@
 // not the backend is running. Same pattern as the flags console.
 
 import * as api from "@/lib/operator-client";
-import { OperatorApiError } from "@/lib/operator-client";
 import * as seed from "@/lib/operator-data";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
 import { LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
@@ -119,8 +118,11 @@ export async function loadSalesAnalytics(
 }
 
 // ---------------------------------------------------------------------------
-// Writes — a reachable API error (e.g. 404) propagates as `undefined` so the
-// route returns the right status; only an unreachable API falls back to seed.
+// Writes — fall back to the seed on any failure, the same as the reads. The
+// seed returns `undefined` for an id it doesn't know (e.g. a real backend
+// UUID), so an unknown target still surfaces as a 404 at the route; but a
+// seed-id write while the backend is up (or down) still applies, instead of
+// reads working while writes 404.
 // ---------------------------------------------------------------------------
 
 export async function applyRestock(
@@ -129,8 +131,7 @@ export async function applyRestock(
 ): Promise<RestockResult | undefined> {
   try {
     return await api.postRestock(storeId, itemIds);
-  } catch (err) {
-    if (err instanceof OperatorApiError) return undefined;
+  } catch {
     return seed.restockItems(storeId, itemIds);
   }
 }
@@ -140,8 +141,7 @@ export async function applyDismiss(
 ): Promise<Alert | undefined> {
   try {
     return await api.patchDismiss(alertId);
-  } catch (err) {
-    if (err instanceof OperatorApiError) return undefined;
+  } catch {
     return seed.dismissAlert(alertId);
   }
 }
@@ -152,8 +152,7 @@ export async function applyPlanogramUpdate(
 ): Promise<PlanogramSlot[] | undefined> {
   try {
     return await api.patchPlanogram(storeId, update);
-  } catch (err) {
-    if (err instanceof OperatorApiError) return undefined;
+  } catch {
     return "boxes" in update
       ? seed.setPlanogram(storeId, update.boxes)
       : seed.resyncPlanogramSlot(storeId, update.resyncItemId);

@@ -157,6 +157,17 @@ export default function OperatorDashboard() {
         inventory health, and analytics. Filter the stores below, or click one to
         drill in.
       </p>
+      {/* Heads-up: the demo runs on a real database that re-seeds on a schedule,
+          so operator actions don't persist forever. */}
+      <p
+        role="note"
+        className="rounded-lg border border-border bg-surface px-3 py-2 text-xs text-muted"
+      >
+        <span className="font-medium text-foreground">Heads up:</span> this is a
+        live demo backed by a real database that re-seeds on a schedule. Changes
+        you make &mdash; dismissing an alert, rearranging a planogram &mdash; are
+        saved for real, but reset periodically to keep the demo fresh.
+      </p>
       {/* Global refresh bar */}
       <RefreshBar />
 

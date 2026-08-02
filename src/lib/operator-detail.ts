@@ -6,6 +6,7 @@ import type {
   InventoryItem,
   Alert,
   AlertSeverity,
+  AlertCategory,
   ActivityType,
   StoreStatus,
 } from "@/types/operator";
@@ -485,4 +486,88 @@ export function acknowledgeAllLabel(alerts: readonly Alert[]): string {
   const dismissable = getDismissableAlerts(alerts).length;
   if (dismissable > 0) return `Acknowledge All (${dismissable})`;
   return countActiveAlerts(alerts) > 0 ? "Critical only" : "No Alerts";
+}
+
+// ---------------------------------------------------------------------------
+// Alert history & analytics
+// ---------------------------------------------------------------------------
+
+export type AlertSummary = {
+  active: number;
+  resolved: number;
+  bySeverity: Record<AlertSeverity, number>;
+  topCategories: { category: AlertCategory; count: number }[];
+};
+
+/**
+ * Rolls an alert list (active + resolved) into a summary: how many are still
+ * active vs resolved, the active alerts broken down by severity, and which
+ * categories show up most across the whole history.
+ */
+export function summarizeAlerts(alerts: readonly Alert[]): AlertSummary {
+  let active = 0;
+  let resolved = 0;
+  const bySeverity: Record<AlertSeverity, number> = {
+    info: 0,
+    warning: 0,
+    critical: 0,
+  };
+  const byCategory = new Map<AlertCategory, number>();
+
+  for (const alert of alerts) {
+    if (alert.acknowledged) {
+      resolved += 1;
+    } else {
+      active += 1;
+      bySeverity[alert.severity] += 1;
+    }
+    byCategory.set(alert.category, (byCategory.get(alert.category) ?? 0) + 1);
+  }
+
+  const topCategories = [...byCategory.entries()]
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return { active, resolved, bySeverity, topCategories };
+}
+
+export type AlertDayBucket = { day: string; count: number };
+
+const WEEKDAY_LABELS = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+] as const;
+
+/**
+ * Counts alerts raised per day over the last `days` calendar days (UTC),
+ * oldest bucket first, each labelled with its weekday. Alerts outside the
+ * window are ignored. A simple trend so operators can see whether alerts are
+ * rising or falling.
+ */
+export function alertsByDay(
+  alerts: readonly Alert[],
+  now: Date = new Date(),
+  days: number = 7,
+): AlertDayBucket[] {
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const todayIndex = Math.floor(now.getTime() / MS_PER_DAY);
+  const counts = new Array<number>(days).fill(0);
+
+  for (const alert of alerts) {
+    const dayIndex = Math.floor(
+      new Date(alert.timestamp).getTime() / MS_PER_DAY,
+    );
+    const offset = days - 1 - (todayIndex - dayIndex);
+    if (offset >= 0 && offset < days) counts[offset] += 1;
+  }
+
+  return counts.map((count, offset) => {
+    const dayMs = (todayIndex - (days - 1 - offset)) * MS_PER_DAY;
+    return { day: WEEKDAY_LABELS[new Date(dayMs).getUTCDay()], count };
+  });
 }
