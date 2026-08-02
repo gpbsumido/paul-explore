@@ -107,9 +107,11 @@ describe("applyDismiss", () => {
     expect(result?.acknowledged).toBe(true);
   });
 
-  it("returns undefined on a reachable-but-404 API so the route can 404", async () => {
+  it("falls back to the seed on an API error; unknown ids stay undefined (route 404s)", async () => {
     vi.mocked(patchDismiss).mockRejectedValue(new OperatorApiError(404));
 
+    // Falls back to seed.dismissAlert, which returns undefined for an id the
+    // seed doesn't have — so an unknown alert still surfaces as a 404.
     const result = await applyDismiss("missing");
 
     expect(result).toBeUndefined();
