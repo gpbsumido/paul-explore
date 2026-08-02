@@ -218,6 +218,13 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/Zod strips unknown keys silently/);
   });
 
+  it("explains why migrations are not run automatically on deploy", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/run migrations\s+automatically as part of the deploy/);
+    expect(body).toMatch(/safe to run\s+against the currently deployed code/);
+  });
+
   it("has a timeline entry linking to the hardening update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {

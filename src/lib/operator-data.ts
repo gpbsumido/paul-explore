@@ -414,11 +414,6 @@ export function listPromotions(storeId: string): Promotion[] {
     .map(withDerivedStatus);
 }
 
-export function getPromotion(id: string): Promotion | undefined {
-  const found = getDataStore().promotions.get(id);
-  return found ? withDerivedStatus(found) : undefined;
-}
-
 export function insertPromotion(
   storeId: string,
   body: {
@@ -453,6 +448,11 @@ export function insertPromotion(
   ds.activityByStore.set(storeId, [activity, ...events]);
 
   return withDerivedStatus(promo);
+}
+
+export function getPromotion(id: string): Promotion | undefined {
+  const found = getDataStore().promotions.get(id);
+  return found ? withDerivedStatus(found) : undefined;
 }
 
 export function endPromotion(id: string): Promotion | undefined {

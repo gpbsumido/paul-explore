@@ -71,7 +71,7 @@ export default function PromotionsPanel({
   const [endsAt, setEndsAt] = useState("");
 
   // Read through the same query cache as every other operator surface rather
-  // than a bespoke fetch-in-an-effect, so refetching after a write is one
+  // than a bespoke fetch inside an effect, so refetching after a write is one
   // invalidate and there is no second copy of loading state to keep in sync.
   const { data: promotions = EMPTY_PROMOTIONS, isError } = useQuery({
     queryKey: queryKeys.operator.promotions(storeId),
