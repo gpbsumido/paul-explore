@@ -210,6 +210,14 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/trust proxy/);
   });
 
+  it("documents closing the promotion performance loop", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/before and\s+during side by side/);
+    expect(body).toMatch(/no baseline/);
+    expect(body).toMatch(/Zod strips unknown keys silently/);
+  });
+
   it("has a timeline entry linking to the hardening update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {

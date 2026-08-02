@@ -28,8 +28,94 @@ export type PromotionPerformance = {
   note: string;
 };
 
+/**
+ * The longest stretch a promotion is measured over, matching the API.
+ *
+ * An open-ended promotion left running for a year gives a year-long window, and
+ * the baseline doubles the work. Clamping keeps it bounded, and the clamp is
+ * reported rather than hidden.
+ */
+export const MAX_MEASURE_DAYS = 180;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export type MeasurementWindow = {
+  start: Date;
+  end: Date;
+  clamped: boolean;
+};
+
+export type SaleLike = {
+  productName: string;
+  quantity: number;
+  total: number;
+  timestamp: string;
+};
+
+/** The window actually measured: the most recent MAX_MEASURE_DAYS of it. */
+export function measurementWindow(start: Date, end: Date): MeasurementWindow {
+  const maxMs = MAX_MEASURE_DAYS * DAY_MS;
+  if (end.getTime() - start.getTime() <= maxMs) {
+    return { start, end, clamped: false };
+  }
+  return { start: new Date(end.getTime() - maxMs), end, clamped: true };
+}
+
 function roundCents(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+function totalsFor(
+  promo: Pick<Promotion, "productName">,
+  sales: readonly SaleLike[],
+  from: Date,
+  to: Date,
+): PerformanceTotals {
+  let units = 0;
+  let revenue = 0;
+
+  for (const sale of sales) {
+    const at = Date.parse(sale.timestamp);
+    if (at < from.getTime() || at >= to.getTime()) continue;
+    if (!appliesTo(promo, sale.productName)) continue;
+
+    units += sale.quantity;
+    revenue += sale.total;
+  }
+
+  return { units, revenue: roundCents(revenue) };
+}
+
+function changePercent(current: number, before: number): number | null {
+  if (before === 0) return null;
+  return Math.round(((current - before) / before) * 100);
+}
+
+/**
+ * The window against the equal-length period immediately before it.
+ *
+ * A before-and-after, not attribution. Used by the seed fallback so the demo
+ * still shows a readout with the backend unreachable; the live path takes this
+ * from the API, which does the same arithmetic in SQL.
+ */
+export function comparePerformance(
+  promo: Pick<Promotion, "productName">,
+  sales: readonly SaleLike[],
+  windowStart: Date,
+  windowEnd: Date,
+): Omit<PromotionPerformance, "note"> {
+  const span = windowEnd.getTime() - windowStart.getTime();
+  const baselineStart = new Date(windowStart.getTime() - span);
+
+  const window = totalsFor(promo, sales, windowStart, windowEnd);
+  const baseline = totalsFor(promo, sales, baselineStart, windowStart);
+
+  return {
+    window,
+    baseline,
+    unitsChangePercent: changePercent(window.units, baseline.units),
+    revenueChangePercent: changePercent(window.revenue, baseline.revenue),
+  };
 }
 
 /** Derived from the window and the clock, so it cannot go stale in an open tab. */

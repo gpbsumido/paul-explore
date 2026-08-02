@@ -17,7 +17,11 @@ import {
   resultingStock,
   summarizeDraft,
 } from "@/lib/operator-restock";
-import { promotionStatus } from "@/lib/operator-promotions";
+import {
+  comparePerformance,
+  measurementWindow,
+  promotionStatus,
+} from "@/lib/operator-promotions";
 import {
   buildStoreList,
   buildInventoryList,
@@ -463,4 +467,44 @@ export function endPromotion(id: string): Promotion | undefined {
 
 function withDerivedStatus(promo: Promotion): Promotion {
   return { ...promo, status: promotionStatus(promo) };
+}
+
+/**
+ * Promotion performance from the seed sales, mirroring the API's arithmetic so
+ * the readout still renders with the backend unreachable.
+ */
+export function getPromotionPerformance(id: string):
+  | {
+      promotion: Promotion;
+      window: { units: number; revenue: number };
+      baseline: { units: number; revenue: number };
+      unitsChangePercent: number | null;
+      revenueChangePercent: number | null;
+      measuredFrom: string;
+      measuredTo: string;
+      note: string;
+    }
+  | undefined {
+  const promo = getPromotion(id);
+  if (!promo) return undefined;
+
+  const win = measurementWindow(
+    new Date(promo.startsAt),
+    promo.endsAt ? new Date(promo.endsAt) : new Date(),
+  );
+  const sales = getDataStore().salesByStore.get(promo.storeId) ?? [];
+  const comparison = comparePerformance(promo, sales, win.start, win.end);
+
+  const base =
+    "Comparison against the equal-length period before this promotion. It is not a claim that the promotion caused the difference.";
+
+  return {
+    promotion: promo,
+    ...comparison,
+    measuredFrom: win.start.toISOString(),
+    measuredTo: win.end.toISOString(),
+    note: win.clamped
+      ? `${base} This promotion has run longer than 180 days, so only its most recent 180 days are measured.`
+      : base,
+  };
 }

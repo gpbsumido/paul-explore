@@ -19,7 +19,7 @@ Public (no login). Listed most-to-least prominent, matching the apps order acros
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
 - [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground
 - [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine
-- [Fleet Operator](https://paulsumido.com/operator) — real-time fleet monitoring dashboard
+- [Fleet Operator](https://paulsumido.com/operator) — unattended-retail operator dashboard over a real Postgres-backed API; slot-by-slot auditable restocking with expiry and shrinkage reasons, scheduled promotions that report back against the period before them, per-store sales and tax, an interactive planogram, and every time bucket resolved in the store's own timezone
 - [Learn](https://paulsumido.com/learn) — 14 interactive algorithm & frontend-pattern deep-dives
 - [Craft](https://paulsumido.com/craft) — lead front-end traits, each expandable to the real work here that proves it
 - [Pokémon](https://paulsumido.com/pokemon) — one hub for the [TCG browser](https://paulsumido.com/tcg/pokemon), [TCG Pocket](https://paulsumido.com/tcg/pocket) expansions, and the [GraphQL Pokédex](https://paulsumido.com/graphql)
@@ -120,7 +120,7 @@ src/
 │   ├── flags/           # Feature-flag console (test a user, live per-flag verdicts)
 │   ├── lab/             # Interactive experiments (particles, motion)
 │   ├── learn/           # Algorithm & frontend-pattern deep-dives
-│   ├── operator/        # Fleet monitoring dashboard (overview + store detail)
+│   ├── operator/        # Operator dashboard (fleet overview + store detail tabs)
 │   ├── tcg/             # Pokémon TCG browser
 │   ├── work-portfolio/  # Anonymized feature reconstructions
 │   └── thoughts/        # Write-ups on design decisions

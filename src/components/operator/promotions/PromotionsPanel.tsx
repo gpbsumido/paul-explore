@@ -14,6 +14,7 @@ import { promotionSchema } from "@/lib/operator-schemas";
 import { storeTimeZone, zoneLabel } from "@/lib/operator-timezone";
 import type { InventoryItem, Promotion } from "@/types/operator";
 import TimeZoneNote from "../TimeZoneNote";
+import PromotionPerformance from "./PromotionPerformance";
 
 interface PromotionsPanelProps {
   storeId: string;
@@ -51,6 +52,9 @@ export default function PromotionsPanel({
 
   const [promotions, setPromotions] = useState<readonly Promotion[]>([]);
   const [showForm, setShowForm] = useState(false);
+  // Fetched per promotion on demand, so opening the tab does not fire a
+  // performance query for every promotion a store has ever run.
+  const [openPerformanceId, setOpenPerformanceId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -279,27 +283,55 @@ export default function PromotionsPanel({
         <ul className="space-y-1.5">
           {promotions.map((promo) => {
             const status = promotionStatus(promo);
+            const isOpen = openPerformanceId === promo.id;
+
             return (
               <li
                 key={promo.id}
-                className="flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm"
+                className="rounded-lg border border-border px-3 py-2 text-sm"
               >
-                <span className="flex-1 truncate text-foreground">
-                  {describePromotion(promo)}
-                </span>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] ${STATUS_STYLES[status]}`}
-                >
-                  {status}
-                </span>
-                {status !== "ended" && (
-                  <button
-                    type="button"
-                    onClick={() => handleEnd(promo.id)}
-                    className="shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs text-muted hover:text-foreground"
+                <div className="flex items-center gap-3">
+                  <span className="flex-1 truncate text-foreground">
+                    {describePromotion(promo)}
+                  </span>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] ${STATUS_STYLES[status]}`}
                   >
-                    End
-                  </button>
+                    {status}
+                  </span>
+                  {/*
+                    Only offer the readout once a promotion has actually started.
+                    There is nothing to measure about one that has not run.
+                  */}
+                  {status !== "scheduled" && (
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      onClick={() =>
+                        setOpenPerformanceId(isOpen ? null : promo.id)
+                      }
+                      className="shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs text-muted hover:text-foreground"
+                    >
+                      {isOpen ? "Hide results" : "Results"}
+                    </button>
+                  )}
+                  {status !== "ended" && (
+                    <button
+                      type="button"
+                      onClick={() => handleEnd(promo.id)}
+                      className="shrink-0 rounded-lg border border-border px-2.5 py-1 text-xs text-muted hover:text-foreground"
+                    >
+                      End
+                    </button>
+                  )}
+                </div>
+                {isOpen && (
+                  <div className="mt-2 border-t border-border pt-2">
+                    <PromotionPerformance
+                      promotionId={promo.id}
+                      timeZone={timeZone}
+                    />
+                  </div>
                 )}
               </li>
             );
@@ -309,10 +341,9 @@ export default function PromotionsPanel({
 
       {live.length > 0 && (
         <p className="text-xs text-muted">
-          {live.length} running now, measured in {zoneLabel(timeZone)}. What a
-          promotion did is reported as a before-and-after against the equal
-          period before it, which is a comparison and not proof it caused the
-          change.
+          {live.length} running now, measured in {zoneLabel(timeZone)}. Open
+          Results on any that has started to see it against the period before it,
+          which is a comparison and not proof it caused the change.
         </p>
       )}
     </section>

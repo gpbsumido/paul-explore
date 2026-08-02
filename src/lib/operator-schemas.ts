@@ -236,8 +236,13 @@ export const promotionPerformanceSchema = z.object({
   promotion: promotionSchema,
   window: performanceTotalsSchema,
   baseline: performanceTotalsSchema,
+  // Null when the baseline was zero: a percentage change would be a fabrication.
   unitsChangePercent: z.number().nullable(),
   revenueChangePercent: z.number().nullable(),
+  // The range actually measured, which is not always the promotion's full
+  // window -- anything over 180 days is clamped to its most recent stretch.
+  measuredFrom: z.string(),
+  measuredTo: z.string(),
   note: z.string(),
 });
 

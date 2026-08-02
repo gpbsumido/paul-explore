@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  MAX_MEASURE_DAYS,
   activePromotions,
+  comparePerformance,
+  measurementWindow,
   appliesTo,
   bestDiscountFor,
   describePromotion,
@@ -172,5 +175,77 @@ describe("client and API agree on the shared arithmetic", () => {
         ),
       ).toBe(v.want);
     }
+  });
+});
+
+describe("measurementWindow", () => {
+  it("leaves a normal window alone", () => {
+    const from = new Date("2026-08-01T00:00:00.000Z");
+    const to = new Date("2026-08-11T00:00:00.000Z");
+    const win = measurementWindow(from, to);
+    expect(win.start.toISOString()).toBe(from.toISOString());
+    expect(win.clamped).toBe(false);
+  });
+
+  it("clamps a promotion that has run for years, keeping the end fixed", () => {
+    const to = new Date("2026-08-10T12:00:00.000Z");
+    const win = measurementWindow(new Date("2024-01-01T00:00:00.000Z"), to);
+    expect((win.end.getTime() - win.start.getTime()) / 86_400_000).toBe(
+      MAX_MEASURE_DAYS,
+    );
+    expect(win.end.toISOString()).toBe(to.toISOString());
+    expect(win.clamped).toBe(true);
+  });
+});
+
+describe("comparePerformance", () => {
+  const windowStart = new Date("2026-08-01T00:00:00.000Z");
+  const windowEnd = new Date("2026-08-11T00:00:00.000Z");
+  const sale = (t: string, total: number, quantity: number, productName = "Energy Bar") => ({
+    productName,
+    quantity,
+    total,
+    timestamp: t,
+  });
+
+  const sales = [
+    sale("2026-08-02T10:00:00.000Z", 20, 8),
+    sale("2026-07-24T10:00:00.000Z", 25, 5),
+    sale("2026-07-01T10:00:00.000Z", 999, 999),
+    sale("2026-08-03T10:00:00.000Z", 50, 20, "Coca-Cola 355ml"),
+  ];
+
+  it("totals the window and the equal-length baseline before it", () => {
+    const r = comparePerformance(
+      promo({ productName: "Energy Bar" }),
+      sales,
+      windowStart,
+      windowEnd,
+    );
+    expect(r.window).toEqual({ units: 8, revenue: 20 });
+    expect(r.baseline).toEqual({ units: 5, revenue: 25 });
+    expect(r.unitsChangePercent).toBe(60);
+    expect(r.revenueChangePercent).toBe(-20);
+  });
+
+  it("returns null rather than dividing by a zero baseline", () => {
+    const r = comparePerformance(
+      promo({ productName: "Brand New Thing" }),
+      sales,
+      windowStart,
+      windowEnd,
+    );
+    expect(r.unitsChangePercent).toBeNull();
+    expect(r.revenueChangePercent).toBeNull();
+  });
+
+  it("counts every product for a store-wide promotion", () => {
+    const r = comparePerformance(
+      promo({ productName: null }),
+      sales,
+      windowStart,
+      windowEnd,
+    );
+    expect(r.window.units).toBe(28);
   });
 });

@@ -49,6 +49,20 @@ function renderPanel(promotions: Promotion[], percent = 20) {
           { status: 200 },
         );
       }
+      if (String(url).includes("/performance")) {
+        return new Response(
+          JSON.stringify({
+            window: { units: 40, revenue: 96 },
+            baseline: { units: 25, revenue: 75 },
+            unitsChangePercent: 60,
+            revenueChangePercent: 28,
+            measuredFrom: "2026-01-01T00:00:00.000Z",
+            measuredTo: "2026-01-11T00:00:00.000Z",
+            note: "Comparison against the equal-length period before this promotion. It is not a claim that the promotion caused the difference.",
+          }),
+          { status: 200 },
+        );
+      }
       if (String(url).includes("/promotions")) {
         return new Response(JSON.stringify({ promotions }), { status: 200 });
       }
@@ -156,5 +170,89 @@ describe("PromotionsPanel", () => {
         screen.getByText(/not proof it caused the change/i),
       ).toBeInTheDocument(),
     );
+  });
+});
+
+describe("PromotionPerformance in the panel", () => {
+  it("does not offer results for a promotion that has not started", async () => {
+    renderPanel([promo({ startsAt: "2030-01-01T00:00:00.000Z", endsAt: null })]);
+    await screen.findByText("scheduled");
+    expect(
+      screen.queryByRole("button", { name: /results/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("fetches nothing until results are opened", async () => {
+    renderPanel([promo()]);
+    await screen.findByRole("button", { name: /^results$/i });
+
+    const calls = (global.fetch as unknown as { mock: { calls: unknown[][] } })
+      .mock.calls;
+    expect(
+      calls.filter((c) => String(c[0]).includes("/performance")),
+    ).toHaveLength(0);
+  });
+
+  it("shows before and during side by side, not just the delta", async () => {
+    const user = userEvent.setup();
+    renderPanel([promo()]);
+
+    await user.click(await screen.findByRole("button", { name: /^results$/i }));
+
+    expect(await screen.findByText("25")).toBeInTheDocument();
+    expect(screen.getByText("40")).toBeInTheDocument();
+    expect(screen.getByText(/up 60%/i)).toBeInTheDocument();
+  });
+
+  it("carries the not-attribution caveat into the readout", async () => {
+    const user = userEvent.setup();
+    renderPanel([promo()]);
+
+    await user.click(await screen.findByRole("button", { name: /^results$/i }));
+    expect(
+      await screen.findByText(/not a claim that the promotion caused/i),
+    ).toBeInTheDocument();
+  });
+
+  it("says no baseline rather than inventing a percentage", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (String(url).includes("/performance")) {
+          return new Response(
+            JSON.stringify({
+              window: { units: 12, revenue: 30 },
+              baseline: { units: 0, revenue: 0 },
+              unitsChangePercent: null,
+              revenueChangePercent: null,
+              measuredFrom: "2026-01-01T00:00:00.000Z",
+              measuredTo: "2026-01-11T00:00:00.000Z",
+              note: "Comparison against the equal-length period before this promotion.",
+            }),
+            { status: 200 },
+          );
+        }
+        return new Response(JSON.stringify({ promotions: [promo()] }), {
+          status: 200,
+        });
+      }),
+    );
+
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ToastProvider>
+          <PromotionsPanel
+            storeId="store-001"
+            items={items}
+            modelledPercent={20}
+            modelledProduct="Energy Bar"
+          />
+        </ToastProvider>
+      </QueryClientProvider>,
+    );
+
+    await user.click(await screen.findByRole("button", { name: /^results$/i }));
+    expect(await screen.findAllByText(/no baseline/i)).toHaveLength(2);
   });
 });

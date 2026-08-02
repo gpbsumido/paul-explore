@@ -1403,6 +1403,47 @@ export default function OperatorDashboardContent() {
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Closing the loop
+              </h3>
+              <p className="text-muted">
+                I shipped the measurement endpoint before anything called it,
+                which meant the headline claim was true of the API and not of the
+                product. That gap is closed now: each promotion that has actually
+                started has a Results control, and opening it shows before and
+                during side by side rather than only the delta.
+              </p>
+              <p className="mt-3 text-muted">
+                Showing both columns is the whole point. A single number reading
+                &quot;up 60%&quot; invites you to read a cause into it. Two
+                columns and a labelled change, with the range that was actually
+                measured named in the store&apos;s timezone underneath, makes it
+                obvious you are looking at two periods rather than an effect.
+                Where there is no baseline at all the cell says &quot;no
+                baseline&quot; instead of a percentage, because dividing by zero
+                politely is still making something up.
+              </p>
+              <p className="mt-3 text-muted">
+                Writing the tests for it turned up a bug I would not have found
+                by clicking. The API had gained{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  measuredFrom
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  measuredTo
+                </code>{" "}
+                when I added the 180 day clamp, and I never added them to the
+                client schema. Zod strips unknown keys silently, so the fields
+                arrived and were quietly discarded, and the component threw{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Invalid time value
+                </code>{" "}
+                on a date that was undefined. Silent stripping is usually the
+                behaviour you want from a parser at a trust boundary, right up
+                until the thing being dropped is something you added yourself.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 Who this helps
               </h3>
               <p className="text-muted">

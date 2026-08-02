@@ -327,3 +327,11 @@ export async function stopPromotion(
     return seed.endPromotion(promotionId);
   }
 }
+
+export async function loadPromotionPerformance(promotionId: string) {
+  try {
+    return await api.fetchPromotionPerformance(promotionId);
+  } catch {
+    return seed.getPromotionPerformance(promotionId);
+  }
+}
