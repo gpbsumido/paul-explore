@@ -39,7 +39,6 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
   const { items, loading } = useOperatorInventory(storeId);
   const { addToast } = useToast();
   const {
-    session,
     isOpening,
     isCompleting,
     error,
@@ -52,11 +51,17 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
 
   const [step, setStep] = useState<Step>("idle");
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
-  const [drafts, setDrafts] = useState<ReadonlyMap<string, RestockDraft>>(
+  // Only the slots the restocker has actually edited. The full draft set is
+  // derived from inventory below, so arriving items can never clobber an edit
+  // and there is no effect keeping two copies in step.
+  const [edits, setEdits] = useState<ReadonlyMap<string, RestockDraft>>(
     () => new Map(),
   );
-  const [resumable, setResumable] = useState<string | null>(null);
-  const [checkedForResume, setCheckedForResume] = useState(false);
+  // Read once at mount rather than in an effect. This component only ever
+  // renders after a click, so there is no server render to mismatch against.
+  const [resumable, setResumable] = useState<string | null>(() =>
+    readStoredSessionId(storeId),
+  );
   const autoStarted = useRef(false);
 
   const itemsById = useMemo(
@@ -64,20 +69,11 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
     [items],
   );
 
-  // A session parked in localStorage means someone walked away mid-restock.
-  useEffect(() => {
-    setResumable(readStoredSessionId(storeId));
-    setCheckedForResume(true);
-  }, [storeId]);
-
-  // Seed a draft per slot once inventory arrives, without clobbering edits.
-  useEffect(() => {
-    if (items.length === 0) return;
-    setDrafts((prev) => {
-      if (prev.size > 0) return prev;
-      return new Map(items.map((item) => [item.id, draftFor(item)]));
-    });
-  }, [items]);
+  const drafts = useMemo(() => {
+    const seeded = new Map(items.map((item) => [item.id, draftFor(item)]));
+    for (const [itemId, edit] of edits) seeded.set(itemId, edit);
+    return seeded;
+  }, [items, edits]);
 
   const startFresh = useCallback(async () => {
     const opened = await open();
@@ -97,7 +93,7 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
 
   const handleSaveSlot = useCallback(
     async (draft: RestockDraft) => {
-      setDrafts((prev) => new Map(prev).set(draft.itemId, draft));
+      setEdits((prev) => new Map(prev).set(draft.itemId, draft));
       setStep("list");
       setActiveItemId(null);
 
@@ -123,7 +119,7 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
       addToast({
         message: `Restock complete — ${summary.itemsTouched} slot${summary.itemsTouched === 1 ? "" : "s"} recorded`,
       });
-      setDrafts(new Map());
+      setEdits(new Map());
       setStep("idle");
       onClose();
     },
@@ -135,12 +131,15 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
   // session someone abandoned mid-shelf.
   useEffect(() => {
     if (autoStarted.current) return;
-    if (!checkedForResume || resumable !== null) return;
-    if (step !== "idle" || items.length === 0) return;
+    if (resumable !== null || step !== "idle" || items.length === 0) return;
 
     autoStarted.current = true;
+    // Opening a session is a request to an external system, which is what an
+    // effect is for. The rule fires because open() flips its own in-flight flag
+    // before awaiting; the ref guard is what actually prevents a second run.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void startFresh();
-  }, [checkedForResume, resumable, step, items.length, startFresh]);
+  }, [resumable, step, items.length, startFresh]);
 
   const draftList = useMemo(() => [...drafts.values()], [drafts]);
   const touchedCount = draftList.filter(isLineDirty).length;
