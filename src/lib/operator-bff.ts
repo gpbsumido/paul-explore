@@ -5,6 +5,7 @@
 
 import * as api from "@/lib/operator-client";
 import * as seed from "@/lib/operator-data";
+import type { RestockLineBody } from "@/lib/operator-restock-types";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
 import { LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
 import {
@@ -19,6 +20,8 @@ import type {
   ActivityEvent,
   Sale,
   PlanogramSlot,
+  RestockSession,
+  RestockLine,
   StoreSummary,
   FleetSummaryResponse,
 } from "@/types/operator";
@@ -219,4 +222,74 @@ function computeFleetSummarySeed(): FleetSummaryResponse {
     },
     alertTrend: [...toAlertTrendData(allAlerts)],
   };
+}
+
+// ---------------------------------------------------------------------------
+// Restock sessions
+//
+// Same live-API-first, seed-fallback shape as every other call here, so the
+// demo keeps working end to end when portfolio_api is unreachable.
+// ---------------------------------------------------------------------------
+
+export async function openRestockSession(
+  storeId: string,
+): Promise<RestockSession | undefined> {
+  try {
+    return await api.postRestockSession(storeId);
+  } catch {
+    return seed.openRestockSession(storeId);
+  }
+}
+
+export async function loadRestockSessions(
+  storeId: string,
+): Promise<RestockSession[]> {
+  try {
+    return await api.fetchRestockSessions(storeId);
+  } catch {
+    return seed.listRestockSessions(storeId);
+  }
+}
+
+export async function loadRestockSession(
+  sessionId: string,
+): Promise<{ session: RestockSession; lines: RestockLine[] } | undefined> {
+  try {
+    return await api.fetchRestockSession(sessionId);
+  } catch {
+    const session = seed.getRestockSession(sessionId);
+    if (!session) return undefined;
+    return { session, lines: seed.getRestockLines(sessionId) };
+  }
+}
+
+export async function saveRestockLine(
+  sessionId: string,
+  itemId: string,
+  body: RestockLineBody,
+): Promise<RestockLine | undefined> {
+  try {
+    return await api.putRestockLine(sessionId, itemId, body);
+  } catch {
+    return seed.upsertRestockLine(sessionId, itemId, body);
+  }
+}
+
+export async function applyRestockSession(
+  sessionId: string,
+  notes: string | null,
+): Promise<
+  | {
+      session: RestockSession;
+      lines: RestockLine[];
+      items: InventoryItem[];
+      activity: ActivityEvent;
+    }
+  | undefined
+> {
+  try {
+    return await api.postCompleteRestock(sessionId, notes);
+  } catch {
+    return seed.completeRestockSession(sessionId, notes);
+  }
 }
