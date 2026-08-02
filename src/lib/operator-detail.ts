@@ -17,6 +17,7 @@ export type TabId =
   | "activity"
   | "planogram"
   | "sales"
+  | "pricing"
   | "tax";
 
 export type ConnectionQuality = "strong" | "weak" | "poor" | "offline";
@@ -65,6 +66,7 @@ export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "activity", label: "Activity" },
   { id: "planogram", label: "Planogram" },
   { id: "sales", label: "Sales" },
+  { id: "pricing", label: "Pricing" },
   { id: "tax", label: "Tax" },
 ] as const;
 

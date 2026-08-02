@@ -20,6 +20,7 @@ describe("parseTab", () => {
     expect(parseTab("planogram")).toBe("planogram");
     expect(parseTab("inventory")).toBe("inventory");
     expect(parseTab("sales")).toBe("sales");
+    expect(parseTab("pricing")).toBe("pricing");
     expect(parseTab("tax")).toBe("tax");
   });
 
@@ -36,6 +37,7 @@ describe("parseTab", () => {
       "activity",
       "planogram",
       "sales",
+      "pricing",
       "tax",
     ]);
   });
