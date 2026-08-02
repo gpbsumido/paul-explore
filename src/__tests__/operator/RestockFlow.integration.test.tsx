@@ -249,11 +249,19 @@ describe("RestockFlow", () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
+  it("opens a session on entry rather than asking a second time", async () => {
+    renderWithProviders(<RestockFlow storeId="store-001" onClose={vi.fn()} />);
+
+    // Entering the flow IS the intent; there is no second "Start restock".
+    expect(await screen.findByText(/slots done/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^start restock$/i }),
+    ).not.toBeInTheDocument();
+  });
+
   it("walks from the slot list into a slot and back", async () => {
     const user = userEvent.setup();
     renderWithProviders(<RestockFlow storeId="store-001" onClose={vi.fn()} />);
-
-    await user.click(await screen.findByRole("button", { name: /start restock/i }));
 
     const slot = await screen.findByRole("button", { name: /greek yogurt cup/i });
     await user.click(slot);
@@ -279,10 +287,7 @@ describe("RestockFlow", () => {
   });
 
   it("cannot review until at least one slot was touched", async () => {
-    const user = userEvent.setup();
     renderWithProviders(<RestockFlow storeId="store-001" onClose={vi.fn()} />);
-
-    await user.click(await screen.findByRole("button", { name: /start restock/i }));
 
     expect(
       await screen.findByRole("button", { name: /review 0 changes/i }),

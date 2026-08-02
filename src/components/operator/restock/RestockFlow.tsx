@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useOperatorInventory } from "@/hooks/useOperatorInventory";
 import {
@@ -56,6 +56,8 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
     () => new Map(),
   );
   const [resumable, setResumable] = useState<string | null>(null);
+  const [checkedForResume, setCheckedForResume] = useState(false);
+  const autoStarted = useRef(false);
 
   const itemsById = useMemo(
     () => new Map(items.map((item) => [item.id, item])),
@@ -65,6 +67,7 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
   // A session parked in localStorage means someone walked away mid-restock.
   useEffect(() => {
     setResumable(readStoredSessionId(storeId));
+    setCheckedForResume(true);
   }, [storeId]);
 
   // Seed a draft per slot once inventory arrives, without clobbering edits.
@@ -127,6 +130,18 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
     [complete, drafts, addToast, onClose],
   );
 
+  // Entering the flow IS the intent to restock, so opening the session should
+  // not need a second identical tap. The idle screen exists only to ask about a
+  // session someone abandoned mid-shelf.
+  useEffect(() => {
+    if (autoStarted.current) return;
+    if (!checkedForResume || resumable !== null) return;
+    if (step !== "idle" || items.length === 0) return;
+
+    autoStarted.current = true;
+    void startFresh();
+  }, [checkedForResume, resumable, step, items.length, startFresh]);
+
   const draftList = useMemo(() => [...drafts.values()], [drafts]);
   const touchedCount = draftList.filter(isLineDirty).length;
 
@@ -185,14 +200,16 @@ export default function RestockFlow({ storeId, onClose }: RestockFlowProps) {
             </div>
           </div>
         )}
-        <button
-          type="button"
-          onClick={startFresh}
-          disabled={isOpening}
-          className="min-h-11 w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-        >
-          {isOpening ? "Starting…" : "Start restock"}
-        </button>
+        {!resumable && (
+          <button
+            type="button"
+            onClick={startFresh}
+            disabled={isOpening}
+            className="min-h-11 w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {isOpening ? "Starting…" : "Retry"}
+          </button>
+        )}
         {error && (
           <p role="alert" className="text-sm text-error-500">
             {error}
