@@ -5,8 +5,17 @@ import type {
   ActivityEvent,
   Sale,
   PlanogramSlot,
+  RestockSession,
+  RestockLine,
 } from "@/types/operator";
 import { deriveSensorMatch } from "@/lib/operator-detail";
+import type { RestockLineBody } from "@/lib/operator-restock-types";
+import {
+  countStatusOf,
+  describeDraft,
+  resultingStock,
+  summarizeDraft,
+} from "@/lib/operator-restock";
 import {
   buildStoreList,
   buildInventoryList,
@@ -34,6 +43,9 @@ type OperatorDataStore = {
   salesByStore: Map<string, Sale[]>;
   planogramByStore: Map<string, PlanogramSlot[]>;
   allAlerts: Map<string, Alert>;
+  /** Restock sessions, so the flow still works with the backend unreachable. */
+  restockSessions: Map<string, RestockSession>;
+  restockLines: Map<string, RestockLine[]>;
 };
 
 const GLOBAL_KEY = "__operatorDataStore" as const;
@@ -107,6 +119,8 @@ function initDataStore(): OperatorDataStore {
     salesByStore,
     planogramByStore,
     allAlerts,
+    restockSessions: new Map<string, RestockSession>(),
+    restockLines: new Map<string, RestockLine[]>(),
   };
 }
 
@@ -250,4 +264,131 @@ export function restockItems(
   });
 
   return { items: restocked, activity };
+}
+
+// ---------------------------------------------------------------------------
+// Restock sessions (seed fallback)
+//
+// Mirrors the API's session lifecycle closely enough that the flow behaves the
+// same when portfolio_api is unreachable: lines accumulate, and only completing
+// touches inventory.
+// ---------------------------------------------------------------------------
+
+let sessionCounter = 0;
+
+export function openRestockSession(storeId: string): RestockSession | undefined {
+  const ds = getDataStore();
+  if (!ds.stores.some((s) => s.id === storeId)) return undefined;
+
+  sessionCounter += 1;
+  const session: RestockSession = {
+    id: `session-${String(sessionCounter).padStart(3, "0")}`,
+    storeId,
+    startedAt: new Date().toISOString(),
+    completedAt: null,
+    actor: "operator@smartstore.example",
+    notes: null,
+  };
+
+  ds.restockSessions.set(session.id, session);
+  ds.restockLines.set(session.id, []);
+  return session;
+}
+
+export function getRestockSession(sessionId: string): RestockSession | undefined {
+  return getDataStore().restockSessions.get(sessionId);
+}
+
+export function listRestockSessions(storeId: string): RestockSession[] {
+  return [...getDataStore().restockSessions.values()]
+    .filter((s) => s.storeId === storeId)
+    .sort((a, b) => (a.startedAt < b.startedAt ? 1 : -1));
+}
+
+export function getRestockLines(sessionId: string): RestockLine[] {
+  return getDataStore().restockLines.get(sessionId) ?? [];
+}
+
+export function upsertRestockLine(
+  sessionId: string,
+  itemId: string,
+  values: RestockLineBody,
+): RestockLine | undefined {
+  const ds = getDataStore();
+  const session = ds.restockSessions.get(sessionId);
+  if (!session) return undefined;
+
+  const lines = ds.restockLines.get(sessionId) ?? [];
+  const line: RestockLine = {
+    id: `${sessionId}-${itemId}`,
+    sessionId,
+    itemId,
+    expectedQty: values.expectedQty,
+    countedQty: values.countedQty,
+    added: values.added,
+    removed: values.removed,
+    removalReason: values.removalReason,
+    resultingStock: null,
+    countStatus: countStatusOf(values),
+  };
+
+  const without = lines.filter((l) => l.itemId !== itemId);
+  ds.restockLines.set(sessionId, [...without, line]);
+  return line;
+}
+
+export function completeRestockSession(
+  sessionId: string,
+  notes: string | null,
+):
+  | {
+      session: RestockSession;
+      lines: RestockLine[];
+      items: InventoryItem[];
+      activity: ActivityEvent;
+    }
+  | undefined {
+  const ds = getDataStore();
+  const session = ds.restockSessions.get(sessionId);
+  if (!session) return undefined;
+
+  const lines = ds.restockLines.get(sessionId) ?? [];
+  const inventory = ds.inventoryByStore.get(session.storeId) ?? [];
+  const byItem = new Map(lines.map((l) => [l.itemId, l]));
+
+  const applied: InventoryItem[] = [];
+  const frozen: RestockLine[] = [];
+
+  const updatedInventory = inventory.map((item) => {
+    const line = byItem.get(item.id);
+    if (!line) return item;
+
+    const resulting = resultingStock(line, item.capacity);
+    frozen.push({ ...line, resultingStock: resulting });
+
+    const updated = { ...item, currentStock: resulting };
+    applied.push(updated);
+    return updated;
+  });
+
+  ds.inventoryByStore.set(session.storeId, updatedInventory);
+  ds.restockLines.set(sessionId, frozen);
+
+  const activity = buildActivityEvent({
+    storeId: session.storeId,
+    type: "restock",
+    description: describeDraft(summarizeDraft(frozen)),
+  });
+
+  const closed: RestockSession = {
+    ...session,
+    completedAt: new Date().toISOString(),
+    notes,
+  };
+  ds.restockSessions.set(sessionId, closed);
+
+  const events = ds.activityByStore.get(session.storeId) ?? [];
+  ds.activityByStore.set(session.storeId, [activity, ...events]);
+
+  return { session: closed, lines: frozen, items: applied, activity };
 }

@@ -11,6 +11,8 @@ import {
   activityEventSchema,
   saleSchema,
   planogramSlotSchema,
+  restockLineSchema,
+  restockSessionSchema,
   fleetSummaryResponseSchema,
   fleetSalesAnalyticsSchema,
 } from "@/lib/operator-schemas";
@@ -24,6 +26,7 @@ import type {
   FleetSummaryResponse,
 } from "@/types/operator";
 import { API_URL } from "@/lib/backendFetch";
+import type { RestockLineBody } from "@/lib/operator-restock-types";
 
 const BASE = `${API_URL}/api/operator`;
 
@@ -50,7 +53,7 @@ async function getJson<T>(
 
 async function sendJson<T>(
   path: string,
-  method: "POST" | "PATCH",
+  method: "POST" | "PATCH" | "PUT",
   body: unknown,
   schema: z.ZodType<T>,
 ): Promise<T> {
@@ -162,4 +165,76 @@ export async function patchPlanogram(
       planogramPayload,
     )
   ).slots;
+}
+
+// ---------------------------------------------------------------------------
+// Restock sessions
+// ---------------------------------------------------------------------------
+
+const sessionPayload = z.object({ session: restockSessionSchema });
+const sessionsPayload = z.object({ sessions: z.array(restockSessionSchema) });
+const sessionDetailPayload = z.object({
+  session: restockSessionSchema,
+  lines: z.array(restockLineSchema),
+});
+const linePayload = z.object({ line: restockLineSchema });
+const completePayload = z.object({
+  session: restockSessionSchema,
+  lines: z.array(restockLineSchema),
+  items: z.array(inventoryItemSchema),
+  activity: activityEventSchema,
+});
+
+export async function postRestockSession(
+  storeId: string,
+): Promise<z.infer<typeof restockSessionSchema>> {
+  return (
+    await sendJson(
+      `/stores/${storeId}/restock-sessions`,
+      "POST",
+      {},
+      sessionPayload,
+    )
+  ).session;
+}
+
+export async function fetchRestockSessions(
+  storeId: string,
+): Promise<z.infer<typeof restockSessionSchema>[]> {
+  return (
+    await getJson(`/stores/${storeId}/restock-sessions`, sessionsPayload)
+  ).sessions;
+}
+
+export async function fetchRestockSession(
+  sessionId: string,
+): Promise<z.infer<typeof sessionDetailPayload>> {
+  return getJson(`/restock-sessions/${sessionId}`, sessionDetailPayload);
+}
+
+export async function putRestockLine(
+  sessionId: string,
+  itemId: string,
+  body: RestockLineBody,
+): Promise<z.infer<typeof restockLineSchema>> {
+  return (
+    await sendJson(
+      `/restock-sessions/${sessionId}/lines/${itemId}`,
+      "PUT",
+      body,
+      linePayload,
+    )
+  ).line;
+}
+
+export async function postCompleteRestock(
+  sessionId: string,
+  notes: string | null,
+): Promise<z.infer<typeof completePayload>> {
+  return sendJson(
+    `/restock-sessions/${sessionId}/complete`,
+    "POST",
+    { notes },
+    completePayload,
+  );
 }

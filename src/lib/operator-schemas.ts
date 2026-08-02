@@ -148,6 +148,57 @@ export const fleetSalesAnalyticsSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Restock sessions
+// ---------------------------------------------------------------------------
+
+export const removalReasonSchema = z.enum(["expired", "damaged", "other"]);
+
+export const countStatusSchema = z.enum([
+  "matches-expected",
+  "correction",
+  "not-counted",
+]);
+
+export const restockSessionSchema = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  startedAt: z.string(),
+  completedAt: z.string().nullable(),
+  actor: z.string().nullable(),
+  notes: z.string().nullable(),
+});
+
+export const restockLineSchema = z.object({
+  id: z.string(),
+  sessionId: z.string(),
+  itemId: z.string(),
+  expectedQty: z.number().int().min(0),
+  countedQty: z.number().int().min(0).nullable(),
+  added: z.number().int().min(0),
+  removed: z.number().int().min(0),
+  removalReason: z.string().nullable(),
+  resultingStock: z.number().int().min(0).nullable(),
+  countStatus: countStatusSchema,
+});
+
+export const restockLineBodySchema = z
+  .object({
+    expectedQty: z.number().int().min(0),
+    countedQty: z.number().int().min(0).nullable(),
+    added: z.number().int().min(0),
+    removed: z.number().int().min(0),
+    removalReason: removalReasonSchema.nullable(),
+  })
+  .refine((line) => line.removed === 0 || line.removalReason !== null, {
+    message: "A reason is required when removing stock",
+    path: ["removalReason"],
+  });
+
+export const completeSessionBodySchema = z.object({
+  notes: z.string().max(2000).nullable(),
+});
+
+// ---------------------------------------------------------------------------
 // Planogram (persisted shelf layout: which item occupies each slot + sensor)
 // ---------------------------------------------------------------------------
 
