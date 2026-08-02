@@ -102,9 +102,10 @@ export async function loadFleetSummary(): Promise<FleetSummaryResponse> {
 
 export async function loadSalesAnalytics(
   granularity: SalesGranularity,
+  timeZone: string,
 ): Promise<FleetSalesAnalytics> {
   try {
-    return await api.fetchSalesAnalytics(granularity);
+    return await api.fetchSalesAnalytics(granularity, timeZone);
   } catch {
     return aggregateFleetSales(
       seed.getStores().map((store) => ({
@@ -113,6 +114,8 @@ export async function loadSalesAnalytics(
         sales: seed.getSales(store.id) ?? [],
       })),
       granularity,
+      new Date(),
+      timeZone,
     );
   }
 }

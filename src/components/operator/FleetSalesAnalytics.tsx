@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useFleetSalesAnalytics } from "@/hooks/useFleetSalesAnalytics";
 import { formatCAD, type SalesGranularity } from "@/lib/operator-sales";
+import { browserTimeZone } from "@/lib/operator-timezone";
 import SalesRangeToggle from "./SalesRangeToggle";
+import TimeZoneNote from "./TimeZoneNote";
 import Bone from "./Bone";
 
 const MAX_RANKED_STORES = 6;
@@ -15,7 +17,17 @@ const MAX_RANKED_STORES = 6;
  */
 export default function FleetSalesAnalytics() {
   const [granularity, setGranularity] = useState<SalesGranularity>("month");
-  const { analytics, loading, error } = useFleetSalesAnalytics(granularity);
+
+  // The fleet spans BC through ON, so a bucket cannot be every store's local
+  // day at once. Picking one zone keeps the buckets a clean partition of time
+  // and the totals honest; bucketing each store locally and summing would make
+  // the windows overlap and the bar heights quietly meaningless. The viewer's
+  // own zone is the one they think in, and TimeZoneNote says so out loud.
+  const timeZone = useMemo(() => browserTimeZone(), []);
+  const { analytics, loading, error } = useFleetSalesAnalytics(
+    granularity,
+    timeZone,
+  );
 
   const buckets = analytics?.buckets ?? [];
   const byStore = analytics?.byStore ?? [];
@@ -41,11 +53,14 @@ export default function FleetSalesAnalytics() {
               : "Revenue across every store"}
           </p>
         </div>
-        <SalesRangeToggle
-          value={granularity}
-          onChange={setGranularity}
-          label="Fleet sales range"
-        />
+        <div className="flex flex-col items-end gap-1">
+          <SalesRangeToggle
+            value={granularity}
+            onChange={setGranularity}
+            label="Fleet sales range"
+          />
+          <TimeZoneNote timeZone={timeZone} isViewerZone />
+        </div>
       </div>
 
       {error ? (

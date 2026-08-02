@@ -53,6 +53,9 @@ export const storeSchema = z.object({
   name: z.string(),
   location: z.string(),
   province: provinceCodeSchema,
+  // Optional so a bundle that knows about timezones still validates against an
+  // API deploy that has not shipped the field yet. The province is the fallback.
+  timezone: z.string().optional(),
   status: storeStatusSchema,
   temperature: z.number(),
   lastPing: z.string().datetime(),

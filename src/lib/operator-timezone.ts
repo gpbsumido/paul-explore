@@ -159,6 +159,16 @@ export function dayStartInZone(instant: Date, timeZone: string): Date {
   return zonedInstant(year, month, day, 0, timeZone);
 }
 
+/**
+ * A zone rendered as the place it names. "America/Vancouver" reads as
+ * "Vancouver", which is what an operator recognises -- an offset like UTC-7 is
+ * accurate and means nothing to someone loading a fridge.
+ */
+export function zoneLabel(timeZone: string): string {
+  const region = timeZone.split("/").pop() ?? timeZone;
+  return region.replace(/_/g, " ");
+}
+
 /** Day of the week (0 = Sunday) for a local calendar date. */
 export function weekdayOf(parts: ZonedParts): number {
   return new Date(Date.UTC(parts.year, parts.month - 1, parts.day)).getUTCDay();

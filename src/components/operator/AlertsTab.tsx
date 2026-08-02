@@ -9,8 +9,11 @@ import {
   alertsByDay,
   type AlertSeverityFilter,
 } from "@/lib/operator-detail";
+import { useOperatorStore } from "@/hooks/useOperatorStore";
+import { storeTimeZone } from "@/lib/operator-timezone";
 import type { AlertCategory } from "@/types/operator";
 import AlertRow from "./AlertRow";
+import TimeZoneNote from "./TimeZoneNote";
 import { CheckCircleIcon } from "./icons";
 
 interface AlertsTabProps {
@@ -53,8 +56,14 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
     () => new Set(),
   );
 
+  const { store } = useOperatorStore(storeId);
+  const timeZone = useMemo(() => storeTimeZone(store), [store]);
+
   const summary = useMemo(() => summarizeAlerts(alerts), [alerts]);
-  const trend = useMemo(() => alertsByDay(alerts), [alerts]);
+  const trend = useMemo(
+    () => alertsByDay(alerts, new Date(), 7, timeZone),
+    [alerts, timeZone],
+  );
   const maxTrend = Math.max(1, ...trend.map((t) => t.count));
 
   const visibleAlerts = useMemo(() => {
@@ -152,6 +161,9 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
               </li>
             ))}
           </ul>
+          <div className="mt-1.5">
+            <TimeZoneNote timeZone={timeZone} />
+          </div>
         </div>
 
         {/* Top categories */}

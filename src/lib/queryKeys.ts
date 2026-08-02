@@ -159,7 +159,7 @@ export const queryKeys = {
     fleetSummary: () => ["operator", "fleet-summary"] as const,
 
     /** Fleet-wide sales analytics for a granularity (day/week/month/year). */
-    salesAnalytics: (granularity: string) =>
+    salesAnalytics: (granularity: string, timeZone: string) =>
       ["operator", "sales-analytics", granularity] as const,
   },
 

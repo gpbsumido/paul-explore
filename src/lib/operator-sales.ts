@@ -332,9 +332,10 @@ export function aggregateFleetSales(
   stores: readonly FleetStoreSales[],
   granularity: SalesGranularity,
   now: Date = new Date(),
+  timeZone: string = DEFAULT_ZONE,
 ): FleetSalesAnalytics {
   const allSales = stores.flatMap((s) => [...s.sales]);
-  const buckets = salesByPeriod(allSales, granularity, now);
+  const buckets = salesByPeriod(allSales, granularity, now, timeZone);
 
   // Per-store totals are windowed to the same range as the chart, so the
   // ranking and the fleet total move with the granularity toggle and stay
@@ -342,7 +343,7 @@ export function aggregateFleetSales(
   // the ranking totals equal the charted totals.
   const byStore = stores
     .map((s) => {
-      const storeBuckets = salesByPeriod(s.sales, granularity, now);
+      const storeBuckets = salesByPeriod(s.sales, granularity, now, timeZone);
       return {
         storeId: s.storeId,
         storeName: s.storeName,

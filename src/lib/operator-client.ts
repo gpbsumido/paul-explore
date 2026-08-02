@@ -116,11 +116,10 @@ export async function fetchFleetSummary(): Promise<FleetSummaryResponse> {
 
 export async function fetchSalesAnalytics(
   granularity: string,
+  timeZone: string,
 ): Promise<z.infer<typeof fleetSalesAnalyticsSchema>> {
-  return getJson(
-    `/sales-analytics?granularity=${granularity}`,
-    fleetSalesAnalyticsSchema,
-  );
+  const query = new URLSearchParams({ granularity, tz: timeZone });
+  return getJson(`/sales-analytics?${query}`, fleetSalesAnalyticsSchema);
 }
 
 // ---------------------------------------------------------------------------
