@@ -97,6 +97,22 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/empty box/i);
   });
 
+  it("has a timeline entry linking to the backend-wiring update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /making it real: wiring the dashboard to a database/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-01-backend");
+  });
+
+  it("documents the BFF wiring to portfolio_api and the fallback", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/portfolio_api/);
+    expect(body).toMatch(/operator-bff\.ts/);
+    expect(body).toMatch(/falls back/i);
+  });
+
   it("documents the store-arrangement slot addressing and refill run", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

@@ -9,6 +9,7 @@ import { useDismissAlert } from "@/hooks/useOperatorMutations";
 import {
   getLowStockItemIds,
   getDismissableAlerts,
+  acknowledgeAllLabel,
 } from "@/lib/operator-detail";
 import { queryKeys } from "@/lib/queryKeys";
 import { useToast } from "@/contexts/ToastContext";
@@ -105,11 +106,7 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
           onClick={() => setConfirmTarget("dismiss")}
           disabled={dismissableAlerts.length === 0 || isDismissing}
           icon={<CheckmarkIcon />}
-          label={
-            dismissableAlerts.length > 0
-              ? `Acknowledge All (${dismissableAlerts.length})`
-              : "No Alerts"
-          }
+          label={acknowledgeAllLabel(alerts)}
         />
         <ActionButton
           onClick={handleSensorRefresh}

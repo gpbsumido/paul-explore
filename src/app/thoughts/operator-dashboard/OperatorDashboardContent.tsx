@@ -342,6 +342,17 @@ export default function OperatorDashboardContent() {
               <ol className="mt-3 space-y-2 text-sm">
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 1, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-01-backend"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Making it real: wiring the dashboard to a database
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
                     Jul 31, 2026
                   </span>
                   <a
@@ -1453,6 +1464,83 @@ export default function OperatorDashboardContent() {
                 optimistically and reconcile in the background, and the poll
                 cadence matches how fast each kind of data actually changes.
                 Fewer round-trips, and the UI never waits on one.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-01-backend"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 1, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Making it real: wiring the dashboard to a database
+              </h2>
+              <p className="text-muted">
+                Everything so far ran on an in-memory store &mdash; seeded
+                factory data that resets on restart. Great for a demo, but it was
+                never real. So I moved the operator data into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  portfolio_api
+                </code>{" "}
+                (the same Node/Express/Postgres backend the rest of the site
+                uses) &mdash; real tables for stores, inventory, alerts, activity,
+                sales, and the planogram &mdash; and rewired the dashboard to
+                read and write it.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                A BFF that falls back
+              </h3>
+              <p className="text-muted">
+                Every{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/operator/*
+                </code>{" "}
+                route is now a thin proxy over the live service, the same shape
+                as the feature-flags console:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-client.ts
+                </code>{" "}
+                makes the validated HTTP calls and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-bff.ts
+                </code>{" "}
+                prefers the API but falls back to the in-memory seed when the
+                backend is unreachable. So the demo still works, and looks
+                identical, whether or not the API is running &mdash; and if you
+                do run it, you get real persistence. The client validates every
+                response against the same Zod schemas the UI already uses, so a
+                drifting API surfaces as a clear error instead of quietly bad
+                state.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Aggregate in the database, not the app
+              </h3>
+              <p className="text-muted">
+                This is where the earlier &quot;fewer calls&quot; instinct pays
+                off for real. The fleet-summary and sales-analytics endpoints
+                used to loop the in-memory data in JS; now they are grouped SQL
+                on the server &mdash; one{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GROUP BY
+                </code>{" "}
+                per axis (per store, per time bucket) instead of pulling every
+                alert and sale row across the wire to sum them here. The browser
+                still makes one request per view; the database does the fan-in.
+                The backend even logs the aggregation time, so the win is
+                something you can actually measure rather than just assert.
+              </p>
+              <p className="mt-3 text-muted">
+                One small contract change fell out of it: a list read for a store
+                that doesn&apos;t exist now returns an empty list, not a 404. The
+                in-memory version 404&apos;d because the store simply wasn&apos;t
+                in the map; a real list endpoint has no reason to &mdash; &quot;no
+                rows&quot; is a fine answer. The store-detail read still 404s,
+                because asking for a store that isn&apos;t there is a real
+                not-found.
               </p>
             </section>
 

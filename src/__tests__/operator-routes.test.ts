@@ -102,14 +102,15 @@ describe("GET /api/operator/stores/:storeId/inventory", () => {
     }
   });
 
-  it("returns 404 for unknown store id", async () => {
+  it("returns an empty list for an unknown store (list reads do not 404)", async () => {
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/inventory/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999/inventory"),
       makeParams({ storeId: "nonexistent-999" }),
     );
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(200);
+    expect((await res.json()).items).toEqual([]);
   });
 });
 
@@ -140,14 +141,15 @@ describe("GET /api/operator/stores/:storeId/alerts", () => {
     }
   });
 
-  it("returns 404 for unknown store id", async () => {
+  it("returns an empty list for an unknown store (list reads do not 404)", async () => {
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/alerts/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999/alerts"),
       makeParams({ storeId: "nonexistent-999" }),
     );
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(200);
+    expect((await res.json()).alerts).toEqual([]);
   });
 });
 
@@ -179,14 +181,15 @@ describe("GET /api/operator/stores/:storeId/sales", () => {
     }
   });
 
-  it("returns 404 for unknown store id", async () => {
+  it("returns an empty list for an unknown store (list reads do not 404)", async () => {
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/sales/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999/sales"),
       makeParams({ storeId: "nonexistent-999" }),
     );
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(200);
+    expect((await res.json()).sales).toEqual([]);
   });
 });
 
@@ -250,14 +253,15 @@ describe("GET /api/operator/stores/:storeId/planogram", () => {
     expect(body.slots.length).toBeGreaterThan(0);
   });
 
-  it("returns 404 for unknown store id", async () => {
+  it("returns an empty layout for an unknown store (list reads do not 404)", async () => {
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/planogram/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nope-999/planogram"),
       makeParams({ storeId: "nope-999" }),
     );
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(200);
+    expect((await res.json()).slots).toEqual([]);
   });
 });
 

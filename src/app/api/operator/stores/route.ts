@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { getStores } from "@/lib/operator-data";
+import { loadStores } from "@/lib/operator-bff";
 
 export async function GET() {
-  const stores = getStores();
-  return NextResponse.json({ stores });
+  return NextResponse.json({ stores: await loadStores() });
 }

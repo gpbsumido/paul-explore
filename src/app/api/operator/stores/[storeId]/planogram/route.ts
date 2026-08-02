@@ -1,22 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { planogramUpdateSchema } from "@/lib/operator-schemas";
 import { parseBody } from "@/lib/parseBody";
-import {
-  getPlanogram,
-  setPlanogram,
-  resyncPlanogramSlot,
-} from "@/lib/operator-data";
+import { loadPlanogram, applyPlanogramUpdate } from "@/lib/operator-bff";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ storeId: string }> },
 ) {
   const { storeId } = await params;
-  const slots = getPlanogram(storeId);
-  if (!slots) {
-    return NextResponse.json({ error: "Store not found" }, { status: 404 });
-  }
-  return NextResponse.json({ slots });
+  return NextResponse.json({ slots: await loadPlanogram(storeId) });
 }
 
 export async function PATCH(
@@ -25,22 +17,12 @@ export async function PATCH(
 ) {
   const { storeId } = await params;
 
-  if (!getPlanogram(storeId)) {
-    return NextResponse.json({ error: "Store not found" }, { status: 404 });
-  }
-
   const bodyResult = await parseBody(request, planogramUpdateSchema);
   if (!bodyResult.ok) return bodyResult.response;
 
-  const body = bodyResult.data;
-  const slots =
-    "boxes" in body
-      ? setPlanogram(storeId, body.boxes)
-      : resyncPlanogramSlot(storeId, body.resyncItemId);
-
+  const slots = await applyPlanogramUpdate(storeId, bodyResult.data);
   if (!slots) {
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
   }
-
   return NextResponse.json({ slots });
 }
