@@ -10,7 +10,6 @@ import type { InventoryItem, Sale } from "@/types/operator";
 
 /** The discount options an operator can pick, per product or store-wide. */
 export const DISCOUNT_STEPS = [0, 5, 10, 15, 20, 25] as const;
-export type DiscountStep = (typeof DISCOUNT_STEPS)[number];
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
