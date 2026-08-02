@@ -1180,12 +1180,13 @@ export default function OperatorDashboardContent() {
               <p className="mt-3 text-muted">
                 The obvious alternative is to run migrations automatically as
                 part of the deploy, and I decided against it. It reads like
-                better developer experience and mostly buys you a worse failure
+                better developer experience and mostly buys a worse failure
                 mode: two deploys racing each other both try to migrate, a
-                destructive migration ships with no human between it and
-                production, and a migration that fails halfway leaves you with a
-                broken release and no obvious rollback. Keeping it manual costs
-                one command and keeps someone accountable for the ordering.
+                destructive migration goes out before I have read it, and a
+                migration that fails halfway leaves a broken release with no
+                obvious rollback. Keeping it manual costs me one command and
+                keeps the ordering something I own rather than something that
+                happens to me.
               </p>
               <p className="mt-3 text-muted">
                 What makes that cost acceptable rather than a trap is the
