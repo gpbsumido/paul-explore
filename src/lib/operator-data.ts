@@ -410,11 +410,6 @@ export function listPromotions(storeId: string): Promotion[] {
     .map(withDerivedStatus);
 }
 
-export function getPromotion(id: string): Promotion | undefined {
-  const found = getDataStore().promotions.get(id);
-  return found ? withDerivedStatus(found) : undefined;
-}
-
 export function insertPromotion(
   storeId: string,
   body: {
