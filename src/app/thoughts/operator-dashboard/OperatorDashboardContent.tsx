@@ -1177,6 +1177,26 @@ export default function OperatorDashboardContent() {
                 and the only reason I caught it was checking a claim I was
                 already confident about.
               </p>
+              <p className="mt-3 text-muted">
+                The obvious alternative is to run migrations automatically as
+                part of the deploy, and I decided against it. It reads like
+                better developer experience and mostly buys you a worse failure
+                mode: two deploys racing each other both try to migrate, a
+                destructive migration ships with no human between it and
+                production, and a migration that fails halfway leaves you with a
+                broken release and no obvious rollback. Keeping it manual costs
+                one command and keeps someone accountable for the ordering.
+              </p>
+              <p className="mt-3 text-muted">
+                What makes that cost acceptable rather than a trap is the
+                discipline it forces: every migration has to be safe to run
+                against the currently deployed code. Add columns nullable, add
+                tables nobody reads yet, and never drop or rename in the same
+                release that stops using something. Do that and the ordering
+                stops being dangerous, because the schema being ahead is always
+                fine and the code being ahead never happens. Users notice none of
+                it, which is the point.
+              </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 Why I didn&apos;t put auth on the write endpoints
