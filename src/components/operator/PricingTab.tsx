@@ -6,8 +6,11 @@ import { useOperatorSales } from "@/hooks/useOperatorSales";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import {
   DISCOUNT_STEPS,
+  MARGIN_STEPS,
   buildPricingTable,
+  buildProductProfit,
   summarizePricing,
+  summarizeProfit,
 } from "@/lib/operator-pricing";
 import { computeTax } from "@/lib/operator-tax";
 import { formatCAD } from "@/lib/operator-sales";
@@ -34,12 +37,21 @@ export default function PricingTab({ storeId }: PricingTabProps) {
   const [promoByItemId, setPromoByItemId] = useState<Record<string, number>>(
     {},
   );
+  // Assumed gross margin, since inventory carries a price but no cost. Cost of
+  // goods is derived from this so the calculator can show profit, not just
+  // revenue.
+  const [marginPercent, setMarginPercent] = useState<number>(45);
 
   const rows = useMemo(
     () => buildPricingTable(items, sales, promoByItemId),
     [items, sales, promoByItemId],
   );
   const summary = useMemo(() => summarizePricing(rows), [rows]);
+  const profitRows = useMemo(
+    () => rows.map((row) => buildProductProfit(row, marginPercent)),
+    [rows, marginPercent],
+  );
+  const profit = useMemo(() => summarizeProfit(profitRows), [profitRows]);
 
   function setItemPromo(itemId: string, percent: number) {
     setPromoByItemId((prev) => ({ ...prev, [itemId]: percent }));
@@ -97,10 +109,48 @@ export default function PricingTab({ storeId }: PricingTabProps) {
         </div>
       </section>
 
-      {/* Calculator headline */}
+      {/* Assumed margin — inventory has no cost, so the operator plugs one in */}
+      <section className="rounded-lg border border-border bg-surface p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">
+              Assumed gross margin
+            </h3>
+            <p className="mt-0.5 text-xs text-muted">
+              Cost of goods is estimated from this to project profit.
+            </p>
+          </div>
+          <div
+            className="flex flex-wrap gap-1.5"
+            role="group"
+            aria-label="Assumed gross margin"
+          >
+            {MARGIN_STEPS.map((step) => {
+              const selected = marginPercent === step;
+              return (
+                <button
+                  type="button"
+                  key={step}
+                  aria-pressed={selected}
+                  onClick={() => setMarginPercent(step)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
+                    selected
+                      ? "bg-primary-600 text-white"
+                      : "border border-border text-muted hover:text-foreground"
+                  }`}
+                >
+                  {step}%
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Calculator headline: revenue and profit */}
       <section className="rounded-lg border border-primary-400/40 bg-primary-500/5 p-4">
         <h3 className="text-sm font-semibold text-foreground">
-          Projected weekly revenue
+          Projected weekly numbers
         </h3>
         <p className="mt-0.5 text-xs text-muted">
           Based on the last 7 days of sales, assuming volume holds at the new
@@ -109,7 +159,7 @@ export default function PricingTab({ storeId }: PricingTabProps) {
         <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
           <div className="rounded-md bg-surface px-3 py-2">
             <dt className="text-[11px] uppercase tracking-wide text-muted">
-              At list price
+              Revenue at list
             </dt>
             <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
               {formatCAD(summary.weeklyRevenueAtList)}
@@ -117,10 +167,26 @@ export default function PricingTab({ storeId }: PricingTabProps) {
           </div>
           <div className="rounded-md bg-surface px-3 py-2">
             <dt className="text-[11px] uppercase tracking-wide text-muted">
-              With promos
+              Revenue with promos
             </dt>
             <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
               {formatCAD(summary.weeklyRevenueAtPromo)}
+            </dd>
+          </div>
+          <div className="rounded-md bg-surface px-3 py-2">
+            <dt className="text-[11px] uppercase tracking-wide text-muted">
+              Profit at list
+            </dt>
+            <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
+              {formatCAD(profit.weeklyProfitAtList)}
+            </dd>
+          </div>
+          <div className="rounded-md bg-surface px-3 py-2">
+            <dt className="text-[11px] uppercase tracking-wide text-muted">
+              Profit with promos
+            </dt>
+            <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
+              {formatCAD(profit.weeklyProfitAtPromo)}
             </dd>
           </div>
         </dl>
@@ -142,6 +208,13 @@ export default function PricingTab({ storeId }: PricingTabProps) {
             </span>
           )}
         </p>
+        {profit.itemsBelowCost > 0 && (
+          <p className="mt-2 text-sm font-medium text-error-600 dark:text-error-400">
+            ⚠ {profit.itemsBelowCost}{" "}
+            {profit.itemsBelowCost === 1 ? "product is" : "products are"} priced
+            below cost at this margin.
+          </p>
+        )}
       </section>
 
       {/* Per-product pricing */}
@@ -152,8 +225,8 @@ export default function PricingTab({ storeId }: PricingTabProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">
-              List price, chosen discount, promo price and projected weekly
-              revenue per product
+              List price, chosen discount, promo price, projected weekly profit
+              and discount controls per product
             </caption>
             <thead>
               <tr className="text-muted">
@@ -169,13 +242,16 @@ export default function PricingTab({ storeId }: PricingTabProps) {
                 <th scope="col" className="py-1.5 pr-3 text-right font-medium">
                   With tax
                 </th>
+                <th scope="col" className="py-1.5 pr-3 text-right font-medium">
+                  Profit/wk
+                </th>
                 <th scope="col" className="py-1.5 font-medium">
                   Discount
                 </th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {profitRows.map((row) => {
                 const taxed = store
                   ? computeTax(row.promoPrice, store.province).total
                   : row.promoPrice;
@@ -201,6 +277,18 @@ export default function PricingTab({ storeId }: PricingTabProps) {
                     </td>
                     <td className="py-2 pr-3 text-right tabular-nums text-muted">
                       {formatCAD(taxed)}
+                    </td>
+                    <td
+                      className={`py-2 pr-3 text-right tabular-nums ${
+                        row.belowCost
+                          ? "font-semibold text-error-600 dark:text-error-400"
+                          : "text-foreground"
+                      }`}
+                    >
+                      {formatCAD(row.weeklyProfitAtPromo)}
+                      {row.belowCost && (
+                        <span className="sr-only"> (below cost)</span>
+                      )}
                     </td>
                     <td className="py-2">
                       <div

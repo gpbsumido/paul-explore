@@ -129,6 +129,14 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/volume holds/i);
   });
 
+  it("documents the profit calculator: assumed margin and below-cost guard", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/summarizeProfit/);
+    expect(body).toMatch(/gross margin/i);
+    expect(body).toMatch(/below cost/i);
+  });
+
   it("has a timeline entry linking to the alert-history update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {

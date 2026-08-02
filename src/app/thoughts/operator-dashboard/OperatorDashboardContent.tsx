@@ -1155,6 +1155,42 @@ export default function OperatorDashboardContent() {
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                From revenue to profit
+              </h3>
+              <p className="text-muted">
+                The version the commercial platforms actually sell is a{" "}
+                <em>profit</em> calculator, not just revenue, and a discount only
+                makes sense against what a product costs. My inventory carries a
+                sale price but no cost of goods, and I didn&apos;t want to invent
+                a backend field for it. So cost is derived from an assumed gross
+                margin the operator plugs in &mdash; 30, 40, 50, 60% &mdash; the
+                same &quot;enter your numbers&quot; move those calculators make.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  unitCost(list, margin)
+                </code>{" "}
+                turns the margin into a cost,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  buildProfitTable
+                </code>{" "}
+                layers projected weekly profit at list and promo onto each row,
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  summarizeProfit
+                </code>{" "}
+                totals it and counts anything the discount has pushed below cost.
+              </p>
+              <p className="mt-3 text-muted">
+                That below-cost guard is why the discounts go all the way to a
+                50% clearance cut. A gentle 10% off never threatens a healthy
+                margin, but a clearance promotion can absolutely sell a product
+                at a loss, and the calculator should say so &mdash; the row turns
+                red and the header warns how many products are underwater at the
+                current margin. It&apos;s the difference between &quot;here&apos;s
+                a discount&quot; and &quot;here&apos;s what the discount does to
+                the bottom line.&quot;
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 Usable and accessible
               </h3>
               <p className="text-muted">

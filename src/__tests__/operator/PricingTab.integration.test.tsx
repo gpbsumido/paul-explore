@@ -82,6 +82,25 @@ describe("PricingTab", () => {
     expect(view.getByText(/\$2\.00 \/ week/)).toBeInTheDocument();
   });
 
+  it("warns when a clearance discount pushes a product below cost", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<PricingTab storeId={STORE_ID} />, {
+      wrapper: makeWrapper(),
+    });
+    const view = within(container);
+
+    await view.findByText("Cola");
+    // Default margin 45% on a $2 item -> cost $1.10. A 50% clearance -> $1.00,
+    // below cost.
+    await user.click(
+      view.getByRole("button", { name: "Set Cola discount to 50%" }),
+    );
+
+    await waitFor(() =>
+      expect(view.getByText(/priced\s+below cost/i)).toBeInTheDocument(),
+    );
+  });
+
   it("shows an empty state when the store has no products", async () => {
     server.use(
       http.get(`/api/operator/stores/${STORE_ID}/inventory`, () =>

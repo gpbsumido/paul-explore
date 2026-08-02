@@ -1,11 +1,15 @@
 import { describe, it, expect } from "vitest";
 import {
   DISCOUNT_STEPS,
+  MARGIN_STEPS,
   promoPrice,
   weeklyUnitsFor,
   buildProductPricing,
   buildPricingTable,
   summarizePricing,
+  unitCost,
+  buildProfitTable,
+  summarizeProfit,
 } from "@/lib/operator-pricing";
 import { buildInventoryItem, buildSale } from "@/test/factories/operator";
 
@@ -131,8 +135,73 @@ describe("summarizePricing", () => {
     expect(summary.avgDiscount).toBe(15);
   });
 
-  it("has a stable set of discount steps starting at zero", () => {
+  it("has a stable set of discount steps from zero to a clearance cut", () => {
     expect(DISCOUNT_STEPS[0]).toBe(0);
-    expect([...DISCOUNT_STEPS]).toEqual([0, 5, 10, 15, 20, 25]);
+    expect([...DISCOUNT_STEPS]).toEqual([0, 10, 20, 30, 40, 50]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Profit: cost is modelled from an assumed gross margin on the list price
+// ---------------------------------------------------------------------------
+
+describe("unitCost", () => {
+  it("derives cost of goods from the list-price margin", () => {
+    // 40% margin on a $3 item means cost is 60% of list = $1.80.
+    expect(unitCost(3, 40)).toBe(1.8);
+    expect(unitCost(6.99, 50)).toBe(3.5);
+  });
+
+  it("offers a stable set of margin steps", () => {
+    expect([...MARGIN_STEPS]).toEqual([30, 40, 50, 60]);
+  });
+});
+
+describe("buildProfitTable", () => {
+  it("projects weekly profit at list and promo against the assumed cost", () => {
+    const items = [
+      buildInventoryItem({ id: "bar", productName: "Bar", price: 3 }),
+    ];
+    const sales = [saleDaysAgo("Bar", 10, 1)];
+
+    // 40% margin -> unit cost $1.80. 20% off -> promo $2.40.
+    const [row] = buildProfitTable(items, sales, { bar: 20 }, 40, NOW);
+
+    expect(row.unitCost).toBe(1.8);
+    expect(row.weeklyProfitAtList).toBe(12); // (3 - 1.8) * 10
+    expect(row.weeklyProfitAtPromo).toBe(6); // (2.4 - 1.8) * 10
+    expect(row.belowCost).toBe(false);
+  });
+
+  it("flags a product whose promo price dips below cost", () => {
+    const items = [
+      buildInventoryItem({ id: "bar", productName: "Bar", price: 2 }),
+    ];
+    const sales = [saleDaysAgo("Bar", 4, 1)];
+    // 10% margin -> cost $1.80. A steep 50% discount -> promo $1.00, below cost.
+    const [row] = buildProfitTable(items, sales, { bar: 50 }, 10, NOW);
+
+    expect(row.belowCost).toBe(true);
+    expect(row.weeklyProfitAtPromo).toBeLessThan(0); // (1.00 - 1.80) * 4
+  });
+});
+
+describe("summarizeProfit", () => {
+  it("totals weekly profit at list vs promo and counts below-cost items", () => {
+    const items = [
+      buildInventoryItem({ id: "a", productName: "A", price: 3 }),
+      buildInventoryItem({ id: "b", productName: "B", price: 2 }),
+    ];
+    const sales = [saleDaysAgo("A", 10, 1), saleDaysAgo("B", 5, 1)];
+    // A: 40% margin cost 1.80, 20% off -> profit 6/wk. B: cost 1.80, 50% off -> promo 1.00.
+    const rows = buildProfitTable(items, sales, { a: 20, b: 50 }, 10, NOW);
+
+    // A's margin at 10% -> cost 2.70; recompute deliberately below with margin 10.
+    const summary = summarizeProfit(rows);
+
+    expect(summary.itemsBelowCost).toBe(2);
+    expect(summary.profitDelta).toBe(
+      summary.weeklyProfitAtPromo - summary.weeklyProfitAtList,
+    );
   });
 });

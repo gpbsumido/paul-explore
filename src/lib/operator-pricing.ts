@@ -8,8 +8,19 @@
 
 import type { InventoryItem, Sale } from "@/types/operator";
 
-/** The discount options an operator can pick, per product or store-wide. */
-export const DISCOUNT_STEPS = [0, 5, 10, 15, 20, 25] as const;
+/**
+ * The discount options an operator can pick, per product or store-wide. Goes up
+ * to a steep clearance cut, so a promotion can realistically dip below cost and
+ * the profit calculator has something to warn about.
+ */
+export const DISCOUNT_STEPS = [0, 10, 20, 30, 40, 50] as const;
+
+/**
+ * The assumed gross-margin options for the profit calculator. Inventory only
+ * carries a sale price, not a cost, so the operator plugs in a margin and cost
+ * is derived from it (the "plug in your numbers" model of a profit calculator).
+ */
+export const MARGIN_STEPS = [30, 40, 50, 60] as const;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -148,5 +159,94 @@ export function summarizePricing(
     weeklyRevenueAtList: toCents(weeklyRevenueAtList),
     weeklyRevenueAtPromo: toCents(weeklyRevenueAtPromo),
     revenueDelta: toCents(weeklyRevenueAtPromo - weeklyRevenueAtList),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Profit: cost of goods is modelled from an assumed gross margin on the list
+// price, so an operator can see profit, not just revenue, and how a discount
+// eats into the margin.
+// ---------------------------------------------------------------------------
+
+/**
+ * The assumed unit cost of a product, derived from its list price and a gross
+ * margin percentage. A 40% margin means cost is 60% of the list price.
+ */
+export function unitCost(listPrice: number, marginPercent: number): number {
+  return toCents(listPrice * (1 - clampPercent(marginPercent) / 100));
+}
+
+export type ProductProfit = ProductPricing & {
+  unitCost: number;
+  weeklyProfitAtList: number;
+  weeklyProfitAtPromo: number;
+  belowCost: boolean;
+};
+
+/**
+ * Layers profit onto a pricing row: the assumed unit cost, projected weekly
+ * profit at both the list and promo price, and whether the promo price has
+ * dipped below cost (a discount deeper than the margin).
+ */
+export function buildProductProfit(
+  row: ProductPricing,
+  marginPercent: number,
+): ProductProfit {
+  const cost = unitCost(row.listPrice, marginPercent);
+  return {
+    ...row,
+    unitCost: cost,
+    weeklyProfitAtList: toCents((row.listPrice - cost) * row.weeklyUnits),
+    weeklyProfitAtPromo: toCents((row.promoPrice - cost) * row.weeklyUnits),
+    belowCost: row.promoPrice < cost,
+  };
+}
+
+/**
+ * Builds a profit row for every inventory item: the pricing table with the
+ * assumed-cost profit projection layered on each row.
+ */
+export function buildProfitTable(
+  items: readonly InventoryItem[],
+  sales: readonly Sale[],
+  promoByItemId: Record<string, number> = {},
+  marginPercent: number = 45,
+  now: Date = new Date(),
+): readonly ProductProfit[] {
+  return buildPricingTable(items, sales, promoByItemId, now).map((row) =>
+    buildProductProfit(row, marginPercent),
+  );
+}
+
+export type ProfitSummary = {
+  weeklyProfitAtList: number;
+  weeklyProfitAtPromo: number;
+  profitDelta: number;
+  itemsBelowCost: number;
+};
+
+/**
+ * Rolls the profit rows into the calculator headline: projected weekly profit
+ * at list vs with the promos, the delta between them, and how many products the
+ * chosen discounts have pushed below cost.
+ */
+export function summarizeProfit(
+  rows: readonly ProductProfit[],
+): ProfitSummary {
+  let weeklyProfitAtList = 0;
+  let weeklyProfitAtPromo = 0;
+  let itemsBelowCost = 0;
+
+  for (const row of rows) {
+    weeklyProfitAtList += row.weeklyProfitAtList;
+    weeklyProfitAtPromo += row.weeklyProfitAtPromo;
+    if (row.belowCost) itemsBelowCost += 1;
+  }
+
+  return {
+    weeklyProfitAtList: toCents(weeklyProfitAtList),
+    weeklyProfitAtPromo: toCents(weeklyProfitAtPromo),
+    profitDelta: toCents(weeklyProfitAtPromo - weeklyProfitAtList),
+    itemsBelowCost,
   };
 }
