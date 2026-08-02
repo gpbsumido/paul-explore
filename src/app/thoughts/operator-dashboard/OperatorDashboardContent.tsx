@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-02-restocking"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Restocking: my one button was a fiction
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-timezones"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1079,6 +1090,195 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-02-restocking"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Restocking: my one button was a fiction
+              </h2>
+              <p className="text-muted">
+                Restocking is the single most documented workflow on
+                Micromart&apos;s site, and it is documented as a phone task. Pick
+                store, pick cabinet, tap a slot, see the expected count,
+                optionally confirm a physical count, Add and Remove per slot with
+                a required reason on removals, repeat, review, complete. Skipping
+                the count is explicitly supported so a team can spot-check rather
+                than count everything.
+              </p>
+              <p className="mt-3 text-muted">
+                Mine was one button. It ran{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  update operator_inventory set current_stock = capacity
+                </code>{" "}
+                and wrote a single activity row reading &quot;Restocked N item(s)
+                to full capacity&quot;.
+              </p>
+              <p className="mt-3 text-muted">
+                That is not a simplification, it is a fiction. It cannot express
+                six yogurts binned because they expired, a sensor reading eight
+                where the shelf held five, or a case damaged in the van.
+                Shrinkage and miscounts are exactly where an unattended-retail
+                operator&apos;s margin goes, and my data model had nowhere to put
+                either of them. I had built the happy path and called it the
+                feature.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The one decision the rest falls out of
+              </h3>
+              <p className="text-muted">
+                A restock is now a session with one line per product touched, and{" "}
+                <strong>inventory is never written directly</strong>. Lines
+                accumulate while the restocker works the shelf; completing the
+                session is the only thing that touches{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator_inventory
+                </code>
+                , in one transaction. One write path means the audit trail cannot
+                be bypassed, which is the whole reason the feature is worth
+                anything.
+              </p>
+              <p className="mt-3 text-muted">
+                The subtle part is that{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  counted_qty
+                </code>{" "}
+                is nullable, and that is deliberate rather than lazy. Null means
+                the restocker chose to skip counting that slot. That is a
+                recorded decision, not absent data, and it is what lets a line be
+                classified as matches-expected, correction, or not-counted. A
+                spot-checked shelf and an unchecked one look identical in a
+                schema that only stores the final number, and telling them apart
+                is most of the value.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I did with the old button, and why
+              </h3>
+              <p className="text-muted">
+                Three options, all defensible. Delete it and force the full flow;
+                keep it as a second, un-audited path; or rewrite it. Deleting it
+                turns &quot;top everything up before I leave&quot; into a
+                six-step wizard, which is a worse product for a real operator on
+                a real route. Keeping it un-audited leaves a hole straight
+                through the feature I just built.
+              </p>
+              <p className="mt-3 text-muted">
+                So I rewrote it. Quick-fill now opens a session, writes a line
+                per item marked <em>not counted</em> with the top-up as the add,
+                and completes it. The response shape is byte-identical for the
+                existing client, so the optimistic mutation on the frontend did
+                not change at all &mdash; but the shortcut now leaves the same
+                trail as a walked shelf, and honestly labels itself as a fill
+                nobody counted.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                How the backend shaped the frontend, again
+              </h3>
+              <p className="text-muted">
+                The API contract here is not a passive data pipe; it decided the
+                shape of the UI in three places.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Completing twice is a 409, so the client can be dumb.</strong>{" "}
+                A double submit from a phone with a flaky connection is the
+                likeliest failure mode in this whole feature, and applying the
+                adds and removes twice would silently corrupt the shelf. Because
+                the server refuses the second one, the frontend does not need
+                request de-duplication, an idempotency key, or a disabled-button
+                race. It needs a disabled button for the common case and an error
+                message for the rare one. Pushing that invariant server-side
+                removed a category of client state.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Lines are upserted on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  (session_id, item_id)
+                </code>
+                , so saving is idempotent.</strong>{" "}
+                That is what makes it safe to push a line on slot-save and retry
+                without thinking. And it is why I push on save rather than on
+                every tap: per-keystroke writes over a bad connection is the
+                obvious wrong design, so the local draft is the source of truth
+                until a slot is done, and then exactly one request goes out.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>The session lives in the database, so resume is nearly
+                free.</strong>{" "}
+                One localStorage key holds the id; a reload re-fetches the
+                session and carries on. That sounds like a small thing and is
+                not: the target device is a phone in a parking garage or a
+                stairwell, and losing twenty slots of counting to a backgrounded
+                tab would make the whole feature untrustworthy. Real offline
+                queueing needs conflict rules and is a project of its own, so I
+                drew the line at surviving a refresh and said so.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Design for a thumb in a cold room
+              </h3>
+              <p className="text-muted">
+                Steppers, not number inputs. Every target at least 44px. The
+                running result is in an{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-live=&quot;polite&quot;
+                </code>{" "}
+                region so it can be confirmed without looking away from the
+                shelf. The reason picker is a real radiogroup that becomes
+                required the instant anything is removed, with the message tied
+                by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-describedby
+                </code>{" "}
+                rather than shown as a floating red string.
+              </p>
+              <p className="mt-3 text-muted">
+                Two of my own component tests failed on the first run and both
+                were real bugs, not bad tests. The skip-count control relabelled
+                itself as it toggled, which reads as two different buttons; it
+                now keeps one label and carries the state in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-pressed
+                </code>
+                . And &quot;not counted&quot; appeared twice on the same screen
+                in two different meanings. Writing the assertion from the
+                operator&apos;s point of view is what surfaced both.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Who this helps
+              </h3>
+              <p className="text-muted">
+                <strong>Operators</strong> get the question they actually have an
+                answer to at month end: where did the margin go. &quot;Restocked
+                6 items&quot; tells them nothing; &quot;-5 (3 expired, 2
+                damaged), 2 corrections&quot; is a sentence they can act on. And
+                the correction count is a second, quieter signal &mdash; a slot
+                that keeps disagreeing with the sensor is a hardware problem, not
+                a stock problem.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Developers</strong> get one write path to inventory and a
+                pure helper that owns the arithmetic on both sides. Every future
+                feature that moves stock &mdash; fill targets, pick lists,
+                returns &mdash; writes a session rather than inventing its own
+                update, so the audit trail keeps working without anybody
+                maintaining it. The reason codes being a constrained enum rather
+                than free text is the same bet: it costs a migration to add one,
+                and it makes &quot;how much did we lose to expiry last month&quot;
+                a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GROUP BY
+                </code>{" "}
+                instead of a research project.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-02-timezones"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"

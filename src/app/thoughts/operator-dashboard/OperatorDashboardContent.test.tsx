@@ -154,6 +154,30 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/makes the number honest/);
   });
 
+  it("documents the restock work: the fiction, the session, the 409", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/is a fiction/);
+    expect(body).toMatch(/counted_qty/);
+    expect(body).toMatch(/409/);
+    expect(body).toMatch(/inventory is never written directly/i);
+  });
+
+  it("explains what happened to the old one-tap restock", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/six-step wizard/);
+    expect(body).toMatch(/leaves the same trail as a walked shelf/);
+  });
+
+  it("has a timeline entry linking to the restocking update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /restocking: my one button was a fiction/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-restocking");
+  });
+
   it("has a timeline entry linking to the timezone update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {
