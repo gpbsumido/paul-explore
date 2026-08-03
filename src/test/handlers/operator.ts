@@ -33,6 +33,28 @@ import {
   resetFactoryCounter,
 } from "@/test/factories/operator";
 
+
+/**
+ * Handlers must match the URL the BFF actually requests, which is absolute.
+ *
+ * They used to be registered on bare paths. MSW resolves a relative handler
+ * against the document origin, which under jsdom is port 3000, while the BFF
+ * calls the API on 3001 -- so nothing matched. With onUnhandledRequest set to
+ * "error" that should have been loud, and it was: MSW refused the request. But
+ * the BFF catches a failed call and falls back to seeded data by design, so it
+ * swallowed the refusal and returned a plausible answer, and the tests went
+ * green. A test named "returns a list of stores that pass schema validation"
+ * was validating the seed rather than anything the API said, 40 times in one
+ * file. The fallback that keeps the demo alive had eaten the mechanism meant
+ * to catch missing handlers.
+ */
+// Read straight from the environment rather than importing backendFetch. This
+// module is loaded during test setup for every file, so importing the app's
+// fetch layer here pulls it into suites that deliberately mock its
+// dependencies, and their mocks stop lining up. Same default as backendFetch;
+// the duplication is one line and buys full isolation.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
 // ---------------------------------------------------------------------------
 // Seed data — generated once, mutated in-place by handlers
 // ---------------------------------------------------------------------------
@@ -124,9 +146,9 @@ function randomDelay(): Promise<void> {
 
 const LOW_STOCK_THRESHOLD = 0.2;
 
-export const operatorHandlers = [
+const handlersFor = (API_BASE: string) => [
   // GET /api/operator/fleet-summary — aggregated dashboard data
-  http.get("/api/operator/fleet-summary", async () => {
+  http.get(`${API_BASE}/api/operator/fleet-summary`, async () => {
     await randomDelay();
 
     const allAlertsFlat: Alert[] = [];
@@ -186,7 +208,7 @@ export const operatorHandlers = [
   }),
 
   // GET /api/operator/sales-analytics — fleet-wide sales rollup
-  http.get("/api/operator/sales-analytics", async ({ request }) => {
+  http.get(`${API_BASE}/api/operator/sales-analytics`, async ({ request }) => {
     await randomDelay();
     const url = new URL(request.url);
     const granularities: SalesGranularity[] = ["day", "week", "month", "year"];
@@ -206,13 +228,13 @@ export const operatorHandlers = [
   }),
 
   // GET /api/operator/stores — fleet list
-  http.get("/api/operator/stores", async () => {
+  http.get(`${API_BASE}/api/operator/stores`, async () => {
     await randomDelay();
     return HttpResponse.json({ stores });
   }),
 
   // GET /api/operator/stores/:id — store detail
-  http.get("/api/operator/stores/:id", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/stores/:id`, async ({ params }) => {
     await randomDelay();
     const store = stores.find((s) => s.id === params.id);
     if (!store) {
@@ -222,7 +244,7 @@ export const operatorHandlers = [
   }),
 
   // GET /api/operator/stores/:id/inventory — inventory list
-  http.get("/api/operator/stores/:id/inventory", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/stores/:id/inventory`, async ({ params }) => {
     await randomDelay();
     const items = inventoryByStore.get(params.id as string);
     if (!items) {
@@ -232,7 +254,7 @@ export const operatorHandlers = [
   }),
 
   // GET /api/operator/stores/:id/alerts — alerts for a store
-  http.get("/api/operator/stores/:id/alerts", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/stores/:id/alerts`, async ({ params }) => {
     await randomDelay();
     const alerts = alertsByStore.get(params.id as string);
     if (!alerts) {
@@ -242,7 +264,7 @@ export const operatorHandlers = [
   }),
 
   // GET /api/operator/stores/:id/activity — activity events
-  http.get("/api/operator/stores/:id/activity", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/stores/:id/activity`, async ({ params }) => {
     await randomDelay();
     const events = activityByStore.get(params.id as string);
     if (!events) {
@@ -252,7 +274,7 @@ export const operatorHandlers = [
   }),
 
   // GET /api/operator/stores/:id/sales — sales history
-  http.get("/api/operator/stores/:id/sales", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/stores/:id/sales`, async ({ params }) => {
     await randomDelay();
     const sales = salesByStore.get(params.id as string);
     if (!sales) {
@@ -262,7 +284,7 @@ export const operatorHandlers = [
   }),
 
   // GET /api/operator/stores/:id/planogram — persisted shelf layout
-  http.get("/api/operator/stores/:id/planogram", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/stores/:id/planogram`, async ({ params }) => {
     await randomDelay();
     const slots = planogramByStore.get(params.id as string);
     if (!slots) {
@@ -306,7 +328,7 @@ export const operatorHandlers = [
   ),
 
   // PATCH /api/operator/alerts/:id/dismiss — dismiss an alert
-  http.patch("/api/operator/alerts/:id/dismiss", async ({ params }) => {
+  http.patch(`${API_BASE}/api/operator/alerts/:id/dismiss`, async ({ params }) => {
     await randomDelay();
     const alert = allAlerts.get(params.id as string);
     if (!alert) {
@@ -317,7 +339,7 @@ export const operatorHandlers = [
   }),
 
   // POST /api/operator/stores/:id/restock — mark items restocked
-  http.post("/api/operator/stores/:id/restock", async ({ params, request }) => {
+  http.post(`${API_BASE}/api/operator/stores/:id/restock`, async ({ params, request }) => {
     await randomDelay();
     const storeId = params.id as string;
     const items = inventoryByStore.get(storeId);
@@ -351,7 +373,7 @@ export const operatorHandlers = [
   // accumulate, and only completing touches inventory.
   // -------------------------------------------------------------------------
 
-  http.post("/api/operator/stores/:id/restock-sessions", async ({ params }) => {
+  http.post(`${API_BASE}/api/operator/stores/:id/restock-sessions`, async ({ params }) => {
     await randomDelay();
     const storeId = params.id as string;
     if (!inventoryByStore.has(storeId)) {
@@ -373,7 +395,7 @@ export const operatorHandlers = [
     return HttpResponse.json({ session }, { status: 201 });
   }),
 
-  http.get("/api/operator/stores/:id/restock-sessions", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/stores/:id/restock-sessions`, async ({ params }) => {
     await randomDelay();
     const storeId = params.id as string;
     return HttpResponse.json({
@@ -381,7 +403,7 @@ export const operatorHandlers = [
     });
   }),
 
-  http.get("/api/operator/restock-sessions/:sessionId", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/restock-sessions/:sessionId`, async ({ params }) => {
     await randomDelay();
     const id = params.sessionId as string;
     const session = sessions.get(id);
@@ -506,7 +528,7 @@ export const operatorHandlers = [
   // Promotions
   // -------------------------------------------------------------------------
 
-  http.get("/api/operator/stores/:id/promotions", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/stores/:id/promotions`, async ({ params }) => {
     await randomDelay();
     const storeId = params.id as string;
     return HttpResponse.json({
@@ -548,7 +570,7 @@ export const operatorHandlers = [
     },
   ),
 
-  http.patch("/api/operator/promotions/:id/end", async ({ params }) => {
+  http.patch(`${API_BASE}/api/operator/promotions/:id/end`, async ({ params }) => {
     await randomDelay();
     const found = promotions.get(params.id as string);
     if (!found) {
@@ -565,7 +587,7 @@ export const operatorHandlers = [
     });
   }),
 
-  http.get("/api/operator/promotions/:id/performance", async ({ params }) => {
+  http.get(`${API_BASE}/api/operator/promotions/:id/performance`, async ({ params }) => {
     await randomDelay();
     const promo = promotions.get(params.id as string);
     if (!promo) {
@@ -590,4 +612,24 @@ export const operatorHandlers = [
       note: "Comparison against the equal-length period before this promotion. It is not a claim that the promotion caused the difference.",
     });
   }),
+];
+
+/**
+ * Registered against both bases on purpose.
+ *
+ * Two different callers reach these endpoints in tests. Component and route
+ * tests fetch the Next route on a relative path; the BFF calls portfolio_api on
+ * an absolute one. Handlers were registered relative only, so MSW resolved them
+ * against the jsdom origin on port 3000 while the BFF asked for 3001 and
+ * matched nothing.
+ *
+ * That should have been loud -- onUnhandledRequest is "error" -- and MSW did
+ * refuse. But the BFF catches a failed call and falls back to seeded data by
+ * design, so it swallowed the refusal and returned a plausible answer. Every
+ * affected test passed while asserting against the seed, 40 times in one file,
+ * visible only as warnings in a green log.
+ */
+export const operatorHandlers = [
+  ...handlersFor(""),
+  ...handlersFor(API_URL),
 ];

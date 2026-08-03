@@ -229,3 +229,32 @@ describe("InventoryComparisonChart accessibility", () => {
     expect(label).toContain("Store C: 20%");
   });
 });
+
+describe("the loading placeholder's accessible name", () => {
+  it("does not put aria-label on a bare span", async () => {
+    // aria-prohibited-attr, serious impact. A span carries no role, so there
+    // is nothing for the label to name. It reached production because the
+    // route-level scan on /operator had been timing out rather than running.
+    const { container } = render(
+      <FleetStatsBar
+        stats={{
+          totalStores: 6,
+          needsAttention: 0,
+          criticalAlerts: 0,
+          warningAlerts: 0,
+          lowStockItems: null,
+          avgInventoryHealth: null,
+        }}
+        isLoading
+      />,
+    );
+
+    for (const el of container.querySelectorAll("span[aria-label]")) {
+      expect(
+        el.getAttribute("role"),
+        `<span aria-label="${el.getAttribute("aria-label")}"> needs a role`,
+      ).toBeTruthy();
+    }
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});

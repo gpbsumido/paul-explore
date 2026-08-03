@@ -273,6 +273,118 @@ export default function DesignSystemContent() {
               useEffect deps — store them in refs if the effect manages focus
               or DOM state
             </Sent>
+
+            <Timestamp>Aug 3, 2026</Timestamp>
+
+            <Received>
+              you went back to add charts to the design system. how did that go
+            </Received>
+
+            <Sent>
+              badly, in the useful way. i wrote a test harness for the angular
+              package first and the very first probe failed. mount a component,
+              set an input, assert the render. the template rendered fine and
+              setInput did nothing at all
+            </Sent>
+
+            <Received>bug in the harness?</Received>
+
+            <Sent>
+              no, the package. it was built with plain tsc, so what shipped to
+              npm was raw decorators. no compiled component definitions in the
+              javascript, no declarations in the typings. every component uses
+              signal input(), which needs the angular compiler. so any consumer
+              binding an input got nothing back, silently
+            </Sent>
+
+            <Received>
+              how long had that been broken?
+            </Received>
+
+            <Sent>
+              since the angular package existed. nothing caught it because
+              nothing consumed the built artifact. the tests all imported source
+              files. rebuilt with ng-packagr in partial mode, then added a
+              verify:consumer step that compiles a fake consumer against dist
+              with strictTemplates on. that is the check that would have caught
+              it on day one
+            </Sent>
+
+            <Received>and the charts themselves?</Received>
+
+            <Sent>
+              before writing any of them i ran the existing chart palette
+              through a colour validator. chart-1 and chart-2, the first two
+              series anyone sees, were blue and purple at deltaE 1.3 under
+              deuteranopia. 12 for normal vision against a floor of 15. so two
+              people looking at the same chart could not tell the first series
+              from the second
+            </Sent>
+
+            <Received>you reordered it?</Received>
+
+            <Sent>
+              reordered and re-stepped, added a cyan ramp because slot 5 needed
+              a hue the system did not have, and picked dark mode values
+              separately instead of flipping the light ones. the dark lightness
+              band is tighter. then i ported the six checks into the repo as a
+              test so the next colour edit cannot quietly undo it
+            </Sent>
+
+            <Received>
+              so eleven chart types now. any of them a bad idea?
+            </Received>
+
+            <Sent>
+              the word cloud. glyph area is not a comparable encoding and long
+              words read as bigger at the same weight. i shipped it because the
+              gallery wants one, but the objection is in its doc comment and its
+              aria-label carries the full ranked list, so the honest version of
+              the data is always there. the pareto was the other one. the
+              textbook version has two y axes and i refused, because the
+              alignment between two scales is arbitrary and invents a
+              correlation. bars are percent of total, line is cumulative
+              percent, one scale
+            </Sent>
+
+            <Received>anything break at the storybook end?</Received>
+
+            <Sent>
+              chromatic said the ui was rendering inconsistently between runs.
+              i rendered all 132 stories twice and pixel compared them. eleven
+              differed and every one was animated. none of the charts. the fix
+              was freezing css animations for the snapshot and excluding the one
+              ticker whose position comes from a requestAnimationFrame loop
+            </Sent>
+
+            <Received>and the spinner was in that list</Received>
+
+            <Sent>
+              it was, and that turned out to be a real bug rather than a
+              screenshot problem. under prefers-reduced-motion it slowed the
+              spin from 0.6s to 1.5s. rotation is the vestibular trigger, so a
+              slower spin is not an answer, it is the same motion for longer.
+              swapped it to an opacity pulse with no rotation
+            </Sent>
+
+            <Received>
+              were the css tests not catching any of this?
+            </Received>
+
+            <Sent>
+              the css package had 21 test files, a vitest config, and no test
+              script. so npm test had been skipping the entire package. 139
+              assertions that had never run once. a skipped workspace looks
+              exactly like a passing one in the output, which is the whole
+              problem
+            </Sent>
+
+            <Received>final tally?</Received>
+
+            <Sent>
+              774 tests across four packages, up from 428. three of the bugs i
+              found were older than the work i set out to do
+            </Sent>
           </div>
         </main>
       }
@@ -759,6 +871,140 @@ export default function DesignSystemContent() {
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                Charts, and the three bugs that were older than the charts
+              </h2>
+              <p className="text-muted">
+                The design system grew eleven chart forms: sparkline, bar,
+                donut, funnel, radar, scatter, cohort heatmap, pareto, gauge,
+                word cloud, and stacked/multi-series line. All of them compute
+                their geometry in one pure, dependency-free core that is
+                mirrored into the Angular package and unit tested in both, so
+                the two copies cannot drift. Every chart renders plain SVG with
+                {" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">role=&quot;img&quot;</code>
+                {" "}
+                and a data summary as its accessible name, which means colour is
+                never the only signal.
+              </p>
+              <p className="mt-3 text-muted">
+                That was the plan. Three things turned up along the way that had
+                nothing to do with charts and had all been true for a while.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong className="text-foreground">
+                  The Angular package did not work.
+                </strong>{" "}
+                It was built with plain{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">tsc</code>
+                , so the published output was raw decorators: no compiled
+                component definitions in the JavaScript, none of the
+                declarations a consuming app type checks against. Every
+                component in it uses signal{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">input()</code>
+                , which needs the Angular compiler to exist at build time. A
+                consumer binding an input would have got nothing, silently. The
+                first render test written against the package reproduced it in
+                one assertion. The fix is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">ng-packagr</code>
+                {" "}
+                in partial compilation mode, and a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">verify:consumer</code>
+                {" "}
+                step that compiles a stand-in consumer against the built output
+                with strict template checking, because nothing else in the repo
+                consumed the artifact it publishes.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong className="text-foreground">
+                  The chart palette failed its colour checks.
+                </strong>{" "}
+                Slots one and two, the first two series in every multi-series
+                chart, were blue and purple at a perceptual distance of 1.3
+                under deuteranopia and 12 for normal vision, against a floor of
+                15. The last slot sat outside the lightness band and below the
+                chroma floor, so it read as grey. The replacement reorders and
+                re-steps the ramp, adds a cyan hue the token set was missing,
+                and picks the dark mode values separately rather than flipping
+                the light ones, because the dark lightness band is tighter. The
+                six checks now live in the repo as a test, so the next colour
+                edit cannot quietly undo it.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong className="text-foreground">
+                  The CSS package&apos;s tests had never run.
+                </strong>{" "}
+                Twenty-one test files, a vitest config, a parser dependency, and
+                no{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">test</code>
+                {" "}
+                in its package.json, so the workspace-wide test command skipped
+                the package entirely. 139 assertions that had never executed
+                once. They all pass now that they run, which is luck rather than
+                reassurance: a skipped workspace and a passing one look
+                identical in the output.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Encoding decisions worth defending
+              </h2>
+              <p className="text-muted">
+                A chart primitive is an opinion about how data should be read,
+                so a few of these needed an argument rather than an API.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong className="text-foreground">
+                  The pareto chart has one y axis.
+                </strong>{" "}
+                The textbook version puts counts on the left and cumulative
+                percent on the right. Two scales on one plot have an arbitrary
+                alignment, which invents a relationship the data does not
+                contain. Here the bars are percent of total and the line is
+                cumulative percent, both on 0 to 100, so the crossing point
+                means something. A test asserts no rendered label is a raw
+                count, because the rule is easier to break than to remember.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong className="text-foreground">
+                  Ordered data gets an ordered ramp.
+                </strong>{" "}
+                Funnel stages and heatmap cells encode magnitude, so they use a
+                single-hue sequential ramp rather than the categorical series
+                palette. Putting identity colours on ordered data spends the one
+                free channel on information the chart already shows through
+                length or position.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong className="text-foreground">
+                  The word cloud ships with its own objection.
+                </strong>{" "}
+                Glyph area is not a comparable encoding and a long word reads as
+                bigger than a short one at the same weight. It exists because a
+                gallery wants one. The caveat is at the top of its doc comment,
+                and its accessible name carries the complete ranked list even
+                when the layout drops a term, so the honest version of the data
+                is always present.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong className="text-foreground">
+                  Reduced motion means stop rotating, not rotate slower.
+                </strong>{" "}
+                The spinner answered{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">prefers-reduced-motion</code>
+                {" "}
+                by slowing from 0.6s to 1.5s. Rotation is the vestibular
+                trigger, so that is the same motion for longer. It now swaps to
+                an opacity pulse with no rotation at all. It does not stop dead,
+                because a frozen spinner is indistinguishable from a hung one,
+                and the component already announces itself to assistive tech
+                through a live status role, so the animation only ever served
+                sighted users.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 How to think about this next time
               </h2>
               <ul className="mt-3 space-y-4 text-muted">
@@ -892,6 +1138,85 @@ export default function DesignSystemContent() {
                   package is a consumer too — it was still referencing the old
                   escaped-dot names and silently failing. Treat token renames as
                   cross-package breaking changes and grep everything.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Test the artifact you publish, not the source you wrote.
+                  </strong>{" "}
+                  A package can have a full green test suite and still ship
+                  something no consumer can use, because the tests import source
+                  files and the consumer imports the build. One compile of a
+                  stand-in consumer against the built output would have caught a
+                  broken Angular package the day it started shipping.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    A skipped workspace looks exactly like a passing one.
+                  </strong>{" "}
+                  A package with test files, a test config, and no{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">test</code>
+                  {" "}
+                  script is silently excluded from{" "}
+                  <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">npm test --workspaces</code>
+                  . Nothing fails. Count the suites in the output occasionally,
+                  not just the colour of it.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Colour choices are computable, so compute them.
+                  </strong>{" "}
+                  A categorical palette that looks obviously distinct can have
+                  two adjacent slots that vanish into each other under
+                  colourblind simulation. Run the numbers, keep them in a test,
+                  and treat slot order as part of the contract, because adjacent
+                  slots are the pairs a reader has to tell apart.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Dark mode is a second set of values, not an inversion.
+                  </strong>{" "}
+                  The lightness band that reads well on a dark surface is
+                  narrower than the one for light. Flipping the light steps puts
+                  half of them outside it. Pick and validate the dark ramp
+                  separately.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Reduced motion means remove the trigger, not slow it down.
+                  </strong>{" "}
+                  Halving the speed of a rotation is still a rotation. If the
+                  component conveys its state some other way, for example a live
+                  status role, the animation is decoration and can be replaced
+                  outright with something that does not rotate or travel.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Inconsistent visual snapshots have a cause you can measure.
+                  </strong>{" "}
+                  Rather than guessing which story is flaky, render every story
+                  twice and compare the bytes. It named the eleven animated
+                  stories in one pass, and it also showed that two apparent
+                  failures were races in the measuring harness rather than the
+                  UI, which is the mistake worth avoiding.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Make the mismatch unrepresentable.
+                  </strong>{" "}
+                  A heatmap that takes a grid and a separate array of row labels
+                  lets the two lengths disagree, and the failure is quiet: one
+                  label vanishes and every other row still looks correct.
+                  Passing rows that carry their own labels removes the state
+                  entirely.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    A silent cap is a bug report you never receive.
+                  </strong>{" "}
+                  Truncating a radar chart past three series is right, because a
+                  fourth overlapping polygon is unreadable. Doing it without
+                  saying anything leaves whoever passed five wondering where two
+                  went. Warn in development and name the number dropped.
                 </li>
                 <li>
                   <strong className="text-foreground">

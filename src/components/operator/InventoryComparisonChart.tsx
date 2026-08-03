@@ -21,6 +21,26 @@ interface InventoryComparisonChartProps {
 }
 
 /**
+ * Trims a store name to something the y-axis can actually hold.
+ *
+ * Store names carry a location suffix -- "Break Room Cooler - Floor 3" -- and
+ * the full string is wider than the axis, so Recharts drew it past the left
+ * edge of the chart and the container clipped the first characters off. "Break
+ * Room Cooler" rendered as "3reak Room Cooler", which reads as a typo rather
+ * than a layout bug.
+ *
+ * The suffix is the part worth losing: every row already sits in one store's
+ * chart, so the building name earns less than the fixture name does. The full
+ * name is still in the tooltip and in the chart's aria-label, so nothing is
+ * actually unavailable.
+ */
+export function axisLabel(name: string, max: number = 17): string {
+  const [head] = name.split(" - ");
+  const label = head.trim() || name;
+  return label.length > max ? `${label.slice(0, max - 1)}\u2026` : label;
+}
+
+/**
  * Returns a bar fill color based on health percentage thresholds.
  */
 function healthColor(health: number): string {
@@ -82,7 +102,8 @@ export default function InventoryComparisonChart({
               tick={{ fontSize: 11, fill: "var(--color-muted)" }}
               tickLine={false}
               axisLine={false}
-              width={110}
+              width={124}
+              tickFormatter={axisLabel}
             />
             <Tooltip
               contentStyle={{
