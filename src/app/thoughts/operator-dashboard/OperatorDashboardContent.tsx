@@ -670,6 +670,14 @@ export default function OperatorDashboardContent() {
                       href="#update-2026-08-03-visitor-identity"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
+                      E2E specs that passed against the seed whether or not the backend worked
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
                       Anonymous attribution is impossible, so it is labelled rather than faked
                     </a>
                   </li>
@@ -1726,6 +1734,24 @@ export default function OperatorDashboardContent() {
                 layers below verify the pieces, and this was a fault in how the
                 pieces are assembled. I had been carrying these specs as
                 written-but-never-run, which is the same as not having them.
+              </p>
+
+              <p className="mt-3 text-muted">
+                Running them turned up a second thing, quieter than the crash and
+                worse in the long run. The specs navigated to a hardcoded seed id,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  store-002
+                </code>
+                . With the backend up the real fleet comes back as UUIDs, the API
+                returns a 404 for that id, and the BFF falls back to the seed
+                exactly as designed &mdash; so the tests passed identically
+                whether or not the backend worked. A test that cannot fail when
+                the thing it covers is broken is not a test. It is the same
+                blind spot that let a missing sales endpoint sit unnoticed for
+                weeks: the fallback that keeps the demo alive when the API is
+                asleep also hides whether the real path works at all. They now
+                read a store id off the fleet page and run against whatever is
+                actually serving, which I checked both ways.
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">

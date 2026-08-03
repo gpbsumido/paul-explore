@@ -9,14 +9,28 @@ import { test, expect, type Page } from "@playwright/test";
  * Two taps for one action, and it took a screenshot to spot. Rendering a
  * component in isolation cannot catch a seam between two components; this can.
  *
- * Everything runs against the seeded demo data, which the BFF serves whether or
- * not the backend is up, so these do not need portfolio_api running.
+ * The store id is discovered from the fleet page rather than hardcoded, and
+ * that is load-bearing. This file used to point at the seed id `store-002`.
+ * With portfolio_api up, the real fleet comes back with UUIDs, the API 404s for
+ * `store-002`, and the BFF quietly falls back to the seed -- so the spec passed
+ * either way while only ever exercising the seed. That is the same blind spot
+ * that let a missing `/stores/:id/sales` endpoint sit unnoticed: a fallback
+ * designed to keep the demo alive also hides whether the real path works.
+ * Reading the id off the fleet means these run against whatever is actually
+ * serving -- the API when it is up, the seed when it is not.
  */
 
-const STORE = "/operator/stores/store-002";
+/** The first store on the fleet page, whether it came from the API or the seed. */
+async function firstStoreId(page: Page): Promise<string> {
+  await page.goto("/operator");
+  const link = page.locator('a[href^="/operator/stores/"]').first();
+  await expect(link).toBeVisible();
+  const href = await link.getAttribute("href");
+  return href!.split("/operator/stores/")[1].split("?")[0];
+}
 
-async function openInventoryTab(page: Page) {
-  await page.goto(`${STORE}?tab=inventory`);
+async function openInventoryTab(page: Page, storeId: string) {
+  await page.goto(`/operator/stores/${storeId}?tab=inventory`);
   await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("button", { name: "Start restock" }),
@@ -29,18 +43,21 @@ function slotButtons(page: Page) {
 }
 
 test.describe("operator restock flow", () => {
+  let storeId: string;
+
   test.beforeEach(async ({ page }) => {
+    storeId = await firstStoreId(page);
     // A leftover session id would send the flow to the resume prompt instead.
-    await page.goto(STORE);
-    await page.evaluate(() =>
-      window.localStorage.removeItem("operator-restock-session:store-002"),
+    await page.evaluate(
+      (id) => window.localStorage.removeItem(`operator-restock-session:${id}`),
+      storeId,
     );
   });
 
   test("entering the flow opens a session without a second tap", async ({
     page,
   }) => {
-    await openInventoryTab(page);
+    await openInventoryTab(page, storeId);
     await page.getByRole("button", { name: "Start restock" }).click();
 
     // The regression this file exists for: one tap should land on the slot list.
@@ -51,7 +68,7 @@ test.describe("operator restock flow", () => {
   });
 
   test("a removal cannot be saved without a reason", async ({ page }) => {
-    await openInventoryTab(page);
+    await openInventoryTab(page, storeId);
     await page.getByRole("button", { name: "Start restock" }).click();
     await slotButtons(page).first().click();
 
@@ -70,7 +87,7 @@ test.describe("operator restock flow", () => {
   test("counting a slot carries through to the review step", async ({
     page,
   }) => {
-    await openInventoryTab(page);
+    await openInventoryTab(page, storeId);
     await page.getByRole("button", { name: "Start restock" }).click();
     await slotButtons(page).first().click();
 
@@ -86,7 +103,7 @@ test.describe("operator restock flow", () => {
   test("completing the restock changes the stock on the inventory tab", async ({
     page,
   }) => {
-    await openInventoryTab(page);
+    await openInventoryTab(page, storeId);
     await page.getByRole("button", { name: "Start restock" }).click();
 
     const firstSlot = slotButtons(page).first();
@@ -112,7 +129,7 @@ test.describe("operator restock flow", () => {
   test("an abandoned session is offered back rather than lost", async ({
     page,
   }) => {
-    await openInventoryTab(page);
+    await openInventoryTab(page, storeId);
     await page.getByRole("button", { name: "Start restock" }).click();
     await expect(page.getByText(/slots done/)).toBeVisible();
 
@@ -131,7 +148,7 @@ test.describe("operator restock flow", () => {
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await openInventoryTab(page);
+    await openInventoryTab(page, storeId);
     await page.getByRole("button", { name: "Start restock" }).click();
     await slotButtons(page).first().click();
 

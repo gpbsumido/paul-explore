@@ -306,6 +306,14 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/written-but-never-run/);
   });
 
+  it("names the test that could not fail", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(
+      /test that cannot fail when\s+the thing it covers is broken is not a test/,
+    );
+  });
+
   it("separates the three questions auth actually answers", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
