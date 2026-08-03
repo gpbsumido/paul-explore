@@ -2,6 +2,12 @@
 // Store detail page helpers: tab routing, connection quality, inventory, alerts
 // ---------------------------------------------------------------------------
 
+import {
+  DEFAULT_ZONE,
+  weekdayOf,
+  zonedInstant,
+  zonedParts,
+} from "@/lib/operator-timezone";
 import type {
   InventoryItem,
   Alert,
@@ -17,6 +23,7 @@ export type TabId =
   | "activity"
   | "planogram"
   | "sales"
+  | "pricing"
   | "tax";
 
 export type ConnectionQuality = "strong" | "weak" | "poor" | "offline";
@@ -65,6 +72,7 @@ export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "activity", label: "Activity" },
   { id: "planogram", label: "Planogram" },
   { id: "sales", label: "Sales" },
+  { id: "pricing", label: "Pricing" },
   { id: "tax", label: "Tax" },
 ] as const;
 
@@ -553,21 +561,29 @@ export function alertsByDay(
   alerts: readonly Alert[],
   now: Date = new Date(),
   days: number = 7,
+  timeZone: string = DEFAULT_ZONE,
 ): AlertDayBucket[] {
-  const MS_PER_DAY = 24 * 60 * 60 * 1000;
-  const todayIndex = Math.floor(now.getTime() / MS_PER_DAY);
+  // Local-midnight boundaries, oldest first, with one extra on the end so the
+  // newest bucket has a close. Dividing epoch milliseconds by 86.4e6 was the old
+  // approach and it is wrong twice a year, when a local day is 23 or 25 hours.
+  const { year, month, day } = zonedParts(now, timeZone);
+  const bounds = Array.from({ length: days + 1 }, (_, i) =>
+    zonedInstant(year, month, day - (days - 1) + i, 0, timeZone).getTime(),
+  );
+
   const counts = new Array<number>(days).fill(0);
 
   for (const alert of alerts) {
-    const dayIndex = Math.floor(
-      new Date(alert.timestamp).getTime() / MS_PER_DAY,
-    );
-    const offset = days - 1 - (todayIndex - dayIndex);
-    if (offset >= 0 && offset < days) counts[offset] += 1;
+    const at = Date.parse(alert.timestamp);
+    if (at < bounds[0] || at >= bounds[days]) continue;
+
+    let offset = 0;
+    while (offset < days - 1 && at >= bounds[offset + 1]) offset += 1;
+    counts[offset] += 1;
   }
 
-  return counts.map((count, offset) => {
-    const dayMs = (todayIndex - (days - 1 - offset)) * MS_PER_DAY;
-    return { day: WEEKDAY_LABELS[new Date(dayMs).getUTCDay()], count };
-  });
+  return counts.map((count, offset) => ({
+    day: WEEKDAY_LABELS[weekdayOf(zonedParts(new Date(bounds[offset]), timeZone))],
+    count,
+  }));
 }

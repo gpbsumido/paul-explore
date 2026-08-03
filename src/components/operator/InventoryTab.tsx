@@ -9,6 +9,7 @@ import { computeInventorySummary } from "@/lib/operator-detail";
 import InventorySummary from "./InventorySummary";
 import InventoryRow from "./InventoryRow";
 import SensorOfflineCallout from "./SensorOfflineCallout";
+import RestockFlow from "./restock/RestockFlow";
 
 interface InventoryTabProps {
   storeId: string;
@@ -31,6 +32,7 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
   const [restockedIds, setRestockedIds] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
+  const [isRestocking, setIsRestocking] = useState(false);
 
   const summary = useMemo(() => computeInventorySummary(items), [items]);
 
@@ -78,10 +80,28 @@ export default function InventoryTab({ storeId }: InventoryTabProps) {
     );
   }
 
+  if (isRestocking) {
+    return (
+      <RestockFlow storeId={storeId} onClose={() => setIsRestocking(false)} />
+    );
+  }
+
   return (
     <div className="space-y-4">
       {store && <SensorOfflineCallout lastPing={store.lastPing} />}
       <InventorySummary summary={summary} />
+      {/*
+        The full workflow, not the one-tap fill. Counting a shelf is the only
+        way expiry and shrinkage ever get recorded, so it gets the primary
+        button; Quick Actions still has the top-everything-up shortcut.
+      */}
+      <button
+        type="button"
+        onClick={() => setIsRestocking(true)}
+        className="min-h-11 w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white"
+      >
+        Start restock
+      </button>
       <div className="space-y-2">
         {items.map((item) => (
           <InventoryRow

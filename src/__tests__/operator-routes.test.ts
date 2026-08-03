@@ -102,15 +102,19 @@ describe("GET /api/operator/stores/:storeId/inventory", () => {
     }
   });
 
-  it("returns an empty list for an unknown store (list reads do not 404)", async () => {
+  it("says it could not load rather than claiming the store is empty", async () => {
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/inventory/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999/inventory"),
       makeParams({ storeId: "nonexistent-999" }),
     );
-    expect(res.status).toBe(200);
-    expect((await res.json()).items).toEqual([]);
+    // Changed contract, on purpose. This used to answer 200 with an empty list,
+    // which is a claim that the store has no inventory. When the API is
+    // unreachable and the seed has never heard of this store, the honest answer
+    // is that we do not know: an empty tab looked identical to a real outage.
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/could not load/i);
   });
 });
 
@@ -141,15 +145,15 @@ describe("GET /api/operator/stores/:storeId/alerts", () => {
     }
   });
 
-  it("returns an empty list for an unknown store (list reads do not 404)", async () => {
+  it("says it could not load rather than claiming the store is empty", async () => {
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/alerts/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999/alerts"),
       makeParams({ storeId: "nonexistent-999" }),
     );
-    expect(res.status).toBe(200);
-    expect((await res.json()).alerts).toEqual([]);
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/could not load/i);
   });
 });
 
@@ -181,15 +185,15 @@ describe("GET /api/operator/stores/:storeId/sales", () => {
     }
   });
 
-  it("returns an empty list for an unknown store (list reads do not 404)", async () => {
+  it("says it could not load rather than claiming the store is empty", async () => {
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/sales/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999/sales"),
       makeParams({ storeId: "nonexistent-999" }),
     );
-    expect(res.status).toBe(200);
-    expect((await res.json()).sales).toEqual([]);
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/could not load/i);
   });
 });
 
@@ -253,15 +257,15 @@ describe("GET /api/operator/stores/:storeId/planogram", () => {
     expect(body.slots.length).toBeGreaterThan(0);
   });
 
-  it("returns an empty layout for an unknown store (list reads do not 404)", async () => {
+  it("says it could not load rather than claiming the store is empty", async () => {
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/planogram/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nope-999/planogram"),
       makeParams({ storeId: "nope-999" }),
     );
-    expect(res.status).toBe(200);
-    expect((await res.json()).slots).toEqual([]);
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/could not load/i);
   });
 });
 

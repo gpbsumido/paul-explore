@@ -5,7 +5,10 @@ import { readFileSync, existsSync } from "fs";
 if (existsSync(".env.e2e")) {
   for (const line of readFileSync(".env.e2e", "utf-8").split("\n")) {
     const match = line.match(/^(\w+)=(.+)$/);
-    if (match && !process.env[match[1]]) process.env[match[1]] = match[2];
+    // Presence, not truthiness. Checking the value meant an explicit empty
+    // override got clobbered by the file, so there was no way to say "run the
+    // public project without touching Auth0" short of moving the file aside.
+    if (match && !(match[1] in process.env)) process.env[match[1]] = match[2];
   }
 }
 

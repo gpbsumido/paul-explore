@@ -11,7 +11,10 @@ import { WarningTriangleIcon } from "./icons";
 interface StoreCardProps {
   store: Store;
   alertCount: number;
-  inventoryHealth: number;
+  /** Null when the fleet summary has nothing for this store. */
+  inventoryHealth: number | null;
+  /** While true the health is still being fetched, not missing. */
+  isSummaryLoading?: boolean;
   hasQueryError?: boolean;
 }
 
@@ -23,6 +26,7 @@ const StoreCard = memo(function StoreCard({
   store,
   alertCount,
   inventoryHealth,
+  isSummaryLoading = false,
   hasQueryError = false,
 }: StoreCardProps) {
   const cfg = STATUS_CONFIG[store.status];
@@ -69,19 +73,23 @@ const StoreCard = memo(function StoreCard({
         <div className="flex items-center justify-between text-[11px]">
           <span className="text-muted">Inventory</span>
           <span className="font-medium text-foreground">
-            {inventoryHealth}%
+            {isSummaryLoading
+              ? "\u2026"
+              : inventoryHealth === null
+                ? "\u2014"
+                : `${inventoryHealth}%`}
           </span>
         </div>
         <div className="h-1.5 w-full rounded-full bg-neutral-200 dark:bg-neutral-800">
           <div
             className={`h-full rounded-full transition-[width,background-color] ${
-              inventoryHealth > 50
+              inventoryHealth !== null && inventoryHealth > 50
                 ? "bg-success-500"
-                : inventoryHealth > 20
+                : inventoryHealth !== null && inventoryHealth > 20
                   ? "bg-warning-500"
                   : "bg-error-500"
             }`}
-            style={{ width: `${Math.min(inventoryHealth, 100)}%` }}
+            style={{ width: `${Math.min(inventoryHealth ?? 0, 100)}%` }}
           />
         </div>
       </div>

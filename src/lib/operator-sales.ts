@@ -4,6 +4,12 @@
 // ---------------------------------------------------------------------------
 
 import type { Sale } from "@/types/operator";
+import {
+  DEFAULT_ZONE,
+  weekdayOf,
+  zonedInstant,
+  zonedParts,
+} from "@/lib/operator-timezone";
 
 export type SalesSummary = {
   totalRevenue: number;
@@ -67,7 +73,6 @@ const MONTH_LABELS = [
   "Nov",
   "Dec",
 ] as const;
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const PERIOD_COUNT: Record<SalesGranularity, number> = {
   day: 7,
@@ -148,38 +153,57 @@ export function topSellingProducts(
     .slice(0, limit);
 }
 
-/** The UTC calendar-day index (days since epoch) a timestamp falls in. */
-function dayIndex(ms: number): number {
-  return Math.floor(ms / MS_PER_DAY);
+/**
+ * The 8 local-midnight boundaries around the last 7 days, oldest first. Bucket
+ * `i` covers `[bounds[i], bounds[i + 1])`.
+ *
+ * Computed once so the per-sale work stays numeric. Resolving a zone costs an
+ * Intl.DateTimeFormat call, and doing that per sale over eighteen months of
+ * history is the difference between a chart that renders instantly and one that
+ * janks -- so the zone is resolved 8 times, and every sale is then placed with
+ * plain integer comparisons.
+ */
+function dayBoundaries(now: Date, timeZone: string): number[] {
+  const { year, month, day } = zonedParts(now, timeZone);
+  return Array.from({ length: 8 }, (_, i) =>
+    zonedInstant(year, month, day - 6 + i, 0, timeZone).getTime(),
+  );
+}
+
+/** The index of the bucket an instant falls in, or -1 when it is outside. */
+function bucketOf(ms: number, bounds: readonly number[]): number {
+  if (ms < bounds[0] || ms >= bounds[bounds.length - 1]) return -1;
+
+  let index = 0;
+  while (index < bounds.length - 2 && ms >= bounds[index + 1]) index += 1;
+  return index;
 }
 
 /**
  * Buckets sale revenue into the last 7 calendar days ending at `now`, oldest
  * bucket first. Sales outside the window are ignored. Each bucket is labelled
  * with its weekday so a chart can render it without more date math.
+ *
+ * Days are the store's local days, so a sale rung up at 23:30 stays on the day
+ * the operator made it rather than sliding into tomorrow.
  */
 export function salesByDay(
   sales: readonly Sale[],
   now: Date = new Date(),
+  timeZone: string = DEFAULT_ZONE,
 ): readonly SalesDayBucket[] {
-  const todayIndex = dayIndex(now.getTime());
+  const bounds = dayBoundaries(now, timeZone);
   const revenueByOffset = new Array<number>(7).fill(0);
 
   for (const sale of sales) {
-    const saleIndex = dayIndex(new Date(sale.timestamp).getTime());
-    const offset = 6 - (todayIndex - saleIndex);
-    if (offset >= 0 && offset < 7) {
-      revenueByOffset[offset] += sale.total;
-    }
+    const offset = bucketOf(Date.parse(sale.timestamp), bounds);
+    if (offset >= 0) revenueByOffset[offset] += sale.total;
   }
 
-  return revenueByOffset.map((revenue, offset) => {
-    const dayMs = (todayIndex - (6 - offset)) * MS_PER_DAY;
-    return {
-      day: DAY_LABELS[new Date(dayMs).getUTCDay()],
-      revenue: toCents(revenue),
-    };
-  });
+  return revenueByOffset.map((revenue, offset) => ({
+    day: DAY_LABELS[weekdayOf(zonedParts(new Date(bounds[offset]), timeZone))],
+    revenue: toCents(revenue),
+  }));
 }
 
 type PeriodDef = { startMs: number; endMs: number; label: string };
@@ -188,45 +212,52 @@ type PeriodDef = { startMs: number; endMs: number; label: string };
  * Builds the fixed set of period windows for a granularity, ending at `now` and
  * ordered oldest-first: 7 days, 8 weeks, 12 months, or 5 years.
  */
-function buildPeriods(granularity: SalesGranularity, now: Date): PeriodDef[] {
+function buildPeriods(
+  granularity: SalesGranularity,
+  now: Date,
+  timeZone: string,
+): PeriodDef[] {
   const count = PERIOD_COUNT[granularity];
-  const y = now.getUTCFullYear();
-  const m = now.getUTCMonth();
-  const d = now.getUTCDate();
+  const { year: y, month: m, day: d } = zonedParts(now, timeZone);
+  const at = (
+    year: number,
+    month: number,
+    day: number,
+  ): number => zonedInstant(year, month, day, 0, timeZone).getTime();
   const periods: PeriodDef[] = [];
 
   for (let i = count - 1; i >= 0; i--) {
     if (granularity === "day") {
-      const start = Date.UTC(y, m, d) - i * MS_PER_DAY;
+      const start = at(y, m, d - i);
       periods.push({
         startMs: start,
-        endMs: start + MS_PER_DAY,
-        label: DAY_LABELS[new Date(start).getUTCDay()],
+        endMs: at(y, m, d - i + 1),
+        label: DAY_LABELS[weekdayOf(zonedParts(new Date(start), timeZone))],
       });
     } else if (granularity === "week") {
-      const end = Date.UTC(y, m, d) + MS_PER_DAY - i * 7 * MS_PER_DAY;
-      const start = end - 7 * MS_PER_DAY;
-      const sd = new Date(start);
+      // A rolling 7-day window ending at tomorrow's local midnight, which is
+      // the range this tab has always shown.
+      const start = at(y, m, d + 1 - i * 7 - 7);
+      const sd = zonedParts(new Date(start), timeZone);
       periods.push({
         startMs: start,
-        endMs: end,
-        label: `${MONTH_LABELS[sd.getUTCMonth()]} ${sd.getUTCDate()}`,
+        endMs: at(y, m, d + 1 - i * 7),
+        label: `${MONTH_LABELS[sd.month - 1]} ${sd.day}`,
       });
     } else if (granularity === "month") {
-      const start = Date.UTC(y, m - i, 1);
-      const end = Date.UTC(y, m - i + 1, 1);
-      const sd = new Date(start);
+      const start = at(y, m - i, 1);
+      const sd = zonedParts(new Date(start), timeZone);
       periods.push({
         startMs: start,
-        endMs: end,
-        label: `${MONTH_LABELS[sd.getUTCMonth()]} ${String(
-          sd.getUTCFullYear(),
-        ).slice(2)}`,
+        endMs: at(y, m - i + 1, 1),
+        label: `${MONTH_LABELS[sd.month - 1]} ${String(sd.year).slice(2)}`,
       });
     } else {
-      const start = Date.UTC(y - i, 0, 1);
-      const end = Date.UTC(y - i + 1, 0, 1);
-      periods.push({ startMs: start, endMs: end, label: String(y - i) });
+      periods.push({
+        startMs: at(y - i, 1, 1),
+        endMs: at(y - i + 1, 1, 1),
+        label: String(y - i),
+      });
     }
   }
 
@@ -243,8 +274,9 @@ export function filterSalesForRange(
   sales: readonly Sale[],
   granularity: SalesGranularity,
   now: Date = new Date(),
+  timeZone: string = DEFAULT_ZONE,
 ): Sale[] {
-  const periods = buildPeriods(granularity, now);
+  const periods = buildPeriods(granularity, now, timeZone);
   const start = periods[0].startMs;
   const end = periods[periods.length - 1].endMs;
   return sales.filter((sale) => {
@@ -262,8 +294,9 @@ export function salesByPeriod(
   sales: readonly Sale[],
   granularity: SalesGranularity,
   now: Date = new Date(),
+  timeZone: string = DEFAULT_ZONE,
 ): readonly SalesPeriodBucket[] {
-  const periods = buildPeriods(granularity, now);
+  const periods = buildPeriods(granularity, now, timeZone);
   const buckets: SalesPeriodBucket[] = periods.map((p) => ({
     label: p.label,
     start: new Date(p.startMs).toISOString(),
@@ -298,9 +331,10 @@ export function aggregateFleetSales(
   stores: readonly FleetStoreSales[],
   granularity: SalesGranularity,
   now: Date = new Date(),
+  timeZone: string = DEFAULT_ZONE,
 ): FleetSalesAnalytics {
   const allSales = stores.flatMap((s) => [...s.sales]);
-  const buckets = salesByPeriod(allSales, granularity, now);
+  const buckets = salesByPeriod(allSales, granularity, now, timeZone);
 
   // Per-store totals are windowed to the same range as the chart, so the
   // ranking and the fleet total move with the granularity toggle and stay
@@ -308,7 +342,7 @@ export function aggregateFleetSales(
   // the ranking totals equal the charted totals.
   const byStore = stores
     .map((s) => {
-      const storeBuckets = salesByPeriod(s.sales, granularity, now);
+      const storeBuckets = salesByPeriod(s.sales, granularity, now, timeZone);
       return {
         storeId: s.storeId,
         storeName: s.storeName,

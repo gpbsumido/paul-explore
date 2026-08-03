@@ -90,7 +90,7 @@ describe("loadSalesAnalytics", () => {
   it("falls back to the seed aggregation when the API is down", async () => {
     vi.mocked(fetchSalesAnalytics).mockRejectedValue(new Error("down"));
 
-    const result = await loadSalesAnalytics("month");
+    const result = await loadSalesAnalytics("month", "America/Toronto");
 
     expect(result.granularity).toBe("month");
     expect(result.byStore.length).toBeGreaterThan(0);

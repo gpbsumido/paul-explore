@@ -28,7 +28,18 @@ test.describe("Public route accessibility", () => {
   for (const route of ROUTES) {
     test(`${route} has no axe violations`, async ({ page }) => {
       await page.goto(route);
-      await page.waitForLoadState("networkidle");
+      // Deliberately not networkidle. These pages poll and fetch from a third
+      // party, so "no requests for 500ms" is a promise about someone else's
+      // infrastructure, not about this page. When stats.nba.com stopped
+      // answering, two of these routes went red with nothing wrong in the diff
+      // -- and a check that fails for reasons unrelated to the change gets
+      // ignored, which is worse than not having it. The page's own main
+      // landmark is what an accessibility scan actually needs.
+      await page.waitForLoadState("load");
+      await page.locator("main").first().waitFor({ state: "visible" });
+      // Fonts change computed colours, and axe's contrast rule reads them, so
+      // scanning before they settle reports violations that do not exist.
+      await page.evaluate(() => document.fonts.ready);
       await checkA11y(page, route);
     });
   }

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { salesGranularitySchema } from "@/lib/operator-schemas";
+import { DEFAULT_ZONE, isValidTimeZone } from "@/lib/operator-timezone";
 import { loadSalesAnalytics } from "@/lib/operator-bff";
 
 /**
@@ -12,5 +13,10 @@ export async function GET(request: NextRequest) {
   const parsed = salesGranularitySchema.safeParse(param ?? "month");
   const granularity = parsed.success ? parsed.data : "month";
 
-  return NextResponse.json(await loadSalesAnalytics(granularity));
+  // A bad zone is dropped rather than proxied. The API rejects it with a 400,
+  // and a fleet chart is not worth failing over a malformed query string.
+  const tz = request.nextUrl.searchParams.get("tz") ?? "";
+  const timeZone = isValidTimeZone(tz) ? tz : DEFAULT_ZONE;
+
+  return NextResponse.json(await loadSalesAnalytics(granularity, timeZone));
 }

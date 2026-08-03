@@ -122,8 +122,9 @@ const PRODUCTS = [
 
 export function buildInventoryItem(
   overrides: Partial<InventoryItem> = {},
+  chosen?: (typeof PRODUCTS)[number],
 ): InventoryItem {
-  const product = randomFrom(PRODUCTS);
+  const product = chosen ?? randomFrom(PRODUCTS);
   const capacity = overrides.capacity ?? product.capacity;
   return {
     id: nextId("item"),
@@ -138,11 +139,21 @@ export function buildInventoryItem(
   };
 }
 
+/**
+ * A store's shelf, one slot per distinct product.
+ *
+ * This used to pick a random product per slot, so a six-slot shelf routinely
+ * showed the same sandwich three times and the pricing table read like a bug.
+ * Real planograms do not stock one product in three slots and call it variety,
+ * so the list walks PRODUCTS in order and only repeats once it runs out.
+ */
 export function buildInventoryList(
   storeId: string,
   count: number = 6,
 ): readonly InventoryItem[] {
-  return Array.from({ length: count }, () => buildInventoryItem({ storeId }));
+  return Array.from({ length: count }, (_, i) =>
+    buildInventoryItem({ storeId }, PRODUCTS[i % PRODUCTS.length]),
+  );
 }
 
 // ---------------------------------------------------------------------------

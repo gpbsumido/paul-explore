@@ -72,10 +72,15 @@ export function filterStores(
 export interface FleetStats {
   totalStores: number;
   needsAttention: number;
-  lowStockItems: number;
-  avgInventoryHealth: number;
-  criticalAlerts: number;
-  warningAlerts: number;
+  /**
+   * Null while the fleet summary is missing. These come from a separate
+   * aggregate call, so they can be absent while the store list is fine, and
+   * zero is a claim about the fleet rather than an admission of not knowing.
+   */
+  lowStockItems: number | null;
+  avgInventoryHealth: number | null;
+  criticalAlerts: number | null;
+  warningAlerts: number | null;
 }
 
 export const LOW_STOCK_THRESHOLD = 0.2;

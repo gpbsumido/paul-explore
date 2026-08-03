@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
@@ -19,9 +20,11 @@ export async function GET() {
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/google/auth/status`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/google/auth/status`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       console.error("[google BFF] GET /auth/status — backend returned", res.status);
       return NextResponse.json({ error: "Failed to fetch status" }, { status: res.status });

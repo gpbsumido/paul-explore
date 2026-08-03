@@ -345,6 +345,106 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-03-visitor-identity"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Three questions, three answers, and one that has none
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 3, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-honest-states"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    A zero is a claim, and I was making it by accident
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-real-vs-fake"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Which of these bugs would a real operator have hit
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-service-token"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Locking the writes without making anyone log in
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-hardening"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    The bit before merging, where I found out I was wrong
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-promotions"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Promotions: my calculator could predict but never be wrong
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-restocking"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Restocking: my one button was a fiction
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-timezones"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Timezones: I went looking for a missing feature and found a
+                    bug
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-pricing"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Pricing &amp; promotions: a profit calculator per store
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-alerts"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -418,6 +518,758 @@ export default function OperatorDashboardContent() {
               </ol>
             </nav>
 
+
+            <section
+              id="by-kind"
+              className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="text-sm font-semibold text-foreground">
+                Find it by kind
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                The same write-ups, grouped by what they are rather than when
+                they happened.
+              </p>
+              <div className="mt-4 grid gap-5 sm:grid-cols-2">
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Bugs found and fixed
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Most were found by building something else, not by looking for them.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-02-timezones"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Every time bucket resolved in UTC, so a Toronto day started at 8pm the night before
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Two aggregate queries no database would accept, from a GROUP BY parameter mismatch
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The per-store sales endpoint never existed, so Sales and Tax were empty against the real backend
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Alerts contradicted the inventory they described
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Every store card read 0% because absent data rendered as zero
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Loading and absent both rendered as numbers nobody had measured
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Hand-drawn charts showed a shape with no way to read the value
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Starting a restock took two taps, because two components each offered the button
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-hardening"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A cache key accepted a timezone and threw it away
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A Zod schema silently dropped fields the API had started sending
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The seeded store outlived its own shape and broke every write
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-service-token"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A misconfigured token was disguised as a successful write
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Tradeoffs taken knowingly
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Where I picked a side and can say why.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-02-service-token"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A service credential instead of user auth, so nobody has to log in to try it
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A pseudonymous visitor id for fairness, deliberately not for security
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A second visitor cookie that should have been the one already there
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#how-it-is-tested"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      How the whole feature is tested, and what each tier cannot see
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      E2E specs that passed against the seed whether or not the backend worked
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A rate limiter an IPv6 user could have walked straight past
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#how-it-is-tested"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Two repos on different pnpm majors, so CI could not install both
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#how-it-is-tested"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      An env loader that overwrote the empty value meant to override it
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Anonymous attribution is impossible, so it is labelled rather than faked
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-hardening"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Migrations stay manual, and what makes that safe rather than fragile
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The same arithmetic deliberately duplicated across two repositories
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-timezones"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      No date library, at the cost of caching formatters by hand
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Promotions are per-store, because guessing at fleet grouping is worse than waiting
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-pricing"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The calculator derives rather than stores, so there is no second price ledger
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Product and user experience
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Choices about what the operator sees and believes.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-02-timezones"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The fleet chart names whose timezone it is using, which is what makes the number honest
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Performance shows before and during side by side rather than a single delta
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      No baseline says so instead of showing a fabricated percentage
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Skipping a count is recorded as a decision, not left blank
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Removals require a reason, because an unexplained one is indistinguishable from theft
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Steppers and 44px targets, because it is used on a phone at a fridge
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Loading, absent and zero are three states, and only one is a number
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A failed load says so, and gives a way to report it
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Every chart answers the question its shape raises
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Developer experience
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Choices about the next person, including future me.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-02-hardening"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Expand the schema first, deploy second, and why not to automate migrations
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-service-token"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A test suite that cannot be broken by what is in your own .env
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      SQL executed against a real database, because a mocked repository accepts anything
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-service-token"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Integration tests through MSW rather than a stubbed fetch
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The seeded store repairs itself when its shape is a version behind
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Fallbacks say out loud that they happened
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Performance
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Where the work was moved, and what it bought.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-01-backend"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Aggregation pushed into SQL rather than summing rows in the app
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-timezones"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Eight timezone resolutions per chart instead of one per sale
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Promotion performance fetched per promotion, only when opened
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A restock is one transaction, so a dropped connection costs one slot
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Rate limits now keyed per visitor rather than per egress IP
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-01-backend"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Polling tiered by how fast each thing actually changes
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              </div>
+            </section>
+
+            <section
+              id="how-it-works-now"
+              className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="mb-3 text-lg font-bold">
+                How it works today
+              </h2>
+              <p className="text-muted">
+                Where it has ended up, before any of the story of getting there.
+                This is an operator dashboard for unattended retail: someone runs
+                a few dozen smart fridges and micro-markets in lobbies and gyms,
+                and needs to know which ones need attention, what sold, what to
+                restock, and what it all earned.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The two screens
+              </h3>
+              <p className="text-muted">
+                The fleet page is the landing: every store as a card sorted
+                worst-first, a stats bar, filters by status and name, a health
+                donut, a 24-hour alert trend, per-store inventory comparison, and
+                fleet-wide sales with a day, week, month or year range.
+              </p>
+              <p className="mt-3 text-muted">
+                Clicking a store opens the detail page, which is seven tabs.
+                Inventory has per-slot stock and starts a restock. Alerts has
+                active and resolved views with a severity filter and a seven-day
+                trend. Activity is the audit feed. Planogram is a drag-and-drop
+                shelf layout with per-slot sensor re-sync. Sales is headline
+                totals, a revenue trend, top sellers and recent transactions.
+                Pricing is a discount and profit calculator plus scheduled
+                promotions. Tax derives GST, HST, PST and QST from the store&apos;s
+                province and shows what is owed.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where the data lives
+              </h3>
+              <p className="text-muted">
+                It is a real backend, not fixtures. Postgres behind an Express
+                service, reached through a backend-for-frontend layer in this app
+                so the browser never talks to the API directly. Every read and
+                every write falls back to an in-memory seed if that service is
+                unreachable, so the demo behaves identically whether or not the
+                backend is awake. Aggregations that could get expensive (fleet
+                sales, the alert trend, promotion performance) are grouped in SQL
+                rather than pulled into Node and summed.
+              </p>
+              <p className="mt-3 text-muted">
+                Reads poll on a tier: alerts every 15 seconds because they are
+                what you are watching for, stores every 30, inventory and sales
+                and planogram every 60. Writes are optimistic with rollback.
+                Nothing polls in a background tab.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The three things worth looking at
+              </h3>
+              <p className="text-muted">
+                <strong>Every bucket resolves in the store&apos;s own
+                timezone.</strong> A Vancouver store&apos;s day starts at midnight
+                in Vancouver, in the charts and in the SQL. The fleet view cannot
+                be everyone&apos;s local day at once, so it picks one and names it
+                on screen.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Restocking is a session, not a button.</strong> Walk the
+                shelf slot by slot on a phone, optionally confirm a physical
+                count, add and remove with a reason on anything taken out, review,
+                complete. Skipping a count is recorded as a decision rather than
+                left blank. Nothing touches stock until the session completes, in
+                one transaction, and that is the only path that ever writes
+                inventory.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Promotions run and then report back.</strong> Schedule a
+                discount on a product or a whole store, and afterwards see units
+                and revenue against the equal period before it. Both raw numbers,
+                not just the delta, with the caveat that it is a comparison and
+                not proof of cause.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Who can use it
+              </h3>
+              <p className="text-muted">
+                Anyone, with no account, including the writes. That is
+                deliberate: this exists so somebody can open a link and drive the
+                real thing. The API instead trusts a shared secret only this
+                app&apos;s server holds, so a visitor is unaffected while someone
+                calling the API directly is not. Writes are rate limited, and the
+                demo data reseeds nightly.
+              </p>
+
+            </section>
+
+            <section
+              id="how-it-is-tested"
+              className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="text-lg font-bold">How it is tested</h2>
+              <p className="mt-2 text-muted">
+                Worth its own section, because almost every bug in this feature
+                was found by a different tier than the one you would expect, and
+                a few were found by no tier at all. The useful question about a
+                test suite is not how many tests it has. It is what each layer
+                is structurally incapable of seeing, and whether anything else
+                covers that.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The tiers, and what each is actually for
+              </h3>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
+                      <th className="py-2 pr-4 font-medium">Tier</th>
+                      <th className="py-2 pr-4 font-medium">Answers</th>
+                      <th className="py-2 font-medium">Cannot see</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted">
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">Unit</td>
+                      <td className="py-2 pr-4 align-top">Does this pure function compute the right answer, across timezones, DST and empty input</td>
+                      <td className="py-2 align-top">Whether anything calls it</td>
+                    </tr>
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">Component</td>
+                      <td className="py-2 pr-4 align-top">Does this component render and behave correctly in isolation</td>
+                      <td className="py-2 align-top">The seam between two components</td>
+                    </tr>
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">Integration</td>
+                      <td className="py-2 pr-4 align-top">Do the hooks, routes and components agree on a contract, with the network stubbed</td>
+                      <td className="py-2 align-top">Whether the real service honours that contract</td>
+                    </tr>
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">E2E (seed)</td>
+                      <td className="py-2 pr-4 align-top">Does the whole flow work in a real browser</td>
+                      <td className="py-2 align-top">Anything about the database</td>
+                    </tr>
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">E2E (live)</td>
+                      <td className="py-2 pr-4 align-top">Does the flow work against a real API and a real Postgres</td>
+                      <td className="py-2 align-top">Production data and scale</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 align-top text-foreground">SQL smoke</td>
+                      <td className="py-2 pr-4 align-top">Will Postgres actually accept these statements</td>
+                      <td className="py-2 align-top">Whether the results are right</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Four bugs, and the tier that could never have caught them
+              </h3>
+              <p className="mt-3 text-muted">
+                <strong>&ldquo;Start restock&rdquo; led to another &ldquo;Start
+                restock&rdquo;.</strong> Two taps for one action. The component
+                test rendered the flow on its own, so it never saw the button
+                above it. A component test cannot catch a seam between
+                components; that is not a gap in the test, it is the definition
+                of the tier. It took a screenshot to notice, and an E2E spec to
+                pin.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Two aggregate queries no database would accept.</strong>
+                Every test in that module mocks the repository, and a mocked
+                repository will happily return rows for SQL Postgres rejects
+                outright. Hence the SQL smoke tier: it executes the real
+                statements against a real database, and skips when there is no{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">DATABASE_URL</code>. They are all SELECTs
+                on purpose, because a developer&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">DATABASE_URL</code> often points at the
+                deployed database, and a test suite that can write is a test
+                suite that can destroy.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>The server would not boot.</strong> Two files claiming
+                the same Next convention is a startup fatal, and every route
+                404&apos;d. Unit, integration, typecheck, lint and the
+                dead-export check all passed, because not one of them starts
+                Next. Same shape on the API side: a rate limiter whose key
+                generator used a raw IP was rejected at boot by the library,
+                because an IPv6 user is handed a whole /64 and could have minted
+                a fresh budget per request by varying the low bits. All 271 API
+                tests missed it, since they mock the limiter or never construct
+                it. Two real bugs whose only witness was a process starting.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>An endpoint that never existed.</strong> The Sales and
+                Tax tabs called a route the API did not implement. They rendered
+                empty against the real backend and perfectly against fixtures,
+                for weeks. Which brings up the one that took the longest to see.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The fallback that hid the bugs, and the compromise
+              </h3>
+              <p className="mt-3 text-muted">
+                The BFF falls back to seeded data when the API is unreachable.
+                That is a genuinely good feature: the demo stays usable when the
+                backend is asleep, which for something anyone can open without an
+                account is most of its value. But the same mechanism that keeps
+                the demo alive is the mechanism that hides whether the real path
+                works, and I underrated that for a long time.
+              </p>
+              <p className="mt-3 text-muted">
+                It went furthest in the E2E specs. They navigated to a hardcoded
+                seed store id. With a real backend serving, the fleet comes back
+                as UUIDs, the API 404s that id, the BFF falls back, and the specs
+                pass &mdash; identically, whether or not the backend works. A
+                test that cannot fail when the thing it covers is broken is not a
+                test. That is also, exactly, how the missing sales endpoint
+                survived.
+              </p>
+              <p className="mt-3 text-muted">
+                Pointing them at the real fleet made CI go red, correctly: the
+                deployed API was on an older release with no restock routes. But
+                that was the wrong question for that tier. These specs exist to
+                catch a seam between two components; pinning them to a
+                separately-deployed service means the suite reports somebody
+                else&apos;s deploy state and changes colour for reasons unrelated
+                to the change under review. A test that fails for unrelated
+                reasons gets ignored, and an ignored test is worse than no test.
+              </p>
+              <p className="mt-3 text-muted">
+                So the compromise, stated rather than stumbled into: the seed is
+                the default because it is the one fixture that is deterministic
+                and always present, and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">OPERATOR_E2E_LIVE=1</code> switches to
+                resolving the store off the fleet and driving whatever is really
+                serving. The default does not cover integration. Saying so is the
+                whole point &mdash; the previous version implied it did.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Closing it, rather than just labelling it
+              </h3>
+              <p className="mt-3 text-muted">
+                Writing down a blind spot is better than drifting into one, but
+                it is not a fix: nothing would ever have run the live mode, so an
+                integration regression still had nowhere to fail. So there is a
+                CI tier that stands up Postgres, builds the API from source,
+                applies the migrations, seeds the operator tables, points this
+                app at it and drives the whole restock flow. It picks up an API
+                branch of the same name when one exists, so a frontend change
+                that needs a backend change is tested as the pair it actually is
+                rather than against whatever shipped last week.
+              </p>
+              <p className="mt-3 text-muted">
+                It went green on its first working run, which is exactly when to
+                be suspicious. Had the API not come up, the BFF would have fallen
+                back, served seed ids, and every assertion would still have
+                passed &mdash; a green run proving nothing, which is the precise
+                failure the tier was built to prevent. Live mode now asserts the
+                fleet gave it a real UUID and names the seed id it got instead.
+                A passing test is a claim, and a claim is worth checking when the
+                cost of it being wrong is that you stop looking.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two pieces of friction worth recording
+              </h3>
+              <p className="mt-3 text-muted">
+                The live tier died on its first attempt because the two repos pin
+                different pnpm majors &mdash; this one on 8 with a v6 lockfile,
+                the API on 10 with a v9 one &mdash; so one pnpm cannot install
+                both. It reads the version out of the API&apos;s own{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">packageManager</code> field rather than
+                hardcoding it here, where it would drift silently the next time
+                the API upgrades and leave someone debugging a lockfile error in
+                a repo they never touched.
+              </p>
+              <p className="mt-3 text-muted">
+                And the E2E credential loader checked truthiness rather than
+                presence, so setting a variable to empty on purpose was
+                overwritten by the file it was meant to override. The effect was
+                that there was no way to run the public tier without attempting a
+                real Auth0 login &mdash; a small bug with a disproportionate
+                cost, because it made the cheap half of the suite depend on the
+                expensive half.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What is still not covered
+              </h3>
+              <p className="mt-3 text-muted">
+                The heavy tiers run nightly or on demand, not per commit, because
+                spending several minutes of CI on every push to catch something
+                twice a month is a bad trade. Quarantined flaky tests run nightly
+                and never block a merge, on the view that a flake is fixed on its
+                own clock rather than by blocking everyone else.
+              </p>
+              <p className="mt-3 text-muted">
+                The real gap is structural and worth naming: CI only triggers for
+                pull requests into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">main</code> and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">develop</code>. This work shipped as a
+                stack of eight PRs targeting each other, so none of them ran CI
+                automatically &mdash; every run in this stack was dispatched by
+                hand, and that is the only reason three of these bugs were found
+                before merge rather than after. Widening the trigger to the
+                branch prefix would fix it and cost CI minutes across every
+                stack. That is a spending decision rather than a correctness one,
+                which is why it is written down here instead of quietly changed.
+              </p>
+
+              <p className="mt-5 text-muted">
+                Everything below is how it got here: the decisions behind each of
+                those, the reasoning I would want to be asked about, the
+                tradeoffs I took knowingly, and the several things I got wrong and
+                had to go back and fix. Newest first.
+              </p>
+            </section>
 
             <section>
               <h2 className="mb-3 text-lg font-bold">Why this exists</h2>
@@ -1056,6 +1908,1569 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-03-visitor-identity"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 3, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Three questions, three answers, and one that has none
+              </h2>
+              <p className="text-muted">
+                I had written that auth here was deferred rather than solved: a
+                shared service token stops anyone writing to the API directly,
+                but it authenticates the app, not a person, so the audit trail
+                recorded the same hardcoded actor for everybody and per-visitor
+                rate limiting was impossible. The obvious next question is
+                whether a mix would fix it, and the answer is mostly yes, as long
+                as you are clear about which layer does what.
+              </p>
+              <p className="mt-3 text-muted">
+                The mistake would be thinking of these as &quot;more auth&quot;.
+                They answer different questions. The service token answers{" "}
+                <em>can this caller write at all</em>, which is a security
+                boundary. A visitor id answers <em>which visitor is this</em>,
+                which is fairness. And optional sign-in answers{" "}
+                <em>who is this, really</em>, which is identity. Stacking them
+                only helps because they are not the same thing.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What shipped
+              </h3>
+              <p className="text-muted">
+                The app already minted a stable, opaque, httpOnly cookie in the
+                proxy so server-side flag rollouts could put a visitor in the
+                same bucket every visit. The operator routes now forward that to
+                the API alongside the service token, where it becomes the rate
+                limit key and the actor on anything written. Nothing derived from
+                the person goes into it: no fingerprint, no IP hash, no name,
+                just a value the server issues and later reads.
+              </p>
+              <p className="mt-3 text-muted">
+                Sign-in is wired but optional. A signed-in caller is attributed
+                properly, an anonymous one carries on, and the demo still works
+                without an account because that is the entire point of it.
+              </p>
+
+              <p className="mt-3 text-muted">
+                It reuses that cookie because I first built it as a second one,
+                and that was wrong twice over. Two ids for one browser means two
+                lifetimes to keep in step and a second thing to explain, for no
+                gain. And the file I put it in was a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  middleware.ts
+                </code>{" "}
+                &mdash; a convention Next 16 renamed to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  proxy
+                </code>
+                , and this app already had a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  proxy.ts
+                </code>
+                . Having both is a boot-time fatal: the dev server refused to
+                start and every route returned a 404.
+              </p>
+              <p className="mt-3 text-muted">
+                Worth sitting with how far that got. The unit tests passed, the
+                integration tests passed, the typecheck passed, the linter
+                passed, the dead-export check passed. Not one of them starts
+                Next, so not one of them could see it. It took the first real
+                browser request to find a bug that broke the entire application.
+                That is the argument for end-to-end tests in a sentence: the
+                layers below verify the pieces, and this was a fault in how the
+                pieces are assembled. I had been carrying these specs as
+                written-but-never-run, which is the same as not having them.
+              </p>
+
+              <p className="mt-3 text-muted">
+                Running them turned up a second thing, quieter than the crash and
+                worse in the long run. The specs navigated to a hardcoded seed id,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  store-002
+                </code>
+                . With the backend up the real fleet comes back as UUIDs, the API
+                returns a 404 for that id, and the BFF falls back to the seed
+                exactly as designed &mdash; so the tests passed identically
+                whether or not the backend worked. A test that cannot fail when
+                the thing it covers is broken is not a test. It is the same
+                blind spot that let a missing sales endpoint sit unnoticed for
+                weeks: the fallback that keeps the demo alive when the API is
+                asleep also hides whether the real path works at all.
+              </p>
+              <p className="mt-3 text-muted">
+                So I pointed them at the real fleet, and CI went red. The test
+                was right: the deployed API is on an older release with no
+                restock-session routes and no migrations applied, so the flow
+                genuinely could not open a session. But it was answering a
+                question this tier should not be asking. These specs exist to
+                catch the seam between two components &mdash; the bug where
+                &ldquo;Start restock&rdquo; led to another &ldquo;Start
+                restock&rdquo; &mdash; and pinning a UI-composition test to a
+                separately-deployed service means the suite reports somebody
+                else&apos;s deploy state and changes colour for reasons that have
+                nothing to do with the change under review. A test that fails for
+                reasons unrelated to the diff gets ignored, and an ignored test
+                is worse than no test.
+              </p>
+              <p className="mt-3 text-muted">
+                The settled answer is two modes: the seed by default, chosen
+                deliberately and written down rather than arrived at by accident,
+                because it is the one fixture that is deterministic and always
+                present; and an opt-in live mode that resolves the store off the
+                fleet and drives whatever is really serving. That is how the flow
+                was verified end to end against Postgres, six real restock
+                sessions, before any of this landed. The difference between this
+                and where it started is not the default &mdash; it is that the
+                file now says out loud what it does not cover, instead of letting
+                a silent fallback imply otherwise.
+              </p>
+              <p className="mt-3 text-muted">
+                Which left one thing still not honest. Choosing the seed and
+                writing down why is better than drifting into it, but a
+                documented blind spot is still a blind spot: nothing would have
+                run the live mode, so an integration regression had nowhere to
+                fail. So there is now a CI tier that stands up Postgres, builds
+                the API from source, applies the migrations, seeds the operator
+                tables, points this app at it and drives the whole restock flow.
+                It picks up an API branch of the same name when one exists, so a
+                frontend change that needs a backend change gets tested as the
+                pair it actually is instead of against whatever shipped last
+                week. The distinction I care about: the earlier change made the
+                gap visible, and this one closes it. Only the second is a fix.
+              </p>
+              <p className="mt-3 text-muted">
+                It went green on its first working run, which is exactly when to
+                be suspicious. If the API had not come up, the BFF would have
+                fallen back, served seed ids, and every assertion would still
+                have passed &mdash; a green run proving nothing, which is the
+                precise failure the tier was built to prevent. So live mode now
+                asserts the fleet gave it a real UUID and names the seed id it
+                got instead. The lesson I keep relearning here is that a passing
+                test is a claim, and a claim is worth checking when the cost of
+                it being wrong is that you stop looking.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What that actually buys
+              </h3>
+              <p className="text-muted">
+                <strong>Rate limiting that works.</strong> Every operator request
+                reaches the API server-side from this app, so limiting by IP put
+                the whole world in one bucket: one person in a loop could have
+                started returning 429s to everyone else. Keyed by visitor, a
+                runaway caller now only exhausts their own budget.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>An audit trail that says something.</strong> Every
+                restock session used to record{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator@smartstore.example
+                </code>
+                , which is worse than useless: it looks like an answer. Sessions
+                now carry either a real signed-in subject or{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  anonymous:v_…
+                </code>
+                , deliberately prefixed so nobody mistakes it for a username. Two
+                restocks sharing one are the same browser, which is a real and
+                useful fact about a shift.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What it is not, and cannot be
+              </h3>
+              <p className="text-muted">
+                The visitor id is self-asserted. Clear the cookie and you are a
+                stranger with a fresh budget. That sounds fatal until you notice
+                the service token already decides who can reach these endpoints
+                at all, so this never has to resist an attacker; it has to tell
+                honest visitors apart, which is all a fairness limit needs. It
+                would be the wrong thing to hang a security decision on and I
+                have not hung one on it.
+              </p>
+              <p className="mt-3 text-muted">
+                And the thing it genuinely cannot do:{" "}
+                <strong>
+                  you cannot have both no login and trustworthy attribution for
+                  the same action
+                </strong>
+                . That is definitional, not an engineering gap. An anonymous id
+                tells you two actions came from the same browser and can never
+                tell you who was holding the phone. So the honest answer is real
+                attribution for people who identify themselves, honest labelling
+                for people who do not, and no pretending the second is the first.
+              </p>
+              <p className="mt-3 text-muted">
+                The service token also stays a bearer secret. Anyone who obtains
+                it has full write access, there is no revoking one caller without
+                revoking all of them, and rotating it means coordinating two
+                deploys. Fixing that properly means short-lived signed tokens or
+                mutual TLS, and neither is worth it for a demo.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where that leaves it
+              </h3>
+              <p className="text-muted">
+                Solved now: writes are closed to anything but this app, limits
+                are per visitor rather than per egress IP, and the audit trail
+                distinguishes callers instead of naming a constant.
+              </p>
+              <p className="mt-3 text-muted">
+                Not yet, and roughly in the order I would do it: roles, so a
+                restocker cannot read finances; a real login for operators, which
+                turns{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  anonymous:v_…
+                </code>{" "}
+                into a name and is now a small change rather than a redesign,
+                because the plumbing that carries identity already exists; token
+                rotation without a synchronised deploy; and per-tenant isolation
+                the day there is more than one operator. None of that is blocked
+                on anything. It is waiting for a reason, which is a better
+                position than being blocked on plumbing.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-honest-states"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                A zero is a claim, and I was making it by accident
+              </h2>
+              <p className="text-muted">
+                Someone looked at the fleet page and every store reported 0%
+                inventory. Nothing had errored on screen. The cards rendered, the
+                numbers were formatted, the layout was fine. It just was not
+                true.
+              </p>
+              <p className="mt-3 text-muted">
+                Three separate places had each decided, reasonably on its own, to
+                keep going quietly. The summary request failed and the fallback
+                said nothing. The response was cast rather than parsed, so
+                nothing checked it. And a store with no summary rendered{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?? 0
+                </code>
+                , which is the line that turns an absence into a fact. Any one of
+                those alone is defensible. Together they produced a confident
+                dashboard full of zeroes.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Why this matters more than it looks
+              </h3>
+              <p className="text-muted">
+                An operator who opens the Tax tab and sees nothing concludes the
+                store made no sales. That is a conclusion they act on: not
+                chasing a remittance, not questioning a number that should have
+                been there. A fleet reporting zero critical alerts and zero
+                average fill reads as good news, so they stop looking. The
+                failure mode of a silent error is not confusion, it is
+                misplaced confidence, and it costs more than an error message
+                ever would.
+              </p>
+              <p className="mt-3 text-muted">
+                So the rule I settled on is that the interface has to
+                distinguish three states it had been collapsing into one.
+                Loading is not knowing yet. Absent is not knowing at all. Zero is
+                a measurement. Only the third is a number, and the other two now
+                render as a pulsing placeholder and an em dash respectively.
+                There is a test asserting the word &quot;null&quot; never reaches
+                the screen, because it briefly did.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Failures now say what failed, and offer a way out
+              </h3>
+              <p className="text-muted">
+                An empty list from a failed request is a lie with a plausible
+                shape, so the layer that produced it stopped producing it. When
+                the API is unreachable and the seeded demo data has nothing for
+                that store, the response is a 503 saying so rather than a 200
+                with an empty array. The tab shows that it could not load,
+                states plainly that this is an error and not an empty store,
+                reassures that nothing was changed, and offers a retry.
+              </p>
+              <p className="mt-3 text-muted">
+                It also offers a way to tell me. That is not boilerplate. Anyone
+                can use this dashboard without an account, which is the whole
+                point of it, and the flip side is that nobody has a support
+                channel by default. Without a contact route their only options
+                are to assume the zero is real or to close the tab, and both of
+                those lose the person and the bug report at once.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                And the charts now answer the question they raise
+              </h3>
+              <p className="text-muted">
+                The charts drawn with divs had no way to get a number out of
+                them. You could see that one month was taller than another and
+                never find out by how much, which makes a chart decorative
+                rather than useful: the shape is the summary and the value is the
+                answer. The ones built on a chart library already had tooltips,
+                so the hand-rolled half of the same dashboard was quietly worse
+                for no reason anyone had decided on.
+              </p>
+              <p className="mt-3 text-muted">
+                They all have hover values now. Deliberately not focusable,
+                though: making every bar a tab stop would add seven to twelve of
+                them per chart, and it buys nothing for anyone using a screen
+                reader, because each chart already carries a list of the same
+                values beside it. The tooltip is a mouse affordance layered on an
+                accessible path that existed first, rather than the only way to
+                read the number.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-real-vs-fake"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Which of these bugs would a real operator have hit
+              </h2>
+              <p className="text-muted">
+                Wiring this to a database turned up a run of bugs in a couple of
+                hours. Rather than list them, I want to sort them, because the
+                interesting question is which ones were real and which ones only
+                existed because I had spent months faking the data and had built
+                habits around that.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Real. A live deployment hits these too
+              </h3>
+              <p className="text-muted">
+                <strong>Two queries no database would accept.</strong> Making the
+                buckets timezone-aware left the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GROUP BY
+                </code>{" "}
+                repeating an interpolated expression. Drizzle re-emits a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  sql
+                </code>{" "}
+                fragment with fresh parameter numbers each time it is used, so
+                the GROUP BY copy read $5 and $6 where the SELECT read $1 and $2.
+                Postgres compares parse trees, decided those were two different
+                expressions, and rejected both queries for selecting an ungrouped
+                column. Nothing about fake data caused that and nothing about
+                real data would have prevented it.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Every time bucket was UTC.</strong> A Toronto
+                store&apos;s day started at 8pm the previous evening. That is a
+                correctness bug about the world, not about my fixtures, and it
+                would have been quietly wrong in production for as long as nobody
+                checked which day a sale landed on.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>A cast where a parse belonged.</strong> The fleet summary
+                was read with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  res.json() as FleetSummaryResponse
+                </code>
+                . A blind assertion at a trust boundary, with the Zod schema for
+                it sitting unused in the same codebase. Real data drifts more
+                than fixtures do, so this is worse in production, not better.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Artefacts of faking it. But each points at something real
+              </h3>
+              <p className="text-muted">
+                <strong>Alerts that contradicted the inventory.</strong> Every
+                store was stamped with the same four alerts, so a store with a
+                full shelf still reported a sandwich out of stock and a store at
+                4C still warned it had reached 8.2C. That specific bug only
+                exists because I wrote the alert text by hand; a real deployment
+                generates alerts from the same readings the inventory tab shows,
+                so they agree by construction.
+              </p>
+              <p className="mt-3 text-muted">
+                Except the failure it imitates is extremely real. The moment
+                alerts come from a separate service, or a cached rollup, or a
+                nightly job reading a snapshot, you get exactly this: two screens
+                describing the same shelf and disagreeing. I have now written
+                tests that assert an alert can never contradict the row it
+                describes, and those tests would keep earning their keep against
+                a real pipeline.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Store cards showing 0% everywhere.</strong> The frontend
+                falls back to seeded data when the API is unreachable, which is
+                what keeps the demo working. When the fleet summary started
+                failing, the store list still came from the API with real ids
+                while the summaries fell back to seeded ones with different ids.
+                Nothing matched, and the UI rendered absent as zero.
+              </p>
+              <p className="mt-3 text-muted">
+                A production deployment has no seed to fall back to, so it would
+                have shown an error instead. But strip the fixtures away and the
+                real lesson stands: a partial failure produced a page that looked
+                fine and was entirely wrong, and no layer said anything. The
+                fallback was silent, so nothing logged. The response was cast
+                rather than parsed, so nothing validated. Absent data rendered as
+                a real number, so nothing looked broken. Three separate places
+                each chose to keep going quietly, and the result was a confident
+                dashboard full of zeroes.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>The seeded store outliving its own shape.</strong> The
+                fixtures live on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  globalThis
+                </code>{" "}
+                so one dev server shares a copy, which means they survive hot
+                reloads. A store created before a collection existed kept coming
+                back without it, and writes failed while reads worked. Purely a
+                development artefact, since a real process starts clean. It is
+                still a cache invalidation bug, and it still cost me twenty
+                minutes of blaming the wrong thing.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I actually take from it
+              </h3>
+              <p className="text-muted">
+                The fixture-shaped bugs were the cheap ones. The expensive
+                pattern was that I had trained myself, across months of building
+                against fake data, to treat every failure as survivable. Fall
+                back, cast, carry on. That is a reasonable instinct when the only
+                thing behind the wire is a file of made-up stores. It becomes a
+                liability the moment something real is on the other end, because
+                the same instinct turns a loud failure into a quiet lie.
+              </p>
+              <p className="mt-3 text-muted">
+                So the fixes were less about the individual bugs and more about
+                deciding, in each place, whether silence was still the right
+                answer. An unreachable API stays survivable, because that is what
+                the fallback is for and the demo has to work. A rejected token
+                does not, because that is a configuration mistake pretending to
+                be an outage. Absent data now renders as absent rather than as
+                zero. And SQL gets executed against a real Postgres in a test,
+                because a mocked repository will cheerfully return rows for a
+                query no database would ever accept.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-service-token"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Locking the writes without making anyone log in
+              </h2>
+              <p className="text-muted">
+                The instinct is to put user auth on the writes, and I had to be
+                honest with myself about who this is actually for before I could
+                see why that was wrong. This dashboard exists so somebody
+                evaluating my work can open a link and use it. That is the whole
+                brief. A hiring manager with ten minutes is not going to create
+                an account to find out whether my restock flow is any good, and
+                if the interesting half of the product sits behind a login then
+                for that reader the interesting half does not exist.
+              </p>
+              <p className="mt-3 text-muted">
+                So &quot;anyone can land on this cold and drive the real thing
+                immediately&quot; is not a nice-to-have I am trading away for
+                security. It is the requirement. Requiring a token from the
+                visitor would have returned 401 on every write, the frontend
+                would have fallen back to its in-memory seed, and the dashboard
+                would have gone back to looking real while persisting nothing,
+                which is the one thing this whole run has been about removing.
+              </p>
+              <p className="mt-3 text-muted">
+                But the hole I actually had was a different one. Anyone could
+                point curl at the API and change the data directly, never
+                touching the app. Those are two separate problems and I had been
+                treating them as one.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I did instead
+              </h3>
+              <p className="text-muted">
+                Writes now carry a shared secret that only the
+                backend-for-frontend holds. The browser never sees it, because
+                the browser never calls the API directly; it calls my Next
+                server, which calls the API on its behalf. So a visitor is
+                unaffected and a direct caller gets a 401. The comparison is
+                constant time after a length check, and with no secret
+                configured the guard is a deliberate no-op so a fresh clone and
+                local development still work. There is nothing to forge when
+                there is no secret.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What it buys, and what it doesn&apos;t
+              </h3>
+              <p className="text-muted">
+                The case for it is short. It closes the direct-write hole, it
+                costs one header and one environment variable, it needs no
+                session handling or token refresh, and it does not ask anything
+                of the person using the dashboard. For a demo that has to stay
+                open, that is most of the value of auth at almost none of the
+                cost.
+              </p>
+              <p className="mt-3 text-muted">
+                The case against it is longer and worth being straight about.
+                It authenticates a <em>service</em>, not a person, and that has
+                consequences I can point at in my own code. The restock audit
+                trail I was so pleased with records an actor for every session,
+                and that actor is the same hardcoded string for everybody,
+                because the API genuinely does not know who is on the other end.
+                I built a feature whose entire purpose is answering &quot;who
+                changed this and why&quot; and I can currently only answer half
+                of it.
+              </p>
+              <p className="mt-3 text-muted">
+                It is a bearer secret, so anyone who obtains it has full write
+                access and there is no revoking one caller without revoking all
+                of them. Rotating it means coordinating two deploys, or teaching
+                the API to accept two secrets during a changeover window, which
+                is exactly the sort of thing that gets skipped and then bites a
+                year later.
+              </p>
+              <p className="mt-3 text-muted">
+                It also introduced a failure mode I had not thought through until
+                I wrote it down. Set the secret on the API and forget it here,
+                and every write comes back 401 while reads carry on fine. Worse,
+                the backend-for-frontend caught that 401 in the same handler it
+                uses for &quot;the API is asleep&quot; and fell through to the
+                seed, so the write would have looked like it succeeded and
+                persisted nothing. I had rebuilt the exact fiction I keep saying
+                I removed, inside the code meant to protect it.
+              </p>
+              <p className="mt-3 text-muted">
+                Those two cases deserve opposite treatment. An unreachable API is
+                expected, and falling back is the right answer. A rejected token
+                is my own mistake and should be loud. So the fallback now only
+                catches the first: a 401 or 403 is rethrown with a message naming
+                the variable to check, and the write fails visibly instead of
+                pretending. A silent success is worse than an error, and it took
+                writing the tradeoffs down to notice I had shipped one.
+              </p>
+              <p className="mt-3 text-muted">
+                None of that makes it the wrong call for what this is. A
+                portfolio piece has a different threat model from a product: the
+                data is fake, it restores itself nightly, and the cost of a bad
+                actor is a demo store showing odd numbers for a few hours. The
+                cost of a login wall is that the person I built this for closes
+                the tab. Weigh those honestly and the service credential is not
+                a compromise, it is the right shape for the problem.
+              </p>
+              <p className="mt-3 text-muted">
+                What I would want to be asked about it is what changes when it
+                stops being a demo, and the answer is that real user auth,
+                per-user limits and a truthful actor on the audit trail are one
+                piece of work, starting the moment there is a real operator to
+                protect rather than a reader to convince.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two smaller things while I was in here
+              </h3>
+              <p className="text-muted">
+                The seed was building each shelf by picking a random product per
+                slot, so a six-slot store routinely showed the same sandwich
+                three times and the pricing table looked broken. Real planograms
+                do not stock one product in three slots and call it variety. It
+                now walks the product list in order and only repeats once it runs
+                out.
+              </p>
+              <p className="mt-3 text-muted">
+                And I finally wrote the fallback tests. The BFF prefers the live
+                API and drops to the in-memory seed when it is unreachable, which
+                is what keeps the demo working when the backend is asleep. I had
+                put that test in three separate plans and written it zero times.
+                It exists now, and it drives whole features through the fallback
+                rather than checking that a try/catch is present, because the
+                thing worth pinning is that the seed can actually satisfy the
+                same contract the API does.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-hardening"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                The bit before merging, where I found out I was wrong
+              </h2>
+              <p className="text-muted">
+                Three features were sitting in stacked pull requests waiting to
+                go in. Before merging I went back over them the way I&apos;d want
+                someone to go over mine, and the most useful thing that came out
+                of it was a claim of my own that turned out to be false.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                I said it would degrade gracefully. It wouldn&apos;t.
+              </h3>
+              <p className="text-muted">
+                The timezone work added a nullable{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  timezone
+                </code>{" "}
+                column, and I&apos;d written in the pull request that the API
+                would keep working if the migration hadn&apos;t run yet, because
+                the resolver falls back to the province. Nullable column, safe
+                fallback, no problem.
+              </p>
+              <p className="mt-3 text-muted">
+                Except migrations in this project are manual. Nothing in CI, the
+                Dockerfile or the start script runs them. So the gap between
+                merging and migrating is real, and I wanted to know exactly how
+                bad it was rather than assume. I generated the SQL Drizzle
+                actually emits:
+              </p>
+              <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+{`select "id", "name", "location", "province", "timezone",
+       "status", "temperature", "uptime", "revenue_24h",
+       "last_ping", "created_at"
+  from "operator_stores"`}
+              </pre>
+              <p className="mt-3 text-muted">
+                An explicit column list, not{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  select *
+                </code>
+                . Before the migration, Postgres raises 42703 and every store
+                read returns a 500, which takes the fleet list, the store detail
+                page, the fleet summary and everything that looks a store up on
+                the way to doing something else. My fallback never runs, because
+                the query never returns a row for it to run on.
+              </p>
+              <p className="mt-3 text-muted">
+                The fix is not complicated once you know: run the migrations
+                first, then merge. They&apos;re additive, one nullable column and
+                three new tables, and the version currently in production
+                doesn&apos;t select the column or know the tables exist, so the
+                schema can sit ahead of the code with nothing noticing. Expand
+                first, deploy second. What I find worth writing down is that I
+                had the shape of the answer right and the direction backwards,
+                and the only reason I caught it was checking a claim I was
+                already confident about.
+              </p>
+              <p className="mt-3 text-muted">
+                The obvious alternative is to run migrations automatically as
+                part of the deploy, and I decided against it. It reads like
+                better developer experience and mostly buys a worse failure
+                mode: two deploys racing each other both try to migrate, a
+                destructive migration goes out before I have read it, and a
+                migration that fails halfway leaves a broken release with no
+                obvious rollback. Keeping it manual costs me one command and
+                keeps the ordering something I own rather than something that
+                happens to me.
+              </p>
+              <p className="mt-3 text-muted">
+                What makes that cost acceptable rather than a trap is the
+                discipline it forces: every migration has to be safe to run
+                against the currently deployed code. Add columns nullable, add
+                tables nobody reads yet, and never drop or rename in the same
+                release that stops using something. Do that and the ordering
+                stops being dangerous, because the schema being ahead is always
+                fine and the code being ahead never happens. Users notice none of
+                it, which is the point.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Why I didn&apos;t put auth on the write endpoints
+              </h3>
+              <p className="text-muted">
+                By this point the operator module had twenty routes, nine of them
+                writes, none of them authenticated or rate limited. The obvious
+                move is to add{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  checkJwt
+                </code>{" "}
+                to the writes, and there&apos;s already a pattern for it in this
+                codebase: the feature flags console forwards the visitor&apos;s
+                Auth0 token through its BFF.
+              </p>
+              <p className="mt-3 text-muted">
+                I didn&apos;t, and the reason is worth more than the change would
+                have been. The operator client sends no token. So adding auth
+                would 401 every restock and every promotion coming from the
+                dashboard, the BFF would catch it and fall back to its in-memory
+                seed, and the demo would carry on looking like it worked while
+                persisting nothing. That&apos;s exactly the fiction I&apos;d
+                spent three features removing. Reintroducing it in the name of
+                security would be the worst kind of change: defensible in a
+                summary, actively harmful in practice.
+              </p>
+              <p className="mt-3 text-muted">
+                What actually bounds the exposure is a rate limit, so every route
+                got one. The blast radius is genuinely only demo data too: the
+                operator repository touches nine tables and every one of them is
+                an operator table, so there is nothing else in the API for those
+                endpoints to reach. Anything an anonymous caller creates cascades
+                off the stores, and the nightly reseed deletes the stores.
+              </p>
+              <p className="mt-3 text-muted">
+                Then I got the limiter wrong, which is the more interesting half.
+                I copied the numbers from the feature flags module without
+                thinking about where the traffic comes from. Flags requests
+                arrive from the visitor&apos;s browser, one bucket each. Operator
+                requests do not: they all reach the API server side from the
+                dashboard&apos;s own backend-for-frontend, so they share a handful
+                of hosting IPs. One open dashboard polls about eight times a
+                minute, which meant a 120 per minute ceiling would have started
+                refusing real users at roughly fifteen concurrent tabs, while
+                doing nothing whatsoever about distributed abuse, since anyone
+                calling the API directly gets a fresh bucket. The limiter I added
+                to protect the thing would have hurt it more than an attacker
+                would.
+              </p>
+              <p className="mt-3 text-muted">
+                So the numbers are much higher now, high enough that no amount of
+                normal browsing trips them and low enough to stop a runaway loop,
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  trust proxy
+                </code>{" "}
+                is set to one hop so the key is the real caller rather than the
+                platform&apos;s edge. It&apos;s a backstop, not per-user
+                fairness. Doing fairness properly needs the backend-for-frontend
+                to forward who the caller is, which is the same plumbing auth
+                would need, and that&apos;s the point at which both become one
+                piece of work rather than two.
+              </p>
+              <p className="mt-3 text-muted">
+                Auth belongs here the moment there&apos;s a real tenant to
+                protect. It just isn&apos;t a decision to make quietly inside a
+                cleanup.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two smaller things I&apos;d have missed
+              </h3>
+              <p className="text-muted">
+                The promotion performance query had no upper bound. An open-ended
+                promotion left running for a year gives you a year-long window,
+                and the baseline doubles the fetch, so measuring one would drag
+                two years of sales through the app to answer a single question.
+                It clamps to the most recent 180 days now, and the response
+                reports the range it actually measured plus a note when the clamp
+                applied. A smaller number honestly labelled beats a bigger one
+                quietly measured over a period the reader didn&apos;t expect.
+              </p>
+              <p className="mt-3 text-muted">
+                And the operator module had zero OpenAPI registrations while the
+                rest of the API had 43. Adding twelve was routine. The part that
+                wasn&apos;t was realising both new request schemas use{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  .refine()
+                </code>
+                , and that the library throws on some schema shapes with no
+                symptom until the docs page falls over at runtime, long after CI
+                went green. So there&apos;s a test now that just generates the
+                document and asserts it didn&apos;t throw. Cheap, and it covers a
+                failure that would otherwise surface as a support question.
+              </p>
+              <p className="mt-3 text-muted">
+                None of this is glamorous work. It&apos;s the difference between
+                three features that demo well and three features I&apos;d be
+                comfortable putting in front of real operators, which is the only
+                distinction that matters once something is actually running.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-promotions"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Promotions: my calculator could predict but never be wrong
+              </h2>
+              <p className="text-muted">
+                The Pricing tab I built models a discount and shows the revenue
+                and profit tradeoff. It is careful to say it assumes volume
+                holds, and it is a genuinely useful modelling tool. But it
+                persists nothing, which means it can never be wrong out loud. You
+                cannot run the promotion, and you certainly cannot go back
+                afterwards and find out whether the prediction was any good.
+              </p>
+              <p className="mt-3 text-muted">
+                Micromart shipped self-serve promotions about a month ago: create
+                them, target by location or product, schedule them, and read
+                built-in performance analytics. The scheduling and the
+                after-the-fact measurement were the parts I did not have.
+              </p>
+              <p className="mt-3 text-muted">
+                There was also a loose end in my own schema pointing straight at
+                this. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  price-update
+                </code>{" "}
+                activity type had been in the enum since the beginning, with a
+                label, a colour and an icon in the feed &mdash; and nothing had
+                ever created one. Dead configuration waiting for a write path.
+                This is that write path.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two things I deliberately did not build
+              </h3>
+              <p className="text-muted">
+                <strong>No status column.</strong> A promotion looks like it
+                wants one &mdash; scheduled, active, ended &mdash; but a stored
+                status needs a job to flip it and is wrong in between runs. Status
+                is a comparison between the window and the clock, so it is
+                derived on every read. The client derives it again rather than
+                trusting the payload, because a tab left open overnight should
+                not keep calling a finished promotion live. That is one of the
+                tests.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>No price mutation.</strong> Nothing writes the discounted
+                price into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator_inventory.price
+                </code>
+                . The discount applies at read time, so the list price survives
+                &mdash; and the list price is the number every margin calculation
+                needs. Overwriting it would mean losing the original the moment a
+                promotion starts, and then reconstructing it from an audit log to
+                answer the simplest question about profitability. Same
+                derive-don&apos;t-store call the Tax tab and the calculator
+                already make.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The measurement, and being honest about it
+              </h3>
+              <p className="text-muted">
+                Performance compares units and revenue inside the promotion
+                window against an{" "}
+                <strong>equal-length baseline immediately before it</strong>.
+                Equal length matters: comparing a two-week promotion against the
+                previous month would flatter or punish it purely on duration.
+                It is two grouped queries filtered in SQL, so measuring a
+                fortnight does not drag eighteen months of sales into Node.
+              </p>
+              <p className="mt-3 text-muted">
+                The part I care more about is what it does <em>not</em> claim.
+                This is a before-and-after, not attribution. Seasonality, a new
+                product on the next shelf, and a fridge that ran warm for a week
+                all move the same number. So the API returns both raw totals
+                rather than only a headline delta, ships a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  note
+                </code>{" "}
+                field saying so in words, and the UI repeats it. A dashboard that
+                quietly implies causation is worse than one that admits what it
+                is showing &mdash; and it is the same instinct as the calculator
+                saying it assumes volume holds rather than inventing an
+                elasticity model.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where the three pieces meet
+              </h3>
+              <p className="text-muted">
+                This is the feature that made the other two worth doing in that
+                order. A promotion window is a pair of instants that an operator
+                thinks about as &quot;starts Monday morning&quot;, and Monday
+                morning is only meaningful in the store&apos;s timezone &mdash;
+                which is why the timezone work had to land first, and why the
+                schedule form names the zone rather than hoping. And the promotion
+                writes a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  price-update
+                </code>{" "}
+                into the same activity feed the restock sessions write to, so the
+                store&apos;s history reads as one narrative instead of three
+                disconnected logs.
+              </p>
+              <p className="mt-3 text-muted">
+                It also forced me to pay a debt. Both earlier features shipped
+                deliberately duplicated helpers &mdash; the same arithmetic in the
+                Express service and the Next app, on purpose, because two tested
+                copies of thirty lines beat coupling two deploys. Both times I
+                wrote in the recap that the test justifying the duplication did
+                not exist. It exists now: a parity block that runs the same
+                vectors the API asserts through the client copies, so a change to
+                one that is not mirrored fails the build. A design decision
+                without the test that holds it up is just a comment.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Closing the loop
+              </h3>
+              <p className="text-muted">
+                I shipped the measurement endpoint before anything called it,
+                which meant the headline claim was true of the API and not of the
+                product. That gap is closed now: each promotion that has actually
+                started has a Results control, and opening it shows before and
+                during side by side rather than only the delta.
+              </p>
+              <p className="mt-3 text-muted">
+                Showing both columns is the whole point. A single number reading
+                &quot;up 60%&quot; invites you to read a cause into it. Two
+                columns and a labelled change, with the range that was actually
+                measured named in the store&apos;s timezone underneath, makes it
+                obvious you are looking at two periods rather than an effect.
+                Where there is no baseline at all the cell says &quot;no
+                baseline&quot; instead of a percentage, because dividing by zero
+                politely is still making something up.
+              </p>
+              <p className="mt-3 text-muted">
+                Writing the tests for it turned up a bug I would not have found
+                by clicking. The API had gained{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  measuredFrom
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  measuredTo
+                </code>{" "}
+                when I added the 180 day clamp, and I never added them to the
+                client schema. Zod strips unknown keys silently, so the fields
+                arrived and were quietly discarded, and the component threw{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Invalid time value
+                </code>{" "}
+                on a date that was undefined. Silent stripping is usually the
+                behaviour you want from a parser at a trust boundary, right up
+                until the thing being dropped is something you added yourself.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Who this helps
+              </h3>
+              <p className="text-muted">
+                <strong>Operators</strong> get a loop instead of a guess. Model a
+                discount, schedule it in two clicks with the modelled numbers
+                pre-filled, and afterwards see what actually happened next to what
+                was predicted. Overlapping promotions resolve to the deepest
+                rather than stacking, which is both predictable and the one that
+                favours the person standing at the fridge.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Developers</strong> get a promotions table with no
+                lifecycle job attached to it, which is one fewer thing that can be
+                subtly wrong at 3am. Widening it to fleet-wide campaigns is a
+                single migration making{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  store_id
+                </code>{" "}
+                nullable &mdash; I left it NOT NULL because guessing the grouping
+                semantics before anyone has asked for them is how you end up
+                maintaining a shape nobody wanted.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-restocking"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Restocking: my one button was a fiction
+              </h2>
+              <p className="text-muted">
+                Restocking is the single most documented workflow on
+                Micromart&apos;s site, and it is documented as a phone task. Pick
+                store, pick cabinet, tap a slot, see the expected count,
+                optionally confirm a physical count, Add and Remove per slot with
+                a required reason on removals, repeat, review, complete. Skipping
+                the count is explicitly supported so a team can spot-check rather
+                than count everything.
+              </p>
+              <p className="mt-3 text-muted">
+                Mine was one button. It ran{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  update operator_inventory set current_stock = capacity
+                </code>{" "}
+                and wrote a single activity row reading &quot;Restocked N item(s)
+                to full capacity&quot;.
+              </p>
+              <p className="mt-3 text-muted">
+                That is not a simplification, it is a fiction. It cannot express
+                six yogurts binned because they expired, a sensor reading eight
+                where the shelf held five, or a case damaged in the van.
+                Shrinkage and miscounts are exactly where an unattended-retail
+                operator&apos;s margin goes, and my data model had nowhere to put
+                either of them. I had built the happy path and called it the
+                feature.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The one decision the rest falls out of
+              </h3>
+              <p className="text-muted">
+                A restock is now a session with one line per product touched, and{" "}
+                <strong>inventory is never written directly</strong>. Lines
+                accumulate while the restocker works the shelf; completing the
+                session is the only thing that touches{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator_inventory
+                </code>
+                , in one transaction. One write path means the audit trail cannot
+                be bypassed, which is the whole reason the feature is worth
+                anything.
+              </p>
+              <p className="mt-3 text-muted">
+                The subtle part is that{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  counted_qty
+                </code>{" "}
+                is nullable, and that is deliberate rather than lazy. Null means
+                the restocker chose to skip counting that slot. That is a
+                recorded decision, not absent data, and it is what lets a line be
+                classified as matches-expected, correction, or not-counted. A
+                spot-checked shelf and an unchecked one look identical in a
+                schema that only stores the final number, and telling them apart
+                is most of the value.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I did with the old button, and why
+              </h3>
+              <p className="text-muted">
+                Three options, all defensible. Delete it and force the full flow;
+                keep it as a second, un-audited path; or rewrite it. Deleting it
+                turns &quot;top everything up before I leave&quot; into a
+                six-step wizard, which is a worse product for a real operator on
+                a real route. Keeping it un-audited leaves a hole straight
+                through the feature I just built.
+              </p>
+              <p className="mt-3 text-muted">
+                So I rewrote it. Quick-fill now opens a session, writes a line
+                per item marked <em>not counted</em> with the top-up as the add,
+                and completes it. The response shape is byte-identical for the
+                existing client, so the optimistic mutation on the frontend did
+                not change at all &mdash; but the shortcut now leaves the same
+                trail as a walked shelf, and honestly labels itself as a fill
+                nobody counted.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                How the backend shaped the frontend, again
+              </h3>
+              <p className="text-muted">
+                The API contract here is not a passive data pipe; it decided the
+                shape of the UI in three places.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Completing twice is a 409, so the client can be dumb.</strong>{" "}
+                A double submit from a phone with a flaky connection is the
+                likeliest failure mode in this whole feature, and applying the
+                adds and removes twice would silently corrupt the shelf. Because
+                the server refuses the second one, the frontend does not need
+                request de-duplication, an idempotency key, or a disabled-button
+                race. It needs a disabled button for the common case and an error
+                message for the rare one. Pushing that invariant server-side
+                removed a category of client state.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Lines are upserted on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  (session_id, item_id)
+                </code>
+                , so saving is idempotent.</strong>{" "}
+                That is what makes it safe to push a line on slot-save and retry
+                without thinking. And it is why I push on save rather than on
+                every tap: per-keystroke writes over a bad connection is the
+                obvious wrong design, so the local draft is the source of truth
+                until a slot is done, and then exactly one request goes out.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>The session lives in the database, so resume is nearly
+                free.</strong>{" "}
+                One localStorage key holds the id; a reload re-fetches the
+                session and carries on. That sounds like a small thing and is
+                not: the target device is a phone in a parking garage or a
+                stairwell, and losing twenty slots of counting to a backgrounded
+                tab would make the whole feature untrustworthy. Real offline
+                queueing needs conflict rules and is a project of its own, so I
+                drew the line at surviving a refresh and said so.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Design for a thumb in a cold room
+              </h3>
+              <p className="text-muted">
+                Steppers, not number inputs. Every target at least 44px. The
+                running result is in an{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-live=&quot;polite&quot;
+                </code>{" "}
+                region so it can be confirmed without looking away from the
+                shelf. The reason picker is a real radiogroup that becomes
+                required the instant anything is removed, with the message tied
+                by{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-describedby
+                </code>{" "}
+                rather than shown as a floating red string.
+              </p>
+              <p className="mt-3 text-muted">
+                Two of my own component tests failed on the first run and both
+                were real bugs, not bad tests. The skip-count control relabelled
+                itself as it toggled, which reads as two different buttons; it
+                now keeps one label and carries the state in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-pressed
+                </code>
+                . And &quot;not counted&quot; appeared twice on the same screen
+                in two different meanings. Writing the assertion from the
+                operator&apos;s point of view is what surfaced both.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Who this helps
+              </h3>
+              <p className="text-muted">
+                <strong>Operators</strong> get the question they actually have an
+                answer to at month end: where did the margin go. &quot;Restocked
+                6 items&quot; tells them nothing; &quot;-5 (3 expired, 2
+                damaged), 2 corrections&quot; is a sentence they can act on. And
+                the correction count is a second, quieter signal &mdash; a slot
+                that keeps disagreeing with the sensor is a hardware problem, not
+                a stock problem.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Developers</strong> get one write path to inventory and a
+                pure helper that owns the arithmetic on both sides. Every future
+                feature that moves stock &mdash; fill targets, pick lists,
+                returns &mdash; writes a session rather than inventing its own
+                update, so the audit trail keeps working without anybody
+                maintaining it. The reason codes being a constrained enum rather
+                than free text is the same bet: it costs a migration to add one,
+                and it makes &quot;how much did we lose to expiry last month&quot;
+                a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GROUP BY
+                </code>{" "}
+                instead of a research project.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-timezones"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Timezones: I went looking for a missing feature and found a bug
+              </h2>
+              <p className="text-muted">
+                I sat down and went through Micromart&apos;s product properly
+                &mdash; the platform pages, the help centre, and most usefully
+                their public changelog, which is dated and only lists what
+                actually shipped. Their operator platform is organised as six
+                areas: stores and monitoring, products and pricing, inventory and
+                restocking, marketing and promotions, sales and insights, and
+                finances and taxes. About seven months ago they shipped a release
+                note that reads: dashboard data, timestamps, reports and CSV
+                exports now display in local North American timezones.
+              </p>
+              <p className="mt-3 text-muted">
+                I went to compare that against mine, expecting to write down a
+                missing feature. What I found instead was that mine was wrong.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The bug
+              </h3>
+              <p className="text-muted">
+                Every bucket boundary in the whole stack was UTC.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  buildPeriods
+                </code>{" "}
+                floored with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Date.UTC
+                </code>
+                ,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  alertsByDay
+                </code>{" "}
+                divided epoch milliseconds by 86,400,000, and on the API side the
+                SQL truncated with a bare{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  date_trunc(granularity, occurred_at)
+                </code>
+                , which resolves in whatever timezone the database session
+                happens to be in.
+              </p>
+              <p className="mt-3 text-muted">
+                For a Toronto store in summer that puts the day boundary at 8pm
+                the previous evening. For Vancouver it&apos;s 5pm. The busiest
+                part of an operator&apos;s afternoon was being filed under
+                tomorrow. Nobody noticed because the seed data is spread evenly
+                and every store was treated identically &mdash; the bug is
+                invisible right up until you care which day a sale landed in,
+                which is the entire reason a sales chart exists.
+              </p>
+              <p className="mt-3 text-muted">
+                That&apos;s the honest version of &quot;competitive analysis&quot;
+                for me. Reading someone else&apos;s changelog is worth doing not
+                because you copy the feature, but because it points a flashlight
+                at the assumption you never checked.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where the timezone lives, and why that&apos;s a product decision
+              </h3>
+              <p className="text-muted">
+                The first real question isn&apos;t technical. A timezone could
+                reasonably come from the browser or from the store, and picking
+                wrong makes the whole feature feel broken. I went with the store.
+                An operator servicing a Vancouver route from a hotel room in
+                Toronto should not watch every chart shift three hours because
+                they got on a plane. The store&apos;s day belongs to the store.
+              </p>
+              <p className="mt-3 text-muted">
+                That decision is what makes the rest of the design fall out
+                cleanly: the zone is resolved server-side, travels in the store
+                DTO, and the client only ever formats with it. The frontend never
+                re-derives policy, which means there is exactly one place a
+                Vancouver store can be told it&apos;s in Vancouver.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                How the backend shaped the frontend
+              </h3>
+              <p className="text-muted">
+                This is the part I find most interesting, because three
+                constraints that live entirely in the API ended up dictating
+                frontend code.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Postgres 15, not 16.</strong> The clean way to do this in
+                SQL is the three-argument{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  date_trunc(field, source, zone)
+                </code>
+                , which landed in Postgres 16. This project runs 15. So the SQL
+                does the round trip by hand: shift the timestamptz into local
+                wall clock with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  AT TIME ZONE
+                </code>
+                , truncate there, shift the result back. It works on both
+                versions, so the fix doesn&apos;t quietly depend on someone
+                bumping a Docker tag. The knock-on for the client is that the
+                instants coming back are local period starts, not UTC midnights
+                &mdash; which is why the bucket join key is now the raw instant
+                rather than a sliced ISO string.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Migrations run by hand.</strong> Nothing in CI, the
+                Dockerfile or the start script runs the migration. Deploying code
+                that selects a column which doesn&apos;t exist yet would 500 the
+                entire stores endpoint. So the column is nullable, the API
+                resolves{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  store.timezone ?? timezoneForProvince(store.province)
+                </code>
+                , and on the client the field is optional in the Zod schema with
+                the province as a fallback. A browser holding the new bundle
+                against an API that hasn&apos;t deployed yet still renders
+                correctly. That&apos;s not defensive padding &mdash; it&apos;s
+                the only reason the two PRs can land in either order.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>The same calendar math had to exist twice.</strong> The
+                API buckets for the fleet rollup; the client buckets for
+                per-store views over data it already has in cache. I deliberately
+                did not extract a shared package for this. Two small, tested,
+                independently-versioned copies of about eighty lines beat a
+                shared dependency that couples a Next app&apos;s deploy to an
+                Express service&apos;s, for a function whose inputs are two dates
+                and a string. The compromise is that the two can drift; the
+                mitigation is that the DST cases are pinned by tests on both
+                sides, and drift there fails loudly.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                No date library, and what that cost
+              </h3>
+              <p className="text-muted">
+                The only question zone-aware bucketing actually asks is: given
+                this instant and this zone, what is the local year, month, day
+                and hour.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Intl.DateTimeFormat.formatToParts
+                </code>{" "}
+                answers exactly that, using tzdata the runtime already ships.
+                Pulling in Luxon or date-fns-tz would send 20 to 60kB of a second
+                copy of tzdata down the wire, on a release cadence I don&apos;t
+                control, to do a job the platform already does.
+              </p>
+              <p className="mt-3 text-muted">
+                The cost is real though, and it&apos;s the thing people get wrong
+                with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Intl
+                </code>
+                : constructing a formatter is genuinely expensive, while calling
+                one is cheap. So formatters are built once per zone and cached in
+                a module-level Map. But the bigger win is structural rather than
+                a cache: rather than asking &quot;what local day is this
+                sale in&quot; once per sale,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  dayBoundaries
+                </code>{" "}
+                resolves the eight local-midnight boundaries up front and then
+                places every sale with plain integer comparisons. Over eighteen
+                months of history that&apos;s eight zone resolutions instead of
+                tens of thousands, and it&apos;s the difference between a chart
+                that renders instantly and one that stutters when you flip the
+                range toggle.
+              </p>
+              <p className="mt-3 text-muted">
+                Getting DST right is the whole reason this needs care. A local
+                day is not 86,400,000 milliseconds twice a year: in 2026 March 8
+                is 23 hours long and November 1 is 25. The instant lookup runs
+                two passes, because the UTC offset you need depends on the
+                instant you&apos;re trying to find. Three tests pin exactly that,
+                plus one for Newfoundland, which sits at minus three thirty and
+                breaks any code that assumes zone offsets are whole hours.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The compromise I actually had to think about
+              </h3>
+              <p className="text-muted">
+                Per-store views have an obvious right answer. The fleet view does
+                not. The fleet spans BC through Ontario, so a bucket labelled
+                &quot;Tue&quot; cannot simultaneously be Vancouver&apos;s Tuesday
+                and Toronto&apos;s &mdash; those are different, three-hour-offset
+                spans of real time.
+              </p>
+              <p className="mt-3 text-muted">
+                The tempting answer is to bucket each store in its own zone and
+                add the results up. That&apos;s the one genuinely wrong option,
+                and it&apos;s wrong in a way that hides: local days are offset
+                spans, so the windows overlap and leave gaps, the buckets stop
+                being a partition of time, and the bar heights become quietly
+                meaningless. Nothing about the chart looks broken. It just
+                isn&apos;t true.
+              </p>
+              <p className="mt-3 text-muted">
+                So the fleet chart buckets in one zone &mdash; the
+                viewer&apos;s, because &quot;my Tuesday&quot; is how someone
+                reading a roll-up actually thinks &mdash; and the UI says so, in
+                plain text, right under the range toggle. The label is not
+                decoration or a disclaimer. It is the thing that makes the number
+                honest, and it&apos;s text rather than a tooltip so a screen
+                reader gets the same disclosure as a mouse does.
+              </p>
+              <p className="mt-3 text-muted">
+                One more small inconsistency I chose on purpose: the existing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  granularity
+                </code>{" "}
+                param falls back silently on garbage, but a bad{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  tz
+                </code>{" "}
+                returns a 400. A wrong granularity shows you the wrong range and
+                you can see that immediately. A wrong zone shifts every boundary
+                in the response by hours and looks completely normal. Failing
+                loudly is worth breaking a convention for.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Who this actually helps
+              </h3>
+              <p className="text-muted">
+                <strong>Operators</strong> get a day that starts when their day
+                starts. The late-afternoon rush shows up on the afternoon it
+                happened, the restock they did at 7pm is on that evening, and the
+                7-day trend is seven of their days rather than seven arbitrary
+                24-hour windows. On the fleet view they get something subtler but
+                more valuable: a number they can trust, because it tells them
+                what it&apos;s measuring.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Developers</strong> get one module that owns the
+                conversion between an instant and a local wall clock, on each
+                side, instead of{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Date.UTC
+                </code>{" "}
+                scattered through four files. Every new time-bucketed feature
+                takes a zone parameter and inherits correct DST behaviour for
+                free. That matters immediately, because the next two things I
+                want to build on this dashboard are a restock audit trail and
+                scheduled promotions &mdash; and both of those are worthless if
+                &quot;when&quot; is wrong.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-pricing"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Pricing &amp; promotions: a profit calculator per store
+              </h2>
+              <p className="text-muted">
+                I went and looked at what the commercial smart-store platforms
+                actually put in front of an operator, and the same section kept
+                coming up that mine didn&apos;t have: products and pricing.
+                Manage what you sell and how you price it, run a discount across
+                the shelf, and a profit calculator to see what a promotion does
+                to the numbers. My tabs could tell an operator what sold and what
+                tax they owed, but nothing helped them decide what to charge. So
+                this is a new Pricing tab, sitting between Sales and Tax where the
+                revenue tabs cluster.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                A calculator, not a price editor
+              </h3>
+              <p className="text-muted">
+                The obvious version of this persists a new price back to the
+                store. I deliberately didn&apos;t. Committing a price is a real
+                write with a real schema change flowing through the backend, and
+                the question an operator actually asks first is &quot;what would
+                happen if I did this&quot; &mdash; not &quot;change it now.&quot;
+                So the tab is a model: pick a discount per product, or one
+                discount across the whole shelf, and watch the projected weekly
+                revenue move. It&apos;s the same derive-not-store call I made for
+                tax &mdash; the sales and the list prices are the source of
+                truth, and the calculator is a pure function over them, so
+                there&apos;s no second price ledger to drift and no round-trip to
+                wait on. The{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  price-update
+                </code>{" "}
+                activity type is already in the model for the day a persisted
+                write lands.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The numbers
+              </h3>
+              <p className="text-muted">
+                Everything is in{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator-pricing.ts
+                </code>
+                , pure and unit-tested with no component in sight.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  promoPrice(list, percent)
+                </code>{" "}
+                applies and rounds the discount (and clamps a fat-fingered
+                percent into 0&ndash;100),{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  weeklyUnitsFor
+                </code>{" "}
+                pulls the trailing-7-day demand for a product out of the sales
+                list, and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  summarizePricing
+                </code>{" "}
+                rolls the rows into the headline: projected weekly revenue at
+                list versus with the promos, the delta between them, and how many
+                products are discounted at what average. Tax-included price per
+                row reuses the existing{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  computeTax
+                </code>{" "}
+                by the store&apos;s province, so the pre-tax and with-tax numbers
+                can&apos;t disagree with the Tax tab.
+              </p>
+              <p className="mt-3 text-muted">
+                The one honesty note I made sure to put in the UI: the projection
+                assumes volume holds at the new price. A real discount usually
+                lifts volume, but modelling elasticity from a demo&apos;s seeded
+                sales would be inventing a number. So the tab measures the thing
+                it can actually measure &mdash; the revenue you give up (or keep)
+                per week if the same units move &mdash; and says so, rather than
+                dressing up a guess as a forecast.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                From revenue to profit
+              </h3>
+              <p className="text-muted">
+                The version the commercial platforms actually sell is a{" "}
+                <em>profit</em> calculator, not just revenue, and a discount only
+                makes sense against what a product costs. My inventory carries a
+                sale price but no cost of goods, and I didn&apos;t want to invent
+                a backend field for it. So cost is derived from an assumed gross
+                margin the operator plugs in &mdash; 30, 40, 50, 60% &mdash; the
+                same &quot;enter your numbers&quot; move those calculators make.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  unitCost(list, margin)
+                </code>{" "}
+                turns the margin into a cost,{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  buildProfitTable
+                </code>{" "}
+                layers projected weekly profit at list and promo onto each row,
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  summarizeProfit
+                </code>{" "}
+                totals it and counts anything the discount has pushed below cost.
+              </p>
+              <p className="mt-3 text-muted">
+                That below-cost guard is why the discounts go all the way to a
+                50% clearance cut. A gentle 10% off never threatens a healthy
+                margin, but a clearance promotion can absolutely sell a product
+                at a loss, and the calculator should say so &mdash; the row turns
+                red and the header warns how many products are underwater at the
+                current margin. It&apos;s the difference between &quot;here&apos;s
+                a discount&quot; and &quot;here&apos;s what the discount does to
+                the bottom line.&quot;
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Usable and accessible
+              </h3>
+              <p className="text-muted">
+                The discount controls are real buttons with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-pressed
+                </code>{" "}
+                on the selected step and labels a screen reader can read (&quot;Set
+                Coca-Cola 355ml discount to 10%&quot;), the per-product breakdown
+                is a proper table with scoped headers and a caption, and the
+                revenue impact carries a sign and a label so colour is never the
+                only signal. Store-wide &quot;apply to all&quot; is one row of
+                buttons at the top so setting a shelf-wide campaign is a single
+                click, then you fine-tune individual products from there.
+              </p>
+            </section>
+
       <section
               id="update-2026-07-31"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"

@@ -163,7 +163,7 @@ export default function ParticlesPage() {
           <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-white/60">
             Controls
           </span>
-          <span className="font-mono text-[10px] text-white/40">
+          <span className="font-mono text-[10px] text-white/70">
             {PARTICLE_COUNT} particles
           </span>
         </div>
@@ -210,7 +210,7 @@ export default function ParticlesPage() {
                   }}
                 />
               ))}
-              <span className="ml-1 flex items-center text-[10px] text-white/40">
+              <span className="ml-1 flex items-center text-[10px] text-white/70">
                 {PALETTE_LABELS[paletteIndex]}
               </span>
             </div>
