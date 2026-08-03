@@ -107,9 +107,9 @@ The operator dashboard works without an account by design, and reads fall back t
 seeded data when the API is unreachable so it stays usable offline. Writes need
 `OPERATOR_SERVICE_TOKEN` to match the API's — a mismatch fails the write loudly
 rather than falling back, since a restock that silently persists nothing is worse
-than an error. On first visit the middleware sets an opaque `operator_visitor`
-cookie used for per-visitor rate limiting and to attribute restock sessions;
-nothing about the person goes into it, and signing in is optional.
+than an error. The app-wide `visitor_id` cookie the proxy already mints is forwarded to the API
+for per-visitor rate limiting and to attribute restock sessions; nothing about
+the person goes into it, and signing in is optional.
 
 ---
 

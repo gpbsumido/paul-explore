@@ -662,6 +662,14 @@ export default function OperatorDashboardContent() {
                       href="#update-2026-08-03-visitor-identity"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
+                      A second visitor cookie that should have been the one already there
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
                       Anonymous attribution is impossible, so it is labelled rather than faked
                     </a>
                   </li>
@@ -1675,17 +1683,49 @@ export default function OperatorDashboardContent() {
                 What shipped
               </h3>
               <p className="text-muted">
-                Middleware issues a random, opaque cookie the first time anyone
-                touches the operator routes. Nothing derived from the person goes
-                into it: no fingerprint, no IP hash, no name, just a value the
-                server invents and later reads. It travels to the API as a header
-                alongside the service token, and the API uses it as the rate
-                limit key and as the actor on anything written.
+                The app already minted a stable, opaque, httpOnly cookie in the
+                proxy so server-side flag rollouts could put a visitor in the
+                same bucket every visit. The operator routes now forward that to
+                the API alongside the service token, where it becomes the rate
+                limit key and the actor on anything written. Nothing derived from
+                the person goes into it: no fingerprint, no IP hash, no name,
+                just a value the server issues and later reads.
               </p>
               <p className="mt-3 text-muted">
                 Sign-in is wired but optional. A signed-in caller is attributed
                 properly, an anonymous one carries on, and the demo still works
                 without an account because that is the entire point of it.
+              </p>
+
+              <p className="mt-3 text-muted">
+                It reuses that cookie because I first built it as a second one,
+                and that was wrong twice over. Two ids for one browser means two
+                lifetimes to keep in step and a second thing to explain, for no
+                gain. And the file I put it in was a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  middleware.ts
+                </code>{" "}
+                &mdash; a convention Next 16 renamed to{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  proxy
+                </code>
+                , and this app already had a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  proxy.ts
+                </code>
+                . Having both is a boot-time fatal: the dev server refused to
+                start and every route returned a 404.
+              </p>
+              <p className="mt-3 text-muted">
+                Worth sitting with how far that got. The unit tests passed, the
+                integration tests passed, the typecheck passed, the linter
+                passed, the dead-export check passed. Not one of them starts
+                Next, so not one of them could see it. It took the first real
+                browser request to find a bug that broke the entire application.
+                That is the argument for end-to-end tests in a sentence: the
+                layers below verify the pieces, and this was a fault in how the
+                pieces are assembled. I had been carrying these specs as
+                written-but-never-run, which is the same as not having them.
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">

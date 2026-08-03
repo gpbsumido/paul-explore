@@ -5,25 +5,23 @@ vi.mock("next/headers", () => ({
 }));
 
 import { cookies } from "next/headers";
-import {
-  VISITOR_COOKIE,
-  VISITOR_HEADER,
-  newVisitorId,
-  readVisitorId,
-} from "@/lib/operator-visitor";
+import { VISITOR_HEADER, readVisitorId } from "@/lib/operator-visitor";
+import { VISITOR_COOKIE, newVisitorId } from "@/lib/visitor";
 
 beforeEach(() => vi.clearAllMocks());
 
-describe("newVisitorId", () => {
-  it("is opaque and carries nothing about the person", () => {
-    const id = newVisitorId();
-    // No name, no IP, no fingerprint: a random value the server issues.
-    expect(id).toMatch(/^v_[a-f0-9]{24}$/);
+describe("the visitor id the operator routes forward", () => {
+  it("is the app-wide cookie, not a second one minted for operator", () => {
+    // One browser, one id. A separate operator cookie would have meant two
+    // lifetimes to keep in step for no gain, since this one is already stable
+    // and already minted on first contact by the proxy.
+    expect(VISITOR_COOKIE).toBe("visitor_id");
   });
 
-  it("is different every time", () => {
-    const ids = new Set(Array.from({ length: 50 }, () => newVisitorId()));
-    expect(ids.size).toBe(50);
+  it("is opaque and carries nothing about the person", () => {
+    expect(newVisitorId()).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
   });
 
   it("fits the bound the API enforces on the header", () => {
@@ -35,13 +33,13 @@ describe("newVisitorId", () => {
 });
 
 describe("readVisitorId", () => {
-  it("returns the cookie the middleware set", async () => {
+  it("returns the cookie the proxy set", async () => {
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === VISITOR_COOKIE ? { value: "v_abc123" } : undefined,
+        name === VISITOR_COOKIE ? { value: "abc-123" } : undefined,
     } as never);
 
-    expect(await readVisitorId()).toBe("v_abc123");
+    expect(await readVisitorId()).toBe("abc-123");
   });
 
   it("returns null rather than throwing outside a request", async () => {

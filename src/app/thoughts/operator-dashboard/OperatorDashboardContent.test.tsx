@@ -299,6 +299,13 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/A silent success is worse than an error/);
   });
 
+  it("credits E2E with a bug every other layer was blind to", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/Not one of them\s+starts Next/);
+    expect(body).toMatch(/written-but-never-run/);
+  });
+
   it("separates the three questions auth actually answers", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
