@@ -83,7 +83,13 @@ function slotButtons(page: Page) {
   return page.getByRole("button", { name: /expects \d+/ });
 }
 
-test.describe("operator restock flow", () => {
+// Tagged so the nightly public run can exclude it. That job points at the
+// deployed API, and this is a write flow -- aiming it at production is wrong
+// even when it happens to be harmless. The only reason it never wrote real rows
+// is that the service token it lacked also stopped it, which is luck standing in
+// for a decision. The e2e-operator-live tier owns these against a disposable
+// database instead.
+test.describe("operator restock flow @operator-write", () => {
   let storeId: string;
 
   test.beforeEach(async ({ page }) => {

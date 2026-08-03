@@ -350,6 +350,13 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/whole \/64/);
   });
 
+  it("records the write flow that was aimed at production", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/luck standing in for a decision, and luck is not\s+a control/);
+    expect(body).toMatch(/scheduled write traffic\s+against the production database/);
+  });
+
   it("records validating releases against what is deployed", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

@@ -1276,6 +1276,22 @@ export default function OperatorDashboardContent() {
                 should have stopped.
               </p>
               <p className="mt-3 text-muted">
+                Making the gate run on releases immediately earned its keep, in a
+                way I did not enjoy. The restock specs failed there with my own
+                error text saying the service token was missing. The code was
+                right: a rejected write is a misconfiguration rather than an
+                outage, so it refused to fall back and fake success. The job was
+                wrong. It runs against the deployed API, and those specs drive
+                writes, so the obvious fix &mdash; hand CI the secret &mdash;
+                would have converted a red build into scheduled write traffic
+                against the production database. The only reason it had never
+                written a real row is that the auth it lacked also happened to
+                stop it. That is luck standing in for a decision, and luck is not
+                a control. They are tagged and excluded from that job now; the
+                live tier already covers them against a database built and thrown
+                away per run.
+              </p>
+              <p className="mt-3 text-muted">
                 The real gap is structural and worth naming: CI only triggers for
                 pull requests into{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">main</code> and{" "}

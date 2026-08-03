@@ -186,9 +186,11 @@ jobs:
           # the Auth0 login — public tests don't need authentication.
           E2E_TEST_EMAIL: ""
           E2E_TEST_PASSWORD: ""
-        # --grep-invert @flaky keeps quarantined tests off the blocking path;
-        # they get their own non-blocking step below.
-        run: pnpm exec playwright test --project=public --grep-invert @flaky
+        # @flaky is quarantined (own non-blocking step below). @operator-write is
+        # excluded because this job runs against the deployed API and those specs
+        # drive a write flow -- production is the wrong target for that, and the
+        # e2e-operator-live job covers them properly against its own Postgres.
+        run: pnpm exec playwright test --project=public --grep-invert "@flaky|@operator-write"
 
       - name: Run authenticated e2e tests
         if: env.E2E_TEST_EMAIL != ''
