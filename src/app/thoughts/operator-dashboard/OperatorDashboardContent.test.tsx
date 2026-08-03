@@ -350,6 +350,13 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/whole \/64/);
   });
 
+  it("records the pre-release gate that skipped releases", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/sat out the one merge that is actually a\s+release/);
+    expect(body).toMatch(/correct in every situation except the one it\s+was named for/);
+  });
+
   it("names the CI trigger gap instead of quietly changing it", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

@@ -1250,6 +1250,19 @@ export default function OperatorDashboardContent() {
                 own clock rather than by blocking everyone else.
               </p>
               <p className="mt-3 text-muted">
+                And one I only found by opening the release PR and watching the
+                heavy jobs decline to run. Both of them &mdash; the full
+                accessibility pass and the live-backend operator run &mdash; were
+                conditioned on a schedule or a manual dispatch. A release PR is
+                neither, so the job whose own name ends in{" "}
+                <em>pre-release</em> sat out the one merge that is actually a
+                release. It had been correct in every situation except the one it
+                was named for, which is the sort of thing that survives review
+                because the name reads like a guarantee. They now run on any pull
+                request into the release branch; releases are rare, so the
+                minutes are cheap.
+              </p>
+              <p className="mt-3 text-muted">
                 The real gap is structural and worth naming: CI only triggers for
                 pull requests into{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">main</code> and{" "}
