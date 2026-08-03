@@ -14,6 +14,15 @@ describe("the accessibility write-up", () => {
     expect(body).toMatch(/I had invented a worse version of a\s+solved problem/);
   });
 
+  it("says the shared-library violation was fixed, not just found", () => {
+    render(<AccessibilityContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/That one is fixed upstream now, in both framework packages/);
+    expect(body).toMatch(
+      /the first consumer to look properly finds it for everyone/,
+    );
+  });
+
   it("explains why a contrast scan needs a pinned theme", () => {
     render(<AccessibilityContent />);
     const body = document.body.textContent ?? "";

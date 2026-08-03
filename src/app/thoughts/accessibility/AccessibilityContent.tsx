@@ -1170,7 +1170,32 @@ expect(results).toHaveNoViolations();`}
                 contains focusable buttons. Hiding something from assistive
                 technology while leaving it in the tab order is worse than not
                 hiding it, because a keyboard user lands on a control a screen
-                reader insists does not exist. That one needs fixing upstream.
+                reader insists does not exist.
+              </p>
+              <p className="mt-3 text-muted">
+                That one is fixed upstream now, in both framework packages. The
+                clone is marked{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  inert
+                </code>{" "}
+                declaratively rather than having its focusables stripped by an
+                effect after render, which is what left the gap: an effect runs
+                after paint, so between mount and that effect the duplicate held
+                tabbable controls, and every re-render reopened the window.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  inert
+                </code>{" "}
+                takes the tab order and the accessibility tree out together,
+                which is exactly the pair that had come apart.
+              </p>
+              <p className="mt-3 text-muted">
+                The Angular port of the same component carried the identical
+                bug, comment and all, and was still in review &mdash; so that
+                one got fixed before it ever shipped rather than after. Worth
+                noting how it was found: not by auditing the design system, but
+                by a scan on a page that happened to use it. A shared component
+                library means one mistake reaches every consumer, and it also
+                means the first consumer to look properly finds it for everyone.
               </p>
 
               <h2 className="mb-3 mt-8 text-lg font-bold">
