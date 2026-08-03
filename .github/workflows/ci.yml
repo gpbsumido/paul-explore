@@ -138,7 +138,14 @@ jobs:
     needs: quality
     # Heavy tier: the full public + authenticated flows. Runs nightly on a
     # schedule or on demand before a release, never on individual commits.
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # Also on release PRs. This job calls itself a pre-release gate, and it was
+    # skipping the one PR that is actually a release -- a develop -> main PR is
+    # neither a schedule nor a dispatch, so the heavy tiers sat out the merge
+    # they exist to protect. Releases are rare, so the extra minutes are cheap.
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.base_ref == 'main')
 
     # Real secrets (from repo Settings → Secrets) are used when available.
     # Placeholder fallbacks let the server boot in forks or repos where secrets
@@ -219,7 +226,14 @@ jobs:
     name: Operator E2E against a real backend
     runs-on: ubuntu-latest
     needs: quality
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # Also on release PRs. This job calls itself a pre-release gate, and it was
+    # skipping the one PR that is actually a release -- a develop -> main PR is
+    # neither a schedule nor a dispatch, so the heavy tiers sat out the merge
+    # they exist to protect. Releases are rare, so the extra minutes are cheap.
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.base_ref == 'main')
 
     services:
       postgres:
