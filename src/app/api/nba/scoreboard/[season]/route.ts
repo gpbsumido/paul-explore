@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 
 // Scoreboard data updates throughout the week as games are played — 1 hour CDN cache
@@ -16,9 +17,11 @@ export async function GET(
   }
 
   try {
-    const res = await fetch(
+    const upstreamResult = await fetchUpstream(
       `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/449389534?view=mScoreboard&view=mTeam&view=mRoster&view=mSettings`,
     );
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
 
     if (!res.ok) {
       return NextResponse.json(

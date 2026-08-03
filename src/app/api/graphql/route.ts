@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 /**
  * Proxy that forwards GraphQL requests to the PokeAPI Hasura endpoint.
  *
@@ -32,11 +33,16 @@ export async function POST(request: Request) {
     return Response.json({ error: "Payload too large" }, { status: 413 });
   }
 
-  const upstream = await fetch(POKEAPI_GRAPHQL, {
+  // PokeAPI is a third party, so it gets a deadline like everything else. An
+  // unbounded call here left the browser waiting on someone else's outage with
+  // no way to tell that was what had happened.
+  const upstreamResult = await fetchUpstream(POKEAPI_GRAPHQL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+  const upstream = upstreamResult.response;
 
   // Forward the upstream status transparently; guard the parse so a non-JSON
   // error body from upstream doesn't throw here.

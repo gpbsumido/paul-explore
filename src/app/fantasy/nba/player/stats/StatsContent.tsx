@@ -167,8 +167,13 @@ export default function StatsContent() {
           label="Team"
           value={selectedTeamId ?? ""}
           onChange={handleTeamChange}
+          disabled={teamsQuery.isPending}
         >
-          <option value="">Select a team…</option>
+          {/* Pending is not the same as empty -- an empty list while the
+              request is still in flight reads as "there are no teams". */}
+          <option value="">
+            {teamsQuery.isPending ? "Loading teams…" : "Select a team…"}
+          </option>
           {teams.map((team) => (
             <option key={team.id} value={team.id}>
               {team.full_name}

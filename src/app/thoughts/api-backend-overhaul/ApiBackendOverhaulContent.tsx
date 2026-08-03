@@ -657,6 +657,61 @@ export default function ApiBackendOverhaulContent() {
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                Every call to it now has a deadline
+              </h2>
+              <p className="text-muted">
+                The one thing the overhaul did not settle was what the frontend
+                should do when this API is neither up nor down, but slow. The
+                answer turned out to be &ldquo;wait indefinitely&rdquo;, which
+                nobody chose &mdash; it was just what{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">fetch()</code> does when you give it
+                no signal.
+              </p>
+              <p className="mt-3 text-muted">
+                It surfaced when the API&apos;s own upstream, the NBA stats feed,
+                stopped answering. The API stayed healthy: its health check
+                returned in a tenth of a second while{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">/api/nba/teams</code> took 71 seconds to
+                return a 500. The BFF route in front of it waited the whole time.
+                Nothing rejected, so the page&apos;s error branch never ran, and
+                a visitor got a team selector reading &ldquo;Select a
+                team&hellip;&rdquo; with nothing in it. Not an error, not a
+                spinner &mdash; a list that looked empty because it never
+                arrived.
+              </p>
+              <p className="mt-3 text-muted">
+                A survey found 47 unbounded call sites across 31 routes. Exactly
+                one had got it right: the geo proxy, which already used an eight
+                second{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">AbortSignal.timeout</code>. That became a
+                shared helper and the number came with it, because a value that
+                has already survived production is worth more than a fresh guess.
+              </p>
+              <p className="mt-3 text-muted">
+                Two distinctions were worth preserving while doing it. A deadline
+                now answers 504 and an unreachable backend answers 502, since
+                slow and down are different operational facts and only one of
+                them is worth waking up for. And a non-2xx response still passes
+                straight through: a 404 from this API is something it genuinely
+                told us, and rewriting that as a transport failure throws away
+                the only real information in the exchange.
+              </p>
+              <p className="mt-3 text-muted">
+                The wider point is about where a fallback stops helping. The
+                whole design here is that the frontend degrades gracefully when
+                the backend is unavailable, and that is right. But graceful
+                degradation assumes a definite answer, even a bad one. A
+                dependency that neither succeeds nor fails gives the fallback
+                nothing to trigger on, and the interface ends up presenting
+                &ldquo;still waiting&rdquo; as &ldquo;nothing here&rdquo;. A
+                timeout is what converts an indefinite state into a definite one,
+                which is the precondition for every other bit of resilience
+                working at all.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 What a frontend dev takes from it
               </h2>
               <p className="text-muted">

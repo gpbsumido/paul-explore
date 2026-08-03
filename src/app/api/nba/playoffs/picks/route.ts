@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 
@@ -20,9 +21,11 @@ export async function GET() {
   const season = currentSeasonYear();
 
   try {
-    const res = await fetch(`${API_URL}/api/nba/playoffs/picks/${season}`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/nba/playoffs/picks/${season}`, {
       headers: buildHeaders(token, null),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
 
     if (res.status === 404) {
       return NextResponse.json({ picks: {} });
@@ -74,13 +77,15 @@ export async function PUT(request: NextRequest) {
   const season = currentSeasonYear();
 
   try {
-    const res = await fetch(`${API_URL}/api/nba/playoffs/picks/${season}`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/nba/playoffs/picks/${season}`, {
       method: "PUT",
       headers: buildHeaders(token, null, {
         "Content-Type": "application/json",
       }),
       body: JSON.stringify({ picks }),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
 
     if (!res.ok) {
       const body = await res.json().catch(() => null);

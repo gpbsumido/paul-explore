@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -7,7 +8,9 @@ const CACHE_CONTROL = "public, s-maxage=300";
 
 export async function GET() {
   try {
-    const res = await fetch(`${API_URL}/api/nba/teams`);
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/nba/teams`);
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       return NextResponse.json(
         { error: "Failed to fetch teams" },

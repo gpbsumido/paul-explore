@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { inviteMemberBodySchema } from "@/lib/schemas";
@@ -20,9 +21,11 @@ export async function GET(
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/calendar/calendars/${id}/members`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars/${id}/members`, {
       headers: buildHeaders(token, email),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res
         .json()
@@ -57,13 +60,15 @@ export async function POST(
   const body = bodyResult.data;
 
   try {
-    const res = await fetch(`${API_URL}/api/calendar/calendars/${id}/members`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars/${id}/members`, {
       method: "POST",
       headers: buildHeaders(token, email, {
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(body),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res
         .json()

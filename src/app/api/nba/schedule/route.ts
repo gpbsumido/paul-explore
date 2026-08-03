@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -23,9 +24,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const res = await fetch(
+    const upstreamResult = await fetchUpstream(
       `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?limit=200&dates=${start}-${end}`,
     );
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
 
     if (!res.ok) {
       return NextResponse.json(

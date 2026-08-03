@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { API_URL } from "@/lib/backendFetch";
 import type { LeaderboardEntry } from "@/types/nba";
@@ -56,10 +57,12 @@ export async function GET() {
   const season = currentSeasonYear();
 
   try {
-    const res = await fetch(
+    const upstreamResult = await fetchUpstream(
       `${API_URL}/api/nba/playoffs/leaderboard/${season}`,
       { next: { revalidate: 300 } },
     );
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
 
     if (!res.ok) {
       return NextResponse.json(

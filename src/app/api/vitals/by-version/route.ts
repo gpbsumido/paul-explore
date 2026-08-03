@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
@@ -15,9 +16,11 @@ export async function GET() {
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/vitals/by-version`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/vitals/by-version`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
 
     if (!res.ok) {
       console.error(

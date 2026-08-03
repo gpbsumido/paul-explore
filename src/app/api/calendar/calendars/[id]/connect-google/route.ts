@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 
@@ -18,10 +19,12 @@ export async function POST(
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/calendar/calendars/${id}/connect-google`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars/${id}/connect-google`, {
       method: "POST",
       headers: buildHeaders(token, email),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Failed to connect Google Calendar" }));
       console.error("[calendars BFF] POST connect-google — backend error:", err);
