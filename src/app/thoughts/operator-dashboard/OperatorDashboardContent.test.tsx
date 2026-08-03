@@ -299,6 +299,32 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/A silent success is worse than an error/);
   });
 
+  it("separates the three questions auth actually answers", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/can this caller write at all/);
+    expect(body).toMatch(/which visitor is this/);
+    expect(body).toMatch(/who is this, really/);
+  });
+
+  it("is honest that anonymous attribution is impossible, not just unbuilt", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(
+      /cannot have both no login and trustworthy attribution/,
+    );
+    expect(body).toMatch(/definitional, not an engineering gap/);
+    expect(body).toMatch(/waiting for a reason/);
+  });
+
+  it("has a timeline entry linking to the visitor-identity update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /three questions, three answers, and one that has none/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-03-visitor-identity");
+  });
+
   it("explains why a silent zero costs more than an error", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

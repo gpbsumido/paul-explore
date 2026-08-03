@@ -28,6 +28,7 @@ import type {
   FleetSummaryResponse,
 } from "@/types/operator";
 import { API_URL } from "@/lib/backendFetch";
+import { VISITOR_HEADER, readVisitorId } from "@/lib/operator-visitor";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
 
 const BASE = `${API_URL}/api/operator`;
@@ -38,12 +39,31 @@ const BASE = `${API_URL}/api/operator`;
  * the API tell "a visitor using the dashboard" apart from "someone with curl",
  * without asking the visitor to log in.
  */
-function writeHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
+async function writeHeaders(): Promise<Record<string, string>> {
+  return {
     "Content-Type": "application/json",
+    ...(await callerHeaders()),
   };
+}
+
+/**
+ * Who we are, and who is asking.
+ *
+ * The service token says the request came from this app rather than from curl.
+ * The visitor id says which browser, so the API can rate limit per visitor
+ * instead of per egress IP and record something meaningful as the actor. Reads
+ * carry it too, since a runaway read loop is exactly what a fairness limit is
+ * for.
+ */
+async function callerHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+
   const token = process.env.OPERATOR_SERVICE_TOKEN;
   if (token) headers["x-operator-token"] = token;
+
+  const visitor = await readVisitorId();
+  if (visitor) headers[VISITOR_HEADER] = visitor;
+
   return headers;
 }
 
@@ -63,7 +83,10 @@ async function getJson<T>(
   path: string,
   schema: z.ZodType<T>,
 ): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
+  const res = await fetch(`${BASE}${path}`, {
+    cache: "no-store",
+    headers: await callerHeaders(),
+  });
   if (!res.ok) throw new OperatorApiError(res.status);
   return schema.parse(await res.json());
 }
@@ -76,7 +99,7 @@ async function sendJson<T>(
 ): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: writeHeaders(),
+    headers: await writeHeaders(),
     body: JSON.stringify(body),
     cache: "no-store",
   });

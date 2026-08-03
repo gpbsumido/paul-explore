@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-03-visitor-identity"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Three questions, three answers, and one that has none
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 3, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-honest-states"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -640,6 +651,22 @@ export default function OperatorDashboardContent() {
                   </li>
                   <li>
                     <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A pseudonymous visitor id for fairness, deliberately not for security
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Anonymous attribution is impossible, so it is labelled rather than faked
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="#update-2026-08-02-hardening"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
@@ -856,10 +883,10 @@ export default function OperatorDashboardContent() {
                   </li>
                   <li>
                     <a
-                      href="#update-2026-08-02-hardening"
+                      href="#update-2026-08-03-visitor-identity"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
-                      Rate limits sized for traffic that arrives from a BFF, not per visitor
+                      Rate limits now keyed per visitor rather than per egress IP
                     </a>
                   </li>
                   <li>
@@ -1615,6 +1642,134 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-03-visitor-identity"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 3, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Three questions, three answers, and one that has none
+              </h2>
+              <p className="text-muted">
+                I had written that auth here was deferred rather than solved: a
+                shared service token stops anyone writing to the API directly,
+                but it authenticates the app, not a person, so the audit trail
+                recorded the same hardcoded actor for everybody and per-visitor
+                rate limiting was impossible. The obvious next question is
+                whether a mix would fix it, and the answer is mostly yes, as long
+                as you are clear about which layer does what.
+              </p>
+              <p className="mt-3 text-muted">
+                The mistake would be thinking of these as &quot;more auth&quot;.
+                They answer different questions. The service token answers{" "}
+                <em>can this caller write at all</em>, which is a security
+                boundary. A visitor id answers <em>which visitor is this</em>,
+                which is fairness. And optional sign-in answers{" "}
+                <em>who is this, really</em>, which is identity. Stacking them
+                only helps because they are not the same thing.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What shipped
+              </h3>
+              <p className="text-muted">
+                Middleware issues a random, opaque cookie the first time anyone
+                touches the operator routes. Nothing derived from the person goes
+                into it: no fingerprint, no IP hash, no name, just a value the
+                server invents and later reads. It travels to the API as a header
+                alongside the service token, and the API uses it as the rate
+                limit key and as the actor on anything written.
+              </p>
+              <p className="mt-3 text-muted">
+                Sign-in is wired but optional. A signed-in caller is attributed
+                properly, an anonymous one carries on, and the demo still works
+                without an account because that is the entire point of it.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What that actually buys
+              </h3>
+              <p className="text-muted">
+                <strong>Rate limiting that works.</strong> Every operator request
+                reaches the API server-side from this app, so limiting by IP put
+                the whole world in one bucket: one person in a loop could have
+                started returning 429s to everyone else. Keyed by visitor, a
+                runaway caller now only exhausts their own budget.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>An audit trail that says something.</strong> Every
+                restock session used to record{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  operator@smartstore.example
+                </code>
+                , which is worse than useless: it looks like an answer. Sessions
+                now carry either a real signed-in subject or{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  anonymous:v_…
+                </code>
+                , deliberately prefixed so nobody mistakes it for a username. Two
+                restocks sharing one are the same browser, which is a real and
+                useful fact about a shift.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What it is not, and cannot be
+              </h3>
+              <p className="text-muted">
+                The visitor id is self-asserted. Clear the cookie and you are a
+                stranger with a fresh budget. That sounds fatal until you notice
+                the service token already decides who can reach these endpoints
+                at all, so this never has to resist an attacker; it has to tell
+                honest visitors apart, which is all a fairness limit needs. It
+                would be the wrong thing to hang a security decision on and I
+                have not hung one on it.
+              </p>
+              <p className="mt-3 text-muted">
+                And the thing it genuinely cannot do:{" "}
+                <strong>
+                  you cannot have both no login and trustworthy attribution for
+                  the same action
+                </strong>
+                . That is definitional, not an engineering gap. An anonymous id
+                tells you two actions came from the same browser and can never
+                tell you who was holding the phone. So the honest answer is real
+                attribution for people who identify themselves, honest labelling
+                for people who do not, and no pretending the second is the first.
+              </p>
+              <p className="mt-3 text-muted">
+                The service token also stays a bearer secret. Anyone who obtains
+                it has full write access, there is no revoking one caller without
+                revoking all of them, and rotating it means coordinating two
+                deploys. Fixing that properly means short-lived signed tokens or
+                mutual TLS, and neither is worth it for a demo.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where that leaves it
+              </h3>
+              <p className="text-muted">
+                Solved now: writes are closed to anything but this app, limits
+                are per visitor rather than per egress IP, and the audit trail
+                distinguishes callers instead of naming a constant.
+              </p>
+              <p className="mt-3 text-muted">
+                Not yet, and roughly in the order I would do it: roles, so a
+                restocker cannot read finances; a real login for operators, which
+                turns{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  anonymous:v_…
+                </code>{" "}
+                into a name and is now a small change rather than a redesign,
+                because the plumbing that carries identity already exists; token
+                rotation without a synchronised deploy; and per-tenant isolation
+                the day there is more than one operator. None of that is blocked
+                on anything. It is waiting for a reason, which is a better
+                position than being blocked on plumbing.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-02-honest-states"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
