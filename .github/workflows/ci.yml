@@ -276,7 +276,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: gpbsumido/portfolio_api
-          ref: develop
+          # A release PR is validated against the API's main, because main is
+          # what is actually deployed. Testing a release against the API's
+          # develop would pass on unreleased backend code and say nothing about
+          # whether the version in production can serve it -- a green check for
+          # reasons unrelated to what it claims to verify. Everything else runs
+          # against develop, which is where the next release is assembled.
+          ref: ${{ github.base_ref == 'main' && 'main' || 'develop' }}
           path: api
 
       - name: Prefer a portfolio_api branch of the same name
@@ -286,7 +292,7 @@ jobs:
         # new frontend against an old API. Falls back to develop when there is no
         # counterpart, which is the common case.
         run: |
-          BRANCH="${{ github.ref_name }}"
+          BRANCH="${{ github.head_ref || github.ref_name }}"
           if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
             echo "Testing against portfolio_api branch $BRANCH"
             git fetch --depth 1 origin "$BRANCH"

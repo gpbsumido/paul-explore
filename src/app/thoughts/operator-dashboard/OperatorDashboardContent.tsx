@@ -1263,6 +1263,19 @@ export default function OperatorDashboardContent() {
                 minutes are cheap.
               </p>
               <p className="mt-3 text-muted">
+                A related one, found by thinking about what the release run had
+                actually proved rather than that it was green: the live tier
+                always pulled the API&apos;s development branch. For a release
+                that is the wrong target. It would pass against backend code that
+                is not deployed and say nothing about whether the version in
+                production can serve the release &mdash; green for reasons
+                unrelated to the thing it claims to check, which is the same
+                shape as everything else on this page. Both branches happened to
+                be identical the day I noticed, which is precisely when to fix it
+                rather than after it has quietly waved through a release it
+                should have stopped.
+              </p>
+              <p className="mt-3 text-muted">
                 The real gap is structural and worth naming: CI only triggers for
                 pull requests into{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">main</code> and{" "}

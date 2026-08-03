@@ -350,6 +350,13 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/whole \/64/);
   });
 
+  it("records validating releases against what is deployed", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/green for reasons\s+unrelated to the thing it claims to check/);
+    expect(body).toMatch(/precisely when to fix it/);
+  });
+
   it("records the pre-release gate that skipped releases", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
