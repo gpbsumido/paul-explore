@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { updateCalendarBodySchema } from "@/lib/schemas";
@@ -24,11 +25,13 @@ export async function PUT(
   const body = bodyResult.data;
 
   try {
-    const res = await fetch(`${API_URL}/api/calendar/calendars/${id}`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars/${id}`, {
       method: "PUT",
       headers: buildHeaders(token, email, { "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Failed to update calendar" }));
       console.error("[calendars BFF] PUT — backend error:", err);
@@ -59,10 +62,12 @@ export async function DELETE(
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/calendar/calendars/${id}`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars/${id}`, {
       method: "DELETE",
       headers: buildHeaders(token, email),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Failed to delete calendar" }));
       console.error("[calendars BFF] DELETE — backend error:", err);
