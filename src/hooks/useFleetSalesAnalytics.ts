@@ -23,6 +23,7 @@ export interface UseFleetSalesAnalyticsReturn {
  */
 export function useFleetSalesAnalytics(
   granularity: SalesGranularity,
+  timeZone: string,
 ): UseFleetSalesAnalyticsReturn {
   const {
     data,
@@ -30,12 +31,12 @@ export function useFleetSalesAnalytics(
     isError,
     error: queryError,
   } = useQuery({
-    queryKey: queryKeys.operator.salesAnalytics(granularity),
+    queryKey: queryKeys.operator.salesAnalytics(granularity, timeZone),
     queryFn: async ({ signal }): Promise<FleetSalesAnalyticsData> => {
-      const res = await fetch(
-        `/api/operator/sales-analytics?granularity=${granularity}`,
-        { signal },
-      );
+      const query = new URLSearchParams({ granularity, tz: timeZone });
+      const res = await fetch(`/api/operator/sales-analytics?${query}`, {
+        signal,
+      });
       if (!res.ok) throw new Error("Failed to fetch sales analytics");
       const json = await res.json();
       return fleetSalesAnalyticsSchema.parse(json);

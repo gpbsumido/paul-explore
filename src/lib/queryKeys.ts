@@ -158,9 +158,17 @@ export const queryKeys = {
     /** Aggregated alert counts + inventory health for the fleet dashboard. Polled every 15s. */
     fleetSummary: () => ["operator", "fleet-summary"] as const,
 
-    /** Fleet-wide sales analytics for a granularity (day/week/month/year). */
-    salesAnalytics: (granularity: string) =>
-      ["operator", "sales-analytics", granularity] as const,
+    /** Scheduled promotions for a store. */
+    promotions: (storeId: string) =>
+      ["operator", "stores", storeId, "promotions"] as const,
+
+    /**
+     * Fleet-wide sales analytics for a granularity (day/week/month/year).
+     * Keyed by zone too: the same granularity in a different timezone is a
+     * different set of buckets, so they must not share a cache entry.
+     */
+    salesAnalytics: (granularity: string, timeZone: string) =>
+      ["operator", "sales-analytics", granularity, timeZone] as const,
   },
 
   flags: {

@@ -202,3 +202,146 @@ jobs:
             playwright-report/
             e2e/.auth/auth-failure.png
           retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # The tier that actually proves the operator feature talks to a database.
+  #
+  # Every other operator test runs against the BFF's in-memory seed, which is
+  # the same fallback that keeps the demo alive when the API is asleep -- and
+  # therefore the same fallback that hides whether the real path works. That is
+  # not hypothetical: it let a missing /stores/:id/sales endpoint sit unnoticed,
+  # and it made the restock specs pass identically whether or not a backend was
+  # reachable. This job stands up Postgres and a real portfolio_api, points the
+  # BFF at it, and drives the flow end to end, so an integration regression has
+  # somewhere to fail.
+  # ---------------------------------------------------------------------------
+  e2e-operator-live:
+    name: Operator E2E against a real backend
+    runs-on: ubuntu-latest
+    needs: quality
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: portfolio
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/portfolio
+      # Both sides must agree or every write 401s while reads carry on, which is
+      # exactly the partial outage the service token docs warn about.
+      OPERATOR_SERVICE_TOKEN: ci-operator-service-token
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      APP_BASE_URL: http://localhost:3000
+      AUTH0_SECRET: ci-placeholder-secret-32-characters!!
+      AUTH0_DOMAIN: placeholder.auth0.com
+      AUTH0_CLIENT_ID: ci-placeholder-client-id
+      AUTH0_CLIENT_SECRET: ci-placeholder-client-secret
+      AUTH0_AUDIENCE: https://placeholder-api
+      # Public tier only; globalSetup skips the Auth0 login when these are blank.
+      E2E_TEST_EMAIL: ""
+      E2E_TEST_PASSWORD: ""
+      # Resolve the store off the fleet instead of the seed id, so the specs
+      # drive whatever the API is really serving.
+      OPERATOR_E2E_LIVE: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out portfolio_api
+        uses: actions/checkout@v4
+        with:
+          repository: gpbsumido/portfolio_api
+          ref: develop
+          path: api
+
+      - name: Prefer a portfolio_api branch of the same name
+        working-directory: api
+        # A frontend change that needs a backend change is developed as a pair of
+        # same-named branches, so this job tests the pair rather than pinning the
+        # new frontend against an old API. Falls back to develop when there is no
+        # counterpart, which is the common case.
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Testing against portfolio_api branch $BRANCH"
+            git fetch --depth 1 origin "$BRANCH"
+            git checkout FETCH_HEAD
+          else
+            echo "No portfolio_api branch named $BRANCH; testing against develop"
+          fi
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve the API's own pnpm
+        working-directory: api
+        # The two repos pin different pnpm majors -- this one is on 8 with a v6
+        # lockfile, the API on 10 with a v9 one -- so the pnpm set up above
+        # cannot install the API at all. Read the API's pin rather than
+        # hardcoding it, which would silently drift the next time it upgrades.
+        run: echo "API_PNPM=$(node -p 'require("./package.json").packageManager')" >> "$GITHUB_ENV"
+
+      - name: Install API dependencies
+        working-directory: api
+        run: npx --yes "$API_PNPM" install --frozen-lockfile
+
+      - name: Apply migrations and seed the operator tables
+        working-directory: api
+        run: |
+          npx --yes "$API_PNPM" migrate
+          npx --yes "$API_PNPM" seed:operator
+
+      - name: Build and start portfolio_api
+        working-directory: api
+        env:
+          PORT: 3001
+          NEXT_PUBLIC_AUTH0_AUDIENCE: https://placeholder-api
+          NEXT_PUBLIC_AUTH0_ISSUER_BASE_URL: https://placeholder.auth0.com
+        run: |
+          npx --yes "$API_PNPM" build
+          node dist/index.js > "$RUNNER_TEMP/api.log" 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3001/api/health >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:3001/api/health || {
+            echo "::error::portfolio_api did not come up"
+            cat "$RUNNER_TEMP/api.log"
+            exit 1
+          }
+
+      - name: Install Playwright browsers (Chromium only)
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Drive the operator flow against the live API
+        run: pnpm exec playwright test --project=public e2e/public/operator-restock.spec.ts
+
+      - name: API log on failure
+        if: failure()
+        run: cat "$RUNNER_TEMP/api.log" || true
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: operator-live-playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -11,6 +11,10 @@ import {
   activityEventSchema,
   saleSchema,
   planogramSlotSchema,
+  promotionPerformanceSchema,
+  promotionSchema,
+  restockLineSchema,
+  restockSessionSchema,
   fleetSummaryResponseSchema,
   fleetSalesAnalyticsSchema,
 } from "@/lib/operator-schemas";
@@ -24,8 +28,44 @@ import type {
   FleetSummaryResponse,
 } from "@/types/operator";
 import { API_URL } from "@/lib/backendFetch";
+import { VISITOR_HEADER, readVisitorId } from "@/lib/operator-visitor";
+import type { RestockLineBody } from "@/lib/operator-restock-types";
 
 const BASE = `${API_URL}/api/operator`;
+
+/**
+ * Shared secret the operator API expects on writes. Server-side only, never
+ * NEXT_PUBLIC_, so it stays out of the browser bundle. Its whole job is to let
+ * the API tell "a visitor using the dashboard" apart from "someone with curl",
+ * without asking the visitor to log in.
+ */
+async function writeHeaders(): Promise<Record<string, string>> {
+  return {
+    "Content-Type": "application/json",
+    ...(await callerHeaders()),
+  };
+}
+
+/**
+ * Who we are, and who is asking.
+ *
+ * The service token says the request came from this app rather than from curl.
+ * The visitor id says which browser, so the API can rate limit per visitor
+ * instead of per egress IP and record something meaningful as the actor. Reads
+ * carry it too, since a runaway read loop is exactly what a fairness limit is
+ * for.
+ */
+async function callerHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+
+  const token = process.env.OPERATOR_SERVICE_TOKEN;
+  if (token) headers["x-operator-token"] = token;
+
+  const visitor = await readVisitorId();
+  if (visitor) headers[VISITOR_HEADER] = visitor;
+
+  return headers;
+}
 
 /**
  * The API answered with a non-2xx status. Distinct from a thrown fetch (the API
@@ -43,20 +83,23 @@ async function getJson<T>(
   path: string,
   schema: z.ZodType<T>,
 ): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
+  const res = await fetch(`${BASE}${path}`, {
+    cache: "no-store",
+    headers: await callerHeaders(),
+  });
   if (!res.ok) throw new OperatorApiError(res.status);
   return schema.parse(await res.json());
 }
 
 async function sendJson<T>(
   path: string,
-  method: "POST" | "PATCH",
+  method: "POST" | "PATCH" | "PUT",
   body: unknown,
   schema: z.ZodType<T>,
 ): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: await writeHeaders(),
     body: JSON.stringify(body),
     cache: "no-store",
   });
@@ -116,11 +159,10 @@ export async function fetchFleetSummary(): Promise<FleetSummaryResponse> {
 
 export async function fetchSalesAnalytics(
   granularity: string,
+  timeZone: string,
 ): Promise<z.infer<typeof fleetSalesAnalyticsSchema>> {
-  return getJson(
-    `/sales-analytics?granularity=${granularity}`,
-    fleetSalesAnalyticsSchema,
-  );
+  const query = new URLSearchParams({ granularity, tz: timeZone });
+  return getJson(`/sales-analytics?${query}`, fleetSalesAnalyticsSchema);
 }
 
 // ---------------------------------------------------------------------------
@@ -163,4 +205,123 @@ export async function patchPlanogram(
       planogramPayload,
     )
   ).slots;
+}
+
+// ---------------------------------------------------------------------------
+// Restock sessions
+// ---------------------------------------------------------------------------
+
+const sessionPayload = z.object({ session: restockSessionSchema });
+const sessionsPayload = z.object({ sessions: z.array(restockSessionSchema) });
+const sessionDetailPayload = z.object({
+  session: restockSessionSchema,
+  lines: z.array(restockLineSchema),
+});
+const linePayload = z.object({ line: restockLineSchema });
+const completePayload = z.object({
+  session: restockSessionSchema,
+  lines: z.array(restockLineSchema),
+  items: z.array(inventoryItemSchema),
+  activity: activityEventSchema,
+});
+
+export async function postRestockSession(
+  storeId: string,
+): Promise<z.infer<typeof restockSessionSchema>> {
+  return (
+    await sendJson(
+      `/stores/${storeId}/restock-sessions`,
+      "POST",
+      {},
+      sessionPayload,
+    )
+  ).session;
+}
+
+export async function fetchRestockSessions(
+  storeId: string,
+): Promise<z.infer<typeof restockSessionSchema>[]> {
+  return (
+    await getJson(`/stores/${storeId}/restock-sessions`, sessionsPayload)
+  ).sessions;
+}
+
+export async function fetchRestockSession(
+  sessionId: string,
+): Promise<z.infer<typeof sessionDetailPayload>> {
+  return getJson(`/restock-sessions/${sessionId}`, sessionDetailPayload);
+}
+
+export async function putRestockLine(
+  sessionId: string,
+  itemId: string,
+  body: RestockLineBody,
+): Promise<z.infer<typeof restockLineSchema>> {
+  return (
+    await sendJson(
+      `/restock-sessions/${sessionId}/lines/${itemId}`,
+      "PUT",
+      body,
+      linePayload,
+    )
+  ).line;
+}
+
+export async function postCompleteRestock(
+  sessionId: string,
+  notes: string | null,
+): Promise<z.infer<typeof completePayload>> {
+  return sendJson(
+    `/restock-sessions/${sessionId}/complete`,
+    "POST",
+    { notes },
+    completePayload,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Promotions
+// ---------------------------------------------------------------------------
+
+const promotionsPayload = z.object({ promotions: z.array(promotionSchema) });
+const promotionPayload = z.object({ promotion: promotionSchema });
+
+export type PromotionBody = {
+  productName: string | null;
+  percent: number;
+  startsAt: string;
+  endsAt: string | null;
+};
+
+export async function fetchPromotions(
+  storeId: string,
+): Promise<z.infer<typeof promotionSchema>[]> {
+  return (await getJson(`/stores/${storeId}/promotions`, promotionsPayload))
+    .promotions;
+}
+
+export async function postPromotion(
+  storeId: string,
+  body: PromotionBody,
+): Promise<z.infer<typeof promotionSchema>> {
+  return (
+    await sendJson(`/stores/${storeId}/promotions`, "POST", body, promotionPayload)
+  ).promotion;
+}
+
+export async function patchEndPromotion(
+  promotionId: string,
+): Promise<z.infer<typeof promotionSchema>> {
+  return (
+    await sendJson(`/promotions/${promotionId}/end`, "PATCH", {}, promotionPayload)
+  ).promotion;
+}
+
+export async function fetchPromotionPerformance(
+  promotionId: string,
+): Promise<z.infer<typeof promotionPerformanceSchema>> {
+  return getJson(
+    `/promotions/${promotionId}/performance`,
+    promotionPerformanceSchema,
+  );
 }

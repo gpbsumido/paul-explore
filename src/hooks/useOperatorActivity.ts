@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { ActivityEvent } from "@/types/operator";
+import { z } from "zod";
+import { activityEventSchema } from "@/lib/operator-schemas";
 import { queryKeys } from "@/lib/queryKeys";
 
 const EMPTY: ActivityEvent[] = [];
@@ -33,8 +35,11 @@ export function useOperatorActivity(
         signal,
       });
       if (!res.ok) throw new Error("Failed to fetch activity");
-      const json = await res.json();
-      return json.events as ActivityEvent[];
+      // Parsed like every other operator read; this one was casting.
+      const { events } = z
+        .object({ events: z.array(activityEventSchema) })
+        .parse(await res.json());
+      return events;
     },
     staleTime: 0,
     refetchOnWindowFocus: true,

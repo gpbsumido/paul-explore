@@ -10,7 +10,11 @@ import {
   formatCAD,
   type SalesGranularity,
 } from "@/lib/operator-sales";
+import { useOperatorStore } from "@/hooks/useOperatorStore";
+import { storeTimeZone } from "@/lib/operator-timezone";
+import ChartBar from "./ChartBar";
 import SalesRangeToggle from "./SalesRangeToggle";
+import TimeZoneNote from "./TimeZoneNote";
 
 interface SalesTabProps {
   storeId: string;
@@ -25,13 +29,20 @@ const MAX_TOP_PRODUCTS = 5;
  */
 export default function SalesTab({ storeId }: SalesTabProps) {
   const { sales, loading, error } = useOperatorSales(storeId);
+  // Already in cache from the page above, so this costs nothing extra.
+  const { store } = useOperatorStore(storeId);
   const [granularity, setGranularity] = useState<SalesGranularity>("month");
+
+  // A store's day belongs to the store, not to whoever is looking at it. An
+  // operator checking a Vancouver fridge from a hotel in Toronto should still
+  // see Vancouver's days.
+  const timeZone = useMemo(() => storeTimeZone(store), [store]);
 
   // Scope every figure to the selected range, not just the trend chart, so the
   // toggle actually filters the summary, top sellers, and recent list too.
   const windowed = useMemo(
-    () => filterSalesForRange(sales, granularity),
-    [sales, granularity],
+    () => filterSalesForRange(sales, granularity, new Date(), timeZone),
+    [sales, granularity, timeZone],
   );
 
   const summary = useMemo(() => summarizeSales(windowed), [windowed]);
@@ -40,8 +51,8 @@ export default function SalesTab({ storeId }: SalesTabProps) {
     [windowed],
   );
   const trend = useMemo(
-    () => salesByPeriod(windowed, granularity),
-    [windowed, granularity],
+    () => salesByPeriod(windowed, granularity, new Date(), timeZone),
+    [windowed, granularity, timeZone],
   );
   const recent = useMemo(
     () =>
@@ -88,9 +99,15 @@ export default function SalesTab({ storeId }: SalesTabProps) {
           </h3>
           <SalesRangeToggle value={granularity} onChange={setGranularity} />
         </div>
-        <div className="flex items-end gap-2" aria-hidden="true">
+        <div className="mb-2">
+          <TimeZoneNote timeZone={timeZone} />
+        </div>
+        <div className="flex items-end gap-2">
           {trend.map((bucket, i) => (
-            <div key={i} className="flex flex-1 flex-col items-center gap-1">
+            <ChartBar
+              key={i}
+              label={`${bucket.label}: ${formatCAD(bucket.revenue)}`}
+            >
               <div
                 className="w-full rounded-t bg-primary-500/70"
                 style={{
@@ -99,7 +116,7 @@ export default function SalesTab({ storeId }: SalesTabProps) {
                 }}
               />
               <span className="text-[10px] text-muted">{bucket.label}</span>
-            </div>
+            </ChartBar>
           ))}
         </div>
         <ul className="sr-only">

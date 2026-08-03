@@ -19,7 +19,7 @@ Public (no login). Listed most-to-least prominent, matching the apps order acros
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
 - [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground
 - [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine
-- [Fleet Operator](https://paulsumido.com/operator) — real-time fleet monitoring dashboard
+- [Fleet Operator](https://paulsumido.com/operator) — unattended-retail operator dashboard over a real Postgres-backed API; slot-by-slot auditable restocking with expiry and shrinkage reasons, scheduled promotions that report back against the period before them, per-store sales and tax, an interactive planogram, and every time bucket resolved in the store's own timezone
 - [Learn](https://paulsumido.com/learn) — 14 interactive algorithm & frontend-pattern deep-dives
 - [Craft](https://paulsumido.com/craft) — lead front-end traits, each expandable to the real work here that proves it
 - [Pokémon](https://paulsumido.com/pokemon) — one hub for the [TCG browser](https://paulsumido.com/tcg/pokemon), [TCG Pocket](https://paulsumido.com/tcg/pocket) expansions, and the [GraphQL Pokédex](https://paulsumido.com/graphql)
@@ -82,6 +82,15 @@ AUTH0_CLIENT_SECRET=     # from Auth0 application settings
 AUTH0_AUDIENCE=https://portfolio-api
 APP_BASE_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# Operator dashboard writes. Must match OPERATOR_SERVICE_TOKEN in portfolio_api.
+# Server-side only, deliberately not NEXT_PUBLIC_ -- the browser never sees it,
+# because the BFF calls the API on the visitor's behalf. Generate with:
+#   openssl rand -hex 32
+# Unset on both sides is fine locally. Set on one side only and every restock
+# 401s while reads carry on, which looks like a partial outage rather than a
+# config mistake, so set both or neither.
+OPERATOR_SERVICE_TOKEN=
 ```
 
 **4. Start the dev server**
@@ -93,6 +102,14 @@ pnpm dev
 **5. Open [http://localhost:3000](http://localhost:3000)**
 
 TCG browser, Pokédex, and the lab pages work immediately. Calendar and Vitals require a valid Auth0 session.
+
+The operator dashboard works without an account by design, and reads fall back to
+seeded data when the API is unreachable so it stays usable offline. Writes need
+`OPERATOR_SERVICE_TOKEN` to match the API's — a mismatch fails the write loudly
+rather than falling back, since a restock that silently persists nothing is worse
+than an error. The app-wide `visitor_id` cookie the proxy already mints is forwarded to the API
+for per-visitor rate limiting and to attribute restock sessions; nothing about
+the person goes into it, and signing in is optional.
 
 ---
 
@@ -120,7 +137,7 @@ src/
 │   ├── flags/           # Feature-flag console (test a user, live per-flag verdicts)
 │   ├── lab/             # Interactive experiments (particles, motion)
 │   ├── learn/           # Algorithm & frontend-pattern deep-dives
-│   ├── operator/        # Fleet monitoring dashboard (overview + store detail)
+│   ├── operator/        # Operator dashboard (fleet overview + store detail tabs)
 │   ├── tcg/             # Pokémon TCG browser
 │   ├── work-portfolio/  # Anonymized feature reconstructions
 │   └── thoughts/        # Write-ups on design decisions

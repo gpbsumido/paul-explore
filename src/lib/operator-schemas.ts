@@ -53,6 +53,9 @@ export const storeSchema = z.object({
   name: z.string(),
   location: z.string(),
   province: provinceCodeSchema,
+  // Optional so a bundle that knows about timezones still validates against an
+  // API deploy that has not shipped the field yet. The province is the fallback.
+  timezone: z.string().optional(),
   status: storeStatusSchema,
   temperature: z.number(),
   lastPing: z.string().datetime(),
@@ -142,6 +145,105 @@ export const fleetSalesAnalyticsSchema = z.object({
   buckets: z.array(salesPeriodBucketSchema),
   byStore: z.array(fleetStoreTotalSchema),
   totalRevenue: z.number().min(0),
+});
+
+// ---------------------------------------------------------------------------
+// Restock sessions
+// ---------------------------------------------------------------------------
+
+export const removalReasonSchema = z.enum(["expired", "damaged", "other"]);
+
+export const countStatusSchema = z.enum([
+  "matches-expected",
+  "correction",
+  "not-counted",
+]);
+
+export const restockSessionSchema = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  startedAt: z.string(),
+  completedAt: z.string().nullable(),
+  actor: z.string().nullable(),
+  notes: z.string().nullable(),
+});
+
+export const restockLineSchema = z.object({
+  id: z.string(),
+  sessionId: z.string(),
+  itemId: z.string(),
+  expectedQty: z.number().int().min(0),
+  countedQty: z.number().int().min(0).nullable(),
+  added: z.number().int().min(0),
+  removed: z.number().int().min(0),
+  removalReason: z.string().nullable(),
+  resultingStock: z.number().int().min(0).nullable(),
+  countStatus: countStatusSchema,
+});
+
+export const restockLineBodySchema = z
+  .object({
+    expectedQty: z.number().int().min(0),
+    countedQty: z.number().int().min(0).nullable(),
+    added: z.number().int().min(0),
+    removed: z.number().int().min(0),
+    removalReason: removalReasonSchema.nullable(),
+  })
+  .refine((line) => line.removed === 0 || line.removalReason !== null, {
+    message: "A reason is required when removing stock",
+    path: ["removalReason"],
+  });
+
+export const completeSessionBodySchema = z.object({
+  notes: z.string().max(2000).nullable(),
+});
+
+// ---------------------------------------------------------------------------
+// Promotions
+// ---------------------------------------------------------------------------
+
+export const promotionStatusSchema = z.enum(["scheduled", "active", "ended"]);
+
+export const promotionSchema = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  /** Null means the whole store. */
+  productName: z.string().nullable(),
+  percent: z.number().int().min(1).max(90),
+  startsAt: z.string(),
+  endsAt: z.string().nullable(),
+  status: promotionStatusSchema,
+});
+
+export const promotionBodySchema = z
+  .object({
+    productName: z.string().min(1).nullable(),
+    percent: z.number().int().min(1).max(90),
+    startsAt: z.string(),
+    endsAt: z.string().nullable(),
+  })
+  .refine(
+    (p) => p.endsAt === null || Date.parse(p.endsAt) > Date.parse(p.startsAt),
+    { message: "The end must be after the start", path: ["endsAt"] },
+  );
+
+const performanceTotalsSchema = z.object({
+  units: z.number().int().min(0),
+  revenue: z.number().min(0),
+});
+
+export const promotionPerformanceSchema = z.object({
+  promotion: promotionSchema,
+  window: performanceTotalsSchema,
+  baseline: performanceTotalsSchema,
+  // Null when the baseline was zero: a percentage change would be a fabrication.
+  unitsChangePercent: z.number().nullable(),
+  revenueChangePercent: z.number().nullable(),
+  // The range actually measured, which is not always the promotion's full
+  // window -- anything over 180 days is clamped to its most recent stretch.
+  measuredFrom: z.string(),
+  measuredTo: z.string(),
+  note: z.string(),
 });
 
 // ---------------------------------------------------------------------------
