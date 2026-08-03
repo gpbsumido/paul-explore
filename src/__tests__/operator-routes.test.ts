@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import {
   storeSchema,
@@ -28,6 +28,45 @@ function makeParams<T extends Record<string, string>>(
 // ---------------------------------------------------------------------------
 // GET /api/operator/stores
 // ---------------------------------------------------------------------------
+
+/**
+ * These tests exist to check what the routes return when the API answers, so a
+ * run that quietly used the seed instead proves nothing.
+ *
+ * That is not hypothetical. The MSW handlers were registered on bare paths,
+ * which resolve against the jsdom origin on port 3000 while the BFF calls the
+ * API on 3001, so none of them matched. onUnhandledRequest is set to "error"
+ * and MSW did refuse the request -- but the BFF catches a failed call and falls
+ * back to seeded data by design, so it swallowed the refusal, returned a
+ * plausible answer, and every test here passed while validating the seed. It
+ * showed up as 40 warnings in a green CI log.
+ */
+let seedFallbackExpected = false;
+
+/**
+ * Call from a test that is deliberately about the fallback -- one that makes
+ * the API fail on purpose and asserts the route degrades well.
+ */
+function expectSeedFallback(): void {
+  seedFallbackExpected = true;
+}
+
+beforeEach(() => {
+  seedFallbackExpected = false;
+  vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
+    const line = args.map(String).join(" ");
+    if (line.includes("fell back to seed data") && !seedFallbackExpected) {
+      throw new Error(
+        `Fell back to the seed during a route test, so this asserted nothing about the API: ${line}`,
+      );
+    }
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 
 describe("GET /api/operator/stores", () => {
   it("returns a list of stores that pass schema validation", async () => {
@@ -65,6 +104,7 @@ describe("GET /api/operator/stores/:storeId", () => {
   });
 
   it("returns 404 for unknown store id", async () => {
+    expectSeedFallback();
     const { GET } = await import("@/app/api/operator/stores/[storeId]/route");
     const res = await GET(
       makeRequest("/api/operator/stores/nonexistent-999"),
@@ -103,6 +143,7 @@ describe("GET /api/operator/stores/:storeId/inventory", () => {
   });
 
   it("says it could not load rather than claiming the store is empty", async () => {
+    expectSeedFallback();
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/inventory/route");
     const res = await GET(
@@ -146,6 +187,7 @@ describe("GET /api/operator/stores/:storeId/alerts", () => {
   });
 
   it("says it could not load rather than claiming the store is empty", async () => {
+    expectSeedFallback();
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/alerts/route");
     const res = await GET(
@@ -186,6 +228,7 @@ describe("GET /api/operator/stores/:storeId/sales", () => {
   });
 
   it("says it could not load rather than claiming the store is empty", async () => {
+    expectSeedFallback();
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/sales/route");
     const res = await GET(
@@ -258,6 +301,7 @@ describe("GET /api/operator/stores/:storeId/planogram", () => {
   });
 
   it("says it could not load rather than claiming the store is empty", async () => {
+    expectSeedFallback();
     const { GET } =
       await import("@/app/api/operator/stores/[storeId]/planogram/route");
     const res = await GET(
@@ -339,6 +383,7 @@ describe("PATCH /api/operator/stores/:storeId/planogram", () => {
   });
 
   it("returns 404 for unknown store id", async () => {
+    expectSeedFallback();
     const { PATCH } =
       await import("@/app/api/operator/stores/[storeId]/planogram/route");
     const res = await PATCH(
@@ -461,6 +506,7 @@ describe("POST /api/operator/stores/:storeId/restock", () => {
   });
 
   it("returns 404 for unknown store id", async () => {
+    expectSeedFallback();
     const { POST } =
       await import("@/app/api/operator/stores/[storeId]/restock/route");
     const res = await POST(
