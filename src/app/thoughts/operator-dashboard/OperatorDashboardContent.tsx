@@ -1134,20 +1134,23 @@ export default function OperatorDashboardContent() {
                 Locking the writes without making anyone log in
               </h2>
               <p className="text-muted">
-                I had left the operator write endpoints open and told myself rate
-                limiting was enough. Going back over it before merging, I think
-                that was me answering an easier question than the one in front of
-                me.
+                The instinct is to put user auth on the writes, and I had to be
+                honest with myself about who this is actually for before I could
+                see why that was wrong. This dashboard exists so somebody
+                evaluating my work can open a link and use it. That is the whole
+                brief. A hiring manager with ten minutes is not going to create
+                an account to find out whether my restock flow is any good, and
+                if the interesting half of the product sits behind a login then
+                for that reader the interesting half does not exist.
               </p>
               <p className="mt-3 text-muted">
-                The instinct is to put user auth on the writes. That would have
-                been wrong here, and not for a subtle reason: nobody logs in to
-                this dashboard. It is a public demo and the point of it is that
-                you can restock a shelf and watch the number change. Requiring a
-                token from the visitor would have returned 401 on every write,
-                the frontend would have quietly fallen back to its in-memory
-                seed, and the whole thing would have gone back to looking real
-                while persisting nothing.
+                So &quot;anyone can land on this cold and drive the real thing
+                immediately&quot; is not a nice-to-have I am trading away for
+                security. It is the requirement. Requiring a token from the
+                visitor would have returned 401 on every write, the frontend
+                would have fallen back to its in-memory seed, and the dashboard
+                would have gone back to looking real while persisting nothing,
+                which is the one thing this whole run has been about removing.
               </p>
               <p className="mt-3 text-muted">
                 But the hole I actually had was a different one. Anyone could
@@ -1194,26 +1197,47 @@ export default function OperatorDashboardContent() {
                 of it.
               </p>
               <p className="mt-3 text-muted">
-                It also does nothing for per-user rate limiting, for the same
-                reason. It is a bearer secret, so anyone who obtains it has full
-                write access and there is no way to revoke one caller without
-                revoking all of them. Rotating it means coordinating two deploys,
-                or teaching the API to accept two secrets during a changeover
-                window, which is exactly the sort of thing that gets skipped and
-                then bites a year later. And it adds a failure mode that did not
-                exist before: set the secret on the API but forget it on the
-                frontend, and reads keep working while every write returns 401,
-                which presents as a baffling partial outage rather than an
-                obvious misconfiguration.
+                It is a bearer secret, so anyone who obtains it has full write
+                access and there is no revoking one caller without revoking all
+                of them. Rotating it means coordinating two deploys, or teaching
+                the API to accept two secrets during a changeover window, which
+                is exactly the sort of thing that gets skipped and then bites a
+                year later.
               </p>
               <p className="mt-3 text-muted">
-                None of that makes it the wrong call today. It makes it a
-                deliberate step rather than a finished answer. Real user auth,
-                per-user limits and a truthful actor on the audit trail are all
-                the same piece of work, and that work starts the moment there is
-                a real operator to protect rather than a demo to keep open.
-                Writing down which of those I have and which I only appear to
-                have felt more useful than shipping it quietly.
+                It also introduced a failure mode I had not thought through until
+                I wrote it down. Set the secret on the API and forget it here,
+                and every write comes back 401 while reads carry on fine. Worse,
+                the backend-for-frontend caught that 401 in the same handler it
+                uses for &quot;the API is asleep&quot; and fell through to the
+                seed, so the write would have looked like it succeeded and
+                persisted nothing. I had rebuilt the exact fiction I keep saying
+                I removed, inside the code meant to protect it.
+              </p>
+              <p className="mt-3 text-muted">
+                Those two cases deserve opposite treatment. An unreachable API is
+                expected, and falling back is the right answer. A rejected token
+                is my own mistake and should be loud. So the fallback now only
+                catches the first: a 401 or 403 is rethrown with a message naming
+                the variable to check, and the write fails visibly instead of
+                pretending. A silent success is worse than an error, and it took
+                writing the tradeoffs down to notice I had shipped one.
+              </p>
+              <p className="mt-3 text-muted">
+                None of that makes it the wrong call for what this is. A
+                portfolio piece has a different threat model from a product: the
+                data is fake, it restores itself nightly, and the cost of a bad
+                actor is a demo store showing odd numbers for a few hours. The
+                cost of a login wall is that the person I built this for closes
+                the tab. Weigh those honestly and the service credential is not
+                a compromise, it is the right shape for the problem.
+              </p>
+              <p className="mt-3 text-muted">
+                What I would want to be asked about it is what changes when it
+                stops being a demo, and the answer is that real user auth,
+                per-user limits and a truthful actor on the audit trail are one
+                piece of work, starting the moment there is a real operator to
+                protect rather than a reader to convince.
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">

@@ -231,7 +231,16 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/authenticates a service, not a person/);
     expect(body).toMatch(/same hardcoded string for everybody/);
     expect(body).toMatch(/bearer secret/);
-    expect(body).toMatch(/baffling partial outage/);
+    expect(body).toMatch(/rebuilt the exact fiction/);
+    expect(body).toMatch(/A silent success is worse than an error/);
+  });
+
+  it("frames the auth choice around who the demo is actually for", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/somebody\s+evaluating my work/);
+    expect(body).toMatch(/hiring manager with ten minutes/);
+    expect(body).toMatch(/different threat model from a product/);
   });
 
   it("records the seed and fallback-test cleanups", () => {

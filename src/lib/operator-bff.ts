@@ -124,8 +124,31 @@ export async function loadSalesAnalytics(
   }
 }
 
+
+/**
+ * Falls through to the seed only when the API is genuinely unreachable.
+ *
+ * A 401 or 403 means the service token is missing here or does not match
+ * portfolio_api, which is a misconfiguration rather than an outage. Falling
+ * back on it would be the worst outcome available: the write would appear to
+ * succeed against in-memory data, persist nothing, and look exactly like it
+ * worked. That is the fiction this dashboard exists to not be, so it is
+ * rethrown with a diagnosis instead of swallowed.
+ */
+function rethrowIfMisconfigured(err: unknown): void {
+  if (
+    err instanceof api.OperatorApiError &&
+    (err.status === 401 || err.status === 403)
+  ) {
+    console.error(
+      `[operator] the API rejected a write with ${err.status}. OPERATOR_SERVICE_TOKEN is likely unset here or different from the one portfolio_api expects. Not falling back to seed data, because that would make the write look like it succeeded.`,
+    );
+    throw err;
+  }
+}
+
 // ---------------------------------------------------------------------------
-// Writes — fall back to the seed on any failure, the same as the reads. The
+// Writes — fall back to the seed when the API is down, the same as the reads. The
 // seed returns `undefined` for an id it doesn't know (e.g. a real backend
 // UUID), so an unknown target still surfaces as a 404 at the route; but a
 // seed-id write while the backend is up (or down) still applies, instead of
@@ -138,7 +161,8 @@ export async function applyRestock(
 ): Promise<RestockResult | undefined> {
   try {
     return await api.postRestock(storeId, itemIds);
-  } catch {
+  } catch (err) {
+    rethrowIfMisconfigured(err);
     return seed.restockItems(storeId, itemIds);
   }
 }
@@ -148,7 +172,8 @@ export async function applyDismiss(
 ): Promise<Alert | undefined> {
   try {
     return await api.patchDismiss(alertId);
-  } catch {
+  } catch (err) {
+    rethrowIfMisconfigured(err);
     return seed.dismissAlert(alertId);
   }
 }
@@ -159,7 +184,8 @@ export async function applyPlanogramUpdate(
 ): Promise<PlanogramSlot[] | undefined> {
   try {
     return await api.patchPlanogram(storeId, update);
-  } catch {
+  } catch (err) {
+    rethrowIfMisconfigured(err);
     return "boxes" in update
       ? seed.setPlanogram(storeId, update.boxes)
       : seed.resyncPlanogramSlot(storeId, update.resyncItemId);
@@ -237,7 +263,8 @@ export async function openRestockSession(
 ): Promise<RestockSession | undefined> {
   try {
     return await api.postRestockSession(storeId);
-  } catch {
+  } catch (err) {
+    rethrowIfMisconfigured(err);
     return seed.openRestockSession(storeId);
   }
 }
@@ -271,7 +298,8 @@ export async function saveRestockLine(
 ): Promise<RestockLine | undefined> {
   try {
     return await api.putRestockLine(sessionId, itemId, body);
-  } catch {
+  } catch (err) {
+    rethrowIfMisconfigured(err);
     return seed.upsertRestockLine(sessionId, itemId, body);
   }
 }
@@ -290,7 +318,8 @@ export async function applyRestockSession(
 > {
   try {
     return await api.postCompleteRestock(sessionId, notes);
-  } catch {
+  } catch (err) {
+    rethrowIfMisconfigured(err);
     return seed.completeRestockSession(sessionId, notes);
   }
 }
@@ -313,7 +342,8 @@ export async function createPromotion(
 ): Promise<Promotion | undefined> {
   try {
     return await api.postPromotion(storeId, body);
-  } catch {
+  } catch (err) {
+    rethrowIfMisconfigured(err);
     return seed.insertPromotion(storeId, body);
   }
 }
@@ -323,7 +353,8 @@ export async function stopPromotion(
 ): Promise<Promotion | undefined> {
   try {
     return await api.patchEndPromotion(promotionId);
-  } catch {
+  } catch (err) {
+    rethrowIfMisconfigured(err);
     return seed.endPromotion(promotionId);
   }
 }

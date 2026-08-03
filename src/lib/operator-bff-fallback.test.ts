@@ -11,7 +11,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  * actually satisfy the same contract the API does.
  */
 vi.mock("@/lib/operator-client", () => ({
-  OperatorApiError: class extends Error {},
+  OperatorApiError: class OperatorApiError extends Error {
+    constructor(readonly status: number) {
+      super(`operator API responded ${status}`);
+      this.name = "OperatorApiError";
+    }
+  },
   fetchStores: vi.fn(),
   fetchStore: vi.fn(),
   fetchInventory: vi.fn(),
@@ -150,5 +155,54 @@ describe("reads with the API down", () => {
     const stores = await loadStores();
     expect(stores.length).toBeGreaterThan(0);
     expect(stores[0]).toHaveProperty("province");
+  });
+});
+
+describe("a rejected write is a misconfiguration, not an outage", () => {
+  /**
+   * The whole point of the seed fallback is surviving the backend being asleep.
+   * A 401 is not that: it means the service token is missing or mismatched, and
+   * falling back would make the write look like it worked while persisting
+   * nothing. That is the exact thing this dashboard exists to not do.
+   */
+  it("refuses to fall back when the API rejects the token", async () => {
+    const storeId = await firstStoreId();
+    vi.mocked(api.postRestockSession).mockRejectedValue(
+      new api.OperatorApiError(401),
+    );
+
+    await expect(openRestockSession(storeId)).rejects.toMatchObject({
+      status: 401,
+    });
+  });
+
+  it("says what to check rather than failing silently", async () => {
+    const storeId = await firstStoreId();
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(api.postPromotion).mockRejectedValue(
+      new api.OperatorApiError(403),
+    );
+
+    await expect(
+      createPromotion(storeId, {
+        productName: null,
+        percent: 10,
+        startsAt: "2026-07-01T00:00:00.000Z",
+        endsAt: null,
+      }),
+    ).rejects.toBeDefined();
+
+    expect(logged.mock.calls[0][0]).toMatch(/OPERATOR_SERVICE_TOKEN/);
+    logged.mockRestore();
+  });
+
+  it("still falls back when the API is genuinely unreachable", async () => {
+    const storeId = await firstStoreId();
+    vi.mocked(api.postRestockSession).mockRejectedValue(
+      new Error("ECONNREFUSED"),
+    );
+
+    const session = await openRestockSession(storeId);
+    expect(session?.storeId).toBe(storeId);
   });
 });
