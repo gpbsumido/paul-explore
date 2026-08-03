@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 
@@ -20,10 +21,12 @@ export async function DELETE(
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/calendar/calendars/${id}/google`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars/${id}/google`, {
       method: "DELETE",
       headers: buildHeaders(token, email),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res
         .json()

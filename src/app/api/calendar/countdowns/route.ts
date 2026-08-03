@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { createCountdownBodySchema } from "@/lib/schemas";
@@ -28,9 +29,11 @@ export async function GET(request: NextRequest) {
     : `${API_URL}/api/calendar/countdowns`;
 
   try {
-    const res = await fetch(backendUrl, {
+    const upstreamResult = await fetchUpstream(backendUrl, {
       headers: buildHeaders(token, email),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const body = await res.json().catch(() => null);
       console.error("[countdowns BFF] GET — backend error:", body);
@@ -64,13 +67,15 @@ export async function POST(request: NextRequest) {
   const body = bodyResult.data;
 
   try {
-    const res = await fetch(`${API_URL}/api/calendar/countdowns`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/countdowns`, {
       method: "POST",
       headers: buildHeaders(token, email, {
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(body),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res
         .json()

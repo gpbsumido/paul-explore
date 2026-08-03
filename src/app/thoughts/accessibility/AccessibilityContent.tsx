@@ -1090,6 +1090,63 @@ expect(results).toHaveNoViolations();`}
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                The scan that was not running
+              </h2>
+              <p className="text-muted">
+                The route-level axe suite reported every public page as clean.
+                Two of them had never been scanned at all.
+              </p>
+              <p className="mt-3 text-muted">
+                The specs waited on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  networkidle
+                </code>{" "}
+                before scanning &mdash; sensible-looking, and wrong, because it
+                is a promise about whichever third party a page happens to call
+                rather than about the page itself. Two fantasy routes fetch NBA
+                data through the backend. When that upstream stopped answering,
+                those requests hung, the wait never resolved, and the tests timed
+                out. A timeout reads as a slow test. It is easy to miss that it
+                also means the assertion never ran.
+              </p>
+              <p className="mt-3 text-muted">
+                Replacing the wait with things the page actually controls &mdash;{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  load
+                </code>
+                , the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  main
+                </code>{" "}
+                landmark, and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  document.fonts.ready
+                </code>{" "}
+                &mdash; made axe run on them for the first time. It found real
+                serious-impact colour-contrast failures that had been shipping to
+                users: white text at 40% opacity on the particles lab, twice, and
+                a translucent amber notice on the court-vision page. Both are
+                fixed, the amber one by adopting the light/dark warning pair the
+                rest of the app already uses instead of a single translucent
+                colour that cannot satisfy both themes.
+              </p>
+              <p className="mt-3 text-muted">
+                Two things worth keeping from that.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  document.fonts.ready
+                </code>{" "}
+                matters more than it sounds: fonts change computed colours, and
+                axe&apos;s contrast rule reads computed colours, so scanning
+                before they settle reports violations that do not exist. And a
+                green accessibility suite is a claim about coverage, not proof of
+                it. The failure mode here was never a red build. It was a report
+                saying &ldquo;clean&rdquo; about pages it had quietly stopped
+                looking at.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 Lint-time accessibility with eslint-plugin-jsx-a11y
               </h2>
               <p className="text-muted">

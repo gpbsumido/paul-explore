@@ -258,6 +258,47 @@ export default function TestTiersContent() {
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">
+          What tiering does not protect you from
+        </h2>
+        <p className="text-muted">
+          Two things went wrong here that no amount of tier discipline would
+          have caught, and both are worth more than the tiering itself.
+        </p>
+        <p className="mt-3 text-muted">
+          The first is that a tier can be green for reasons unrelated to what it
+          claims to check. A set of end-to-end specs targeted a seeded store id,
+          and when a real backend was serving, the API returned a 404, the app
+          fell back to its seed exactly as designed, and the specs passed
+          identically whether or not the backend worked. A test that cannot fail
+          when the thing it covers is broken is not a test. The fix was not a new
+          tier; it was making the specs assert which backend they had actually
+          reached.
+        </p>
+        <p className="mt-3 text-muted">
+          The second is that a tier can quietly stop running. The accessibility
+          specs waited on{" "}
+          <code className={code}>networkidle</code>, which is a promise about
+          whichever third party the page happens to call rather than about the
+          page. When one of those upstreams stalled, two routes timed out, which
+          reads as a slow test rather than an absent one. They had never actually
+          run the scan. Replacing the wait with the page&apos;s own{" "}
+          <code className={code}>load</code>, its{" "}
+          <code className={code}>main</code> landmark and{" "}
+          <code className={code}>document.fonts.ready</code> made axe run on
+          them for the first time, and it immediately found real
+          serious-impact contrast failures that had been shipping. The suite
+          reported those routes as covered for as long as they were broken.
+        </p>
+        <p className="mt-3 text-muted">
+          Both have the same moral, and it is not about cost or cadence: a
+          passing tier is a claim. It is worth occasionally checking what a green
+          run actually exercised, because the failure mode is not a red build —
+          it is that you stop looking.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">The principle</h2>
         <p className="text-muted">
           Match test cost to how often the answer changes. Cheap tests that catch

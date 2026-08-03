@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { withBackend, buildHeaders, API_URL } from "@/lib/backendFetch";
 
@@ -5,10 +6,12 @@ import { withBackend, buildHeaders, API_URL } from "@/lib/backendFetch";
  * GET /api/walls — list the signed-in user's saved gallery walls.
  */
 export const GET = withBackend("walls GET", async ({ token, email }) => {
-  const res = await fetch(`${API_URL}/api/walls`, {
+  const upstreamResult = await fetchUpstream(`${API_URL}/api/walls`, {
     headers: buildHeaders(token, email),
     cache: "no-store",
   });
+  if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+  const res = upstreamResult.response;
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 });
@@ -20,13 +23,15 @@ export const GET = withBackend("walls GET", async ({ token, email }) => {
  */
 export const POST = withBackend("walls POST", async ({ token, email }, request) => {
   const body = await request.arrayBuffer();
-  const res = await fetch(`${API_URL}/api/walls`, {
+  const upstreamResult = await fetchUpstream(`${API_URL}/api/walls`, {
     method: "POST",
     headers: buildHeaders(token, email, {
       "Content-Type": request.headers.get("content-type") ?? "application/octet-stream",
     }),
     body,
   });
+  if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+  const res = upstreamResult.response;
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 });
