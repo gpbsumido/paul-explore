@@ -1792,6 +1792,17 @@ export default function OperatorDashboardContent() {
                 week. The distinction I care about: the earlier change made the
                 gap visible, and this one closes it. Only the second is a fix.
               </p>
+              <p className="mt-3 text-muted">
+                It went green on its first working run, which is exactly when to
+                be suspicious. If the API had not come up, the BFF would have
+                fallen back, served seed ids, and every assertion would still
+                have passed &mdash; a green run proving nothing, which is the
+                precise failure the tier was built to prevent. So live mode now
+                asserts the fleet gave it a real UUID and names the seed id it
+                got instead. The lesson I keep relearning here is that a passing
+                test is a claim, and a claim is worth checking when the cost of
+                it being wrong is that you stop looking.
+              </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 What that actually buys

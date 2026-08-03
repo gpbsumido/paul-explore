@@ -328,6 +328,13 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/Only the second is a fix/);
   });
 
+  it("treats a passing test as a claim worth checking", () => {
+    render(<OperatorDashboardContent />);
+    expect(document.body.textContent ?? "").toMatch(
+      /a passing\s+test is a claim/,
+    );
+  });
+
   it("separates the three questions auth actually answers", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
