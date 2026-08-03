@@ -54,7 +54,20 @@ async function resolveStoreId(page: Page): Promise<string> {
   const link = page.locator('a[href^="/operator/stores/"]').first();
   await expect(link).toBeVisible();
   const href = await link.getAttribute("href");
-  return href!.split("/operator/stores/")[1].split("?")[0];
+  const id = href!.split("/operator/stores/")[1].split("?")[0];
+
+  // The whole reason this mode exists is to not be fooled by the seed. If the
+  // API were unreachable the BFF would fall back and serve seed ids, and every
+  // assertion below would still pass -- a green run proving nothing. Real
+  // stores are UUIDs, so anything else means we are not talking to a database
+  // and the run should say so rather than quietly pass.
+  expect(
+    id,
+    `OPERATOR_E2E_LIVE is set but the fleet returned "${id}", which is a seed id. The BFF fell back, so this run would not have tested the API.`,
+  ).toMatch(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  );
+  return id;
 }
 
 async function openInventoryTab(page: Page, storeId: string) {
