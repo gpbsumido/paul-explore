@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-02 - version 2.17.0
+
+- **A dev-notes write-up on the framework-agnostic charts.** New `/thoughts/design-system-charts` page documenting the work that generalized this app's recharts and unovis charts into pure-SVG primitives — Sparkline, BarChart, and DonutChart computed from one dependency-free geometry core, so React and Angular render identical output with no charting runtime in the published packages. Covers the shared-geometry approach, mirroring the test suite in both packages to stop the copies drifting, the token-driven `--paul-chart-1..6` palette, and the `role="img"` accessibility contract every chart holds to. Registered under Design & UI in the thoughts index, with a matching test.
+
 ## 2026-08-02 - version 2.16.0
 
 - **Alert history and analytics on the store's Alerts tab.** Dismissed alerts don't vanish anymore — the tab now has an overview (active vs resolved, a severity split, the most common categories, and a 7-day "alerts raised" trend) and an Active / Resolved toggle so an operator can look back at what was dismissed. Resolved rows are read-only and marked resolved. It's all derived client-side from the alerts the backend already returns (it keeps every alert, active or not), via new pure `summarizeAlerts` and `alertsByDay` helpers, so there's no extra request.
