@@ -27,6 +27,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
     name: "Design & UI",
     slugs: [
       "design-system",
+      "design-system-charts",
       "design-system-showcase",
       "motion-components",
       "styling",
