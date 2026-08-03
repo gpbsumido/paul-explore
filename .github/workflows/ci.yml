@@ -291,15 +291,23 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Resolve the API's own pnpm
+        working-directory: api
+        # The two repos pin different pnpm majors -- this one is on 8 with a v6
+        # lockfile, the API on 10 with a v9 one -- so the pnpm set up above
+        # cannot install the API at all. Read the API's pin rather than
+        # hardcoding it, which would silently drift the next time it upgrades.
+        run: echo "API_PNPM=$(node -p 'require("./package.json").packageManager')" >> "$GITHUB_ENV"
+
       - name: Install API dependencies
         working-directory: api
-        run: pnpm install --frozen-lockfile
+        run: npx --yes "$API_PNPM" install --frozen-lockfile
 
       - name: Apply migrations and seed the operator tables
         working-directory: api
         run: |
-          pnpm migrate
-          pnpm seed:operator
+          npx --yes "$API_PNPM" migrate
+          npx --yes "$API_PNPM" seed:operator
 
       - name: Build and start portfolio_api
         working-directory: api
@@ -308,7 +316,7 @@ jobs:
           NEXT_PUBLIC_AUTH0_AUDIENCE: https://placeholder-api
           NEXT_PUBLIC_AUTH0_ISSUER_BASE_URL: https://placeholder.auth0.com
         run: |
-          pnpm build
+          npx --yes "$API_PNPM" build
           node dist/index.js > "$RUNNER_TEMP/api.log" 2>&1 &
           for i in $(seq 1 60); do
             curl -sf http://localhost:3001/api/health >/dev/null && break
