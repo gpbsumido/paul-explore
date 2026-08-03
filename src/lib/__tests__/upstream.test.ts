@@ -74,13 +74,14 @@ describe("fetchUpstream", () => {
   });
 
   it("passes an abort signal so the request is actually cancelled", async () => {
-    const spy = vi.fn(() => Promise.resolve(new Response("{}")));
+    const spy = vi.fn(
+      (_url: string, _init?: RequestInit) => Promise.resolve(new Response("{}")),
+    );
     vi.stubGlobal("fetch", spy);
 
     await fetchUpstream("http://api.test/x");
 
-    const init = spy.mock.calls[0][1] as RequestInit;
-    expect(init.signal).toBeInstanceOf(AbortSignal);
+    expect(spy.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
   });
 });
 

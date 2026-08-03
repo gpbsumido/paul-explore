@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { withBackend, buildHeaders, API_URL } from "@/lib/backendFetch";
 
@@ -10,10 +11,12 @@ export const GET = withBackend<RouteCtx>(
   "wall GET",
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
-    const res = await fetch(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
       headers: buildHeaders(token, email),
       cache: "no-store",
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   },
@@ -28,13 +31,15 @@ export const PUT = withBackend<RouteCtx>(
   async ({ token, email }, request, { params }) => {
     const { id } = await params;
     const body = await request.arrayBuffer();
-    const res = await fetch(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
       method: "PUT",
       headers: buildHeaders(token, email, {
         "Content-Type": request.headers.get("content-type") ?? "application/octet-stream",
       }),
       body,
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   },
@@ -47,10 +52,12 @@ export const DELETE = withBackend<RouteCtx>(
   "wall DELETE",
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
-    const res = await fetch(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
       method: "DELETE",
       headers: buildHeaders(token, email),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   },

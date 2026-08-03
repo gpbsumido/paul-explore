@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { parseBody } from "@/lib/parseBody";
@@ -12,11 +13,13 @@ export async function POST(request: NextRequest) {
   if (!result.ok) return result.response;
 
   try {
-    const res = await fetch(`${API_URL}/api/vitals`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/vitals`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(result.data),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     const data = await res.json().catch(() => null);
     return NextResponse.json(data ?? {}, { status: res.status });
   } catch (err) {

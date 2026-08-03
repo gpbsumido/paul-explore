@@ -1,3 +1,4 @@
+import { fetchUpstream } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import type { PlayoffBracket, PlayoffTeam, PlayoffMatchup } from "@/types/nba";
 
@@ -161,12 +162,16 @@ export async function GET() {
   const season = currentSeasonYear();
 
   try {
-    const espnRes = await fetch(
+    // ESPN is a third party and this route already knows how to live without
+    // it, so a deadline just makes the existing fallback reachable in seconds
+    // rather than whenever ESPN decides to answer.
+    const espn = await fetchUpstream(
       `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?groups=60&limit=32`,
-      { next: { revalidate: 3600 } },
+      { next: { revalidate: 3600 } } as RequestInit,
     );
 
-    if (espnRes.ok) {
+    if (espn.ok && espn.response.ok) {
+      const espnRes = espn.response;
       const espnData = await espnRes.json();
       // Only use ESPN data if it contains playoff events — fall through to the
       // static bracket if the shape is unexpected or no events are present.

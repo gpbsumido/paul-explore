@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -32,10 +33,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const res = await fetch(
+    const upstreamResult = await fetchUpstream(
       `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/449389534?view=kona_player_info&scoringPeriodId=162`,
       { headers: { "x-fantasy-filter": filter } },
     );
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
 
     if (!res.ok) {
       return NextResponse.json(

@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { createEventBodySchema } from "@/lib/schemas";
@@ -14,9 +15,11 @@ export const GET = withBackend("calendar events GET", async ({ token, email }, r
   if (end) params.set("end", end);
   if (cardName) params.set("cardName", cardName);
 
-  const res = await fetch(`${API_URL}/api/calendar/events?${params}`, {
+  const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events?${params}`, {
     headers: buildHeaders(token, email),
   });
+  if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+  const res = upstreamResult.response;
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     console.error("[calendar BFF] GET — backend error body:", body);
@@ -35,13 +38,15 @@ export const POST = withBackend(
     const bodyResult = await parseBody(request, createEventBodySchema);
     if (!bodyResult.ok) return bodyResult.response;
 
-    const res = await fetch(`${API_URL}/api/calendar/events`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events`, {
       method: "POST",
       headers: buildHeaders(token, email, {
         "Content-Type": "application/json",
       }),
       body: JSON.stringify(bodyResult.data),
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res
         .json()
