@@ -321,6 +321,13 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/says out loud what it does not cover/);
   });
 
+  it("distinguishes making a gap visible from closing it", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/a documented blind spot is still a blind spot/);
+    expect(body).toMatch(/Only the second is a fix/);
+  });
+
   it("separates the three questions auth actually answers", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

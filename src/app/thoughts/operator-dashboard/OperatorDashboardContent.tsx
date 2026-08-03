@@ -1778,6 +1778,20 @@ export default function OperatorDashboardContent() {
                 file now says out loud what it does not cover, instead of letting
                 a silent fallback imply otherwise.
               </p>
+              <p className="mt-3 text-muted">
+                Which left one thing still not honest. Choosing the seed and
+                writing down why is better than drifting into it, but a
+                documented blind spot is still a blind spot: nothing would have
+                run the live mode, so an integration regression had nowhere to
+                fail. So there is now a CI tier that stands up Postgres, builds
+                the API from source, applies the migrations, seeds the operator
+                tables, points this app at it and drives the whole restock flow.
+                It picks up an API branch of the same name when one exists, so a
+                frontend change that needs a backend change gets tested as the
+                pair it actually is instead of against whatever shipped last
+                week. The distinction I care about: the earlier change made the
+                gap visible, and this one closes it. Only the second is a fix.
+              </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 What that actually buys
