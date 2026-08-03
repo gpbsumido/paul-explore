@@ -342,10 +342,10 @@ export default function OperatorDashboardContent() {
               <ol className="mt-3 space-y-2 text-sm">
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
-                    Aug 2, 2026
+                    Aug 3, 2026
                   </span>
                   <a
-                    href="#update-2026-08-04-two-causes"
+                    href="#update-2026-08-03-two-causes"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
                     The same bug twice, for two different reasons
@@ -353,7 +353,7 @@ export default function OperatorDashboardContent() {
                 </li>
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
-                    Aug 4, 2026
+                    Aug 3, 2026
                   </span>
                   <a
                     href="#update-2026-08-03-visitor-identity"
@@ -364,7 +364,7 @@ export default function OperatorDashboardContent() {
                 </li>
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
-                    Aug 3, 2026
+                    Aug 2, 2026
                   </span>
                   <a
                     href="#update-2026-08-02-honest-states"
@@ -1277,8 +1277,25 @@ export default function OperatorDashboardContent() {
               <p className="mt-5 text-muted">
                 Everything below is how it got here: the decisions behind each of
                 those, the reasoning I would want to be asked about, the
-                tradeoffs I took knowingly, and the several things I got wrong and
-                had to go back and fix. Newest first.
+                tradeoffs I took knowingly, and the several things I got wrong
+                and had to go back and fix.
+              </p>
+            </section>
+
+            <section
+              id="the-timeline"
+              className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="text-sm font-semibold text-foreground">
+                Below: the dev-thoughts timeline, in order
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                It reads in two parts. First the original build write-up &mdash;
+                why the thing exists, how it was put together, and what I already
+                knew was weak when it shipped. Then every dated update since,
+                newest first, each one a thing I changed my mind about or got
+                wrong. The jump list at the top of the page goes straight to any
+                of them.
               </p>
             </section>
 
@@ -1920,11 +1937,11 @@ export default function OperatorDashboardContent() {
               </p>
             </section>
       <section
-              id="update-2026-08-04-two-causes"
+              id="update-2026-08-03-two-causes"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
             >
               <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
-                Update &mdash; August 4, 2026
+                Update &mdash; August 3, 2026
               </p>
               <h2 className="mt-1 mb-3 text-lg font-bold">
                 The same bug twice, for two different reasons
