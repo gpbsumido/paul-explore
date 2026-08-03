@@ -6,6 +6,7 @@
 import * as api from "@/lib/operator-client";
 import * as seed from "@/lib/operator-data";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
+import { OperatorServiceTokenError } from "@/lib/operator-route-errors";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
 import { LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
 import {
@@ -143,7 +144,7 @@ function rethrowIfMisconfigured(err: unknown): void {
     console.error(
       `[operator] the API rejected a write with ${err.status}. OPERATOR_SERVICE_TOKEN is likely unset here or different from the one portfolio_api expects. Not falling back to seed data, because that would make the write look like it succeeded.`,
     );
-    throw err;
+    throw new OperatorServiceTokenError(err.status);
   }
 }
 

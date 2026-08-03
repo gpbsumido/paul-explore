@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { withOperatorErrors } from "@/lib/operator-route-errors";
 import { restockLineBodySchema } from "@/lib/operator-schemas";
 import { parseBody } from "@/lib/parseBody";
 import { saveRestockLine } from "@/lib/operator-bff";
@@ -8,10 +9,10 @@ import { saveRestockLine } from "@/lib/operator-bff";
  * off a shelf always needs a reason, because an unexplained removal is
  * indistinguishable from theft.
  */
-export async function PUT(
+export const PUT = withOperatorErrors(async (
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string; itemId: string }> },
-) {
+) => {
   const { sessionId, itemId } = await params;
 
   const bodyResult = await parseBody(request, restockLineBodySchema);
@@ -25,4 +26,4 @@ export async function PUT(
     );
   }
   return NextResponse.json({ line });
-}
+})

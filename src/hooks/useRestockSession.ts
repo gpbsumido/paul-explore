@@ -14,6 +14,26 @@ import type { RestockSession } from "@/types/operator";
 const STORAGE_PREFIX = "operator-restock-session";
 
 /**
+ * Prefers the server's own explanation over a generic one.
+ *
+ * A configuration problem (the service token not matching portfolio_api) is
+ * something a person can fix, so saying "try again" wastes their time. The BFF
+ * returns 503 with a message naming the variable; that message is worth showing.
+ */
+async function describeFailure(res: Response, fallback: string): Promise<Error> {
+  try {
+    const body = (await res.json()) as { error?: string };
+    return new Error(body.error ?? fallback);
+  } catch {
+    return new Error(fallback);
+  }
+}
+
+function messageFor(err: unknown, fallback: string): string {
+  return err instanceof Error && err.message ? err.message : fallback;
+}
+
+/**
  * Where an in-progress session id is parked so a reload can pick it back up.
  *
  * The session already lives server-side, so surviving a refresh costs one
@@ -83,15 +103,15 @@ export function useRestockSession(storeId: string): UseRestockSessionReturn {
         `/api/operator/stores/${storeId}/restock-sessions`,
         { method: "POST" },
       );
-      if (!res.ok) throw new Error("Could not start a restock");
+      if (!res.ok) throw await describeFailure(res, "Could not start a restock.");
 
       const json = await res.json();
       const parsed = restockSessionSchema.parse(json.session);
       setSession(parsed);
       storeSessionId(storeId, parsed.id);
       return parsed;
-    } catch {
-      setError("Could not start a restock. Try again.");
+    } catch (err) {
+      setError(messageFor(err, "Could not start a restock. Try again."));
       return null;
     } finally {
       setIsOpening(false);
@@ -158,7 +178,7 @@ export function useRestockSession(storeId: string): UseRestockSessionReturn {
             body: JSON.stringify({ notes }),
           },
         );
-        if (!res.ok) throw new Error("complete failed");
+        if (!res.ok) throw await describeFailure(res, "Could not finish the restock.");
 
         storeSessionId(storeId, null);
         setSession(null);
@@ -170,8 +190,10 @@ export function useRestockSession(storeId: string): UseRestockSessionReturn {
           queryKey: queryKeys.operator.activity(storeId),
         });
         return true;
-      } catch {
-        setError("Could not finish the restock. Your counts are still here.");
+      } catch (err) {
+        setError(
+          messageFor(err, "Could not finish the restock. Your counts are still here."),
+        );
         return false;
       } finally {
         setIsCompleting(false);

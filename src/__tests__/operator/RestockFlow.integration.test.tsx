@@ -1,4 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
+import { resetOperatorWriteState } from "@/test/handlers/operator";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -216,43 +219,43 @@ describe("RestockReview", () => {
 });
 
 describe("RestockFlow", () => {
+  /**
+   * MSW rather than a stubbed fetch, so the flow goes through its real client
+   * and Zod parsing. The earlier version stubbed fetch and would have passed
+   * even if the session payload shape drifted.
+   */
   beforeEach(() => {
     window.localStorage.clear();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string, init?: RequestInit) => {
-        if (String(url).includes("/inventory")) {
-          return new Response(
-            JSON.stringify({ items: [item(), item({ id: "item-2", productName: "Energy Bar" })] }),
-            { status: 200 },
-          );
-        }
-        if (String(url).includes("restock-sessions") && init?.method === "POST") {
-          return new Response(
-            JSON.stringify({
-              session: {
-                id: "session-001",
-                storeId: "store-001",
-                startedAt: "2026-08-02T15:00:00.000Z",
-                completedAt: null,
-                actor: null,
-                notes: null,
-              },
-            }),
-            { status: 201 },
-          );
-        }
-        return new Response(JSON.stringify({}), { status: 200 });
-      }),
+    resetOperatorWriteState();
+    server.use(
+      http.get("/api/operator/stores/:id/inventory", () =>
+        HttpResponse.json({
+          items: [item(), item({ id: "item-2", productName: "Energy Bar" })],
+        }),
+      ),
+      http.post("/api/operator/stores/:id/restock-sessions", () =>
+        HttpResponse.json(
+          {
+            session: {
+              id: "session-001",
+              storeId: "store-001",
+              startedAt: "2026-08-02T15:00:00.000Z",
+              completedAt: null,
+              actor: null,
+              notes: null,
+            },
+          },
+          { status: 201 },
+        ),
+      ),
     );
   });
 
-  afterEach(() => vi.unstubAllGlobals());
-
   it("opens a session on entry rather than asking a second time", async () => {
+    // The regression this covers: InventoryTab's "Start restock" used to lead
+    // to another "Start restock" inside the flow, two taps for one action.
     renderWithProviders(<RestockFlow storeId="store-001" onClose={vi.fn()} />);
 
-    // Entering the flow IS the intent; there is no second "Start restock".
     expect(await screen.findByText(/slots done/i)).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /^start restock$/i }),

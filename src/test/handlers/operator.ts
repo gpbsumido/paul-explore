@@ -7,7 +7,16 @@ import type {
   Sale,
   PlanogramSlot,
   StoreSummary,
+  RestockSession,
+  RestockLine,
+  Promotion,
 } from "@/types/operator";
+import { countStatusOf, describeDraft, resultingStock, summarizeDraft } from "@/lib/operator-restock";
+import {
+  comparePerformance,
+  measurementWindow,
+  promotionStatus,
+} from "@/lib/operator-promotions";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
 import { deriveSensorMatch } from "@/lib/operator-detail";
 import {
@@ -86,6 +95,24 @@ for (const alerts of alertsByStore.values()) {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+// Write state for the session and promotion flows. Module-level like the rest
+// of this file, so a test that creates a promotion would otherwise leak it into
+// the next one in the same file.
+const sessions = new Map<string, RestockSession>();
+const sessionLines = new Map<string, RestockLine[]>();
+const promotions = new Map<string, Promotion>();
+let sessionCounter = 0;
+let promotionCounter = 0;
+
+/** Clears the write state these handlers accumulate. Call it in beforeEach. */
+export function resetOperatorWriteState(): void {
+  sessions.clear();
+  sessionLines.clear();
+  promotions.clear();
+  sessionCounter = 0;
+  promotionCounter = 0;
+}
 
 function randomDelay(): Promise<void> {
   return delay(100 + Math.floor(Math.random() * 200));
@@ -315,5 +342,252 @@ export const operatorHandlers = [
     });
 
     return HttpResponse.json({ items: restocked, activity });
+  }),
+
+  // -------------------------------------------------------------------------
+  // Restock sessions
+  //
+  // Mirrors the API's lifecycle closely enough to drive the flow: lines
+  // accumulate, and only completing touches inventory.
+  // -------------------------------------------------------------------------
+
+  http.post("/api/operator/stores/:id/restock-sessions", async ({ params }) => {
+    await randomDelay();
+    const storeId = params.id as string;
+    if (!inventoryByStore.has(storeId)) {
+      return HttpResponse.json({ error: "Store not found" }, { status: 404 });
+    }
+
+    sessionCounter += 1;
+    const session: RestockSession = {
+      id: `session-${String(sessionCounter).padStart(3, "0")}`,
+      storeId,
+      startedAt: new Date().toISOString(),
+      completedAt: null,
+      actor: "operator@smartstore.example",
+      notes: null,
+    };
+    sessions.set(session.id, session);
+    sessionLines.set(session.id, []);
+
+    return HttpResponse.json({ session }, { status: 201 });
+  }),
+
+  http.get("/api/operator/stores/:id/restock-sessions", async ({ params }) => {
+    await randomDelay();
+    const storeId = params.id as string;
+    return HttpResponse.json({
+      sessions: [...sessions.values()].filter((s) => s.storeId === storeId),
+    });
+  }),
+
+  http.get("/api/operator/restock-sessions/:sessionId", async ({ params }) => {
+    await randomDelay();
+    const id = params.sessionId as string;
+    const session = sessions.get(id);
+    if (!session) {
+      return HttpResponse.json(
+        { error: "Restock session not found" },
+        { status: 404 },
+      );
+    }
+    return HttpResponse.json({ session, lines: sessionLines.get(id) ?? [] });
+  }),
+
+  http.put(
+    "/api/operator/restock-sessions/:sessionId/lines/:itemId",
+    async ({ params, request }) => {
+      await randomDelay();
+      const sessionId = params.sessionId as string;
+      const session = sessions.get(sessionId);
+      if (!session) {
+        return HttpResponse.json(
+          { error: "Restock session not found" },
+          { status: 404 },
+        );
+      }
+      if (session.completedAt) {
+        return HttpResponse.json(
+          { error: "Session already complete" },
+          { status: 409 },
+        );
+      }
+
+      const body = (await request.json()) as {
+        expectedQty: number;
+        countedQty: number | null;
+        added: number;
+        removed: number;
+        removalReason: string | null;
+      };
+      // The API rejects a removal with no reason; the flow relies on that.
+      if (body.removed > 0 && body.removalReason === null) {
+        return HttpResponse.json(
+          { error: "A reason is required when removing stock" },
+          { status: 400 },
+        );
+      }
+
+      const itemId = params.itemId as string;
+      const line: RestockLine = {
+        id: `${sessionId}-${itemId}`,
+        sessionId,
+        itemId,
+        ...body,
+        resultingStock: null,
+        countStatus: countStatusOf(body),
+      };
+      const existing = sessionLines.get(sessionId) ?? [];
+      sessionLines.set(sessionId, [
+        ...existing.filter((l) => l.itemId !== itemId),
+        line,
+      ]);
+
+      return HttpResponse.json({ line });
+    },
+  ),
+
+  http.post(
+    "/api/operator/restock-sessions/:sessionId/complete",
+    async ({ params, request }) => {
+      await randomDelay();
+      const sessionId = params.sessionId as string;
+      const session = sessions.get(sessionId);
+      if (!session) {
+        return HttpResponse.json(
+          { error: "Restock session not found" },
+          { status: 404 },
+        );
+      }
+      if (session.completedAt) {
+        return HttpResponse.json(
+          { error: "Session already complete" },
+          { status: 409 },
+        );
+      }
+
+      const body = (await request.json()) as { notes: string | null };
+      const lines = sessionLines.get(sessionId) ?? [];
+      const items = inventoryByStore.get(session.storeId) ?? [];
+      const applied: InventoryItem[] = [];
+      const frozen: RestockLine[] = [];
+
+      for (const line of lines) {
+        const item = items.find((i) => i.id === line.itemId);
+        if (!item) continue;
+        const resulting = resultingStock(line, item.capacity);
+        item.currentStock = resulting;
+        applied.push(item);
+        frozen.push({ ...line, resultingStock: resulting });
+      }
+
+      const closed: RestockSession = {
+        ...session,
+        completedAt: new Date().toISOString(),
+        notes: body.notes,
+      };
+      sessions.set(sessionId, closed);
+      sessionLines.set(sessionId, frozen);
+
+      return HttpResponse.json({
+        session: closed,
+        lines: frozen,
+        items: applied,
+        activity: buildActivityEvent({
+          storeId: session.storeId,
+          type: "restock",
+          description: describeDraft(summarizeDraft(frozen)),
+        }),
+      });
+    },
+  ),
+
+  // -------------------------------------------------------------------------
+  // Promotions
+  // -------------------------------------------------------------------------
+
+  http.get("/api/operator/stores/:id/promotions", async ({ params }) => {
+    await randomDelay();
+    const storeId = params.id as string;
+    return HttpResponse.json({
+      promotions: [...promotions.values()]
+        .filter((p) => p.storeId === storeId)
+        .map((p) => ({ ...p, status: promotionStatus(p) })),
+    });
+  }),
+
+  http.post(
+    "/api/operator/stores/:id/promotions",
+    async ({ params, request }) => {
+      await randomDelay();
+      const storeId = params.id as string;
+      if (!inventoryByStore.has(storeId)) {
+        return HttpResponse.json({ error: "Store not found" }, { status: 404 });
+      }
+
+      const body = (await request.json()) as {
+        productName: string | null;
+        percent: number;
+        startsAt: string;
+        endsAt: string | null;
+      };
+
+      promotionCounter += 1;
+      const promotion: Promotion = {
+        id: `promo-${String(promotionCounter).padStart(3, "0")}`,
+        storeId,
+        ...body,
+        status: "scheduled",
+      };
+      promotions.set(promotion.id, promotion);
+
+      return HttpResponse.json(
+        { promotion: { ...promotion, status: promotionStatus(promotion) } },
+        { status: 201 },
+      );
+    },
+  ),
+
+  http.patch("/api/operator/promotions/:id/end", async ({ params }) => {
+    await randomDelay();
+    const found = promotions.get(params.id as string);
+    if (!found) {
+      return HttpResponse.json(
+        { error: "Promotion not found" },
+        { status: 404 },
+      );
+    }
+
+    const ended: Promotion = { ...found, endsAt: new Date().toISOString() };
+    promotions.set(ended.id, ended);
+    return HttpResponse.json({
+      promotion: { ...ended, status: promotionStatus(ended) },
+    });
+  }),
+
+  http.get("/api/operator/promotions/:id/performance", async ({ params }) => {
+    await randomDelay();
+    const promo = promotions.get(params.id as string);
+    if (!promo) {
+      return HttpResponse.json(
+        { error: "Promotion not found" },
+        { status: 404 },
+      );
+    }
+
+    const win = measurementWindow(
+      new Date(promo.startsAt),
+      promo.endsAt ? new Date(promo.endsAt) : new Date(),
+    );
+    const sales = salesByStore.get(promo.storeId) ?? [];
+    const comparison = comparePerformance(promo, sales, win.start, win.end);
+
+    return HttpResponse.json({
+      promotion: { ...promo, status: promotionStatus(promo) },
+      ...comparison,
+      measuredFrom: win.start.toISOString(),
+      measuredTo: win.end.toISOString(),
+      note: "Comparison against the equal-length period before this promotion. It is not a claim that the promotion caused the difference.",
+    });
   }),
 ];

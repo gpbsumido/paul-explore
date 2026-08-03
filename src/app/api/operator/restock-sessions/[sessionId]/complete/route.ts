@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { withOperatorErrors } from "@/lib/operator-route-errors";
 import { completeSessionBodySchema } from "@/lib/operator-schemas";
 import { parseBody } from "@/lib/parseBody";
 import { applyRestockSession } from "@/lib/operator-bff";
@@ -8,10 +9,10 @@ import { applyRestockSession } from "@/lib/operator-bff";
  * everything a restocker did survives as an audit trail rather than collapsing
  * into "restocked to full".
  */
-export async function POST(
+export const POST = withOperatorErrors(async (
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
-) {
+) => {
   const { sessionId } = await params;
 
   const bodyResult = await parseBody(request, completeSessionBodySchema);
@@ -25,4 +26,4 @@ export async function POST(
     );
   }
   return NextResponse.json(applied);
-}
+})

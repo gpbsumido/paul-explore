@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
+import { resetOperatorWriteState } from "@/test/handlers/operator";
 
 import PromotionsPanel from "@/components/operator/promotions/PromotionsPanel";
 import { ToastProvider } from "@/contexts/ToastContext";
@@ -31,45 +34,46 @@ const promo = (over: Partial<Promotion> = {}): Promotion => ({
   ...over,
 });
 
-function renderPanel(promotions: Promotion[], percent = 20) {
+const PERFORMANCE = {
+  window: { units: 40, revenue: 96 },
+  baseline: { units: 25, revenue: 75 },
+  unitsChangePercent: 60,
+  revenueChangePercent: 28,
+  measuredFrom: "2026-01-01T00:00:00.000Z",
+  measuredTo: "2026-01-11T00:00:00.000Z",
+  note: "Comparison against the equal-length period before this promotion. It is not a claim that the promotion caused the difference.",
+};
+
+/**
+ * Rendered against MSW rather than a stubbed fetch, so the component goes
+ * through its real client, react-query and Zod parsing. Stubbing fetch would
+ * skip all three and pass even if the payload shape drifted.
+ */
+function renderPanel(
+  promotions: Promotion[],
+  percent = 20,
+  performance: Record<string, unknown> = PERFORMANCE,
+) {
+  server.use(
+    http.get("/api/operator/stores/:id/promotions", () =>
+      HttpResponse.json({ promotions }),
+    ),
+    http.post("/api/operator/stores/:id/promotions", () =>
+      HttpResponse.json({ promotion: promo() }, { status: 201 }),
+    ),
+    http.patch("/api/operator/promotions/:id/end", () =>
+      HttpResponse.json({
+        promotion: promo({ endsAt: "2026-01-02T00:00:00.000Z" }),
+      }),
+    ),
+    http.get("/api/operator/promotions/:id/performance", () =>
+      HttpResponse.json({ promotion: promo(), ...performance }),
+    ),
+  );
+
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (url: string, init?: RequestInit) => {
-      if (String(url).includes("/promotions") && init?.method === "POST") {
-        return new Response(JSON.stringify({ promotion: promo() }), {
-          status: 201,
-        });
-      }
-      if (String(url).includes("/end")) {
-        return new Response(
-          JSON.stringify({ promotion: promo({ endsAt: "2026-01-02T00:00:00.000Z" }) }),
-          { status: 200 },
-        );
-      }
-      if (String(url).includes("/performance")) {
-        return new Response(
-          JSON.stringify({
-            window: { units: 40, revenue: 96 },
-            baseline: { units: 25, revenue: 75 },
-            unitsChangePercent: 60,
-            revenueChangePercent: 28,
-            measuredFrom: "2026-01-01T00:00:00.000Z",
-            measuredTo: "2026-01-11T00:00:00.000Z",
-            note: "Comparison against the equal-length period before this promotion. It is not a claim that the promotion caused the difference.",
-          }),
-          { status: 200 },
-        );
-      }
-      if (String(url).includes("/promotions")) {
-        return new Response(JSON.stringify({ promotions }), { status: 200 });
-      }
-      return new Response(JSON.stringify({}), { status: 200 });
-    }),
-  );
-
   return render(
     <QueryClientProvider client={client}>
       <ToastProvider>
@@ -84,7 +88,7 @@ function renderPanel(promotions: Promotion[], percent = 20) {
   );
 }
 
-afterEach(() => vi.unstubAllGlobals());
+beforeEach(() => resetOperatorWriteState());
 
 describe("PromotionsPanel", () => {
   beforeEach(() => vi.useRealTimers());
@@ -183,14 +187,18 @@ describe("PromotionPerformance in the panel", () => {
   });
 
   it("fetches nothing until results are opened", async () => {
+    // Performance is per-promotion, so opening the tab must not fire a query
+    // for every promotion a store has ever run.
+    const requested: string[] = [];
+    const record = ({ request }: { request: Request }) =>
+      requested.push(request.url);
+    server.events.on("request:start", record);
+
     renderPanel([promo()]);
     await screen.findByRole("button", { name: /^results$/i });
 
-    const calls = (global.fetch as unknown as { mock: { calls: unknown[][] } })
-      .mock.calls;
-    expect(
-      calls.filter((c) => String(c[0]).includes("/performance")),
-    ).toHaveLength(0);
+    expect(requested.filter((u) => u.includes("/performance"))).toHaveLength(0);
+    server.events.removeListener("request:start", record);
   });
 
   it("shows before and during side by side, not just the delta", async () => {
@@ -216,43 +224,18 @@ describe("PromotionPerformance in the panel", () => {
 
   it("says no baseline rather than inventing a percentage", async () => {
     const user = userEvent.setup();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (url: string) => {
-        if (String(url).includes("/performance")) {
-          return new Response(
-            JSON.stringify({
-              window: { units: 12, revenue: 30 },
-              baseline: { units: 0, revenue: 0 },
-              unitsChangePercent: null,
-              revenueChangePercent: null,
-              measuredFrom: "2026-01-01T00:00:00.000Z",
-              measuredTo: "2026-01-11T00:00:00.000Z",
-              note: "Comparison against the equal-length period before this promotion.",
-            }),
-            { status: 200 },
-          );
-        }
-        return new Response(JSON.stringify({ promotions: [promo()] }), {
-          status: 200,
-        });
-      }),
-    );
-
-    render(
-      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <ToastProvider>
-          <PromotionsPanel
-            storeId="store-001"
-            items={items}
-            modelledPercent={20}
-            modelledProduct="Energy Bar"
-          />
-        </ToastProvider>
-      </QueryClientProvider>,
-    );
+    renderPanel([promo()], 20, {
+      window: { units: 12, revenue: 30 },
+      baseline: { units: 0, revenue: 0 },
+      unitsChangePercent: null,
+      revenueChangePercent: null,
+      measuredFrom: "2026-01-01T00:00:00.000Z",
+      measuredTo: "2026-01-11T00:00:00.000Z",
+      note: "Comparison against the equal-length period before this promotion.",
+    });
 
     await user.click(await screen.findByRole("button", { name: /^results$/i }));
+    // Both rows, rather than a fabricated 0% or Infinity.
     expect(await screen.findAllByText(/no baseline/i)).toHaveLength(2);
   });
 });

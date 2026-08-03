@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { withOperatorErrors } from "@/lib/operator-route-errors";
 import { promotionBodySchema } from "@/lib/operator-schemas";
 import { parseBody } from "@/lib/parseBody";
 import { createPromotion, loadPromotions } from "@/lib/operator-bff";
@@ -13,10 +14,10 @@ export async function GET(
 }
 
 /** Schedule one. Emits a price-update activity event. */
-export async function POST(
+export const POST = withOperatorErrors(async (
   request: NextRequest,
   { params }: { params: Promise<{ storeId: string }> },
-) {
+) => {
   const { storeId } = await params;
 
   const bodyResult = await parseBody(request, promotionBodySchema);
@@ -27,4 +28,4 @@ export async function POST(
     return NextResponse.json({ error: "Store not found" }, { status: 404 });
   }
   return NextResponse.json({ promotion }, { status: 201 });
-}
+})

@@ -206,3 +206,18 @@ describe("a rejected write is a misconfiguration, not an outage", () => {
     expect(session?.storeId).toBe(storeId);
   });
 });
+
+describe("a token mismatch is reported, not disguised", () => {
+  it("throws a typed error naming the variable to fix", async () => {
+    const storeId = await firstStoreId();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(api.postRestockSession).mockRejectedValue(
+      new api.OperatorApiError(401),
+    );
+
+    await expect(openRestockSession(storeId)).rejects.toMatchObject({
+      name: "OperatorServiceTokenError",
+      message: expect.stringContaining("OPERATOR_SERVICE_TOKEN"),
+    });
+  });
+});
