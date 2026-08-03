@@ -667,10 +667,42 @@ export default function OperatorDashboardContent() {
                   </li>
                   <li>
                     <a
+                      href="#how-it-is-tested"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      How the whole feature is tested, and what each tier cannot see
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="#update-2026-08-03-visitor-identity"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
                       E2E specs that passed against the seed whether or not the backend worked
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-03-visitor-identity"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A rate limiter an IPv6 user could have walked straight past
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#how-it-is-tested"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Two repos on different pnpm majors, so CI could not install both
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#how-it-is-tested"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      An env loader that overwrote the empty value meant to override it
                     </a>
                   </li>
                   <li>
@@ -1011,6 +1043,224 @@ export default function OperatorDashboardContent() {
                 app&apos;s server holds, so a visitor is unaffected while someone
                 calling the API directly is not. Writes are rate limited, and the
                 demo data reseeds nightly.
+              </p>
+
+            </section>
+
+            <section
+              id="how-it-is-tested"
+              className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="text-lg font-bold">How it is tested</h2>
+              <p className="mt-2 text-muted">
+                Worth its own section, because almost every bug in this feature
+                was found by a different tier than the one you would expect, and
+                a few were found by no tier at all. The useful question about a
+                test suite is not how many tests it has. It is what each layer
+                is structurally incapable of seeing, and whether anything else
+                covers that.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The tiers, and what each is actually for
+              </h3>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
+                      <th className="py-2 pr-4 font-medium">Tier</th>
+                      <th className="py-2 pr-4 font-medium">Answers</th>
+                      <th className="py-2 font-medium">Cannot see</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted">
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">Unit</td>
+                      <td className="py-2 pr-4 align-top">Does this pure function compute the right answer, across timezones, DST and empty input</td>
+                      <td className="py-2 align-top">Whether anything calls it</td>
+                    </tr>
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">Component</td>
+                      <td className="py-2 pr-4 align-top">Does this component render and behave correctly in isolation</td>
+                      <td className="py-2 align-top">The seam between two components</td>
+                    </tr>
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">Integration</td>
+                      <td className="py-2 pr-4 align-top">Do the hooks, routes and components agree on a contract, with the network stubbed</td>
+                      <td className="py-2 align-top">Whether the real service honours that contract</td>
+                    </tr>
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">E2E (seed)</td>
+                      <td className="py-2 pr-4 align-top">Does the whole flow work in a real browser</td>
+                      <td className="py-2 align-top">Anything about the database</td>
+                    </tr>
+                    <tr className="border-b border-border/60">
+                      <td className="py-2 pr-4 align-top text-foreground">E2E (live)</td>
+                      <td className="py-2 pr-4 align-top">Does the flow work against a real API and a real Postgres</td>
+                      <td className="py-2 align-top">Production data and scale</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 pr-4 align-top text-foreground">SQL smoke</td>
+                      <td className="py-2 pr-4 align-top">Will Postgres actually accept these statements</td>
+                      <td className="py-2 align-top">Whether the results are right</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Four bugs, and the tier that could never have caught them
+              </h3>
+              <p className="mt-3 text-muted">
+                <strong>&ldquo;Start restock&rdquo; led to another &ldquo;Start
+                restock&rdquo;.</strong> Two taps for one action. The component
+                test rendered the flow on its own, so it never saw the button
+                above it. A component test cannot catch a seam between
+                components; that is not a gap in the test, it is the definition
+                of the tier. It took a screenshot to notice, and an E2E spec to
+                pin.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Two aggregate queries no database would accept.</strong>
+                Every test in that module mocks the repository, and a mocked
+                repository will happily return rows for SQL Postgres rejects
+                outright. Hence the SQL smoke tier: it executes the real
+                statements against a real database, and skips when there is no{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">DATABASE_URL</code>. They are all SELECTs
+                on purpose, because a developer&apos;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">DATABASE_URL</code> often points at the
+                deployed database, and a test suite that can write is a test
+                suite that can destroy.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>The server would not boot.</strong> Two files claiming
+                the same Next convention is a startup fatal, and every route
+                404&apos;d. Unit, integration, typecheck, lint and the
+                dead-export check all passed, because not one of them starts
+                Next. Same shape on the API side: a rate limiter whose key
+                generator used a raw IP was rejected at boot by the library,
+                because an IPv6 user is handed a whole /64 and could have minted
+                a fresh budget per request by varying the low bits. All 271 API
+                tests missed it, since they mock the limiter or never construct
+                it. Two real bugs whose only witness was a process starting.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>An endpoint that never existed.</strong> The Sales and
+                Tax tabs called a route the API did not implement. They rendered
+                empty against the real backend and perfectly against fixtures,
+                for weeks. Which brings up the one that took the longest to see.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The fallback that hid the bugs, and the compromise
+              </h3>
+              <p className="mt-3 text-muted">
+                The BFF falls back to seeded data when the API is unreachable.
+                That is a genuinely good feature: the demo stays usable when the
+                backend is asleep, which for something anyone can open without an
+                account is most of its value. But the same mechanism that keeps
+                the demo alive is the mechanism that hides whether the real path
+                works, and I underrated that for a long time.
+              </p>
+              <p className="mt-3 text-muted">
+                It went furthest in the E2E specs. They navigated to a hardcoded
+                seed store id. With a real backend serving, the fleet comes back
+                as UUIDs, the API 404s that id, the BFF falls back, and the specs
+                pass &mdash; identically, whether or not the backend works. A
+                test that cannot fail when the thing it covers is broken is not a
+                test. That is also, exactly, how the missing sales endpoint
+                survived.
+              </p>
+              <p className="mt-3 text-muted">
+                Pointing them at the real fleet made CI go red, correctly: the
+                deployed API was on an older release with no restock routes. But
+                that was the wrong question for that tier. These specs exist to
+                catch a seam between two components; pinning them to a
+                separately-deployed service means the suite reports somebody
+                else&apos;s deploy state and changes colour for reasons unrelated
+                to the change under review. A test that fails for unrelated
+                reasons gets ignored, and an ignored test is worse than no test.
+              </p>
+              <p className="mt-3 text-muted">
+                So the compromise, stated rather than stumbled into: the seed is
+                the default because it is the one fixture that is deterministic
+                and always present, and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">OPERATOR_E2E_LIVE=1</code> switches to
+                resolving the store off the fleet and driving whatever is really
+                serving. The default does not cover integration. Saying so is the
+                whole point &mdash; the previous version implied it did.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Closing it, rather than just labelling it
+              </h3>
+              <p className="mt-3 text-muted">
+                Writing down a blind spot is better than drifting into one, but
+                it is not a fix: nothing would ever have run the live mode, so an
+                integration regression still had nowhere to fail. So there is a
+                CI tier that stands up Postgres, builds the API from source,
+                applies the migrations, seeds the operator tables, points this
+                app at it and drives the whole restock flow. It picks up an API
+                branch of the same name when one exists, so a frontend change
+                that needs a backend change is tested as the pair it actually is
+                rather than against whatever shipped last week.
+              </p>
+              <p className="mt-3 text-muted">
+                It went green on its first working run, which is exactly when to
+                be suspicious. Had the API not come up, the BFF would have fallen
+                back, served seed ids, and every assertion would still have
+                passed &mdash; a green run proving nothing, which is the precise
+                failure the tier was built to prevent. Live mode now asserts the
+                fleet gave it a real UUID and names the seed id it got instead.
+                A passing test is a claim, and a claim is worth checking when the
+                cost of it being wrong is that you stop looking.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two pieces of friction worth recording
+              </h3>
+              <p className="mt-3 text-muted">
+                The live tier died on its first attempt because the two repos pin
+                different pnpm majors &mdash; this one on 8 with a v6 lockfile,
+                the API on 10 with a v9 one &mdash; so one pnpm cannot install
+                both. It reads the version out of the API&apos;s own{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">packageManager</code> field rather than
+                hardcoding it here, where it would drift silently the next time
+                the API upgrades and leave someone debugging a lockfile error in
+                a repo they never touched.
+              </p>
+              <p className="mt-3 text-muted">
+                And the E2E credential loader checked truthiness rather than
+                presence, so setting a variable to empty on purpose was
+                overwritten by the file it was meant to override. The effect was
+                that there was no way to run the public tier without attempting a
+                real Auth0 login &mdash; a small bug with a disproportionate
+                cost, because it made the cheap half of the suite depend on the
+                expensive half.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What is still not covered
+              </h3>
+              <p className="mt-3 text-muted">
+                The heavy tiers run nightly or on demand, not per commit, because
+                spending several minutes of CI on every push to catch something
+                twice a month is a bad trade. Quarantined flaky tests run nightly
+                and never block a merge, on the view that a flake is fixed on its
+                own clock rather than by blocking everyone else.
+              </p>
+              <p className="mt-3 text-muted">
+                The real gap is structural and worth naming: CI only triggers for
+                pull requests into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">main</code> and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">develop</code>. This work shipped as a
+                stack of eight PRs targeting each other, so none of them ran CI
+                automatically &mdash; every run in this stack was dispatched by
+                hand, and that is the only reason three of these bugs were found
+                before merge rather than after. Widening the trigger to the
+                branch prefix would fix it and cost CI minutes across every
+                stack. That is a spending decision rather than a correctness one,
+                which is why it is written down here instead of quietly changed.
               </p>
 
               <p className="mt-5 text-muted">

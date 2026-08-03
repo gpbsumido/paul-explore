@@ -335,6 +335,39 @@ describe("OperatorDashboardContent", () => {
     );
   });
 
+  it("has a testing section covering every tier", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/How it is tested/);
+    expect(body).toMatch(/what each layer\s+is structurally incapable of seeing/);
+  });
+
+  it("records the infrastructure findings, not just the product ones", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/different pnpm majors/);
+    expect(body).toMatch(/checked truthiness rather than\s+presence/);
+    expect(body).toMatch(/whole \/64/);
+  });
+
+  it("names the CI trigger gap instead of quietly changing it", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/none of them ran CI\s+automatically/);
+    expect(body).toMatch(/spending decision rather than a correctness one/);
+  });
+
+  it("orders the page: how it works, how it is tested, then the entries", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body.indexOf("How it works today")).toBeLessThan(
+      body.indexOf("How it is tested"),
+    );
+    expect(body.indexOf("How it is tested")).toBeLessThan(
+      body.indexOf("Everything below is how it got here"),
+    );
+  });
+
   it("separates the three questions auth actually answers", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
