@@ -132,12 +132,42 @@ function initDataStore(): OperatorDataStore {
   };
 }
 
+/**
+ * Whether a cached store has every collection the current code expects.
+ *
+ * Checking presence alone is not enough. The store lives on globalThis so one
+ * dev server shares a single copy, which means it also survives hot reloads and
+ * branch switches. A store created before a collection existed would keep
+ * coming back without it, and the symptom is writes failing with "cannot read
+ * properties of undefined" while reads carry on working, which is a confusing
+ * way to discover your cache is a version behind.
+ */
+function hasCurrentShape(
+  store: Partial<OperatorDataStore> | undefined,
+): store is OperatorDataStore {
+  return Boolean(
+    store?.stores &&
+      store.inventoryByStore &&
+      store.alertsByStore &&
+      store.activityByStore &&
+      store.salesByStore &&
+      store.planogramByStore &&
+      store.allAlerts &&
+      store.restockSessions &&
+      store.restockLines &&
+      store.promotions,
+  );
+}
+
 function getDataStore(): OperatorDataStore {
-  const g = globalThis as unknown as Record<string, OperatorDataStore>;
-  if (!g[GLOBAL_KEY]) {
+  const g = globalThis as unknown as Record<
+    string,
+    Partial<OperatorDataStore> | undefined
+  >;
+  if (!hasCurrentShape(g[GLOBAL_KEY])) {
     g[GLOBAL_KEY] = initDataStore();
   }
-  return g[GLOBAL_KEY];
+  return g[GLOBAL_KEY] as OperatorDataStore;
 }
 
 // ---------------------------------------------------------------------------
