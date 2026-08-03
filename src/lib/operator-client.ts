@@ -33,6 +33,21 @@ import type { RestockLineBody } from "@/lib/operator-restock-types";
 const BASE = `${API_URL}/api/operator`;
 
 /**
+ * Shared secret the operator API expects on writes. Server-side only, never
+ * NEXT_PUBLIC_, so it stays out of the browser bundle. Its whole job is to let
+ * the API tell "a visitor using the dashboard" apart from "someone with curl",
+ * without asking the visitor to log in.
+ */
+function writeHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = process.env.OPERATOR_SERVICE_TOKEN;
+  if (token) headers["x-operator-token"] = token;
+  return headers;
+}
+
+/**
  * The API answered with a non-2xx status. Distinct from a thrown fetch (the API
  * being unreachable) so the BFF can fall back to the seed only when the service
  * is truly down.
@@ -61,7 +76,7 @@ async function sendJson<T>(
 ): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: writeHeaders(),
     body: JSON.stringify(body),
     cache: "no-store",
   });

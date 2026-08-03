@@ -225,6 +225,30 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/safe to run\s+against the currently deployed code/);
   });
 
+  it("documents the service token and what it does not solve", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/authenticates a service, not a person/);
+    expect(body).toMatch(/same hardcoded string for everybody/);
+    expect(body).toMatch(/bearer secret/);
+    expect(body).toMatch(/baffling partial outage/);
+  });
+
+  it("records the seed and fallback-test cleanups", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/same sandwich\s+three times/);
+    expect(body).toMatch(/three separate plans and written it zero times/);
+  });
+
+  it("has a timeline entry linking to the service-token update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /locking the writes without making anyone log in/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-service-token");
+  });
+
   it("has a timeline entry linking to the hardening update", () => {
     render(<OperatorDashboardContent />);
     const link = screen.getByRole("link", {

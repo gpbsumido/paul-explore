@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-02-service-token"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Locking the writes without making anyone log in
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-hardening"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1112,6 +1123,122 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-02-service-token"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Locking the writes without making anyone log in
+              </h2>
+              <p className="text-muted">
+                I had left the operator write endpoints open and told myself rate
+                limiting was enough. Going back over it before merging, I think
+                that was me answering an easier question than the one in front of
+                me.
+              </p>
+              <p className="mt-3 text-muted">
+                The instinct is to put user auth on the writes. That would have
+                been wrong here, and not for a subtle reason: nobody logs in to
+                this dashboard. It is a public demo and the point of it is that
+                you can restock a shelf and watch the number change. Requiring a
+                token from the visitor would have returned 401 on every write,
+                the frontend would have quietly fallen back to its in-memory
+                seed, and the whole thing would have gone back to looking real
+                while persisting nothing.
+              </p>
+              <p className="mt-3 text-muted">
+                But the hole I actually had was a different one. Anyone could
+                point curl at the API and change the data directly, never
+                touching the app. Those are two separate problems and I had been
+                treating them as one.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I did instead
+              </h3>
+              <p className="text-muted">
+                Writes now carry a shared secret that only the
+                backend-for-frontend holds. The browser never sees it, because
+                the browser never calls the API directly; it calls my Next
+                server, which calls the API on its behalf. So a visitor is
+                unaffected and a direct caller gets a 401. The comparison is
+                constant time after a length check, and with no secret
+                configured the guard is a deliberate no-op so a fresh clone and
+                local development still work. There is nothing to forge when
+                there is no secret.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What it buys, and what it doesn&apos;t
+              </h3>
+              <p className="text-muted">
+                The case for it is short. It closes the direct-write hole, it
+                costs one header and one environment variable, it needs no
+                session handling or token refresh, and it does not ask anything
+                of the person using the dashboard. For a demo that has to stay
+                open, that is most of the value of auth at almost none of the
+                cost.
+              </p>
+              <p className="mt-3 text-muted">
+                The case against it is longer and worth being straight about.
+                It authenticates a <em>service</em>, not a person, and that has
+                consequences I can point at in my own code. The restock audit
+                trail I was so pleased with records an actor for every session,
+                and that actor is the same hardcoded string for everybody,
+                because the API genuinely does not know who is on the other end.
+                I built a feature whose entire purpose is answering &quot;who
+                changed this and why&quot; and I can currently only answer half
+                of it.
+              </p>
+              <p className="mt-3 text-muted">
+                It also does nothing for per-user rate limiting, for the same
+                reason. It is a bearer secret, so anyone who obtains it has full
+                write access and there is no way to revoke one caller without
+                revoking all of them. Rotating it means coordinating two deploys,
+                or teaching the API to accept two secrets during a changeover
+                window, which is exactly the sort of thing that gets skipped and
+                then bites a year later. And it adds a failure mode that did not
+                exist before: set the secret on the API but forget it on the
+                frontend, and reads keep working while every write returns 401,
+                which presents as a baffling partial outage rather than an
+                obvious misconfiguration.
+              </p>
+              <p className="mt-3 text-muted">
+                None of that makes it the wrong call today. It makes it a
+                deliberate step rather than a finished answer. Real user auth,
+                per-user limits and a truthful actor on the audit trail are all
+                the same piece of work, and that work starts the moment there is
+                a real operator to protect rather than a demo to keep open.
+                Writing down which of those I have and which I only appear to
+                have felt more useful than shipping it quietly.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two smaller things while I was in here
+              </h3>
+              <p className="text-muted">
+                The seed was building each shelf by picking a random product per
+                slot, so a six-slot store routinely showed the same sandwich
+                three times and the pricing table looked broken. Real planograms
+                do not stock one product in three slots and call it variety. It
+                now walks the product list in order and only repeats once it runs
+                out.
+              </p>
+              <p className="mt-3 text-muted">
+                And I finally wrote the fallback tests. The BFF prefers the live
+                API and drops to the in-memory seed when it is unreachable, which
+                is what keeps the demo working when the backend is asleep. I had
+                put that test in three separate plans and written it zero times.
+                It exists now, and it drives whole features through the fallback
+                rather than checking that a try/catch is present, because the
+                thing worth pinning is that the seed can actually satisfy the
+                same contract the API does.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-02-hardening"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
