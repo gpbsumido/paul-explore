@@ -485,6 +485,108 @@ export default function OperatorDashboardContent() {
               </ol>
             </nav>
 
+            <section
+              id="how-it-works-now"
+              className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="mb-3 text-lg font-bold">
+                How it works today
+              </h2>
+              <p className="text-muted">
+                Where it has ended up, before any of the story of getting there.
+                This is an operator dashboard for unattended retail: someone runs
+                a few dozen smart fridges and micro-markets in lobbies and gyms,
+                and needs to know which ones need attention, what sold, what to
+                restock, and what it all earned.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The two screens
+              </h3>
+              <p className="text-muted">
+                The fleet page is the landing: every store as a card sorted
+                worst-first, a stats bar, filters by status and name, a health
+                donut, a 24-hour alert trend, per-store inventory comparison, and
+                fleet-wide sales with a day, week, month or year range.
+              </p>
+              <p className="mt-3 text-muted">
+                Clicking a store opens the detail page, which is seven tabs.
+                Inventory has per-slot stock and starts a restock. Alerts has
+                active and resolved views with a severity filter and a seven-day
+                trend. Activity is the audit feed. Planogram is a drag-and-drop
+                shelf layout with per-slot sensor re-sync. Sales is headline
+                totals, a revenue trend, top sellers and recent transactions.
+                Pricing is a discount and profit calculator plus scheduled
+                promotions. Tax derives GST, HST, PST and QST from the store&apos;s
+                province and shows what is owed.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where the data lives
+              </h3>
+              <p className="text-muted">
+                It is a real backend, not fixtures. Postgres behind an Express
+                service, reached through a backend-for-frontend layer in this app
+                so the browser never talks to the API directly. Every read and
+                every write falls back to an in-memory seed if that service is
+                unreachable, so the demo behaves identically whether or not the
+                backend is awake. Aggregations that could get expensive (fleet
+                sales, the alert trend, promotion performance) are grouped in SQL
+                rather than pulled into Node and summed.
+              </p>
+              <p className="mt-3 text-muted">
+                Reads poll on a tier: alerts every 15 seconds because they are
+                what you are watching for, stores every 30, inventory and sales
+                and planogram every 60. Writes are optimistic with rollback.
+                Nothing polls in a background tab.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The three things worth looking at
+              </h3>
+              <p className="text-muted">
+                <strong>Every bucket resolves in the store&apos;s own
+                timezone.</strong> A Vancouver store&apos;s day starts at midnight
+                in Vancouver, in the charts and in the SQL. The fleet view cannot
+                be everyone&apos;s local day at once, so it picks one and names it
+                on screen.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Restocking is a session, not a button.</strong> Walk the
+                shelf slot by slot on a phone, optionally confirm a physical
+                count, add and remove with a reason on anything taken out, review,
+                complete. Skipping a count is recorded as a decision rather than
+                left blank. Nothing touches stock until the session completes, in
+                one transaction, and that is the only path that ever writes
+                inventory.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Promotions run and then report back.</strong> Schedule a
+                discount on a product or a whole store, and afterwards see units
+                and revenue against the equal period before it. Both raw numbers,
+                not just the delta, with the caveat that it is a comparison and
+                not proof of cause.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Who can use it
+              </h3>
+              <p className="text-muted">
+                Anyone, with no account, including the writes. That is
+                deliberate: this exists so somebody can open a link and drive the
+                real thing. The API instead trusts a shared secret only this
+                app&apos;s server holds, so a visitor is unaffected while someone
+                calling the API directly is not. Writes are rate limited, and the
+                demo data reseeds nightly.
+              </p>
+
+              <p className="mt-5 text-muted">
+                Everything below is how it got here: the decisions behind each of
+                those, the reasoning I would want to be asked about, the
+                tradeoffs I took knowingly, and the several things I got wrong and
+                had to go back and fix. Newest first.
+              </p>
+            </section>
 
             <section>
               <h2 className="mb-3 text-lg font-bold">Why this exists</h2>

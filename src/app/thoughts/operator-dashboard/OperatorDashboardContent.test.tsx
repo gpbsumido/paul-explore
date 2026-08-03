@@ -19,6 +19,40 @@ describe("OperatorDashboardContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("opens with the timeline, then how it works today, then the entries", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+
+    const timeline = body.indexOf("Newest first");
+    const overview = body.indexOf("How it works today");
+    const handoff = body.indexOf("Everything below is how it got here");
+    // The entry titles appear twice: once as a timeline link, once as the
+    // section heading. The second one is the section, so search past the handoff.
+    const firstEntry = body.indexOf(
+      "Locking the writes without making anyone log in",
+      handoff,
+    );
+
+    expect(timeline).toBeGreaterThan(-1);
+    expect(overview).toBeGreaterThan(timeline);
+    expect(handoff).toBeGreaterThan(overview);
+    expect(firstEntry).toBeGreaterThan(handoff);
+  });
+
+  it("describes the current state of all three features in the overview", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    const overview = body.indexOf("How it works today");
+    const handoff = body.indexOf("Everything below is how it got here");
+    const section = body.slice(overview, handoff);
+
+    expect(section).toMatch(/seven tabs/);
+    expect(section).toMatch(/Restocking is a session, not a button/);
+    expect(section).toMatch(/Promotions run and then report back/);
+    expect(section).toMatch(/timezone/i);
+    expect(section).toMatch(/no account/);
+  });
+
   it("carries a dated continuation section for today's update", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
