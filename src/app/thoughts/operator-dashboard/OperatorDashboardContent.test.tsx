@@ -314,6 +314,13 @@ describe("OperatorDashboardContent", () => {
     );
   });
 
+  it("says why an ignored test is worse than no test", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/an ignored test\s+is worse than no test/);
+    expect(body).toMatch(/says out loud what it does not cover/);
+  });
+
   it("separates the three questions auth actually answers", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

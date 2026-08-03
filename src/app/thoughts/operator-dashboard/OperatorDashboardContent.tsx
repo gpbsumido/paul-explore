@@ -1749,9 +1749,34 @@ export default function OperatorDashboardContent() {
                 the thing it covers is broken is not a test. It is the same
                 blind spot that let a missing sales endpoint sit unnoticed for
                 weeks: the fallback that keeps the demo alive when the API is
-                asleep also hides whether the real path works at all. They now
-                read a store id off the fleet page and run against whatever is
-                actually serving, which I checked both ways.
+                asleep also hides whether the real path works at all.
+              </p>
+              <p className="mt-3 text-muted">
+                So I pointed them at the real fleet, and CI went red. The test
+                was right: the deployed API is on an older release with no
+                restock-session routes and no migrations applied, so the flow
+                genuinely could not open a session. But it was answering a
+                question this tier should not be asking. These specs exist to
+                catch the seam between two components &mdash; the bug where
+                &ldquo;Start restock&rdquo; led to another &ldquo;Start
+                restock&rdquo; &mdash; and pinning a UI-composition test to a
+                separately-deployed service means the suite reports somebody
+                else&apos;s deploy state and changes colour for reasons that have
+                nothing to do with the change under review. A test that fails for
+                reasons unrelated to the diff gets ignored, and an ignored test
+                is worse than no test.
+              </p>
+              <p className="mt-3 text-muted">
+                The settled answer is two modes: the seed by default, chosen
+                deliberately and written down rather than arrived at by accident,
+                because it is the one fixture that is deterministic and always
+                present; and an opt-in live mode that resolves the store off the
+                fleet and drives whatever is really serving. That is how the flow
+                was verified end to end against Postgres, six real restock
+                sessions, before any of this landed. The difference between this
+                and where it started is not the default &mdash; it is that the
+                file now says out loud what it does not cover, instead of letting
+                a silent fallback imply otherwise.
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">

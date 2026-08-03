@@ -9,19 +9,47 @@ import { test, expect, type Page } from "@playwright/test";
  * Two taps for one action, and it took a screenshot to spot. Rendering a
  * component in isolation cannot catch a seam between two components; this can.
  *
- * The store id is discovered from the fleet page rather than hardcoded, and
- * that is load-bearing. This file used to point at the seed id `store-002`.
- * With portfolio_api up, the real fleet comes back with UUIDs, the API 404s for
- * `store-002`, and the BFF quietly falls back to the seed -- so the spec passed
- * either way while only ever exercising the seed. That is the same blind spot
- * that let a missing `/stores/:id/sales` endpoint sit unnoticed: a fallback
- * designed to keep the demo alive also hides whether the real path works.
- * Reading the id off the fleet means these run against whatever is actually
- * serving -- the API when it is up, the seed when it is not.
+ * Which backend these run against is a deliberate choice, and it took a red CI
+ * run to get it right.
+ *
+ * They used to point at the seed id `store-002`. That looked like laziness but
+ * had a subtler problem: with a real backend serving, the fleet comes back as
+ * UUIDs, the API 404s for `store-002`, and the BFF falls back to the seed
+ * exactly as designed -- so the specs passed identically whether or not the
+ * backend worked. A test that cannot fail when the thing it covers is broken is
+ * not a test.
+ *
+ * So I switched them to read a store id off the fleet page, and CI went red:
+ * the deployed API is on an older release with no restock-session routes and no
+ * migrations 016-018, so the flow genuinely could not open a session. The test
+ * was right. But it was answering a question this tier should not be asking.
+ * These exist to catch the seam between InventoryTab and RestockFlow -- the bug
+ * where "Start restock" led to another "Start restock", which a component test
+ * rendering RestockFlow alone could never see. That is a UI-composition
+ * question, and pinning it to a separately-deployed service means the suite
+ * reports someone else's deploy state and flips colour for reasons unrelated to
+ * the change under review.
+ *
+ * So: the seed by default, deliberately and visibly rather than by accident,
+ * because it is the one fixture that is deterministic and always present. Set
+ * OPERATOR_E2E_LIVE=1 to resolve the store off the fleet instead and drive
+ * whatever is really serving -- that is how the flow was verified end to end
+ * against Postgres, six real restock sessions, before this landed. What the
+ * default does NOT cover is integration, and that is the point of saying so
+ * here instead of letting a silent fallback imply otherwise.
  */
 
-/** The first store on the fleet page, whether it came from the API or the seed. */
-async function firstStoreId(page: Page): Promise<string> {
+/** A store the seed always has. The API will 404 it, which is what pins the seed. */
+const SEED_STORE = "store-002";
+
+/**
+ * The store to drive. Live mode reads the first store off the fleet, so it runs
+ * against whatever is actually serving; the default pins the seed so the run is
+ * deterministic and independent of any deploy.
+ */
+async function resolveStoreId(page: Page): Promise<string> {
+  if (!process.env.OPERATOR_E2E_LIVE) return SEED_STORE;
+
   await page.goto("/operator");
   const link = page.locator('a[href^="/operator/stores/"]').first();
   await expect(link).toBeVisible();
@@ -46,8 +74,9 @@ test.describe("operator restock flow", () => {
   let storeId: string;
 
   test.beforeEach(async ({ page }) => {
-    storeId = await firstStoreId(page);
+    storeId = await resolveStoreId(page);
     // A leftover session id would send the flow to the resume prompt instead.
+    await page.goto(`/operator/stores/${storeId}`);
     await page.evaluate(
       (id) => window.localStorage.removeItem(`operator-restock-session:${id}`),
       storeId,
