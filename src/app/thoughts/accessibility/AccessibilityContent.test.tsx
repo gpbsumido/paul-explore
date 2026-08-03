@@ -8,6 +8,19 @@ vi.mock("@/components/PageHeader", () => ({
 import AccessibilityContent from "./AccessibilityContent";
 
 describe("the accessibility write-up", () => {
+  it("owns the violation I introduced myself", () => {
+    render(<AccessibilityContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/I had invented a worse version of a\s+solved problem/);
+  });
+
+  it("explains why a contrast scan needs a pinned theme", () => {
+    render(<AccessibilityContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/races that, and sometimes measures muted text against the other/);
+    expect(body).toMatch(/real-looking, unreproducible, and not a bug/);
+  });
+
   it("records the scan that silently stopped running", () => {
     render(<AccessibilityContent />);
     const body = document.body.textContent ?? "";

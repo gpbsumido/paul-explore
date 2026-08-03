@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-04-two-causes"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    The same bug twice, for two different reasons
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-03-visitor-identity"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -1908,6 +1919,51 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-04-two-causes"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                The same bug twice, for two different reasons
+              </h2>
+              <p className="text-muted">
+                &ldquo;Turkey Club Sandwich out of stock&rdquo; came back. I had
+                already fixed it, written it up, and moved on. It had two causes
+                and I had fixed one of them.
+              </p>
+              <p className="mt-3 text-muted">
+                The first is the more embarrassing. The API stopped inventing
+                alerts a release ago; this app has its own copy of the seed, and
+                that copy still picked a random message from a fixed list. It is
+                the copy that serves the demo whenever the backend is asleep,
+                which for something anyone can open without an account is most
+                of the time &mdash; so I had fixed the path fewer people take and
+                declared the bug closed. Duplicated logic is a known cost;
+                what I underrated is that fixing one copy feels exactly like
+                fixing the bug.
+              </p>
+              <p className="mt-3 text-muted">
+                The second is that the backend was serving stale rows. Its code
+                was correct and its data predated the fix, because nothing had
+                re-seeded since. A correct migration of behaviour does not
+                migrate the records already written under the old behaviour, and
+                a fix that only applies to future writes will look broken for as
+                long as the old data outlives it. Checking the deployed data
+                found eleven contradictions across six stores.
+              </p>
+              <p className="mt-3 text-muted">
+                Worth stating plainly, since it is the part I would want a
+                reviewer to press on: the reseed job exists, but I have not
+                confirmed it is deployed as a scheduled service, and an earlier
+                note of mine claims the demo data reseeds nightly. If that claim
+                is wrong, this returns on its own. A fix that depends on an
+                unverified cron is a fix with a countdown on it.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-03-visitor-identity"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"

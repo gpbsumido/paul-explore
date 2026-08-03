@@ -368,6 +368,13 @@ describe("OperatorDashboardContent", () => {
     );
   });
 
+  it("records that one bug had two causes and only one was fixed", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/fixing one copy feels exactly like\s+fixing the bug/);
+    expect(body).toMatch(/a fix with a countdown on it/);
+  });
+
   it("separates the three questions auth actually answers", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

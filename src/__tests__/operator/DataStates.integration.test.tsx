@@ -30,7 +30,9 @@ describe("loading is not absence and absence is not zero", () => {
       />,
     );
 
-    expect(screen.getByLabelText(/low stock items, loading/i)).toBeInTheDocument();
+    // Announced via sr-only text, not an aria-label on a bare span -- a span
+    // has no role for a label to name, and axe rates that a serious violation.
+    expect(screen.getByText(/low stock items, loading/i)).toBeInTheDocument();
     expect(screen.queryByText("0")).not.toBeInTheDocument();
     expect(screen.queryByText("0%")).not.toBeInTheDocument();
     expect(screen.queryByText(/null/i)).not.toBeInTheDocument();
