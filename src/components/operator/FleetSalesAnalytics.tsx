@@ -5,6 +5,7 @@ import { useFleetSalesAnalytics } from "@/hooks/useFleetSalesAnalytics";
 import { formatCAD, type SalesGranularity } from "@/lib/operator-sales";
 import { browserTimeZone } from "@/lib/operator-timezone";
 import SalesRangeToggle from "./SalesRangeToggle";
+import ChartBar from "./ChartBar";
 import TimeZoneNote from "./TimeZoneNote";
 import Bone from "./Bone";
 
@@ -70,9 +71,12 @@ export default function FleetSalesAnalytics() {
       ) : (
         <>
           {/* Fleet revenue trend */}
-          <div className="flex items-end gap-2" aria-hidden="true">
+          <div className="flex items-end gap-2">
             {buckets.map((bucket, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-1">
+              <ChartBar
+                key={i}
+                label={`${bucket.label}: ${formatCAD(bucket.revenue)}`}
+              >
                 <div
                   className="w-full rounded-t bg-primary-500/70"
                   style={{
@@ -81,7 +85,7 @@ export default function FleetSalesAnalytics() {
                   }}
                 />
                 <span className="text-[10px] text-muted">{bucket.label}</span>
-              </div>
+              </ChartBar>
             ))}
           </div>
           <ul className="sr-only">

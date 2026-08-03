@@ -12,6 +12,7 @@ import {
 } from "@/lib/operator-sales";
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { storeTimeZone } from "@/lib/operator-timezone";
+import ChartBar from "./ChartBar";
 import SalesRangeToggle from "./SalesRangeToggle";
 import TimeZoneNote from "./TimeZoneNote";
 
@@ -101,9 +102,12 @@ export default function SalesTab({ storeId }: SalesTabProps) {
         <div className="mb-2">
           <TimeZoneNote timeZone={timeZone} />
         </div>
-        <div className="flex items-end gap-2" aria-hidden="true">
+        <div className="flex items-end gap-2">
           {trend.map((bucket, i) => (
-            <div key={i} className="flex flex-1 flex-col items-center gap-1">
+            <ChartBar
+              key={i}
+              label={`${bucket.label}: ${formatCAD(bucket.revenue)}`}
+            >
               <div
                 className="w-full rounded-t bg-primary-500/70"
                 style={{
@@ -112,7 +116,7 @@ export default function SalesTab({ storeId }: SalesTabProps) {
                 }}
               />
               <span className="text-[10px] text-muted">{bucket.label}</span>
-            </div>
+            </ChartBar>
           ))}
         </div>
         <ul className="sr-only">

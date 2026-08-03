@@ -12,6 +12,7 @@ import {
 import { useOperatorStore } from "@/hooks/useOperatorStore";
 import { storeTimeZone } from "@/lib/operator-timezone";
 import type { AlertCategory } from "@/types/operator";
+import ChartBar from "./ChartBar";
 import AlertRow from "./AlertRow";
 import TimeZoneNote from "./TimeZoneNote";
 import { CheckCircleIcon } from "./icons";
@@ -140,9 +141,12 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
           <p className="mb-1.5 text-[11px] uppercase tracking-wide text-muted">
             Alerts raised, last 7 days
           </p>
-          <div className="flex items-end gap-1.5" aria-hidden="true">
+          <div className="flex items-end gap-1.5">
             {trend.map((bucket, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-1">
+              <ChartBar
+                key={i}
+                label={`${bucket.day}: ${bucket.count} alert${bucket.count === 1 ? "" : "s"}`}
+              >
                 <div
                   className="w-full rounded-t bg-primary-500/60"
                   style={{
@@ -151,7 +155,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
                   }}
                 />
                 <span className="text-[10px] text-muted">{bucket.day}</span>
-              </div>
+              </ChartBar>
             ))}
           </div>
           <ul className="sr-only">

@@ -4,13 +4,13 @@ import { planogramUpdateSchema } from "@/lib/operator-schemas";
 import { parseBody } from "@/lib/parseBody";
 import { loadPlanogram, applyPlanogramUpdate } from "@/lib/operator-bff";
 
-export async function GET(
+export const GET = withOperatorErrors(async (
   _request: NextRequest,
   { params }: { params: Promise<{ storeId: string }> },
-) {
+) => {
   const { storeId } = await params;
   return NextResponse.json({ slots: await loadPlanogram(storeId) });
-}
+})
 
 export const PATCH = withOperatorErrors(async (
   request: NextRequest,

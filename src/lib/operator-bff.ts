@@ -6,7 +6,10 @@
 import * as api from "@/lib/operator-client";
 import * as seed from "@/lib/operator-data";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
-import { OperatorServiceTokenError } from "@/lib/operator-route-errors";
+import {
+  OperatorServiceTokenError,
+  OperatorUnavailableError,
+} from "@/lib/operator-route-errors";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
 import { LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
 import {
@@ -31,6 +34,39 @@ import type {
 type RestockResult = { items: InventoryItem[]; activity: ActivityEvent };
 type PlanogramUpdate = { boxes: PlanogramSlot[] } | { resyncItemId: string };
 
+/**
+ * Says out loud that a read fell back to the seed.
+ *
+ * This used to be silent, which is how a failing fleet-summary turned into
+ * every store card showing 0% with nothing in any log to explain it. The store
+ * list still came from the API with real ids while the summaries came from the
+ * seed with different ones, so nothing matched and absent rendered as zero. The
+ * fallback is still the right behaviour, it just should not be a secret.
+ */
+/**
+ * Reads the seed for a store, or admits it cannot.
+ *
+ * The seed is keyed by the ids it made up, so it has nothing to say about a
+ * real store UUID. Returning an empty list there is a lie with a plausible
+ * shape: the tab renders "no data" and nobody suspects the backend.
+ */
+function seedForStore<T>(
+  storeId: string,
+  read: () => T | undefined,
+  what: string,
+): T {
+  const value = seed.getStore(storeId) ? read() : undefined;
+  if (value === undefined) throw new OperatorUnavailableError(what);
+  return value;
+}
+
+function noteFallback(what: string, err: unknown): void {
+  const reason = err instanceof Error ? err.message : String(err);
+  console.warn(
+    `[operator] ${what} fell back to seed data: ${reason}. The page will render, but it is not showing what the API holds.`,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Reads — fall back to the seed on any failure (idempotent, so it is safe).
 // ---------------------------------------------------------------------------
@@ -38,7 +74,8 @@ type PlanogramUpdate = { boxes: PlanogramSlot[] } | { resyncItemId: string };
 export async function loadStores(): Promise<readonly Store[]> {
   try {
     return await api.fetchStores();
-  } catch {
+  } catch (err) {
+    noteFallback("loadStores", err);
     return seed.getStores();
   }
 }
@@ -46,7 +83,8 @@ export async function loadStores(): Promise<readonly Store[]> {
 export async function loadStore(storeId: string): Promise<Store | undefined> {
   try {
     return await api.fetchStore(storeId);
-  } catch {
+  } catch (err) {
+    noteFallback("loadStore", err);
     return seed.getStore(storeId);
   }
 }
@@ -56,16 +94,18 @@ export async function loadInventory(
 ): Promise<InventoryItem[]> {
   try {
     return await api.fetchInventory(storeId);
-  } catch {
-    return seed.getInventory(storeId) ?? [];
+  } catch (err) {
+    noteFallback("loadInventory", err);
+    return seedForStore(storeId, () => seed.getInventory(storeId), "inventory");
   }
 }
 
 export async function loadAlerts(storeId: string): Promise<Alert[]> {
   try {
     return await api.fetchAlerts(storeId);
-  } catch {
-    return seed.getAlerts(storeId) ?? [];
+  } catch (err) {
+    noteFallback("loadAlerts", err);
+    return seedForStore(storeId, () => seed.getAlerts(storeId), "alerts");
   }
 }
 
@@ -74,16 +114,18 @@ export async function loadActivity(
 ): Promise<ActivityEvent[]> {
   try {
     return await api.fetchActivity(storeId);
-  } catch {
-    return seed.getActivity(storeId) ?? [];
+  } catch (err) {
+    noteFallback("loadActivity", err);
+    return seedForStore(storeId, () => seed.getActivity(storeId), "the activity feed");
   }
 }
 
 export async function loadSales(storeId: string): Promise<Sale[]> {
   try {
     return await api.fetchSales(storeId);
-  } catch {
-    return seed.getSales(storeId) ?? [];
+  } catch (err) {
+    noteFallback("loadSales", err);
+    return seedForStore(storeId, () => seed.getSales(storeId), "sales");
   }
 }
 
@@ -92,15 +134,17 @@ export async function loadPlanogram(
 ): Promise<PlanogramSlot[]> {
   try {
     return await api.fetchPlanogram(storeId);
-  } catch {
-    return seed.getPlanogram(storeId) ?? [];
+  } catch (err) {
+    noteFallback("loadPlanogram", err);
+    return seedForStore(storeId, () => seed.getPlanogram(storeId), "the planogram");
   }
 }
 
 export async function loadFleetSummary(): Promise<FleetSummaryResponse> {
   try {
     return await api.fetchFleetSummary();
-  } catch {
+  } catch (err) {
+    noteFallback("loadFleetSummary", err);
     return computeFleetSummarySeed();
   }
 }
@@ -111,7 +155,8 @@ export async function loadSalesAnalytics(
 ): Promise<FleetSalesAnalytics> {
   try {
     return await api.fetchSalesAnalytics(granularity, timeZone);
-  } catch {
+  } catch (err) {
+    noteFallback("loadSalesAnalytics", err);
     return aggregateFleetSales(
       seed.getStores().map((store) => ({
         storeId: store.id,
@@ -275,7 +320,8 @@ export async function loadRestockSessions(
 ): Promise<RestockSession[]> {
   try {
     return await api.fetchRestockSessions(storeId);
-  } catch {
+  } catch (err) {
+    noteFallback("loadRestockSessions", err);
     return seed.listRestockSessions(storeId);
   }
 }
@@ -332,7 +378,8 @@ export async function applyRestockSession(
 export async function loadPromotions(storeId: string): Promise<Promotion[]> {
   try {
     return await api.fetchPromotions(storeId);
-  } catch {
+  } catch (err) {
+    noteFallback("loadPromotions", err);
     return seed.listPromotions(storeId);
   }
 }

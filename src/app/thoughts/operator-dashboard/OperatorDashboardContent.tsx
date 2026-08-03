@@ -345,6 +345,28 @@ export default function OperatorDashboardContent() {
                     Aug 2, 2026
                   </span>
                   <a
+                    href="#update-2026-08-02-honest-states"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    A zero is a claim, and I was making it by accident
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-02-real-vs-fake"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Which of these bugs would a real operator have hit
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 2, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-02-service-token"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -484,6 +506,374 @@ export default function OperatorDashboardContent() {
                 </li>
               </ol>
             </nav>
+
+
+            <section
+              id="by-kind"
+              className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="text-sm font-semibold text-foreground">
+                Find it by kind
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                The same write-ups, grouped by what they are rather than when
+                they happened.
+              </p>
+              <div className="mt-4 grid gap-5 sm:grid-cols-2">
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Bugs found and fixed
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Most were found by building something else, not by looking for them.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-02-timezones"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Every time bucket resolved in UTC, so a Toronto day started at 8pm the night before
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Two aggregate queries no database would accept, from a GROUP BY parameter mismatch
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The per-store sales endpoint never existed, so Sales and Tax were empty against the real backend
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Alerts contradicted the inventory they described
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Every store card read 0% because absent data rendered as zero
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Loading and absent both rendered as numbers nobody had measured
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Hand-drawn charts showed a shape with no way to read the value
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Starting a restock took two taps, because two components each offered the button
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-hardening"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A cache key accepted a timezone and threw it away
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A Zod schema silently dropped fields the API had started sending
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The seeded store outlived its own shape and broke every write
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-service-token"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A misconfigured token was disguised as a successful write
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Tradeoffs taken knowingly
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Where I picked a side and can say why.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-02-service-token"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A service credential instead of user auth, so nobody has to log in to try it
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-hardening"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Migrations stay manual, and what makes that safe rather than fragile
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The same arithmetic deliberately duplicated across two repositories
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-timezones"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      No date library, at the cost of caching formatters by hand
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Promotions are per-store, because guessing at fleet grouping is worse than waiting
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-pricing"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The calculator derives rather than stores, so there is no second price ledger
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Product and user experience
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Choices about what the operator sees and believes.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-02-timezones"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The fleet chart names whose timezone it is using, which is what makes the number honest
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Performance shows before and during side by side rather than a single delta
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      No baseline says so instead of showing a fabricated percentage
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Skipping a count is recorded as a decision, not left blank
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Removals require a reason, because an unexplained one is indistinguishable from theft
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Steppers and 44px targets, because it is used on a phone at a fridge
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Loading, absent and zero are three states, and only one is a number
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A failed load says so, and gives a way to report it
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-honest-states"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Every chart answers the question its shape raises
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Developer experience
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Choices about the next person, including future me.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-02-hardening"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Expand the schema first, deploy second, and why not to automate migrations
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-service-token"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A test suite that cannot be broken by what is in your own .env
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      SQL executed against a real database, because a mocked repository accepts anything
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-service-token"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Integration tests through MSW rather than a stubbed fetch
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The seeded store repairs itself when its shape is a version behind
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-real-vs-fake"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Fallbacks say out loud that they happened
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold uppercase tracking-wide text-foreground">
+                  Performance
+                </h3>
+                <p className="mt-0.5 text-xs text-muted">Where the work was moved, and what it bought.</p>
+                <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-01-backend"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Aggregation pushed into SQL rather than summing rows in the app
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-timezones"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Eight timezone resolutions per chart instead of one per sale
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-promotions"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Promotion performance fetched per promotion, only when opened
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-restocking"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A restock is one transaction, so a dropped connection costs one slot
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-02-hardening"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Rate limits sized for traffic that arrives from a BFF, not per visitor
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-01-backend"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Polling tiered by how fast each thing actually changes
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              </div>
+            </section>
 
             <section
               id="how-it-works-now"
@@ -1225,6 +1615,237 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-02-honest-states"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                A zero is a claim, and I was making it by accident
+              </h2>
+              <p className="text-muted">
+                Someone looked at the fleet page and every store reported 0%
+                inventory. Nothing had errored on screen. The cards rendered, the
+                numbers were formatted, the layout was fine. It just was not
+                true.
+              </p>
+              <p className="mt-3 text-muted">
+                Three separate places had each decided, reasonably on its own, to
+                keep going quietly. The summary request failed and the fallback
+                said nothing. The response was cast rather than parsed, so
+                nothing checked it. And a store with no summary rendered{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  ?? 0
+                </code>
+                , which is the line that turns an absence into a fact. Any one of
+                those alone is defensible. Together they produced a confident
+                dashboard full of zeroes.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Why this matters more than it looks
+              </h3>
+              <p className="text-muted">
+                An operator who opens the Tax tab and sees nothing concludes the
+                store made no sales. That is a conclusion they act on: not
+                chasing a remittance, not questioning a number that should have
+                been there. A fleet reporting zero critical alerts and zero
+                average fill reads as good news, so they stop looking. The
+                failure mode of a silent error is not confusion, it is
+                misplaced confidence, and it costs more than an error message
+                ever would.
+              </p>
+              <p className="mt-3 text-muted">
+                So the rule I settled on is that the interface has to
+                distinguish three states it had been collapsing into one.
+                Loading is not knowing yet. Absent is not knowing at all. Zero is
+                a measurement. Only the third is a number, and the other two now
+                render as a pulsing placeholder and an em dash respectively.
+                There is a test asserting the word &quot;null&quot; never reaches
+                the screen, because it briefly did.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Failures now say what failed, and offer a way out
+              </h3>
+              <p className="text-muted">
+                An empty list from a failed request is a lie with a plausible
+                shape, so the layer that produced it stopped producing it. When
+                the API is unreachable and the seeded demo data has nothing for
+                that store, the response is a 503 saying so rather than a 200
+                with an empty array. The tab shows that it could not load,
+                states plainly that this is an error and not an empty store,
+                reassures that nothing was changed, and offers a retry.
+              </p>
+              <p className="mt-3 text-muted">
+                It also offers a way to tell me. That is not boilerplate. Anyone
+                can use this dashboard without an account, which is the whole
+                point of it, and the flip side is that nobody has a support
+                channel by default. Without a contact route their only options
+                are to assume the zero is real or to close the tab, and both of
+                those lose the person and the bug report at once.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                And the charts now answer the question they raise
+              </h3>
+              <p className="text-muted">
+                The charts drawn with divs had no way to get a number out of
+                them. You could see that one month was taller than another and
+                never find out by how much, which makes a chart decorative
+                rather than useful: the shape is the summary and the value is the
+                answer. The ones built on a chart library already had tooltips,
+                so the hand-rolled half of the same dashboard was quietly worse
+                for no reason anyone had decided on.
+              </p>
+              <p className="mt-3 text-muted">
+                They all have hover values now. Deliberately not focusable,
+                though: making every bar a tab stop would add seven to twelve of
+                them per chart, and it buys nothing for anyone using a screen
+                reader, because each chart already carries a list of the same
+                values beside it. The tooltip is a mouse affordance layered on an
+                accessible path that existed first, rather than the only way to
+                read the number.
+              </p>
+            </section>
+
+      <section
+              id="update-2026-08-02-real-vs-fake"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 2, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Which of these bugs would a real operator have hit
+              </h2>
+              <p className="text-muted">
+                Wiring this to a database turned up a run of bugs in a couple of
+                hours. Rather than list them, I want to sort them, because the
+                interesting question is which ones were real and which ones only
+                existed because I had spent months faking the data and had built
+                habits around that.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Real. A live deployment hits these too
+              </h3>
+              <p className="text-muted">
+                <strong>Two queries no database would accept.</strong> Making the
+                buckets timezone-aware left the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GROUP BY
+                </code>{" "}
+                repeating an interpolated expression. Drizzle re-emits a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  sql
+                </code>{" "}
+                fragment with fresh parameter numbers each time it is used, so
+                the GROUP BY copy read $5 and $6 where the SELECT read $1 and $2.
+                Postgres compares parse trees, decided those were two different
+                expressions, and rejected both queries for selecting an ungrouped
+                column. Nothing about fake data caused that and nothing about
+                real data would have prevented it.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Every time bucket was UTC.</strong> A Toronto
+                store&apos;s day started at 8pm the previous evening. That is a
+                correctness bug about the world, not about my fixtures, and it
+                would have been quietly wrong in production for as long as nobody
+                checked which day a sale landed on.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>A cast where a parse belonged.</strong> The fleet summary
+                was read with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  res.json() as FleetSummaryResponse
+                </code>
+                . A blind assertion at a trust boundary, with the Zod schema for
+                it sitting unused in the same codebase. Real data drifts more
+                than fixtures do, so this is worse in production, not better.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Artefacts of faking it. But each points at something real
+              </h3>
+              <p className="text-muted">
+                <strong>Alerts that contradicted the inventory.</strong> Every
+                store was stamped with the same four alerts, so a store with a
+                full shelf still reported a sandwich out of stock and a store at
+                4C still warned it had reached 8.2C. That specific bug only
+                exists because I wrote the alert text by hand; a real deployment
+                generates alerts from the same readings the inventory tab shows,
+                so they agree by construction.
+              </p>
+              <p className="mt-3 text-muted">
+                Except the failure it imitates is extremely real. The moment
+                alerts come from a separate service, or a cached rollup, or a
+                nightly job reading a snapshot, you get exactly this: two screens
+                describing the same shelf and disagreeing. I have now written
+                tests that assert an alert can never contradict the row it
+                describes, and those tests would keep earning their keep against
+                a real pipeline.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>Store cards showing 0% everywhere.</strong> The frontend
+                falls back to seeded data when the API is unreachable, which is
+                what keeps the demo working. When the fleet summary started
+                failing, the store list still came from the API with real ids
+                while the summaries fell back to seeded ones with different ids.
+                Nothing matched, and the UI rendered absent as zero.
+              </p>
+              <p className="mt-3 text-muted">
+                A production deployment has no seed to fall back to, so it would
+                have shown an error instead. But strip the fixtures away and the
+                real lesson stands: a partial failure produced a page that looked
+                fine and was entirely wrong, and no layer said anything. The
+                fallback was silent, so nothing logged. The response was cast
+                rather than parsed, so nothing validated. Absent data rendered as
+                a real number, so nothing looked broken. Three separate places
+                each chose to keep going quietly, and the result was a confident
+                dashboard full of zeroes.
+              </p>
+              <p className="mt-3 text-muted">
+                <strong>The seeded store outliving its own shape.</strong> The
+                fixtures live on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  globalThis
+                </code>{" "}
+                so one dev server shares a copy, which means they survive hot
+                reloads. A store created before a collection existed kept coming
+                back without it, and writes failed while reads worked. Purely a
+                development artefact, since a real process starts clean. It is
+                still a cache invalidation bug, and it still cost me twenty
+                minutes of blaming the wrong thing.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I actually take from it
+              </h3>
+              <p className="text-muted">
+                The fixture-shaped bugs were the cheap ones. The expensive
+                pattern was that I had trained myself, across months of building
+                against fake data, to treat every failure as survivable. Fall
+                back, cast, carry on. That is a reasonable instinct when the only
+                thing behind the wire is a file of made-up stores. It becomes a
+                liability the moment something real is on the other end, because
+                the same instinct turns a loud failure into a quiet lie.
+              </p>
+              <p className="mt-3 text-muted">
+                So the fixes were less about the individual bugs and more about
+                deciding, in each place, whether silence was still the right
+                answer. An unreachable API stays survivable, because that is what
+                the fallback is for and the demo has to work. A rejected token
+                does not, because that is a configuration mistake pretending to
+                be an outage. Absent data now renders as absent rather than as
+                zero. And SQL gets executed against a real Postgres in a test,
+                because a mocked repository will cheerfully return rows for a
+                query no database would ever accept.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-02-service-token"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"

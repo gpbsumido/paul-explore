@@ -19,6 +19,36 @@ describe("OperatorDashboardContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("groups the write-ups by kind, not only by date", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    for (const heading of [
+      "Bugs found and fixed",
+      "Tradeoffs taken knowingly",
+      "Product and user experience",
+      "Developer experience",
+      "Performance",
+    ]) {
+      expect(body).toContain(heading);
+    }
+  });
+
+  it("every link in the by-kind index points at a section that exists", () => {
+    const { container } = render(<OperatorDashboardContent />);
+    const index = container.querySelector("#by-kind");
+    expect(index).not.toBeNull();
+
+    const targets = [...(index?.querySelectorAll("a[href^='#']") ?? [])].map(
+      (a) => a.getAttribute("href")?.slice(1) ?? "",
+    );
+    expect(targets.length).toBeGreaterThan(20);
+
+    // A dead anchor in an index is worse than no index.
+    for (const id of targets) {
+      expect(container.querySelector(`#${id}`), `#${id}`).not.toBeNull();
+    }
+  });
+
   it("opens with the timeline, then how it works today, then the entries", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
@@ -267,6 +297,46 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(/bearer secret/);
     expect(body).toMatch(/rebuilt the exact fiction/);
     expect(body).toMatch(/A silent success is worse than an error/);
+  });
+
+  it("explains why a silent zero costs more than an error", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/A zero is a claim/);
+    expect(body).toMatch(/misplaced confidence/);
+    expect(body).toMatch(/nobody has a support\s+channel by default/);
+    expect(body).toMatch(/Loading is not knowing yet/);
+  });
+
+  it("has a timeline entry linking to the honest-states update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /a zero is a claim, and i was making it by accident/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-honest-states");
+  });
+
+  it("sorts the bugs into real ones and fixture artefacts", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/A live deployment hits these too/);
+    expect(body).toMatch(/Artefacts of faking it/);
+    expect(body).toMatch(/two screens\s+describing the same shelf and disagreeing/);
+  });
+
+  it("names the habit the fixtures trained, not just the bugs", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/treat every failure as survivable/);
+    expect(body).toMatch(/turns a loud failure into a quiet lie/);
+  });
+
+  it("has a timeline entry linking to the real-vs-fixture update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /which of these bugs would a real operator have hit/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-02-real-vs-fake");
   });
 
   it("frames the auth choice around who the demo is actually for", () => {
