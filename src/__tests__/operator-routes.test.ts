@@ -13,6 +13,7 @@ import {
 import { plannerBenchmarksResponseSchema } from "@/lib/operator-planner";
 import { productPerformanceResponseSchema } from "@/lib/operator-product-performance";
 import { fleetShrinkResponseSchema } from "@/lib/operator-shrink";
+import { searchIndexResponseSchema } from "@/lib/operator-search";
 import { z } from "zod";
 
 function makeRequest(
@@ -593,6 +594,26 @@ describe("GET /api/operator/shrink-summary", () => {
     );
     const sorted = [...values].sort((a, b) => b - a);
     expect(values).toEqual(sorted);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/search-index
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/search-index", () => {
+  it("returns a schema-valid index of stores and distinct products", async () => {
+    const { GET } = await import("@/app/api/operator/search-index/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = searchIndexResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    expect(body.stores.length).toBeGreaterThan(0);
+    expect(body.products.length).toBeGreaterThan(0);
+    // Products are deduped by name.
+    const names = body.products.map((p: { name: string }) => p.name);
+    expect(new Set(names).size).toBe(names.length);
   });
 });
 

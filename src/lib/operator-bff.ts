@@ -23,6 +23,7 @@ import {
   type ProductPerformanceRow,
 } from "@/lib/operator-product-performance";
 import { fleetShrink, type FleetShrink } from "@/lib/operator-shrink";
+import type { SearchIndexResponse } from "@/lib/operator-search";
 import type {
   Store,
   InventoryItem,
@@ -234,6 +235,35 @@ export async function loadFleetShrink(): Promise<FleetShrink> {
   });
 
   return fleetShrink(inputs);
+}
+
+/**
+ * The quick-search index: every store, and every distinct product name across
+ * the fleet's inventory. Built here from the seed for the same reason as the
+ * other rollups — one small payload the client can rank locally, where a
+ * production build would expose a dedicated search endpoint.
+ */
+export async function loadSearchIndex(): Promise<SearchIndexResponse> {
+  const stores = seed.getStores();
+
+  const seenProduct = new Set<string>();
+  const products: SearchIndexResponse["products"] = [];
+  for (const store of stores) {
+    for (const item of seed.getInventory(store.id) ?? []) {
+      if (seenProduct.has(item.productName)) continue;
+      seenProduct.add(item.productName);
+      products.push({ name: item.productName, category: item.category });
+    }
+  }
+
+  return {
+    stores: stores.map((store) => ({
+      id: store.id,
+      name: store.name,
+      status: store.status,
+    })),
+    products,
+  };
 }
 
 /**
