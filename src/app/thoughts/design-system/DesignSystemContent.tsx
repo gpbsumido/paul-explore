@@ -1005,6 +1005,64 @@ export default function DesignSystemContent() {
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                The consuming app found the library&apos;s bug
+              </h2>
+              <p className="text-muted">
+                The Ticker&apos;s marquee duplicates its content so the loop
+                looks seamless, and the copy is{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">aria-hidden</code>. Its focusable
+                controls were pulled out of the tab order by an effect that ran
+                after render. An effect runs after paint, so between mount and
+                that effect the duplicate held tabbable buttons inside a hidden
+                container, and every re-render reopened the window.
+              </p>
+              <p className="mt-3 text-muted">
+                Hiding something from assistive technology while leaving it
+                reachable by keyboard is worse than not hiding it: the user tabs
+                onto a control a screen reader insists is not there. Both
+                packages now mark the clone{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">inert</code>, which takes the tab order and
+                the accessibility tree out together &mdash; the pair that had
+                come apart. The manual sweep stays behind a capability check for
+                browsers without support.
+              </p>
+              <p className="mt-3 text-muted">
+                What is worth keeping is where it was found. Not in the library,
+                which had a comment asserting that assistive tech never saw the
+                duplicate, and not in its own test suite. It was an accessibility
+                scan on a page in this app that happened to render the component.
+                A shared library means one mistake reaches every consumer at
+                once; it also means the first consumer to look properly finds it
+                for all of them. The Angular port carried the identical bug,
+                comment and all, and was still in review &mdash; so that copy was
+                fixed before it ever shipped.
+              </p>
+
+              <h2 className="mb-3 mt-8 text-lg font-bold">
+                Adopting it back, and what the gallery caught
+              </h2>
+              <p className="text-muted">
+                Pulling the new packages into this app took an explicit version
+                bump rather than an install: the dependencies were pinned with a
+                caret on a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">0.x</code> range, and a caret on a
+                zero-major does not cross a minor. The app would have sat on the
+                old version indefinitely while appearing to track the package.
+              </p>
+              <p className="mt-3 text-muted">
+                The bump immediately failed a test, which is the outcome I
+                wanted. The design-system gallery in this app asserts that it
+                documents every component the package exports, and the new
+                release added fourteen it had never heard of. That test is doing
+                the job a changelog cannot: it makes an undocumented component a
+                build failure rather than a gap somebody notices months later.
+                All fourteen are documented now, each with the accessibility
+                guarantees read off the component rather than assumed, and each
+                marked as shipping in the package but not yet adopted here
+                &mdash; because claiming otherwise would be the easy lie.
+              </p>
+
+              <h2 className="mb-3 text-lg font-bold">
                 How to think about this next time
               </h2>
               <ul className="mt-3 space-y-4 text-muted">

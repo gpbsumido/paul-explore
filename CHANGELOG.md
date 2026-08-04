@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-04 - version 3.4.0
+
+- **Adopted the published design system: react 0.5.0, css 0.5.1, tokens 0.2.0.** This needed an explicit bump rather than an install. The dependencies were pinned with a caret on a `0.x` range, and a caret on a zero-major does not cross a minor — so the app would have sat on 0.4.4 indefinitely while appearing to track the package. Verified the published bundle actually carries the Ticker accessibility fix rather than trusting the version number.
+- **Documented the fourteen components the new release added.** The bump immediately failed the gallery's integrity test, which asserts this app documents every component the package exports — eleven charts plus TiltCard, Spotlight and GradientBackground. That test does the job a changelog cannot: it makes an undocumented component a build failure rather than a gap someone notices months later. Every entry carries the accessibility guarantees read off the component itself, and every one is marked as shipping in the package but not yet adopted here, because none of them are imported by this app and claiming otherwise would be the easy lie. `chartGeometry` and `usePrefersReducedMotion` are reclassified as non-component exports, since a geometry core and a media-query hook are not renderable primitives.
+- **Wrote up the Ticker fix and the adoption on the design system page.** Including where the bug was found: not in the library, which carried a comment asserting the opposite, and not in its own test suite — but in an accessibility scan on a page in this app that happened to render it.
+
 ## 2026-08-03 - version 3.3.0
 
 - **A dev-notes write-up on the framework-agnostic charts.** New `/thoughts/design-system-charts` page documenting the work that generalized this app's recharts and unovis charts into pure-SVG primitives — Sparkline, BarChart, and DonutChart computed from one dependency-free geometry core, so React and Angular render identical output with no charting runtime in the published packages. Covers the shared-geometry approach, mirroring the test suite in both packages to stop the copies drifting, the token-driven `--paul-chart-1..6` palette, and the `role="img"` accessibility contract every chart holds to. Registered under Design & UI in the thoughts index, with a matching test.
