@@ -37,6 +37,216 @@ export type ComponentDoc = {
 
 export const COMPONENTS: ComponentDoc[] = [
   {
+    id: "sparkline",
+    name: "Sparkline",
+    importName: "Sparkline",
+    tagline: "A compact trend line with no axes, sized to sit inline.",
+    usage:
+      "Reach for it when the shape of a series matters and the exact values do not — inside a table cell or beside a stat. Pass data for one series or series for several. Set variant to area to fill under the line.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "bar-chart",
+    name: "BarChart",
+    importName: "BarChart",
+    tagline: "Categorical bars, vertical or horizontal.",
+    usage:
+      "Use for comparing discrete categories. Pass labels alongside data, and switch orientation to horizontal when the category names are long enough to crowd a vertical axis.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "donut-chart",
+    name: "DonutChart",
+    importName: "DonutChart",
+    tagline: "Parts of a whole, with an optional legend.",
+    usage:
+      "Use for a handful of slices that genuinely sum to something — four or five at most. Each datum carries its own label, value and optional colour; beyond that a BarChart reads better.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "funnel-chart",
+    name: "FunnelChart",
+    importName: "FunnelChart",
+    tagline: "Stage-by-stage drop-off through a sequence.",
+    usage:
+      "Use for ordered stages where each one can only shrink — signup, activation, purchase. Set showDropOff to label the loss between stages rather than leaving the reader to subtract.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "radar-chart",
+    name: "RadarChart",
+    importName: "RadarChart",
+    tagline: "Several measures on a shared scale, one shape per series.",
+    usage:
+      "Use to compare a few entities across the same axes, like a skills profile. Keep axes under about eight; past that the polygon stops being readable and a grouped BarChart wins.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "scatter-plot",
+    name: "ScatterPlot",
+    importName: "ScatterPlot",
+    tagline: "Points in two dimensions, grouped into series.",
+    usage:
+      "Use to show correlation or clustering. Pass domain to pin the axes when comparing several plots side by side, so the eye is not fooled by autoscaling.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "heatmap-chart",
+    name: "HeatmapChart",
+    importName: "HeatmapChart",
+    tagline: "A grid of values shaded by magnitude.",
+    usage:
+      "Use for a matrix where the pattern matters more than any single cell — activity by day and hour, cohort retention. Set showValues when the reader needs the numbers as well as the shading.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "pareto-chart",
+    name: "ParetoChart",
+    importName: "ParetoChart",
+    tagline: "Ranked bars with a cumulative line and a threshold.",
+    usage:
+      "Use when the point is that a few causes dominate. Bars are sorted for you and the cumulative line crosses the threshold, which defaults to the usual 80 percent.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "gauge-chart",
+    name: "GaugeChart",
+    importName: "GaugeChart",
+    tagline: "A single value against a range.",
+    usage:
+      "Use for one number that has a floor and a ceiling — utilisation, a score, capacity. Pass unit so the reading is unambiguous. For a value with no bound, a stat with a Sparkline is more honest.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "word-cloud",
+    name: "WordCloud",
+    importName: "WordCloud",
+    tagline: "Terms sized by weight.",
+    usage:
+      "Use for a rough sense of what dominates a body of text. Cap it with limit — a cloud past about forty terms is decoration rather than information, and the small end becomes unreadable.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "stacked-line-chart",
+    name: "StackedLineChart",
+    importName: "StackedLineChart",
+    tagline: "Several series over the same axis, plain or stacked.",
+    usage:
+      "Use for change over time across a few series. Leave variant unset to overlay them for comparison, or stack it when the total is the story and the parts are the detail.",
+    a11y: [
+      'Renders as role="img" with a required label, so a screen reader gets one meaningful description instead of a pile of shapes',
+      "Pure SVG with no canvas, so the marks stay in the accessibility tree and scale with browser zoom",
+      "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+  },
+  {
+    id: "tilt-card",
+    name: "TiltCard",
+    importName: "TiltCard",
+    tagline: "A surface that tilts toward the pointer.",
+    usage:
+      "Use sparingly, for a hero or a feature card where a little depth earns attention. Tune maxTilt down for a subtler effect and enable glare for a specular highlight.",
+    a11y: [
+      "Honours prefers-reduced-motion and stops tilting entirely rather than easing the amount",
+      "The tilt is decorative and marked aria-hidden, so it adds nothing to the accessibility tree",
+      "Content inside keeps its own semantics and focus behaviour",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+  },
+  {
+    id: "spotlight",
+    name: "Spotlight",
+    importName: "Spotlight",
+    tagline: "A soft light that follows the pointer across a surface.",
+    usage:
+      "Use on a dark panel where you want the cursor to feel like it is lighting the surface. Size and colour are tunable; keep contrast in mind since the wash sits under real content.",
+    a11y: [
+      "Honours prefers-reduced-motion and does not follow the pointer when it is set",
+      "Purely decorative and marked aria-hidden, so screen readers never announce it",
+      "Pointer-only by design, so it never traps focus or interferes with keyboard use",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+  },
+  {
+    id: "gradient-background",
+    name: "GradientBackground",
+    importName: "GradientBackground",
+    tagline: "An animated multi-stop gradient behind its children.",
+    usage:
+      "Use as a page or section backdrop. Pass colors to match a theme, angle to set direction, and speed to slow the drift. Set animate to false for a static wash.",
+    a11y: [
+      "Animation can be switched off outright with the animate prop",
+      "Renders behind its children without taking them out of the document flow",
+      "Colour is decorative only — nothing depends on it to convey meaning",
+    ],
+    usedOn: [],
+    elsewhere: "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+  },
+  {
     id: "button",
     name: "Button",
     importName: "Button",
