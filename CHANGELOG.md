@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-04 - version 3.8.0
+
+- **A shrink and loss report, the thing operators actually ask for.** New `/operator/loss` page that reconciles what the system expected on the shelf against what a restocker physically counted, and splits the gap two ways: unexplained shrink (stock missing with no reason logged — the theft-or-miscount signal) kept apart from explained loss (removals with a reason: expired, damaged, other). Stores are ranked worst-first by the value of unexplained shrink, valued at each item's price. Reached from a "Shrink & loss" link on the fleet page.
+- **Seeded the count history it needed.** The restock sessions that feed this were only ever created at runtime, so a fresh seed had nothing to reconcile and the report would have rendered empty. Added a couple of completed historical sessions per store with deterministic variance — a shortfall here, a reasoned removal there, a skipped count — so every category the report separates is exercised without the numbers drifting between server starts.
+- **Coverage is part of the honesty.** A skipped count can hide shrink, so the report shows how many slots were actually counted rather than implying a clean shelf where nobody looked. Aggregated in the BFF from completed sessions, the same coarse-rollup tradeoff as the other fleet views — a production build would compute it in SQL.
+
 ## 2026-08-04 - version 3.7.0
 
 - **A fleet product-performance view.** New `/operator/products` page ranking every product across the fleet by revenue, with its daily sales rate and an index against its own category average — so a $1 gum is judged against other snacks, not against a sandwich. Reached from a "Product performance" link on the fleet page, with a 7/30/90-day range toggle. Mirrors the "Sales by Product" work on MicroMart's own platform ("Avg Sold" and "Performance vs category").
