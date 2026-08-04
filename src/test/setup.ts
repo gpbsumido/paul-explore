@@ -52,6 +52,24 @@ if (typeof window !== "undefined") {
   window.ResizeObserver ??= MockObserver as unknown as typeof ResizeObserver;
 }
 
+/**
+ * jsdom implements no canvas, and logs "Not implemented" on every getContext
+ * call. The landing page pre-renders sprites, so a full run buried 45 identical
+ * lines in the output.
+ *
+ * That noise is not harmless. Dozens of unmatched network mocks -- and the
+ * silent fallbacks they caused -- sat in this same output for days, because
+ * nobody reads a log that is mostly known chatter.
+ *
+ * Returning null directly is honest rather than a mute button: it is what a
+ * browser without 2d support returns, the sprite builders now handle it by
+ * degrading to an empty canvas, and every test therefore exercises that path
+ * instead of relying on jsdom to throw somewhere out of sight.
+ */
+if (typeof HTMLCanvasElement !== "undefined") {
+  HTMLCanvasElement.prototype.getContext = () => null;
+}
+
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

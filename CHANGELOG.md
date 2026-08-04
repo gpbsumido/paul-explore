@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-04 - version 3.4.2
+
+- **Two app-wide endpoints had no mock at all.** A full CI run logged 23 unmatched calls to `/api/geo` and 19 to `/api/me`. Unmatched is not harmless: the request rejects, the component updates state after the test has finished, and React reports it as an update outside `act()`. All 30 of those warnings were the visible half of missing coverage, and I had been reading them as noise. Both endpoints now have handlers shaped like the real routes.
+- **A test was reaching for a public Ethereum node on the open internet.** The wagmi config called `http()` with no argument, which falls back to the chain's default public RPC, so every run fired real `eth_call` requests at a third party. Nothing left the machine only because the request mocker rejects anything unmatched — protection by accident. It points at an explicit local URL now; a test should not depend on someone else's uptime or put traffic on their infrastructure.
+- **`WeatherCanvas` asserted a canvas context it might not get.** `getContext("2d")!` twice, and under any browser without 2d support the next line throws out of a decorative effect. Both sprite builders degrade to an empty canvas instead, which the renderer already handles. The test environment now returns null there deliberately, so every run exercises that path rather than relying on jsdom to throw somewhere out of sight — and 45 lines of "Not implemented" stop burying everything else.
+- **The run is clean now, which is the point.** Noise is not a category of output; it is a decision to stop reading, made once and then held. The unmatched mocks that took days to find were sitting in that same stream the whole time. Zero unmatched requests, zero `act()` warnings, zero canvas lines — so the next unexpected line is worth looking at.
+
 ## 2026-08-04 - version 3.4.1
 
 - **Four MSW handlers had been missing since the fix that was supposed to catch them.** Reading a passing CI log showed 54 unhandled requests and 13 silent fallbacks — the same symptom as before, in the four registrations written across several lines rather than one. The earlier repair used a pattern that only saw single-line ones, so planogram, restock lines, session completion and promotions kept their bare paths and kept missing. A partial fix and a complete one produce identical test output, which is why this needed reading a green log to find rather than a red one.

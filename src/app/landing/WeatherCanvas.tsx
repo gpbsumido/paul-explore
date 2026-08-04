@@ -387,7 +387,13 @@ function makeFlakeSprite(radius: number): HTMLCanvasElement {
   const c = document.createElement("canvas");
   c.width = size;
   c.height = size;
-  const ctx = c.getContext("2d")!;
+  // Not asserted non-null. getContext returns null when 2d is unavailable --
+  // jsdom, a blocked canvas, a browser without it -- and the old assertion
+  // turned that into a throw one line later. An undrawn sprite is a blank
+  // canvas, which the renderer already handles; a crash on a decorative
+  // snowflake is not a trade worth making.
+  const ctx = c.getContext("2d");
+  if (!ctx) return c;
   const cx = size / 2,
     cy = size / 2;
   const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
@@ -518,7 +524,10 @@ function makeCloudSprite(
   const c = document.createElement("canvas");
   c.width = cw;
   c.height = ch;
-  const ctx = c.getContext("2d")!;
+  // Same reasoning as makeFlakeSprite: degrade to an empty sprite rather than
+  // throwing out of a decorative effect.
+  const ctx = c.getContext("2d");
+  if (!ctx) return c;
   const cx = cw / 2,
     cy = ch / 2;
 

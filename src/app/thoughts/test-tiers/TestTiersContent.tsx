@@ -350,6 +350,25 @@ export default function TestTiersContent() {
           carefully.
         </p>
         <p className="mt-3 text-muted">
+          There was a fifth, and it is the one I had been walking past. A full
+          run carried thirty React warnings about state updated outside a test&apos;s
+          control, forty-five lines about a missing canvas, and forty-odd
+          unmatched network calls. I had been reading all of it as noise. It was
+          not: the warnings were the visible half of two endpoints that had no
+          mock at all, so every component touching them updated state after the
+          test had finished; the canvas lines came from an assertion that would
+          have thrown in any browser without 2d support; and one of the
+          unmatched calls was a test reaching for a public blockchain node on
+          the open internet, prevented from leaving the machine only because the
+          mocker happens to reject anything unmatched.
+        </p>
+        <p className="mt-3 text-muted">
+          Noise is not a category of output. It is a decision to stop reading,
+          and it is made once and then held. The unmatched mocks that cost days
+          to find were sitting in that same stream the whole time. Everything
+          here now runs clean, so the next unexpected line is worth looking at.
+        </p>
+        <p className="mt-3 text-muted">
           So each one now has a guard that fails loudly rather than a note
           asking people to remember. Mock registrations are asserted against the
           source file, since the symptom is invisible in results. The installed
