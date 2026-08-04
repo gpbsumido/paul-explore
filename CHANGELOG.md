@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-04 - version 3.4.3
+
+- **The v4 landing gets the settings menu back.** Every other page carries the little theme dropdown — system/light/dark plus a Settings link folded inside — but the slot machine landing never had it, and the signed-in hub had grown a bare Settings button sitting next to Log out instead. Both variants now share a `LandingActions` cluster that drops in the same `HeaderMenu` the rest of the site uses, and the standalone Settings button is gone: Settings lives only inside the menu now, where it belongs.
+- **The machine fits a phone screen instead of clipping.** It was never actually zooming — the viewport is the correct `width=device-width, initial-scale=1` and the scale measures 1. It just stood taller than a short mobile viewport, so at 390×640 the caption and bottom nav fell 147px past the fold and you had to scroll to reach the links. Trimmed the top and bottom padding, the header data line, the spin button and the result caption on mobile, all restored to their desktop sizing at the `sm` breakpoint. Nothing important lands below the fold now.
+
 ## 2026-08-04 - version 3.4.2
 
 - **Brought the operator page's testing section up to date.** It described the tiers and what each one structurally cannot see, but stopped before the two things that cost the most time since: that the mock-registration fix was partial and produced output identical to a complete one, and that every finding this week came from reading a *passing* build rather than a failing one. Both are now recorded there alongside the tier table, with the guards that make each fail loudly.
