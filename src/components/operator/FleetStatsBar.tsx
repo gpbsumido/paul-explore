@@ -33,10 +33,18 @@ function StatItem({
     <div className="flex flex-col items-center gap-0.5 px-4 py-2">
       {isLoading ? (
         // A pulsing placeholder rather than a number nobody has computed yet.
-        <span
-          aria-label={`${label}, loading`}
-          className="my-1 h-4 w-10 animate-pulse rounded bg-surface-raised"
-        />
+        // The bar itself is hidden from assistive tech and the state is spoken
+        // by the text beside it: aria-label on a bare span is prohibited, since
+        // a span carries no role for the label to name, and axe rates that
+        // serious. Bone.tsx already sets the pattern -- hide the shape, say the
+        // words.
+        <>
+          <span
+            aria-hidden="true"
+            className="my-1 h-4 w-10 animate-pulse rounded bg-surface-raised"
+          />
+          <span className="sr-only">{`${label}, loading`}</span>
+        </>
       ) : (
         <span className={`text-lg font-bold tabular-nums ${valueColor}`}>
           {value === null ? "\u2014" : value}

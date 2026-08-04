@@ -8,8 +8,10 @@ import type {
   RestockSession,
   RestockLine,
   Promotion,
+  AlertCategory,
 } from "@/types/operator";
 import { deriveSensorMatch } from "@/lib/operator-detail";
+import { LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
 import {
   countStatusOf,
@@ -25,7 +27,6 @@ import {
 import {
   buildStoreList,
   buildInventoryList,
-  buildAlertList,
   buildActivityList,
   buildActivityEvent,
   buildSalesList,
@@ -57,6 +58,78 @@ type OperatorDataStore = {
 
 const GLOBAL_KEY = "__operatorDataStore" as const;
 
+const TEMPERATURE_THRESHOLD_C = 7;
+
+/**
+ * Alerts a store's own data can actually support.
+ *
+ * The seed used to pick a random message from a fixed list, so every store got
+ * the same four and "Turkey Club Sandwich out of stock" appeared on shops with
+ * a full shelf of them. An alert is a claim about a store; one that contradicts
+ * the row beneath it teaches an operator to distrust the whole panel, which is
+ * worse than showing nothing.
+ *
+ * Stock alerts name products this store genuinely has none of, or is genuinely
+ * low on. The temperature warning is only raised when the store is actually
+ * over threshold, and quotes its own reading rather than a fixed number.
+ * Door-ajar stays unconditional because it describes an event that happened,
+ * not a claim about current state, so it cannot contradict anything.
+ *
+ * The API derives its alerts the same way. Both copies exist because the demo
+ * has to work with the backend asleep, and they have to agree.
+ */
+function deriveAlerts(store: Store, inventory: InventoryItem[]): Alert[] {
+  const alerts: Alert[] = [];
+  const push = (
+    severity: Alert["severity"],
+    category: AlertCategory,
+    message: string,
+  ): void => {
+    alerts.push({
+      id: nextAlertId(),
+      storeId: store.id,
+      severity,
+      category,
+      message,
+      timestamp: new Date(
+        Date.now() - alerts.length * 3 * 60 * 60 * 1000,
+      ).toISOString(),
+      acknowledged: false,
+    });
+  };
+
+  for (const item of inventory) {
+    const ratio = item.capacity > 0 ? item.currentStock / item.capacity : 0;
+    if (item.currentStock === 0) {
+      push("critical", "low-stock", `${item.productName} out of stock`);
+    } else if (ratio < LOW_STOCK_THRESHOLD) {
+      push(
+        "warning",
+        "low-stock",
+        `${item.productName} stock below ${Math.round(LOW_STOCK_THRESHOLD * 100)}%`,
+      );
+    }
+  }
+
+  if (store.temperature > TEMPERATURE_THRESHOLD_C) {
+    push(
+      "warning",
+      "temperature-warning",
+      `Internal temperature reached ${store.temperature.toFixed(1)}\u00B0C (threshold: ${TEMPERATURE_THRESHOLD_C}\u00B0C)`,
+    );
+  }
+
+  push("info", "door-ajar", "Door open for more than 60 seconds");
+
+  return alerts;
+}
+
+let alertCounter = 0;
+function nextAlertId(): string {
+  alertCounter += 1;
+  return `alert-${String(alertCounter).padStart(3, "0")}`;
+}
+
 function initDataStore(): OperatorDataStore {
   resetFactoryCounter();
 
@@ -80,7 +153,10 @@ function initDataStore(): OperatorDataStore {
   );
 
   const alertsByStore = new Map<string, Alert[]>(
-    stores.map((s) => [s.id, [...buildAlertList(s.id, 4)]]),
+    stores.map((s) => [
+      s.id,
+      deriveAlerts(s, inventoryByStore.get(s.id) ?? []),
+    ]),
   );
 
   const activityByStore = new Map<string, ActivityEvent[]>(
