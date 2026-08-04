@@ -30,6 +30,20 @@ import type {
 import { API_URL } from "@/lib/backendFetch";
 import { VISITOR_HEADER, readVisitorId } from "@/lib/operator-visitor";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
+import {
+  plannerBenchmarksResponseSchema,
+  type FleetBenchmarks,
+} from "@/lib/operator-planner";
+import {
+  productPerformanceResponseSchema,
+  type ProductPerformanceRow,
+} from "@/lib/operator-product-performance";
+import { fleetShrinkResponseSchema, type FleetShrink } from "@/lib/operator-shrink";
+import {
+  searchIndexResponseSchema,
+  type SearchIndexResponse,
+} from "@/lib/operator-search";
+import { financeResponseSchema, type FinanceResponse } from "@/lib/operator-finance";
 
 const BASE = `${API_URL}/api/operator`;
 
@@ -163,6 +177,39 @@ export async function fetchSalesAnalytics(
 ): Promise<z.infer<typeof fleetSalesAnalyticsSchema>> {
   const query = new URLSearchParams({ granularity, tz: timeZone });
   return getJson(`/sales-analytics?${query}`, fleetSalesAnalyticsSchema);
+}
+
+// ---------------------------------------------------------------------------
+// Fleet aggregation reads. Each unwraps to the shape the BFF's loader returns,
+// so wiring the live path is just try-this-then-fall-back-to-seed.
+// ---------------------------------------------------------------------------
+
+export async function fetchPlannerBenchmarks(): Promise<FleetBenchmarks | null> {
+  return (await getJson("/planner/benchmarks", plannerBenchmarksResponseSchema))
+    .benchmarks;
+}
+
+export async function fetchProductPerformance(
+  range: string,
+): Promise<readonly ProductPerformanceRow[]> {
+  return (
+    await getJson(
+      `/product-performance?range=${encodeURIComponent(range)}`,
+      productPerformanceResponseSchema,
+    )
+  ).products;
+}
+
+export async function fetchShrinkSummary(): Promise<FleetShrink> {
+  return getJson("/shrink-summary", fleetShrinkResponseSchema);
+}
+
+export async function fetchSearchIndex(): Promise<SearchIndexResponse> {
+  return getJson("/search-index", searchIndexResponseSchema);
+}
+
+export async function fetchFinance(): Promise<FinanceResponse> {
+  return getJson("/finance", financeResponseSchema);
 }
 
 // ---------------------------------------------------------------------------
