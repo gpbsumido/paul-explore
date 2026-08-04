@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 4, 2026
                   </span>
                   <a
+                    href="#update-2026-08-04-csv"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    A CSV export, and the comma that breaks everything
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-04-finance"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -2052,6 +2063,46 @@ export default function OperatorDashboardContent() {
                 stable dependencies. Both were acceptable at demo scale but
                 would have been real problems at fleet size, so fixing them
                 early was the right call.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-csv"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                A CSV export, and the comma that breaks everything
+              </h2>
+              <p className="text-muted">
+                The last stacked feature is the smallest, and it is the one whose
+                bug would be quietest: a &ldquo;Download CSV&rdquo; on the product
+                performance page, so the numbers can leave the app and land in a
+                bookkeeper&apos;s spreadsheet. Export is where a dashboard stops
+                being a wall someone reads and starts being data someone uses.
+              </p>
+              <p className="mt-3 text-muted">
+                The reason it is a tested module and not a one-line{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  join(&quot;,&quot;)
+                </code>{" "}
+                is the failure mode. A product called &ldquo;Nuts, Mixed&rdquo;
+                run through a naive join puts a comma in the middle of a row, and
+                every column after it shifts one to the right &mdash; silently,
+                with no error, in a file nobody opens until it is wrong in someone
+                else&apos;s system. So the serializer follows RFC 4180: any field
+                with a comma, a quote or a newline is wrapped in quotes and its
+                inner quotes doubled, and five tests hold it to that. The download
+                itself is a Blob and an anchor click, but the escaping is the part
+                worth writing down, because it is the part that fails without
+                telling you.
+              </p>
+              <p className="mt-3 text-muted">
+                That closes the arc I set out to build from the Micromart scan:
+                plan a location, see what sells, find what walks, jump anywhere,
+                read what landed, and take it with you. Six stacked pull requests,
+                each merging onto the last.
               </p>
             </section>
       <section
