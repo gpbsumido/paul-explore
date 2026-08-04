@@ -11,6 +11,7 @@ import {
   fleetSalesAnalyticsSchema,
 } from "@/lib/operator-schemas";
 import { plannerBenchmarksResponseSchema } from "@/lib/operator-planner";
+import { productPerformanceResponseSchema } from "@/lib/operator-product-performance";
 import { z } from "zod";
 
 function makeRequest(
@@ -538,6 +539,30 @@ describe("GET /api/operator/planner/benchmarks", () => {
     expect(body.benchmarks).not.toBeNull();
     expect(body.benchmarks.avgItemPrice).toBeGreaterThan(0);
     expect(body.benchmarks.sampleSize).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/product-performance
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/product-performance", () => {
+  it("returns a schema-valid fleet performance payload", async () => {
+    const { GET } = await import("@/app/api/operator/product-performance/route");
+    const res = await GET(makeRequest("/api/operator/product-performance?range=30d"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = productPerformanceResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    expect(body.days).toBe(30);
+    expect(body.products.length).toBeGreaterThan(0);
+  });
+
+  it("defaults to a 30-day window for an unknown range", async () => {
+    const { GET } = await import("@/app/api/operator/product-performance/route");
+    const res = await GET(makeRequest("/api/operator/product-performance?range=decade"));
+    const body = await res.json();
+    expect(body.days).toBe(30);
   });
 });
 
