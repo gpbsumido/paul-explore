@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-04 - version 3.5.0
+
+- **Web Vitals is public now, and not auth-gated anywhere.** The dashboard shows site-wide, non-personal P75 aggregates — there was never anything account-specific in it — but it sat behind a login and got described inconsistently everywhere: the menu link only showed when signed in, and half the copy called it "protected" while the other half called it "site-wide." The proxy no longer redirects `/vitals` (that gate now lives in a small `isSessionProtectedPath` helper listing only `/settings` and `/calendar`), the page and BFF routes forward a token when the visitor has one but no longer require it, and the menu shows Web Vitals to everyone. The backend read endpoints still verify a JWT, so until that side opens up too, a signed-out visitor sees the dashboard shell with empty numbers rather than the full picture — it degrades gracefully. Updated the README, the feature copy, and the write-up to match.
+- **The vitals dashboard shows the right data on first load.** The selector defaults to "Current Major," but first load was fetching all-time aggregates, so switching to a version and back to the default showed different numbers than you started with. First load now resolves to the current major, the same scope the selector claims, via a shared `resolveVitalsFilter` helper.
+
 ## 2026-08-04 - version 3.4.2
 
 - **Brought the operator page's testing section up to date.** It described the tiers and what each one structurally cannot see, but stopped before the two things that cost the most time since: that the mock-registration fix was partial and produced output identical to a complete one, and that every finding this week came from reading a *passing* build rather than a failing one. Both are now recorded there alongside the tier table, with the guards that make each fail loudly.
