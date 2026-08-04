@@ -7,6 +7,7 @@
 // over monthly net profit is the payback period.
 // ---------------------------------------------------------------------------
 
+import { z } from "zod";
 import type { Sale } from "@/types/operator";
 
 /** Flat platform fee charged per unit per month. */
@@ -175,6 +176,59 @@ export function projectLocation(inputs: PlannerInputs): LocationProjection {
   };
 }
 
+/**
+ * Short URL param keys for each input, so a planned location is a shareable
+ * link. Kept terse because they show in the address bar.
+ */
+const PARAM_KEYS: Record<keyof PlannerInputs, string> = {
+  dailyFootTraffic: "ft",
+  conversionRate: "cv",
+  avgItemPrice: "pr",
+  itemsPerOrder: "ip",
+  margin: "mg",
+  units: "un",
+};
+
+/** Serialises planner inputs into a query string for a shareable link. */
+export function plannerInputsToQuery(inputs: PlannerInputs): string {
+  const params = new URLSearchParams();
+  for (const key of Object.keys(PARAM_KEYS) as (keyof PlannerInputs)[]) {
+    params.set(PARAM_KEYS[key], String(inputs[key]));
+  }
+  return params.toString();
+}
+
+/**
+ * Reads planner inputs back out of a URL's search params, falling back to the
+ * bundled defaults for anything missing or unparseable. `hasQuery` reports
+ * whether the URL carried any planner state at all, so a fresh visit can be
+ * told apart from a shared link and prefilled from the fleet instead.
+ */
+export function plannerInputsFromParams(
+  params: Record<string, string | string[] | undefined>,
+): { inputs: PlannerInputs; hasQuery: boolean } {
+  const read = (key: keyof PlannerInputs): number => {
+    const raw = params[PARAM_KEYS[key]];
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    const parsed = value == null ? NaN : Number(value);
+    return Number.isFinite(parsed) ? parsed : DEFAULT_PLANNER_INPUTS[key];
+  };
+  const hasQuery = (Object.keys(PARAM_KEYS) as (keyof PlannerInputs)[]).some(
+    (key) => params[PARAM_KEYS[key]] != null,
+  );
+  return {
+    inputs: {
+      dailyFootTraffic: read("dailyFootTraffic"),
+      conversionRate: read("conversionRate"),
+      avgItemPrice: read("avgItemPrice"),
+      itemsPerOrder: read("itemsPerOrder"),
+      margin: read("margin"),
+      units: read("units"),
+    },
+    hasQuery,
+  };
+}
+
 export type FleetBenchmarks = {
   /** Mean price per item sold across the fleet, in dollars. */
   avgItemPrice: number;
@@ -208,3 +262,19 @@ export function fleetBenchmarks(
     sampleSize: sales.length,
   };
 }
+
+/** Runtime shape of the fleet benchmarks, for validating the API response. */
+export const fleetBenchmarksSchema = z.object({
+  avgItemPrice: z.number(),
+  itemsPerOrder: z.number(),
+  sampleSize: z.number().int().nonnegative(),
+});
+
+/** The benchmarks endpoint response: null benchmarks when the fleet has no sales. */
+export const plannerBenchmarksResponseSchema = z.object({
+  benchmarks: fleetBenchmarksSchema.nullable(),
+});
+
+export type PlannerBenchmarksResponse = z.infer<
+  typeof plannerBenchmarksResponseSchema
+>;

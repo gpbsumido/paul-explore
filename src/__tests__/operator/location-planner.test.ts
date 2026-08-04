@@ -12,6 +12,8 @@ import {
   unitHardwarePrice,
   projectLocation,
   fleetBenchmarks,
+  plannerInputsToQuery,
+  plannerInputsFromParams,
   type PlannerInputs,
 } from "@/lib/operator-planner";
 import { buildSale } from "@/test/factories/operator";
@@ -170,5 +172,32 @@ describe("fleetBenchmarks", () => {
 
   it("is null when there are no sales to learn from", () => {
     expect(fleetBenchmarks([])).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// URL round-trip: a planned location is a shareable link
+// ---------------------------------------------------------------------------
+
+describe("planner URL state", () => {
+  it("round-trips inputs through a query string", () => {
+    const params = new URLSearchParams(plannerInputsToQuery(PROFITABLE));
+    const { inputs, hasQuery } = plannerInputsFromParams(
+      Object.fromEntries(params.entries()),
+    );
+    expect(hasQuery).toBe(true);
+    expect(inputs).toEqual(PROFITABLE);
+  });
+
+  it("falls back to defaults and reports no query for an empty URL", () => {
+    const { inputs, hasQuery } = plannerInputsFromParams({});
+    expect(hasQuery).toBe(false);
+    expect(inputs).toEqual(DEFAULT_PLANNER_INPUTS);
+  });
+
+  it("ignores an unparseable param and keeps the rest", () => {
+    const { inputs } = plannerInputsFromParams({ ft: "not-a-number", un: "3" });
+    expect(inputs.dailyFootTraffic).toBe(DEFAULT_PLANNER_INPUTS.dailyFootTraffic);
+    expect(inputs.units).toBe(3);
   });
 });
