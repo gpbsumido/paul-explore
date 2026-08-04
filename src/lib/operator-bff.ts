@@ -17,6 +17,7 @@ import {
   type SalesGranularity,
   type FleetSalesAnalytics,
 } from "@/lib/operator-sales";
+import { fleetBenchmarks, type FleetBenchmarks } from "@/lib/operator-planner";
 import type {
   Store,
   InventoryItem,
@@ -170,6 +171,23 @@ export async function loadSalesAnalytics(
   }
 }
 
+
+/**
+ * Fleet-wide planner benchmarks: the mean price per item and mean items per
+ * order across the fleet's sales history, or null when there are no sales.
+ *
+ * Aggregated here from the fleet's sales rather than proxied per store. A
+ * benchmark is one coarse fleet-wide number, so fanning out a read per store
+ * to build it would be N calls for a single average; the honest tradeoff is
+ * that a production build would compute this in SQL in portfolio_api next to
+ * the other aggregations, the same way fleet sales analytics already is.
+ */
+export async function loadPlannerBenchmarks(): Promise<FleetBenchmarks | null> {
+  const sales = seed
+    .getStores()
+    .flatMap((store) => seed.getSales(store.id) ?? []);
+  return fleetBenchmarks(sales);
+}
 
 /**
  * Falls through to the seed only when the API is genuinely unreachable.

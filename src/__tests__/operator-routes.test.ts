@@ -10,6 +10,7 @@ import {
   fleetSummaryResponseSchema,
   fleetSalesAnalyticsSchema,
 } from "@/lib/operator-schemas";
+import { plannerBenchmarksResponseSchema } from "@/lib/operator-planner";
 import { z } from "zod";
 
 function makeRequest(
@@ -518,6 +519,25 @@ describe("POST /api/operator/stores/:storeId/restock", () => {
       makeParams({ storeId: "nonexistent-999" }),
     );
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/planner/benchmarks
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/planner/benchmarks", () => {
+  it("returns fleet-derived benchmarks that pass schema validation", async () => {
+    const { GET } = await import("@/app/api/operator/planner/benchmarks/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = plannerBenchmarksResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    // The seed fleet has sales, so it learns a real basket price.
+    expect(body.benchmarks).not.toBeNull();
+    expect(body.benchmarks.avgItemPrice).toBeGreaterThan(0);
+    expect(body.benchmarks.sampleSize).toBeGreaterThan(0);
   });
 });
 
