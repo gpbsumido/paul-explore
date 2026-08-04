@@ -216,6 +216,13 @@ export default function OperatorDashboard() {
           Shrink &amp; loss
           <span aria-hidden="true">&rarr;</span>
         </Link>
+        <Link
+          href="/operator/finance"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+        >
+          Finance
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
       </div>
 
       {/* Global refresh bar */}
