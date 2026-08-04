@@ -29,17 +29,18 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/vitals
-// fetches summary and by-page aggregates in parallel — auth required
+// fetches summary and by-page aggregates in parallel. Public — Web Vitals is
+// site-wide, non-personal data. Forwards the visitor's token when they have
+// one; a signed-out request goes through unauthenticated.
 export async function GET(request: NextRequest) {
   let token: string | undefined;
   try {
     ({ token } = await auth0.getAccessToken());
-  } catch (err) {
-    console.error("[vitals BFF] GET — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  } catch {
+    token = undefined;
   }
 
-  const headers = { Authorization: `Bearer ${token}` };
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
   const v = request.nextUrl.searchParams.get("v");
   const query = v ? `?v=${encodeURIComponent(v)}` : "";
 
