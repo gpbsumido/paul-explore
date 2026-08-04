@@ -239,15 +239,48 @@ export default function DesignSystemChartsContent() {
         <h2 className="mb-3 text-lg font-bold">What I deferred</h2>
         <p className="text-muted">
           I kept the scope honest rather than trying to draw everything at once.
-          Deferred, and disclosed in the PR: the specialty gallery charts
-          (funnel, radar, scatter, cohort heatmap, pareto, gauge, word cloud,
-          stacked and multi-series line), multi-series{" "}
+          Deferred at the time, and disclosed in the PR: the specialty gallery
+          charts (funnel, radar, scatter, cohort heatmap, pareto, gauge, word
+          cloud, stacked and multi-series line), multi-series{" "}
           <code className={code}>Sparkline</code>, the remaining Angular ports
           (Textarea, Select, FilterBar, InfoTip, Ticker, TiltCard,
-          GradientBackground, Spotlight), and Angular render tests — the package
-          has no TestBed infrastructure yet, so for now the geometry is
-          unit-tested and React is the tested reference for the rendered
+          GradientBackground, Spotlight), and Angular render tests &mdash; there
+          was no TestBed infrastructure in that package, so the geometry was
+          unit-tested and React was the tested reference for the rendered
           contract.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">All of that has since landed</h2>
+        <p className="text-muted">
+          Every item on that list shipped in the follow-up work: the specialty
+          gallery, multi-series{" "}
+          <code className={code}>Sparkline</code>, the last eight Angular ports,
+          and the TestBed infrastructure the render tests were waiting on. I am
+          leaving the paragraph above as it was written rather than editing it
+          into looking prescient, because the interesting part is what happened
+          next.
+        </p>
+        <p className="mt-3 text-muted">
+          The TestBed work paid for itself on its first probe, which failed.
+          Mount a component, set an input, assert the render &mdash; the
+          template rendered and setting the input did nothing. The Angular
+          package was built with plain{" "}
+          <code className={code}>tsc</code>, so what it published was raw
+          decorators with no compiled component definitions, and every component
+          in it uses a signal input, which needs the compiler. Any consumer
+          binding an input got nothing back, silently, for as long as the
+          package had existed. Nothing caught it because every test imported
+          source files and nothing consumed the build.
+        </p>
+        <p className="mt-3 text-muted">
+          That is the sharper version of the lesson this page already ends on.
+          Deferring the Angular render tests was a reasonable call at the time,
+          and it was also the reason a published package could be broken for
+          months without anyone noticing. The cost of a deferral is not the
+          feature you did not build; it is the class of bug you left yourself
+          unable to see.
         </p>
       </section>
 

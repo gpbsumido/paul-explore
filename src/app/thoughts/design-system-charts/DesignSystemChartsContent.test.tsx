@@ -57,4 +57,22 @@ describe("DesignSystemChartsContent", () => {
     );
     expect(category?.name).toBe("Design & UI");
   });
+
+  it("does not leave shipped work described as deferred", () => {
+    render(<DesignSystemChartsContent />);
+    const body = document.body.textContent ?? "";
+    // The deferral list is period-accurate and stays, but the page must not
+    // assert in the present tense that the package still lacks TestBed.
+    expect(body).toMatch(/All of that has since landed/);
+    expect(body).not.toMatch(/has no TestBed infrastructure yet/);
+  });
+
+  it("records the bug the deferred tests were hiding", () => {
+    render(<DesignSystemChartsContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/raw\s+decorators with no compiled component definitions/);
+    expect(body).toMatch(
+      /it is the class of bug you left yourself\s+unable to see/,
+    );
+  });
 });
