@@ -1,6 +1,10 @@
 # Changelog
 
-## 2026-08-04 - version 3.11.0
+## 2026-08-04 - version 3.12.0
+
+- **The five fleet features now read the real backend.** The planner benchmarks, product performance, shrink report, quick-search and finance all computed their numbers in the BFF from the in-memory seed and never called the API. Their loaders now try the live `portfolio_api` endpoints first and fall back to the seed on any failure — the same live-first-with-fallback pattern every other operator read already uses. Paired with portfolio_api's `ps/operator-live-aggregations`, which adds the SQL behind them; the app degrades gracefully until that deploys, so the two can ship in either order.
+- **The contract is a shared schema, parsed on arrival.** Each `fetchX` validates the API response through the exact Zod schema the feature already defines, so a drift in either repo surfaces as a caught validation error (which falls back) rather than quietly wrong numbers. The new endpoints are mocked in MSW so the route tests exercise the live path instead of silently validating the seed.
+- **Write-up.** The operator dev-notes page records the two-repo change: five SQL endpoints mirroring the app's pure models so the live and seed numbers match, the fallback that makes merge order not matter, and the paired-branch CI that drives it against a real Postgres.
 
 - **Itemized CSV export on the product performance page.** A "Download CSV" button exports the current range's per-product numbers — product, category, units, daily rate, revenue, category index — as a spreadsheet an operator can hand to a bookkeeper. Mirrors MicroMart's itemized sales export.
 - **The escaping is tested, not trusted.** A small RFC-4180 `toCsv` serializer wraps any field with a comma, quote or newline in quotes and doubles the inner quotes, because the failure mode of a naive join is a comma in a product name silently shifting every column after it. Five tests pin the escaping; the download itself is a Blob and an anchor click.
