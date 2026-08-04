@@ -258,6 +258,129 @@ export default function TestTiersContent() {
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">
+          What tiering does not protect you from
+        </h2>
+        <p className="text-muted">
+          Two things went wrong here that no amount of tier discipline would
+          have caught, and both are worth more than the tiering itself.
+        </p>
+        <p className="mt-3 text-muted">
+          The first is that a tier can be green for reasons unrelated to what it
+          claims to check. A set of end-to-end specs targeted a seeded store id,
+          and when a real backend was serving, the API returned a 404, the app
+          fell back to its seed exactly as designed, and the specs passed
+          identically whether or not the backend worked. A test that cannot fail
+          when the thing it covers is broken is not a test. The fix was not a new
+          tier; it was making the specs assert which backend they had actually
+          reached.
+        </p>
+        <p className="mt-3 text-muted">
+          The second is that a tier can quietly stop running. The accessibility
+          specs waited on{" "}
+          <code className={code}>networkidle</code>, which is a promise about
+          whichever third party the page happens to call rather than about the
+          page. When one of those upstreams stalled, two routes timed out, which
+          reads as a slow test rather than an absent one. They had never actually
+          run the scan. Replacing the wait with the page&apos;s own{" "}
+          <code className={code}>load</code>, its{" "}
+          <code className={code}>main</code> landmark and{" "}
+          <code className={code}>document.fonts.ready</code> made axe run on
+          them for the first time, and it immediately found real
+          serious-impact contrast failures that had been shipping. The suite
+          reported those routes as covered for as long as they were broken.
+        </p>
+        <p className="mt-3 text-muted">
+          Both have the same moral, and it is not about cost or cadence: a
+          passing tier is a claim. It is worth occasionally checking what a green
+          run actually exercised, because the failure mode is not a red build —
+          it is that you stop looking.
+        </p>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Update: the same mistake keeps arriving in different clothes
+        </h2>
+        <p className="text-muted">
+          A week of this turned up four separate versions of one failure, and
+          none of them showed up as a red build. Every one was a suite passing
+          while measuring something other than what it claimed.
+        </p>
+        <ul className="mt-3 space-y-3 text-muted">
+          <li>
+            <strong className="text-foreground">
+              Handlers that never matched.
+            </strong>{" "}
+            Mocks registered on bare paths, while the code under test called an
+            absolute URL. Nothing matched, the app fell back to seeded data by
+            design, and a file of route tests asserted against fixtures while
+            claiming to cover the API.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              The same bug again, after the fix.
+            </strong>{" "}
+            The repair used a pattern that only saw registrations written on one
+            line, so four written across several lines kept their bare paths for
+            another round. A partial fix and a complete one produce identical
+            test output.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              Dependencies that were not the ones installed.
+            </strong>{" "}
+            A suite run against an older build of a package than the manifest
+            asked for &mdash; proving a fix that was not present. Twice.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              A browser suite reusing a server from another branch.
+            </strong>{" "}
+            The runner is configured to reuse an already-running dev server, so
+            a full pass was reported against code that was not the code under
+            review.
+          </li>
+        </ul>
+        <p className="mt-3 text-muted">
+          What ties them together is that a test run against the wrong inputs
+          does not fail. It passes, which is the only outcome nobody
+          investigates. Tiering is about spending test time where it pays;
+          nothing in that idea protects you from measuring the wrong thing
+          carefully.
+        </p>
+        <p className="mt-3 text-muted">
+          There was a fifth, and it is the one I had been walking past. A full
+          run carried thirty React warnings about state updated outside a test&apos;s
+          control, forty-five lines about a missing canvas, and forty-odd
+          unmatched network calls. I had been reading all of it as noise. It was
+          not: the warnings were the visible half of two endpoints that had no
+          mock at all, so every component touching them updated state after the
+          test had finished; the canvas lines came from an assertion that would
+          have thrown in any browser without 2d support; and one of the
+          unmatched calls was a test reaching for a public blockchain node on
+          the open internet, prevented from leaving the machine only because the
+          mocker happens to reject anything unmatched.
+        </p>
+        <p className="mt-3 text-muted">
+          Noise is not a category of output. It is a decision to stop reading,
+          and it is made once and then held. The unmatched mocks that cost days
+          to find were sitting in that same stream the whole time. Everything
+          here now runs clean, so the next unexpected line is worth looking at.
+        </p>
+        <p className="mt-3 text-muted">
+          So each one now has a guard that fails loudly rather than a note
+          asking people to remember. Mock registrations are asserted against the
+          source file, since the symptom is invisible in results. The installed
+          package version is checked against the manifest, with a message naming
+          the fix. Live-mode browser runs assert they reached a real database
+          rather than a fixture. Each guard was checked by making it fail on
+          purpose first &mdash; a guard nobody has seen fail is just another
+          claim.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">The principle</h2>
         <p className="text-muted">
           Match test cost to how often the answer changes. Cheap tests that catch

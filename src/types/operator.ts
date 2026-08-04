@@ -8,6 +8,12 @@ import type {
   inventoryItemSchema,
   alertSchema,
   activityEventSchema,
+  saleSchema,
+  planogramSlotSchema,
+  promotionSchema,
+  restockLineSchema,
+  restockSessionSchema,
+  provinceCodeSchema,
   storeSummarySchema,
   alertTrendBucketSchema,
   fleetSummaryResponseSchema,
@@ -17,11 +23,17 @@ export type StoreStatus = z.infer<typeof storeStatusSchema>;
 export type AlertSeverity = z.infer<typeof alertSeveritySchema>;
 export type AlertCategory = z.infer<typeof alertCategorySchema>;
 export type ActivityType = z.infer<typeof activityTypeSchema>;
+export type ProvinceCode = z.infer<typeof provinceCodeSchema>;
 
 export type Store = z.infer<typeof storeSchema>;
 export type InventoryItem = z.infer<typeof inventoryItemSchema>;
 export type Alert = z.infer<typeof alertSchema>;
 export type ActivityEvent = z.infer<typeof activityEventSchema>;
+export type Sale = z.infer<typeof saleSchema>;
+export type PlanogramSlot = z.infer<typeof planogramSlotSchema>;
+export type Promotion = z.infer<typeof promotionSchema>;
+export type RestockSession = z.infer<typeof restockSessionSchema>;
+export type RestockLine = z.infer<typeof restockLineSchema>;
 
 export type StoreSummary = z.infer<typeof storeSummarySchema>;
 export type AlertTrendBucket = z.infer<typeof alertTrendBucketSchema>;

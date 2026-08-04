@@ -160,11 +160,85 @@ export default function V4RedesignContent() {
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Later: the win, and giving up on it for phones
+        </h2>
+        <p className="text-muted">
+          The payout animation from the list below has since shipped: line three
+          reels up on a feature and its write-up and the window fills with a fall
+          of party confetti, colour-matched to what you landed on. It looked
+          great on my laptop and stuttered on my phone, and the story of chasing
+          that stutter is worth keeping, because it ends in a compromise rather
+          than a clever fix.
+        </p>
+        <p className="mt-4 text-muted">
+          The first pass just cut the piece count, and it still stuttered,
+          because count wasn&rsquo;t the whole cost. Each piece carried a
+          translucent foil sheen, and a phone re-blends that alpha across dozens
+          of overlapping, tumbling layers every single frame. So the second pass
+          went after the real work: drop the sheen for a solid fill on mobile,
+          thin the burst further, and promote every piece with{" "}
+          <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
+            will-change: transform
+          </code>{" "}
+          up front so the layers don&rsquo;t all get allocated at burst start,
+          which was the jump on the first frame.
+        </p>
+        <p className="mt-4 text-muted">
+          I wanted to measure that before trusting it, so I benched the real
+          confetti in headless and headed Chromium at an iPhone-class viewport,
+          CPU throttled four to six times, device-pixel-ratio pushed from 3 all
+          the way to 14. Every run held a locked 60fps &mdash; which sounds like
+          a pass but is really the bench failing to reproduce the bug. A
+          transform-only animation runs entirely on the compositor thread, so CPU
+          throttling never touches it, and a GPU trace confirmed it: under a
+          millisecond of raster across the whole burst, because nothing repaints,
+          it only re-composites. The cost is fill-rate, blending translucent
+          pixels, and a desktop GPU has so much headroom for that it never breaks
+          a sweat. That headroom is the whole reason the stutter only ever showed
+          up on the actual phone. The lesson worth writing down: emulating a
+          phone&rsquo;s screen is not emulating a phone&rsquo;s GPU.
+        </p>
+        <p className="mt-4 text-muted">
+          What I could measure was the work the second pass removed &mdash; about
+          a 72% cut in alpha-blended pixels per frame, from roughly 99,000 device
+          pixels down to 28,000 at a 3x DPR. So I shipped it to a preview build
+          and tried it on the real phone. It still froze and lagged. That was the
+          deciding data point: the approach itself, a fall of dozens of
+          independently tumbling layers, is more than a phone GPU will carry, and
+          shaving the per-piece cost only moves the threshold, it doesn&rsquo;t
+          cross it. Rather than keep chasing a smooth version that may not exist
+          on mid-range hardware, I made the call to disable the confetti on mobile
+          entirely.
+        </p>
+        <p className="mt-4 text-muted">
+          The compromise is easier to accept once you notice the confetti was
+          never load-bearing. It&rsquo;s decoration layered{" "}
+          <em>behind</em> the reels; a win already reads without it, through the
+          reels locking into place, the result bar naming what you landed on, and
+          the jingle. So on a phone the celebration is those three things, and the
+          confetti is desktop-only, where the GPU has the room for it and it
+          still falls in full with its foil sheen. When the choice is a janky
+          effect or no effect, no effect wins &mdash; a dropped-frame stutter
+          reads as the whole page being broken, which is a worse first impression
+          than a clean win with no paper. The desktop-only threshold lives behind
+          one{" "}
+          <code className="rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground">
+            useIsMobile
+          </code>{" "}
+          check, so if I ever build a genuinely cheap mobile celebration &mdash; a
+          handful of pieces, or a CSS-only flash &mdash; it&rsquo;s a small, honest
+          place to add it.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">What I&rsquo;d do next</h2>
         <p className="text-muted">
           A weighted spin that favours things the visitor hasn&rsquo;t landed
-          on yet, a little payout animation when all three reels line up on a
-          feature and its own write-up, and sound, obviously off by default.
+          on yet, and a genuinely cheap mobile win celebration &mdash; a handful
+          of pieces or a CSS-only flash &mdash; to replace the confetti a phone
+          GPU couldn&rsquo;t carry.
         </p>
       </section>
     </ThoughtLayout>

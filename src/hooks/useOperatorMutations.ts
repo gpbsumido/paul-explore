@@ -1,9 +1,19 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Alert, InventoryItem, ActivityEvent } from "@/types/operator";
+import type {
+  Alert,
+  InventoryItem,
+  ActivityEvent,
+  PlanogramSlot,
+} from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
-import { alertSchema, inventoryItemSchema, activityEventSchema } from "@/lib/operator-schemas";
+import {
+  alertSchema,
+  inventoryItemSchema,
+  activityEventSchema,
+  planogramSlotSchema,
+} from "@/lib/operator-schemas";
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------
@@ -155,5 +165,133 @@ export function useRestockStore(): UseRestockStoreReturn {
   return {
     restockStore: (input) => mutation.mutateAsync(input),
     isRestocking: mutation.isPending,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Reorder planogram
+// ---------------------------------------------------------------------------
+
+interface ReorderPlanogramInput {
+  storeId: string;
+  boxes: PlanogramSlot[];
+}
+
+export interface UseReorderPlanogramReturn {
+  reorderPlanogram: (input: ReorderPlanogramInput) => Promise<PlanogramSlot[]>;
+  isReordering: boolean;
+}
+
+/**
+ * Mutation that rearranges a store's planogram boxes. The client computes the
+ * new box layout (moving a product into another box) and sends it; this
+ * optimistically writes it to the cache so the shelf moves immediately and
+ * rolls back on failure.
+ */
+export function useReorderPlanogram(): UseReorderPlanogramReturn {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      storeId,
+      boxes,
+    }: ReorderPlanogramInput): Promise<PlanogramSlot[]> => {
+      const res = await fetch(`/api/operator/stores/${storeId}/planogram`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ boxes }),
+      });
+      if (!res.ok) throw new Error("Failed to rearrange planogram");
+      const json = await res.json();
+      return z.array(planogramSlotSchema).parse(json.slots);
+    },
+
+    onMutate: async ({ storeId, boxes }) => {
+      const key = queryKeys.operator.planogram(storeId);
+      await queryClient.cancelQueries({ queryKey: key });
+      const snapshot = queryClient.getQueryData<PlanogramSlot[]>(key);
+      queryClient.setQueryData<PlanogramSlot[]>(key, boxes);
+      return { snapshot, key };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context) queryClient.setQueryData(context.key, context.snapshot);
+    },
+
+    onSettled: (_data, _err, { storeId }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.operator.planogram(storeId),
+      });
+    },
+  });
+
+  return {
+    reorderPlanogram: (input) => mutation.mutateAsync(input),
+    isReordering: mutation.isPending,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Re-sync a planogram slot's sensor
+// ---------------------------------------------------------------------------
+
+interface ResyncSlotInput {
+  storeId: string;
+  itemId: string;
+}
+
+export interface UseResyncSlotReturn {
+  resyncSlot: (input: ResyncSlotInput) => Promise<PlanogramSlot[]>;
+  isResyncing: boolean;
+}
+
+/**
+ * Mutation that clears a slot's sensor mismatch. Optimistically flips the
+ * cached slot's sensorMatch to true so the amber warning clears at once.
+ */
+export function useResyncSlot(): UseResyncSlotReturn {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      storeId,
+      itemId,
+    }: ResyncSlotInput): Promise<PlanogramSlot[]> => {
+      const res = await fetch(`/api/operator/stores/${storeId}/planogram`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resyncItemId: itemId }),
+      });
+      if (!res.ok) throw new Error("Failed to re-sync sensor");
+      const json = await res.json();
+      return z.array(planogramSlotSchema).parse(json.slots);
+    },
+
+    onMutate: async ({ storeId, itemId }) => {
+      const key = queryKeys.operator.planogram(storeId);
+      await queryClient.cancelQueries({ queryKey: key });
+      const snapshot = queryClient.getQueryData<PlanogramSlot[]>(key);
+      queryClient.setQueryData<PlanogramSlot[]>(key, (prev) =>
+        (prev ?? []).map((s) =>
+          s.itemId === itemId ? { ...s, sensorMatch: true } : s,
+        ),
+      );
+      return { snapshot, key };
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context) queryClient.setQueryData(context.key, context.snapshot);
+    },
+
+    onSettled: (_data, _err, { storeId }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.operator.planogram(storeId),
+      });
+    },
+  });
+
+  return {
+    resyncSlot: (input) => mutation.mutateAsync(input),
+    isResyncing: mutation.isPending,
   };
 }

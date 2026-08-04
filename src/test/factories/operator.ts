@@ -3,6 +3,8 @@ import type {
   InventoryItem,
   Alert,
   ActivityEvent,
+  Sale,
+  ProvinceCode,
   AlertSeverity,
   AlertCategory,
   ActivityType,
@@ -55,12 +57,26 @@ const STORE_LOCATIONS = [
   "Tower 1, Rooftop",
 ] as const;
 
+// A spread of provinces so the tax tab shows different regimes across the fleet:
+// HST (ON), GST+PST (BC, QC), and GST-only (AB).
+const STORE_PROVINCES: readonly ProvinceCode[] = [
+  "ON",
+  "BC",
+  "AB",
+  "QC",
+  "ON",
+  "BC",
+  "AB",
+  "QC",
+] as const;
+
 export function buildStore(overrides: Partial<Store> = {}): Store {
   const idx = counter % STORE_NAMES.length;
   return {
     id: nextId("store"),
     name: STORE_NAMES[idx],
     location: STORE_LOCATIONS[idx],
+    province: STORE_PROVINCES[idx],
     status: "online",
     temperature: Number((2 + Math.random() * 4).toFixed(1)),
     lastPing: recentTimestamp(Math.random() / 60),
@@ -106,8 +122,9 @@ const PRODUCTS = [
 
 export function buildInventoryItem(
   overrides: Partial<InventoryItem> = {},
+  chosen?: (typeof PRODUCTS)[number],
 ): InventoryItem {
-  const product = randomFrom(PRODUCTS);
+  const product = chosen ?? randomFrom(PRODUCTS);
   const capacity = overrides.capacity ?? product.capacity;
   return {
     id: nextId("item"),
@@ -122,11 +139,21 @@ export function buildInventoryItem(
   };
 }
 
+/**
+ * A store's shelf, one slot per distinct product.
+ *
+ * This used to pick a random product per slot, so a six-slot shelf routinely
+ * showed the same sandwich three times and the pricing table read like a bug.
+ * Real planograms do not stock one product in three slots and call it variety,
+ * so the list walks PRODUCTS in order and only repeats once it runs out.
+ */
 export function buildInventoryList(
   storeId: string,
   count: number = 6,
 ): readonly InventoryItem[] {
-  return Array.from({ length: count }, () => buildInventoryItem({ storeId }));
+  return Array.from({ length: count }, (_, i) =>
+    buildInventoryItem({ storeId }, PRODUCTS[i % PRODUCTS.length]),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -258,6 +285,38 @@ export function buildActivityList(
   count: number = 5,
 ): readonly ActivityEvent[] {
   return Array.from({ length: count }, () => buildActivityEvent({ storeId }));
+}
+
+// ---------------------------------------------------------------------------
+// Sale factory
+// ---------------------------------------------------------------------------
+
+export function buildSale(overrides: Partial<Sale> = {}): Sale {
+  const product = randomFrom(PRODUCTS);
+  const quantity = overrides.quantity ?? 1 + Math.floor(Math.random() * 3);
+  const unitPrice = overrides.unitPrice ?? product.price;
+  return {
+    id: nextId("sale"),
+    storeId: "store-001",
+    productName: product.name,
+    category: product.category,
+    unitPrice,
+    quantity,
+    total: Number((unitPrice * quantity).toFixed(2)),
+    timestamp: recentTimestamp(Math.random() * 24 * 7),
+    ...overrides,
+  };
+}
+
+export function buildSalesList(
+  storeId: string,
+  count: number = 24,
+  spanDays: number = 7,
+): readonly Sale[] {
+  return Array.from({ length: count }, (_, i) => {
+    const hoursAgo = spanDays * 24 * ((i + Math.random()) / count);
+    return buildSale({ storeId, timestamp: recentTimestamp(hoursAgo) });
+  });
 }
 
 // ---------------------------------------------------------------------------

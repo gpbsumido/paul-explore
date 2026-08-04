@@ -87,8 +87,14 @@ export default function CourtVisionContent() {
           label="Team"
           value={selectedTeamId ?? ""}
           onChange={handleTeamChange}
+          disabled={teamsQuery.isPending}
         >
-          <option value="">Select a team…</option>
+          {/* Pending is not the same as empty. This used to read "Select a
+              team…" over an empty list while the request hung, which looks
+              exactly like a league with no teams in it. */}
+          <option value="">
+            {teamsQuery.isPending ? "Loading teams…" : "Select a team…"}
+          </option>
           {teams.map((team) => (
             <option key={team.id} value={team.id}>
               {team.full_name}
@@ -100,9 +106,11 @@ export default function CourtVisionContent() {
           label="Player"
           value={playerId ?? ""}
           onChange={handlePlayerChange}
-          disabled={!selectedTeamId || players.length === 0}
+          disabled={!selectedTeamId || playersQuery.isPending || players.length === 0}
         >
-          <option value="">Select a player…</option>
+          <option value="">
+            {playersQuery.isPending ? "Loading players…" : "Select a player…"}
+          </option>
           {players.map((p) => (
             <option key={p.id} value={p.id}>
               {p.first_name} {p.last_name}
@@ -114,7 +122,7 @@ export default function CourtVisionContent() {
       {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8" aria-live="polite">
         <h1 className="sr-only">Court Vision</h1>
-        <div className="mb-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-[13px] text-amber-400/80">
+        <div className="mb-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-[13px] text-warning-700 dark:text-warning-300">
           This page is a work in progress. Shot data is currently mock data and
           doesn&apos;t reflect real shooting numbers yet.
         </div>
@@ -140,7 +148,13 @@ export default function CourtVisionContent() {
           </div>
         )}
 
-        {!topLevelError && !playerId && (
+        {!topLevelError && teamsQuery.isPending && (
+          <p className="py-20 text-center text-[15px] text-muted">
+            Loading teams…
+          </p>
+        )}
+
+        {!topLevelError && !teamsQuery.isPending && !playerId && (
           <div className="flex flex-col items-center gap-6">
             <CourtSVG zones={[]} />
             <p className="text-[13px] text-muted">

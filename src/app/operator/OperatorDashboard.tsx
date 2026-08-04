@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { queryKeys } from "@/lib/queryKeys";
+import { fleetSummaryResponseSchema } from "@/lib/operator-schemas";
+import DataLoadError from "@/components/operator/DataLoadError";
 import { sortStores, filterStores } from "@/lib/operator-utils";
 import type {
   AlertSeverity,
@@ -17,6 +19,7 @@ import FleetStatsBar from "@/components/operator/FleetStatsBar";
 import RefreshBar from "@/components/operator/RefreshBar";
 import StoreCard from "@/components/operator/StoreCard";
 import FleetAnalytics from "@/components/operator/FleetAnalytics";
+import FleetSalesAnalytics from "@/components/operator/FleetSalesAnalytics";
 import StoreFilters from "@/components/operator/StoreFilters";
 
 const MAX_CHART_NAME_LENGTH = 20;
@@ -42,12 +45,19 @@ export default function OperatorDashboard() {
   );
 
   // single aggregated query replaces the 2N fan-out (alerts + inventory per store)
-  const { data: fleetSummary } = useQuery({
+  const {
+    data: fleetSummary,
+    isPending: summaryPending,
+    isError: summaryFailed,
+    refetch: refetchSummary,
+  } = useQuery({
     queryKey: queryKeys.operator.fleetSummary(),
     queryFn: async ({ signal }): Promise<FleetSummaryResponse> => {
       const res = await fetch("/api/operator/fleet-summary", { signal });
       if (!res.ok) throw new Error("Failed to fetch fleet summary");
-      return res.json() as Promise<FleetSummaryResponse>;
+      // Parsed, not cast. A cast here is a promise to TypeScript that nobody
+      // checks at runtime, and this response crosses a service boundary.
+      return fleetSummaryResponseSchema.parse(await res.json());
     },
     staleTime: 0,
     refetchInterval: 15_000,
@@ -80,10 +90,13 @@ export default function OperatorDashboard() {
       needsAttention: stores.filter(
         (s) => s.status === "degraded" || s.status === "offline",
       ).length,
-      criticalAlerts: fleetSummary?.fleetStats.criticalAlerts ?? 0,
-      warningAlerts: fleetSummary?.fleetStats.warningAlerts ?? 0,
-      lowStockItems: fleetSummary?.fleetStats.lowStockItems ?? 0,
-      avgInventoryHealth: fleetSummary?.fleetStats.avgInventoryHealth ?? 0,
+      // Null, not 0, while the summary is missing. A fleet reporting zero
+      // critical alerts and zero average fill reads as good news; it was
+      // usually just the summary having failed to load.
+      criticalAlerts: fleetSummary?.fleetStats.criticalAlerts ?? null,
+      warningAlerts: fleetSummary?.fleetStats.warningAlerts ?? null,
+      lowStockItems: fleetSummary?.fleetStats.lowStockItems ?? null,
+      avgInventoryHealth: fleetSummary?.fleetStats.avgInventoryHealth ?? null,
     }),
     [stores, fleetSummary?.fleetStats],
   );
@@ -101,8 +114,13 @@ export default function OperatorDashboard() {
           store.name.length > MAX_CHART_NAME_LENGTH
             ? store.name.slice(0, MAX_CHART_NAME_LENGTH - 1) + "\u2026"
             : store.name;
-        return { name, health: summary?.inventoryHealth ?? 0 };
-      }),
+        return { name, health: summary?.inventoryHealth ?? null };
+      })
+      // A store with no summary is unknown, not empty. Plotting it at zero
+      // turned a failed load into a wall of bars that looked like real data.
+      .filter(
+        (row): row is { name: string; health: number } => row.health !== null,
+      ),
     [stores, summaryByStore],
   );
 
@@ -156,19 +174,41 @@ export default function OperatorDashboard() {
         inventory health, and analytics. Filter the stores below, or click one to
         drill in.
       </p>
+      {/* Heads-up: the demo runs on a real database that re-seeds on a schedule,
+          so operator actions don't persist forever. */}
+      <p
+        role="note"
+        className="rounded-lg border border-border bg-surface px-3 py-2 text-xs text-muted"
+      >
+        <span className="font-medium text-foreground">Heads up:</span> this is a
+        live demo backed by a real database that re-seeds on a schedule. Changes
+        you make &mdash; dismissing an alert, rearranging a planogram &mdash; are
+        saved for real, but reset periodically to keep the demo fresh.
+      </p>
       {/* Global refresh bar */}
       <RefreshBar />
 
       {/* Alert summary banner */}
       <AlertSummaryBanner
-        criticalCount={fleetStats.criticalAlerts}
-        warningCount={fleetStats.warningAlerts}
+        criticalCount={fleetStats.criticalAlerts ?? 0}
+        warningCount={fleetStats.warningAlerts ?? 0}
         onFilterCritical={() => setSeverityFilter("critical")}
         onFilterWarning={() => setSeverityFilter("warning")}
       />
 
-      {/* Fleet stats bar */}
-      <FleetStatsBar stats={fleetStats} />
+      {/*
+        Three states, not two. Loading is not absence and absence is not zero:
+        a fleet reporting 0 critical alerts and 0% fill reads as good news, and
+        an operator who believes it stops looking.
+      */}
+      {summaryFailed ? (
+        <DataLoadError
+          what="the fleet summary"
+          onRetry={() => void refetchSummary()}
+        />
+      ) : (
+        <FleetStatsBar stats={fleetStats} isLoading={summaryPending} />
+      )}
 
       {/* Fleet analytics (collapsible charts) */}
       <FleetAnalytics
@@ -176,6 +216,9 @@ export default function OperatorDashboard() {
         alertTrend={alertTrend}
         inventoryComparison={inventoryComparison}
       />
+
+      {/* Fleet-wide sales analytics with a day/week/month/year range */}
+      <FleetSalesAnalytics />
 
       {/* Filters */}
       <StoreFilters
@@ -239,7 +282,11 @@ export default function OperatorDashboard() {
                 key={store.id}
                 store={store}
                 alertCount={summary?.alertCount ?? 0}
-                inventoryHealth={summary?.inventoryHealth ?? 0}
+                // Null rather than 0 when there is no summary for this store.
+                // They were briefly indistinguishable, and a fleet of healthy
+                // stores all reporting 0% looked like data instead of absence.
+                inventoryHealth={summary?.inventoryHealth ?? null}
+                isSummaryLoading={summaryPending}
               />
             );
           })}

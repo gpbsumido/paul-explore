@@ -6,9 +6,12 @@
  * pretending to be. An mp3 of a real slot machine would be a payload, a licence
  * question, and a worse match for the visuals.
  *
- * Only ever called from a click (the spin), so it never trips the browser's
- * autoplay policy, and it is a no-op when the user has muted it or the API is
- * unavailable.
+ * The jingle plays a beat *after* the spin, from a timeout, not straight from
+ * the click. On a phone that matters: iOS leaves an AudioContext born outside a
+ * user gesture suspended forever, so a context made at jingle time never makes
+ * a sound. So the context is opened and resumed once, synchronously, inside the
+ * spin click (`unlockWinAudio`), then reused when the jingle finally fires. It
+ * is a no-op when the user has muted it or the API is unavailable.
  */
 
 export const SOUND_PREF_KEY = "v4-win-sound";
@@ -37,12 +40,35 @@ const NOTES = [523.25, 659.25, 783.99, 1046.5];
 
 type AudioCtor = typeof AudioContext;
 
+// One context for the life of the page, opened during a gesture and kept
+// running. Making a fresh one per win is what left mobile silent, and closing
+// it between wins would just re-lock it.
+let shared: AudioContext | null = null;
+
 function audioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
+  if (shared && shared.state !== "closed") return shared;
   const Ctor: AudioCtor | undefined =
     window.AudioContext ??
     (window as unknown as { webkitAudioContext?: AudioCtor }).webkitAudioContext;
-  return Ctor ? new Ctor() : null;
+  shared = Ctor ? new Ctor() : null;
+  return shared;
+}
+
+/**
+ * Open and resume the audio context from inside the spin click, so the jingle
+ * that fires a couple of seconds later plays on a context the browser already
+ * trusts. Without this the win is silent on iOS. Safe to call every spin; a
+ * no-op when muted or unsupported, and never throws.
+ */
+export function unlockWinAudio(): void {
+  if (!soundEnabled()) return;
+  try {
+    const ctx = audioContext();
+    if (ctx && ctx.state === "suspended") void ctx.resume();
+  } catch {
+    // A decoration failing to arm is not worth breaking the spin over.
+  }
 }
 
 /**
@@ -52,10 +78,12 @@ function audioContext(): AudioContext | null {
 export function playWinSound(): void {
   if (!soundEnabled()) return;
 
-  let ctx: AudioContext | null = null;
   try {
-    ctx = audioContext();
+    const ctx = audioContext();
     if (!ctx) return;
+    // Resume again in case the unlock never ran (e.g. the user muted, then
+    // unmuted, then this win landed without a fresh spin gesture).
+    if (ctx.state === "suspended") void ctx.resume();
 
     const now = ctx.currentTime;
     const master = ctx.createGain();
@@ -66,8 +94,8 @@ export function playWinSound(): void {
 
     NOTES.forEach((freq, i) => {
       const at = now + i * 0.075;
-      const osc = ctx!.createOscillator();
-      const gain = ctx!.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
       // Square wave: the 8-bit timbre that matches the pixel confetti.
       osc.type = "square";
       osc.frequency.setValueAtTime(freq, at);
@@ -94,11 +122,9 @@ export function playWinSound(): void {
     tail.start(tailAt);
     tail.stop(tailAt + 0.42);
 
-    // Let the tail ring out, then release the context rather than leaking one
-    // per win.
-    const ref = ctx;
-    window.setTimeout(() => void ref.close().catch(() => {}), 1600);
+    // The context is deliberately left open and running: it is the one the
+    // gesture unlocked, and closing it would re-lock mobile for the next win.
   } catch {
-    void ctx?.close().catch(() => {});
+    // A win chime failing is never worth breaking the spin over.
   }
 }

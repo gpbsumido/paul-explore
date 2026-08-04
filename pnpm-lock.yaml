@@ -13,14 +13,14 @@ dependencies:
     specifier: ^6.3.1
     version: 6.3.1(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/css':
-    specifier: ^0.4.5
-    version: 0.4.5(@paul-portfolio/tokens@0.1.9)
+    specifier: ^0.5.1
+    version: 0.5.1(@paul-portfolio/tokens@0.2.0)
   '@paul-portfolio/react':
-    specifier: ^0.4.4
-    version: 0.4.4(@paul-portfolio/css@0.4.5)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3)
+    specifier: ^0.5.0
+    version: 0.5.0(@paul-portfolio/css@0.5.1)(@paul-portfolio/tokens@0.2.0)(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/tokens':
-    specifier: ^0.1.9
-    version: 0.1.9
+    specifier: ^0.2.0
+    version: 0.2.0
   '@rainbow-me/rainbowkit':
     specifier: ^2.2.11
     version: 2.2.11(@tanstack/react-query@5.90.21)(@types/react@19.0.0)(react-dom@19.2.3)(react@19.2.3)(typescript@5.9.3)(viem@2.55.4)(wagmi@2.16.0)
@@ -1808,30 +1808,30 @@ packages:
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
     dev: false
 
-  /@paul-portfolio/css@0.4.5(@paul-portfolio/tokens@0.1.9):
-    resolution: {integrity: sha512-iGvsLhfrtKQMVQUIe02lkv7VxFqaQFOHYnwcOCUTUzBjvnZywfjEvd+tlUiR6UvkHahZ5zSHAQ+2Pdv4v3/rAw==}
+  /@paul-portfolio/css@0.5.1(@paul-portfolio/tokens@0.2.0):
+    resolution: {integrity: sha512-C5G6eBXp1iclv82INdEFmpgFiyab4LWvLQY1fKwn1jaMlo+O3+Uc4mLsbG4H2Jy4JCPtTyP8Vp+XolP6GlObsA==}
     peerDependencies:
       '@paul-portfolio/tokens': '>=0.1.0'
     dependencies:
-      '@paul-portfolio/tokens': 0.1.9
+      '@paul-portfolio/tokens': 0.2.0
     dev: false
 
-  /@paul-portfolio/react@0.4.4(@paul-portfolio/css@0.4.5)(@paul-portfolio/tokens@0.1.9)(react-dom@19.2.3)(react@19.2.3):
-    resolution: {integrity: sha512-LSjmq+9dY+HRBJ5p8xTLVL5hNMXTWH0SK2AA04fW6w7BLm8xby6P+X8Tzasl3QBKcatuEvbNraWIaseEv2+O3A==}
+  /@paul-portfolio/react@0.5.0(@paul-portfolio/css@0.5.1)(@paul-portfolio/tokens@0.2.0)(react-dom@19.2.3)(react@19.2.3):
+    resolution: {integrity: sha512-9tTT0HdlXFr0jY7pyuolVo8fmsDlnO0lvajziCfTYVqsdXagIlZjVJ+Bz9FAbrBu1/CMWhXZJyr+eFgLcSjEiQ==}
     peerDependencies:
       '@paul-portfolio/css': '>=0.1.0'
       '@paul-portfolio/tokens': '>=0.1.0'
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@paul-portfolio/css': 0.4.5(@paul-portfolio/tokens@0.1.9)
-      '@paul-portfolio/tokens': 0.1.9
+      '@paul-portfolio/css': 0.5.1(@paul-portfolio/tokens@0.2.0)
+      '@paul-portfolio/tokens': 0.2.0
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     dev: false
 
-  /@paul-portfolio/tokens@0.1.9:
-    resolution: {integrity: sha512-pQaSj9zrB5XMz4o7YUHBCrPohiWTrr2cH58NCZw3w32sbwn3bAFMJ1rXTaXZMNcCdqrcGTVneyGHC7O0aFLwKA==}
+  /@paul-portfolio/tokens@0.2.0:
+    resolution: {integrity: sha512-eNSLoSMKgBbjD4mMpCOnxy0R7axZY4/nigW+5rB6rpSysRDQH7IoOV+eT27tz7udGczxlcOgbXDCJN1US7oWEw==}
     dev: false
 
   /@paulmillr/qr@0.2.1:

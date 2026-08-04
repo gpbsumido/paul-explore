@@ -27,6 +27,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
     name: "Design & UI",
     slugs: [
       "design-system",
+      "design-system-charts",
       "design-system-showcase",
       "motion-components",
       "styling",
@@ -56,6 +57,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "routing",
       "improvements",
       "api-backend-overhaul",
+      "login-redirect",
       "messenger-auth",
     ],
   },
@@ -82,6 +84,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "deployment",
       "pr-screenshots",
       "typescript-7",
+      "harness-visual-plan",
     ],
   },
 ];

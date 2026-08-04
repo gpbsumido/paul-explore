@@ -1,14 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getAlerts } from "@/lib/operator-data";
+import { withOperatorErrors } from "@/lib/operator-route-errors";
+import { loadAlerts } from "@/lib/operator-bff";
 
-export async function GET(
+export const GET = withOperatorErrors(async (
   _request: NextRequest,
   { params }: { params: Promise<{ storeId: string }> },
-) {
+) => {
   const { storeId } = await params;
-  const alerts = getAlerts(storeId);
-  if (!alerts) {
-    return NextResponse.json({ error: "Store not found" }, { status: 404 });
-  }
-  return NextResponse.json({ alerts });
-}
+  return NextResponse.json({ alerts: await loadAlerts(storeId) });
+})

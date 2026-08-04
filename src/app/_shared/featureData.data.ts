@@ -254,6 +254,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#f97316",
   },
   {
+    title: "Login Redirect",
+    href: "/thoughts/login-redirect",
+    preview:
+      "Landing back on the route you logged in from, and turning a denied consent screen from a bare 500 into a toast, both fixed at the Auth0 choke point",
+    color: "#eb5424",
+  },
+  {
     title: "Messenger Auth Bug",
     href: "/thoughts/messenger-auth",
     preview:
@@ -357,6 +364,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Extracting tokens and components into @paul-portfolio npm packages — CSS custom properties, thin framework wrappers, and token aliasing across React and Angular apps",
     color: "#06b6d4",
+  },
+  {
+    title: "Framework-Agnostic Charts",
+    href: "/thoughts/design-system-charts",
+    preview:
+      "Rebuilding recharts and unovis charts as pure SVG from one dependency-free geometry core — Sparkline, BarChart, DonutChart rendering identically in React and Angular, with a token palette and role=img a11y",
+    color: "#8b5cf6",
   },
   {
     title: "Accessibility",
@@ -468,6 +482,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "A walkable 3D Toronto built from primitives: a TDD'd pure movement core, an R3F shell around it, a seeded procedural skyline over a real street grid, and exhibits that deep-link every feature",
     color: "#38bdf8",
+  },
+  {
+    title: "Visual Plans",
+    href: "/thoughts/harness-visual-plan",
+    preview:
+      "Why I bracket every change with a visual plan before code and a recap after: structured wireframes over prose, the RED list as the plan, and an honest record of where reality drifted",
+    color: "#818cf8",
   },
 ].reverse();
 

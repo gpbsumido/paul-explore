@@ -24,6 +24,26 @@ export const activityTypeSchema = z.enum([
   "price-update",
 ]);
 
+/**
+ * Two-letter codes for every Canadian province and territory. Operators are
+ * assumed to be in Canada, so a store's province drives its sales tax.
+ */
+export const provinceCodeSchema = z.enum([
+  "AB",
+  "BC",
+  "MB",
+  "NB",
+  "NL",
+  "NS",
+  "NT",
+  "NU",
+  "ON",
+  "PE",
+  "QC",
+  "SK",
+  "YT",
+]);
+
 // ---------------------------------------------------------------------------
 // Store
 // ---------------------------------------------------------------------------
@@ -32,6 +52,10 @@ export const storeSchema = z.object({
   id: z.string(),
   name: z.string(),
   location: z.string(),
+  province: provinceCodeSchema,
+  // Optional so a bundle that knows about timezones still validates against an
+  // API deploy that has not shipped the field yet. The province is the fallback.
+  timezone: z.string().optional(),
   status: storeStatusSchema,
   temperature: z.number(),
   lastPing: z.string().datetime(),
@@ -82,6 +106,156 @@ export const activityEventSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Sale (a single completed transaction at a store)
+// ---------------------------------------------------------------------------
+
+export const saleSchema = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  productName: z.string(),
+  category: z.string(),
+  unitPrice: z.number().min(0),
+  quantity: z.number().int().min(1),
+  total: z.number().min(0),
+  timestamp: z.string().datetime(),
+});
+
+// ---------------------------------------------------------------------------
+// Sales analytics (time-range buckets + fleet rollup)
+// ---------------------------------------------------------------------------
+
+export const salesGranularitySchema = z.enum(["day", "week", "month", "year"]);
+
+export const salesPeriodBucketSchema = z.object({
+  label: z.string(),
+  start: z.string(),
+  revenue: z.number().min(0),
+  units: z.number().int().min(0),
+});
+
+export const fleetStoreTotalSchema = z.object({
+  storeId: z.string(),
+  storeName: z.string(),
+  totalRevenue: z.number().min(0),
+  unitsSold: z.number().int().min(0),
+});
+
+export const fleetSalesAnalyticsSchema = z.object({
+  granularity: salesGranularitySchema,
+  buckets: z.array(salesPeriodBucketSchema),
+  byStore: z.array(fleetStoreTotalSchema),
+  totalRevenue: z.number().min(0),
+});
+
+// ---------------------------------------------------------------------------
+// Restock sessions
+// ---------------------------------------------------------------------------
+
+export const removalReasonSchema = z.enum(["expired", "damaged", "other"]);
+
+export const countStatusSchema = z.enum([
+  "matches-expected",
+  "correction",
+  "not-counted",
+]);
+
+export const restockSessionSchema = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  startedAt: z.string(),
+  completedAt: z.string().nullable(),
+  actor: z.string().nullable(),
+  notes: z.string().nullable(),
+});
+
+export const restockLineSchema = z.object({
+  id: z.string(),
+  sessionId: z.string(),
+  itemId: z.string(),
+  expectedQty: z.number().int().min(0),
+  countedQty: z.number().int().min(0).nullable(),
+  added: z.number().int().min(0),
+  removed: z.number().int().min(0),
+  removalReason: z.string().nullable(),
+  resultingStock: z.number().int().min(0).nullable(),
+  countStatus: countStatusSchema,
+});
+
+export const restockLineBodySchema = z
+  .object({
+    expectedQty: z.number().int().min(0),
+    countedQty: z.number().int().min(0).nullable(),
+    added: z.number().int().min(0),
+    removed: z.number().int().min(0),
+    removalReason: removalReasonSchema.nullable(),
+  })
+  .refine((line) => line.removed === 0 || line.removalReason !== null, {
+    message: "A reason is required when removing stock",
+    path: ["removalReason"],
+  });
+
+export const completeSessionBodySchema = z.object({
+  notes: z.string().max(2000).nullable(),
+});
+
+// ---------------------------------------------------------------------------
+// Promotions
+// ---------------------------------------------------------------------------
+
+export const promotionStatusSchema = z.enum(["scheduled", "active", "ended"]);
+
+export const promotionSchema = z.object({
+  id: z.string(),
+  storeId: z.string(),
+  /** Null means the whole store. */
+  productName: z.string().nullable(),
+  percent: z.number().int().min(1).max(90),
+  startsAt: z.string(),
+  endsAt: z.string().nullable(),
+  status: promotionStatusSchema,
+});
+
+export const promotionBodySchema = z
+  .object({
+    productName: z.string().min(1).nullable(),
+    percent: z.number().int().min(1).max(90),
+    startsAt: z.string(),
+    endsAt: z.string().nullable(),
+  })
+  .refine(
+    (p) => p.endsAt === null || Date.parse(p.endsAt) > Date.parse(p.startsAt),
+    { message: "The end must be after the start", path: ["endsAt"] },
+  );
+
+const performanceTotalsSchema = z.object({
+  units: z.number().int().min(0),
+  revenue: z.number().min(0),
+});
+
+export const promotionPerformanceSchema = z.object({
+  promotion: promotionSchema,
+  window: performanceTotalsSchema,
+  baseline: performanceTotalsSchema,
+  // Null when the baseline was zero: a percentage change would be a fabrication.
+  unitsChangePercent: z.number().nullable(),
+  revenueChangePercent: z.number().nullable(),
+  // The range actually measured, which is not always the promotion's full
+  // window -- anything over 180 days is clamped to its most recent stretch.
+  measuredFrom: z.string(),
+  measuredTo: z.string(),
+  note: z.string(),
+});
+
+// ---------------------------------------------------------------------------
+// Planogram (persisted shelf layout: which item occupies each slot + sensor)
+// ---------------------------------------------------------------------------
+
+export const planogramSlotSchema = z.object({
+  itemId: z.string().nullable(),
+  sensorMatch: z.boolean(),
+});
+
+// ---------------------------------------------------------------------------
 // Fleet summary (aggregated per-store data for the dashboard)
 // ---------------------------------------------------------------------------
 
@@ -118,3 +292,12 @@ export const fleetSummaryResponseSchema = z.object({
 export const restockBodySchema = z.object({
   itemIds: z.array(z.string()).min(1),
 });
+
+/**
+ * A planogram update is either a reorder (the new slot order, by item id) or a
+ * single-slot sensor re-sync (the item to mark as matching again).
+ */
+export const planogramUpdateSchema = z.union([
+  z.object({ boxes: z.array(planogramSlotSchema) }),
+  z.object({ resyncItemId: z.string() }),
+]);

@@ -46,6 +46,11 @@ export type ConfettiPiece = {
   color: string;
 };
 
+/** How many pieces fall -- a proper faceful of confetti. Desktop only: the
+    burst is skipped on phones, where dozens of tumbling GPU layers can't hold
+    frame rate no matter how far the count is thinned. */
+export const CONFETTI_COUNT = 110;
+
 /** Pick from a palette by hash, so colour is scattered but stable. */
 const pick = (colors: readonly string[], seed: number): string =>
   colors[Math.floor(seed * colors.length) % colors.length];

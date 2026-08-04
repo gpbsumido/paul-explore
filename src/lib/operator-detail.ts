@@ -2,15 +2,29 @@
 // Store detail page helpers: tab routing, connection quality, inventory, alerts
 // ---------------------------------------------------------------------------
 
+import {
+  DEFAULT_ZONE,
+  weekdayOf,
+  zonedInstant,
+  zonedParts,
+} from "@/lib/operator-timezone";
 import type {
   InventoryItem,
   Alert,
   AlertSeverity,
+  AlertCategory,
   ActivityType,
   StoreStatus,
 } from "@/types/operator";
 
-export type TabId = "inventory" | "alerts" | "activity" | "planogram";
+export type TabId =
+  | "inventory"
+  | "alerts"
+  | "activity"
+  | "planogram"
+  | "sales"
+  | "pricing"
+  | "tax";
 
 export type ConnectionQuality = "strong" | "weak" | "poor" | "offline";
 
@@ -57,6 +71,9 @@ export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "alerts", label: "Alerts" },
   { id: "activity", label: "Activity" },
   { id: "planogram", label: "Planogram" },
+  { id: "sales", label: "Sales" },
+  { id: "pricing", label: "Pricing" },
+  { id: "tax", label: "Tax" },
 ] as const;
 
 const VALID_TAB_IDS = new Set<string>(TABS.map((t) => t.id));
@@ -251,11 +268,70 @@ export type PlanogramSlot = {
   currentStock: number;
   capacity: number;
   sensorMatch: boolean;
+  slotLabel: string;
+};
+
+export type RefillEntry = {
+  slotLabel: string;
+  productName: string;
+  category: string;
+  currentStock: number;
+  capacity: number;
 };
 
 /**
+ * A persisted planogram box: which item occupies it (null when empty) and its
+ * sensor state. Shelves have fixed boxes, so an operator can move a product
+ * into an empty box, not just swap two occupied spots.
+ */
+export type PlanogramSlotRecord = {
+  itemId: string | null;
+  sensorMatch: boolean;
+};
+
+/** A planogram box joined with its item, ready to render (empty when vacant). */
+export type AssembledSlot = {
+  slotLabel: string;
+  itemId: string | null;
+  empty: boolean;
+  productName: string;
+  category: string;
+  currentStock: number;
+  capacity: number;
+  sensorMatch: boolean;
+};
+
+/** An empty box: no item, sensor reads clean. */
+const EMPTY_BOX: PlanogramSlotRecord = { itemId: null, sensorMatch: true };
+
+/**
+ * Builds a slot address from a flat item index and shelf width: the shelf
+ * letter (A, B, C...) followed by the 1-based position on that shelf. Item 5
+ * on shelves of width 4 is "B2".
+ */
+export function slotLabelFor(index: number, shelfWidth: number): string {
+  const shelf = Math.floor(index / shelfWidth);
+  const position = (index % shelfWidth) + 1;
+  return `${String.fromCharCode(65 + shelf)}${position}`;
+}
+
+/**
+ * Deterministic sensor-match flag for a slot, seeded from the item id so the
+ * same item always starts in the same state. Roughly one slot in five reads as
+ * a mismatch until an operator re-syncs it.
+ */
+export function deriveSensorMatch(itemId: string): boolean {
+  let hash = 0;
+  for (let i = 0; i < itemId.length; i++) {
+    hash = (hash * 31 + itemId.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) % 5 !== 0;
+}
+
+/**
  * Generates a simplified planogram grid from inventory items. Items are laid
- * out left-to-right across shelves of the given width. Each slot includes a
+ * out left-to-right across shelves of the given width. Each slot carries its
+ * address (slotLabel) so an operator knows which spot it is, plus a
  * deterministic sensorMatch flag derived from the item ID so the visual is
  * stable across renders.
  */
@@ -265,27 +341,117 @@ export function generatePlanogramGrid(
 ): readonly (readonly PlanogramSlot[])[] {
   if (items.length === 0) return [];
 
-  const slots: PlanogramSlot[] = items.map((item) => {
-    let hash = 0;
-    for (let i = 0; i < item.id.length; i++) {
-      hash = (hash * 31 + item.id.charCodeAt(i)) | 0;
-    }
-    const sensorMatch = Math.abs(hash) % 5 !== 0;
-
-    return {
-      productName: item.productName,
-      category: item.category,
-      currentStock: item.currentStock,
-      capacity: item.capacity,
-      sensorMatch,
-    };
-  });
+  const slots: PlanogramSlot[] = items.map((item, index) => ({
+    productName: item.productName,
+    category: item.category,
+    currentStock: item.currentStock,
+    capacity: item.capacity,
+    sensorMatch: deriveSensorMatch(item.id),
+    slotLabel: slotLabelFor(index, shelfWidth),
+  }));
 
   const shelves: PlanogramSlot[][] = [];
   for (let i = 0; i < slots.length; i += shelfWidth) {
     shelves.push(slots.slice(i, i + shelfWidth));
   }
 
+  return shelves;
+}
+
+/**
+ * Returns the slots that need restocking (anything below healthy fill), each
+ * tagged with its slot address, ordered most-urgent first (lowest fill ratio).
+ * This is the operator's refill run: which spot, which product, how empty.
+ */
+export function getRefillList(
+  items: readonly InventoryItem[],
+  shelfWidth: number = 4,
+): readonly RefillEntry[] {
+  return items
+    .map((item, index) => ({ item, index }))
+    .filter(
+      ({ item }) =>
+        categorizeStock(item.currentStock, item.capacity) !== "healthy",
+    )
+    .sort(
+      (a, b) =>
+        a.item.currentStock / a.item.capacity -
+        b.item.currentStock / b.item.capacity,
+    )
+    .map(({ item, index }) => ({
+      slotLabel: slotLabelFor(index, shelfWidth),
+      productName: item.productName,
+      category: item.category,
+      currentStock: item.currentStock,
+      capacity: item.capacity,
+    }));
+}
+
+/**
+ * Moves the contents of box `from` into box `to`. If the target box is empty
+ * the source is vacated; if it is occupied the two boxes swap contents. Both
+ * indices are clamped and the input is never mutated. This is how an operator
+ * places a product into an empty box, not just swaps two full ones.
+ */
+export function moveToBox(
+  boxes: readonly PlanogramSlotRecord[],
+  from: number,
+  to: number,
+): PlanogramSlotRecord[] {
+  const next = boxes.map((b) => ({ ...b }));
+  if (next.length === 0) return next;
+  const clampedFrom = Math.max(0, Math.min(from, next.length - 1));
+  const clampedTo = Math.max(0, Math.min(to, next.length - 1));
+  if (clampedFrom === clampedTo) return next;
+
+  const moving = next[clampedFrom];
+  const target = next[clampedTo];
+  next[clampedTo] = moving;
+  next[clampedFrom] = target.itemId === null ? { ...EMPTY_BOX } : target;
+  return next;
+}
+
+/**
+ * Joins the persisted boxes and sensor flags with the current inventory to
+ * produce a render-ready shelf grid. Every box keeps its position and address;
+ * empty boxes (and boxes whose item has left inventory) render as vacant.
+ */
+export function assemblePlanogram(
+  boxes: readonly PlanogramSlotRecord[],
+  itemsById: ReadonlyMap<string, InventoryItem>,
+  shelfWidth: number = 4,
+): readonly (readonly AssembledSlot[])[] {
+  const assembled: AssembledSlot[] = boxes.map((box, index) => {
+    const item = box.itemId ? itemsById.get(box.itemId) : undefined;
+    const slotLabel = slotLabelFor(index, shelfWidth);
+    if (!item) {
+      return {
+        slotLabel,
+        itemId: null,
+        empty: true,
+        productName: "",
+        category: "",
+        currentStock: 0,
+        capacity: 0,
+        sensorMatch: true,
+      };
+    }
+    return {
+      slotLabel,
+      itemId: item.id,
+      empty: false,
+      productName: item.productName,
+      category: item.category,
+      currentStock: item.currentStock,
+      capacity: item.capacity,
+      sensorMatch: box.sensorMatch,
+    };
+  });
+
+  const shelves: AssembledSlot[][] = [];
+  for (let i = 0; i < assembled.length; i += shelfWidth) {
+    shelves.push(assembled.slice(i, i + shelfWidth));
+  }
   return shelves;
 }
 
@@ -316,4 +482,108 @@ export function getDismissableAlerts(
   alerts: readonly Alert[],
 ): readonly Alert[] {
   return alerts.filter((a) => !a.acknowledged && a.severity !== "critical");
+}
+
+/**
+ * Label for the "Acknowledge All" quick action. Bulk-ack only applies to
+ * non-critical alerts, so when the only active alerts are critical the button
+ * is disabled but says "Critical only" rather than falsely claiming there are
+ * no alerts. It only reads "No Alerts" when nothing is active.
+ */
+export function acknowledgeAllLabel(alerts: readonly Alert[]): string {
+  const dismissable = getDismissableAlerts(alerts).length;
+  if (dismissable > 0) return `Acknowledge All (${dismissable})`;
+  return countActiveAlerts(alerts) > 0 ? "Critical only" : "No Alerts";
+}
+
+// ---------------------------------------------------------------------------
+// Alert history & analytics
+// ---------------------------------------------------------------------------
+
+export type AlertSummary = {
+  active: number;
+  resolved: number;
+  bySeverity: Record<AlertSeverity, number>;
+  topCategories: { category: AlertCategory; count: number }[];
+};
+
+/**
+ * Rolls an alert list (active + resolved) into a summary: how many are still
+ * active vs resolved, the active alerts broken down by severity, and which
+ * categories show up most across the whole history.
+ */
+export function summarizeAlerts(alerts: readonly Alert[]): AlertSummary {
+  let active = 0;
+  let resolved = 0;
+  const bySeverity: Record<AlertSeverity, number> = {
+    info: 0,
+    warning: 0,
+    critical: 0,
+  };
+  const byCategory = new Map<AlertCategory, number>();
+
+  for (const alert of alerts) {
+    if (alert.acknowledged) {
+      resolved += 1;
+    } else {
+      active += 1;
+      bySeverity[alert.severity] += 1;
+    }
+    byCategory.set(alert.category, (byCategory.get(alert.category) ?? 0) + 1);
+  }
+
+  const topCategories = [...byCategory.entries()]
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return { active, resolved, bySeverity, topCategories };
+}
+
+export type AlertDayBucket = { day: string; count: number };
+
+const WEEKDAY_LABELS = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+] as const;
+
+/**
+ * Counts alerts raised per day over the last `days` calendar days (UTC),
+ * oldest bucket first, each labelled with its weekday. Alerts outside the
+ * window are ignored. A simple trend so operators can see whether alerts are
+ * rising or falling.
+ */
+export function alertsByDay(
+  alerts: readonly Alert[],
+  now: Date = new Date(),
+  days: number = 7,
+  timeZone: string = DEFAULT_ZONE,
+): AlertDayBucket[] {
+  // Local-midnight boundaries, oldest first, with one extra on the end so the
+  // newest bucket has a close. Dividing epoch milliseconds by 86.4e6 was the old
+  // approach and it is wrong twice a year, when a local day is 23 or 25 hours.
+  const { year, month, day } = zonedParts(now, timeZone);
+  const bounds = Array.from({ length: days + 1 }, (_, i) =>
+    zonedInstant(year, month, day - (days - 1) + i, 0, timeZone).getTime(),
+  );
+
+  const counts = new Array<number>(days).fill(0);
+
+  for (const alert of alerts) {
+    const at = Date.parse(alert.timestamp);
+    if (at < bounds[0] || at >= bounds[days]) continue;
+
+    let offset = 0;
+    while (offset < days - 1 && at >= bounds[offset + 1]) offset += 1;
+    counts[offset] += 1;
+  }
+
+  return counts.map((count, offset) => ({
+    day: WEEKDAY_LABELS[weekdayOf(zonedParts(new Date(bounds[offset]), timeZone))],
+    count,
+  }));
 }

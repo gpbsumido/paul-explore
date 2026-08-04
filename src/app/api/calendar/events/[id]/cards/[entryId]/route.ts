@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { updateCardBodySchema } from "@/lib/schemas";
@@ -24,7 +25,7 @@ export async function PUT(
   const body = bodyResult.data;
 
   try {
-    const res = await fetch(
+    const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/events/${id}/cards/${entryId}`,
       {
         method: "PUT",
@@ -34,6 +35,8 @@ export async function PUT(
         body: JSON.stringify(body),
       },
     );
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res
         .json()
@@ -66,13 +69,15 @@ export async function DELETE(
   }
 
   try {
-    const res = await fetch(
+    const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/events/${id}/cards/${entryId}`,
       {
         method: "DELETE",
         headers: buildHeaders(token, email),
       },
     );
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       const err = await res
         .json()

@@ -11,7 +11,13 @@ import {
 } from "./catalog";
 
 /** Package exports that aren't renderable primitives, so the gallery skips them. */
-const NON_COMPONENT_EXPORTS = ["cx"];
+const NON_COMPONENT_EXPORTS = [
+  "cx",
+  // Not renderable primitives: the geometry core the charts are computed from,
+  // and the motion-preference hook they and the effects share.
+  "chartGeometry",
+  "usePrefersReducedMotion",
+];
 
 describe("design system catalog integrity", () => {
   it("documents every component shipped by @paul-portfolio/react", () => {

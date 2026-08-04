@@ -8,6 +8,9 @@ import InventoryTab from "@/components/operator/InventoryTab";
 import AlertsTab from "@/components/operator/AlertsTab";
 import ActivityTab from "@/components/operator/ActivityTab";
 import PlanogramTab from "@/components/operator/PlanogramTab";
+import SalesTab from "@/components/operator/SalesTab";
+import TaxTab from "@/components/operator/TaxTab";
+import { buildStore, buildSale } from "@/test/factories/operator";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -89,6 +92,37 @@ describe("tab error states", () => {
       await screen.findByText("Failed to fetch inventory"),
     ).toBeInTheDocument();
   });
+
+  it("SalesTab shows error message when sales fetch fails", async () => {
+    server.use(
+      http.get("/api/operator/stores/:id/sales", () =>
+        HttpResponse.json({ error: "Server error" }, { status: 500 }),
+      ),
+    );
+
+    render(<SalesTab storeId={STORE_ID} />, { wrapper: makeWrapper() });
+
+    expect(
+      await screen.findByText("Failed to fetch sales"),
+    ).toBeInTheDocument();
+  });
+
+  it("TaxTab shows error message when sales fetch fails", async () => {
+    server.use(
+      http.get("/api/operator/stores/:id/sales", () =>
+        HttpResponse.json({ error: "Server error" }, { status: 500 }),
+      ),
+      http.get("/api/operator/stores/:id", () =>
+        HttpResponse.json({ store: buildStore({ id: STORE_ID }) }),
+      ),
+    );
+
+    render(<TaxTab storeId={STORE_ID} />, { wrapper: makeWrapper() });
+
+    expect(
+      await screen.findByText("Failed to fetch sales"),
+    ).toBeInTheDocument();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -142,10 +176,13 @@ describe("tab empty states", () => {
     ).toBeInTheDocument();
   });
 
-  it("PlanogramTab shows empty message when no inventory items exist", async () => {
+  it("PlanogramTab shows empty message when no slots exist", async () => {
     server.use(
       http.get("/api/operator/stores/:id/inventory", () =>
         HttpResponse.json({ items: [] }),
+      ),
+      http.get("/api/operator/stores/:id/planogram", () =>
+        HttpResponse.json({ slots: [] }),
       ),
     );
 
@@ -154,5 +191,63 @@ describe("tab empty states", () => {
     expect(
       await screen.findByText("No planogram data available."),
     ).toBeInTheDocument();
+  });
+
+  it("SalesTab shows empty message when no sales exist", async () => {
+    server.use(
+      http.get("/api/operator/stores/:id/sales", () =>
+        HttpResponse.json({ sales: [] }),
+      ),
+    );
+
+    render(<SalesTab storeId={STORE_ID} />, { wrapper: makeWrapper() });
+
+    expect(await screen.findByText("No sales yet.")).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Rendering — new tabs render their computed content from real data
+// ---------------------------------------------------------------------------
+
+describe("sales and tax tabs render computed content", () => {
+  it("SalesTab shows the revenue summary and top sellers", async () => {
+    server.use(
+      http.get("/api/operator/stores/:id/sales", () =>
+        HttpResponse.json({
+          sales: [
+            buildSale({ productName: "Cola", quantity: 2, total: 5 }),
+            buildSale({ productName: "Water", quantity: 1, total: 2 }),
+          ],
+        }),
+      ),
+    );
+
+    render(<SalesTab storeId={STORE_ID} />, { wrapper: makeWrapper() });
+
+    expect(await screen.findByText("Top sellers")).toBeInTheDocument();
+    expect(screen.getAllByText("Cola").length).toBeGreaterThan(0);
+  });
+
+  it("TaxTab shows the province regime and computes tax owed", async () => {
+    server.use(
+      http.get("/api/operator/stores/:id", () =>
+        HttpResponse.json({
+          store: buildStore({ id: STORE_ID, province: "ON" }),
+        }),
+      ),
+      http.get("/api/operator/stores/:id/sales", () =>
+        HttpResponse.json({
+          sales: [
+            buildSale({ total: 100, timestamp: "2026-07-10T10:00:00Z" }),
+          ],
+        }),
+      ),
+    );
+
+    render(<TaxTab storeId={STORE_ID} />, { wrapper: makeWrapper() });
+
+    expect(await screen.findByText("Ontario")).toBeInTheDocument();
+    expect(screen.getByText("HST 13%")).toBeInTheDocument();
   });
 });

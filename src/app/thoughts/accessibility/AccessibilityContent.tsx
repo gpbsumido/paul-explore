@@ -1090,6 +1090,149 @@ expect(results).toHaveNoViolations();`}
 
             <section>
               <h2 className="mb-3 text-lg font-bold">
+                The scan that was not running
+              </h2>
+              <p className="text-muted">
+                The route-level axe suite reported every public page as clean.
+                Two of them had never been scanned at all.
+              </p>
+              <p className="mt-3 text-muted">
+                The specs waited on{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  networkidle
+                </code>{" "}
+                before scanning &mdash; sensible-looking, and wrong, because it
+                is a promise about whichever third party a page happens to call
+                rather than about the page itself. Two fantasy routes fetch NBA
+                data through the backend. When that upstream stopped answering,
+                those requests hung, the wait never resolved, and the tests timed
+                out. A timeout reads as a slow test. It is easy to miss that it
+                also means the assertion never ran.
+              </p>
+              <p className="mt-3 text-muted">
+                Replacing the wait with things the page actually controls &mdash;{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  load
+                </code>
+                , the{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  main
+                </code>{" "}
+                landmark, and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  document.fonts.ready
+                </code>{" "}
+                &mdash; made axe run on them for the first time. It found real
+                serious-impact colour-contrast failures that had been shipping to
+                users: white text at 40% opacity on the particles lab, twice, and
+                a translucent amber notice on the court-vision page. Both are
+                fixed, the amber one by adopting the light/dark warning pair the
+                rest of the app already uses instead of a single translucent
+                colour that cannot satisfy both themes.
+              </p>
+              <p className="mt-3 text-muted">
+                Two things worth keeping from that.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  document.fonts.ready
+                </code>{" "}
+                matters more than it sounds: fonts change computed colours, and
+                axe&apos;s contrast rule reads computed colours, so scanning
+                before they settle reports violations that do not exist. And a
+                green accessibility suite is a claim about coverage, not proof of
+                it. The failure mode here was never a red build. It was a report
+                saying &ldquo;clean&rdquo; about pages it had quietly stopped
+                looking at.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Then it found things, including mine
+              </h2>
+              <p className="text-muted">
+                Making the scan actually run turned up three violations, and the
+                most instructive one was my own. A loading placeholder carried{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">aria-label</code> on a bare{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">span</code>. A span has no role, so there is
+                nothing for the label to name, and ARIA prohibits it &mdash;
+                serious impact. The repo already had the right pattern one file
+                away: hide the shape with{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">aria-hidden</code> and put the words in an{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">sr-only</code> element, which is what the
+                skeleton component does. I had invented a worse version of a
+                solved problem, and the scan that would have caught it was the
+                one not running.
+              </p>
+              <p className="mt-3 text-muted">
+                A second lives in the shared component library rather than here:
+                the marquee duplicates its content and marks the clone{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">aria-hidden</code>, but the clone still
+                contains focusable buttons. Hiding something from assistive
+                technology while leaving it in the tab order is worse than not
+                hiding it, because a keyboard user lands on a control a screen
+                reader insists does not exist.
+              </p>
+              <p className="mt-3 text-muted">
+                That one is fixed upstream now, in both framework packages. The
+                clone is marked{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  inert
+                </code>{" "}
+                declaratively rather than having its focusables stripped by an
+                effect after render, which is what left the gap: an effect runs
+                after paint, so between mount and that effect the duplicate held
+                tabbable controls, and every re-render reopened the window.{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  inert
+                </code>{" "}
+                takes the tab order and the accessibility tree out together,
+                which is exactly the pair that had come apart.
+              </p>
+              <p className="mt-3 text-muted">
+                The Angular port of the same component carried the identical
+                bug, comment and all, and was still in review &mdash; so that
+                one got fixed before it ever shipped rather than after. Worth
+                noting how it was found: not by auditing the design system, but
+                by a scan on a page that happened to use it. A shared component
+                library means one mistake reaches every consumer, and it also
+                means the first consumer to look properly finds it for everyone.
+              </p>
+
+              <h2 className="mb-3 mt-8 text-lg font-bold">
+                Contrast tests need a pinned theme
+              </h2>
+              <p className="text-muted">
+                Once the scan ran, it went intermittently red on whichever route
+                happened to lose a race. The tell was the shape of the failure:
+                every muted and foreground element failing contrast at once. If
+                the foreground token genuinely failed, the app would be
+                unreadable rather than slightly off, so the colours being
+                measured were not the colours anyone sees.
+              </p>
+              <p className="mt-3 text-muted">
+                Every colour here comes from a custom property, and which set is
+                live depends on a preference read at runtime. An unpinned scan
+                races that, and sometimes measures muted text against the other
+                theme&apos;s surface. Two smaller versions of the same problem
+                sat underneath it: fonts change computed colours, so scanning
+                before{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">document.fonts.ready</code> reports
+                violations that do not exist, and an element mid-transition is
+                measured against a background it is only passing through.
+              </p>
+              <p className="mt-3 text-muted">
+                So the scan now pins the theme before anything renders, waits for
+                the tokens to resolve, and lets animations settle &mdash; the
+                same mechanism the screenshot workflow already used. All three
+                waits are facts about this page, which is the property that
+                matters. The failure this replaced was the worst kind of red:
+                real-looking, unreproducible, and not a bug. That is how a suite
+                earns the reputation that gets it ignored.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
                 Lint-time accessibility with eslint-plugin-jsx-a11y
               </h2>
               <p className="text-muted">

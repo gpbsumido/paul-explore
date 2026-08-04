@@ -25,10 +25,67 @@ const ROUTES = [
 ];
 
 test.describe("Public route accessibility", () => {
+  // Pin the theme before anything renders. Every colour on the site comes from
+  // a custom property, and which set is live depends on a preference read at
+  // runtime -- so an unpinned scan races the theme system and intermittently
+  // measures muted text against the other theme's surface. That produced
+  // contrast failures on whichever route happened to lose the race, which is
+  // the worst kind of red: real-looking, unreproducible, and not a bug.
+  // Same mechanism the PR-screenshot workflow already uses.
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem("theme-preference", "dark");
+    });
+  });
+
   for (const route of ROUTES) {
     test(`${route} has no axe violations`, async ({ page }) => {
       await page.goto(route);
-      await page.waitForLoadState("networkidle");
+      // Deliberately not networkidle. These pages poll and fetch from a third
+      // party, so "no requests for 500ms" is a promise about someone else's
+      // infrastructure, not about this page. When stats.nba.com stopped
+      // answering, two of these routes went red with nothing wrong in the diff
+      // -- and a check that fails for reasons unrelated to the change gets
+      // ignored, which is worse than not having it. The page's own main
+      // landmark is what an accessibility scan actually needs.
+      await page.waitForLoadState("load");
+      await page.locator("main").first().waitFor({ state: "visible" });
+      // Fonts change computed colours, and axe's contrast rule reads them, so
+      // scanning before they settle reports violations that do not exist.
+      await page.evaluate(() => document.fonts.ready);
+      // Same reasoning, one layer down. Every colour on the page comes from a
+      // custom property, and the theme that defines them is applied by script.
+      // Scanning first reports every muted and foreground element as failing
+      // contrast at once -- which is the tell, because if the foreground token
+      // really failed the app would be unreadable rather than slightly off.
+      await page.waitForFunction(() => {
+        const root = document.documentElement;
+        if (!root.dataset.theme) return false;
+        const fg = getComputedStyle(root)
+          .getPropertyValue("--color-foreground")
+          .trim();
+        return fg.length > 0;
+      });
+      // And once more for anything still fading in. A contrast rule reads the
+      // colour as it is at that instant, so an element mid-transition measures
+      // against a background it is only passing through. Waiting for the
+      // page's own animations to finish is still a fact about this page, which
+      // is the property that matters -- unlike networkidle, nothing here
+      // depends on a third party answering.
+      await page
+        .waitForFunction(
+          () =>
+            document
+              .getAnimations()
+              .every((a) => a.playState !== "running"),
+          undefined,
+          { timeout: 5_000 },
+        )
+        .catch(() => {
+          // Some pages animate forever by design (the particle lab). Those are
+          // decorative, so carry on rather than fail a scan on a loop that is
+          // never going to stop.
+        });
       await checkA11y(page, route);
     });
   }

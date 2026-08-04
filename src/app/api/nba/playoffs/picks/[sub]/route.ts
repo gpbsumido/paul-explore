@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { API_URL } from "@/lib/backendFetch";
 
@@ -25,10 +26,12 @@ export async function GET(
     : `username=${encodeURIComponent(identifier)}`;
 
   try {
-    const res = await fetch(
+    const upstreamResult = await fetchUpstream(
       `${API_URL}/api/nba/playoffs/picks/${season}/public?${param}`,
       { next: { revalidate: 60 } },
     );
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
 
     if (!res.ok) {
       return NextResponse.json({ picks: null }, { status: 404 });

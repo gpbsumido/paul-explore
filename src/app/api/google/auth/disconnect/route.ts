@@ -1,3 +1,4 @@
+import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
@@ -20,10 +21,12 @@ export async function DELETE() {
   }
 
   try {
-    const res = await fetch(`${API_URL}/api/google/auth/disconnect`, {
+    const upstreamResult = await fetchUpstream(`${API_URL}/api/google/auth/disconnect`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
     if (!res.ok) {
       console.error("[google BFF] DELETE /auth/disconnect — backend returned", res.status);
       return NextResponse.json({ error: "Failed to disconnect" }, { status: res.status });
