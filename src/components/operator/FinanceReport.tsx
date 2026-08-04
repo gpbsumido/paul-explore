@@ -48,18 +48,30 @@ export default function FinanceReport() {
 
   const { totals, weeks, fees } = data;
 
+  // A payout is only good news when it's positive; a loss shown in green is the
+  // kind of dishonest state the rest of this dashboard avoids.
+  const positive = totals.netPayout >= 0;
+  const payoutCard = positive
+    ? "border-success-300 bg-success-50 dark:border-success-900 dark:bg-success-950/30"
+    : "border-error-300 bg-error-50 dark:border-error-900 dark:bg-error-950/30";
+  const payoutText = positive
+    ? "text-success-700 dark:text-success-400"
+    : "text-error-700 dark:text-error-400";
+
   return (
     <div className="space-y-6">
       {/* Headline totals over the window */}
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-success-300 bg-success-50 p-4 dark:border-success-900 dark:bg-success-950/30">
-          <p className="text-xs font-medium uppercase tracking-wide text-success-700 dark:text-success-400">
+        <div className={`rounded-xl border p-4 ${payoutCard}`}>
+          <p
+            className={`text-xs font-medium uppercase tracking-wide ${payoutText}`}
+          >
             Net payout (8 weeks)
           </p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-success-700 dark:text-success-400">
+          <p className={`mt-1 text-2xl font-bold tabular-nums ${payoutText}`}>
             {formatCAD(totals.netPayout)}
           </p>
-          <p className="text-xs text-success-700/80 dark:text-success-400/80">
+          <p className={`text-xs opacity-80 ${payoutText}`}>
             {totals.transactionCount.toLocaleString()} transactions
           </p>
         </div>

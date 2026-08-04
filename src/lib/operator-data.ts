@@ -164,9 +164,12 @@ function initDataStore(): OperatorDataStore {
     stores.map((s) => [s.id, [...buildActivityList(s.id, 15)]]),
   );
 
-  // Spread ~18 months of sales so the day/week/month/year analytics all have data.
+  // Spread ~18 months of sales so the day/week/month/year analytics all have
+  // data, at a weekly volume a real micro-store actually does — enough that the
+  // finance page's payouts clear the platform fee rather than a trickle that
+  // makes every week look like a loss.
   const salesByStore = new Map<string, Sale[]>(
-    stores.map((s) => [s.id, [...buildSalesList(s.id, 90, 540)]]),
+    stores.map((s) => [s.id, [...buildSalesList(s.id, 900, 540)]]),
   );
 
   // Planogram starts with each item in its own box, then pads to full shelves
