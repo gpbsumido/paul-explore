@@ -342,7 +342,18 @@ export default function OperatorDashboardContent() {
               <ol className="mt-3 space-y-2 text-sm">
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
-                    Aug 2, 2026
+                    Aug 3, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-03-two-causes"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    The same bug twice, for two different reasons
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 3, 2026
                   </span>
                   <a
                     href="#update-2026-08-03-visitor-identity"
@@ -353,7 +364,7 @@ export default function OperatorDashboardContent() {
                 </li>
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
-                    Aug 3, 2026
+                    Aug 2, 2026
                   </span>
                   <a
                     href="#update-2026-08-02-honest-states"
@@ -1308,8 +1319,25 @@ export default function OperatorDashboardContent() {
               <p className="mt-5 text-muted">
                 Everything below is how it got here: the decisions behind each of
                 those, the reasoning I would want to be asked about, the
-                tradeoffs I took knowingly, and the several things I got wrong and
-                had to go back and fix. Newest first.
+                tradeoffs I took knowingly, and the several things I got wrong
+                and had to go back and fix.
+              </p>
+            </section>
+
+            <section
+              id="the-timeline"
+              className="scroll-mt-24 rounded-xl border border-border bg-surface p-5"
+            >
+              <h2 className="text-sm font-semibold text-foreground">
+                Below: the dev-thoughts timeline, in order
+              </h2>
+              <p className="mt-1 text-xs text-muted">
+                It reads in two parts. First the original build write-up &mdash;
+                why the thing exists, how it was put together, and what I already
+                knew was weak when it shipped. Then every dated update since,
+                newest first, each one a thing I changed my mind about or got
+                wrong. The jump list at the top of the page goes straight to any
+                of them.
               </p>
             </section>
 
@@ -1950,6 +1978,51 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
+      <section
+              id="update-2026-08-03-two-causes"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 3, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                The same bug twice, for two different reasons
+              </h2>
+              <p className="text-muted">
+                &ldquo;Turkey Club Sandwich out of stock&rdquo; came back. I had
+                already fixed it, written it up, and moved on. It had two causes
+                and I had fixed one of them.
+              </p>
+              <p className="mt-3 text-muted">
+                The first is the more embarrassing. The API stopped inventing
+                alerts a release ago; this app has its own copy of the seed, and
+                that copy still picked a random message from a fixed list. It is
+                the copy that serves the demo whenever the backend is asleep,
+                which for something anyone can open without an account is most
+                of the time &mdash; so I had fixed the path fewer people take and
+                declared the bug closed. Duplicated logic is a known cost;
+                what I underrated is that fixing one copy feels exactly like
+                fixing the bug.
+              </p>
+              <p className="mt-3 text-muted">
+                The second is that the backend was serving stale rows. Its code
+                was correct and its data predated the fix, because nothing had
+                re-seeded since. A correct migration of behaviour does not
+                migrate the records already written under the old behaviour, and
+                a fix that only applies to future writes will look broken for as
+                long as the old data outlives it. Checking the deployed data
+                found eleven contradictions across six stores.
+              </p>
+              <p className="mt-3 text-muted">
+                Worth stating plainly, since it is the part I would want a
+                reviewer to press on: the reseed job exists, but I have not
+                confirmed it is deployed as a scheduled service, and an earlier
+                note of mine claims the demo data reseeds nightly. If that claim
+                is wrong, this returns on its own. A fix that depends on an
+                unverified cron is a fix with a countdown on it.
+              </p>
+            </section>
+
       <section
               id="update-2026-08-03-visitor-identity"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"

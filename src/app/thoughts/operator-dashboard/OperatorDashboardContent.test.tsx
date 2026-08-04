@@ -389,6 +389,57 @@ describe("OperatorDashboardContent", () => {
     );
   });
 
+  it("says what the two parts below it are, in order", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/Below: the dev-thoughts timeline, in order/);
+    expect(body).toMatch(/First the original build write-up/);
+    expect(body).toMatch(/Then every dated update since,\s+newest first/);
+  });
+
+  it("puts the timeline intro immediately before the original write-up", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body.indexOf("Below: the dev-thoughts timeline")).toBeLessThan(
+      body.indexOf("Why this exists"),
+    );
+  });
+
+  it("dates every timeline row to match the entry it links to", () => {
+    // These drifted: inserting a new entry put its title inside the previous
+    // row, so every title sat against the wrong date and one entry was dated a
+    // day that had not happened yet.
+    const { container } = render(<OperatorDashboardContent />);
+    const rows = container.querySelectorAll("ol li");
+    expect(rows.length).toBeGreaterThan(5);
+
+    const MONTHS: Record<string, string> = { "07": "Jul", "08": "Aug" };
+    for (const row of rows) {
+      const href = row.querySelector("a")?.getAttribute("href") ?? "";
+      const m = href.match(/#update-\d{4}-(\d{2})-(\d{2})/);
+      if (!m) continue;
+      const expected = `${MONTHS[m[1]]} ${Number(m[2])}, 2026`;
+      expect(row.textContent, `row for ${href}`).toContain(expected);
+    }
+  });
+
+  it("orders the timeline newest first", () => {
+    const { container } = render(<OperatorDashboardContent />);
+    const dates = [...container.querySelectorAll("ol li a")]
+      .map((a) => a.getAttribute("href")?.match(/#update-(\d{4}-\d{2}-\d{2})/)?.[1])
+      .filter((d): d is string => Boolean(d));
+
+    expect(dates.length).toBeGreaterThan(5);
+    expect([...dates]).toEqual([...dates].sort().reverse());
+  });
+
+  it("records that one bug had two causes and only one was fixed", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/fixing one copy feels exactly like\s+fixing the bug/);
+    expect(body).toMatch(/a fix with a countdown on it/);
+  });
+
   it("separates the three questions auth actually answers", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

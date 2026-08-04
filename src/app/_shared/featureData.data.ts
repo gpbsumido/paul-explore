@@ -366,6 +366,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#06b6d4",
   },
   {
+    title: "Framework-Agnostic Charts",
+    href: "/thoughts/design-system-charts",
+    preview:
+      "Rebuilding recharts and unovis charts as pure SVG from one dependency-free geometry core — Sparkline, BarChart, DonutChart rendering identically in React and Angular, with a token palette and role=img a11y",
+    color: "#8b5cf6",
+  },
+  {
     title: "Accessibility",
     href: "/thoughts/accessibility",
     preview:
