@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 4, 2026
                   </span>
                   <a
+                    href="#update-2026-08-04-search"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Find anything, and the keyboard problem underneath it
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-04-shrink"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -2030,6 +2041,91 @@ export default function OperatorDashboardContent() {
                 stable dependencies. Both were acceptable at demo scale but
                 would have been real problems at fleet size, so fixing them
                 early was the right call.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-search"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Find anything, and the keyboard problem underneath it
+              </h2>
+              <p className="text-muted">
+                Micromart&apos;s platform has a global search &mdash; find any
+                store, product, cabinet or promotion from one box, fast. An
+                operator running thirty stores does not want to scroll a grid to
+                reach one; they want to type three letters and be there. So the
+                fourth stacked feature is a quick-search at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /operator/search
+                </code>{" "}
+                over stores, fleet products and the operator tools themselves.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The ranker is small on purpose
+              </h3>
+              <p className="text-muted">
+                No search library. The whole matcher is a scoring function: a
+                prefix beats a word-boundary hit beats any substring beats a
+                loose subsequence, and a match in the category or status counts
+                for a fraction, never enough to outrank a real hit on the name.
+                That last tier &mdash; subsequence &mdash; is what makes fast
+                typing feel right: &ldquo;cbc&rdquo; finds Cold Brew Coffee
+                because the letters appear in order, even though it is nobody&apos;s
+                substring. A dependency would have done the same thing less
+                legibly, and this is thirty lines I can test exhaustively.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where the accessibility actually lives
+              </h3>
+              <p className="text-muted">
+                A search box that only works with a mouse is half a feature, and
+                the honest version of keyboard support here is the ARIA combobox
+                pattern, which has a counter-intuitive core: as you arrow through
+                the results, focus never leaves the input. The input carries{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-activedescendant
+                </code>{" "}
+                pointing at the highlighted option, so a screen reader announces
+                the moving selection while the caret stays put and you can keep
+                typing. It is the right pattern precisely because the naive one
+                &mdash; moving DOM focus onto each result &mdash; breaks the
+                moment the user types another character.
+              </p>
+              <p className="mt-3 text-muted">
+                That same fact settled a lint complaint honestly rather than by
+                reflex. The result rows have a mouse click but no key handler,
+                which the accessibility linter flags. The reflex is to bolt a key
+                handler onto each row; the truth is that focus never lands on a
+                row, so a key handler there could never fire &mdash; the keyboard
+                lives on the input, where it belongs. So the rule is suppressed
+                on that line with a comment saying exactly why, which is the
+                difference between silencing a warning and answering it.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                A component that cannot navigate
+              </h3>
+              <p className="text-muted">
+                The combobox has no idea what a route is. It ranks, highlights,
+                and calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  onSelect
+                </code>{" "}
+                with the chosen item; a thin page wrapper is the only thing that
+                turns a pick into a route change. That split is not ceremony. It
+                means the component tests drive real keystrokes &mdash; type,
+                arrow, enter &mdash; and assert the callback fires with the right
+                target, with no router to mock and no navigation to stub. The one
+                integration seam that needs a router is ten lines that barely do
+                anything, and everything interesting is tested without it. Four
+                stacked pull requests now, each a piece an operator would
+                actually open.
               </p>
             </section>
       <section
