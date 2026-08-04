@@ -12,6 +12,7 @@ import {
 } from "@/lib/operator-schemas";
 import { plannerBenchmarksResponseSchema } from "@/lib/operator-planner";
 import { productPerformanceResponseSchema } from "@/lib/operator-product-performance";
+import { fleetShrinkResponseSchema } from "@/lib/operator-shrink";
 import { z } from "zod";
 
 function makeRequest(
@@ -563,6 +564,35 @@ describe("GET /api/operator/product-performance", () => {
     const res = await GET(makeRequest("/api/operator/product-performance?range=decade"));
     const body = await res.json();
     expect(body.days).toBe(30);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/shrink-summary
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/shrink-summary", () => {
+  it("returns a schema-valid fleet shrink payload with seeded count history", async () => {
+    const { GET } = await import("@/app/api/operator/shrink-summary/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = fleetShrinkResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    // The seed ships completed restock counts, so there is shrink to report.
+    expect(body.stores.length).toBeGreaterThan(0);
+    expect(body.totals.countedLines).toBeGreaterThan(0);
+    expect(body.totals.unexplainedUnits).toBeGreaterThan(0);
+  });
+
+  it("ranks stores worst-first by unexplained shrink value", async () => {
+    const { GET } = await import("@/app/api/operator/shrink-summary/route");
+    const body = await (await GET()).json();
+    const values = body.stores.map(
+      (s: { unexplainedValue: number }) => s.unexplainedValue,
+    );
+    const sorted = [...values].sort((a, b) => b - a);
+    expect(values).toEqual(sorted);
   });
 });
 

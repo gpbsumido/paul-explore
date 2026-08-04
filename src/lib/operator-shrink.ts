@@ -14,6 +14,8 @@
 // take explicit inputs, all round money to cents.
 // ---------------------------------------------------------------------------
 
+import { z } from "zod";
+
 /** One reconciled restock line: what was expected, counted, and pulled. */
 export type ShrinkLineInput = {
   itemId: string;
@@ -156,3 +158,27 @@ export function fleetShrink(
 
   return { stores: ranked, totals };
 }
+
+/** Runtime shape of a shrink summary, for validating the API response. */
+export const shrinkSummarySchema = z.object({
+  unexplainedUnits: z.number().min(0),
+  unexplainedValue: z.number().min(0),
+  explainedUnits: z.number().min(0),
+  explainedValue: z.number().min(0),
+  explainedByReason: z.record(z.string(), z.number()),
+  countedLines: z.number().int().min(0),
+  notCountedLines: z.number().int().min(0),
+});
+
+/** The fleet shrink endpoint response: per-store summaries plus fleet totals. */
+export const fleetShrinkResponseSchema = z.object({
+  stores: z.array(
+    shrinkSummarySchema.extend({
+      storeId: z.string(),
+      storeName: z.string(),
+    }),
+  ),
+  totals: shrinkSummarySchema,
+});
+
+export type FleetShrinkResponse = z.infer<typeof fleetShrinkResponseSchema>;

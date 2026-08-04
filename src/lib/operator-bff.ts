@@ -22,6 +22,7 @@ import {
   fleetProductPerformance,
   type ProductPerformanceRow,
 } from "@/lib/operator-product-performance";
+import { fleetShrink, type FleetShrink } from "@/lib/operator-shrink";
 import type {
   Store,
   InventoryItem,
@@ -208,6 +209,31 @@ export async function loadProductPerformance(
   const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
   const items = stores.flatMap((store) => seed.getInventory(store.id) ?? []);
   return fleetProductPerformance(items, sales, days, new Date());
+}
+
+/**
+ * Fleet-wide shrink: reconciles every store's completed restock counts into
+ * unexplained shrink versus reasoned loss, valued at each item's price.
+ *
+ * Same coarse-rollup tradeoff as the other fleet aggregations here: it walks the
+ * seed's completed sessions rather than proxying, and a production build would
+ * compute it in SQL in the API.
+ */
+export async function loadFleetShrink(): Promise<FleetShrink> {
+  const inputs = seed.getStores().map((store) => {
+    const inventory = seed.getInventory(store.id) ?? [];
+    const priceByItemId: Record<string, number> = {};
+    for (const item of inventory) priceByItemId[item.id] = item.price;
+
+    const lines = seed
+      .listRestockSessions(store.id)
+      .filter((session) => session.completedAt !== null)
+      .flatMap((session) => seed.getRestockLines(session.id));
+
+    return { storeId: store.id, storeName: store.name, lines, priceByItemId };
+  });
+
+  return fleetShrink(inputs);
 }
 
 /**
