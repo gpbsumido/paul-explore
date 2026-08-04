@@ -445,30 +445,30 @@ export default function HeaderMenu({
                   </svg>
                   Operator Demo
                 </Link>
-                {isLoggedIn && (
-                  <Link
-                    href="/vitals"
-                    onClick={() => setOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
+                {/* Web Vitals is public — site-wide aggregate metrics, no login
+                    needed — so the link shows for everyone, signed in or not. */}
+                <Link
+                  href="/vitals"
+                  onClick={() => setOpen(false)}
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-muted transition-colors hover:bg-foreground/5 hover:text-foreground"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
-                    >
-                      <rect x="2" y="3" width="20" height="14" rx="2" />
-                      <path d="M8 21h8M12 17v4" />
-                      <path d="M7 10h2M11 10h2M15 10h2" />
-                    </svg>
-                    Web Vitals
-                  </Link>
-                )}
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                    <path d="M7 10h2M11 10h2M15 10h2" />
+                  </svg>
+                  Web Vitals
+                </Link>
                 <div className="mx-1 my-2 border-t border-border" />
                 <Link
                   href="/resume"
