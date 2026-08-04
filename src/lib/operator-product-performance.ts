@@ -143,7 +143,3 @@ export const productPerformanceResponseSchema = z.object({
   days: z.number().int().positive(),
   products: z.array(productPerformanceRowSchema),
 });
-
-export type ProductPerformanceResponse = z.infer<
-  typeof productPerformanceResponseSchema
->;
