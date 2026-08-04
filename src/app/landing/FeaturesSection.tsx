@@ -269,10 +269,10 @@ export default function FeaturesSection() {
           <FeatureCard
             icon={<IconPulse />}
             title="Web Vitals Dashboard"
-            description="Real-user Core Web Vitals collected via sendBeacon, aggregated as P75 in Postgres, and displayed on a protected dashboard."
+            description="Real-user Core Web Vitals collected via sendBeacon, aggregated as P75 in Postgres, and displayed on a public dashboard."
             transition={transition}
             featureToken="--color-feature-vitals"
-            href="/auth/login"
+            href="/vitals"
           />
           <FeatureCard
             icon={<IconSocial />}

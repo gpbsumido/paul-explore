@@ -819,6 +819,59 @@ const selectedVersion = urlVersion ?? versions[0];`}
                 wrapper so they reserve the same space.
               </p>
             </section>
+
+            <section>
+              <h2 className="mb-3 text-lg font-bold">
+                Update, Aug 2026: it&rsquo;s public now
+              </h2>
+              <p className="text-muted">
+                For a long time this dashboard sat behind a login, and this
+                write-up above describes it that way — the page redirected
+                signed-out visitors, and the BFF routes forwarded a JWT that the
+                backend&rsquo;s{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  checkJwt
+                </code>{" "}
+                verified like any protected route. That never sat right with me,
+                because the data here isn&rsquo;t personal: it&rsquo;s the
+                site-wide P75 for every visitor&rsquo;s page loads, aggregated.
+                There&rsquo;s nothing in it that belongs to any one account, so
+                gating it only made it harder to look at and easy to describe
+                inconsistently — the menu link showed only when you were logged
+                in, half the copy called it &ldquo;protected,&rdquo; and the
+                other half called it &ldquo;site-wide.&rdquo;
+              </p>
+              <p className="mt-3 text-muted">
+                So Web Vitals is public now, and it is not auth-gated anywhere.
+                The proxy no longer redirects{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /vitals
+                </code>{" "}
+                — that gate lives in a small{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  isSessionProtectedPath
+                </code>{" "}
+                helper that lists only{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /settings
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /calendar
+                </code>
+                . The page and the BFF routes still forward a token when the
+                visitor has one, but they no longer require it — a signed-out
+                request just goes through unauthenticated, and the menu shows the
+                link to everyone. The one thing that has to follow is the backend:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /api/vitals/summary
+                </code>{" "}
+                and its siblings still verify the JWT, so until that side opens
+                up too, a signed-out visitor sees the dashboard shell with the
+                numbers empty rather than the full picture. Graceful, but the
+                real fix is both halves.
+              </p>
+            </section>
     </ThoughtLayout>
   );
 }

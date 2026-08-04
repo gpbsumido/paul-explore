@@ -402,7 +402,7 @@ export default function AccessibilityContent() {
                 all run automatically in CI
               </Sent>
               <Sent pos="last">
-                for authenticated routes (calendar, vitals, settings), E2E axe
+                for authenticated routes (calendar, settings), E2E axe
                 scans need real Auth0 credentials. those run locally via npm run
                 test:e2e:auth, not in CI for forks
               </Sent>

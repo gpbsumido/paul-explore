@@ -161,7 +161,7 @@ type Props = VitalsResponse & {
 };
 
 /**
- * Protected vitals dashboard. Shows five metric cards at the top (global P75
+ * Public vitals dashboard. Shows five metric cards at the top (global P75
  * per metric) and a page-by-page breakdown table below.
  *
  * All data comes from the server component so there's no client-side fetch —
