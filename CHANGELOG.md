@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-04 - version 3.11.0
+
+- **Itemized CSV export on the product performance page.** A "Download CSV" button exports the current range's per-product numbers — product, category, units, daily rate, revenue, category index — as a spreadsheet an operator can hand to a bookkeeper. Mirrors MicroMart's itemized sales export.
+- **The escaping is tested, not trusted.** A small RFC-4180 `toCsv` serializer wraps any field with a comma, quote or newline in quotes and doubles the inner quotes, because the failure mode of a naive join is a comma in a product name silently shifting every column after it. Five tests pin the escaping; the download itself is a Blob and an anchor click.
+
 ## 2026-08-04 - version 3.10.0
 
 - **An operator finance view.** New `/operator/finance` page with weekly payout history reconciled from real sales: gross revenue, transaction count, the fees, and the net that actually lands, newest week first. Reached from a "Finance" link on the fleet page. Mirrors MicroMart's Finance page (payout history + fee transparency).
