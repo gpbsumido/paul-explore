@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 4, 2026
                   </span>
                   <a
+                    href="#update-2026-08-04-review-fixes"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Reviewing my own work, and fixing what the review found
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-04-live-backend"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -2074,6 +2085,104 @@ export default function OperatorDashboardContent() {
                 stable dependencies. Both were acceptable at demo scale but
                 would have been real problems at fleet size, so fixing them
                 early was the right call.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-review-fixes"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Reviewing my own work, and fixing what the review found
+              </h2>
+              <p className="text-muted">
+                After wiring the features to the real backend I went back over the
+                whole thing the way I&apos;d review someone else&apos;s stack, and
+                it turned up real problems &mdash; some of which I&apos;d shipped.
+                Writing them down is only worth anything if the ones that can be
+                fixed get fixed, so here is what I found and what I did about it.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The shrink report was blank against the real backend
+              </h3>
+              <p className="text-muted">
+                The worst one. The shrink report reconciles completed restock
+                counts, the app&apos;s seed generates them, and the{" "}
+                <em>database</em> seed did not &mdash; only stores, inventory,
+                sales and alerts. So the feature I&apos;d done the most groundwork
+                for rendered a perfectly honest empty page against the very
+                backend I&apos;d just built for it, while showing rich data on the
+                seed fallback. A feature that only works on the fallback is not
+                wired up. The API&apos;s seed builder now generates the same
+                completed-session history the app does &mdash; a shortfall, a
+                reasoned removal, a skipped count, a clean count, scaled per store
+                &mdash; and two tests pin that the seed carries real unexplained
+                shrink to find.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The same arithmetic in two repos, and nothing checking it agreed
+              </h3>
+              <p className="text-muted">
+                To make the live numbers equal the seed ones I&apos;d mirrored the
+                app&apos;s models into the API by hand. That is a deliberate
+                duplication with a precedent here, but the precedent came with a
+                test pinning the copies agree, and I hadn&apos;t written one. The
+                only thing that would have caught a drift was the heavy
+                live-backend E2E. So both repos now carry a parity test that runs
+                the same canonical scenarios against the same expected outputs,
+                the literals identical on both sides. Change a formula in one repo
+                and its parity test fails against the shared expectation, in
+                milliseconds instead of a ten-minute browser run. The honest fix
+                for the duplication is one shared package; the parity test is the
+                cheaper guard that buys most of the safety today, and I said so.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two smaller things the review caught
+              </h3>
+              <p className="text-muted">
+                Six of the seven stacked frontend PRs were getting no CI at all,
+                because this app&apos;s workflow only triggers on pull requests
+                into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  develop
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  main
+                </code>
+                , and a stacked PR targets a feature branch. The API repo already
+                triggers on every branch; the app now does too. And the
+                product-performance loader had been mapping a range id to a day
+                count and back to call the API, which is lossy the moment a
+                caller passes a window that isn&apos;t 7, 30 or 90 &mdash; it
+                passes the range id straight through now, so the two sides
+                can&apos;t disagree on what &ldquo;30d&rdquo; means.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I deliberately did not &ldquo;fix&rdquo;
+              </h3>
+              <p className="text-muted">
+                Not every finding wants code. The platform fee assumes one unit
+                per store because there is no unit count in the schema; a
+                migration to add one is more machinery than a demo&apos;s fee
+                nuance earns, so I made the assumption an explicit, named constant
+                in both repos and left it at that &mdash; honest and one line to
+                change later, rather than gold-plated now. Revenue Protect stays
+                out until there is failed-transaction data to reconcile it from.
+                &ldquo;Average sold per day&rdquo; stays units-over-window until
+                there is stock-availability history to make it units-while-in-stock.
+                The shrink query loads raw lines and groups in the app, which is
+                fine at demo scale and worth pushing into SQL only at fleet scale.
+                And the stack ended up seven deep for features that are mostly
+                independent &mdash; a structure I&apos;d avoid next time, but not
+                one worth unpicking after the fact. Knowing which findings to
+                leave documented is the other half of a review.
               </p>
             </section>
       <section

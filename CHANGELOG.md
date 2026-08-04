@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-04 - version 3.13.0
+
+- **Fixed what a review of the live-backend work turned up.** A cross-repo parity test now pins that the app's aggregation models and portfolio_api's copies compute the same numbers — the same canonical scenarios asserted against identical expected outputs in both repos, so a formula drift fails in milliseconds instead of only in the heavy live-backend E2E. The product-performance loader passes the range id straight to the API instead of mapping it to a day count and back (lossy for any non-standard window). And the finance platform-fee's "one unit per store" assumption is now an explicit named constant rather than a bare `storeCount` multiply, since a store's hardware count isn't modelled yet.
+- **Wrote the review up honestly.** The operator dev-notes page records the whole pass: the shrink report that rendered blank against the real backend (its DB seed had no completed sessions — fixed in portfolio_api), the duplicated arithmetic with no agreement test, the stacked PRs that got no CI, and the findings I deliberately left as documented tradeoffs rather than over-building for a demo.
+
 ## 2026-08-04 - version 3.12.0
 
 - **The five fleet features now read the real backend.** The planner benchmarks, product performance, shrink report, quick-search and finance all computed their numbers in the BFF from the in-memory seed and never called the API. Their loaders now try the live `portfolio_api` endpoints first and fall back to the seed on any failure — the same live-first-with-fallback pattern every other operator read already uses. Paired with portfolio_api's `ps/operator-live-aggregations`, which adds the SQL behind them; the app degrades gracefully until that deploys, so the two can ship in either order.
