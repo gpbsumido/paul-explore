@@ -233,7 +233,7 @@ function buildRestockHistory(
   const now = Date.now();
   const DAY = 24 * 60 * 60 * 1000;
 
-  for (const store of stores) {
+  stores.forEach((store, storeIdx) => {
     const inventory = (inventoryByStore.get(store.id) ?? []).slice(
       0,
       HISTORY_SLOTS_PER_SESSION,
@@ -261,7 +261,10 @@ function buildRestockHistory(
 
         if (bucket === 0) {
           // Unexplained shrink: stock the system expected but wasn't there.
-          countedQty = Math.max(0, expectedQty - (1 + (i % 2)));
+          // Scaled by the store's index so the fleet has a real worst-first
+          // ranking rather than every store leaking the same amount.
+          const missing = Math.min(expectedQty, 1 + storeIdx + (i % 2));
+          countedQty = Math.max(0, expectedQty - missing);
         } else if (bucket === 1) {
           // Reasoned removal: a logged, explained loss.
           removed = 1 + (i % 2);
@@ -290,7 +293,7 @@ function buildRestockHistory(
 
       lines.set(sessionId, sessionLines);
     });
-  }
+  });
 
   return { sessions, lines };
 }
