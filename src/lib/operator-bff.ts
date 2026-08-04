@@ -194,10 +194,22 @@ export async function loadSalesAnalytics(
  * the other aggregations, the same way fleet sales analytics already is.
  */
 export async function loadPlannerBenchmarks(): Promise<FleetBenchmarks | null> {
-  const sales = seed
-    .getStores()
-    .flatMap((store) => seed.getSales(store.id) ?? []);
-  return fleetBenchmarks(sales);
+  try {
+    return await api.fetchPlannerBenchmarks();
+  } catch (err) {
+    noteFallback("loadPlannerBenchmarks", err);
+    const sales = seed
+      .getStores()
+      .flatMap((store) => seed.getSales(store.id) ?? []);
+    return fleetBenchmarks(sales);
+  }
+}
+
+/** The range id the live product-performance endpoint expects for a day window. */
+function rangeForDays(days: number): string {
+  if (days === 7) return "7d";
+  if (days === 90) return "90d";
+  return "30d";
 }
 
 /**
@@ -211,10 +223,15 @@ export async function loadPlannerBenchmarks(): Promise<FleetBenchmarks | null> {
 export async function loadProductPerformance(
   days: number,
 ): Promise<readonly ProductPerformanceRow[]> {
-  const stores = seed.getStores();
-  const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
-  const items = stores.flatMap((store) => seed.getInventory(store.id) ?? []);
-  return fleetProductPerformance(items, sales, days, new Date());
+  try {
+    return await api.fetchProductPerformance(rangeForDays(days));
+  } catch (err) {
+    noteFallback("loadProductPerformance", err);
+    const stores = seed.getStores();
+    const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
+    const items = stores.flatMap((store) => seed.getInventory(store.id) ?? []);
+    return fleetProductPerformance(items, sales, days, new Date());
+  }
 }
 
 /**
@@ -226,20 +243,25 @@ export async function loadProductPerformance(
  * compute it in SQL in the API.
  */
 export async function loadFleetShrink(): Promise<FleetShrink> {
-  const inputs = seed.getStores().map((store) => {
-    const inventory = seed.getInventory(store.id) ?? [];
-    const priceByItemId: Record<string, number> = {};
-    for (const item of inventory) priceByItemId[item.id] = item.price;
+  try {
+    return await api.fetchShrinkSummary();
+  } catch (err) {
+    noteFallback("loadFleetShrink", err);
+    const inputs = seed.getStores().map((store) => {
+      const inventory = seed.getInventory(store.id) ?? [];
+      const priceByItemId: Record<string, number> = {};
+      for (const item of inventory) priceByItemId[item.id] = item.price;
 
-    const lines = seed
-      .listRestockSessions(store.id)
-      .filter((session) => session.completedAt !== null)
-      .flatMap((session) => seed.getRestockLines(session.id));
+      const lines = seed
+        .listRestockSessions(store.id)
+        .filter((session) => session.completedAt !== null)
+        .flatMap((session) => seed.getRestockLines(session.id));
 
-    return { storeId: store.id, storeName: store.name, lines, priceByItemId };
-  });
+      return { storeId: store.id, storeName: store.name, lines, priceByItemId };
+    });
 
-  return fleetShrink(inputs);
+    return fleetShrink(inputs);
+  }
 }
 
 /**
@@ -249,26 +271,31 @@ export async function loadFleetShrink(): Promise<FleetShrink> {
  * production build would expose a dedicated search endpoint.
  */
 export async function loadSearchIndex(): Promise<SearchIndexResponse> {
-  const stores = seed.getStores();
+  try {
+    return await api.fetchSearchIndex();
+  } catch (err) {
+    noteFallback("loadSearchIndex", err);
+    const stores = seed.getStores();
 
-  const seenProduct = new Set<string>();
-  const products: SearchIndexResponse["products"] = [];
-  for (const store of stores) {
-    for (const item of seed.getInventory(store.id) ?? []) {
-      if (seenProduct.has(item.productName)) continue;
-      seenProduct.add(item.productName);
-      products.push({ name: item.productName, category: item.category });
+    const seenProduct = new Set<string>();
+    const products: SearchIndexResponse["products"] = [];
+    for (const store of stores) {
+      for (const item of seed.getInventory(store.id) ?? []) {
+        if (seenProduct.has(item.productName)) continue;
+        seenProduct.add(item.productName);
+        products.push({ name: item.productName, category: item.category });
+      }
     }
-  }
 
-  return {
-    stores: stores.map((store) => ({
-      id: store.id,
-      name: store.name,
-      status: store.status,
-    })),
-    products,
-  };
+    return {
+      stores: stores.map((store) => ({
+        id: store.id,
+        name: store.name,
+        status: store.status,
+      })),
+      products,
+    };
+  }
 }
 
 /**
@@ -277,10 +304,15 @@ export async function loadSearchIndex(): Promise<SearchIndexResponse> {
  * from the seed, the same tradeoff as the other fleet rollups.
  */
 export async function loadFinance(): Promise<FinanceResponse> {
-  const stores = seed.getStores();
-  const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
-  const { weeks, totals } = summarizeFinance(sales, stores.length, new Date());
-  return { weeks: [...weeks], totals, fees: FEE_MODEL };
+  try {
+    return await api.fetchFinance();
+  } catch (err) {
+    noteFallback("loadFinance", err);
+    const stores = seed.getStores();
+    const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
+    const { weeks, totals } = summarizeFinance(sales, stores.length, new Date());
+    return { weeks: [...weeks], totals, fees: FEE_MODEL };
+  }
 }
 
 /**
