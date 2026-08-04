@@ -342,6 +342,17 @@ export default function OperatorDashboardContent() {
               <ol className="mt-3 space-y-2 text-sm">
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-planner"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Planning a location before buying it
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
                     Aug 3, 2026
                   </span>
                   <a
@@ -1997,6 +2008,146 @@ export default function OperatorDashboardContent() {
                 stable dependencies. Both were acceptable at demo scale but
                 would have been real problems at fleet size, so fixing them
                 early was the right call.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-planner"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Planning a location before buying it
+              </h2>
+              <p className="text-muted">
+                I went back through Micromart&apos;s site the way a competitor
+                would, listing everything they ship that this dashboard does not,
+                and one gap stood out as pure frontend: the payback calculator on
+                their pricing page. Every other gap needed a backend I don&apos;t
+                have &mdash; team roles, a payout ledger, an AR visualiser. This
+                one is the first question a real operator asks before opening
+                store number six: will it pay for itself, and how fast. So I
+                built it. A new{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /operator/planner
+                </code>{" "}
+                page: foot traffic and conversion drive orders, a basket size and
+                price drive revenue, a margin and the platform&apos;s fees drive
+                profit, and the payback period falls out of hardware cost over
+                monthly net profit. Move a slider, the whole projection moves.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The model is one pure function, and it can refuse to answer
+              </h3>
+              <p className="text-muted">
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  projectLocation
+                </code>{" "}
+                takes the six inputs and returns every figure derived, nothing
+                stored, so there is no second ledger of numbers to drift out of
+                sync with the sliders. The one part I care about is the payback
+                field: it is a number, or it is null. When net profit after the
+                platform fee and the per-order transaction cut is zero or
+                negative, the hardware never earns itself back, and the honest
+                thing is to say exactly that rather than print a payback of 900
+                months that reads like a real estimate. That is the same rule the
+                rest of this dashboard already holds to &mdash; a zero is a claim,
+                and so is a fabricated month count.
+              </p>
+              <p className="mt-3 text-muted">
+                I also capped margin at 100%. Their calculator lets it run to
+                120%, but a gross margin above total revenue is not a margin, so
+                mine clamps and I wrote down why. Copying a competitor&apos;s
+                input range is not the same as copying a correct one.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Defaults from the real fleet, and the compromise in where I
+                computed them
+              </h3>
+              <p className="text-muted">
+                A calculator full of round-number defaults invites the reader to
+                distrust it, so the planner offers the fleet&apos;s own averages:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GET /api/operator/planner/benchmarks
+                </code>{" "}
+                derives the mean basket price and items per order from real sales
+                history. This is the backend part, and I made a deliberate
+                compromise in it. Every other read here proxies a single
+                store through to the API; a benchmark is one coarse fleet-wide
+                number, and fanning a read out per store to build it would be N
+                calls for a single average. So I aggregate it in the BFF instead.
+                A production version would compute it in SQL in the API next to
+                the fleet sales aggregation that already lives there, and I said
+                so in the code rather than pretending the BFF is where this
+                belongs. It is offered as a nudge, not forced &mdash; a shared
+                link keeps the sender&apos;s numbers and never overwrites them.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The libraries I reached for, and the ones I did not
+              </h3>
+              <p className="text-muted">
+                The payback bar is a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  div
+                </code>{" "}
+                with a width and a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  role=&quot;img&quot;
+                </code>{" "}
+                label, not a chart component; one value against a fixed horizon
+                does not need a charting runtime, and adding one would have been
+                weight for nothing. No date library, because there is no date
+                math here, only arithmetic. I did keep react-query for the single
+                benchmarks call, not because one fetch needs it but because
+                matching how every other read in this dashboard works buys the
+                caching and dedup for free and costs the next reader no surprise.
+                And the shareable-link state uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  history.replaceState
+                </code>{" "}
+                rather than the Next router, which keeps the component free of a
+                router dependency so it tests exactly like the pricing tab does,
+                with no navigation mock, while the URL still carries the whole
+                scenario.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What went wrong, and what it taught me twice
+              </h3>
+              <p className="text-muted">
+                The revenue test hung, and I read the failure as &quot;the value
+                isn&apos;t rendering.&quot; It was rendering &mdash; twice. At one
+                unit, gross revenue per year and revenue per unit per year are the
+                same number, so a bare text query matched two elements and threw
+                inside the retry loop, which looks identical to a value that never
+                appeared. The fix was to scope the assertion to the specific
+                figure, and the lesson was that &quot;not found&quot; and &quot;found
+                more than once&quot; wear the same face in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  waitFor
+                </code>
+                .
+              </p>
+              <p className="mt-3 text-muted">
+                Then my pushes looked like they landed while the remote sat a
+                commit behind, because the tool that filters my command output was
+                swallowing the one line that would have told me. A green &quot;ok&quot;
+                proving nothing is the exact failure this whole page keeps
+                circling, and here it was again in my own workflow. I confirmed
+                the push against the remote ref directly, the way I now check
+                everything I cannot see the raw bytes of.
+              </p>
+              <p className="mt-3 text-muted">
+                The scan turned up more than I built. The loudest thing real
+                operators ask for, across every forum and vendor writing about
+                micro-markets, is not another calculator &mdash; it is theft and
+                shrink: reconciling the count the system reports against the count
+                on the shelf, and a report of what walked. The restock sessions
+                already capture the raw material for it. That is the next one.
               </p>
             </section>
       <section
