@@ -335,6 +335,22 @@ describe("OperatorDashboardContent", () => {
     );
   });
 
+  it("records that a partial fix is indistinguishable from a complete one", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(
+      /a partial fix and a\s+complete one produce identical test output/,
+    );
+    expect(body).toMatch(/A guard nobody has watched fail is just another\s+claim/);
+  });
+
+  it("says why a passing build still has to be read", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/Noise is not a property of output/);
+    expect(body).toMatch(/the next unexpected line is worth the look/);
+  });
+
   it("has a testing section covering every tier", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

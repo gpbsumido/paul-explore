@@ -1251,6 +1251,69 @@ export default function OperatorDashboardContent() {
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The fix that looked like a fix
+              </h3>
+              <p className="text-muted">
+                The mock-registration bug above got repaired, and then turned up
+                again a few days later in a passing build: fifty-four unmatched
+                requests and thirteen silent fallbacks, still there. The repair
+                had used a pattern that only recognised registrations written on
+                a single line, so the four written across several lines kept
+                their bare paths and kept missing.
+              </p>
+              <p className="mt-3 text-muted">
+                What makes this one worth recording is that a partial fix and a
+                complete one produce identical test output. Everything passed
+                before, everything passed after, and the only difference lived
+                in a log nobody had a reason to open. So the registrations are
+                asserted against the source file now &mdash; not against
+                behaviour, because the behaviour is indistinguishable either
+                way.
+              </p>
+              <p className="mt-3 text-muted">
+                The same shape showed up in the dependencies. A suite ran twice
+                against an older build of a package than the manifest asked for,
+                proving a fix that was not installed, and passed both times.
+                That is checked at startup now, with a message naming the fix
+                rather than leaving someone to work out why a green run
+                disagreed with reality.
+              </p>
+              <p className="mt-3 text-muted">
+                Both guards were tested by making them fail on purpose before
+                being trusted, which is the same standard this page applies to
+                everything else. A guard nobody has watched fail is just another
+                claim.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Reading the output, not just the exit code
+              </h3>
+              <p className="text-muted">
+                Every one of those was found by reading a{" "}
+                <em>passing</em> build. The suite carried thirty React warnings
+                about state settling after a test had finished, forty-five lines
+                about a canvas the environment does not implement, and forty-odd
+                unmatched requests, and I had been treating all of it as
+                background.
+              </p>
+              <p className="mt-3 text-muted">
+                It was not background. The React warnings were the visible half
+                of two endpoints with no mock at all. The canvas lines came from
+                a non-null assertion that would have thrown in any browser
+                without 2d support. One unmatched request was a test reaching
+                for a public blockchain node on the open internet, kept off the
+                wire only because the mocker rejects anything it does not
+                recognise.
+              </p>
+              <p className="mt-3 text-muted">
+                Noise is not a property of output. It is a decision to stop
+                reading, made once and then kept, and it is how the original
+                fallback bug survived in plain sight for days. The run is clean
+                now &mdash; no unmatched requests, no warnings, no environment
+                chatter &mdash; so the next unexpected line is worth the look.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 What is still not covered
               </h3>
               <p className="mt-3 text-muted">

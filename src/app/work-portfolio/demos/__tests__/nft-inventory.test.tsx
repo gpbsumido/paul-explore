@@ -4,6 +4,9 @@ import { render, screen, fireEvent, within, waitFor } from "@testing-library/rea
 import { WagmiProvider, createConfig, http, useConnect } from "wagmi";
 import { mainnet } from "wagmi/chains";
 import { mock } from "wagmi/connectors";
+
+/** Local, unreachable on purpose: the panel renders from wallet state, not chain reads. */
+const TEST_RPC_URL = "http://127.0.0.1:1/rpc";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import type { ReactNode } from "react";
@@ -27,7 +30,13 @@ function renderConnected(ui: ReactNode) {
   const testConfig = createConfig({
     chains: [mainnet],
     connectors: [mock({ accounts: [TEST_ADDRESS] })],
-    transports: { [mainnet.id]: http() },
+    // Explicit local URL. http() with no argument falls back to the chain's
+    // default public RPC, so this suite was firing real eth_call requests at a
+    // third party on every run. Nothing left the machine only because the
+    // request mocker is set to reject unmatched calls -- protection by
+    // accident. A test should not depend on somebody else's uptime, or put
+    // traffic on their infrastructure, and naming the URL makes both obvious.
+    transports: { [mainnet.id]: http(TEST_RPC_URL) },
   });
   const queryClient = new QueryClient();
   return render(
