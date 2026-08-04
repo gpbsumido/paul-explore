@@ -16,6 +16,14 @@ describe("TestTiersContent", () => {
     ).toBeInTheDocument();
   });
 
+  it("records the four ways a suite measured the wrong thing", () => {
+    render(<TestTiersContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/the same mistake keeps arriving in different clothes/);
+    expect(body).toMatch(/A partial fix and a complete one produce identical\s+test output/);
+    expect(body).toMatch(/a guard nobody has seen fail is just another\s+claim/);
+  });
+
   it("warns that a tier can be green for the wrong reason", () => {
     render(<TestTiersContent />);
     const body = document.body.textContent ?? "";

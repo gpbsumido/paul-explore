@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-04 - version 3.4.1
+
+- **Four MSW handlers had been missing since the fix that was supposed to catch them.** Reading a passing CI log showed 54 unhandled requests and 13 silent fallbacks — the same symptom as before, in the four registrations written across several lines rather than one. The earlier repair used a pattern that only saw single-line ones, so planogram, restock lines, session completion and promotions kept their bare paths and kept missing. A partial fix and a complete one produce identical test output, which is why this needed reading a green log to find rather than a red one.
+- **Guards for the mistakes that kept recurring, each proven by making it fail first.** The handler registrations are now asserted against the source file, because the symptom never appears in test results. The installed `@paul-portfolio/*` versions are checked against `package.json`, with a message naming the fix — a suite run against an older build than the manifest asks for passes while proving nothing, and that happened twice. A guard nobody has watched fail is just another claim.
+- **Wrote the pattern up on the tiered-testing page.** Four separate failures in a week, none of them a red build: mocks that never matched, a partial fix that looked complete, dependencies that were not the ones installed, and a browser suite reusing a dev server from another branch. Tiering is about spending test time where it pays; nothing in that idea protects you from measuring the wrong thing carefully.
+
 ## 2026-08-04 - version 3.4.0
 
 - **Adopted the published design system: react 0.5.0, css 0.5.1, tokens 0.2.0.** This needed an explicit bump rather than an install. The dependencies were pinned with a caret on a `0.x` range, and a caret on a zero-major does not cross a minor — so the app would have sat on 0.4.4 indefinitely while appearing to track the package. Verified the published bundle actually carries the Ticker accessibility fix rather than trusting the version number.

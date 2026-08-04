@@ -299,6 +299,69 @@ export default function TestTiersContent() {
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Update: the same mistake keeps arriving in different clothes
+        </h2>
+        <p className="text-muted">
+          A week of this turned up four separate versions of one failure, and
+          none of them showed up as a red build. Every one was a suite passing
+          while measuring something other than what it claimed.
+        </p>
+        <ul className="mt-3 space-y-3 text-muted">
+          <li>
+            <strong className="text-foreground">
+              Handlers that never matched.
+            </strong>{" "}
+            Mocks registered on bare paths, while the code under test called an
+            absolute URL. Nothing matched, the app fell back to seeded data by
+            design, and a file of route tests asserted against fixtures while
+            claiming to cover the API.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              The same bug again, after the fix.
+            </strong>{" "}
+            The repair used a pattern that only saw registrations written on one
+            line, so four written across several lines kept their bare paths for
+            another round. A partial fix and a complete one produce identical
+            test output.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              Dependencies that were not the ones installed.
+            </strong>{" "}
+            A suite run against an older build of a package than the manifest
+            asked for &mdash; proving a fix that was not present. Twice.
+          </li>
+          <li>
+            <strong className="text-foreground">
+              A browser suite reusing a server from another branch.
+            </strong>{" "}
+            The runner is configured to reuse an already-running dev server, so
+            a full pass was reported against code that was not the code under
+            review.
+          </li>
+        </ul>
+        <p className="mt-3 text-muted">
+          What ties them together is that a test run against the wrong inputs
+          does not fail. It passes, which is the only outcome nobody
+          investigates. Tiering is about spending test time where it pays;
+          nothing in that idea protects you from measuring the wrong thing
+          carefully.
+        </p>
+        <p className="mt-3 text-muted">
+          So each one now has a guard that fails loudly rather than a note
+          asking people to remember. Mock registrations are asserted against the
+          source file, since the symptom is invisible in results. The installed
+          package version is checked against the manifest, with a message naming
+          the fix. Live-mode browser runs assert they reached a real database
+          rather than a fixture. Each guard was checked by making it fail on
+          purpose first &mdash; a guard nobody has seen fail is just another
+          claim.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">The principle</h2>
         <p className="text-muted">
           Match test cost to how often the answer changes. Cheap tests that catch
