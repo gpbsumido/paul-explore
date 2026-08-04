@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 4, 2026
                   </span>
                   <a
+                    href="#update-2026-08-04-finance"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    What actually landed, and the fee that ties two features together
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-04-search"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -2041,6 +2052,63 @@ export default function OperatorDashboardContent() {
                 stable dependencies. Both were acceptable at demo scale but
                 would have been real problems at fleet size, so fixing them
                 early was the right call.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-finance"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                What actually landed, and the fee that ties two features together
+              </h2>
+              <p className="text-muted">
+                The fifth stacked feature is finance: weekly payouts at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /operator/finance
+                </code>
+                , reconciled from real sales. Gross revenue is the number an
+                operator already knows; the useful one is what lands after fees,
+                and the useful skill is showing the fees rather than folding them
+                into a single figure. A slow week and an expensive week can net
+                to the same payout, and an operator needs to tell them apart.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                One fee model, two features, no drift
+              </h3>
+              <p className="text-muted">
+                The interesting part is where the fee numbers come from. The
+                location planner already projects payback using a transaction cut
+                and a platform fee; the finance page pays out using the same two.
+                If those lived in two places they would drift, and the planner
+                would quote a return the finance page never delivers. So there is
+                one{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  FEE_MODEL
+                </code>
+                , imported by both. The number you are sold on and the number you
+                are paid are the same number by construction, which is the kind of
+                consistency that is invisible when it holds and infuriating when
+                it doesn&apos;t.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The line I did not fake
+              </h3>
+              <p className="text-muted">
+                Micromart&apos;s finance page has a Revenue Protect line &mdash;
+                money auto-credited back for failed transactions and card
+                declines. I left it out, on purpose. The demo&apos;s sales are all
+                successful sales; there is no record of a decline anywhere in the
+                data, so any &ldquo;protected revenue&rdquo; figure I printed would
+                be a number I invented and dressed as a measurement. That is
+                exactly the thing this whole project refuses to do. Revenue
+                Protect is honest to build the day there is failed-transaction data
+                to reconcile it from, and dishonest to fake before then, so it is a
+                labelled gap rather than a fabricated total.
               </p>
             </section>
       <section
