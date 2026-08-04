@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-04 - version 3.7.0
+
+- **A fleet product-performance view.** New `/operator/products` page ranking every product across the fleet by revenue, with its daily sales rate and an index against its own category average — so a $1 gum is judged against other snacks, not against a sandwich. Reached from a "Product performance" link on the fleet page, with a 7/30/90-day range toggle. Mirrors the "Sales by Product" work on MicroMart's own platform ("Avg Sold" and "Performance vs category").
+- **Dead SKUs stay visible.** Stocked products with no sales in the window are kept in the table and flagged, rather than dropping out of a report that only lists what sold. A report you cut products from has to show you the products worth cutting, and those are exactly the rows a sold-only list hides.
+- **Aggregated behind one endpoint.** `GET /api/operator/product-performance?range=` rolls the whole fleet's sales and inventory into the per-product table in the BFF, the same coarse-rollup tradeoff as the planner benchmarks — a production build would compute it in SQL next to the other fleet aggregations rather than fanning out per store.
+
 ## 2026-08-04 - version 3.6.0
 
 - **A location planner for the operator dashboard.** New `/operator/planner` page that models a new store's revenue and payback before you commit to it: sliders for foot traffic, conversion, basket price, items per order, margin and units, with location/price/product-mix presets, and a projection that recomputes live. It mirrors the payback calculator on MicroMart's own pricing page, but built frontend-first over a pure `projectLocation` model. Reached from a "Plan a location" link on the fleet page.
