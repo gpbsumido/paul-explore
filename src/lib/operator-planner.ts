@@ -274,7 +274,3 @@ export const fleetBenchmarksSchema = z.object({
 export const plannerBenchmarksResponseSchema = z.object({
   benchmarks: fleetBenchmarksSchema.nullable(),
 });
-
-export type PlannerBenchmarksResponse = z.infer<
-  typeof plannerBenchmarksResponseSchema
->;

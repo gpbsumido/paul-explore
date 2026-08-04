@@ -180,5 +180,3 @@ export const fleetShrinkResponseSchema = z.object({
   ),
   totals: shrinkSummarySchema,
 });
-
-export type FleetShrinkResponse = z.infer<typeof fleetShrinkResponseSchema>;
