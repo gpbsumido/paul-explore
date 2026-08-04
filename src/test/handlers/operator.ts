@@ -37,6 +37,13 @@ import {
 /**
  * Handlers must match the URL the BFF actually requests, which is absolute.
  *
+ * All 21 registrations carry the base, including the four written across
+ * several lines. The first pass at this only caught the ones where the path sat
+ * on the same line as the http.* call, so four write endpoints -- planogram,
+ * restock lines, session completion and promotions -- kept their bare paths and
+ * kept missing. A partial fix to this bug looks exactly like a whole one from
+ * the test output, because the tests pass either way.
+ *
  * They used to be registered on bare paths. MSW resolves a relative handler
  * against the document origin, which under jsdom is port 3000, while the BFF
  * calls the API on 3001 -- so nothing matched. With onUnhandledRequest set to
@@ -295,7 +302,7 @@ const handlersFor = (API_BASE: string) => [
 
   // PATCH /api/operator/stores/:id/planogram — reorder or re-sync a slot
   http.patch(
-    "/api/operator/stores/:id/planogram",
+    `${API_BASE}/api/operator/stores/:id/planogram`,
     async ({ params, request }) => {
       await randomDelay();
       const storeId = params.id as string;
@@ -417,7 +424,7 @@ const handlersFor = (API_BASE: string) => [
   }),
 
   http.put(
-    "/api/operator/restock-sessions/:sessionId/lines/:itemId",
+    `${API_BASE}/api/operator/restock-sessions/:sessionId/lines/:itemId`,
     async ({ params, request }) => {
       await randomDelay();
       const sessionId = params.sessionId as string;
@@ -470,7 +477,7 @@ const handlersFor = (API_BASE: string) => [
   ),
 
   http.post(
-    "/api/operator/restock-sessions/:sessionId/complete",
+    `${API_BASE}/api/operator/restock-sessions/:sessionId/complete`,
     async ({ params, request }) => {
       await randomDelay();
       const sessionId = params.sessionId as string;
@@ -539,7 +546,7 @@ const handlersFor = (API_BASE: string) => [
   }),
 
   http.post(
-    "/api/operator/stores/:id/promotions",
+    `${API_BASE}/api/operator/stores/:id/promotions`,
     async ({ params, request }) => {
       await randomDelay();
       const storeId = params.id as string;
