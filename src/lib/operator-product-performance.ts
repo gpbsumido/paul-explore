@@ -7,6 +7,7 @@
 // than vanishing from a report that only lists what sold.
 // ---------------------------------------------------------------------------
 
+import { z } from "zod";
 import type { InventoryItem, Sale } from "@/types/operator";
 
 /** The day windows the performance view can be scoped to. */
@@ -117,3 +118,32 @@ export function fleetProductPerformance(
     (a, b) => b.revenue - a.revenue || a.productName.localeCompare(b.productName),
   );
 }
+
+/** Resolves a range id to its day window, defaulting to 30 days. */
+export function daysForRange(rangeId: string): number {
+  return (
+    PERFORMANCE_RANGES.find((r) => r.id === rangeId)?.days ?? 30
+  );
+}
+
+/** Runtime shape of a performance row, for validating the API response. */
+export const productPerformanceRowSchema = z.object({
+  productName: z.string(),
+  category: z.string(),
+  unitsSold: z.number().int().min(0),
+  revenue: z.number().min(0),
+  avgPerDay: z.number().min(0),
+  performanceIndex: z.number().int().min(0),
+  hasSales: z.boolean(),
+});
+
+/** The product-performance endpoint response. */
+export const productPerformanceResponseSchema = z.object({
+  rangeId: z.string(),
+  days: z.number().int().positive(),
+  products: z.array(productPerformanceRowSchema),
+});
+
+export type ProductPerformanceResponse = z.infer<
+  typeof productPerformanceResponseSchema
+>;
