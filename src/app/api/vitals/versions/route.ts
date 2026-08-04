@@ -5,19 +5,19 @@ import { auth0 } from "@/lib/auth0";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // GET /api/vitals/versions — returns { versions: string[] }
-// auth required (same pattern as /api/vitals GET)
+// Public (same pattern as /api/vitals GET): forwards a token when present,
+// otherwise goes through unauthenticated.
 export async function GET() {
   let token: string | undefined;
   try {
     ({ token } = await auth0.getAccessToken());
-  } catch (err) {
-    console.error("[vitals BFF] GET /versions — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  } catch {
+    token = undefined;
   }
 
   try {
     const upstreamResult = await fetchUpstream(`${API_URL}/api/vitals/versions`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
