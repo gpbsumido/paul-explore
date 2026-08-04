@@ -24,6 +24,11 @@ import {
 } from "@/lib/operator-product-performance";
 import { fleetShrink, type FleetShrink } from "@/lib/operator-shrink";
 import type { SearchIndexResponse } from "@/lib/operator-search";
+import {
+  summarizeFinance,
+  FEE_MODEL,
+  type FinanceResponse,
+} from "@/lib/operator-finance";
 import type {
   Store,
   InventoryItem,
@@ -264,6 +269,18 @@ export async function loadSearchIndex(): Promise<SearchIndexResponse> {
     })),
     products,
   };
+}
+
+/**
+ * Fleet finance: weekly payouts reconciled from every store's sales, with the
+ * fee model surfaced so the breakdown is transparent. Aggregated in the BFF
+ * from the seed, the same tradeoff as the other fleet rollups.
+ */
+export async function loadFinance(): Promise<FinanceResponse> {
+  const stores = seed.getStores();
+  const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
+  const { weeks, totals } = summarizeFinance(sales, stores.length, new Date());
+  return { weeks: [...weeks], totals, fees: FEE_MODEL };
 }
 
 /**

@@ -14,6 +14,7 @@ import { plannerBenchmarksResponseSchema } from "@/lib/operator-planner";
 import { productPerformanceResponseSchema } from "@/lib/operator-product-performance";
 import { fleetShrinkResponseSchema } from "@/lib/operator-shrink";
 import { searchIndexResponseSchema } from "@/lib/operator-search";
+import { financeResponseSchema } from "@/lib/operator-finance";
 import { z } from "zod";
 
 function makeRequest(
@@ -614,6 +615,29 @@ describe("GET /api/operator/search-index", () => {
     // Products are deduped by name.
     const names = body.products.map((p: { name: string }) => p.name);
     expect(new Set(names).size).toBe(names.length);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/finance
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/finance", () => {
+  it("returns a schema-valid finance payload with weekly payouts", async () => {
+    const { GET } = await import("@/app/api/operator/finance/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = financeResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    expect(body.weeks.length).toBe(8);
+    expect(body.fees.transactionRate).toBeGreaterThan(0);
+    // Net payout is gross minus the two fee lines.
+    const w = body.weeks[0];
+    expect(w.netPayout).toBeCloseTo(
+      w.grossRevenue - w.transactionFees - w.platformFees,
+      2,
+    );
   });
 });
 
