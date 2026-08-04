@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 4, 2026
                   </span>
                   <a
+                    href="#update-2026-08-04-live-backend"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    The five features had no backend, so I gave them one
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-04-csv"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -2063,6 +2074,78 @@ export default function OperatorDashboardContent() {
                 stable dependencies. Both were acceptable at demo scale but
                 would have been real problems at fleet size, so fixing them
                 early was the right call.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-live-backend"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                The five features had no backend, so I gave them one
+              </h2>
+              <p className="text-muted">
+                An honest admission first: the five features I&apos;d just built
+                &mdash; the planner, product performance, shrink, search and
+                finance &mdash; all computed their numbers in the BFF from the
+                in-memory seed. Every one carried a comment promising a
+                production build would compute it in SQL, and none of them did.
+                Unlike the reads that came before them, they never even tried the
+                real API; they read the seed directly, with no live path at all.
+                So this pass closes that gap for real, across both repos.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Five SQL endpoints, mirroring the models that already existed
+              </h3>
+              <p className="text-muted">
+                In the API, each feature becomes a grouped query:
+                benchmarks and finance sum sales in one pass, product performance
+                groups by product within a window, shrink joins completed restock
+                lines to their store and the item&apos;s price, search returns
+                stores plus distinct products. The trick was not writing the SQL
+                &mdash; it was making the live numbers equal the seed ones. So the
+                API grew a pure{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aggregations
+                </code>{" "}
+                module that mirrors the app&apos;s pure models line for line, fed
+                by the grouped rows. The database does the fan-in; the same
+                arithmetic shapes the result on both sides, so switching a feature
+                from seed to live cannot change what it shows.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The fallback is what makes it safe to ship in either order
+              </h3>
+              <p className="text-muted">
+                On the app side, each loader stops reading the seed directly and
+                does what every other operator read does: try the API, and on any
+                failure log the fallback and serve the seed. That one pattern is
+                why the two pull requests don&apos;t have to land together. If the
+                app ships first, its loaders 404 against the older API and fall
+                back &mdash; the demo is unchanged. If the API ships first,
+                nothing calls the new routes yet. Only once both are live does the
+                data become real, and no intermediate state is broken. The paired
+                branches share a name, so the app&apos;s live-backend CI builds the
+                matching API branch from source and drives the whole thing against
+                a real Postgres, which is the only tier that ever parses this SQL
+                before production.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The contract is the schema, on both ends
+              </h3>
+              <p className="text-muted">
+                The response shape is not described twice and hoped to match. The
+                API returns it, and the BFF parses it through the exact Zod schema
+                the feature already defined, so a drift in either repo surfaces as
+                a validation error the fallback catches rather than as quietly
+                wrong numbers on a chart. Which is the same lesson this whole page
+                keeps arriving at: a boundary you can&apos;t see is a boundary
+                that&apos;s lying to you, so make it speak.
               </p>
             </section>
       <section
