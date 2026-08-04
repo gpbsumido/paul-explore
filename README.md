@@ -26,11 +26,11 @@ Public (no login). Listed most-to-least prominent, matching the apps order acros
 - Fantasy NBA — [playoffs bracket](https://paulsumido.com/fantasy/nba/playoffs) (public leaderboard), [player stats](https://paulsumido.com/fantasy/nba/player/stats), [league history](https://paulsumido.com/fantasy/nba/league-history), [court vision](https://paulsumido.com/fantasy/nba/court-vision), [matchups](https://paulsumido.com/fantasy/nba/matchups)
 - [Particle Lab](https://paulsumido.com/lab/particles) · [Motion Lab](https://paulsumido.com/lab/motion) — R3F and Framer Motion experiments
 - [Thoughts](https://paulsumido.com/thoughts) — write-ups on design decisions
+- [Web Vitals](https://paulsumido.com/vitals) — real-user Core Web Vitals dashboard; site-wide, non-personal aggregate data, public (no login)
 
 Requires login (redirected to Auth0 by the middleware):
 
 - [Calendar](https://paulsumido.com/calendar) — personal calendar (per-user) with Google Calendar sync; includes events and countdowns
-- [Web Vitals](https://paulsumido.com/vitals) — real-user Core Web Vitals dashboard (site-wide data, visible to any signed-in user)
 - [Settings](https://paulsumido.com/settings)
 
 ---
@@ -101,7 +101,7 @@ pnpm dev
 
 **5. Open [http://localhost:3000](http://localhost:3000)**
 
-TCG browser, Pokédex, and the lab pages work immediately. Calendar and Vitals require a valid Auth0 session.
+TCG browser, Pokédex, Web Vitals, and the lab pages work immediately. Calendar and Settings require a valid Auth0 session.
 
 The operator dashboard works without an account by design, and reads fall back to
 seeded data when the API is unreachable so it stays usable offline. Writes need
