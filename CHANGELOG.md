@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-04 - version 3.10.0
+
+- **An operator finance view.** New `/operator/finance` page with weekly payout history reconciled from real sales: gross revenue, transaction count, the fees, and the net that actually lands, newest week first. Reached from a "Finance" link on the fleet page. Mirrors MicroMart's Finance page (payout history + fee transparency).
+- **Fees shown, not folded in.** The transaction cut (a rate plus a flat amount per sale) and the platform fee are broken out rather than baked into a single number, because an operator who can't see the fees can't tell a slow week from an expensive one. The fee model is the exact one the location planner projects with — imported from one place, so the number you're quoted and the number you're paid can't drift apart.
+- **Aggregated behind one endpoint.** `GET /api/operator/finance` rolls the fleet's sales into weekly payouts in the BFF, the same coarse-rollup tradeoff as the other fleet views.
+
 ## 2026-08-04 - version 3.9.0
 
 - **Operator quick-search.** New `/operator/search` combobox that finds anything across the fleet — stores, products and the operator tools — as you type, keyboard-first. A hand-rolled ranker puts a prefix match above a word-boundary match above any substring above a loose subsequence, so the obvious hit lands first, and it falls back to a subsequence so fast typing still finds things. Reached from a "Search" link on the fleet page. Mirrors MicroMart's "find anything, faster" global search.
