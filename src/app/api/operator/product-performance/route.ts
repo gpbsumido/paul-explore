@@ -9,7 +9,6 @@ import { daysForRange } from "@/lib/operator-product-performance";
  */
 export async function GET(request: NextRequest) {
   const rangeId = request.nextUrl.searchParams.get("range") ?? "30d";
-  const days = daysForRange(rangeId);
-  const products = await loadProductPerformance(days);
-  return NextResponse.json({ rangeId, days, products });
+  const products = await loadProductPerformance(rangeId);
+  return NextResponse.json({ rangeId, days: daysForRange(rangeId), products });
 }

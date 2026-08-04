@@ -46,14 +46,23 @@ function toCents(value: number): number {
 }
 
 /**
- * The platform fee for one week: the monthly per-unit fee, one unit per store,
- * prorated to seven days.
+ * Units per store. The platform fee is charged per unit, but a store's hardware
+ * count isn't modelled anywhere yet, so this assumes one — stated explicitly
+ * rather than hidden inside a bare `storeCount` multiply. When stores can carry
+ * a real unit count, this is the single place that changes (and portfolio_api's
+ * buildFinance mirrors the same assumption). Kept at 1 so the number is honest
+ * about what it currently knows.
+ */
+const UNITS_PER_STORE = 1;
+
+/**
+ * The platform fee for one week: the monthly per-unit fee times the fleet's unit
+ * count, prorated to seven days.
  */
 function weeklyPlatformFee(storeCount: number): number {
+  const units = Math.max(0, storeCount) * UNITS_PER_STORE;
   return toCents(
-    PLATFORM_FEE_PER_UNIT_MONTHLY *
-      Math.max(0, storeCount) *
-      (DAYS_PER_WEEK / DAYS_PER_MONTH),
+    PLATFORM_FEE_PER_UNIT_MONTHLY * units * (DAYS_PER_WEEK / DAYS_PER_MONTH),
   );
 }
 

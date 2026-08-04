@@ -20,6 +20,7 @@ import {
 import { fleetBenchmarks, type FleetBenchmarks } from "@/lib/operator-planner";
 import {
   fleetProductPerformance,
+  daysForRange,
   type ProductPerformanceRow,
 } from "@/lib/operator-product-performance";
 import { fleetShrink, type FleetShrink } from "@/lib/operator-shrink";
@@ -205,32 +206,29 @@ export async function loadPlannerBenchmarks(): Promise<FleetBenchmarks | null> {
   }
 }
 
-/** The range id the live product-performance endpoint expects for a day window. */
-function rangeForDays(days: number): string {
-  if (days === 7) return "7d";
-  if (days === 90) return "90d";
-  return "30d";
-}
-
 /**
- * Fleet-wide product performance over a day window: per-product units, revenue,
- * daily rate and a category-relative index across the whole fleet.
+ * Fleet-wide product performance over a range (7d/30d/90d): per-product units,
+ * revenue, daily rate and a category-relative index across the whole fleet.
+ *
+ * Takes the range id straight through to the live endpoint rather than mapping
+ * to a day count and back, so the two can't disagree on what "30d" means. The
+ * seed fallback resolves the range to a window locally.
  *
  * Aggregated here from the fleet's sales and inventory, the same tradeoff as the
  * planner benchmarks: it is one cross-store rollup, and a per-store fan-out to
  * build it would be N calls where a production API would compute it in SQL.
  */
 export async function loadProductPerformance(
-  days: number,
+  rangeId: string,
 ): Promise<readonly ProductPerformanceRow[]> {
   try {
-    return await api.fetchProductPerformance(rangeForDays(days));
+    return await api.fetchProductPerformance(rangeId);
   } catch (err) {
     noteFallback("loadProductPerformance", err);
     const stores = seed.getStores();
     const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
     const items = stores.flatMap((store) => seed.getInventory(store.id) ?? []);
-    return fleetProductPerformance(items, sales, days, new Date());
+    return fleetProductPerformance(items, sales, daysForRange(rangeId), new Date());
   }
 }
 
