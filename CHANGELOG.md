@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-04 - version 3.9.0
+
+- **Operator quick-search.** New `/operator/search` combobox that finds anything across the fleet — stores, products and the operator tools — as you type, keyboard-first. A hand-rolled ranker puts a prefix match above a word-boundary match above any substring above a loose subsequence, so the obvious hit lands first, and it falls back to a subsequence so fast typing still finds things. Reached from a "Search" link on the fleet page. Mirrors MicroMart's "find anything, faster" global search.
+- **Built to the ARIA combobox pattern.** The input owns `aria-activedescendant`, so arrow keys move the highlighted result without ever pulling focus off the field, and enter jumps you there. Selection is handed up through an `onSelect` callback, so the combobox itself carries no navigation dependency and the one place a pick becomes a route change is the page wrapper — which is also what keeps the component testable without a router.
+- **One small index endpoint.** `GET /api/operator/search-index` returns the stores and the distinct fleet product names; the ranking runs on the client so it stays instant as you type. Aggregated in the BFF like the other fleet views, with the same note that a production build would expose a real search service.
+
 ## 2026-08-04 - version 3.8.0
 
 - **A shrink and loss report, the thing operators actually ask for.** New `/operator/loss` page that reconciles what the system expected on the shelf against what a restocker physically counted, and splits the gap two ways: unexplained shrink (stock missing with no reason logged — the theft-or-miscount signal) kept apart from explained loss (removals with a reason: expired, damaged, other). Stores are ranked worst-first by the value of unexplained shrink, valued at each item's price. Reached from a "Shrink & loss" link on the fleet page.
