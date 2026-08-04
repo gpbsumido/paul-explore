@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 4, 2026
                   </span>
                   <a
+                    href="#update-2026-08-04-shrink"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    The loss report, and building the data it needed first
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-04-products"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -2019,6 +2030,95 @@ export default function OperatorDashboardContent() {
                 stable dependencies. Both were acceptable at demo scale but
                 would have been real problems at fleet size, so fixing them
                 early was the right call.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-shrink"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                The loss report, and building the data it needed first
+              </h2>
+              <p className="text-muted">
+                When I scanned the field for what micro-market operators actually
+                ask for, one answer drowned out the rest: shrink. Not another
+                calculator, not a nicer chart &mdash; where the stock is going.
+                Every vendor writing about this sells against theft, and the
+                thing they all describe is the same reconciliation: the count the
+                system reports against the count on the shelf. So this is the
+                feature I most wanted to build, and it is the one that made me do
+                the groundwork before I could.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The distinction the whole feature rests on
+              </h3>
+              <p className="text-muted">
+                A missing unit is not a missing unit. If a restocker pulled six
+                yogurts because they expired and logged the reason, that is a
+                loss, but an accounted one &mdash; you know where it went. If the
+                system expected ten and a physical count found seven, and nobody
+                logged anything, those three are{" "}
+                <strong>unexplained shrink</strong>: the theft-or-miscount signal,
+                the money that leaves without a trace. The report keeps the two
+                apart and leads with the unexplained number, because netting them
+                together &mdash; &quot;total loss $40&quot; &mdash; buries the one
+                figure an operator is supposed to chase under the one they already
+                expected.
+              </p>
+              <p className="mt-3 text-muted">
+                A surplus never counts as negative shrink, either. Counting more
+                than expected is its own miscount, not a credit against a real
+                shortfall somewhere else, so the two never quietly cancel.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The feature had no data, so I built the data
+              </h3>
+              <p className="text-muted">
+                Then I went to wire it up and found the hole I had already
+                flagged: the restock sessions that carry the counts are only ever
+                created at runtime. A fresh seed has none, so the report would
+                have rendered a perfectly honest empty page on a demo anyone can
+                open &mdash; correct, and useless. So the first half of this work
+                was seeding history: a couple of completed sessions per store,
+                each walking a few slots, cycling deterministically through a
+                shortfall, a reasoned removal, a skipped count, and a clean match.
+                Deterministic on purpose &mdash; the counts are generated from the
+                slot index, not{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Math.random
+                </code>
+                , so the report shows the same numbers every server start and the
+                tests can trust them. This is the shrink page I sequenced behind
+                the product one for exactly this reason, and here it is.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Counting the skips as data, not silence
+              </h3>
+              <p className="text-muted">
+                The subtle honesty is coverage. A slot the restocker skipped
+                counting cannot reveal shrink &mdash; it says nothing either way.
+                A report that quietly treated skipped slots as zero shrink would
+                read a shelf nobody checked as a clean one, which is the same
+                fabrication the rest of this dashboard exists to avoid. So skipped
+                counts are their own line, and the page tells you what share of
+                slots were actually counted. Low coverage is not low shrink; it is
+                not knowing.
+              </p>
+              <p className="mt-3 text-muted">
+                The rest is the pattern the last two features already set: a pure
+                reconciliation model with the arithmetic under test, the fleet
+                rollup aggregated in the BFF with the standing caveat that a
+                production build would push it into SQL, a semantic table ranked
+                worst-first, and loss framed in dollars because units are what
+                happened but dollars are what it cost. Three stacked pull requests
+                now &mdash; plan a location, see what sells, find what walks
+                &mdash; each merging in order onto the last.
               </p>
             </section>
       <section
