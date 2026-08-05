@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-04 - version 3.13.2
+
+- **The vitals auth E2E matches public Web Vitals.** Web Vitals went public (3.5.0), but `e2e/public/auth.spec.ts` still expected `/vitals` to redirect an unauthenticated visitor to login, so it failed against current behavior. Dropped `/vitals` from the protected list (only `/calendar` and `/settings` are session-gated now, matching `protectedPaths.ts`) and added a positive test that `/vitals` stays public, so the behavior is locked in rather than merely untested.
+
 ## 2026-08-04 - version 3.13.1
 
 - **CI runs on pull requests into any base.** The workflow only triggered on PRs into `main` or `develop`, so a stacked PR — one targeting a feature branch — got no checks at all until it retargeted develop on merge. The `pull_request` trigger is unfiltered now, so every PR gets the quality, integration and smoke tiers regardless of where it's headed; the heavy nightly tiers stay gated by event name, and `push` stays scoped to `main`/`develop`.
