@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.8
+
+- **The NBA proxy routes share one upstream helper.** All four (`teams`, `players`, `stats`, `shots`) hand-wrote the same public GET proxy — call `portfolio_api` with a deadline, turn a transport failure into 504/502, pass a non-2xx through as `{ error }` at the same status, forward the JSON with a cache header, and 502 on a bad body. That shape is now `proxyUpstream(url, { errorLabel, cacheControl })` in `lib/upstream.ts` (beside `fetchUpstream`), and each route is a one-liner. Behavior is provably unchanged: characterization tests pinning each route's cache window and error label were written against the old code and still pass against the new. First of the API error-handling convergence (one route family per PR, mapped to the nearest existing pattern — no uber-wrapper); vitals/google/tcg follow separately.
+
 ## 2026-08-05 - version 3.13.7
 
 - **The five operator read hooks share one factory.** `useOperatorSales`/`Stores`/`Inventory`/`Activity`/`Planogram` each hand-wrote the same React Query wrapper — fetch, throw on a bad response, `schema.parse`, expose `{ data, loading, error }` — differing only in key, URL, schema, response field, and error text. That plumbing now lives in `useOperatorResource`, and each hook is a thin adapter that keeps its exact public return shape, so no component changed. The response field is a `select` function (schema-validated, no casts) rather than a magic string, and the per-hook polling tiers stay explicit because they're intentional. Fourth step of the maintainability pass; the existing hook contract test passes unchanged.
