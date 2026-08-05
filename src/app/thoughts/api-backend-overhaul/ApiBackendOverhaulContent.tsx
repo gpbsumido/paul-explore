@@ -2,8 +2,7 @@
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import type { ReactNode } from "react";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /**
  * Inline code span styled to match the other thoughts pages.
@@ -84,12 +83,7 @@ export default function ApiBackendOverhaulContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 2:10 PM</Timestamp>
 
               <Received>
@@ -169,9 +163,7 @@ export default function ApiBackendOverhaulContent() {
                 pointed at the other end of the wire. frontend and backend are one
                 system and the same judgment makes both good
               </Sent>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>

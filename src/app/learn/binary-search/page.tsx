@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import { buildArticleMetadata } from "@/lib/site";
 import dynamic from "next/dynamic";
 
 const BinarySearchContent = dynamic(() => import("./BinarySearchContent"));
@@ -8,23 +8,12 @@ const TITLE = "Binary Search";
 const DESCRIPTION =
   "Cut the search space in half every step. Interactive demos for classic binary search and search-the-answer-space patterns.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildArticleMetadata({
   title: TITLE,
   description: DESCRIPTION,
-  openGraph: {
-    type: "website",
-    url: `${SITE_URL}/learn/binary-search`,
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE.url],
-  },
-};
+  path: "/learn/binary-search",
+  ogType: "website",
+});
 
 export default function BinarySearchPage() {
   return <BinarySearchContent />;

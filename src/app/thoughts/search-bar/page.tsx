@@ -1,28 +1,16 @@
 import type { Metadata } from "next";
-import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import { buildArticleMetadata } from "@/lib/site";
 import SearchBarContent from "./SearchBarContent";
 
 const TITLE = "Search Bar | Thoughts";
 const DESCRIPTION =
   "Why and how the search bar was built — server/client split, filtering approach, and trade-offs.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildArticleMetadata({
   title: TITLE,
   description: DESCRIPTION,
-  openGraph: {
-    type: "article",
-    url: `${SITE_URL}/thoughts/search-bar`,
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE.url],
-  },
-};
+  path: "/thoughts/search-bar",
+});
 
 // Static write-up -- cache at CDN for 24h
 export const revalidate = 86400;

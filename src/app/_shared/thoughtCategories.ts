@@ -66,6 +66,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
     slugs: [
       "react-doctor",
       "project-review",
+      "refactor-pass",
       "testing",
       "e2e",
       "ci-e2e",

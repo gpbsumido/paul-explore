@@ -2,7 +2,7 @@
 
 import { Demo_Threads } from "@/lib/threads";
 import { useState } from "react";
-import styles from "../styling/styling.module.css";
+import styles from "@/app/thoughts/_shared/chat.module.css";
 
 export default function SearchDemo() {
   const [query, setQuery] = useState("");

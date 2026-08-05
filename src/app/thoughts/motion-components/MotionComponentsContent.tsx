@@ -1,8 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -51,12 +50,7 @@ export default function MotionComponentsContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 9:14 AM</Timestamp>
 
               <Received pos="first">saw the new tilt card thing</Received>
@@ -110,9 +104,7 @@ export default function MotionComponentsContent() {
                 package, 139 in css. angular ports deferred, same as the last
                 few
               </Sent>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <Section title="What shipped">

@@ -1,8 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -80,12 +79,7 @@ export default function TreeShakingTwoContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 11:40 AM</Timestamp>
 
               <Received pos="first">
@@ -259,9 +253,7 @@ export default function TreeShakingTwoContent() {
                 nothing changed while real Chrome painted 2.5 seconds sooner. when
                 the proxy and the field disagree, the field wins
               </Sent>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <Section title="Starting from green">

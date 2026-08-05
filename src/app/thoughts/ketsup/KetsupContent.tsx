@@ -2,7 +2,7 @@
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import { Sent, Received, Timestamp } from "@/lib/threads";
-import styles from "@/app/thoughts/styling/styling.module.css";
+import styles from "@/app/thoughts/_shared/chat.module.css";
 
 export default function KetsupContent() {
   return (

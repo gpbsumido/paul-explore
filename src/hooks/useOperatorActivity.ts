@@ -1,10 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { ActivityEvent } from "@/types/operator";
 import { z } from "zod";
 import { activityEventSchema } from "@/lib/operator-schemas";
 import { queryKeys } from "@/lib/queryKeys";
+import { useOperatorResource } from "./useOperatorResource";
 
 const EMPTY: ActivityEvent[] = [];
 
@@ -23,35 +23,14 @@ export interface UseOperatorActivityReturn {
 export function useOperatorActivity(
   storeId: string,
 ): UseOperatorActivityReturn {
-  const {
-    data,
-    isLoading,
-    isError,
-    error: queryError,
-  } = useQuery({
+  const { data, loading, error } = useOperatorResource<ActivityEvent>({
     queryKey: queryKeys.operator.activity(storeId),
-    queryFn: async ({ signal }): Promise<ActivityEvent[]> => {
-      const res = await fetch(`/api/operator/stores/${storeId}/activity`, {
-        signal,
-      });
-      if (!res.ok) throw new Error("Failed to fetch activity");
-      // Parsed like every other operator read; this one was casting.
-      const { events } = z
-        .object({ events: z.array(activityEventSchema) })
-        .parse(await res.json());
-      return events;
-    },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    url: `/api/operator/stores/${storeId}/activity`,
+    select: (json) =>
+      z.object({ events: z.array(activityEventSchema) }).parse(json).events,
+    fetchError: "Failed to fetch activity",
+    loadError: "Failed to load activity.",
   });
 
-  return {
-    events: data ?? EMPTY,
-    loading: isLoading,
-    error: isError
-      ? queryError instanceof Error
-        ? queryError.message
-        : "Failed to load activity."
-      : null,
-  };
+  return { events: data ?? EMPTY, loading, error };
 }

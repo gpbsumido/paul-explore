@@ -2,7 +2,8 @@
 // from the work-portfolio referral-links demo in the browser; CORS on the API
 // already allows the site origins.
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { API_URL } from "@/lib/apiUrl";
+
 const BASE = `${API_URL}/api/referrals`;
 
 export interface Referral {

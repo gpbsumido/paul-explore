@@ -1,4 +1,5 @@
 import { http, HttpResponse, delay } from "msw";
+import { API_URL } from "@/lib/apiUrl";
 import type {
   Store,
   InventoryItem,
@@ -67,7 +68,6 @@ import {
 // fetch layer here pulls it into suites that deliberately mock its
 // dependencies, and their mocks stop lining up. Same default as backendFetch;
 // the duplication is one line and buys full isolation.
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // ---------------------------------------------------------------------------
 // Seed data — generated once, mutated in-place by handlers

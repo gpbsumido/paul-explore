@@ -1,12 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import TCGdex, { Query } from "@tcgdex/sdk";
-import { toPlain } from "@/lib/tcg";
+import { serveTcg } from "@/lib/tcg-route";
 
 const tcgdex = new TCGdex("en");
 const PER_PAGE = 20;
-
-// TCG card data is stable for hours — CDN serves the cached list and refreshes in the background
-const CACHE_CONTROL = "public, s-maxage=3600, stale-while-revalidate=86400";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -21,24 +18,5 @@ export async function GET(request: NextRequest) {
   if (type) query.contains("types", type);
   if (setId) query.equal("set.id", setId);
 
-  let cards;
-  try {
-    cards = await tcgdex.card.list(query);
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to fetch cards" },
-      { status: 502 },
-    );
-  }
-
-  if (!cards) {
-    return NextResponse.json(
-      { error: "Failed to fetch cards" },
-      { status: 502 },
-    );
-  }
-
-  return NextResponse.json(toPlain(cards), {
-    headers: { "Cache-Control": CACHE_CONTROL },
-  });
+  return serveTcg("Failed to fetch cards", () => tcgdex.card.list(query));
 }
