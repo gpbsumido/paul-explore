@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button, Input, Modal } from "@/components/ui";
@@ -460,6 +461,67 @@ export default function StylingContent() {
             </ChatThread>
       }
     >
+      <section
+        id="update-2026-08-05-chat-css-move"
+        className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+          Update &mdash; August 5, 2026
+        </p>
+        <h2 className="mt-1 mb-3 text-lg font-bold">
+          The chat stylesheet moved out of this folder
+        </h2>
+        <p className="text-muted">
+          A{" "}
+          <Link
+            href="/thoughts/refactor-pass"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            maintainability pass
+          </Link>{" "}
+          caught something this page is the right place to own up to. The
+          iMessage-style chat frame every write-up renders &mdash; the{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .phone
+          </code>
+          /
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .chat
+          </code>{" "}
+          shell and its bubbles &mdash; was styled by a CSS module that physically
+          lived in <em>this</em> feature&apos;s folder (
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            thoughts/styling/styling.module.css
+          </code>
+          ), while forty unrelated pages imported it. An abstraction that outgrew
+          its home: the file was named and located as if it belonged to the
+          styling write-up, but it was really the shared chat theme.
+        </p>
+        <p className="text-muted">
+          <strong>The fix, and why it was cheap.</strong> The shell itself became
+          a <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            ChatThread
+          </code>{" "}
+          component (it had been hand-rolled in 36 files), so the pages stopped
+          reaching into the module directly for{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            styles.phone
+          </code>
+          /
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            styles.chat
+          </code>
+          . Only <em>then</em> was moving the stylesheet a one-import change
+          instead of a forty-file rename &mdash; so it now lives at{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            thoughts/_shared/chat.module.css
+          </code>
+          , a neutral home that says what it is. Doing the component extraction
+          before the file move is the whole reason the churn stayed small; the
+          ordering was the decision that mattered.
+        </p>
+      </section>
+
       <section>
               <h2 className="mb-3 text-lg font-bold">Layer 1: Design tokens</h2>
               <p className="text-muted">

@@ -98,6 +98,34 @@ describe("OperatorDashboardContent", () => {
     expect(link).toHaveAttribute("href", "#update-2026-07-31");
   });
 
+  it("has a timeline entry linking to the maintainability update", () => {
+    render(<OperatorDashboardContent />);
+    const link = screen.getByRole("link", {
+      name: /a maintainability pass: factoring the read hooks and splitting this write-up/i,
+    });
+    expect(link).toHaveAttribute("href", "#update-2026-08-05-maintainability");
+  });
+
+  it("documents the maintainability pass: the hook factory and the split", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/useOperatorResource/);
+    expect(body).toMatch(/not a magic string/);
+    expect(body).toMatch(/polling tiers stay as explicit/);
+    expect(body).toMatch(/5,113 lines in one file/);
+    expect(body).toMatch(/byte-identical/);
+  });
+
+  it("links the maintainability update to the refactor write-up", () => {
+    const { container } = render(<OperatorDashboardContent />);
+    const section = container.querySelector("#update-2026-08-05-maintainability");
+    expect(section).not.toBeNull();
+    const hrefs = [...(section?.querySelectorAll("a") ?? [])].map((a) =>
+      a.getAttribute("href"),
+    );
+    expect(hrefs).toContain("/thoughts/refactor-pass");
+  });
+
   it("documents the tax-to-remit summary", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";

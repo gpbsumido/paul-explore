@@ -202,6 +202,19 @@ export default function RefactorPassContent() {
               the CSS to a neutral home &mdash; a one-line import change once
               nothing else references it, instead of a 40-file rename.
             </p>
+            <p>
+              <Tag kind="keep" /> The ordering was the whole trick: extract the
+              component first so pages stop referencing the module directly,{" "}
+              <span className="italic">then</span> move the file. The{" "}
+              <Link
+                href="/thoughts/styling"
+                className="text-foreground underline decoration-muted underline-offset-2"
+              >
+                styling write-up
+              </Link>{" "}
+              &mdash; whose folder used to hold that stylesheet &mdash; has the
+              full story.
+            </p>
           </Step>
 
           <Step
@@ -221,7 +234,17 @@ export default function RefactorPassContent() {
               <Tag kind="keep" /> The polling tiers are intentional, so they stay
               as explicit per-hook config, and the response field is a{" "}
               <C>select</C> function rather than a magic string &mdash; an
-              odd-shaped endpoint shouldn&rsquo;t break the abstraction.
+              odd-shaped endpoint shouldn&rsquo;t break the abstraction. The
+              tradeoff: a slightly longer call site per hook, bought in exchange
+              for the tiers staying visible. The{" "}
+              <Link
+                href="/thoughts/operator-dashboard"
+                className="text-foreground underline decoration-muted underline-offset-2"
+              >
+                operator dashboard write-up
+              </Link>{" "}
+              carries the update in full &mdash; that&rsquo;s also where the
+              5,120-line split landed.
             </p>
           </Step>
 
@@ -241,9 +264,15 @@ export default function RefactorPassContent() {
               collapsed onto one helper each: the NBA routes onto a{" "}
               <C>proxyUpstream</C> (public GET → JSON, beside <C>fetchUpstream</C>
               ), and the TCG list routes onto a <C>serveTcg</C> (in a
-              server-only module so the client bundle stays clean). Each swap is
-              behind characterisation tests written against the old routes that
-              still pass.
+              server-only module so the client bundle stays clean &mdash; the{" "}
+              <Link
+                href="/thoughts/tcg"
+                className="text-foreground underline decoration-muted underline-offset-2"
+              >
+                TCG write-up
+              </Link>{" "}
+              has that update). Each swap is behind characterisation tests
+              written against the old routes that still pass.
             </p>
             <p>
               <Tag kind="keep" /> No uber-wrapper, and I stopped there on purpose.
@@ -325,6 +354,102 @@ export default function RefactorPassContent() {
           sneak through. The measure of success is boring: fewer lines, the same
           rendered output, and a shorter path to the code the next change needs.
         </p>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">How it actually shipped</h2>
+        <ul className="space-y-2 text-muted">
+          <li>
+            <span className="font-semibold text-foreground">
+              Stacked PRs, not parallel ones.
+            </span>{" "}
+            Each step bumps the version and the changelog, so independent
+            branches off the same base would collide on both files every time.
+            Stacking each PR on the previous serialises the bumps and keeps every
+            diff minimal &mdash; the cost is that they merge in order rather than
+            any order, which is the right trade for a clean history.
+          </li>
+          <li>
+            <span className="font-semibold text-foreground">
+              Characterisation tests before behaviour-preserving swaps.
+            </span>{" "}
+            For the route work and the file split there was no new behaviour to
+            drive out with a red test, so I pinned the <em>existing</em> behaviour
+            first &mdash; the NBA and TCG route contracts, the operator page&rsquo;s
+            72 content-and-order assertions &mdash; ran them green against the old
+            code, then refactored and watched them stay green. A test that passed
+            before and after is the proof nothing moved.
+          </li>
+          <li>
+            <span className="font-semibold text-foreground">
+              <C>satisfies</C>, not a cast.
+            </span>{" "}
+            The metadata builder returns a value typed with{" "}
+            <C>satisfies Metadata</C> instead of an annotation, so the concrete
+            shape stays readable in the test without ever reaching for a type
+            assertion &mdash; the house rule is no assertions without a reason,
+            and there wasn&rsquo;t one.
+          </li>
+          <li>
+            <span className="font-semibold text-foreground">
+              A green suite that wasn&rsquo;t.
+            </span>{" "}
+            Four tests were failing the whole time on{" "}
+            <C>@paul-portfolio/*</C> version drift &mdash; not my changes, just a
+            local <C>node_modules</C> that never got reinstalled. A{" "}
+            <C>pnpm install</C> cleared it; worth writing down because &ldquo;it
+            was already red&rdquo; is easy to say and easy to be wrong about.
+          </li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">Related write-ups</h2>
+        <p className="text-muted">
+          Where a single feature was touched, its own dev-notes page carries the
+          update, and links back here:
+        </p>
+        <ul className="mt-2 space-y-1.5 text-muted">
+          <li>
+            <Link
+              href="/thoughts/project-review"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              Project Review
+            </Link>{" "}
+            &mdash; the diagnosis this plan answers.
+          </li>
+          <li>
+            <Link
+              href="/thoughts/operator-dashboard"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              Operator Dashboard
+            </Link>{" "}
+            &mdash; the five read hooks factored through one resource hook, and
+            the 5,120-line write-up split into sections.
+          </li>
+          <li>
+            <Link
+              href="/thoughts/tcg"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              TCG Browser
+            </Link>{" "}
+            &mdash; the list routes converged on <C>serveTcg</C>, the detail
+            routes deliberately left alone.
+          </li>
+          <li>
+            <Link
+              href="/thoughts/styling"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              Styling Decisions
+            </Link>{" "}
+            &mdash; the shared chat stylesheet moved out of that feature&rsquo;s
+            folder to a neutral home.
+          </li>
+        </ul>
       </section>
     </ThoughtLayout>
   );

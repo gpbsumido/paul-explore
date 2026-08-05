@@ -1,7 +1,100 @@
+import Link from "next/link";
+
+const code =
+  "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
+
 /** Dated continuation entries (earlier half). */
 export function OperatorUpdatesEarly() {
   return (
     <>
+      <section
+        id="update-2026-08-05-maintainability"
+        className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+          Update &mdash; August 5, 2026
+        </p>
+        <h2 className="mt-1 mb-3 text-lg font-bold">
+          A maintainability pass: factoring the read hooks and splitting this
+          write-up
+        </h2>
+        <p className="text-muted">
+          I ran a whole-project review looking for bad engineering, overfit
+          architecture, and anything that made the code harder than it needs to
+          be &mdash; the full pass and its reasoning live in{" "}
+          <Link
+            href="/thoughts/refactor-pass"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            the refactor write-up
+          </Link>
+          . The operator subsystem was the densest footprint in the repo, so two
+          of its findings landed here.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Five read hooks that were the same hook five times
+        </h3>
+        <p className="text-muted">
+          <code className={code}>useOperatorSales</code>,{" "}
+          <code className={code}>useOperatorStores</code>,{" "}
+          <code className={code}>useOperatorInventory</code>,{" "}
+          <code className={code}>useOperatorActivity</code> and{" "}
+          <code className={code}>useOperatorPlanogram</code> each wrote the same
+          React Query wrapper &mdash; fetch, throw on a bad response,{" "}
+          <code className={code}>schema.parse</code>, expose{" "}
+          <code className={code}>{"{ data, loading, error }"}</code> &mdash;
+          differing only in the key, the URL, the schema, the response field, and
+          the error text. That&apos;s now one{" "}
+          <code className={code}>useOperatorResource</code> factory, and each
+          hook is an ~8-line adapter over it.
+        </p>
+        <p className="text-muted">
+          <strong>The how, and the two decisions that mattered.</strong> Each
+          adapter keeps its own public return shape (
+          <code className={code}>{"{ sales }"}</code>,{" "}
+          <code className={code}>{"{ items }"}</code>) so not a single component
+          that consumes them had to change &mdash; the refactor stops at the hook
+          boundary. The response field is passed as a{" "}
+          <code className={code}>select</code> function, not a magic string,
+          because a string key quietly assumes every endpoint has the same
+          envelope shape; a function lets an odd one out map itself without
+          breaking the abstraction. And the polling tiers stay as explicit
+          per-hook config rather than a shared default: they&apos;re{" "}
+          <em>intentional</em> &mdash; 15s for urgent alerts, 30s for store
+          status, 60s for inventory, none for historical activity &mdash; and
+          hiding them in the factory would erase a real decision. The tradeoff I
+          accepted is a slightly larger call site per hook in exchange for the
+          tiers staying legible. The existing hook contract test passed
+          unchanged, which is how I know the behaviour held.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          This write-up was 5,113 lines in one file
+        </h3>
+        <p className="text-muted">
+          This page had grown into the single biggest file in the repo &mdash;
+          the chat view plus forty summary sections in one component, too big to
+          read or edit in a single pass and genuinely expensive for an AI to load
+          just to touch one paragraph. It&apos;s now a 32-line orchestrator plus
+          five focused section files (the chat, the timeline and overview, the
+          original build write-up, and the dated updates in two halves).
+        </p>
+        <p className="text-muted">
+          <strong>Why it was safe.</strong> I cut only at{" "}
+          <code className={code}>{"<section>"}</code> sibling boundaries, so every
+          chunk is balanced JSX and no prose was edited &mdash; the content is
+          byte-identical, just relocated. The proof is that this page&apos;s test
+          suite is unusually strict (72 assertions on exact wording, the order of
+          the sections, and that every timeline and index anchor still resolves),
+          and it passed completely unchanged after the split. A pure
+          rearrangement with no behaviour change is exactly the kind of
+          review-churn that earns its own PR rather than riding along with logic,
+          so it did. The remaining 1,000&ndash;2,000-line write-ups are the same
+          job for another day.
+        </p>
+      </section>
+
       <section
               id="update-2026-08-04-review-fixes"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
