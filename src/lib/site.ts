@@ -40,7 +40,7 @@ export function buildArticleMetadata({
   description,
   path,
   ogType = "article",
-}: ArticleMetadata): Metadata {
+}: ArticleMetadata) {
   return {
     title,
     description,
@@ -57,5 +57,5 @@ export function buildArticleMetadata({
       description,
       images: [OG_IMAGE.url],
     },
-  };
+  } satisfies Metadata;
 }

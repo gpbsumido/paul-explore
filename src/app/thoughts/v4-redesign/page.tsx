@@ -1,28 +1,16 @@
 import type { Metadata } from "next";
-import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import { buildArticleMetadata } from "@/lib/site";
 import V4RedesignContent from "./V4RedesignContent";
 
 const TITLE = "V4 Redesign | Thoughts";
 const DESCRIPTION =
   "The landing and hub as a slot machine: three dependent reels derived from the same data as the graph, a decelerating spin with a reduced-motion path, and a listbox-based accessibility model.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildArticleMetadata({
   title: TITLE,
   description: DESCRIPTION,
-  openGraph: {
-    type: "article",
-    url: `${SITE_URL}/thoughts/v4-redesign`,
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE.url],
-  },
-};
+  path: "/thoughts/v4-redesign",
+});
 
 export const revalidate = 86400;
 
