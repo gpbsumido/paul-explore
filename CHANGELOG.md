@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.11
+
+- **The refactor is documented like the operator dashboard is: a hub plus per-feature updates that link both ways.** The Refactor Pass write-up is now the comprehensive record — every step's why, how, and tradeoff, the non-goals and their reasoning, and a "How it actually shipped" section covering the stacked-PR decision, characterisation-tests-before-behaviour-preserving-swaps, `satisfies` over a type assertion, and the `@paul-portfolio/*` env-drift caveat. Each feature the pass touched now carries a dated update section that links back to it: the operator dashboard (the read hooks factored through `useOperatorResource`, and this write-up split from 5,113 lines), the TCG browser (list routes on `serveTcg`, detail routes left alone), and the styling decisions page (the shared chat stylesheet relocated out of that folder). Documentation only.
+
 ## 2026-08-05 - version 3.13.10
 
 - **Broke up the 5,113-line operator write-up.** `OperatorDashboardContent.tsx` was the biggest file in the repo — a single component holding the chat view and forty summary sections, too big to read or edit in one pass. It's now a 32-line orchestrator plus five focused files under `operator-dashboard/sections/` (the chat, the timeline+overview, the original build write-up, and the dated updates in two halves), cut only at `<section>` sibling boundaries so every chunk is balanced and no prose changed. The page's exhaustive test suite — 72 assertions on exact text, section order, and every anchor link — passes unchanged, which is the proof nothing moved. Deferred Tier 3 cleanup from the maintainability pass, done now that the chat view already uses `ChatThread`.
