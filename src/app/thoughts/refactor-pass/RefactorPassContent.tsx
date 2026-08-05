@@ -282,17 +282,24 @@ export default function RefactorPassContent() {
           </Step>
           <Step
             id="N2"
-            title="Splitting the giant content files (yet)"
-            status="no"
+            title="Splitting the giant content files"
+            status="shipped"
           >
             <p>
-              <C>OperatorDashboardContent.tsx</C> is 5,120 lines; several others
-              run 1,000&ndash;2,000. Splitting them is real token savings but
-              mostly review-churn with no behaviour change, so it&rsquo;s
-              scheduled deliberately, not folded into this sweep. When I do it:
-              extract by conversation section into named sub-components that reuse{" "}
-              the <C>ChatThread</C> from step 3, one file per PR, guarded by a
-              render smoke test.
+              <C>OperatorDashboardContent.tsx</C> was 5,120 lines &mdash; the
+              biggest file in the repo. I split the worst offender into a 32-line
+              orchestrator plus five section components (the chat, the
+              timeline/overview, the build write-up, and the dated updates in two
+              halves), cut only at <C>&lt;section&gt;</C> boundaries so the prose
+              is byte-identical. Its exhaustive test suite &mdash; 72 assertions
+              on exact text, section order, and every anchor &mdash; passes
+              unchanged, which is the proof nothing moved.
+            </p>
+            <p>
+              <Tag kind="keep" /> The remaining 1,000&ndash;2,000-line write-ups
+              are the same job and can follow one file per PR, but they&rsquo;re
+              deliberately not batched into this sweep &mdash; it&rsquo;s
+              review-churn with no behaviour change, best scheduled on its own.
             </p>
           </Step>
           <Step id="N3" title="Touching the v1–v4 landing history" status="no">
