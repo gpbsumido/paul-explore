@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.6
+
+- **The chat "phone" shell is one component, and its CSS moved out of the styling thought.** The iMessage-style wrapper — the three-div `flex justify-center` → `.phone` → `.chat` nest — was hand-rolled in 36 write-ups, and the stylesheet it reached into lived inside the `styling` thought's own folder while 40 other pages imported it. There's now a `ChatThread` component in `lib/threads.tsx` (next to the `Sent`/`Received`/`Timestamp` bubbles it already owned) that the 36 pages wrap their bubbles in, and the stylesheet moved to a neutral `thoughts/_shared/chat.module.css`. Net −203 lines, the render is byte-identical (same markup and classes), and a cross-cutting tweak to the chat frame is now one edit. Third step of the maintainability pass.
+
 ## 2026-08-05 - version 3.13.5
 
 - **One leaf module owns the backend URL.** The fallback `process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"` was re-declared in 18 files. `backendFetch.ts` already exported `API_URL`, but importing it from there would have pulled its server-only deps (`auth0`, `next/server`) into client bundles — the vitals and calendar pages, `flags-client`, `referrals`. So the constant now lives in a dependency-free `lib/apiUrl.ts` that everything imports; `backendFetch` re-exports it so server code is unaffected. Second step of the maintainability pass — fixes a latent client-bundle smell, not just the copy-paste.
