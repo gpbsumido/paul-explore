@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth0 } from "@/lib/auth0";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+import { API_URL } from "@/lib/apiUrl";
 
 /** The auth context handed to a wrapped BFF handler. */
 export type BackendContext = { token: string; email: string | null };
