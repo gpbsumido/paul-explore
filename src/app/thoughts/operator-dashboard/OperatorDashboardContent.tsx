@@ -2021,7 +2021,7 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
-      <section
+            <section
               id="update-2026-08-04-products"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
             >
@@ -2117,7 +2117,7 @@ export default function OperatorDashboardContent() {
                 shipped as stacked pull requests, in the order they have to merge.
               </p>
             </section>
-      <section
+            <section
               id="update-2026-08-04-planner"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
             >
