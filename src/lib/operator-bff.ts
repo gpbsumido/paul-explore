@@ -20,8 +20,16 @@ import {
 import { fleetBenchmarks, type FleetBenchmarks } from "@/lib/operator-planner";
 import {
   fleetProductPerformance,
+  daysForRange,
   type ProductPerformanceRow,
 } from "@/lib/operator-product-performance";
+import { fleetShrink, type FleetShrink } from "@/lib/operator-shrink";
+import type { SearchIndexResponse } from "@/lib/operator-search";
+import {
+  summarizeFinance,
+  FEE_MODEL,
+  type FinanceResponse,
+} from "@/lib/operator-finance";
 import type {
   Store,
   InventoryItem,
@@ -187,27 +195,122 @@ export async function loadSalesAnalytics(
  * the other aggregations, the same way fleet sales analytics already is.
  */
 export async function loadPlannerBenchmarks(): Promise<FleetBenchmarks | null> {
-  const sales = seed
-    .getStores()
-    .flatMap((store) => seed.getSales(store.id) ?? []);
-  return fleetBenchmarks(sales);
+  try {
+    return await api.fetchPlannerBenchmarks();
+  } catch (err) {
+    noteFallback("loadPlannerBenchmarks", err);
+    const sales = seed
+      .getStores()
+      .flatMap((store) => seed.getSales(store.id) ?? []);
+    return fleetBenchmarks(sales);
+  }
 }
 
 /**
- * Fleet-wide product performance over a day window: per-product units, revenue,
- * daily rate and a category-relative index across the whole fleet.
+ * Fleet-wide product performance over a range (7d/30d/90d): per-product units,
+ * revenue, daily rate and a category-relative index across the whole fleet.
+ *
+ * Takes the range id straight through to the live endpoint rather than mapping
+ * to a day count and back, so the two can't disagree on what "30d" means. The
+ * seed fallback resolves the range to a window locally.
  *
  * Aggregated here from the fleet's sales and inventory, the same tradeoff as the
  * planner benchmarks: it is one cross-store rollup, and a per-store fan-out to
  * build it would be N calls where a production API would compute it in SQL.
  */
 export async function loadProductPerformance(
-  days: number,
+  rangeId: string,
 ): Promise<readonly ProductPerformanceRow[]> {
-  const stores = seed.getStores();
-  const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
-  const items = stores.flatMap((store) => seed.getInventory(store.id) ?? []);
-  return fleetProductPerformance(items, sales, days, new Date());
+  try {
+    return await api.fetchProductPerformance(rangeId);
+  } catch (err) {
+    noteFallback("loadProductPerformance", err);
+    const stores = seed.getStores();
+    const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
+    const items = stores.flatMap((store) => seed.getInventory(store.id) ?? []);
+    return fleetProductPerformance(items, sales, daysForRange(rangeId), new Date());
+  }
+}
+
+/**
+ * Fleet-wide shrink: reconciles every store's completed restock counts into
+ * unexplained shrink versus reasoned loss, valued at each item's price.
+ *
+ * Same coarse-rollup tradeoff as the other fleet aggregations here: it walks the
+ * seed's completed sessions rather than proxying, and a production build would
+ * compute it in SQL in the API.
+ */
+export async function loadFleetShrink(): Promise<FleetShrink> {
+  try {
+    return await api.fetchShrinkSummary();
+  } catch (err) {
+    noteFallback("loadFleetShrink", err);
+    const inputs = seed.getStores().map((store) => {
+      const inventory = seed.getInventory(store.id) ?? [];
+      const priceByItemId: Record<string, number> = {};
+      for (const item of inventory) priceByItemId[item.id] = item.price;
+
+      const lines = seed
+        .listRestockSessions(store.id)
+        .filter((session) => session.completedAt !== null)
+        .flatMap((session) => seed.getRestockLines(session.id));
+
+      return { storeId: store.id, storeName: store.name, lines, priceByItemId };
+    });
+
+    return fleetShrink(inputs);
+  }
+}
+
+/**
+ * The quick-search index: every store, and every distinct product name across
+ * the fleet's inventory. Built here from the seed for the same reason as the
+ * other rollups — one small payload the client can rank locally, where a
+ * production build would expose a dedicated search endpoint.
+ */
+export async function loadSearchIndex(): Promise<SearchIndexResponse> {
+  try {
+    return await api.fetchSearchIndex();
+  } catch (err) {
+    noteFallback("loadSearchIndex", err);
+    const stores = seed.getStores();
+
+    const seenProduct = new Set<string>();
+    const products: SearchIndexResponse["products"] = [];
+    for (const store of stores) {
+      for (const item of seed.getInventory(store.id) ?? []) {
+        if (seenProduct.has(item.productName)) continue;
+        seenProduct.add(item.productName);
+        products.push({ name: item.productName, category: item.category });
+      }
+    }
+
+    return {
+      stores: stores.map((store) => ({
+        id: store.id,
+        name: store.name,
+        status: store.status,
+      })),
+      products,
+    };
+  }
+}
+
+/**
+ * Fleet finance: weekly payouts reconciled from every store's sales, with the
+ * fee model surfaced so the breakdown is transparent. Aggregated in the BFF
+ * from the seed, the same tradeoff as the other fleet rollups.
+ */
+export async function loadFinance(): Promise<FinanceResponse> {
+  try {
+    return await api.fetchFinance();
+  } catch (err) {
+    noteFallback("loadFinance", err);
+    const stores = seed.getStores();
+    const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
+    const { weeks, totals } = summarizeFinance(sales, stores.length, new Date());
+    return { weeks: [...weeks], totals, fees: FEE_MODEL };
+  }
 }
 
 /**

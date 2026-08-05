@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-08-04 - version 3.13.0
+
+- **Fixed what a review of the live-backend work turned up.** A cross-repo parity test now pins that the app's aggregation models and portfolio_api's copies compute the same numbers — the same canonical scenarios asserted against identical expected outputs in both repos, so a formula drift fails in milliseconds instead of only in the heavy live-backend E2E. The product-performance loader passes the range id straight to the API instead of mapping it to a day count and back (lossy for any non-standard window). And the finance platform-fee's "one unit per store" assumption is now an explicit named constant rather than a bare `storeCount` multiply, since a store's hardware count isn't modelled yet.
+- **Wrote the review up honestly.** The operator dev-notes page records the whole pass: the shrink report that rendered blank against the real backend (its DB seed had no completed sessions — fixed in portfolio_api), the duplicated arithmetic with no agreement test, the stacked PRs that got no CI, and the findings I deliberately left as documented tradeoffs rather than over-building for a demo.
+
+## 2026-08-04 - version 3.12.0
+
+- **The five fleet features now read the real backend.** The planner benchmarks, product performance, shrink report, quick-search and finance all computed their numbers in the BFF from the in-memory seed and never called the API. Their loaders now try the live `portfolio_api` endpoints first and fall back to the seed on any failure — the same live-first-with-fallback pattern every other operator read already uses. Paired with portfolio_api's `ps/operator-live-aggregations`, which adds the SQL behind them; the app degrades gracefully until that deploys, so the two can ship in either order.
+- **The contract is a shared schema, parsed on arrival.** Each `fetchX` validates the API response through the exact Zod schema the feature already defines, so a drift in either repo surfaces as a caught validation error (which falls back) rather than quietly wrong numbers. The new endpoints are mocked in MSW so the route tests exercise the live path instead of silently validating the seed.
+- **Write-up.** The operator dev-notes page records the two-repo change: five SQL endpoints mirroring the app's pure models so the live and seed numbers match, the fallback that makes merge order not matter, and the paired-branch CI that drives it against a real Postgres.
+
+- **Itemized CSV export on the product performance page.** A "Download CSV" button exports the current range's per-product numbers — product, category, units, daily rate, revenue, category index — as a spreadsheet an operator can hand to a bookkeeper. Mirrors MicroMart's itemized sales export.
+- **The escaping is tested, not trusted.** A small RFC-4180 `toCsv` serializer wraps any field with a comma, quote or newline in quotes and doubles the inner quotes, because the failure mode of a naive join is a comma in a product name silently shifting every column after it. Five tests pin the escaping; the download itself is a Blob and an anchor click.
+
+## 2026-08-04 - version 3.10.0
+
+- **An operator finance view.** New `/operator/finance` page with weekly payout history reconciled from real sales: gross revenue, transaction count, the fees, and the net that actually lands, newest week first. Reached from a "Finance" link on the fleet page. Mirrors MicroMart's Finance page (payout history + fee transparency).
+- **Fees shown, not folded in.** The transaction cut (a rate plus a flat amount per sale) and the platform fee are broken out rather than baked into a single number, because an operator who can't see the fees can't tell a slow week from an expensive one. The fee model is the exact one the location planner projects with — imported from one place, so the number you're quoted and the number you're paid can't drift apart.
+- **Aggregated behind one endpoint.** `GET /api/operator/finance` rolls the fleet's sales into weekly payouts in the BFF, the same coarse-rollup tradeoff as the other fleet views.
+
+## 2026-08-04 - version 3.9.0
+
+- **Operator quick-search.** New `/operator/search` combobox that finds anything across the fleet — stores, products and the operator tools — as you type, keyboard-first. A hand-rolled ranker puts a prefix match above a word-boundary match above any substring above a loose subsequence, so the obvious hit lands first, and it falls back to a subsequence so fast typing still finds things. Reached from a "Search" link on the fleet page. Mirrors MicroMart's "find anything, faster" global search.
+- **Built to the ARIA combobox pattern.** The input owns `aria-activedescendant`, so arrow keys move the highlighted result without ever pulling focus off the field, and enter jumps you there. Selection is handed up through an `onSelect` callback, so the combobox itself carries no navigation dependency and the one place a pick becomes a route change is the page wrapper — which is also what keeps the component testable without a router.
+- **One small index endpoint.** `GET /api/operator/search-index` returns the stores and the distinct fleet product names; the ranking runs on the client so it stays instant as you type. Aggregated in the BFF like the other fleet views, with the same note that a production build would expose a real search service.
+
+## 2026-08-04 - version 3.8.0
+
+- **A shrink and loss report, the thing operators actually ask for.** New `/operator/loss` page that reconciles what the system expected on the shelf against what a restocker physically counted, and splits the gap two ways: unexplained shrink (stock missing with no reason logged — the theft-or-miscount signal) kept apart from explained loss (removals with a reason: expired, damaged, other). Stores are ranked worst-first by the value of unexplained shrink, valued at each item's price. Reached from a "Shrink & loss" link on the fleet page.
+- **Seeded the count history it needed.** The restock sessions that feed this were only ever created at runtime, so a fresh seed had nothing to reconcile and the report would have rendered empty. Added a couple of completed historical sessions per store with deterministic variance — a shortfall here, a reasoned removal there, a skipped count — so every category the report separates is exercised without the numbers drifting between server starts.
+- **Coverage is part of the honesty.** A skipped count can hide shrink, so the report shows how many slots were actually counted rather than implying a clean shelf where nobody looked. Aggregated in the BFF from completed sessions, the same coarse-rollup tradeoff as the other fleet views — a production build would compute it in SQL.
+
 ## 2026-08-04 - version 3.7.0
 
 - **A fleet product-performance view.** New `/operator/products` page ranking every product across the fleet by revenue, with its daily sales rate and an index against its own category average — so a $1 gum is judged against other snacks, not against a sandwich. Reached from a "Product performance" link on the fleet page, with a 7/30/90-day range toggle. Mirrors the "Sales by Product" work on MicroMart's own platform ("Avg Sold" and "Performance vs category").
