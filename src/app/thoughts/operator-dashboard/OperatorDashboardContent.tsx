@@ -345,6 +345,17 @@ export default function OperatorDashboardContent() {
                     Aug 4, 2026
                   </span>
                   <a
+                    href="#update-2026-08-04-products"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Which products to cut, judged fairly
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
                     href="#update-2026-08-04-planner"
                     className="text-primary-600 hover:underline dark:text-primary-400"
                   >
@@ -2010,7 +2021,103 @@ export default function OperatorDashboardContent() {
                 early was the right call.
               </p>
             </section>
-      <section
+            <section
+              id="update-2026-08-04-products"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Which products to cut, judged fairly
+              </h2>
+              <p className="text-muted">
+                The planner answers a question about a store that doesn&apos;t
+                exist yet. This one answers a question about the stores that do:
+                what is actually selling, and what is dead weight on the shelf.
+                Micromart ships it as &quot;Sales by Product,&quot; with an
+                average sales rate and a performance figure against the category.
+                A new{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /operator/products
+                </code>{" "}
+                page ranks every product across the fleet by revenue, over a 7,
+                30 or 90 day window.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The one decision that makes the number mean something
+              </h3>
+              <p className="text-muted">
+                Ranking by raw revenue is easy and nearly useless: the sandwiches
+                always win and the gum always loses, and you learn nothing you
+                didn&apos;t already know from the prices. So the performance
+                figure is <strong>relative to the product&apos;s own
+                category</strong> &mdash; revenue against the average product
+                revenue in its category, where 100 is average. A gum that
+                outsells other gum reads as above average even though it earns a
+                fraction of a sandwich&apos;s revenue. Judging a snack against a
+                snack is the only version of the number that tells you something
+                actionable.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The rows a sold-only report would have hidden
+              </h3>
+              <p className="text-muted">
+                A report that lists what sold cannot tell you what to cut,
+                because the things worth cutting are the ones that didn&apos;t
+                sell. So a stocked product with no sales in the window stays in
+                the table, flagged, rather than dropping out. It is the same
+                honesty rule as the rest of this dashboard: an absence is
+                information, and letting it vanish is a quiet lie. Those flagged
+                rows are the entire point of the page.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I simplified, and said so
+              </h3>
+              <p className="text-muted">
+                Micromart&apos;s &quot;Avg Sold&quot; is the rate while a product
+                was <em>available</em>. I don&apos;t keep per-product stock
+                history, so mine is units per day over the whole window, which
+                reads a slow-selling product and an often-out-of-stock one the
+                same way. That is a real limitation and I would rather write it
+                down than dress the number up as something it isn&apos;t. The
+                honest version needs an availability signal this demo doesn&apos;t
+                carry yet.
+              </p>
+              <p className="mt-3 text-muted">
+                The table is a plain{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  table
+                </code>{" "}
+                with scoped headers and a caption, not a data-grid component. A
+                few dozen rows sorted server-side do not need virtualisation or a
+                grid runtime, and the semantic table is what a screen reader
+                actually wants. The aggregation is the same coarse fleet rollup
+                as the planner benchmarks, computed in the BFF with the same
+                caveat: a production build would push it into SQL rather than
+                fold every store&apos;s sales in the app.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Why this one, and not the one operators shout loudest for
+              </h3>
+              <p className="text-muted">
+                The scan said the loudest real demand is shrink &mdash;
+                reconciling the count the system reports against the shelf. I
+                wanted to build it, and then I looked: the restock sessions that
+                would feed it are only ever created at runtime, so a fresh seed
+                has no completed counts, and a shrink report would render an
+                honest but empty page on a demo anyone can open. Shipping a
+                feature that shows nothing is worse than sequencing it. So this
+                went first, because it stands on data the fleet already has, and
+                shrink is next once there is count history to seed it from. Both
+                shipped as stacked pull requests, in the order they have to merge.
+              </p>
+            </section>
+            <section
               id="update-2026-08-04-planner"
               className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
             >

@@ -18,6 +18,10 @@ import {
   type FleetSalesAnalytics,
 } from "@/lib/operator-sales";
 import { fleetBenchmarks, type FleetBenchmarks } from "@/lib/operator-planner";
+import {
+  fleetProductPerformance,
+  type ProductPerformanceRow,
+} from "@/lib/operator-product-performance";
 import type {
   Store,
   InventoryItem,
@@ -187,6 +191,23 @@ export async function loadPlannerBenchmarks(): Promise<FleetBenchmarks | null> {
     .getStores()
     .flatMap((store) => seed.getSales(store.id) ?? []);
   return fleetBenchmarks(sales);
+}
+
+/**
+ * Fleet-wide product performance over a day window: per-product units, revenue,
+ * daily rate and a category-relative index across the whole fleet.
+ *
+ * Aggregated here from the fleet's sales and inventory, the same tradeoff as the
+ * planner benchmarks: it is one cross-store rollup, and a per-store fan-out to
+ * build it would be N calls where a production API would compute it in SQL.
+ */
+export async function loadProductPerformance(
+  days: number,
+): Promise<readonly ProductPerformanceRow[]> {
+  const stores = seed.getStores();
+  const sales = stores.flatMap((store) => seed.getSales(store.id) ?? []);
+  const items = stores.flatMap((store) => seed.getInventory(store.id) ?? []);
+  return fleetProductPerformance(items, sales, days, new Date());
 }
 
 /**
