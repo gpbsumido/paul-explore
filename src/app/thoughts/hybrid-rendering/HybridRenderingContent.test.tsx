@@ -40,7 +40,7 @@ describe("Hybrid Rendering write-up", () => {
       screen.getByRole("heading", { name: /per-route render modes/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /prerendered/i }),
+      screen.getByRole("heading", { name: /the head is where seo/i }),
     ).toBeInTheDocument();
   });
 });
