@@ -1,10 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { InventoryItem } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 import { inventoryItemSchema } from "@/lib/operator-schemas";
 import { z } from "zod";
+import { useOperatorResource } from "./useOperatorResource";
 
 const EMPTY: InventoryItem[] = [];
 
@@ -24,34 +24,15 @@ export interface UseOperatorInventoryReturn {
 export function useOperatorInventory(
   storeId: string,
 ): UseOperatorInventoryReturn {
-  const {
-    data,
-    isLoading,
-    isError,
-    error: queryError,
-  } = useQuery({
+  const { data, loading, error } = useOperatorResource<InventoryItem>({
     queryKey: queryKeys.operator.inventory(storeId),
-    queryFn: async ({ signal }): Promise<InventoryItem[]> => {
-      const res = await fetch(`/api/operator/stores/${storeId}/inventory`, {
-        signal,
-      });
-      if (!res.ok) throw new Error("Failed to fetch inventory");
-      const json = await res.json();
-      return z.array(inventoryItemSchema).parse(json.items);
-    },
-    staleTime: 0,
+    url: `/api/operator/stores/${storeId}/inventory`,
+    select: (json) =>
+      z.object({ items: z.array(inventoryItemSchema) }).parse(json).items,
+    fetchError: "Failed to fetch inventory",
+    loadError: "Failed to load inventory.",
     refetchInterval: 60_000,
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
   });
 
-  return {
-    items: data ?? EMPTY,
-    loading: isLoading,
-    error: isError
-      ? queryError instanceof Error
-        ? queryError.message
-        : "Failed to load inventory."
-      : null,
-  };
+  return { items: data ?? EMPTY, loading, error };
 }
