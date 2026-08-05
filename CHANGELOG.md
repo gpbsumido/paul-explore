@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.5
+
+- **One leaf module owns the backend URL.** The fallback `process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"` was re-declared in 18 files. `backendFetch.ts` already exported `API_URL`, but importing it from there would have pulled its server-only deps (`auth0`, `next/server`) into client bundles — the vitals and calendar pages, `flags-client`, `referrals`. So the constant now lives in a dependency-free `lib/apiUrl.ts` that everything imports; `backendFetch` re-exports it so server code is unaffected. Second step of the maintainability pass — fixes a latent client-bundle smell, not just the copy-paste.
+
 ## 2026-08-05 - version 3.13.4
 
 - **Every write-up page builds its social metadata from one helper.** All 50 `thoughts/*` and 14 `learn/*` pages hand-wrote the same ~25-line `Metadata` block — the openGraph and twitter shape copy-pasted per page, ~1000 lines of duplication that made any OG-convention change a 65-file edit. There's now a `buildArticleMetadata({ title, description, path, ogType })` helper beside the existing `SITE_URL`/`OG_IMAGE` in `lib/site.ts`, and the pages call it: net −737 lines. It deliberately doesn't source the description from the hub's `THOUGHTS` registry, since that stores the shorter card `preview`, not the SEO description — coupling them would have silently changed the meta text. The `world` write-up keeps its hand-written block because its social copy intentionally differs from its meta description; the `routing` page, which had been missing og/twitter tags entirely, gains them.
