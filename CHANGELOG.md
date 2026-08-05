@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.4
+
+- **Every write-up page builds its social metadata from one helper.** All 50 `thoughts/*` and 14 `learn/*` pages hand-wrote the same ~25-line `Metadata` block — the openGraph and twitter shape copy-pasted per page, ~1000 lines of duplication that made any OG-convention change a 65-file edit. There's now a `buildArticleMetadata({ title, description, path, ogType })` helper beside the existing `SITE_URL`/`OG_IMAGE` in `lib/site.ts`, and the pages call it: net −737 lines. It deliberately doesn't source the description from the hub's `THOUGHTS` registry, since that stores the shorter card `preview`, not the SEO description — coupling them would have silently changed the meta text. The `world` write-up keeps its hand-written block because its social copy intentionally differs from its meta description; the `routing` page, which had been missing og/twitter tags entirely, gains them. First slice of a broader maintainability pass reviewed in the project-review notes.
+
 ## 2026-08-05 - version 3.13.3
 
 - **The operator-live nightly checks out portfolio_api's `main`, not `develop`.** The nightly job that runs the operator screens against a real backend pinned portfolio_api's `develop`, and a `develop → main` release merge auto-deletes that branch — so the first nightly after a backend release failed at the checkout, fetching a `develop` that no longer existed. It was the wrong target anyway: the deployed dashboard only ever talks to the deployed backend, which is `main`. Pinning `main` fixes the failure and tests against what actually ships, and `main` is release-only so it can't be auto-deleted out from under the job. Also records the case in the test-tiers write-up.
