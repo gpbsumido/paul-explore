@@ -638,6 +638,14 @@ export default function OperatorDashboardContent() {
                 <ul className="mt-2 space-y-1 text-sm text-muted">
                   <li>
                     <a
+                      href="#update-2026-08-04-review-fixes"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The shrink report rendered blank against the real backend, because the database seed had no completed counts
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="#update-2026-08-02-timezones"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
@@ -740,6 +748,22 @@ export default function OperatorDashboardContent() {
                 </h3>
                 <p className="mt-0.5 text-xs text-muted">Where I picked a side and can say why.</p>
                 <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-04-review-fixes"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The aggregation math duplicated across two repos, pinned by a parity test rather than a shared package
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-finance"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Revenue Protect left out, because a protected-revenue figure with no failure data would be invented
+                    </a>
+                  </li>
                   <li>
                     <a
                       href="#update-2026-08-02-service-token"
@@ -862,6 +886,30 @@ export default function OperatorDashboardContent() {
                 <ul className="mt-2 space-y-1 text-sm text-muted">
                   <li>
                     <a
+                      href="#update-2026-08-04-planner"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A location that never pays back says so, instead of inventing a month count
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-products"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Dead SKUs stay in the performance report, because those are the rows worth cutting
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-shrink"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Skipped counts are shown as coverage, so a shelf nobody checked doesn&apos;t read as clean
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="#update-2026-08-02-timezones"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
@@ -940,6 +988,30 @@ export default function OperatorDashboardContent() {
                 </h3>
                 <p className="mt-0.5 text-xs text-muted">Choices about the next person, including future me.</p>
                 <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-04-review-fixes"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A cross-repo parity test, so the duplicated arithmetic fails fast instead of only in the live E2E
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-finance"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      One fee model imported by both the planner and finance, so the quote and the payout can&apos;t drift
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-review-fixes"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Stacked pull requests get CI now, after six of them merged unverified
+                    </a>
+                  </li>
                   <li>
                     <a
                       href="#update-2026-08-02-hardening"
@@ -1065,7 +1137,7 @@ export default function OperatorDashboardContent() {
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
-                The two screens
+                The screens, and the fleet tools
               </h3>
               <p className="text-muted">
                 The fleet page is the landing: every store as a card sorted
@@ -1084,6 +1156,20 @@ export default function OperatorDashboardContent() {
                 promotions. Tax derives GST, HST, PST and QST from the store&apos;s
                 province and shows what is owed.
               </p>
+              <p className="mt-3 text-muted">
+                Off the fleet page there are now five fleet-wide tools, each its
+                own page. <strong>Plan a location</strong> models a new
+                store&apos;s revenue and payback before you commit to it.{" "}
+                <strong>Product performance</strong> ranks every product by
+                revenue against its own category average, dead SKUs included.{" "}
+                <strong>Shrink &amp; loss</strong> reconciles completed restock
+                counts into unexplained shrink versus reasoned removals.{" "}
+                <strong>Finance</strong> is weekly payouts with the fees shown
+                rather than folded in. And <strong>Search</strong> is a
+                keyboard-first combobox over stores, products and the tools
+                themselves. They mirror what Micromart&apos;s own platform ships;
+                the write-ups above cover how each was built.
+              </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 Where the data lives
@@ -1095,8 +1181,19 @@ export default function OperatorDashboardContent() {
                 every write falls back to an in-memory seed if that service is
                 unreachable, so the demo behaves identically whether or not the
                 backend is awake. Aggregations that could get expensive (fleet
-                sales, the alert trend, promotion performance) are grouped in SQL
-                rather than pulled into Node and summed.
+                sales, the alert trend, promotion performance, and now the planner
+                benchmarks, product performance, shrink and finance rollups) are
+                grouped in SQL rather than pulled into Node and summed.
+              </p>
+              <p className="mt-3 text-muted">
+                The five fleet tools started life computing their numbers in the
+                BFF from the seed, and only later got the real SQL endpoints
+                behind them, wired the same live-first-then-fall-back-to-seed way
+                as every other read. Because that arithmetic now lives in both
+                repos, a parity test asserts the app&apos;s models and the API&apos;s
+                copies produce identical numbers for the same canonical inputs, so
+                a drift fails a millisecond test rather than surfacing as quietly
+                wrong figures on a chart.
               </p>
               <p className="mt-3 text-muted">
                 Reads poll on a tier: alerts every 15 seconds because they are
@@ -1198,14 +1295,32 @@ export default function OperatorDashboardContent() {
                       <td className="py-2 pr-4 align-top">Does the flow work against a real API and a real Postgres</td>
                       <td className="py-2 align-top">Production data and scale</td>
                     </tr>
-                    <tr>
+                    <tr className="border-b border-border/60">
                       <td className="py-2 pr-4 align-top text-foreground">SQL smoke</td>
                       <td className="py-2 pr-4 align-top">Will Postgres actually accept these statements</td>
                       <td className="py-2 align-top">Whether the results are right</td>
                     </tr>
+                    <tr>
+                      <td className="py-2 pr-4 align-top text-foreground">Cross-repo parity</td>
+                      <td className="py-2 pr-4 align-top">Do this app&apos;s models and the API&apos;s copies compute the same numbers</td>
+                      <td className="py-2 align-top">Whether either is correct on its own</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
+
+              <p className="mt-3 text-muted">
+                The last row is newer than the rest, and it exists because the
+                five fleet aggregations are computed twice &mdash; once in this
+                app&apos;s seed fallback, once in the API&apos;s SQL &mdash; so the
+                live path and the demo agree. Nothing structural stops the two
+                copies drifting, and the only tier that would otherwise catch it
+                is the live E2E, which is slow and needs a database. So both repos
+                assert the same canonical inputs against the same expected
+                outputs; a formula changed in one and not the other fails a
+                millisecond unit test. It is the cheap guard standing in for the
+                shared package the duplication really wants.
+              </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 Four bugs, and the tier that could never have caught them
