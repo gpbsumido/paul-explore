@@ -338,6 +338,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#64748b",
   },
   {
+    title: "Refactor Pass",
+    href: "/thoughts/refactor-pass",
+    preview:
+      "The maintainability roadmap after the review — deduping against existing abstractions, the overfits I avoid, and the order I ship in",
+    color: "#14b8a6",
+  },
+  {
     title: "AI Security & Bare Repo Attacks",
     href: "/thoughts/ai-security",
     preview:
