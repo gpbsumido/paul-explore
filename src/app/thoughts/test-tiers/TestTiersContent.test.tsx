@@ -47,6 +47,13 @@ describe("TestTiersContent", () => {
     expect(body).toMatch(/reported those routes as covered/);
   });
 
+  it("records the job pinned to a branch a release had deleted", () => {
+    render(<TestTiersContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/a develop-to-main release merge auto-deletes/);
+    expect(body).toMatch(/test against what is actually deployed/);
+  });
+
   it("documents each testing tier", () => {
     render(<TestTiersContent />);
     for (const tier of [

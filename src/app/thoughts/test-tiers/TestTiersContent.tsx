@@ -306,7 +306,21 @@ export default function TestTiersContent() {
           indistinguishable until you ask which.
         </p>
         <p className="mt-3 text-muted">
-          All three have the same moral, and it is not about cost or cadence: a
+          A fourth arrived on this very pipeline, and it was the plainest of all.
+          The job that runs the operator screens against a real backend had been
+          pinned to that backend&apos;s develop branch, when the deployed
+          dashboard only ever talks to its main. The pin was wrong twice over: it
+          tested against unreleased backend work the running app never sees, and
+          it tied the job to a branch that a develop-to-main release merge
+          auto-deletes. So the first nightly after a backend release failed at
+          the checkout, fetching a develop that no longer existed &mdash; and it
+          had looked fine until then only because the one earlier run predated
+          the release that removed the branch. The fix was a single word, develop
+          to main: test against what is actually deployed, which is also the one
+          branch a release cannot delete.
+        </p>
+        <p className="mt-3 text-muted">
+          All four have the same moral, and it is not about cost or cadence: a
           passing tier is a claim, and so is an empty one. It is worth
           occasionally checking what a green run actually exercised, because the
           failure mode is not a red build &mdash; it is that you stop looking.

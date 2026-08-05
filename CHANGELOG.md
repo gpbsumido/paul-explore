@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.3
+
+- **The operator-live nightly checks out portfolio_api's `main`, not `develop`.** The nightly job that runs the operator screens against a real backend pinned portfolio_api's `develop`, and a `develop → main` release merge auto-deletes that branch — so the first nightly after a backend release failed at the checkout, fetching a `develop` that no longer existed. It was the wrong target anyway: the deployed dashboard only ever talks to the deployed backend, which is `main`. Pinning `main` fixes the failure and tests against what actually ships, and `main` is release-only so it can't be auto-deleted out from under the job. Also records the case in the test-tiers write-up.
+
 ## 2026-08-04 - version 3.13.2
 
 - **The vitals auth E2E matches public Web Vitals.** Web Vitals went public (3.5.0), but `e2e/public/auth.spec.ts` still expected `/vitals` to redirect an unauthenticated visitor to login, so it failed against current behavior. Dropped `/vitals` from the protected list (only `/calendar` and `/settings` are session-gated now, matching `protectedPaths.ts`) and added a positive test that `/vitals` stays public, so the behavior is locked in rather than merely untested.
