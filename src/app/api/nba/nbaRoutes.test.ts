@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
+import { NextRequest } from "next/server";
 import { GET as teamsGET } from "./teams/route";
 import { GET as playersGET } from "./players/[teamId]/route";
 import { GET as statsGET } from "./stats/[playerId]/route";
@@ -10,7 +11,7 @@ function stubFetch(impl: () => Response) {
   vi.stubGlobal("fetch", vi.fn(impl));
 }
 
-const req = new Request("http://localhost/x");
+const req = new NextRequest("http://localhost/x");
 
 // Each entry pins one NBA proxy route's observable contract: the cache window
 // it advertises and the error label it returns when the upstream 404s.
