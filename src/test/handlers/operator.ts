@@ -23,6 +23,13 @@ import {
   aggregateFleetSales,
   type SalesGranularity,
 } from "@/lib/operator-sales";
+import { fleetBenchmarks } from "@/lib/operator-planner";
+import {
+  fleetProductPerformance,
+  daysForRange,
+} from "@/lib/operator-product-performance";
+import { fleetShrink } from "@/lib/operator-shrink";
+import { summarizeFinance, FEE_MODEL } from "@/lib/operator-finance";
 import {
   buildStoreList,
   buildInventoryList,
@@ -232,6 +239,82 @@ const handlersFor = (API_BASE: string) => [
     }));
 
     return HttpResponse.json(aggregateFleetSales(fleet, granularity));
+  }),
+
+  // GET /api/operator/planner/benchmarks — fleet basket price + items/order
+  http.get(`${API_BASE}/api/operator/planner/benchmarks`, async () => {
+    await randomDelay();
+    const sales = stores.flatMap((s) => salesByStore.get(s.id) ?? []);
+    return HttpResponse.json({ benchmarks: fleetBenchmarks(sales) });
+  }),
+
+  // GET /api/operator/product-performance — per-product over a day window
+  http.get(
+    `${API_BASE}/api/operator/product-performance`,
+    async ({ request }) => {
+      await randomDelay();
+      const rangeId = new URL(request.url).searchParams.get("range") ?? "30d";
+      const days = daysForRange(rangeId);
+      const sales = stores.flatMap((s) => salesByStore.get(s.id) ?? []);
+      const items = stores.flatMap((s) => inventoryByStore.get(s.id) ?? []);
+      return HttpResponse.json({
+        rangeId,
+        days,
+        products: fleetProductPerformance(items, sales, days),
+      });
+    },
+  ),
+
+  // GET /api/operator/shrink-summary — unexplained vs reasoned loss per store
+  http.get(`${API_BASE}/api/operator/shrink-summary`, async () => {
+    await randomDelay();
+    const inputs = stores.map((store, storeIndex) => {
+      const items = inventoryByStore.get(store.id) ?? [];
+      const priceByItemId: Record<string, number> = {};
+      for (const item of items) priceByItemId[item.id] = item.price;
+      const lines = items.map((item, i) => {
+        const expectedQty = Math.max(2, Math.round(item.capacity * 0.5));
+        const bucket = (i + storeIndex) % 4;
+        return {
+          itemId: item.id,
+          expectedQty,
+          countedQty:
+            bucket === 2
+              ? null
+              : Math.max(0, expectedQty - (1 + ((i + storeIndex) % 3))),
+          removed: bucket === 1 ? 1 + (i % 2) : 0,
+          removalReason: bucket === 1 ? "expired" : null,
+        };
+      });
+      return { storeId: store.id, storeName: store.name, lines, priceByItemId };
+    });
+    return HttpResponse.json(fleetShrink(inputs));
+  }),
+
+  // GET /api/operator/search-index — stores + distinct fleet products
+  http.get(`${API_BASE}/api/operator/search-index`, async () => {
+    await randomDelay();
+    const seen = new Set<string>();
+    const products: { name: string; category: string }[] = [];
+    for (const store of stores) {
+      for (const item of inventoryByStore.get(store.id) ?? []) {
+        if (seen.has(item.productName)) continue;
+        seen.add(item.productName);
+        products.push({ name: item.productName, category: item.category });
+      }
+    }
+    return HttpResponse.json({
+      stores: stores.map((s) => ({ id: s.id, name: s.name, status: s.status })),
+      products,
+    });
+  }),
+
+  // GET /api/operator/finance — weekly payouts reconciled from sales
+  http.get(`${API_BASE}/api/operator/finance`, async () => {
+    await randomDelay();
+    const sales = stores.flatMap((s) => salesByStore.get(s.id) ?? []);
+    const { weeks, totals } = summarizeFinance(sales, stores.length, new Date());
+    return HttpResponse.json({ weeks, totals, fees: FEE_MODEL });
   }),
 
   // GET /api/operator/stores — fleet list

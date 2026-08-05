@@ -18,6 +18,7 @@ import {
   describeDraft,
   resultingStock,
   summarizeDraft,
+  REMOVAL_REASONS,
 } from "@/lib/operator-restock";
 import {
   comparePerformance,
@@ -163,9 +164,12 @@ function initDataStore(): OperatorDataStore {
     stores.map((s) => [s.id, [...buildActivityList(s.id, 15)]]),
   );
 
-  // Spread ~18 months of sales so the day/week/month/year analytics all have data.
+  // Spread ~18 months of sales so the day/week/month/year analytics all have
+  // data, at a weekly volume a real micro-store actually does — enough that the
+  // finance page's payouts clear the platform fee rather than a trickle that
+  // makes every week look like a loss.
   const salesByStore = new Map<string, Sale[]>(
-    stores.map((s) => [s.id, [...buildSalesList(s.id, 90, 540)]]),
+    stores.map((s) => [s.id, [...buildSalesList(s.id, 900, 540)]]),
   );
 
   // Planogram starts with each item in its own box, then pads to full shelves
@@ -194,6 +198,8 @@ function initDataStore(): OperatorDataStore {
     }
   }
 
+  const history = buildRestockHistory(stores, inventoryByStore);
+
   return {
     stores,
     inventoryByStore,
@@ -202,10 +208,97 @@ function initDataStore(): OperatorDataStore {
     salesByStore,
     planogramByStore,
     allAlerts,
-    restockSessions: new Map<string, RestockSession>(),
-    restockLines: new Map<string, RestockLine[]>(),
+    restockSessions: history.sessions,
+    restockLines: history.lines,
     promotions: new Map<string, Promotion>(),
   };
+}
+
+/** Days-ago each seeded historical restock session was completed. */
+const HISTORY_SESSION_DAYS = [4, 11] as const;
+/** How many of a store's slots each historical session walked. */
+const HISTORY_SLOTS_PER_SESSION = 6;
+
+/**
+ * Seeds a couple of completed restock sessions per store so the loss report has
+ * count history to reconcile against on a fresh seed. The variance is
+ * deterministic, not random: across the covered slots it cycles through an
+ * unexplained shortfall, a reasoned removal, a skipped count, and a clean
+ * count, so every category the report separates is exercised without the
+ * numbers drifting between server starts.
+ */
+function buildRestockHistory(
+  stores: Store[],
+  inventoryByStore: Map<string, InventoryItem[]>,
+): { sessions: Map<string, RestockSession>; lines: Map<string, RestockLine[]> } {
+  const sessions = new Map<string, RestockSession>();
+  const lines = new Map<string, RestockLine[]>();
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+
+  stores.forEach((store, storeIdx) => {
+    const inventory = (inventoryByStore.get(store.id) ?? []).slice(
+      0,
+      HISTORY_SLOTS_PER_SESSION,
+    );
+
+    HISTORY_SESSION_DAYS.forEach((daysAgo, sessionIdx) => {
+      const sessionId = `${store.id}-hist-${sessionIdx}`;
+      const completedMs = now - daysAgo * DAY;
+      sessions.set(sessionId, {
+        id: sessionId,
+        storeId: store.id,
+        startedAt: new Date(completedMs - 20 * 60 * 1000).toISOString(),
+        completedAt: new Date(completedMs).toISOString(),
+        actor: "Field tech",
+        notes: null,
+      });
+
+      const sessionLines: RestockLine[] = inventory.map((item, i) => {
+        const expectedQty = Math.max(2, Math.round(item.capacity * 0.5));
+        const bucket = (i + sessionIdx) % 4;
+
+        let countedQty: number | null = expectedQty;
+        let removed = 0;
+        let removalReason: string | null = null;
+
+        if (bucket === 0) {
+          // Unexplained shrink: stock the system expected but wasn't there.
+          // Scaled by the store's index so the fleet has a real worst-first
+          // ranking rather than every store leaking the same amount.
+          const missing = Math.min(expectedQty, 1 + storeIdx + (i % 2));
+          countedQty = Math.max(0, expectedQty - missing);
+        } else if (bucket === 1) {
+          // Reasoned removal: a logged, explained loss.
+          removed = 1 + (i % 2);
+          removalReason = REMOVAL_REASONS[i % REMOVAL_REASONS.length];
+        } else if (bucket === 2) {
+          // A slot the restocker chose to skip.
+          countedQty = null;
+        }
+        // bucket === 3: a clean count that matched.
+
+        const added = Math.max(0, item.capacity - expectedQty);
+        const draft = { expectedQty, countedQty, added, removed };
+        return {
+          id: `${sessionId}-${item.id}`,
+          sessionId,
+          itemId: item.id,
+          expectedQty,
+          countedQty,
+          added,
+          removed,
+          removalReason,
+          resultingStock: resultingStock(draft, item.capacity),
+          countStatus: countStatusOf({ expectedQty, countedQty }),
+        };
+      });
+
+      lines.set(sessionId, sessionLines);
+    });
+  });
+
+  return { sessions, lines };
 }
 
 /**

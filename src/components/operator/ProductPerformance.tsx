@@ -9,8 +9,20 @@ import {
   type ProductPerformanceRow,
 } from "@/lib/operator-product-performance";
 import { formatCAD } from "@/lib/operator-sales";
+import { toCsv } from "@/lib/csv";
 import DataLoadError from "./DataLoadError";
 import Bone from "./Bone";
+
+/** Triggers a client-side download of a CSV string. */
+function downloadCsv(filename: string, content: string): void {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
 
 /** A relative-performance verdict, as text and colour (never colour alone). */
 function verdict(row: ProductPerformanceRow): {
@@ -66,17 +78,42 @@ export default function ProductPerformance() {
     staleTime: 60_000,
   });
 
+  const exportCsv = () => {
+    if (!data) return;
+    const csv = toCsv(data.products, [
+      { header: "Product", value: (r) => r.productName },
+      { header: "Category", value: (r) => r.category },
+      { header: "Units", value: (r) => r.unitsSold },
+      { header: "Avg per day", value: (r) => r.avgPerDay },
+      { header: "Revenue", value: (r) => r.revenue },
+      { header: "Category index", value: (r) => r.performanceIndex },
+    ]);
+    downloadCsv(`product-performance-${rangeId}.csv`, csv);
+  };
+
+  const hasRows = !isPending && !isError && data.products.length > 0;
+
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-foreground">
           Product performance
         </h2>
-        <div
-          role="group"
-          aria-label="Performance range"
-          className="inline-flex rounded-lg border border-border bg-surface p-0.5"
-        >
+        <div className="flex items-center gap-2">
+          {hasRows && (
+            <button
+              type="button"
+              onClick={exportCsv}
+              className="rounded-lg border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500"
+            >
+              Download CSV
+            </button>
+          )}
+          <div
+            role="group"
+            aria-label="Performance range"
+            className="inline-flex rounded-lg border border-border bg-surface p-0.5"
+          >
           {PERFORMANCE_RANGES.map((range) => {
             const isActive = range.id === rangeId;
             return (
@@ -95,6 +132,7 @@ export default function ProductPerformance() {
               </button>
             );
           })}
+          </div>
         </div>
       </div>
 
