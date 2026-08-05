@@ -3,8 +3,12 @@ name: CI
 on:
   push:
     branches: [main, develop]
+  # No base-branch filter, on purpose: a stacked PR targets a feature branch, not
+  # develop/main, and with a filter here it would get no CI at all until it
+  # retargeted develop on merge. Every PR gets the quality, integration and smoke
+  # tiers regardless of where it's headed; the heavy nightly tiers stay gated by
+  # event name below.
   pull_request:
-    branches: [main, develop]
   # Nightly run for the heavy end-to-end tier. 07:00 UTC daily.
   schedule:
     - cron: "0 7 * * *"
