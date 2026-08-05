@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-04 - version 3.13.2
+
+- **The vitals auth E2E matches public Web Vitals.** Web Vitals went public (3.5.0), but `e2e/public/auth.spec.ts` still expected `/vitals` to redirect an unauthenticated visitor to login, so it failed against current behavior. Dropped `/vitals` from the protected list (only `/calendar` and `/settings` are session-gated now, matching `protectedPaths.ts`) and added a positive test that `/vitals` stays public, so the behavior is locked in rather than merely untested.
+
 ## 2026-08-04 - version 3.13.0
 
 - **Fixed what a review of the live-backend work turned up.** A cross-repo parity test now pins that the app's aggregation models and portfolio_api's copies compute the same numbers — the same canonical scenarios asserted against identical expected outputs in both repos, so a formula drift fails in milliseconds instead of only in the heavy live-backend E2E. The product-performance loader passes the range id straight to the API instead of mapping it to a day count and back (lossy for any non-standard window). And the finance platform-fee's "one unit per store" assumption is now an explicit named constant rather than a bare `storeCount` multiply, since a store's hardware count isn't modelled yet.
