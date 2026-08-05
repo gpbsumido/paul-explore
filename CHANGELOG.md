@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.13
+
+- **Wrote up the angular-paul hybrid-rendering pass.** New Thoughts page on giving each Angular route the render mode it actually needs: the SEO-critical Thoughts routes prerender to static HTML at build time via per-route `RenderMode`, with `getPrerenderParams()` enumerating every slug so each thought gets its own static page, a `SeoService` writing the head and JSON-LD `BlogPosting` on the server, and the interactive desktop shell left client-rendered. Covers the hydration bugs that surfaced once the shell really server-rendered (the clock interval, the menu bar's `ngSkipHydration`) and the build-output proof that the essay body and head tags land before any JavaScript runs. Filed under Architecture & Backend.
+
 ## 2026-08-05 - version 3.13.12
 
 - **Broke up the next tier of oversized write-ups.** After the operator dashboard, five more `*Content.tsx` write-ups ran 1,000–2,000 lines in a single component: the landing-page, accessibility, render-perf, design-system, and calendar dev-notes. Each is now a small orchestrator plus focused section files — the chat view and the summary sections split apart, and where the chat itself was the bulk (calendar), it's broken at `Timestamp` boundaries into thread parts. Cut only at `<section>` and timestamp boundaries so every chunk is balanced and no prose changed; the rendered text is byte-identical, verified page by page, and each page carries a test (existing suites kept green, smoke/order tests added where there were none). The remaining write-ups are all comfortably readable now. The `learn/*` algorithm pages are left alone — they're interactive demos with real state, not prose.
