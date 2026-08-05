@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.10
+
+- **Broke up the 5,113-line operator write-up.** `OperatorDashboardContent.tsx` was the biggest file in the repo — a single component holding the chat view and forty summary sections, too big to read or edit in one pass. It's now a 32-line orchestrator plus five focused files under `operator-dashboard/sections/` (the chat, the timeline+overview, the original build write-up, and the dated updates in two halves), cut only at `<section>` sibling boundaries so every chunk is balanced and no prose changed. The page's exhaustive test suite — 72 assertions on exact text, section order, and every anchor link — passes unchanged, which is the proof nothing moved. Deferred Tier 3 cleanup from the maintainability pass, done now that the chat view already uses `ChatThread`.
+
 ## 2026-08-05 - version 3.13.9
 
 - **The TCG list routes share one SDK-serving helper.** The three list routes (`series`, `sets`, `cards`) each hand-wrote the same block — call the TCGdex SDK, turn a thrown error or a null result into a 502, strip the SDK's circular refs with `toPlain`, and forward the JSON with an identical cache header. That's now `serveTcg(errorLabel, produce)` plus a shared `TCG_CACHE_CONTROL` in a **server-only** `lib/tcg-route.ts` — kept out of `lib/tcg.ts` on purpose, since client components import that module and shouldn't pull `next/server`. The two detail routes (`sets/[setId]`, `cards/[cardId]`) keep their own 404-on-miss contract and just adopt the shared cache constant. Behavior is pinned by characterization tests written against the old routes that still pass. Sixth step of the maintainability pass; closes out the API error-handling convergence.
