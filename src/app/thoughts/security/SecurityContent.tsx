@@ -1,8 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function SecurityContent() {
   return (
@@ -17,12 +16,7 @@ export default function SecurityContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 10:00 AM</Timestamp>
 
               <Received pos="first">
@@ -271,9 +265,7 @@ export default function SecurityContent() {
                 there&apos;s no network cost and the dynamic render penalty is
                 negligible
               </Sent>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>

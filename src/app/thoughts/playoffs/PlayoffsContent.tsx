@@ -1,8 +1,8 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import styles from "@/app/thoughts/_shared/chat.module.css";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function PlayoffsContent() {
   return (
@@ -17,12 +17,7 @@ export default function PlayoffsContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 11:00 AM</Timestamp>
 
               <Received pos="first">what is the playoffs bracket page</Received>
@@ -253,9 +248,7 @@ export default function PlayoffsContent() {
                 <span />
                 <span />
               </div>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>

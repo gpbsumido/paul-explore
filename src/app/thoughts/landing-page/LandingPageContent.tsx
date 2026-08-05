@@ -1,8 +1,8 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Sent, Received, Timestamp } from "@/lib/threads";
+import styles from "@/app/thoughts/_shared/chat.module.css";
+import { ChatThread, Sent, Received, Timestamp } from "@/lib/threads";
 
 export default function LandingPageContent() {
   return (
@@ -17,12 +17,7 @@ export default function LandingPageContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 2:30 PM</Timestamp>
 
               {/* ---- The brief ---- */}
@@ -912,9 +907,7 @@ for (let y = 1; y < simH - 1; y++) {
                 <span />
                 <span />
               </div>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>

@@ -1,8 +1,8 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import styles from "@/app/thoughts/_shared/chat.module.css";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function CalendarAboutContent() {
   return (
@@ -18,12 +18,7 @@ export default function CalendarAboutContent() {
       }
       chat={
         /* Chat view — shared nav handles navigation, phone topBar is NOT rendered */
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 10:00 AM</Timestamp>
 
               <Received pos="first">
@@ -1240,9 +1235,7 @@ if (prependHeightRef.current !== null && scrollRef.current) {
                 <span />
                 <span />
               </div>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>

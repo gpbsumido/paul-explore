@@ -1,4 +1,4 @@
-import styles from "../app/thoughts/styling/styling.module.css";
+import styles from "@/app/thoughts/_shared/chat.module.css";
 
 /*TODO: move to db */
 export const Demo_Threads = [
@@ -54,4 +54,26 @@ export function Received({
 
 export function Timestamp({ children }: { children: React.ReactNode }) {
   return <div className={styles.timestamp}>{children}</div>;
+}
+
+/**
+ * The iMessage-style "phone" shell every chat write-up wrapped its bubbles in:
+ * a centered column with the sticky-header offset baked into the min-height.
+ * Pages pass only their bubbles as children instead of repeating the three-div
+ * scaffold (and reaching into this feature's CSS module) by hand.
+ */
+export function ChatThread({
+  children,
+  minHeight = "calc(100dvh - 56px)",
+}: {
+  children: React.ReactNode;
+  minHeight?: string;
+}) {
+  return (
+    <div className="flex justify-center">
+      <div className={styles.phone} style={{ minHeight }}>
+        <div className={styles.chat}>{children}</div>
+      </div>
+    </div>
+  );
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -53,12 +52,7 @@ export default function TreeShakingContent() {
       }
       chat={
         /* Chat view: shared nav already rendered above, phone frame has no topBar */
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 9:12 AM</Timestamp>
 
               <Received pos="first">
@@ -184,9 +178,7 @@ export default function TreeShakingContent() {
                 and a tool&apos;s &quot;unused&quot; is a question, not an answer.
                 never suppress a real finding just to get a green check
               </Sent>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <Section title="Three kinds of dead weight">

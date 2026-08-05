@@ -4,8 +4,8 @@ import { useState } from "react";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button, Input, Modal } from "@/components/ui";
-import styles from "./styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import styles from "@/app/thoughts/_shared/chat.module.css";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function StylingContent() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -37,12 +37,7 @@ export default function StylingContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 2:41 PM</Timestamp>
 
               {/* ---- The starting point ---- */}
@@ -462,9 +457,7 @@ export default function StylingContent() {
                 <span />
                 <span />
               </div>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>
