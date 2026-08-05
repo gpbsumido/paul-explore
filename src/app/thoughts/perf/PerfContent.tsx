@@ -1,8 +1,8 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import styles from "@/app/thoughts/_shared/chat.module.css";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function PerfContent() {
   return (
@@ -16,12 +16,7 @@ export default function PerfContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 2:00 PM</Timestamp>
 
               <Received pos="first">
@@ -253,9 +248,7 @@ const FeaturesSection = dynamic(
                 <span />
                 <span />
               </div>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>

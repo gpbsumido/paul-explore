@@ -1,8 +1,8 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { API_URL } from "@/lib/apiUrl";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 /**
  * GET /api/google/auth/status

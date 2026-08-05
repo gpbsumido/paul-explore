@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { API_URL } from "@/lib/apiUrl";
 import { auth0 } from "@/lib/auth0";
 import { resolveVitalsFilter } from "@/lib/vitalsFilter";
 import type { VitalsResponse, VersionMetrics } from "@/types/vitals";
@@ -10,7 +11,6 @@ export const metadata: Metadata = {
     "Real-user Core Web Vitals collected from every page load, aggregated into P75 scores by metric and by page.",
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 /**
  * Fetches the global P75 summary and per-page breakdown from the backend.

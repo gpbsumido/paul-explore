@@ -1,10 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { Store } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 import { storeSchema } from "@/lib/operator-schemas";
 import { z } from "zod";
+import { useOperatorResource } from "./useOperatorResource";
 
 const EMPTY: Store[] = [];
 
@@ -22,32 +22,15 @@ export interface UseOperatorStoresReturn {
  * can change at any moment and we always want the freshest snapshot.
  */
 export function useOperatorStores(): UseOperatorStoresReturn {
-  const {
-    data,
-    isLoading,
-    isError,
-    error: queryError,
-  } = useQuery({
+  const { data, loading, error } = useOperatorResource<Store>({
     queryKey: queryKeys.operator.stores(),
-    queryFn: async ({ signal }): Promise<Store[]> => {
-      const res = await fetch("/api/operator/stores", { signal });
-      if (!res.ok) throw new Error("Failed to fetch stores");
-      const json = await res.json();
-      return z.array(storeSchema).parse(json.stores);
-    },
-    staleTime: 0,
+    url: "/api/operator/stores",
+    select: (json) =>
+      z.object({ stores: z.array(storeSchema) }).parse(json).stores,
+    fetchError: "Failed to fetch stores",
+    loadError: "Failed to load stores.",
     refetchInterval: 30_000,
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
   });
 
-  return {
-    stores: data ?? EMPTY,
-    loading: isLoading,
-    error: isError
-      ? queryError instanceof Error
-        ? queryError.message
-        : "Failed to load stores."
-      : null,
-  };
+  return { stores: data ?? EMPTY, loading, error };
 }

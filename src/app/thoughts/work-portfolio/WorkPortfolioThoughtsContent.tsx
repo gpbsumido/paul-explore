@@ -1,8 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -44,9 +43,7 @@ export default function WorkPortfolioThoughtsContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div className={styles.phone} style={{ minHeight: "calc(100dvh - 56px)" }}>
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 11:02 AM</Timestamp>
 
               <Received pos="first">saw the work portfolio page</Received>
@@ -112,9 +109,7 @@ export default function WorkPortfolioThoughtsContent() {
                 turns one scary 24-demo feature into a dozen small reviewable
                 ones. that&apos;s the whole trick really
               </Sent>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <Section title="The problem with a work portfolio">

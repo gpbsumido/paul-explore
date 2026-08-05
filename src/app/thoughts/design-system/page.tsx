@@ -1,28 +1,16 @@
 import type { Metadata } from "next";
-import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import { buildArticleMetadata } from "@/lib/site";
 import DesignSystemContent from "./DesignSystemContent";
 
 const TITLE = "Shared Design System | Thoughts";
 const DESCRIPTION =
   "Extracting a shared design system from one app and wiring it into two — CSS custom properties as the canonical token format, thin framework wrappers, the publish-to-npm workflow, and the charts that exposed a package shipping components no consumer could bind to.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildArticleMetadata({
   title: TITLE,
   description: DESCRIPTION,
-  openGraph: {
-    type: "article",
-    url: `${SITE_URL}/thoughts/design-system`,
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE.url],
-  },
-};
+  path: "/thoughts/design-system",
+});
 
 export const revalidate = 86400;
 

@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 // Base URL used for og:url and og:image references.
 // Set NEXT_PUBLIC_SITE_URL in your deploy environment — falls back to the
 // Vercel production URL so local omission doesn't break the build.
@@ -12,3 +14,48 @@ export const OG_IMAGE = {
   height: 630,
   alt: "paul-explore — personal playground and portfolio",
 };
+
+type ArticleMetadata = {
+  /** The <title> and og/twitter title (pages build their own "… | Thoughts" suffix). */
+  title: string;
+  /** The meta description, mirrored into og and twitter. */
+  description: string;
+  /** Absolute-from-root path, e.g. "/thoughts/perf" — becomes the canonical og:url. */
+  path: string;
+  /** og:type. Write-ups are "article"; learn/reference pages pass "website". */
+  ogType?: "article" | "website";
+};
+
+/**
+ * The Open Graph + Twitter metadata block that every write-up page repeated by
+ * hand. Pages pass only what actually differs (title, description, path, and
+ * occasionally the og type); the shared OG image and card shape live here once.
+ *
+ * Note: `revalidate` is intentionally NOT part of this — it's a separate Next
+ * route export, not a Metadata field, so pages keep their own `export const
+ * revalidate` line.
+ */
+export function buildArticleMetadata({
+  title,
+  description,
+  path,
+  ogType = "article",
+}: ArticleMetadata) {
+  return {
+    title,
+    description,
+    openGraph: {
+      type: ogType,
+      url: `${SITE_URL}${path}`,
+      title,
+      description,
+      images: [OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [OG_IMAGE.url],
+    },
+  } satisfies Metadata;
+}

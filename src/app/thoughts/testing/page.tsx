@@ -1,28 +1,16 @@
 import type { Metadata } from "next";
-import { SITE_URL, OG_IMAGE } from "@/lib/site";
+import { buildArticleMetadata } from "@/lib/site";
 import TestingContent from "./TestingContent";
 
 const TITLE = "Testing | Thoughts";
 const DESCRIPTION =
   "How 640+ tests (unit + e2e) got added to a codebase with zero — the setup, what got tested and why, and the MSW delay() trick for proving optimistic updates actually work.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildArticleMetadata({
   title: TITLE,
   description: DESCRIPTION,
-  openGraph: {
-    type: "article",
-    url: `${SITE_URL}/thoughts/testing`,
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [OG_IMAGE.url],
-  },
-};
+  path: "/thoughts/testing",
+});
 
 // Static write-up -- cache at CDN for 24h
 export const revalidate = 86400;

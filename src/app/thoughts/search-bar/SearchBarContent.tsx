@@ -1,8 +1,8 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Sent, Received, Timestamp } from "@/lib/threads";
+import styles from "@/app/thoughts/_shared/chat.module.css";
+import { ChatThread, Sent, Received, Timestamp } from "@/lib/threads";
 import SearchDemo from "./SearchDemo";
 
 export default function SearchBarContent() {
@@ -19,12 +19,7 @@ export default function SearchBarContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 4:12 PM</Timestamp>
 
               {/* ---- The problem ---- */}
@@ -222,9 +217,7 @@ export default function ThreadList({ threads }) {
                 <span />
                 <span />
               </div>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>

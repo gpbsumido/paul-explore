@@ -1,10 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { PlanogramSlot } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 import { planogramSlotSchema } from "@/lib/operator-schemas";
 import { z } from "zod";
+import { useOperatorResource } from "./useOperatorResource";
 
 const EMPTY: PlanogramSlot[] = [];
 
@@ -22,34 +22,15 @@ export interface UseOperatorPlanogramReturn {
 export function useOperatorPlanogram(
   storeId: string,
 ): UseOperatorPlanogramReturn {
-  const {
-    data,
-    isLoading,
-    isError,
-    error: queryError,
-  } = useQuery({
+  const { data, loading, error } = useOperatorResource<PlanogramSlot>({
     queryKey: queryKeys.operator.planogram(storeId),
-    queryFn: async ({ signal }): Promise<PlanogramSlot[]> => {
-      const res = await fetch(`/api/operator/stores/${storeId}/planogram`, {
-        signal,
-      });
-      if (!res.ok) throw new Error("Failed to fetch planogram");
-      const json = await res.json();
-      return z.array(planogramSlotSchema).parse(json.slots);
-    },
-    staleTime: 0,
+    url: `/api/operator/stores/${storeId}/planogram`,
+    select: (json) =>
+      z.object({ slots: z.array(planogramSlotSchema) }).parse(json).slots,
+    fetchError: "Failed to fetch planogram",
+    loadError: "Failed to load planogram.",
     refetchInterval: 60_000,
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
   });
 
-  return {
-    slots: data ?? EMPTY,
-    loading: isLoading,
-    error: isError
-      ? queryError instanceof Error
-        ? queryError.message
-        : "Failed to load planogram."
-      : null,
-  };
+  return { slots: data ?? EMPTY, loading, error };
 }

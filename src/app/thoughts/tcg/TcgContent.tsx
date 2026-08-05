@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import styles from "@/app/thoughts/_shared/chat.module.css";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function TcgContent() {
   return (
@@ -17,12 +18,7 @@ export default function TcgContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 9:15 AM</Timestamp>
 
               <Received pos="first">
@@ -579,11 +575,95 @@ onScrollRef.current = () => {
                 <span />
                 <span />
               </div>
-            </div>
-          </div>
-        </div>
+        </ChatThread>
       }
     >
+      <section
+        id="update-2026-08-05-serve-tcg"
+        className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+          Update &mdash; August 5, 2026
+        </p>
+        <h2 className="mt-1 mb-3 text-lg font-bold">
+          The list routes now share one helper
+        </h2>
+        <p className="text-muted">
+          A{" "}
+          <Link
+            href="/thoughts/refactor-pass"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            whole-project maintainability pass
+          </Link>{" "}
+          reached the TCG routes. The three <em>list</em> endpoints (
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            series
+          </code>
+          ,{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            sets
+          </code>
+          ,{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            cards
+          </code>
+          ) each hand-wrote the same block: call the TCGdex SDK, turn a thrown
+          error or a null result into a 502, strip the SDK&apos;s circular refs
+          with{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            toPlain
+          </code>
+          , and forward the JSON with an identical cache header. That&apos;s now
+          one{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            serveTcg(errorLabel, produce)
+          </code>{" "}
+          helper, and each route is a one- or few-liner that passes a producer
+          thunk.
+        </p>
+        <p className="text-muted">
+          <strong>Where it lives, and why.</strong> The helper sits in a
+          server-only{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            lib/tcg-route.ts
+          </code>
+          , deliberately not in{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            lib/tcg.ts
+          </code>{" "}
+          &mdash; that module is imported by client components (
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            typeStyle
+          </code>
+          , the type colors), and putting{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            next/server
+          </code>{" "}
+          there would drag it into the client bundle. Same bundling trap the
+          refactor&apos;s backend-URL step fixed, avoided up front here.
+        </p>
+        <p className="text-muted">
+          <strong>What I did not fold in.</strong> The two{" "}
+          <em>detail</em> routes (
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            sets/[setId]
+          </code>
+          ,{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            cards/[cardId]
+          </code>
+          ) return 404 on a miss, not 502, and deliberately don&apos;t catch &mdash;
+          a thrown error should surface as a 500, not be dressed up as an upstream
+          failure. Forcing them through the list helper would have quietly changed
+          that, so they keep their own handler and only adopt the shared cache
+          constant. The tradeoff is two routes that don&apos;t share the wrapper,
+          which is the correct price for not lying about a 500. Characterization
+          tests written against the old routes still pass, so the swap is provably
+          behaviour-preserving.
+        </p>
+      </section>
+
       <section>
               <h2 className="mb-3 text-lg font-bold">
                 API proxy and ISR caching

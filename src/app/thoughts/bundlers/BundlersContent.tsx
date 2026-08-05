@@ -1,8 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -54,12 +53,7 @@ export default function BundlersContent() {
       }
       chat={
         /* Chat view: shared nav already rendered above, phone frame has no topBar */
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 2:41 PM</Timestamp>
 
               <Received pos="first">what bundler does the site use</Received>
@@ -135,9 +129,7 @@ export default function BundlersContent() {
                 alone. the day you publish a package is the day you consciously
                 reach for Rollup. that&apos;s the whole skill
               </Sent>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <Section title="What this project runs">

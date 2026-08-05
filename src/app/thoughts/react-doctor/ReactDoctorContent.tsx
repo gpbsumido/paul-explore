@@ -1,7 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
+import styles from "@/app/thoughts/_shared/chat.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
 
 /** A labelled code block for a before/after (or before/attempt/correct) pair. */

@@ -1,8 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import styles from "@/app/thoughts/styling/styling.module.css";
-import { Timestamp, Sent, Received } from "@/lib/threads";
+import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function FeatureFlagsContent() {
   return (
@@ -20,12 +19,7 @@ export default function FeatureFlagsContent() {
         </>
       }
       chat={
-        <div className="flex justify-center">
-          <div
-            className={styles.phone}
-            style={{ minHeight: "calc(100dvh - 56px)" }}
-          >
-            <div className={styles.chat}>
+        <ChatThread>
               <Timestamp>Today 4:00 PM</Timestamp>
 
               <Received pos="first">what&apos;s the feature flags thing</Received>
@@ -166,9 +160,7 @@ export default function FeatureFlagsContent() {
                 second flag decisions leak into components or network calls, you
                 lose the property that makes the whole thing trustworthy
               </Sent>
-            </div>
-          </div>
-        </div>
+            </ChatThread>
       }
     >
       <section>

@@ -1,10 +1,10 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { API_URL } from "@/lib/apiUrl";
 import { NextResponse, type NextRequest } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { parseBody } from "@/lib/parseBody";
 import { vitalsBeaconSchema } from "@/lib/schemas";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // POST /api/vitals
 // open ingestion — no session check, just validate the shape and forward

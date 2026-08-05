@@ -79,3 +79,32 @@ export function upstreamErrorResponse(
     { status: timedOut ? 504 : 502 },
   );
 }
+
+/**
+ * The whole "proxy a public GET to portfolio_api" shape the NBA routes each
+ * hand-wrote: call the upstream with a deadline, turn a transport failure into
+ * 504/502, pass a non-2xx through as `{ error: errorLabel }` at the same
+ * status, and otherwise forward the JSON with an optional cache header. A
+ * malformed body (or any other throw while reading it) becomes a 502, matching
+ * the routes' previous catch.
+ */
+export async function proxyUpstream(
+  url: string,
+  { errorLabel, cacheControl }: { errorLabel: string; cacheControl?: string },
+): Promise<NextResponse> {
+  try {
+    const result = await fetchUpstream(url);
+    if (!result.ok) return upstreamErrorResponse(result);
+    const res = result.response;
+    if (!res.ok) {
+      return NextResponse.json({ error: errorLabel }, { status: res.status });
+    }
+    const data = await res.json();
+    return NextResponse.json(
+      data,
+      cacheControl ? { headers: { "Cache-Control": cacheControl } } : undefined,
+    );
+  } catch {
+    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
+  }
+}

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { API_URL } from "@/lib/apiUrl";
 import type { Metadata } from "next";
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import PageHeader from "@/components/PageHeader";
@@ -31,7 +32,6 @@ export const metadata: Metadata = {
   },
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 /**
  * Fetches the current month's events server-side so the calendar grid renders
