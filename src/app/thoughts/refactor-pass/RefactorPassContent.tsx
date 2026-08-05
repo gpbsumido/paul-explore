@@ -163,7 +163,7 @@ export default function RefactorPassContent() {
           <Step
             id="2"
             title="A leaf module for the backend URL"
-            status="next"
+            status="shipped"
           >
             <p>
               The fallback{" "}
@@ -185,7 +185,7 @@ export default function RefactorPassContent() {
           <Step
             id="3"
             title="A ChatThread shell, and move the chat CSS to where it belongs"
-            status="next"
+            status="shipped"
           >
             <p>
               The iMessage &ldquo;phone&rdquo; shell &mdash; the same three-div{" "}
@@ -207,7 +207,7 @@ export default function RefactorPassContent() {
           <Step
             id="4"
             title="A factory for the operator data hooks"
-            status="next"
+            status="shipped"
           >
             <p>
               Five hooks (<C>useOperatorSales</C>/<C>Stores</C>/<C>Inventory</C>/
@@ -228,21 +228,33 @@ export default function RefactorPassContent() {
           <Step
             id="5"
             title="Converge the API-route error handling"
-            status="later"
+            status="shipped"
           >
             <p>
-              Three styles coexist: the clean <C>withOperatorErrors</C> wrapper,
-              the calendar routes&rsquo; <C>withBackend</C> +{" "}
+              Three styles coexisted: the clean <C>withOperatorErrors</C>{" "}
+              wrapper, the calendar routes&rsquo; <C>withBackend</C> +{" "}
               <C>upstreamErrorResponse</C>, and ~35 bare hand-rolled{" "}
               <C>try/catch</C> blocks across NBA, TCG, google and vitals.
             </p>
             <p>
-              <Tag kind="keep" /> No uber-wrapper. Map each bare route to the{" "}
-              <span className="italic">nearest existing</span> pattern, one route
-              family per PR, with characterisation tests written against current
-              behaviour first so the swap is provably behaviour-preserving.
-              Routes with genuinely unique status mapping keep their{" "}
-              <C>try/catch</C>.
+              <Tag kind="gain" /> The two families that genuinely shared a shape
+              collapsed onto one helper each: the NBA routes onto a{" "}
+              <C>proxyUpstream</C> (public GET → JSON, beside <C>fetchUpstream</C>
+              ), and the TCG list routes onto a <C>serveTcg</C> (in a
+              server-only module so the client bundle stays clean). Each swap is
+              behind characterisation tests written against the old routes that
+              still pass.
+            </p>
+            <p>
+              <Tag kind="keep" /> No uber-wrapper, and I stopped there on purpose.
+              The vitals and google routes are authenticated with bespoke shaping
+              (a beacon POST, parallel fetches, field defaulting) &mdash; the
+              &ldquo;genuinely unique, keep the <C>try/catch</C>&rdquo; case. And
+              the <C>localStorage</C>-vs-<C>usePersistentState</C> item turned out
+              to be a documented no-op: the hook is already used everywhere it
+              fits, and the rest deliberately use custom serialisation or
+              read-after-mount for hydration, so forcing them through it would
+              reset saved preferences or break hydration.
             </p>
           </Step>
         </div>
