@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.9
+
+- **The TCG list routes share one SDK-serving helper.** The three list routes (`series`, `sets`, `cards`) each hand-wrote the same block — call the TCGdex SDK, turn a thrown error or a null result into a 502, strip the SDK's circular refs with `toPlain`, and forward the JSON with an identical cache header. That's now `serveTcg(errorLabel, produce)` plus a shared `TCG_CACHE_CONTROL` in a **server-only** `lib/tcg-route.ts` — kept out of `lib/tcg.ts` on purpose, since client components import that module and shouldn't pull `next/server`. The two detail routes (`sets/[setId]`, `cards/[cardId]`) keep their own 404-on-miss contract and just adopt the shared cache constant. Behavior is pinned by characterization tests written against the old routes that still pass. Sixth step of the maintainability pass; closes out the API error-handling convergence.
+
 ## 2026-08-05 - version 3.13.8
 
 - **The NBA proxy routes share one upstream helper.** All four (`teams`, `players`, `stats`, `shots`) hand-wrote the same public GET proxy — call `portfolio_api` with a deadline, turn a transport failure into 504/502, pass a non-2xx through as `{ error }` at the same status, forward the JSON with a cache header, and 502 on a bad body. That shape is now `proxyUpstream(url, { errorLabel, cacheControl })` in `lib/upstream.ts` (beside `fetchUpstream`), and each route is a one-liner. Behavior is provably unchanged: characterization tests pinning each route's cache window and error label were written against the old code and still pass against the new. First of the API error-handling convergence (one route family per PR, mapped to the nearest existing pattern — no uber-wrapper); vitals/google/tcg follow separately.
