@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-05 - version 3.13.12
+
+- **Broke up the next tier of oversized write-ups.** After the operator dashboard, five more `*Content.tsx` write-ups ran 1,000–2,000 lines in a single component: the landing-page, accessibility, render-perf, design-system, and calendar dev-notes. Each is now a small orchestrator plus focused section files — the chat view and the summary sections split apart, and where the chat itself was the bulk (calendar), it's broken at `Timestamp` boundaries into thread parts. Cut only at `<section>` and timestamp boundaries so every chunk is balanced and no prose changed; the rendered text is byte-identical, verified page by page, and each page carries a test (existing suites kept green, smoke/order tests added where there were none). The remaining write-ups are all comfortably readable now. The `learn/*` algorithm pages are left alone — they're interactive demos with real state, not prose.
+
 ## 2026-08-05 - version 3.13.11
 
 - **The refactor is documented like the operator dashboard is: a hub plus per-feature updates that link both ways.** The Refactor Pass write-up is now the comprehensive record — every step's why, how, and tradeoff, the non-goals and their reasoning, and a "How it actually shipped" section covering the stacked-PR decision, characterisation-tests-before-behaviour-preserving-swaps, `satisfies` over a type assertion, and the `@paul-portfolio/*` env-drift caveat. Each feature the pass touched now carries a dated update section that links back to it: the operator dashboard (the read hooks factored through `useOperatorResource`, and this write-up split from 5,113 lines), the TCG browser (list routes on `serveTcg`, detail routes left alone), and the styling decisions page (the shared chat stylesheet relocated out of that folder). Documentation only.
