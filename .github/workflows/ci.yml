@@ -282,21 +282,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: gpbsumido/portfolio_api
-          # A release PR is validated against the API's main, because main is
-          # what is actually deployed. Testing a release against the API's
-          # develop would pass on unreleased backend code and say nothing about
-          # whether the version in production can serve it -- a green check for
-          # reasons unrelated to what it claims to verify. Everything else runs
-          # against develop, which is where the next release is assembled.
-          ref: ${{ github.base_ref == 'main' && 'main' || 'develop' }}
+          # Always test against the API's main, because main is what is actually
+          # deployed and the operator dashboard only ever talks to the deployed
+          # backend. This job runs on the nightly schedule, on demand, and on
+          # release PRs -- every one of those wants the deployed API, not the
+          # unreleased develop. Pinning develop said nothing about whether the
+          # version in production can serve the screens, and worse, a develop ->
+          # main release merge auto-deletes that branch, so the first nightly
+          # after a backend release failed here fetching a develop that no longer
+          # existed. main is release-only and always present.
+          ref: main
           path: api
 
       - name: Prefer a portfolio_api branch of the same name
         working-directory: api
         # A frontend change that needs a backend change is developed as a pair of
         # same-named branches, so this job tests the pair rather than pinning the
-        # new frontend against an old API. Falls back to develop when there is no
-        # counterpart, which is the common case.
+        # new frontend against the deployed API. Falls back to main when there is
+        # no counterpart, which is the common case.
         run: |
           BRANCH="${{ github.head_ref || github.ref_name }}"
           if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
@@ -304,7 +307,7 @@ jobs:
             git fetch --depth 1 origin "$BRANCH"
             git checkout FETCH_HEAD
           else
-            echo "No portfolio_api branch named $BRANCH; testing against develop"
+            echo "No portfolio_api branch named $BRANCH; testing against main"
           fi
 
       - name: Install pnpm
