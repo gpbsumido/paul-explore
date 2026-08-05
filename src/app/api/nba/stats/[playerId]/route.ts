@@ -1,7 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { API_URL } from "@/lib/apiUrl";
 import { NextResponse, type NextRequest } from "next/server";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // Stats update daily at most — 5 min CDN cache keeps the NBA API rate limits comfortable
 const CACHE_CONTROL = "public, s-maxage=300";

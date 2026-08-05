@@ -4,6 +4,7 @@
 // uses, so a drifting API surfaces as a clear error instead of bad UI state.
 
 import { z } from "zod";
+import { API_URL } from "@/lib/apiUrl";
 import {
   auditEntrySchema,
   environmentSchema,
@@ -12,7 +13,6 @@ import {
 } from "@/lib/flags-schemas";
 import type { Flag, UpdateFlagBody } from "@/types/flags";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const BASE = `${API_URL}/api/feature-flags`;
 
 /**

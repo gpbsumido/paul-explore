@@ -1,7 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { API_URL } from "@/lib/apiUrl";
 import { NextResponse } from "next/server";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // Shot data is seasonal and doesn't change often — 24hr CDN cache
 const CACHE_CONTROL = "public, s-maxage=86400";

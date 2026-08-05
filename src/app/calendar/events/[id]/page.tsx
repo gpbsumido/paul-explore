@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { API_URL } from "@/lib/apiUrl";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
@@ -30,7 +31,6 @@ export const metadata: Metadata = {
   },
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 /**
  * Fetches event and its attached cards in parallel directly from the backend.

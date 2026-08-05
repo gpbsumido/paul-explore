@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { API_URL } from "@/lib/apiUrl";
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import { auth0 } from "@/lib/auth0";
@@ -27,7 +28,6 @@ export const metadata: Metadata = {
   },
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 /**
  * Fetches all countdowns server-side so the list renders with real data on

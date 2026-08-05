@@ -1,7 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { API_URL } from "@/lib/apiUrl";
 import { NextResponse, type NextRequest } from "next/server";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // Player rosters don't change mid-session — CDN can hold this for 5 minutes
 const CACHE_CONTROL = "public, s-maxage=300";

@@ -1,7 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { API_URL } from "@/lib/apiUrl";
 import { NextResponse } from "next/server";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 // Team list is static within a season — 5 minutes is a safe CDN window
 const CACHE_CONTROL = "public, s-maxage=300";

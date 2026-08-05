@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { API_URL } from "@/lib/apiUrl";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 function clientIp(req: NextRequest): string {
   return (
