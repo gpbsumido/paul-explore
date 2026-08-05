@@ -291,10 +291,25 @@ export default function TestTiersContent() {
           reported those routes as covered for as long as they were broken.
         </p>
         <p className="mt-3 text-muted">
-          Both have the same moral, and it is not about cost or cadence: a
-          passing tier is a claim. It is worth occasionally checking what a green
-          run actually exercised, because the failure mode is not a red build —
-          it is that you stop looking.
+          A third version is worse than either, because the tier does not run at
+          all. Six stacked pull requests &mdash; each based on a feature branch
+          rather than develop &mdash; got no CI, because the workflow only
+          triggered on pull requests into{" "}
+          <code className={code}>main</code> or{" "}
+          <code className={code}>develop</code>. Every one of those PRs looked
+          unchecked not because a test failed but because none were ever
+          scheduled, and it took hand-triggering the workflow to notice. The
+          suite was fine; the trigger simply excluded the PRs it most needed to
+          gate. Dropping the base-branch filter fixed it &mdash; but the failure
+          shape is the same: a PR page showing no red can mean &ldquo;all checks
+          passed&rdquo; or &ldquo;no checks ran,&rdquo; and the two are
+          indistinguishable until you ask which.
+        </p>
+        <p className="mt-3 text-muted">
+          All three have the same moral, and it is not about cost or cadence: a
+          passing tier is a claim, and so is an empty one. It is worth
+          occasionally checking what a green run actually exercised, because the
+          failure mode is not a red build &mdash; it is that you stop looking.
         </p>
       </section>
 
