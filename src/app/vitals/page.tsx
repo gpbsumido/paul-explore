@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { auth0 } from "@/lib/auth0";
+import { resolveVitalsFilter } from "@/lib/vitalsFilter";
 import type { VitalsResponse, VersionMetrics } from "@/types/vitals";
 import VitalsContent from "./VitalsContent";
 
@@ -24,11 +24,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
  * here because vitals aggregates are site-wide, not per-user.
  */
 async function fetchVitals(
-  token: string,
+  token: string | undefined,
   version: string | undefined,
   mode: string | undefined,
 ): Promise<VitalsResponse> {
-  const headers = { Authorization: `Bearer ${token}` };
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
   const params = new URLSearchParams();
   if (version) params.set("v", version);
   if (mode) params.set("mode", mode);
@@ -57,10 +57,10 @@ async function fetchVitals(
  * Used to populate the version selector dropdown. Returns an empty array
  * if the backend doesn't have the endpoint yet so the selector just hides.
  */
-async function fetchVersions(token: string): Promise<string[]> {
+async function fetchVersions(token: string | undefined): Promise<string[]> {
   try {
     const res = await fetch(`${API_URL}/api/vitals/versions`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       cache: "no-store",
     });
     if (!res.ok) return [];
@@ -78,7 +78,7 @@ async function fetchVersions(token: string): Promise<string[]> {
  * section just hides rather than crashing the page.
  */
 async function fetchByVersion(
-  token: string,
+  token: string | undefined,
   version: string | undefined,
   mode: string | undefined,
 ): Promise<VersionMetrics[]> {
@@ -88,7 +88,7 @@ async function fetchByVersion(
     if (mode) params.set("mode", mode);
     const query = params.size > 0 ? `?${params.toString()}` : "";
     const res = await fetch(`${API_URL}/api/vitals/by-version${query}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       cache: "no-store",
     });
     if (!res.ok) return [];
@@ -104,42 +104,34 @@ export default async function VitalsPage({
 }: {
   searchParams: Promise<{ v?: string }>;
 }) {
+  // Web Vitals is public. Forward the visitor's token when they have one so a
+  // signed-in request stays authenticated, but a signed-out visitor is not
+  // redirected — getAccessToken throws with no session, so it degrades to an
+  // anonymous request and the fetches fall back to empty data.
   let token: string | undefined;
   try {
     ({ token } = await auth0.getAccessToken());
   } catch {
-    redirect("/auth/login");
+    token = undefined;
   }
 
   const { v: urlVersion } = await searchParams;
 
-  // URL values use a prefix to encode the filter mode:
-  //   "major:0"   → mode=major, v=0   (all 0.x.y versions)
-  //   "minor:0.12" → mode=minor, v=0.12 (all 0.12.x versions)
-  //   "0.11.3"    → no mode, exact match
-  //   undefined   → no filter (defaults to "Current Major" in the selector)
-  let filterMode: string | undefined;
-  let filterVersion: string | undefined;
-
-  if (urlVersion?.startsWith("major:")) {
-    filterMode = "major";
-    filterVersion = urlVersion.slice(6);
-  } else if (urlVersion?.startsWith("minor:")) {
-    filterMode = "minor";
-    filterVersion = urlVersion.slice(6);
-  } else if (urlVersion) {
-    filterVersion = urlVersion;
-  }
-
-  const [versions, byVersion, { summary, byPage }] = await Promise.all([
-    fetchVersions(token!),
-    fetchByVersion(token!, filterVersion, filterMode),
-    fetchVitals(token!, filterVersion, filterMode),
-  ]);
-
-  // the selector value mirrors the URL param; defaults to current major
+  // Resolve which versions to show first, because the default scope depends on
+  // the current major. Fetching versions up front lets first load (no ?v) query
+  // the same current-major scope the selector displays, so the numbers don't
+  // change when you pick "Current Major" back after switching away.
+  const versions = await fetchVersions(token);
   const defaultMajor = versions.length > 0 ? versions[0].split(".")[0] : "0";
-  const selectedVersion = urlVersion ?? `major:${defaultMajor}`;
+  const { filterMode, filterVersion, selectedVersion } = resolveVitalsFilter(
+    urlVersion,
+    defaultMajor,
+  );
+
+  const [byVersion, { summary, byPage }] = await Promise.all([
+    fetchByVersion(token, filterVersion, filterMode),
+    fetchVitals(token, filterVersion, filterMode),
+  ]);
 
   return (
     <VitalsContent

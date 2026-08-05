@@ -1016,13 +1016,13 @@ export default function SlotMachine({
 
       <main
         aria-label="Slot machine of features and write-ups"
-        className="absolute inset-0 flex flex-col overflow-y-auto px-5 pb-20 pt-24 sm:px-8 sm:pt-28"
+        className="absolute inset-0 flex flex-col overflow-y-auto px-5 pb-12 pt-16 sm:px-8 sm:pb-20 sm:pt-28"
       >
         <div className="m-auto w-full max-w-6xl">
           {/* A quiet data line instead of cabinet chrome. */}
           <p
             data-chalk-avoid
-            className="reveal-up mb-8 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted"
+            className="reveal-up mb-4 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-muted sm:mb-8"
             style={{ animationDelay: "0.02s" }}
           >
             {categories.length} categories · {totalWriteups} write-ups · one
@@ -1179,7 +1179,7 @@ export default function SlotMachine({
               whatever category is currently up. */}
           <div
             data-chalk-avoid
-            className="reveal-up relative mt-7 flex items-center justify-center gap-6 sm:mt-9"
+            className="reveal-up relative mt-4 flex items-center justify-center gap-6 sm:mt-9"
             style={{ animationDelay: "0.08s" }}
           >
             <div aria-hidden className="h-px max-w-40 flex-1 bg-border" />
@@ -1188,7 +1188,7 @@ export default function SlotMachine({
               onClick={() => spin()}
               disabled={spinning}
               aria-label="Spin the reels"
-              className="flex h-20 w-20 items-center justify-center rounded-full border bg-background/40 font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-foreground backdrop-blur-sm transition-[transform,border-color,background-color] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-16 w-16 items-center justify-center rounded-full border bg-background/40 font-mono text-[11px] font-semibold uppercase tracking-[0.25em] text-foreground backdrop-blur-sm transition-[transform,border-color,background-color] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:h-20 sm:w-20"
               style={{
                 borderColor: `color-mix(in srgb, ${catAccent} 55%, transparent)`,
                 boxShadow: spinning
@@ -1228,7 +1228,7 @@ export default function SlotMachine({
               links change between selections. */}
           <div
             data-chalk-result
-            className="reveal-up mx-auto mt-7 flex h-32 w-full max-w-2xl flex-col items-center justify-start overflow-hidden text-center sm:mt-9"
+            className="reveal-up mx-auto mt-4 flex h-24 w-full max-w-2xl flex-col items-center justify-start overflow-hidden text-center sm:mt-9 sm:h-32"
             style={{ animationDelay: "0.08s" }}
           >
             {spinning ? (

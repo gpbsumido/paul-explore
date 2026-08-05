@@ -241,6 +241,41 @@ export default function V4RedesignContent() {
           GPU couldn&rsquo;t carry.
         </p>
       </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Update, Aug 2026: the settings menu and a phone that fits
+        </h2>
+        <p className="text-muted">
+          Two things nagged at me once the machine had been live for a while.
+          The first: every other page carries the little theme dropdown &mdash;
+          system, light, dark, plus a Settings link tucked inside &mdash; and the
+          landing didn&rsquo;t. The signed-in hub had quietly grown a bare
+          Settings button sitting next to Log out instead, which is exactly the
+          kind of one-off that the shared menu exists to prevent. So I pulled the
+          same <code>HeaderMenu</code> the rest of the site uses into a small
+          <code> LandingActions</code> cluster and dropped it into both the guest
+          and signed-in variants. Settings now lives only inside the menu, and
+          the standalone button is gone.
+        </p>
+        <p className="mt-3 text-muted">
+          The second was a report that the landing looked &ldquo;zoomed in&rdquo;
+          on a phone &mdash; you had to pinch out to see the whole thing. My first
+          instinct was a viewport bug, but the meta tag is the ordinary
+          <code> width=device-width, initial-scale=1</code> and the visual
+          viewport measured a scale of exactly 1. Nothing was zooming. The
+          machine was just taller than a short phone screen: at 390&times;640 the
+          result caption and the bottom nav sat 147px past the fold, so the part
+          you actually click was the part you had to scroll to find. The reels
+          carry the spin animation&rsquo;s pixel math, so I left their geometry
+          alone and reclaimed the space from everything around them &mdash; top
+          and bottom padding, the data line, the spin button, the caption &mdash;
+          all trimmed on mobile and restored to their old sizing at the
+          <code> sm</code> breakpoint. It fits in one screen now, which is the
+          only honest way to answer &ldquo;are we zooming or does it just not
+          fit&rdquo;: it wasn&rsquo;t zooming, and now it fits.
+        </p>
+      </section>
     </ThoughtLayout>
   );
 }

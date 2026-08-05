@@ -9,6 +9,12 @@ import { join } from "node:path";
  * "Log in" or "Log out", so switching it off hides the only account control on
  * that page. That is what issue #244 reported on the Gallery Wall. This guards
  * against it creeping back in.
+ *
+ * The one safe exception is a page that renders its own `AuthButton` — a
+ * standalone log in / log out CTA — beside the menu. The v4 landing does exactly
+ * that: the button is the prominent action, so the menu drops its redundant auth
+ * row. A file that suppresses the menu's control AND has no AuthButton is still
+ * an offender.
  */
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -20,9 +26,12 @@ function walk(dir: string): string[] {
 
 describe("account control availability", () => {
   it("has no page suppressing the header's log in / log out control", () => {
-    const offenders = walk(join(process.cwd(), "src", "app")).filter((file) =>
-      readFileSync(file, "utf8").includes("showLogout={false}"),
-    );
+    const offenders = walk(join(process.cwd(), "src", "app")).filter((file) => {
+      const src = readFileSync(file, "utf8");
+      return (
+        src.includes("showLogout={false}") && !src.includes("AuthButton")
+      );
+    });
     expect(offenders.map((f) => f.split("/src/")[1])).toEqual([]);
   });
 });

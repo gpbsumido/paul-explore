@@ -248,13 +248,13 @@ export default function SecurityContent() {
                 key property from before is still preserved:{" "}
                 <code>auth0.middleware()</code> — the one that makes a network
                 call to Auth0 — is only invoked for <code>/auth/*</code> and
-                authenticated <code>/vitals</code> or <code>/settings</code>{" "}
+                authenticated <code>/calendar</code> or <code>/settings</code>{" "}
                 requests. everything else hits <code>NextResponse.next()</code>{" "}
                 with the CSP header attached and returns immediately. no network
                 round-trip
               </Sent>
               <Sent pos="middle">
-                for <code>/vitals</code> and <code>/settings</code> the logic
+                for <code>/calendar</code> and <code>/settings</code> the logic
                 is: <code>auth0.getSession(req)</code> runs first — that&apos;s
                 the proxy- safe overload that reads from{" "}
                 <code>req.cookies</code> directly, no network call, just a

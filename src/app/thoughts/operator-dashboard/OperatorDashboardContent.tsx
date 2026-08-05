@@ -342,6 +342,94 @@ export default function OperatorDashboardContent() {
               <ol className="mt-3 space-y-2 text-sm">
                 <li className="flex items-baseline gap-3">
                   <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-review-fixes"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Reviewing my own work, and fixing what the review found
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-live-backend"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    The five features had no backend, so I gave them one
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-csv"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    A CSV export, and the comma that breaks everything
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-finance"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    What actually landed, and the fee that ties two features together
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-search"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Find anything, and the keyboard problem underneath it
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-shrink"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    The loss report, and building the data it needed first
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-products"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Which products to cut, judged fairly
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
+                    Aug 4, 2026
+                  </span>
+                  <a
+                    href="#update-2026-08-04-planner"
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    Planning a location before buying it
+                  </a>
+                </li>
+                <li className="flex items-baseline gap-3">
+                  <span className="w-24 shrink-0 tabular-nums text-xs text-muted">
                     Aug 3, 2026
                   </span>
                   <a
@@ -550,6 +638,14 @@ export default function OperatorDashboardContent() {
                 <ul className="mt-2 space-y-1 text-sm text-muted">
                   <li>
                     <a
+                      href="#update-2026-08-04-review-fixes"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The shrink report rendered blank against the real backend, because the database seed had no completed counts
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="#update-2026-08-02-timezones"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
@@ -652,6 +748,22 @@ export default function OperatorDashboardContent() {
                 </h3>
                 <p className="mt-0.5 text-xs text-muted">Where I picked a side and can say why.</p>
                 <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-04-review-fixes"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      The aggregation math duplicated across two repos, pinned by a parity test rather than a shared package
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-finance"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Revenue Protect left out, because a protected-revenue figure with no failure data would be invented
+                    </a>
+                  </li>
                   <li>
                     <a
                       href="#update-2026-08-02-service-token"
@@ -774,6 +886,30 @@ export default function OperatorDashboardContent() {
                 <ul className="mt-2 space-y-1 text-sm text-muted">
                   <li>
                     <a
+                      href="#update-2026-08-04-planner"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A location that never pays back says so, instead of inventing a month count
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-products"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Dead SKUs stay in the performance report, because those are the rows worth cutting
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-shrink"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Skipped counts are shown as coverage, so a shelf nobody checked doesn&apos;t read as clean
+                    </a>
+                  </li>
+                  <li>
+                    <a
                       href="#update-2026-08-02-timezones"
                       className="text-primary-600 hover:underline dark:text-primary-400"
                     >
@@ -852,6 +988,30 @@ export default function OperatorDashboardContent() {
                 </h3>
                 <p className="mt-0.5 text-xs text-muted">Choices about the next person, including future me.</p>
                 <ul className="mt-2 space-y-1 text-sm text-muted">
+                  <li>
+                    <a
+                      href="#update-2026-08-04-review-fixes"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      A cross-repo parity test, so the duplicated arithmetic fails fast instead of only in the live E2E
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-finance"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      One fee model imported by both the planner and finance, so the quote and the payout can&apos;t drift
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#update-2026-08-04-review-fixes"
+                      className="text-primary-600 hover:underline dark:text-primary-400"
+                    >
+                      Stacked pull requests get CI now, after six of them merged unverified
+                    </a>
+                  </li>
                   <li>
                     <a
                       href="#update-2026-08-02-hardening"
@@ -977,7 +1137,7 @@ export default function OperatorDashboardContent() {
               </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
-                The two screens
+                The screens, and the fleet tools
               </h3>
               <p className="text-muted">
                 The fleet page is the landing: every store as a card sorted
@@ -996,6 +1156,20 @@ export default function OperatorDashboardContent() {
                 promotions. Tax derives GST, HST, PST and QST from the store&apos;s
                 province and shows what is owed.
               </p>
+              <p className="mt-3 text-muted">
+                Off the fleet page there are now five fleet-wide tools, each its
+                own page. <strong>Plan a location</strong> models a new
+                store&apos;s revenue and payback before you commit to it.{" "}
+                <strong>Product performance</strong> ranks every product by
+                revenue against its own category average, dead SKUs included.{" "}
+                <strong>Shrink &amp; loss</strong> reconciles completed restock
+                counts into unexplained shrink versus reasoned removals.{" "}
+                <strong>Finance</strong> is weekly payouts with the fees shown
+                rather than folded in. And <strong>Search</strong> is a
+                keyboard-first combobox over stores, products and the tools
+                themselves. They mirror what Micromart&apos;s own platform ships;
+                the write-ups above cover how each was built.
+              </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 Where the data lives
@@ -1007,8 +1181,19 @@ export default function OperatorDashboardContent() {
                 every write falls back to an in-memory seed if that service is
                 unreachable, so the demo behaves identically whether or not the
                 backend is awake. Aggregations that could get expensive (fleet
-                sales, the alert trend, promotion performance) are grouped in SQL
-                rather than pulled into Node and summed.
+                sales, the alert trend, promotion performance, and now the planner
+                benchmarks, product performance, shrink and finance rollups) are
+                grouped in SQL rather than pulled into Node and summed.
+              </p>
+              <p className="mt-3 text-muted">
+                The five fleet tools started life computing their numbers in the
+                BFF from the seed, and only later got the real SQL endpoints
+                behind them, wired the same live-first-then-fall-back-to-seed way
+                as every other read. Because that arithmetic now lives in both
+                repos, a parity test asserts the app&apos;s models and the API&apos;s
+                copies produce identical numbers for the same canonical inputs, so
+                a drift fails a millisecond test rather than surfacing as quietly
+                wrong figures on a chart.
               </p>
               <p className="mt-3 text-muted">
                 Reads poll on a tier: alerts every 15 seconds because they are
@@ -1110,14 +1295,32 @@ export default function OperatorDashboardContent() {
                       <td className="py-2 pr-4 align-top">Does the flow work against a real API and a real Postgres</td>
                       <td className="py-2 align-top">Production data and scale</td>
                     </tr>
-                    <tr>
+                    <tr className="border-b border-border/60">
                       <td className="py-2 pr-4 align-top text-foreground">SQL smoke</td>
                       <td className="py-2 pr-4 align-top">Will Postgres actually accept these statements</td>
                       <td className="py-2 align-top">Whether the results are right</td>
                     </tr>
+                    <tr>
+                      <td className="py-2 pr-4 align-top text-foreground">Cross-repo parity</td>
+                      <td className="py-2 pr-4 align-top">Do this app&apos;s models and the API&apos;s copies compute the same numbers</td>
+                      <td className="py-2 align-top">Whether either is correct on its own</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
+
+              <p className="mt-3 text-muted">
+                The last row is newer than the rest, and it exists because the
+                five fleet aggregations are computed twice &mdash; once in this
+                app&apos;s seed fallback, once in the API&apos;s SQL &mdash; so the
+                live path and the demo agree. Nothing structural stops the two
+                copies drifting, and the only tier that would otherwise catch it
+                is the live E2E, which is slow and needs a database. So both repos
+                assert the same canonical inputs against the same expected
+                outputs; a formula changed in one and not the other fails a
+                millisecond unit test. It is the cheap guard standing in for the
+                shared package the duplication really wants.
+              </p>
 
               <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
                 Four bugs, and the tier that could never have caught them
@@ -2039,6 +2242,683 @@ export default function OperatorDashboardContent() {
                 stable dependencies. Both were acceptable at demo scale but
                 would have been real problems at fleet size, so fixing them
                 early was the right call.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-review-fixes"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Reviewing my own work, and fixing what the review found
+              </h2>
+              <p className="text-muted">
+                After wiring the features to the real backend I went back over the
+                whole thing the way I&apos;d review someone else&apos;s stack, and
+                it turned up real problems &mdash; some of which I&apos;d shipped.
+                Writing them down is only worth anything if the ones that can be
+                fixed get fixed, so here is what I found and what I did about it.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The shrink report was blank against the real backend
+              </h3>
+              <p className="text-muted">
+                The worst one. The shrink report reconciles completed restock
+                counts, the app&apos;s seed generates them, and the{" "}
+                <em>database</em> seed did not &mdash; only stores, inventory,
+                sales and alerts. So the feature I&apos;d done the most groundwork
+                for rendered a perfectly honest empty page against the very
+                backend I&apos;d just built for it, while showing rich data on the
+                seed fallback. A feature that only works on the fallback is not
+                wired up. The API&apos;s seed builder now generates the same
+                completed-session history the app does &mdash; a shortfall, a
+                reasoned removal, a skipped count, a clean count, scaled per store
+                &mdash; and two tests pin that the seed carries real unexplained
+                shrink to find.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The same arithmetic in two repos, and nothing checking it agreed
+              </h3>
+              <p className="text-muted">
+                To make the live numbers equal the seed ones I&apos;d mirrored the
+                app&apos;s models into the API by hand. That is a deliberate
+                duplication with a precedent here, but the precedent came with a
+                test pinning the copies agree, and I hadn&apos;t written one. The
+                only thing that would have caught a drift was the heavy
+                live-backend E2E. So both repos now carry a parity test that runs
+                the same canonical scenarios against the same expected outputs,
+                the literals identical on both sides. Change a formula in one repo
+                and its parity test fails against the shared expectation, in
+                milliseconds instead of a ten-minute browser run. The honest fix
+                for the duplication is one shared package; the parity test is the
+                cheaper guard that buys most of the safety today, and I said so.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Two smaller things the review caught
+              </h3>
+              <p className="text-muted">
+                Six of the seven stacked frontend PRs were getting no CI at all,
+                because this app&apos;s workflow only triggers on pull requests
+                into{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  develop
+                </code>{" "}
+                and{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  main
+                </code>
+                , and a stacked PR targets a feature branch. The API repo already
+                triggers on every branch; the app now does too. And the
+                product-performance loader had been mapping a range id to a day
+                count and back to call the API, which is lossy the moment a
+                caller passes a window that isn&apos;t 7, 30 or 90 &mdash; it
+                passes the range id straight through now, so the two sides
+                can&apos;t disagree on what &ldquo;30d&rdquo; means.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I deliberately did not &ldquo;fix&rdquo;
+              </h3>
+              <p className="text-muted">
+                Not every finding wants code. The platform fee assumes one unit
+                per store because there is no unit count in the schema; a
+                migration to add one is more machinery than a demo&apos;s fee
+                nuance earns, so I made the assumption an explicit, named constant
+                in both repos and left it at that &mdash; honest and one line to
+                change later, rather than gold-plated now. Revenue Protect stays
+                out until there is failed-transaction data to reconcile it from.
+                &ldquo;Average sold per day&rdquo; stays units-over-window until
+                there is stock-availability history to make it units-while-in-stock.
+                The shrink query loads raw lines and groups in the app, which is
+                fine at demo scale and worth pushing into SQL only at fleet scale.
+                And the stack ended up seven deep for features that are mostly
+                independent &mdash; a structure I&apos;d avoid next time, but not
+                one worth unpicking after the fact. Knowing which findings to
+                leave documented is the other half of a review.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-live-backend"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                The five features had no backend, so I gave them one
+              </h2>
+              <p className="text-muted">
+                An honest admission first: the five features I&apos;d just built
+                &mdash; the planner, product performance, shrink, search and
+                finance &mdash; all computed their numbers in the BFF from the
+                in-memory seed. Every one carried a comment promising a
+                production build would compute it in SQL, and none of them did.
+                Unlike the reads that came before them, they never even tried the
+                real API; they read the seed directly, with no live path at all.
+                So this pass closes that gap for real, across both repos.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Five SQL endpoints, mirroring the models that already existed
+              </h3>
+              <p className="text-muted">
+                In the API, each feature becomes a grouped query:
+                benchmarks and finance sum sales in one pass, product performance
+                groups by product within a window, shrink joins completed restock
+                lines to their store and the item&apos;s price, search returns
+                stores plus distinct products. The trick was not writing the SQL
+                &mdash; it was making the live numbers equal the seed ones. So the
+                API grew a pure{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aggregations
+                </code>{" "}
+                module that mirrors the app&apos;s pure models line for line, fed
+                by the grouped rows. The database does the fan-in; the same
+                arithmetic shapes the result on both sides, so switching a feature
+                from seed to live cannot change what it shows.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The fallback is what makes it safe to ship in either order
+              </h3>
+              <p className="text-muted">
+                On the app side, each loader stops reading the seed directly and
+                does what every other operator read does: try the API, and on any
+                failure log the fallback and serve the seed. That one pattern is
+                why the two pull requests don&apos;t have to land together. If the
+                app ships first, its loaders 404 against the older API and fall
+                back &mdash; the demo is unchanged. If the API ships first,
+                nothing calls the new routes yet. Only once both are live does the
+                data become real, and no intermediate state is broken. The paired
+                branches share a name, so the app&apos;s live-backend CI builds the
+                matching API branch from source and drives the whole thing against
+                a real Postgres, which is the only tier that ever parses this SQL
+                before production.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The contract is the schema, on both ends
+              </h3>
+              <p className="text-muted">
+                The response shape is not described twice and hoped to match. The
+                API returns it, and the BFF parses it through the exact Zod schema
+                the feature already defined, so a drift in either repo surfaces as
+                a validation error the fallback catches rather than as quietly
+                wrong numbers on a chart. Which is the same lesson this whole page
+                keeps arriving at: a boundary you can&apos;t see is a boundary
+                that&apos;s lying to you, so make it speak.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-csv"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                A CSV export, and the comma that breaks everything
+              </h2>
+              <p className="text-muted">
+                The last stacked feature is the smallest, and it is the one whose
+                bug would be quietest: a &ldquo;Download CSV&rdquo; on the product
+                performance page, so the numbers can leave the app and land in a
+                bookkeeper&apos;s spreadsheet. Export is where a dashboard stops
+                being a wall someone reads and starts being data someone uses.
+              </p>
+              <p className="mt-3 text-muted">
+                The reason it is a tested module and not a one-line{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  join(&quot;,&quot;)
+                </code>{" "}
+                is the failure mode. A product called &ldquo;Nuts, Mixed&rdquo;
+                run through a naive join puts a comma in the middle of a row, and
+                every column after it shifts one to the right &mdash; silently,
+                with no error, in a file nobody opens until it is wrong in someone
+                else&apos;s system. So the serializer follows RFC 4180: any field
+                with a comma, a quote or a newline is wrapped in quotes and its
+                inner quotes doubled, and five tests hold it to that. The download
+                itself is a Blob and an anchor click, but the escaping is the part
+                worth writing down, because it is the part that fails without
+                telling you.
+              </p>
+              <p className="mt-3 text-muted">
+                That closes the arc I set out to build from the Micromart scan:
+                plan a location, see what sells, find what walks, jump anywhere,
+                read what landed, and take it with you. Six stacked pull requests,
+                each merging onto the last.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-finance"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                What actually landed, and the fee that ties two features together
+              </h2>
+              <p className="text-muted">
+                The fifth stacked feature is finance: weekly payouts at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /operator/finance
+                </code>
+                , reconciled from real sales. Gross revenue is the number an
+                operator already knows; the useful one is what lands after fees,
+                and the useful skill is showing the fees rather than folding them
+                into a single figure. A slow week and an expensive week can net
+                to the same payout, and an operator needs to tell them apart.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                One fee model, two features, no drift
+              </h3>
+              <p className="text-muted">
+                The interesting part is where the fee numbers come from. The
+                location planner already projects payback using a transaction cut
+                and a platform fee; the finance page pays out using the same two.
+                If those lived in two places they would drift, and the planner
+                would quote a return the finance page never delivers. So there is
+                one{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  FEE_MODEL
+                </code>
+                , imported by both. The number you are sold on and the number you
+                are paid are the same number by construction, which is the kind of
+                consistency that is invisible when it holds and infuriating when
+                it doesn&apos;t.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The line I did not fake
+              </h3>
+              <p className="text-muted">
+                Micromart&apos;s finance page has a Revenue Protect line &mdash;
+                money auto-credited back for failed transactions and card
+                declines. I left it out, on purpose. The demo&apos;s sales are all
+                successful sales; there is no record of a decline anywhere in the
+                data, so any &ldquo;protected revenue&rdquo; figure I printed would
+                be a number I invented and dressed as a measurement. That is
+                exactly the thing this whole project refuses to do. Revenue
+                Protect is honest to build the day there is failed-transaction data
+                to reconcile it from, and dishonest to fake before then, so it is a
+                labelled gap rather than a fabricated total.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-search"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Find anything, and the keyboard problem underneath it
+              </h2>
+              <p className="text-muted">
+                Micromart&apos;s platform has a global search &mdash; find any
+                store, product, cabinet or promotion from one box, fast. An
+                operator running thirty stores does not want to scroll a grid to
+                reach one; they want to type three letters and be there. So the
+                fourth stacked feature is a quick-search at{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /operator/search
+                </code>{" "}
+                over stores, fleet products and the operator tools themselves.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The ranker is small on purpose
+              </h3>
+              <p className="text-muted">
+                No search library. The whole matcher is a scoring function: a
+                prefix beats a word-boundary hit beats any substring beats a
+                loose subsequence, and a match in the category or status counts
+                for a fraction, never enough to outrank a real hit on the name.
+                That last tier &mdash; subsequence &mdash; is what makes fast
+                typing feel right: &ldquo;cbc&rdquo; finds Cold Brew Coffee
+                because the letters appear in order, even though it is nobody&apos;s
+                substring. A dependency would have done the same thing less
+                legibly, and this is thirty lines I can test exhaustively.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Where the accessibility actually lives
+              </h3>
+              <p className="text-muted">
+                A search box that only works with a mouse is half a feature, and
+                the honest version of keyboard support here is the ARIA combobox
+                pattern, which has a counter-intuitive core: as you arrow through
+                the results, focus never leaves the input. The input carries{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  aria-activedescendant
+                </code>{" "}
+                pointing at the highlighted option, so a screen reader announces
+                the moving selection while the caret stays put and you can keep
+                typing. It is the right pattern precisely because the naive one
+                &mdash; moving DOM focus onto each result &mdash; breaks the
+                moment the user types another character.
+              </p>
+              <p className="mt-3 text-muted">
+                That same fact settled a lint complaint honestly rather than by
+                reflex. The result rows have a mouse click but no key handler,
+                which the accessibility linter flags. The reflex is to bolt a key
+                handler onto each row; the truth is that focus never lands on a
+                row, so a key handler there could never fire &mdash; the keyboard
+                lives on the input, where it belongs. So the rule is suppressed
+                on that line with a comment saying exactly why, which is the
+                difference between silencing a warning and answering it.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                A component that cannot navigate
+              </h3>
+              <p className="text-muted">
+                The combobox has no idea what a route is. It ranks, highlights,
+                and calls{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  onSelect
+                </code>{" "}
+                with the chosen item; a thin page wrapper is the only thing that
+                turns a pick into a route change. That split is not ceremony. It
+                means the component tests drive real keystrokes &mdash; type,
+                arrow, enter &mdash; and assert the callback fires with the right
+                target, with no router to mock and no navigation to stub. The one
+                integration seam that needs a router is ten lines that barely do
+                anything, and everything interesting is tested without it. Four
+                stacked pull requests now, each a piece an operator would
+                actually open.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-shrink"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                The loss report, and building the data it needed first
+              </h2>
+              <p className="text-muted">
+                When I scanned the field for what micro-market operators actually
+                ask for, one answer drowned out the rest: shrink. Not another
+                calculator, not a nicer chart &mdash; where the stock is going.
+                Every vendor writing about this sells against theft, and the
+                thing they all describe is the same reconciliation: the count the
+                system reports against the count on the shelf. So this is the
+                feature I most wanted to build, and it is the one that made me do
+                the groundwork before I could.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The distinction the whole feature rests on
+              </h3>
+              <p className="text-muted">
+                A missing unit is not a missing unit. If a restocker pulled six
+                yogurts because they expired and logged the reason, that is a
+                loss, but an accounted one &mdash; you know where it went. If the
+                system expected ten and a physical count found seven, and nobody
+                logged anything, those three are{" "}
+                <strong>unexplained shrink</strong>: the theft-or-miscount signal,
+                the money that leaves without a trace. The report keeps the two
+                apart and leads with the unexplained number, because netting them
+                together &mdash; &quot;total loss $40&quot; &mdash; buries the one
+                figure an operator is supposed to chase under the one they already
+                expected.
+              </p>
+              <p className="mt-3 text-muted">
+                A surplus never counts as negative shrink, either. Counting more
+                than expected is its own miscount, not a credit against a real
+                shortfall somewhere else, so the two never quietly cancel.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The feature had no data, so I built the data
+              </h3>
+              <p className="text-muted">
+                Then I went to wire it up and found the hole I had already
+                flagged: the restock sessions that carry the counts are only ever
+                created at runtime. A fresh seed has none, so the report would
+                have rendered a perfectly honest empty page on a demo anyone can
+                open &mdash; correct, and useless. So the first half of this work
+                was seeding history: a couple of completed sessions per store,
+                each walking a few slots, cycling deterministically through a
+                shortfall, a reasoned removal, a skipped count, and a clean match.
+                Deterministic on purpose &mdash; the counts are generated from the
+                slot index, not{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  Math.random
+                </code>
+                , so the report shows the same numbers every server start and the
+                tests can trust them. This is the shrink page I sequenced behind
+                the product one for exactly this reason, and here it is.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Counting the skips as data, not silence
+              </h3>
+              <p className="text-muted">
+                The subtle honesty is coverage. A slot the restocker skipped
+                counting cannot reveal shrink &mdash; it says nothing either way.
+                A report that quietly treated skipped slots as zero shrink would
+                read a shelf nobody checked as a clean one, which is the same
+                fabrication the rest of this dashboard exists to avoid. So skipped
+                counts are their own line, and the page tells you what share of
+                slots were actually counted. Low coverage is not low shrink; it is
+                not knowing.
+              </p>
+              <p className="mt-3 text-muted">
+                The rest is the pattern the last two features already set: a pure
+                reconciliation model with the arithmetic under test, the fleet
+                rollup aggregated in the BFF with the standing caveat that a
+                production build would push it into SQL, a semantic table ranked
+                worst-first, and loss framed in dollars because units are what
+                happened but dollars are what it cost. Three stacked pull requests
+                now &mdash; plan a location, see what sells, find what walks
+                &mdash; each merging in order onto the last.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-products"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Which products to cut, judged fairly
+              </h2>
+              <p className="text-muted">
+                The planner answers a question about a store that doesn&apos;t
+                exist yet. This one answers a question about the stores that do:
+                what is actually selling, and what is dead weight on the shelf.
+                Micromart ships it as &quot;Sales by Product,&quot; with an
+                average sales rate and a performance figure against the category.
+                A new{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /operator/products
+                </code>{" "}
+                page ranks every product across the fleet by revenue, over a 7,
+                30 or 90 day window.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The one decision that makes the number mean something
+              </h3>
+              <p className="text-muted">
+                Ranking by raw revenue is easy and nearly useless: the sandwiches
+                always win and the gum always loses, and you learn nothing you
+                didn&apos;t already know from the prices. So the performance
+                figure is <strong>relative to the product&apos;s own
+                category</strong> &mdash; revenue against the average product
+                revenue in its category, where 100 is average. A gum that
+                outsells other gum reads as above average even though it earns a
+                fraction of a sandwich&apos;s revenue. Judging a snack against a
+                snack is the only version of the number that tells you something
+                actionable.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The rows a sold-only report would have hidden
+              </h3>
+              <p className="text-muted">
+                A report that lists what sold cannot tell you what to cut,
+                because the things worth cutting are the ones that didn&apos;t
+                sell. So a stocked product with no sales in the window stays in
+                the table, flagged, rather than dropping out. It is the same
+                honesty rule as the rest of this dashboard: an absence is
+                information, and letting it vanish is a quiet lie. Those flagged
+                rows are the entire point of the page.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What I simplified, and said so
+              </h3>
+              <p className="text-muted">
+                Micromart&apos;s &quot;Avg Sold&quot; is the rate while a product
+                was <em>available</em>. I don&apos;t keep per-product stock
+                history, so mine is units per day over the whole window, which
+                reads a slow-selling product and an often-out-of-stock one the
+                same way. That is a real limitation and I would rather write it
+                down than dress the number up as something it isn&apos;t. The
+                honest version needs an availability signal this demo doesn&apos;t
+                carry yet.
+              </p>
+              <p className="mt-3 text-muted">
+                The table is a plain{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  table
+                </code>{" "}
+                with scoped headers and a caption, not a data-grid component. A
+                few dozen rows sorted server-side do not need virtualisation or a
+                grid runtime, and the semantic table is what a screen reader
+                actually wants. The aggregation is the same coarse fleet rollup
+                as the planner benchmarks, computed in the BFF with the same
+                caveat: a production build would push it into SQL rather than
+                fold every store&apos;s sales in the app.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Why this one, and not the one operators shout loudest for
+              </h3>
+              <p className="text-muted">
+                The scan said the loudest real demand is shrink &mdash;
+                reconciling the count the system reports against the shelf. I
+                wanted to build it, and then I looked: the restock sessions that
+                would feed it are only ever created at runtime, so a fresh seed
+                has no completed counts, and a shrink report would render an
+                honest but empty page on a demo anyone can open. Shipping a
+                feature that shows nothing is worse than sequencing it. So this
+                went first, because it stands on data the fleet already has, and
+                shrink is next once there is count history to seed it from. Both
+                shipped as stacked pull requests, in the order they have to merge.
+              </p>
+            </section>
+      <section
+              id="update-2026-08-04-planner"
+              className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+            >
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+                Update &mdash; August 4, 2026
+              </p>
+              <h2 className="mt-1 mb-3 text-lg font-bold">
+                Planning a location before buying it
+              </h2>
+              <p className="text-muted">
+                I went back through Micromart&apos;s site the way a competitor
+                would, listing everything they ship that this dashboard does not,
+                and one gap stood out as pure frontend: the payback calculator on
+                their pricing page. Every other gap needed a backend I don&apos;t
+                have &mdash; team roles, a payout ledger, an AR visualiser. This
+                one is the first question a real operator asks before opening
+                store number six: will it pay for itself, and how fast. So I
+                built it. A new{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  /operator/planner
+                </code>{" "}
+                page: foot traffic and conversion drive orders, a basket size and
+                price drive revenue, a margin and the platform&apos;s fees drive
+                profit, and the payback period falls out of hardware cost over
+                monthly net profit. Move a slider, the whole projection moves.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The model is one pure function, and it can refuse to answer
+              </h3>
+              <p className="text-muted">
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  projectLocation
+                </code>{" "}
+                takes the six inputs and returns every figure derived, nothing
+                stored, so there is no second ledger of numbers to drift out of
+                sync with the sliders. The one part I care about is the payback
+                field: it is a number, or it is null. When net profit after the
+                platform fee and the per-order transaction cut is zero or
+                negative, the hardware never earns itself back, and the honest
+                thing is to say exactly that rather than print a payback of 900
+                months that reads like a real estimate. That is the same rule the
+                rest of this dashboard already holds to &mdash; a zero is a claim,
+                and so is a fabricated month count.
+              </p>
+              <p className="mt-3 text-muted">
+                I also capped margin at 100%. Their calculator lets it run to
+                120%, but a gross margin above total revenue is not a margin, so
+                mine clamps and I wrote down why. Copying a competitor&apos;s
+                input range is not the same as copying a correct one.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                Defaults from the real fleet, and the compromise in where I
+                computed them
+              </h3>
+              <p className="text-muted">
+                A calculator full of round-number defaults invites the reader to
+                distrust it, so the planner offers the fleet&apos;s own averages:{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  GET /api/operator/planner/benchmarks
+                </code>{" "}
+                derives the mean basket price and items per order from real sales
+                history. This is the backend part, and I made a deliberate
+                compromise in it. Every other read here proxies a single
+                store through to the API; a benchmark is one coarse fleet-wide
+                number, and fanning a read out per store to build it would be N
+                calls for a single average. So I aggregate it in the BFF instead.
+                A production version would compute it in SQL in the API next to
+                the fleet sales aggregation that already lives there, and I said
+                so in the code rather than pretending the BFF is where this
+                belongs. It is offered as a nudge, not forced &mdash; a shared
+                link keeps the sender&apos;s numbers and never overwrites them.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                The libraries I reached for, and the ones I did not
+              </h3>
+              <p className="text-muted">
+                The payback bar is a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  div
+                </code>{" "}
+                with a width and a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  role=&quot;img&quot;
+                </code>{" "}
+                label, not a chart component; one value against a fixed horizon
+                does not need a charting runtime, and adding one would have been
+                weight for nothing. No date library, because there is no date
+                math here, only arithmetic. I did keep react-query for the single
+                benchmarks call, not because one fetch needs it but because
+                matching how every other read in this dashboard works buys the
+                caching and dedup for free and costs the next reader no surprise.
+                And the shareable-link state uses{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  history.replaceState
+                </code>{" "}
+                rather than the Next router, which keeps the component free of a
+                router dependency so it tests exactly like the pricing tab does,
+                with no navigation mock, while the URL still carries the whole
+                scenario.
+              </p>
+
+              <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+                What went wrong, and what it taught me twice
+              </h3>
+              <p className="text-muted">
+                The revenue test hung, and I read the failure as &quot;the value
+                isn&apos;t rendering.&quot; It was rendering &mdash; twice. At one
+                unit, gross revenue per year and revenue per unit per year are the
+                same number, so a bare text query matched two elements and threw
+                inside the retry loop, which looks identical to a value that never
+                appeared. The fix was to scope the assertion to the specific
+                figure, and the lesson was that &quot;not found&quot; and &quot;found
+                more than once&quot; wear the same face in a{" "}
+                <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+                  waitFor
+                </code>
+                .
+              </p>
+              <p className="mt-3 text-muted">
+                Then my pushes looked like they landed while the remote sat a
+                commit behind, because the tool that filters my command output was
+                swallowing the one line that would have told me. A green &quot;ok&quot;
+                proving nothing is the exact failure this whole page keeps
+                circling, and here it was again in my own workflow. I confirmed
+                the push against the remote ref directly, the way I now check
+                everything I cannot see the raw bytes of.
+              </p>
+              <p className="mt-3 text-muted">
+                The scan turned up more than I built. The loudest thing real
+                operators ask for, across every forum and vendor writing about
+                micro-markets, is not another calculator &mdash; it is theft and
+                shrink: reconciling the count the system reports against the count
+                on the shelf, and a report of what walked. The restock sessions
+                already capture the raw material for it. That is the next one.
               </p>
             </section>
       <section

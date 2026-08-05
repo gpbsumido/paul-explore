@@ -10,6 +10,11 @@ import {
   fleetSummaryResponseSchema,
   fleetSalesAnalyticsSchema,
 } from "@/lib/operator-schemas";
+import { plannerBenchmarksResponseSchema } from "@/lib/operator-planner";
+import { productPerformanceResponseSchema } from "@/lib/operator-product-performance";
+import { fleetShrinkResponseSchema } from "@/lib/operator-shrink";
+import { searchIndexResponseSchema } from "@/lib/operator-search";
+import { financeResponseSchema } from "@/lib/operator-finance";
 import { z } from "zod";
 
 function makeRequest(
@@ -518,6 +523,121 @@ describe("POST /api/operator/stores/:storeId/restock", () => {
       makeParams({ storeId: "nonexistent-999" }),
     );
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/planner/benchmarks
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/planner/benchmarks", () => {
+  it("returns fleet-derived benchmarks that pass schema validation", async () => {
+    const { GET } = await import("@/app/api/operator/planner/benchmarks/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = plannerBenchmarksResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    // The seed fleet has sales, so it learns a real basket price.
+    expect(body.benchmarks).not.toBeNull();
+    expect(body.benchmarks.avgItemPrice).toBeGreaterThan(0);
+    expect(body.benchmarks.sampleSize).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/product-performance
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/product-performance", () => {
+  it("returns a schema-valid fleet performance payload", async () => {
+    const { GET } = await import("@/app/api/operator/product-performance/route");
+    const res = await GET(makeRequest("/api/operator/product-performance?range=30d"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = productPerformanceResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    expect(body.days).toBe(30);
+    expect(body.products.length).toBeGreaterThan(0);
+  });
+
+  it("defaults to a 30-day window for an unknown range", async () => {
+    const { GET } = await import("@/app/api/operator/product-performance/route");
+    const res = await GET(makeRequest("/api/operator/product-performance?range=decade"));
+    const body = await res.json();
+    expect(body.days).toBe(30);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/shrink-summary
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/shrink-summary", () => {
+  it("returns a schema-valid fleet shrink payload with seeded count history", async () => {
+    const { GET } = await import("@/app/api/operator/shrink-summary/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = fleetShrinkResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    // The seed ships completed restock counts, so there is shrink to report.
+    expect(body.stores.length).toBeGreaterThan(0);
+    expect(body.totals.countedLines).toBeGreaterThan(0);
+    expect(body.totals.unexplainedUnits).toBeGreaterThan(0);
+  });
+
+  it("ranks stores worst-first by unexplained shrink value", async () => {
+    const { GET } = await import("@/app/api/operator/shrink-summary/route");
+    const body = await (await GET()).json();
+    const values = body.stores.map(
+      (s: { unexplainedValue: number }) => s.unexplainedValue,
+    );
+    const sorted = [...values].sort((a, b) => b - a);
+    expect(values).toEqual(sorted);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/search-index
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/search-index", () => {
+  it("returns a schema-valid index of stores and distinct products", async () => {
+    const { GET } = await import("@/app/api/operator/search-index/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = searchIndexResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    expect(body.stores.length).toBeGreaterThan(0);
+    expect(body.products.length).toBeGreaterThan(0);
+    // Products are deduped by name.
+    const names = body.products.map((p: { name: string }) => p.name);
+    expect(new Set(names).size).toBe(names.length);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/operator/finance
+// ---------------------------------------------------------------------------
+
+describe("GET /api/operator/finance", () => {
+  it("returns a schema-valid finance payload with weekly payouts", async () => {
+    const { GET } = await import("@/app/api/operator/finance/route");
+    const res = await GET();
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const result = financeResponseSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    expect(body.weeks.length).toBe(8);
+    expect(body.fees.transactionRate).toBeGreaterThan(0);
+    // Net payout is gross minus the two fee lines.
+    const w = body.weeks[0];
+    expect(w.netPayout).toBeCloseTo(
+      w.grossRevenue - w.transactionFees - w.platformFees,
+      2,
+    );
   });
 });
 

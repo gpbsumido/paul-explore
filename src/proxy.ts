@@ -8,6 +8,7 @@ import {
 } from "@/lib/authSession";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
+import { isSessionProtectedPath } from "@/lib/protectedPaths";
 import {
   VISITOR_COOKIE,
   VISITOR_COOKIE_MAX_AGE,
@@ -23,8 +24,9 @@ import {
  *    which handles login, callback, logout, and silent token refresh.
  *    Note: @auth0/nextjs-auth0 v4 uses /auth/* not /api/auth/*.
  *
- * 2. Session enforcement — unauthenticated requests to /vitals or /settings
+ * 2. Session enforcement — unauthenticated requests to /settings or /calendar
  *    are redirected to /auth/login before auth0.middleware() ever runs.
+ *    (Web Vitals is public — see isSessionProtectedPath.)
  *    auth0.getSession(request) reads the encrypted cookie locally (no network
  *    call) so enforcement adds no measurable TTFB. Authenticated requests go
  *    through auth0.middleware() for rolling session refresh.
@@ -193,15 +195,12 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Protect /vitals and /settings the same way /protected was protected.
+  // Protect /settings and /calendar the same way /protected was protected.
   // Unauthenticated requests redirect immediately to login with returnTo so
   // the user lands back here after signing in. Authenticated requests go
-  // through auth0.middleware() for rolling session refresh.
-  if (
-    pathname.startsWith("/vitals") ||
-    pathname.startsWith("/settings") ||
-    pathname.startsWith("/calendar")
-  ) {
+  // through auth0.middleware() for rolling session refresh. Web Vitals is
+  // deliberately not here — it's public (see isSessionProtectedPath).
+  if (isSessionProtectedPath(pathname)) {
     const session = await auth0.getSession(request);
     if (!session) {
       const marker = request.cookies.get(SESSION_MARKER_COOKIE)?.value;

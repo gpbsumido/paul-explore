@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import AuthButton from "@/components/AuthButton";
 import SlotMachine from "./SlotMachine";
+import LandingActions from "./LandingActions";
 
 type MeData = { name: string | null; email: string | null };
 
@@ -13,20 +12,7 @@ export default function FeatureHubV4({ initialMe }: { initialMe?: MeData }) {
   return (
     <SlotMachine
       greeting={`Hey ${firstName} — spin through everything you've got.`}
-      action={
-        <div className="flex items-center gap-2">
-          <Link
-            href="/settings"
-            className="inline-flex items-center rounded-full border border-border bg-surface/70 px-4 py-2 text-sm font-medium text-muted backdrop-blur-sm transition-colors hover:text-foreground"
-          >
-            Settings
-          </Link>
-          <AuthButton
-            loggedIn
-            className="inline-flex items-center rounded-full border border-foreground/25 bg-foreground/10 px-4 py-2 text-sm font-medium text-foreground backdrop-blur-sm transition-[border-color,background-color] hover:border-foreground/40 hover:bg-foreground/20"
-          />
-        </div>
-      }
+      action={<LandingActions loggedIn />}
     />
   );
 }

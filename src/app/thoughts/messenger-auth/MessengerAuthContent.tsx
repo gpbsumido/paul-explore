@@ -66,7 +66,7 @@ export default function MessengerAuthContent() {
 
               <Sent pos="first">
                 second one: the root route never called auth0.middleware().
-                protected routes like /calendar and /vitals do — that&apos;s
+                protected routes like /calendar and /settings do — that&apos;s
                 what validates the token and refreshes it. but / just passed
                 straight through
               </Sent>
@@ -229,7 +229,7 @@ export default function MessengerAuthContent() {
                 </code>{" "}
                 and{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-                  /vitals
+                  /settings
                 </code>
                 . The root{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
@@ -255,8 +255,8 @@ export default function MessengerAuthContent() {
                   getSession()
                 </code>{" "}
                 returns the session. The page renders the hub. But when the user
-                tries to use any feature — clicking through to the calendar,
-                loading vitals — the protected route calls{" "}
+                tries to use any feature — clicking through to the calendar or
+                opening settings — the protected route calls{" "}
                 <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
                   auth0.middleware()
                 </code>

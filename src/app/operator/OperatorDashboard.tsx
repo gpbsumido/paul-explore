@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useOperatorStores } from "@/hooks/useOperatorStores";
@@ -185,6 +186,45 @@ export default function OperatorDashboard() {
         you make &mdash; dismissing an alert, rearranging a planogram &mdash; are
         saved for real, but reset periodically to keep the demo fresh.
       </p>
+      {/* Operator tools: search the fleet, model a new store, or dig into sales. */}
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/operator/search"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+        >
+          Search
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+        <Link
+          href="/operator/planner"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+        >
+          Plan a location
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+        <Link
+          href="/operator/products"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+        >
+          Product performance
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+        <Link
+          href="/operator/loss"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+        >
+          Shrink &amp; loss
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+        <Link
+          href="/operator/finance"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+        >
+          Finance
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+      </div>
+
       {/* Global refresh bar */}
       <RefreshBar />
 
