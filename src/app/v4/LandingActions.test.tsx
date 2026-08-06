@@ -68,6 +68,9 @@ describe("LandingActions", () => {
       expect(el.className).toContain("rounded-full");
       expect(el.className).toContain("border-border");
       expect(el.className).toContain("bg-surface/70");
+      // Content height differs between icon-only and text pills, so the
+      // uniform height has to be explicit, not derived from padding.
+      expect(el.className).toContain("h-9");
     }
   });
 });

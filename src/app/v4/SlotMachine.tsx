@@ -55,7 +55,7 @@ function ResumeLink() {
   return (
     <Link
       href="/resume"
-      className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+      className="inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-medium backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
       style={{
         borderColor: `color-mix(in srgb, ${RESUME_ACCENT} 50%, transparent)`,
         backgroundColor: `color-mix(in srgb, ${RESUME_ACCENT} 15%, transparent)`,
@@ -90,7 +90,7 @@ function SearchHint() {
       onClick={openCommandPalette}
       aria-label="Search pages, dev notes, and actions"
       aria-haspopup="dialog"
-      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-2 text-sm text-muted backdrop-blur-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 text-sm text-muted backdrop-blur-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
     >
       <svg
         width="14"

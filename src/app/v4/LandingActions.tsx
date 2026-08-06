@@ -9,7 +9,7 @@ import HeaderMenu from "@/components/HeaderMenu";
  * read as one set.
  */
 const PILL =
-  "rounded-full border border-border bg-surface/70 backdrop-blur-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60";
+  "h-9 rounded-full border border-border bg-surface/70 backdrop-blur-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60";
 
 /**
  * The v4 landing's top-right controls: the shared settings menu (theme picker
@@ -24,11 +24,11 @@ export default function LandingActions({ loggedIn }: { loggedIn: boolean }) {
       <HeaderMenu
         showSettings
         showLogout={false}
-        triggerClassName={`flex items-center gap-1.5 px-3 py-2 text-muted hover:text-foreground ${PILL}`}
+        triggerClassName={`flex items-center gap-1.5 px-3 text-muted hover:text-foreground ${PILL}`}
       />
       <AuthButton
         loggedIn={loggedIn}
-        className={`inline-flex items-center px-4 py-2 font-medium text-foreground hover:bg-surface-raised ${PILL}`}
+        className={`inline-flex items-center px-4 font-medium text-foreground hover:bg-surface-raised ${PILL}`}
       />
     </div>
   );
