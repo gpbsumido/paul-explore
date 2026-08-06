@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import HeaderMenu from "./HeaderMenu";
@@ -23,6 +23,15 @@ const renderMenu = (props?: { triggerClassName?: string }) => {
     </QueryClientProvider>,
   );
 };
+
+describe("HeaderMenu — Web Vitals is public", () => {
+  it("shows the Web Vitals link even when signed out", async () => {
+    renderMenu();
+    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
+    const vitals = await screen.findByRole("link", { name: /web vitals/i });
+    expect(vitals).toHaveAttribute("href", "/vitals");
+  });
+});
 
 describe("HeaderMenu trigger styling", () => {
   it("keeps the standard trigger look when no override is given", () => {
