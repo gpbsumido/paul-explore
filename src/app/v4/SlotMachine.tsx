@@ -55,7 +55,7 @@ function ResumeLink() {
   return (
     <Link
       href="/resume"
-      className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+      className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
       style={{
         borderColor: `color-mix(in srgb, ${RESUME_ACCENT} 50%, transparent)`,
         backgroundColor: `color-mix(in srgb, ${RESUME_ACCENT} 15%, transparent)`,
