@@ -13,6 +13,11 @@ import {
 } from "@/lib/research/data";
 import { JOURNALS as JOURNAL_LIST } from "@/lib/research/data";
 import { SOURCES, type SourceId } from "@/lib/research/sources";
+import {
+  ASK_MODELS,
+  RECOMMENDED_MODEL,
+  type AskModelId,
+} from "@/lib/research/askModels";
 import { useSourcePrefs, customJournalId } from "./useSourcePrefs";
 import {
   topicsResponseSchema,
@@ -1548,6 +1553,7 @@ function AskBox({
   paper: { title: string; journal: string; pubDate: string };
 }) {
   const [question, setQuestion] = useState("");
+  const [model, setModel] = useState<AskModelId>(RECOMMENDED_MODEL);
   const [answer, setAnswer] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -1562,7 +1568,7 @@ function AskBox({
       const res = await fetch("/api/research/ask", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question: asked, paper }),
+        body: JSON.stringify({ question: asked, paper, model }),
       });
       const json = (await res.json()) as { answer?: string; error?: string };
       if (!res.ok) setError(json.error ?? `Request failed (${res.status}).`);
@@ -1612,6 +1618,31 @@ function AskBox({
           {error}
         </p>
       )}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <label
+          htmlFor={`model-${paper.title.slice(0, 12)}`}
+          className="sr-only"
+        >
+          Model
+        </label>
+        <select
+          id={`model-${paper.title.slice(0, 12)}`}
+          value={model}
+          onChange={(e) => setModel(e.target.value as AskModelId)}
+          className="min-h-11 rounded-lg border border-border bg-background px-2 text-xs text-foreground sm:min-h-8"
+        >
+          {ASK_MODELS.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+              {m.recommended ? " (recommended)" : ""}
+            </option>
+          ))}
+        </select>
+        <span className="text-xs text-muted">
+          {ASK_MODELS.find((m) => m.id === model)?.note}
+        </span>
+      </div>
+
       <p className="mt-2 text-xs text-muted">
         Answers come from the title and abstract only. Check anything that
         matters against the full text.

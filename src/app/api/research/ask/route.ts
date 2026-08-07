@@ -3,6 +3,11 @@ import { z } from "zod";
 import { parseBody } from "@/lib/parseBody";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { auth0 } from "@/lib/auth0";
+import {
+  isAskModel,
+  RECOMMENDED_MODEL,
+  type AskModelId,
+} from "@/lib/research/askModels";
 
 /**
  * Ask a model about a paper.
@@ -20,6 +25,7 @@ import { auth0 } from "@/lib/auth0";
 
 const askSchema = z.object({
   question: z.string().trim().min(1).max(1000),
+  model: z.string().optional(),
   paper: z.object({
     title: z.string().max(500),
     journal: z.string().max(300).optional().default(""),
@@ -29,23 +35,26 @@ const askSchema = z.object({
 });
 
 /**
- * The model, overridable without a deploy.
+ * Which model answers.
  *
- * Not gpt-4o-mini, which is what this shipped with and was the wrong pick.
- * Critical appraisal is a reasoning task -- working out what a design cannot
- * support, and where an abstract is quietly silent -- and the mini tier is
- * exactly where that goes vague and agreeable. The volume here is a handful of
- * questions behind a 10-per-minute cap, so the cheaper tier saves pennies and
- * costs the thing the feature exists for.
+ * The caller may pick one of three, and anything else is rejected rather than
+ * forwarded -- an unvalidated model string would let a crafted request point
+ * the account's credit at whatever it liked.
  *
- * gpt-4.1 rather than gpt-5, which this account also has: gpt-4.1 reliably
- * accepts the plain chat-completions shape below, including `temperature`,
- * whereas newer reasoning models can reject it. With no API credit on the
- * account I could not verify gpt-5 against this endpoint, and defaulting to
- * something unverified would mean the feature breaks the moment credit is
- * added. Set OPENAI_MODEL=gpt-5 to try it once there is quota to test with.
+ * The default is the recommended one rather than the cheapest. This shipped on
+ * gpt-4o-mini, which was the wrong pick: critical appraisal is a reasoning
+ * task, and the mini tier is exactly where that turns vague and agreeable. The
+ * volume here is a handful of questions behind a per-minute cap, so the cheaper
+ * tier saves pennies and costs the thing the feature exists for.
+ *
+ * OPENAI_MODEL still overrides the default, for trying something not listed
+ * without a deploy.
  */
-const MODEL = process.env.OPENAI_MODEL || "gpt-4.1";
+function resolveModel(requested: unknown): AskModelId {
+  if (isAskModel(requested)) return requested;
+  const configured = process.env.OPENAI_MODEL;
+  return isAskModel(configured) ? configured : RECOMMENDED_MODEL;
+}
 
 /**
  * Per-person burst cap.
@@ -154,6 +163,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!parsed.ok) return parsed.response;
 
   const { question, paper } = parsed.data;
+  const model = resolveModel(parsed.data.model);
 
   const context = [
     `Title: ${paper.title}`,
@@ -173,7 +183,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         temperature: 0.2,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
@@ -225,7 +235,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
     return NextResponse.json(
-      { answer },
+      { answer, model },
       { headers: { "Cache-Control": CACHE_CONTROL } },
     );
   } catch {

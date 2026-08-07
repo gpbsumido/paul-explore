@@ -6,6 +6,11 @@ import {
   buildDiscussion,
   detectInnovation,
 } from "./journalClub";
+import {
+  ASK_MODELS,
+  RECOMMENDED_MODEL,
+  isAskModel,
+} from "./askModels";
 
 const structured =
   "<h4>Background</h4>Screening uptake in women is poorly described." +
@@ -226,5 +231,27 @@ describe("detectInnovation", () => {
     });
     expect(r.signals.length).toBeGreaterThan(0);
     r.signals.forEach((s) => expect(s.trim().length).toBeGreaterThan(0));
+  });
+});
+
+describe("ask models", () => {
+  it("offers exactly three, with one recommended", () => {
+    expect(ASK_MODELS).toHaveLength(3);
+    expect(ASK_MODELS.filter((m) => m.recommended)).toHaveLength(1);
+    expect(RECOMMENDED_MODEL).toBe("gpt-4.1");
+  });
+
+  it("explains what each is for, so the choice is not a guess", () => {
+    ASK_MODELS.forEach((m) => {
+      expect(m.note.length).toBeGreaterThan(40);
+      expect(m.label.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("rejects anything not on the list", () => {
+    expect(isAskModel("gpt-4.1")).toBe(true);
+    expect(isAskModel("gpt-4-turbo")).toBe(false);
+    expect(isAskModel("")).toBe(false);
+    expect(isAskModel(undefined)).toBe(false);
   });
 });

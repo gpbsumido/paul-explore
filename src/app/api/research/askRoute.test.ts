@@ -56,7 +56,10 @@ describe("POST /api/research/ask", () => {
   it("answers a question about a paper", async () => {
     const res = await askPOST(post(valid));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ answer: "Confounding by indication." });
+    expect(await res.json()).toEqual({
+      answer: "Confounding by indication.",
+      model: "gpt-4.1",
+    });
   });
 
   it("sends the paper as context so the answer is about this paper", async () => {
@@ -240,5 +243,39 @@ describe("POST /api/research/ask is limited to named people", () => {
     asUser({ sub: "f", email: "stranger@example.com", email_verified: true });
     await askPOST(post(valid));
     expect(called).toBe(false);
+  });
+});
+
+describe("POST /api/research/ask model choice", () => {
+  const modelSent = async (body: unknown) => {
+    let sent = "";
+    server.use(
+      http.post(OPENAI, async ({ request }) => {
+        sent = ((await request.json()) as { model: string }).model;
+        return HttpResponse.json({ choices: [{ message: { content: "x" } }] });
+      }),
+    );
+    await askPOST(post(body));
+    return sent;
+  };
+
+  it("defaults to the recommended model, not the cheapest", async () => {
+    expect(await modelSent(valid)).toBe("gpt-4.1");
+  });
+
+  it("honours one of the three offered", async () => {
+    expect(await modelSent({ ...valid, model: "gpt-5" })).toBe("gpt-5");
+    expect(await modelSent({ ...valid, model: "gpt-4o-mini" })).toBe(
+      "gpt-4o-mini",
+    );
+  });
+
+  it("ignores a model that is not on the list rather than forwarding it", async () => {
+    expect(await modelSent({ ...valid, model: "gpt-4-turbo" })).toBe("gpt-4.1");
+  });
+
+  it("tells the caller which model actually answered", async () => {
+    const res = await askPOST(post({ ...valid, model: "gpt-5" }));
+    expect((await res.json()).model).toBe("gpt-5");
   });
 });
