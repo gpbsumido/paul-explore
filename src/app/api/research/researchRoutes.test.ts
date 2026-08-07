@@ -372,8 +372,10 @@ describe("GET /api/research/topics?demo=", () => {
       }),
     );
     await topicsGET(new NextRequest("http://localhost/api/research/topics"));
-    const femaleClause = DEMOGRAPHICS.find((d) => d.id === "female")!.clause;
-    expect(terms.some((t) => t.includes(femaleClause))).toBe(false);
+    // Several curated queries legitimately contain "female"[mh] themselves, so
+    // substring-matching the clause proves nothing. The real contract is that
+    // nothing is appended: the all-time term is exactly the topic's own query.
+    expect(terms).toContain(`(${TOPICS[0].query})`);
   });
 });
 

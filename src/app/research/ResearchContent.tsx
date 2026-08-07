@@ -24,10 +24,12 @@ import {
   type TopicEvidence,
 } from "@/lib/research/pubmed";
 
-type Tab = "topics" | "discovered" | "journals" | "demographics" | "sources";
+type Tab =
+  "topics" | "counts" | "discovered" | "journals" | "demographics" | "sources";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "topics", label: "Topics" },
+  { id: "counts", label: "Counts" },
   { id: "discovered", label: "Discovered" },
   { id: "journals", label: "Journals" },
   { id: "demographics", label: "Demographics" },
@@ -137,7 +139,7 @@ export default function ResearchContent() {
       <div
         role="tablist"
         aria-label="Research views"
-        className="mb-6 flex gap-2"
+        className="mb-6 flex flex-wrap gap-2"
       >
         {TABS.map((t) => (
           <button
@@ -146,7 +148,7 @@ export default function ResearchContent() {
             type="button"
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={`h-9 rounded-full border px-4 text-sm transition-colors ${
+            className={`min-h-11 rounded-full border px-4 text-sm transition-colors sm:min-h-9 ${
               tab === t.id
                 ? "border-foreground bg-foreground text-background"
                 : "border-border bg-surface/70 text-muted hover:text-foreground"
@@ -170,6 +172,8 @@ export default function ResearchContent() {
           sources={activeSources}
         />
       )}
+
+      {tab === "counts" && <CountsPanel />}
 
       {tab === "discovered" && (
         <DiscoveredPanel
@@ -346,17 +350,17 @@ function DemographicFilters({
   onToggle: (id: string) => void;
 }) {
   return (
-    <fieldset className="mb-4">
+    <fieldset className="mb-4 min-w-0">
       <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
         Narrow to a population
       </legend>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex min-w-0 flex-wrap gap-2">
         {DEMOGRAPHICS.map((facet) => {
           const checked = selected.includes(facet.id);
           return (
             <label
               key={facet.id}
-              className={`cursor-pointer rounded-full border px-3 py-1 text-xs transition-colors focus-within:ring-2 focus-within:ring-foreground ${
+              className={`flex min-h-11 cursor-pointer items-center rounded-full border px-3 text-xs transition-colors focus-within:ring-2 focus-within:ring-foreground sm:min-h-8 ${
                 checked
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-surface text-muted hover:text-foreground"
@@ -540,7 +544,7 @@ function DiscoveredPanel({
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => setOpenId(isOpen ? null : topic.id)}
-                className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
+                className="flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-surface sm:flex-row sm:items-center sm:justify-between sm:gap-3"
               >
                 <span className="min-w-0">
                   <span className="block font-medium text-foreground">
@@ -681,11 +685,18 @@ function DemographicsPanel({ topicId }: { topicId: string | null }) {
             {DEMOGRAPHICS.filter((d) => d.group === group).map((facet) => {
               const count = counts.get(facet.id);
               return (
-                <li key={facet.id} className="flex items-center gap-3">
-                  <span className="w-48 shrink-0 text-sm text-foreground">
-                    {facet.label}
-                  </span>
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-surface">
+                <li key={facet.id}>
+                  {/* Label and number share a line, bar sits under them. On a
+                      phone a fixed label column left the bar a useless sliver. */}
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm text-foreground">
+                      {facet.label}
+                    </span>
+                    <span className="shrink-0 text-sm tabular-nums text-muted">
+                      {query.isLoading ? "…" : (count ?? 0)}
+                    </span>
+                  </div>
+                  <span className="mt-1 block h-2 overflow-hidden rounded-full bg-surface">
                     <span
                       className="block h-full rounded-full bg-foreground/40"
                       style={{
@@ -694,9 +705,6 @@ function DemographicsPanel({ topicId }: { topicId: string | null }) {
                           : "0%",
                       }}
                     />
-                  </span>
-                  <span className="w-16 shrink-0 text-right text-sm tabular-nums text-muted">
-                    {query.isLoading ? "…" : (count ?? 0)}
                   </span>
                 </li>
               );
@@ -863,6 +871,253 @@ function SourcesPanel({ prefs }: { prefs: ReturnType<typeof useSourcePrefs> }) {
         </div>
       </section>
     </div>
+  );
+}
+
+type SortMode = "most" | "fewest" | "alpha";
+
+const SORTS: { id: SortMode; label: string }[] = [
+  { id: "most", label: "Most papers" },
+  { id: "fewest", label: "Fewest papers" },
+  { id: "alpha", label: "A–Z" },
+];
+
+/**
+ * The numbers view: every topic with how many papers it has in the last five
+ * years, narrowable to one population.
+ *
+ * Sorting fewest-first is the one that earns its keep -- it puts the thin topics
+ * at the top, which is the whole question this tool exists to answer.
+ *
+ * Laid out for a phone first: each row is a stacked block that becomes a single
+ * line at `sm:` and up, so nothing scrolls sideways and no column has a fixed
+ * width fighting a 390px screen.
+ */
+function CountsPanel() {
+  const [sort, setSort] = useState<SortMode>("most");
+  const [demoId, setDemoId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const all = useQuery({
+    queryKey: queryKeys.research.topics(),
+    queryFn: () => getJson("/api/research/topics"),
+    select: (json) => topicsResponseSchema.parse(json).topics,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const scoped = useQuery({
+    queryKey: queryKeys.research.topicsByDemo(demoId ?? ""),
+    queryFn: () => getJson(`/api/research/topics?demo=${demoId}`),
+    select: (json) => topicsResponseSchema.parse(json).topics,
+    staleTime: 60 * 60 * 1000,
+    enabled: demoId !== null,
+  });
+
+  if (all.isError) {
+    return (
+      <ErrorState
+        message="Couldn't reach PubMed for the counts."
+        onRetry={() => all.refetch()}
+      />
+    );
+  }
+
+  const recentById = new Map((all.data ?? []).map((t) => [t.id, t.recent]));
+  const scopedById = new Map((scoped.data ?? []).map((t) => [t.id, t.recent]));
+
+  const rows = TOPICS.map((topic) => ({
+    topic,
+    recent: recentById.get(topic.id) ?? 0,
+    inDemo: demoId ? scopedById.get(topic.id) : undefined,
+  })).sort((a, b) => {
+    if (sort === "alpha") return a.topic.name.localeCompare(b.topic.name);
+    if (sort === "fewest") return a.recent - b.recent;
+    return b.recent - a.recent;
+  });
+
+  const selected = DEMOGRAPHICS.find((d) => d.id === demoId);
+
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted">
+        Papers published in the last five years, per topic. Sort fewest-first to
+        put the thin topics on top, or pick a population to see how much of each
+        topic actually studied those patients.
+      </p>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {SORTS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            aria-pressed={sort === s.id}
+            onClick={() => setSort(s.id)}
+            className={`min-h-11 rounded-full border px-4 text-sm transition-colors sm:min-h-9 ${
+              sort === s.id
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-surface text-muted hover:text-foreground"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* A group, not a fieldset: these are toggle buttons rather than form
+          controls, and a fieldset refuses to shrink below its min-content
+          width, which defeated flex-wrap and pushed chips off a phone screen. */}
+      <div role="group" aria-labelledby="counts-population" className="mb-5">
+        <p
+          id="counts-population"
+          className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted"
+        >
+          Narrow to a population
+        </p>
+        <div className="flex min-w-0 flex-wrap gap-2">
+          <button
+            type="button"
+            aria-pressed={demoId === null}
+            onClick={() => setDemoId(null)}
+            className={`min-h-11 rounded-full border px-3 text-xs transition-colors sm:min-h-8 ${
+              demoId === null
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-surface text-muted hover:text-foreground"
+            }`}
+          >
+            All papers
+          </button>
+          {DEMOGRAPHICS.map((facet) => (
+            <button
+              key={facet.id}
+              type="button"
+              aria-pressed={demoId === facet.id}
+              onClick={() => setDemoId(demoId === facet.id ? null : facet.id)}
+              className={`min-h-11 rounded-full border px-3 text-xs transition-colors sm:min-h-8 ${
+                demoId === facet.id
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-surface text-muted hover:text-foreground"
+              }`}
+            >
+              {facet.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {demoId !== null && scoped.isLoading && (
+        <p className="mb-3 text-xs text-muted">
+          Counting {selected?.label} across every topic…
+        </p>
+      )}
+
+      <ul className="space-y-2">
+        {rows.map(({ topic, recent, inDemo }) => {
+          const isOpen = openId === topic.id;
+          const panelId = `counts-panel-${topic.id}`;
+          const share =
+            inDemo !== undefined && recent > 0
+              ? Math.round((inDemo / recent) * 100)
+              : null;
+          return (
+            <li
+              key={topic.id}
+              className="overflow-hidden rounded-xl border border-border bg-surface/60"
+            >
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                onClick={() => setOpenId(isOpen ? null : topic.id)}
+                className="flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-surface sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+              >
+                <span className="font-medium text-foreground">
+                  {topic.name}
+                </span>
+                <span className="flex shrink-0 items-baseline gap-2 sm:justify-end">
+                  <span className="text-lg font-semibold tabular-nums text-foreground">
+                    {all.isLoading ? "…" : recent}
+                  </span>
+                  <span className="text-xs text-muted">
+                    papers in the last 5 years
+                  </span>
+                  {inDemo !== undefined && (
+                    <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs tabular-nums text-muted">
+                      {inDemo} of {recent}
+                      {share !== null && ` · ${share}%`}
+                    </span>
+                  )}
+                </span>
+              </button>
+
+              {isOpen && (
+                <div id={panelId} className="border-t border-border px-4 py-4">
+                  <TopicSplit topicId={topic.id} />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * A topic's demographic split over the same five-year window as the column it
+ * expands from. An all-time split beside a five-year total would be two
+ * different questions sharing a row.
+ */
+function TopicSplit({ topicId }: { topicId: string }) {
+  const query = useQuery({
+    queryKey: queryKeys.research.demographics(topicId, 5),
+    queryFn: () =>
+      getJson(`/api/research/demographics?topic=${topicId}&window=5`),
+    select: (json) => demographicsResponseSchema.parse(json).facets,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  if (query.isError) {
+    return (
+      <ErrorState
+        message="Couldn't load the split for this topic."
+        onRetry={() => query.refetch()}
+      />
+    );
+  }
+
+  const counts = new Map((query.data ?? []).map((f) => [f.id, f.count]));
+  const max = Math.max(1, ...[...counts.values()]);
+
+  return (
+    <>
+      <p className="mb-3 text-xs text-muted">
+        Of this topic&apos;s last five years, how many papers include each
+        population.
+      </p>
+      <ul className="space-y-2">
+        {DEMOGRAPHICS.map((facet) => {
+          const count = counts.get(facet.id);
+          return (
+            <li key={facet.id}>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm text-foreground">{facet.label}</span>
+                <span className="text-sm tabular-nums text-muted">
+                  {query.isLoading ? "…" : (count ?? 0)}
+                </span>
+              </div>
+              <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-surface">
+                <span
+                  className="block h-full rounded-full bg-foreground/40"
+                  style={{
+                    width: count ? `${Math.round((count / max) * 100)}%` : "0%",
+                  }}
+                />
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 

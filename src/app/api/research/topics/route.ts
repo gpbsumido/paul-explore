@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { TOPICS } from "@/lib/research/data";
+import { NextResponse, type NextRequest } from "next/server";
+import { TOPICS, DEMOGRAPHICS } from "@/lib/research/data";
 import { classifyEvidence, recentTerm } from "@/lib/research/pubmed";
 import { countAll, isFailure } from "@/lib/research/eutils";
 
@@ -9,7 +9,7 @@ const RECENT_WINDOW_YEARS = 5;
 /** A day at the CDN, a week of stale-while-revalidate. PubMed sees ~1 scan a day. */
 const CACHE_CONTROL = "public, s-maxage=86400, stale-while-revalidate=604800";
 
-// Two counts per topic, batched three at a time, so the full scan needs room.
+// Two counts per topic, paced under NCBI's rate limit, so the full scan needs room.
 export const maxDuration = 60;
 
 /**
@@ -17,14 +17,30 @@ export const maxDuration = 60;
  * has ever been published and how much of it is recent, turned into a
  * none/sparse/active status.
  *
- * The year window is computed per request rather than pinned, so "recent"
- * keeps meaning recent without anyone editing a constant.
+ * With `?demo=<facet>` the same scan runs scoped to one population, which is
+ * what the Counts tab compares against the unscoped numbers. The facet is
+ * resolved through the curated layer, so an unknown id is a 400 rather than a
+ * hand-written clause reaching PubMed.
+ *
+ * The year window is computed per request rather than pinned, so "recent" keeps
+ * meaning recent without anyone editing a constant.
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const demoId = request.nextUrl.searchParams.get("demo");
+
+  let scope = "";
+  if (demoId) {
+    const facet = DEMOGRAPHICS.find((d) => d.id === demoId);
+    if (!facet) {
+      return NextResponse.json({ error: "Unknown demographic" }, { status: 400 });
+    }
+    scope = ` AND (${facet.clause})`;
+  }
+
   const fromYear = new Date().getFullYear() - RECENT_WINDOW_YEARS;
 
   const counts = await countAll(TOPICS, (topic) => {
-    const term = `(${topic.query})`;
+    const term = `(${topic.query})${scope}`;
     return [term, recentTerm(term, fromYear)];
   });
 
@@ -32,7 +48,12 @@ export async function GET(): Promise<NextResponse> {
 
   const topics = TOPICS.map((topic, i) => {
     const [total, recent] = counts[i];
-    return { id: topic.id, total, recent, status: classifyEvidence({ total, recent }) };
+    return {
+      id: topic.id,
+      total,
+      recent,
+      status: classifyEvidence({ total, recent }),
+    };
   });
 
   return NextResponse.json(

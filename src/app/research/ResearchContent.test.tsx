@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -286,6 +286,11 @@ describe("ResearchContent counts", () => {
       .getAllByRole("button", { name: /papers in the last 5 years/ })
       .map((b) => b.textContent ?? "");
     expect(names[0]).toContain(TOPICS[0].name);
+
+    // Most topics tie at 40 recent papers, so which one lands last is
+    // arbitrary. The contract that matters is that counts never decrease.
+    const counts = names.map((n) => Number(n.match(/(\d+)papers/)?.[1] ?? -1));
+    expect(counts).toEqual([...counts].sort((a, b) => a - b));
   });
 
   it("shows the count and share within a chosen population", async () => {
@@ -306,21 +311,29 @@ describe("ResearchContent counts", () => {
     );
     await openCounts(user);
     await screen.findByText(TOPICS[1].name);
-    await user.click(screen.getByRole("button", { name: DEMOGRAPHICS[0].label }));
-    // TOPICS[1]: 1 of 4 in this population.
-    expect(await screen.findByText(/1 of 4/)).toBeInTheDocument();
-    expect(screen.getByText(/25%/)).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: DEMOGRAPHICS[0].label }),
+    );
+
+    // TOPICS[1] has 4 recent papers unfiltered and 1 in this population.
+    // Scoped to its own row, because "1 of 40 · 3%" on other rows also
+    // contains the substring "1 of 4".
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    expect(row).not.toBeNull();
+    expect(await within(row!).findByText("1 of 4 · 25%")).toBeInTheDocument();
   });
 
   it("expands a topic to show its demographic split", async () => {
     const user = userEvent.setup();
     await openCounts(user);
-    await user.click(
-      await screen.findByRole("button", {
-        name: new RegExp(`${TOPICS[1].name}.*papers in the last 5 years`),
-      }),
-    );
-    expect(await screen.findByText(DEMOGRAPHICS[0].label)).toBeInTheDocument();
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+
+    // "Women" is also a filter chip above the list, so scope to this row.
+    expect(
+      await within(row!).findByText(/how many papers include each/),
+    ).toBeInTheDocument();
+    expect(within(row!).getByText(DEMOGRAPHICS[0].label)).toBeInTheDocument();
   });
 
   it("asks for the split over the same 5-year window the column shows", async () => {
@@ -335,13 +348,31 @@ describe("ResearchContent counts", () => {
       }),
     );
     await openCounts(user);
-    await user.click(
-      await screen.findByRole("button", {
-        name: new RegExp(`${TOPICS[1].name}.*papers in the last 5 years`),
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+    await within(row!).findByText(/how many papers include each/);
+    expect(new URL(urls.at(-1) ?? "").searchParams.get("window")).toBe("5");
+  });
+
+  it("renders real characters, not escape sequences, in the loading note", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/topics", async ({ request }) => {
+        if (new URL(request.url).searchParams.get("demo")) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
+        return HttpResponse.json(topicsPayload());
       }),
     );
-    await screen.findByText(DEMOGRAPHICS[0].label);
-    expect(new URL(urls.at(-1) ?? "").searchParams.get("window")).toBe("5");
+    await openCounts(user);
+    await screen.findByText(TOPICS[1].name);
+    await user.click(
+      screen.getByRole("button", { name: DEMOGRAPHICS[0].label }),
+    );
+
+    // A \uXXXX escape is only interpreted inside a string literal. Written as
+    // JSX text it renders verbatim, which is how "topic\u2026" shipped.
+    expect(document.body.textContent ?? "").not.toMatch(/\\u[0-9a-fA-F]{4}/);
   });
 });
 
@@ -354,7 +385,9 @@ describe("ResearchContent on a phone", () => {
 
   it("keeps every tab reachable", async () => {
     renderPage();
-    const labels = (await screen.findAllByRole("tab")).map((t) => t.textContent);
+    const labels = (await screen.findAllByRole("tab")).map(
+      (t) => t.textContent,
+    );
     expect(labels).toEqual([
       "Topics",
       "Counts",
