@@ -366,6 +366,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#0a84ff",
   },
   {
+    title: "Hybrid Rendering",
+    href: "/thoughts/hybrid-rendering",
+    preview:
+      "Giving each Angular route the render mode it needs — the Thoughts pages prerender to static HTML at build time via per-route RenderMode, a SeoService writes the head and JSON-LD on the server, and the interactive shell stays client-rendered",
+    color: "#dd0031",
+  },
+  {
     title: "Shared Design System",
     href: "/thoughts/design-system",
     preview:
