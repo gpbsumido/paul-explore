@@ -212,3 +212,77 @@ describe("toEuropePmcQuery", () => {
     ).toBe('("aortic aneurysm") AND ("female")');
   });
 });
+
+describe("discovery quality", () => {
+  const mesh = (
+    entries: { name: string; major?: boolean }[],
+  ) => ({
+    meshHeadingList: {
+      meshHeading: entries.map((e) => ({
+        descriptorName: e.name,
+        majorTopic_YN: e.major === false ? "N" : "Y",
+      })),
+    },
+  });
+
+  it("counts only what a paper is actually about, not its incidental tags", () => {
+    const counts = parseMeshCounts({
+      hitCount: 1,
+      resultList: {
+        result: [
+          {
+            id: "a",
+            source: "MED",
+            title: "One.",
+            ...mesh([
+              { name: "China", major: false },
+              { name: "Endoleak", major: true },
+            ]),
+          },
+        ],
+      },
+    });
+    expect(counts.get("Endoleak")).toBe(1);
+    expect(counts.has("China")).toBe(false);
+  });
+
+  it("drops animal studies, which are not projects a resident takes on", () => {
+    const counts = parseMeshCounts({
+      hitCount: 1,
+      resultList: {
+        result: [
+          {
+            id: "a",
+            source: "MED",
+            title: "Mouse model.",
+            ...mesh([
+              { name: "Animals" },
+              { name: "Neointima" },
+            ]),
+          },
+          {
+            id: "b",
+            source: "MED",
+            title: "Human study.",
+            ...mesh([{ name: "Neointima" }]),
+          },
+        ],
+      },
+    });
+    expect(counts.get("Neointima")).toBe(1);
+  });
+
+  it("treats geography and lab organisms as generic, never as research topics", () => {
+    [
+      "China",
+      "United States",
+      "Japan",
+      "Mice",
+      "Rats",
+      "Animals",
+      "Randomized Controlled Trials as Topic",
+    ].forEach((t) =>
+      expect(GENERIC_MESH.has(t)).toBe(true),
+    );
+  });
+});

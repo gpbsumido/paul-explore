@@ -20,7 +20,14 @@ const searchResultSchema = z.object({
   firstPublicationDate: z.string().optional(),
   pubYear: z.string().optional(),
   meshHeadingList: z
-    .object({ meshHeading: z.array(z.object({ descriptorName: z.string() })) })
+    .object({
+      meshHeading: z.array(
+        z.object({
+          descriptorName: z.string(),
+          majorTopic_YN: z.string().optional(),
+        }),
+      ),
+    })
     .optional(),
 });
 
@@ -134,17 +141,81 @@ export const GENERIC_MESH = new Set([
   "Endovascular Procedures",
   "Blood Vessel Prosthesis Implantation",
   "Risk Assessment",
+  "Reproducibility of Results",
+  "Sensitivity and Specificity",
+  "Predictive Value of Tests",
+  "Severity of Illness Index",
+  "Quality of Life",
+  "Incidence",
+  "Prevalence",
+  "Randomized Controlled Trials as Topic",
+  "Clinical Trials as Topic",
+  "Practice Guidelines as Topic",
+  "Systematic Reviews as Topic",
+  // Organisms and preclinical models. A mouse study is real research and not
+  // the kind of project this tool exists to suggest.
+  "Animals",
+  "Mice",
+  "Rats",
+  "Rabbits",
+  "Swine",
+  "Dogs",
+  "Sheep",
+  "Disease Models, Animal",
+  "Mice, Inbred C57BL",
+  "Cells, Cultured",
+  // Geographies. A country is where the cohort lived, never what the paper is
+  // about, and they rank high enough to crowd out real themes.
+  "China",
+  "United States",
+  "Japan",
+  "Germany",
+  "Italy",
+  "France",
+  "United Kingdom",
+  "Netherlands",
+  "Sweden",
+  "Canada",
+  "Australia",
+  "India",
+  "Brazil",
+  "Korea",
+  "Republic of Korea",
+  "Spain",
+  "Denmark",
+  "Europe",
+  "Taiwan",
+  "Turkey",
 ]);
 
-/** Tallies how many of the given records carry each MeSH heading. */
+/**
+ * Tallies the MeSH headings across the sampled papers, counting only what each
+ * paper is actually about.
+ *
+ * NLM marks a heading as a major topic when it's central to the paper rather
+ * than incidental, and that flag does almost all the work here. Counting every
+ * heading surfaced "Mice", "China", and "Acute Kidney Injury" as top vascular
+ * research topics -- all true tags, none of them what those papers were about.
+ * Animal studies are dropped whole, since a preclinical mouse model isn't a
+ * project a resident picks up.
+ */
 export function parseMeshCounts(json: unknown): Map<string, number> {
   const counts = new Map<string, number>();
+
   for (const record of parseEuropePmcRecords(json)) {
-    for (const heading of record.meshHeadingList?.meshHeading ?? []) {
+    const headings = record.meshHeadingList?.meshHeading ?? [];
+    const isAnimalStudy = headings.some(
+      (h) => h.descriptorName === "Animals" || h.descriptorName === "Mice",
+    );
+    if (isAnimalStudy) continue;
+
+    for (const heading of headings) {
+      if (heading.majorTopic_YN === "N") continue;
       const name = heading.descriptorName;
       counts.set(name, (counts.get(name) ?? 0) + 1);
     }
   }
+
   return counts;
 }
 

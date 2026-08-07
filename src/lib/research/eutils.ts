@@ -12,11 +12,28 @@ const EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
 const EUROPE_PMC = "https://www.ebi.ac.uk/europepmc/webservices/rest/search";
 
 /**
- * NCBI asks unauthenticated callers to stay under three requests a second, so
- * fan-outs run three at a time rather than all at once. Everything here sits
- * behind a day-long CDN cache, so the wall-clock cost is paid roughly once.
+ * NCBI caps unauthenticated callers at three requests a second and answers
+ * anything over it with an error rather than a queue, so a fan-out has to pace
+ * itself. Three in flight, and a full second between waves.
+ *
+ * The first version of this counted topics rather than requests -- three topics
+ * at a time, two requests each -- which was six concurrent and got the whole
+ * scan rejected the moment it ran against the real API. The limit is on
+ * requests, so the batching has to be too.
+ *
+ * Everything here sits behind a day-long CDN cache, so the wall-clock cost of
+ * pacing is paid about once a day rather than per visitor.
  */
-const BATCH_SIZE = 3;
+export const NCBI_MAX_CONCURRENT = 3;
+
+/**
+ * The wait is real time and there is nothing to wait for against a mocked
+ * upstream, so tests run it at zero. The concurrency cap is the part that
+ * carries the correctness, and that applies either way.
+ */
+const NCBI_WAVE_MS = process.env.NODE_ENV === "test" ? 0 : 1_000;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** A transport failure, kept as a value so callers stay flat and can 502/504. */
 export type EutilsFailure = { error: NextResponse };
@@ -118,25 +135,25 @@ export async function searchPublications(
 export async function countAll<T>(
   items: T[],
   toTerms: (item: T) => string[],
+  { waveMs = NCBI_WAVE_MS }: { waveMs?: number } = {},
 ): Promise<number[][] | EutilsFailure> {
-  const results: number[][] = [];
+  const shape = items.map((item) => toTerms(item));
+  const terms = shape.flat();
+  const counted: (number | EutilsFailure)[] = [];
 
-  for (let i = 0; i < items.length; i += BATCH_SIZE) {
-    const batch = items.slice(i, i + BATCH_SIZE);
-    const counted = await Promise.all(
-      batch.map(async (item) => {
-        const counts = await Promise.all(toTerms(item).map(countMatches));
-        return counts;
-      }),
-    );
-    for (const counts of counted) {
-      const failed = counts.find(isFailure);
-      if (failed) return failed;
-      results.push(counts as number[]);
-    }
+  for (let i = 0; i < terms.length; i += NCBI_MAX_CONCURRENT) {
+    if (i > 0 && waveMs > 0) await wait(waveMs);
+    const wave = terms.slice(i, i + NCBI_MAX_CONCURRENT);
+    counted.push(...(await Promise.all(wave.map(countMatches))));
   }
 
-  return results;
+  const failed = counted.find(isFailure);
+  if (failed) return failed;
+
+  let cursor = 0;
+  return shape.map((group) =>
+    group.map(() => counted[cursor++] as number),
+  );
 }
 
 /**

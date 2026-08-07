@@ -93,7 +93,8 @@ export function recentTerm(term: string, fromYear: number): string {
 const esearchSchema = z.object({
   esearchresult: z.object({
     count: z.coerce.number(),
-    idlist: z.array(z.string()),
+    // A rettype=count search returns the count alone, with no idlist at all.
+    idlist: z.array(z.string()).default([]),
   }),
 });
 

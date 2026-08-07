@@ -6,8 +6,27 @@ import { countAll, europePmcSearch, isFailure } from "@/lib/research/eutils";
 const CACHE_CONTROL = "public, s-maxage=86400, stale-while-revalidate=604800";
 const RECENT_WINDOW_YEARS = 5;
 
-/** How many recent papers get sampled for their MeSH headings. */
-const SAMPLE_SIZE = 100;
+/**
+ * The slice of the literature to sample.
+ *
+ * Free-text "vascular surgery" was the obvious query and the wrong one -- it
+ * matches any paper that mentions the phrase, so the first run surfaced
+ * colorectal neoplasms and graft rejection as vascular research themes. Scoping
+ * by MeSH instead means the sample is papers the indexers filed as vascular,
+ * not papers that said the words.
+ */
+const SAMPLE_QUERY =
+  '(MESH:"Vascular Surgical Procedures" OR MESH:"Endovascular Procedures" ' +
+  'OR MESH:"Peripheral Arterial Disease" OR MESH:"Aortic Aneurysm" ' +
+  'OR MESH:"Carotid Stenosis" OR MESH:"Venous Insufficiency" ' +
+  'OR MESH:"Arteriovenous Shunt, Surgical" OR MESH:"Varicose Veins") ' +
+  'AND (SRC:"MED") AND (HAS_ABSTRACT:"Y")';
+
+/**
+ * How many recent papers get sampled. Only about half carry MeSH headings --
+ * indexing lags publication -- so this is roughly double the effective sample.
+ */
+const SAMPLE_SIZE = 200;
 
 /** A heading has to recur across the sample to count as an emerging theme. */
 const MIN_RECURRENCE = 3;
@@ -28,10 +47,10 @@ export const maxDuration = 60;
  * offers it as XML, which is a parser this feature doesn't need to own.
  */
 export async function GET(): Promise<NextResponse> {
-  const sample = await europePmcSearch(
-    '(vascular surgery) AND (SRC:"MED") AND (HAS_ABSTRACT:"Y")',
-    { pageSize: SAMPLE_SIZE, core: true },
-  );
+  const sample = await europePmcSearch(SAMPLE_QUERY, {
+    pageSize: SAMPLE_SIZE,
+    core: true,
+  });
   if (isFailure(sample)) return sample.error;
 
   let derived;

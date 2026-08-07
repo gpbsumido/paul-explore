@@ -89,6 +89,13 @@ describe("PubMed payload parsing", () => {
     expect(parsed).toEqual({ count: 42, ids: ["101", "202"] });
   });
 
+  it("reads a count-only response, which is what rettype=count actually returns", () => {
+    expect(parseEsearch({ esearchresult: { count: "87068" } })).toEqual({
+      count: 87068,
+      ids: [],
+    });
+  });
+
   it("rejects a payload that is not an esearch response", () => {
     expect(() => parseEsearch({ nope: true })).toThrow();
   });
