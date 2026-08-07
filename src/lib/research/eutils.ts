@@ -3,11 +3,13 @@ import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { parseEsearch, parsePublications, type Publication } from "./pubmed";
 
 /**
- * Server-only NCBI E-utilities client. Kept out of modules that client
- * components import, same rule as the other route helpers in this repo.
+ * Server-only clients for the two literature databases: NCBI E-utilities and
+ * Europe PMC. Kept out of modules that client components import, same rule as
+ * the other route helpers in this repo.
  */
 
 const EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
+const EUROPE_PMC = "https://www.ebi.ac.uk/europepmc/webservices/rest/search";
 
 /**
  * NCBI asks unauthenticated callers to stay under three requests a second, so
@@ -135,6 +137,24 @@ export async function countAll<T>(
   }
 
   return results;
+}
+
+/**
+ * Europe PMC search. `resultType=core` is what carries the MeSH headings, and
+ * it's the only reason topic discovery is possible without parsing PubMed XML.
+ */
+export async function europePmcSearch(
+  query: string,
+  { pageSize = 25, core = false }: { pageSize?: number; core?: boolean } = {},
+): Promise<unknown | EutilsFailure> {
+  const params = new URLSearchParams({
+    query,
+    format: "json",
+    pageSize: String(pageSize),
+    sort: "P_PDATE_D desc",
+  });
+  if (core) params.set("resultType", "core");
+  return getJson(`${EUROPE_PMC}?${params.toString()}`);
 }
 
 export { isFailure };

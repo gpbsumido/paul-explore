@@ -15,14 +15,17 @@ import {
   topicsResponseSchema,
   publicationsResponseSchema,
   demographicsResponseSchema,
+  discoverResponseSchema,
+  SOURCE_LABELS,
   type EvidenceStatus,
   type TopicEvidence,
 } from "@/lib/research/pubmed";
 
-type Tab = "topics" | "journals" | "demographics";
+type Tab = "topics" | "discovered" | "journals" | "demographics";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "topics", label: "Topics" },
+  { id: "discovered", label: "Discovered" },
   { id: "journals", label: "Journals" },
   { id: "demographics", label: "Demographics" },
 ];
@@ -147,6 +150,10 @@ export default function ResearchContent() {
           demoIds={demoIds}
           onToggleDemo={toggleDemo}
         />
+      )}
+
+      {tab === "discovered" && (
+        <DiscoveredPanel demoIds={demoIds} onToggleDemo={toggleDemo} />
       )}
 
       {tab === "journals" && (
@@ -335,19 +342,27 @@ function DemographicFilters({
 function PublicationList({
   topicId,
   journalId,
+  meshTerm,
   demoIds = [],
 }: {
   topicId?: string;
   journalId?: string;
+  meshTerm?: string;
   demoIds?: string[];
 }) {
   const params = new URLSearchParams();
   if (topicId) params.set("topic", topicId);
   if (journalId) params.set("journal", journalId);
+  if (meshTerm) params.set("mesh", meshTerm);
   if (demoIds.length > 0) params.set("demo", demoIds.join(","));
 
   const query = useQuery({
-    queryKey: queryKeys.research.publications({ topicId, journalId, demoIds }),
+    queryKey: queryKeys.research.publications({
+      topicId,
+      journalId,
+      meshTerm,
+      demoIds,
+    }),
     queryFn: () => getJson(`/api/research/publications?${params.toString()}`),
     select: (json) => publicationsResponseSchema.parse(json),
     staleTime: 30 * 60 * 1000,
@@ -379,7 +394,10 @@ function PublicationList({
   return (
     <>
       <p className="mb-3 text-xs text-muted">
-        {query.data?.total} matching papers, newest first
+        {query.data?.total} matching papers, newest first · searched{" "}
+        {(query.data?.sources ?? ["pubmed"])
+          .map((s) => SOURCE_LABELS[s])
+          .join(" · ")}
       </p>
       <ul className="space-y-3">
         {publications.map((pub) => (
@@ -399,6 +417,105 @@ function PublicationList({
             </p>
           </li>
         ))}
+      </ul>
+    </>
+  );
+}
+
+/**
+ * Topics the field is publishing on right now, derived from the MeSH headings
+ * of recent vascular papers rather than from my curated list. Same evidence
+ * badges, so a recurring theme with almost no accumulated literature stands out
+ * the same way a curated gap does.
+ */
+function DiscoveredPanel({
+  demoIds,
+  onToggleDemo,
+}: {
+  demoIds: string[];
+  onToggleDemo: (id: string) => void;
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const query = useQuery({
+    queryKey: queryKeys.research.discover(),
+    queryFn: () => getJson("/api/research/discover"),
+    select: (json) => discoverResponseSchema.parse(json).topics,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  if (query.isError) {
+    return (
+      <ErrorState
+        message="Couldn't derive topics from recent literature."
+        onRetry={() => query.refetch()}
+      />
+    );
+  }
+
+  if (query.isLoading) {
+    return <PublicationSkeleton />;
+  }
+
+  const topics = query.data ?? [];
+
+  if (topics.length === 0) {
+    return (
+      <p className="text-sm text-muted">
+        Nothing recurring enough in the recent sample to suggest a theme.
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <p className="mb-4 text-sm text-muted">
+        MeSH headings recurring across the last hundred vascular surgery papers,
+        with the boilerplate and anything already on the Topics tab removed.
+      </p>
+      <ul className="space-y-3">
+        {topics.map((topic) => {
+          const isOpen = openId === topic.id;
+          const panelId = `discovered-panel-${topic.id}`;
+          return (
+            <li
+              key={topic.id}
+              className="overflow-hidden rounded-xl border border-border bg-surface/60"
+            >
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                onClick={() => setOpenId(isOpen ? null : topic.id)}
+                className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
+              >
+                <span className="min-w-0">
+                  <span className="block font-medium text-foreground">
+                    {topic.name}
+                  </span>
+                  <span className="mt-0.5 block text-sm text-muted">
+                    Tagged on {topic.papers} of the recent papers sampled
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <EvidenceBadge status={topic.status} />
+                  <span className="text-xs text-muted">
+                    {topic.total} papers · {topic.recent} recent
+                  </span>
+                </span>
+              </button>
+              {isOpen && (
+                <div id={panelId} className="border-t border-border px-4 py-4">
+                  <DemographicFilters
+                    selected={demoIds}
+                    onToggle={onToggleDemo}
+                  />
+                  <PublicationList meshTerm={topic.name} demoIds={demoIds} />
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </>
   );

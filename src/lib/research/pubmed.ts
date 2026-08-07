@@ -1,5 +1,16 @@
 import { z } from "zod";
-import { TOPICS, JOURNALS, DEMOGRAPHICS } from "./data";
+import { TOPICS, JOURNALS, DEMOGRAPHICS, ALL_VASCULAR_QUERY } from "./data";
+
+/**
+ * What a real MeSH descriptor looks like: words, digits, and the comma/hyphen
+ * punctuation NLM uses ("Aortic Aneurysm, Abdominal").
+ *
+ * Discovered topics are the one path where a search fragment originates
+ * upstream rather than from the curated file, so it gets validated against this
+ * before it can become part of a query. Anything else is rejected outright
+ * rather than escaped, because a descriptor never needs quotes or brackets.
+ */
+const MESH_DESCRIPTOR = /^[A-Za-z0-9][A-Za-z0-9 ,'()\-.]{1,80}$/;
 
 /**
  * Pure PubMed logic: term building, payload parsing, and evidence
@@ -37,13 +48,20 @@ export function classifyEvidence({
 export function buildSearchTerm({
   topicId,
   journalId,
+  meshTerm,
   demoIds,
 }: {
   topicId?: string;
   journalId?: string;
+  meshTerm?: string;
   demoIds?: string[];
 }): string | null {
   const parts: string[] = [];
+
+  if (meshTerm !== undefined) {
+    if (!MESH_DESCRIPTOR.test(meshTerm)) return null;
+    parts.push(`("${meshTerm}"[mh] AND (${ALL_VASCULAR_QUERY}))`);
+  }
 
   if (topicId) {
     const topic = TOPICS.find((t) => t.id === topicId);
@@ -110,8 +128,14 @@ export const publicationSchema = z.object({
   authors: z.array(z.string()),
   doi: z.string().nullable(),
   url: z.string(),
-  source: z.literal("pubmed"),
+  source: z.enum(["pubmed", "europepmc"]),
 });
+
+/** Which databases a publication list was actually assembled from. */
+export const SOURCE_LABELS: Record<Publication["source"], string> = {
+  pubmed: "PubMed",
+  europepmc: "Europe PMC",
+};
 
 export type Publication = z.infer<typeof publicationSchema>;
 
@@ -158,7 +182,25 @@ export type TopicEvidence = z.infer<
 export const publicationsResponseSchema = z.object({
   total: z.number(),
   publications: z.array(publicationSchema),
+  sources: z.array(z.enum(["pubmed", "europepmc"])).default(["pubmed"]),
 });
+
+export const discoverResponseSchema = z.object({
+  topics: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      papers: z.number(),
+      total: z.number(),
+      recent: z.number(),
+      status: z.enum(["none", "sparse", "active"]),
+    }),
+  ),
+});
+
+export type DiscoveredTopic = z.infer<
+  typeof discoverResponseSchema
+>["topics"][number];
 
 export const demographicsResponseSchema = z.object({
   facets: z.array(z.object({ id: z.string(), count: z.number() })),

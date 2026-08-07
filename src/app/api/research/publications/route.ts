@@ -1,16 +1,29 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { buildSearchTerm } from "@/lib/research/pubmed";
-import { searchPublications, isFailure } from "@/lib/research/eutils";
+import { buildSearchTerm, type Publication } from "@/lib/research/pubmed";
+import {
+  toEuropePmcQuery,
+  parseEuropePmcSearch,
+  mergePublications,
+} from "@/lib/research/europepmc";
+import {
+  searchPublications,
+  europePmcSearch,
+  isFailure,
+} from "@/lib/research/eutils";
 
 const CACHE_CONTROL = "public, s-maxage=21600, stale-while-revalidate=86400";
 const PAGE_SIZE = 20;
 
 /**
  * The newest papers for a topic or a journal, optionally narrowed to one or
- * more demographic facets.
+ * more demographic facets, from both literature databases.
  *
  * Every id is resolved through the curated layer, so an unknown id is a 400
- * here rather than a hand-written search string reaching PubMed.
+ * here rather than a hand-written search string reaching an upstream.
+ *
+ * PubMed is the spine: if it fails the request fails. Europe PMC is additive,
+ * so when it fails the response degrades to PubMed alone and says so in
+ * `sources` rather than pretending the extra index was consulted.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
@@ -22,6 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const term = buildSearchTerm({
     topicId: params.get("topic") ?? undefined,
     journalId: params.get("journal") ?? undefined,
+    meshTerm: params.get("mesh") ?? undefined,
     demoIds,
   });
 
@@ -32,10 +46,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const result = await searchPublications(term, { limit: PAGE_SIZE });
-  if (isFailure(result)) return result.error;
+  const [pubmed, europe] = await Promise.all([
+    searchPublications(term, { limit: PAGE_SIZE }),
+    europePmcSearch(toEuropePmcQuery(term), { pageSize: PAGE_SIZE }),
+  ]);
 
-  return NextResponse.json(result, {
-    headers: { "Cache-Control": CACHE_CONTROL },
-  });
+  if (isFailure(pubmed)) return pubmed.error;
+
+  let extra: Publication[] = [];
+  let sources: Publication["source"][] = ["pubmed"];
+
+  if (!isFailure(europe)) {
+    try {
+      extra = parseEuropePmcSearch(europe);
+      sources = ["pubmed", "europepmc"];
+    } catch {
+      // A shape we don't recognize is the same as not having the source.
+    }
+  }
+
+  return NextResponse.json(
+    {
+      total: pubmed.total,
+      publications: mergePublications(pubmed.publications, extra),
+      sources,
+    },
+    { headers: { "Cache-Control": CACHE_CONTROL } },
+  );
 }

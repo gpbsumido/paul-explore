@@ -14,7 +14,7 @@ const EPMC = "https://www.ebi.ac.uk/europepmc/webservices/rest/search";
 
 /** Europe PMC contributes a second, non-duplicate paper unless a test says otherwise. */
 const epmcHandler = (
-  body: unknown = {
+  body: Record<string, unknown> = {
     hitCount: 1,
     resultList: {
       result: [
@@ -277,6 +277,17 @@ describe("GET /api/research/discover", () => {
           meshHeadingList: {
             meshHeading: [
               { descriptorName: "Aged" },
+              { descriptorName: "Sarcopenia" },
+            ],
+          },
+        },
+        {
+          id: "c",
+          source: "MED",
+          title: "Three.",
+          meshHeadingList: {
+            meshHeading: [
+              { descriptorName: "Humans" },
               { descriptorName: "Sarcopenia" },
             ],
           },

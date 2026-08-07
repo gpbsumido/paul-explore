@@ -45,7 +45,11 @@ beforeEach(() => {
         : params.get("demo")
           ? "Filtered paper"
           : "Topic paper";
-      return HttpResponse.json({ total: 1, publications: [publication(title)] });
+      return HttpResponse.json({
+        total: 1,
+        publications: [publication(title)],
+        sources: ["pubmed", "europepmc"],
+      });
     }),
     http.get("/api/research/demographics", () =>
       HttpResponse.json({
@@ -132,5 +136,53 @@ describe("ResearchContent", () => {
   it("names the data source the evidence comes from", async () => {
     renderPage();
     expect(await screen.findByText(/PubMed/)).toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent discovered topics", () => {
+  beforeEach(() => {
+    server.use(
+      http.get("/api/research/discover", () =>
+        HttpResponse.json({
+          topics: [
+            {
+              id: "mesh-sarcopenia",
+              name: "Sarcopenia",
+              papers: 6,
+              total: 14,
+              recent: 5,
+              status: "sparse",
+            },
+          ],
+        }),
+      ),
+    );
+  });
+
+  it("lists topics derived from what the field is publishing now", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Discovered" }));
+    expect(await screen.findByText("Sarcopenia")).toBeInTheDocument();
+    expect(screen.getByText("Sparse")).toBeInTheDocument();
+  });
+
+  it("opens a discovered topic to its papers", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Discovered" }));
+    await user.click(await screen.findByRole("button", { name: /Sarcopenia/ }));
+    expect(
+      await screen.findByRole("link", { name: /Topic paper/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("names both databases the publication lists were built from", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    expect(await screen.findByText(/PubMed · Europe PMC/)).toBeInTheDocument();
   });
 });

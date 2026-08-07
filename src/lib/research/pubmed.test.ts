@@ -133,3 +133,30 @@ describe("PubMed payload parsing", () => {
     expect(publications[0].doi).toBeNull();
   });
 });
+
+describe("buildSearchTerm for discovered MeSH topics", () => {
+  it("scopes a MeSH descriptor to vascular surgery", () => {
+    const term = buildSearchTerm({ meshTerm: "Sarcopenia" });
+    expect(term).toContain('"Sarcopenia"[mh]');
+    expect(term).toContain("vascular");
+  });
+
+  it("accepts the punctuation real MeSH descriptors use", () => {
+    expect(buildSearchTerm({ meshTerm: "Aortic Aneurysm, Abdominal" })).toContain(
+      '"Aortic Aneurysm, Abdominal"[mh]',
+    );
+  });
+
+  it("refuses anything that isn't descriptor-shaped, so no raw query reaches PubMed", () => {
+    expect(buildSearchTerm({ meshTerm: 'x"[mh] OR 1=1 OR "' })).toBeNull();
+    expect(buildSearchTerm({ meshTerm: "" })).toBeNull();
+  });
+
+  it("still ANDs demographic facets onto a discovered topic", () => {
+    const term = buildSearchTerm({
+      meshTerm: "Sarcopenia",
+      demoIds: [DEMOGRAPHICS[0].id],
+    });
+    expect(term).toContain(DEMOGRAPHICS[0].clause);
+  });
+});

@@ -5,6 +5,7 @@ import {
   deriveTopics,
   mergePublications,
   GENERIC_MESH,
+  toEuropePmcQuery,
 } from "./europepmc";
 import type { Publication } from "./pubmed";
 
@@ -185,5 +186,29 @@ describe("topic discovery from MeSH headings", () => {
   it("skips headings a curated topic already covers", () => {
     const counts = new Map([["Frailty", 5]]);
     expect(deriveTopics(counts, { minCount: 1 })).toEqual([]);
+  });
+});
+
+describe("toEuropePmcQuery", () => {
+  it("strips PubMed field tags Europe PMC does not understand", () => {
+    expect(toEuropePmcQuery('("frailty"[mh] OR frail[tiab])')).toBe(
+      '("frailty" OR frail)',
+    );
+  });
+
+  it("translates a journal tag into a Europe PMC journal clause", () => {
+    expect(toEuropePmcQuery('("J Vasc Surg"[ta])')).toBe(
+      '(JOURNAL:"J Vasc Surg")',
+    );
+  });
+
+  it("leaves a date clause out rather than sending PubMed syntax", () => {
+    expect(toEuropePmcQuery("(aaa) AND 2021:3000[dp]")).toBe("(aaa)");
+  });
+
+  it("keeps a compound topic-plus-demographic query intact", () => {
+    expect(
+      toEuropePmcQuery('("aortic aneurysm"[mh]) AND ("female"[mh])'),
+    ).toBe('("aortic aneurysm") AND ("female")');
   });
 });
