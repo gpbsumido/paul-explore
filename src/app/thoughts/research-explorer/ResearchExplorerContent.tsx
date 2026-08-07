@@ -81,6 +81,17 @@ export default function ResearchExplorerContent() {
         <ol className="mt-3 space-y-2 text-sm">
           <li className="flex items-baseline gap-3">
             <span className="w-24 shrink-0 text-xs tabular-nums text-muted">
+              Aug 8, 2026
+            </span>
+            <a
+              href="#update-2026-08-08-journal-club"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              Journal club: turning a citation into something to prepare
+            </a>
+          </li>
+          <li className="flex items-baseline gap-3">
+            <span className="w-24 shrink-0 text-xs tabular-nums text-muted">
               Aug 7, 2026
             </span>
             <a
@@ -317,6 +328,68 @@ export default function ResearchExplorerContent() {
           discovering them after the fact.
         </p>
       </Section>
+
+      <section
+        id="update-2026-08-08-journal-club"
+        className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+          Update &mdash; August 8, 2026
+        </p>
+        <h2 className="mt-1 mb-3 text-lg font-bold">
+          Journal club: turning a citation into something to prepare
+        </h2>
+        <p className="text-muted">
+          Finding a paper and being ready to discuss it are different problems.
+          A citation on its own gives a trainee nothing to prepare with, and the
+          hour before a journal club is spent working out what is actually
+          arguable about the study rather than arguing about it. So there is now
+          a Journal club tab: papers from the last two years on a chosen topic,
+          each arriving with at least three points to raise and three questions
+          to put to the room.
+        </p>
+        <p className="mt-3 text-muted">
+          <strong>The prompts had to be grounded or not exist.</strong> The easy
+          version writes three questions that fit any paper &mdash; what was the
+          design, what were the limitations, does it change practice &mdash; and
+          that is worse than no prompts at all, because it looks like
+          preparation and teaches nothing. There is no LLM in this app to do
+          better, so the substance comes from two things Europe PMC returns as
+          structured JSON: NLM publication types, which name the design
+          authoritatively rather than leaving it to be guessed from prose, and
+          abstracts marked up with{" "}
+          <span className={code}>&lt;h4&gt;Methods&lt;/h4&gt;</span> headings.
+        </p>
+        <p className="mt-3 text-muted">
+          That is enough to be specific. A retrospective cohort gets told that
+          confounding by indication is the standing threat; a meta-analysis gets
+          told it inherits every bias of the studies pooled into it; a case
+          report gets told it can prove something is possible and never how
+          often. The results sentence is quoted back with a nudge to check
+          whether the effect is absolute or relative, and the paper&apos;s own
+          conclusion is quoted into a question &mdash;{" "}
+          <em>
+            what would have to be true of these patients for that to hold for
+            yours?
+          </em>{" "}
+          Sample size is extracted when the methods state one, and deliberately
+          not guessed when they don&apos;t: a wrong number in a discussion
+          prompt is worse than no number, so anything shaped like a year is
+          rejected outright.
+        </p>
+        <p className="mt-3 text-muted">
+          <strong>Two things I chose to leave imperfect.</strong> Papers without
+          an abstract are dropped rather than given generic prompts &mdash; the
+          floor of three points exists to guarantee usefulness, not to be filled
+          with filler, and the fallbacks that do exist still name this
+          paper&apos;s journal, year or title. And the sample-size extractor
+          misses abstracts that spell numbers out (&quot;Two thousand
+          thirty-nine patients&quot;), which I found in live output and left
+          alone: catching it means parsing written numerals, and the failure
+          mode of missing a number is a quieter prompt, while the failure mode
+          of parsing it wrong is a false one.
+        </p>
+      </section>
 
       <section
         id="update-2026-08-07-counts"

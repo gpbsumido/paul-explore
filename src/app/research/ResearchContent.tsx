@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   TOPICS,
@@ -13,23 +14,36 @@ import {
 } from "@/lib/research/data";
 import { JOURNALS as JOURNAL_LIST } from "@/lib/research/data";
 import { SOURCES, type SourceId } from "@/lib/research/sources";
+import {
+  ASK_MODELS,
+  RECOMMENDED_MODEL,
+  type AskModelId,
+} from "@/lib/research/askModels";
 import { useSourcePrefs, customJournalId } from "./useSourcePrefs";
 import {
   topicsResponseSchema,
   publicationsResponseSchema,
   demographicsResponseSchema,
   discoverResponseSchema,
+  journalClubResponseSchema,
   SOURCE_LABELS,
   type EvidenceStatus,
   type TopicEvidence,
 } from "@/lib/research/pubmed";
 
 type Tab =
-  "topics" | "counts" | "discovered" | "journals" | "demographics" | "sources";
+  | "topics"
+  | "counts"
+  | "journal-club"
+  | "discovered"
+  | "journals"
+  | "demographics"
+  | "sources";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "topics", label: "Topics" },
   { id: "counts", label: "Counts" },
+  { id: "journal-club", label: "Journal club" },
   { id: "discovered", label: "Discovered" },
   { id: "journals", label: "Journals" },
   { id: "demographics", label: "Demographics" },
@@ -183,6 +197,8 @@ export default function ResearchContent() {
       )}
 
       {tab === "counts" && <CountsPanel />}
+
+      {tab === "journal-club" && <JournalClubPanel />}
 
       {tab === "discovered" && (
         <DiscoveredPanel
@@ -1314,6 +1330,359 @@ function TopicSplit({ topicId }: { topicId: string }) {
         })}
       </ul>
     </>
+  );
+}
+
+/**
+ * Recent papers packaged for teaching.
+ *
+ * A topic has to be chosen first rather than defaulting to everything: the
+ * value here is depth on a handful of papers, and an undirected list of the
+ * whole field's last two years is a reading pile, not a journal club.
+ */
+function JournalClubPanel() {
+  const [topicId, setTopicId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [innovativeOnly, setInnovativeOnly] = useState(false);
+
+  const query = useQuery({
+    queryKey: queryKeys.research.journalClub(topicId ?? "", innovativeOnly),
+    queryFn: () =>
+      getJson(
+        `/api/research/journal-club?topic=${topicId}${
+          innovativeOnly ? "&innovative=true" : ""
+        }`,
+      ),
+    select: (json) => journalClubResponseSchema.parse(json),
+    staleTime: 60 * 60 * 1000,
+    enabled: topicId !== null,
+  });
+
+  const window = query.data?.window ?? null;
+  const papers = query.data?.papers ?? [];
+
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted">
+        Papers from the last two years with enough substance to discuss, each
+        with points to raise and questions to put to the room. Prompts are built
+        from the paper&apos;s own abstract and its indexed study design, so they
+        argue with this paper rather than any paper.
+      </p>
+
+      <div role="group" aria-labelledby="jc-topic" className="mb-5">
+        <p
+          id="jc-topic"
+          className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted"
+        >
+          Pick a topic
+        </p>
+        <div className="flex min-w-0 flex-wrap gap-2">
+          {TOPICS.map((topic) => (
+            <button
+              key={topic.id}
+              type="button"
+              aria-pressed={topicId === topic.id}
+              onClick={() => {
+                setTopicId(topic.id === topicId ? null : topic.id);
+                setOpenId(null);
+              }}
+              className={`min-h-11 rounded-full border px-3 text-xs transition-colors sm:min-h-8 ${
+                topicId === topic.id
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-surface text-muted hover:text-foreground"
+              }`}
+            >
+              {topic.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <label className="mb-5 flex min-h-11 w-fit cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm text-muted transition-colors hover:text-foreground sm:min-h-9">
+        <input
+          type="checkbox"
+          checked={innovativeOnly}
+          onChange={() => setInnovativeOnly((v) => !v)}
+          className="h-4 w-4 accent-foreground"
+        />
+        Only papers doing something new
+      </label>
+
+      {topicId === null && (
+        <p className="text-sm text-muted">
+          Pick a topic above and I&apos;ll pull its recent papers with
+          discussion material attached.
+        </p>
+      )}
+
+      {topicId !== null && query.isError && (
+        <ErrorState
+          message="Couldn't load papers for this topic."
+          onRetry={() => query.refetch()}
+        />
+      )}
+
+      {topicId !== null && query.isLoading && (
+        <ScanningNote label="the last two years" />
+      )}
+
+      {topicId !== null && query.isSuccess && papers.length === 0 && (
+        <p className="text-sm text-muted">
+          Nothing with an abstract in the last two years for this topic. That is
+          itself worth knowing.
+        </p>
+      )}
+
+      {papers.length > 0 && (
+        <>
+          <p className="mb-3 text-xs text-muted">
+            {papers.length} papers ·{" "}
+            {window ? `${window.fromYear}–${window.toYear}` : "last two years"}{" "}
+            · Europe PMC
+          </p>
+          <ul className="space-y-3">
+            {papers.map((paper) => {
+              const isOpen = openId === paper.id;
+              const panelId = `jc-${paper.id}`;
+              return (
+                <li
+                  key={paper.id}
+                  className="overflow-hidden rounded-xl border border-border bg-surface/60"
+                >
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    onClick={() => setOpenId(isOpen ? null : paper.id)}
+                    className="flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-surface"
+                  >
+                    <span className="font-medium text-foreground">
+                      {paper.title}
+                    </span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-muted">
+                        {paper.design.label}
+                      </span>
+                      {paper.innovation.signals.map((signal) => (
+                        <span
+                          key={signal}
+                          className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-0.5 text-xs text-sky-600 dark:text-sky-300"
+                        >
+                          {signal}
+                        </span>
+                      ))}
+                      <span className="text-xs text-muted">
+                        {[paper.journal, paper.pubDate]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <div
+                      id={panelId}
+                      className="space-y-4 border-t border-border px-4 py-4"
+                    >
+                      <div>
+                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                          Points to raise
+                        </h3>
+                        <ul className="space-y-2">
+                          {paper.points.map((point) => (
+                            <li key={point} className="flex gap-2 text-sm">
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                              <span className="text-foreground">{point}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                          Questions to put to the room
+                        </h3>
+                        <ul className="space-y-2">
+                          {paper.questions.map((question) => (
+                            <li key={question} className="flex gap-2 text-sm">
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                              <span className="text-foreground">
+                                {question}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <AskBox paper={paper} />
+
+                      <a
+                        href={paper.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex min-h-11 items-center text-sm text-foreground underline-offset-2 hover:underline sm:min-h-0"
+                      >
+                        Read the paper ↗
+                      </a>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A question box for one paper.
+ *
+ * The model only ever sees this paper's title and abstract, and the route is
+ * told to say so when the abstract does not contain the answer rather than
+ * filling it in from general knowledge. That matters more here than usual: a
+ * confident invented number in a journal club is worse than no answer.
+ *
+ * The key lives on the server. If it is not configured the route says so in
+ * words and this shows that message, rather than looking broken.
+ */
+function AskBox({
+  paper,
+}: {
+  paper: { title: string; journal: string; pubDate: string };
+}) {
+  const [question, setQuestion] = useState("");
+  const [model, setModel] = useState<AskModelId>(RECOMMENDED_MODEL);
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+
+  const ask = async () => {
+    const asked = question.trim();
+    if (!asked || pending) return;
+    setPending(true);
+    setAnswer(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/research/ask", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ question: asked, paper, model }),
+      });
+      const json = (await res.json()) as { answer?: string; error?: string };
+      if (res.status === 401 || res.status === 403) {
+        // Not being allowed in is a different kind of failure from a request
+        // going wrong, and an inline line of grey text reads as the latter.
+        setBlocked(true);
+      } else if (!res.ok) {
+        setError(json.error ?? `Request failed (${res.status}).`);
+      } else {
+        setAnswer(json.answer ?? "");
+      }
+    } catch {
+      setError("Couldn't reach the server.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-surface p-3">
+      <label
+        htmlFor={`ask-${paper.title.slice(0, 20)}`}
+        className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted"
+      >
+        Ask about this paper
+      </label>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          id={`ask-${paper.title.slice(0, 20)}`}
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && ask()}
+          placeholder="What would change this conclusion?"
+          className="min-h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground sm:min-h-9"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          loading={pending}
+          onClick={ask}
+          disabled={question.trim().length === 0}
+        >
+          Ask
+        </Button>
+      </div>
+
+      {answer !== null && (
+        <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">
+          {answer}
+        </p>
+      )}
+      {error !== null && (
+        <p role="alert" className="mt-3 text-sm text-muted">
+          {error}
+        </p>
+      )}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <label
+          htmlFor={`model-${paper.title.slice(0, 12)}`}
+          className="sr-only"
+        >
+          Model
+        </label>
+        <select
+          id={`model-${paper.title.slice(0, 12)}`}
+          value={model}
+          onChange={(e) => setModel(e.target.value as AskModelId)}
+          className="min-h-11 rounded-lg border border-border bg-background px-2 text-xs text-foreground sm:min-h-8"
+        >
+          {ASK_MODELS.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+              {m.recommended ? " (recommended)" : ""}
+            </option>
+          ))}
+        </select>
+        <span className="text-xs text-muted">
+          {ASK_MODELS.find((m) => m.id === model)?.note}
+        </span>
+      </div>
+
+      <p className="mt-2 text-xs text-muted">
+        Answers come from the title and abstract only. Check anything that
+        matters against the full text.
+      </p>
+
+      <Modal
+        open={blocked}
+        onClose={() => setBlocked(false)}
+        aria-labelledby="ask-beta-title"
+      >
+        <div className="max-w-sm p-6">
+          <h2 id="ask-beta-title" className="text-lg font-bold text-foreground">
+            Beta users only
+          </h2>
+          <p className="mt-2 text-sm text-muted">
+            Asking about a paper is in beta and limited to a few accounts while
+            it is being tried out. Everything else on this page is open to
+            everyone — the topics, counts, publications and discussion points
+            all work without signing in.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() => setBlocked(false)}
+          >
+            Got it
+          </Button>
+        </div>
+      </Modal>
+    </div>
   );
 }
 
