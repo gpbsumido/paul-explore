@@ -186,8 +186,10 @@ export const queryKeys = {
     publications: (params: {
       topicId?: string;
       journalId?: string;
+      journalName?: string;
       meshTerm?: string;
       demoIds: string[];
+      sources: string[];
     }) => ["research", "publications", params] as const,
 
     /** Topics derived from the MeSH headings of recent vascular literature. */

@@ -7,10 +7,13 @@ import { queryKeys } from "@/lib/queryKeys";
 import {
   TOPICS,
   TOPIC_CATEGORIES,
-  JOURNALS,
   DEMOGRAPHICS,
+  type Journal,
   type ResearchTopic,
 } from "@/lib/research/data";
+import { JOURNALS as JOURNAL_LIST } from "@/lib/research/data";
+import { SOURCES, type SourceId } from "@/lib/research/sources";
+import { useSourcePrefs, customJournalId } from "./useSourcePrefs";
 import {
   topicsResponseSchema,
   publicationsResponseSchema,
@@ -21,13 +24,14 @@ import {
   type TopicEvidence,
 } from "@/lib/research/pubmed";
 
-type Tab = "topics" | "discovered" | "journals" | "demographics";
+type Tab = "topics" | "discovered" | "journals" | "demographics" | "sources";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "topics", label: "Topics" },
   { id: "discovered", label: "Discovered" },
   { id: "journals", label: "Journals" },
   { id: "demographics", label: "Demographics" },
+  { id: "sources", label: "Sources" },
 ];
 
 const STATUS_LABEL: Record<EvidenceStatus, string> = {
@@ -62,6 +66,8 @@ export default function ResearchContent() {
   const [journalId, setJournalId] = useState<string | null>(null);
   const [demoIds, setDemoIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
+  const sourcePrefs = useSourcePrefs();
+  const { activeSources, visibleJournals } = sourcePrefs;
 
   const topicsQuery = useQuery({
     queryKey: queryKeys.research.topics(),
@@ -161,15 +167,22 @@ export default function ResearchContent() {
           onOpenTopic={openTopic}
           demoIds={demoIds}
           onToggleDemo={toggleDemo}
+          sources={activeSources}
         />
       )}
 
       {tab === "discovered" && (
-        <DiscoveredPanel demoIds={demoIds} onToggleDemo={toggleDemo} />
+        <DiscoveredPanel
+          demoIds={demoIds}
+          onToggleDemo={toggleDemo}
+          sources={activeSources}
+        />
       )}
 
       {tab === "journals" && (
         <JournalsPanel
+          journals={visibleJournals}
+          sources={activeSources}
           openJournalId={journalId}
           onOpenJournal={(id) => {
             setJournalId((current) => (current === id ? null : id));
@@ -179,6 +192,8 @@ export default function ResearchContent() {
       )}
 
       {tab === "demographics" && <DemographicsPanel topicId={topicId} />}
+
+      {tab === "sources" && <SourcesPanel prefs={sourcePrefs} />}
     </div>
   );
 }
@@ -202,6 +217,7 @@ function TopicsPanel({
   onOpenTopic,
   demoIds,
   onToggleDemo,
+  sources,
 }: {
   evidenceById: Map<string, TopicEvidence>;
   isLoading: boolean;
@@ -211,6 +227,7 @@ function TopicsPanel({
   onOpenTopic: (id: string) => void;
   demoIds: string[];
   onToggleDemo: (id: string) => void;
+  sources: SourceId[];
 }) {
   if (isError) {
     return (
@@ -242,6 +259,7 @@ function TopicsPanel({
                   onOpen={() => onOpenTopic(topic.id)}
                   demoIds={demoIds}
                   onToggleDemo={onToggleDemo}
+                  sources={sources}
                 />
               ))}
             </ul>
@@ -260,6 +278,7 @@ function TopicCard({
   onOpen,
   demoIds,
   onToggleDemo,
+  sources,
 }: {
   topic: ResearchTopic;
   evidence: TopicEvidence | undefined;
@@ -268,6 +287,7 @@ function TopicCard({
   onOpen: () => void;
   demoIds: string[];
   onToggleDemo: (id: string) => void;
+  sources: SourceId[];
 }) {
   const panelId = `topic-panel-${topic.id}`;
 
@@ -307,7 +327,11 @@ function TopicCard({
       {isOpen && (
         <div id={panelId} className="border-t border-border px-4 py-4">
           <DemographicFilters selected={demoIds} onToggle={onToggleDemo} />
-          <PublicationList topicId={topic.id} demoIds={demoIds} />
+          <PublicationList
+            topicId={topic.id}
+            demoIds={demoIds}
+            sources={sources}
+          />
         </div>
       )}
     </li>
@@ -356,26 +380,34 @@ function DemographicFilters({
 function PublicationList({
   topicId,
   journalId,
+  journalName,
   meshTerm,
   demoIds = [],
+  sources,
 }: {
   topicId?: string;
   journalId?: string;
+  journalName?: string;
   meshTerm?: string;
   demoIds?: string[];
+  sources: SourceId[];
 }) {
   const params = new URLSearchParams();
   if (topicId) params.set("topic", topicId);
   if (journalId) params.set("journal", journalId);
+  if (journalName) params.set("journalName", journalName);
   if (meshTerm) params.set("mesh", meshTerm);
   if (demoIds.length > 0) params.set("demo", demoIds.join(","));
+  params.set("sources", sources.join(","));
 
   const query = useQuery({
     queryKey: queryKeys.research.publications({
       topicId,
       journalId,
+      journalName,
       meshTerm,
       demoIds,
+      sources,
     }),
     queryFn: () => getJson(`/api/research/publications?${params.toString()}`),
     select: (json) => publicationsResponseSchema.parse(json),
@@ -449,9 +481,11 @@ function PublicationList({
 function DiscoveredPanel({
   demoIds,
   onToggleDemo,
+  sources,
 }: {
   demoIds: string[];
   onToggleDemo: (id: string) => void;
+  sources: SourceId[];
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -529,7 +563,11 @@ function DiscoveredPanel({
                     selected={demoIds}
                     onToggle={onToggleDemo}
                   />
-                  <PublicationList meshTerm={topic.name} demoIds={demoIds} />
+                  <PublicationList
+                    meshTerm={topic.name}
+                    demoIds={demoIds}
+                    sources={sources}
+                  />
                 </div>
               )}
             </li>
@@ -541,15 +579,28 @@ function DiscoveredPanel({
 }
 
 function JournalsPanel({
+  journals,
+  sources,
   openJournalId,
   onOpenJournal,
 }: {
+  journals: Journal[];
+  sources: SourceId[];
   openJournalId: string | null;
   onOpenJournal: (id: string) => void;
 }) {
+  if (journals.length === 0) {
+    return (
+      <p className="text-sm text-muted">
+        Every journal is switched off. Turn one back on under Sources.
+      </p>
+    );
+  }
+
   return (
     <ul className="space-y-3">
-      {JOURNALS.map((journal) => {
+      {journals.map((journal) => {
+        const isCustom = journal.id.startsWith("custom-");
         const isOpen = openJournalId === journal.id;
         const panelId = `journal-panel-${journal.id}`;
         return (
@@ -571,7 +622,11 @@ function JournalsPanel({
             </button>
             {isOpen && (
               <div id={panelId} className="border-t border-border px-4 py-4">
-                <PublicationList journalId={journal.id} />
+                <PublicationList
+                  journalId={isCustom ? undefined : journal.id}
+                  journalName={isCustom ? journal.pubmedName : undefined}
+                  sources={sources}
+                />
               </div>
             )}
           </li>
@@ -649,6 +704,164 @@ function DemographicsPanel({ topicId }: { topicId: string | null }) {
           </ul>
         </section>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Which databases and journals the explorer searches.
+ *
+ * Deliberately the last tab: knowing where the evidence comes from matters,
+ * configuring it matters less than finding the research, and nothing here is
+ * needed to get a useful answer out of the other four.
+ */
+function SourcesPanel({ prefs }: { prefs: ReturnType<typeof useSourcePrefs> }) {
+  const [name, setName] = useState("");
+  const [abbrev, setAbbrev] = useState("");
+
+  const addCustomJournal = () => {
+    const trimmedName = name.trim();
+    const trimmedAbbrev = abbrev.trim();
+    if (!trimmedName || !trimmedAbbrev) return;
+    prefs.addJournal({
+      id: customJournalId(trimmedName),
+      name: trimmedName,
+      pubmedName: trimmedAbbrev,
+    });
+    setName("");
+    setAbbrev("");
+  };
+
+  return (
+    <div className="space-y-8">
+      <section>
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">
+          Databases
+        </h2>
+        <p className="mb-3 text-sm text-muted">
+          Evidence levels are always counted from PubMed alone, so the
+          none/sparse/active numbers mean the same thing whichever of these are
+          on.
+        </p>
+        <ul className="space-y-3">
+          {SOURCES.map((source) => {
+            const on = !prefs.prefs.ignoredSources.includes(source.id);
+            return (
+              <li
+                key={source.id}
+                className="rounded-xl border border-border bg-surface/60 p-4"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <a
+                      href={source.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-foreground underline-offset-2 hover:underline"
+                    >
+                      {source.name}
+                    </a>
+                    <p className="mt-1 text-sm text-muted">
+                      {source.description}
+                    </p>
+                  </div>
+                  <label className="flex shrink-0 items-center gap-2 text-sm text-muted">
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      disabled={source.scoresEvidence}
+                      onChange={() => prefs.toggleSource(source.id)}
+                      aria-label={`Use ${source.name}`}
+                      className="h-4 w-4 accent-foreground"
+                    />
+                    {source.scoresEvidence ? "Always on" : "Search this"}
+                  </label>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section>
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted">
+          Journals
+        </h2>
+        <p className="mb-3 text-sm text-muted">
+          Which journals appear on the Journals tab. Add any journal by its
+          PubMed title abbreviation.
+        </p>
+        <ul className="mb-4 space-y-2">
+          {[...JOURNAL_LIST, ...prefs.prefs.customJournals].map((journal) => {
+            const on = !prefs.prefs.ignoredJournals.includes(journal.id);
+            const isCustom = journal.id.startsWith("custom-");
+            return (
+              <li
+                key={journal.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 py-2"
+              >
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={on}
+                    onChange={() => prefs.toggleJournal(journal.id)}
+                    aria-label={`Use ${journal.name}`}
+                    className="h-4 w-4 accent-foreground"
+                  />
+                  <span className="text-foreground">{journal.name}</span>
+                  <span className="text-xs text-muted">
+                    {journal.pubmedName}
+                  </span>
+                </label>
+                {isCustom && (
+                  <button
+                    type="button"
+                    onClick={() => prefs.removeJournal(journal.id)}
+                    className="text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
+                  >
+                    Remove
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface/60 p-4">
+          <div>
+            <label
+              htmlFor="journal-name"
+              className="mb-1 block text-xs text-muted"
+            >
+              Journal name
+            </label>
+            <input
+              id="journal-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="journal-abbrev"
+              className="mb-1 block text-xs text-muted"
+            >
+              PubMed abbreviation
+            </label>
+            <input
+              id="journal-abbrev"
+              value={abbrev}
+              onChange={(e) => setAbbrev(e.target.value)}
+              placeholder="J Vasc Surg"
+              className="h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            />
+          </div>
+          <Button variant="outline" size="sm" onClick={addCustomJournal}>
+            Add journal
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }

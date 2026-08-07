@@ -93,7 +93,12 @@ describe("mergePublications", () => {
       parseEuropePmcSearch({
         hitCount: 1,
         resultList: {
-          result: [record({ doi: undefined, title: "  ENDOVASCULAR repair in dialysis patients.  " })],
+          result: [
+            record({
+              doi: undefined,
+              title: "  ENDOVASCULAR repair in dialysis patients.  ",
+            }),
+          ],
         },
       }),
     );
@@ -207,16 +212,14 @@ describe("toEuropePmcQuery", () => {
   });
 
   it("keeps a compound topic-plus-demographic query intact", () => {
-    expect(
-      toEuropePmcQuery('("aortic aneurysm"[mh]) AND ("female"[mh])'),
-    ).toBe('("aortic aneurysm") AND ("female")');
+    expect(toEuropePmcQuery('("aortic aneurysm"[mh]) AND ("female"[mh])')).toBe(
+      '("aortic aneurysm") AND ("female")',
+    );
   });
 });
 
 describe("discovery quality", () => {
-  const mesh = (
-    entries: { name: string; major?: boolean }[],
-  ) => ({
+  const mesh = (entries: { name: string; major?: boolean }[]) => ({
     meshHeadingList: {
       meshHeading: entries.map((e) => ({
         descriptorName: e.name,
@@ -255,10 +258,7 @@ describe("discovery quality", () => {
             id: "a",
             source: "MED",
             title: "Mouse model.",
-            ...mesh([
-              { name: "Animals" },
-              { name: "Neointima" },
-            ]),
+            ...mesh([{ name: "Animals" }, { name: "Neointima" }]),
           },
           {
             id: "b",
@@ -281,8 +281,6 @@ describe("discovery quality", () => {
       "Rats",
       "Animals",
       "Randomized Controlled Trials as Topic",
-    ].forEach((t) =>
-      expect(GENERIC_MESH.has(t)).toBe(true),
-    );
+    ].forEach((t) => expect(GENERIC_MESH.has(t)).toBe(true));
   });
 });

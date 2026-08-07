@@ -27,7 +27,9 @@ describe("curated data", () => {
 
   it("names real journals with their PubMed title abbreviations", () => {
     expect(JOURNALS.length).toBeGreaterThanOrEqual(6);
-    JOURNALS.forEach((j) => expect(j.pubmedName.trim().length).toBeGreaterThan(0));
+    JOURNALS.forEach((j) =>
+      expect(j.pubmedName.trim().length).toBeGreaterThan(0),
+    );
   });
 });
 
@@ -57,9 +59,9 @@ describe("buildSearchTerm", () => {
   });
 
   it("ANDs demographic clauses onto the topic", () => {
-    expect(
-      buildSearchTerm({ topicId: topic.id, demoIds: [facet.id] }),
-    ).toBe(`(${topic.query}) AND (${facet.clause})`);
+    expect(buildSearchTerm({ topicId: topic.id, demoIds: [facet.id] })).toBe(
+      `(${topic.query}) AND (${facet.clause})`,
+    );
   });
 
   it("scopes to a curated journal by its PubMed title abbreviation", () => {
@@ -149,9 +151,9 @@ describe("buildSearchTerm for discovered MeSH topics", () => {
   });
 
   it("accepts the punctuation real MeSH descriptors use", () => {
-    expect(buildSearchTerm({ meshTerm: "Aortic Aneurysm, Abdominal" })).toContain(
-      '"Aortic Aneurysm, Abdominal"[mh]',
-    );
+    expect(
+      buildSearchTerm({ meshTerm: "Aortic Aneurysm, Abdominal" }),
+    ).toContain('"Aortic Aneurysm, Abdominal"[mh]');
   });
 
   it("refuses anything that isn't descriptor-shaped, so no raw query reaches PubMed", () => {

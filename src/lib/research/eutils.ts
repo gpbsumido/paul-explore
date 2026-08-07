@@ -116,7 +116,10 @@ export async function searchPublications(
   if (isFailure(summaryJson)) return summaryJson;
 
   try {
-    return { total: search.count, publications: parsePublications(summaryJson) };
+    return {
+      total: search.count,
+      publications: parsePublications(summaryJson),
+    };
   } catch {
     return {
       error: NextResponse.json(
@@ -151,9 +154,7 @@ export async function countAll<T>(
   if (failed) return failed;
 
   let cursor = 0;
-  return shape.map((group) =>
-    group.map(() => counted[cursor++] as number),
-  );
+  return shape.map((group) => group.map(() => counted[cursor++] as number));
 }
 
 /**

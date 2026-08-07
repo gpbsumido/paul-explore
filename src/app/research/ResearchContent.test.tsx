@@ -97,7 +97,9 @@ describe("ResearchContent", () => {
       await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
     );
     await screen.findByRole("link", { name: /Topic paper/ });
-    await user.click(screen.getByRole("checkbox", { name: DEMOGRAPHICS[0].label }));
+    await user.click(
+      screen.getByRole("checkbox", { name: DEMOGRAPHICS[0].label }),
+    );
     await screen.findByRole("link", { name: /Filtered paper/ });
     const last = seen.publicationUrls.at(-1) ?? "";
     expect(new URL(last).searchParams.get("demo")).toBe(DEMOGRAPHICS[0].id);
@@ -135,9 +137,10 @@ describe("ResearchContent", () => {
 
   it("names both databases it draws on, and links them", async () => {
     renderPage();
-    expect(
-      await screen.findByRole("link", { name: "PubMed" }),
-    ).toHaveAttribute("href", "https://pubmed.ncbi.nlm.nih.gov/");
+    expect(await screen.findByRole("link", { name: "PubMed" })).toHaveAttribute(
+      "href",
+      "https://pubmed.ncbi.nlm.nih.gov/",
+    );
     expect(screen.getByRole("link", { name: "Europe PMC" })).toHaveAttribute(
       "href",
       "https://europepmc.org/",
@@ -190,5 +193,71 @@ describe("ResearchContent discovered topics", () => {
       await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
     );
     expect(await screen.findByText(/PubMed · Europe PMC/)).toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent sources panel", () => {
+  it("names the databases it draws on and what each one is for", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Sources" }));
+    expect(
+      await screen.findByRole("checkbox", { name: "Use PubMed" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", { name: "Use Europe PMC" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/carries preprints/)).toBeInTheDocument();
+  });
+
+  it("will not let PubMed be switched off, since it carries the counts", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Sources" }));
+    expect(
+      await screen.findByRole("checkbox", { name: "Use PubMed" }),
+    ).toBeDisabled();
+  });
+
+  it("lets a source be ignored, and drops it from the publication queries", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Sources" }));
+    await user.click(screen.getByRole("checkbox", { name: /Use Europe PMC/ }));
+    await user.click(screen.getByRole("tab", { name: "Topics" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: /Topic paper/ });
+    const last = seen.publicationUrls.at(-1) ?? "";
+    expect(new URL(last).searchParams.get("sources")).toBe("pubmed");
+  });
+
+  it("keeps a custom journal so it can be browsed like the curated ones", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Sources" }));
+    await user.type(screen.getByLabelText("Journal name"), "Vascular Medicine");
+    await user.type(screen.getByLabelText("PubMed abbreviation"), "Vasc Med");
+    await user.click(screen.getByRole("button", { name: "Add journal" }));
+    await user.click(screen.getByRole("tab", { name: "Journals" }));
+    expect(
+      await screen.findByRole("button", { name: /Vascular Medicine/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides an ignored journal from the Journals tab", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Sources" }));
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: new RegExp(`Use ${JOURNALS[0].name}`),
+      }),
+    );
+    await user.click(screen.getByRole("tab", { name: "Journals" }));
+    expect(
+      screen.queryByRole("button", { name: new RegExp(JOURNALS[0].name) }),
+    ).not.toBeInTheDocument();
   });
 });

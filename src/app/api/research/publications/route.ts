@@ -10,6 +10,7 @@ import {
   europePmcSearch,
   isFailure,
 } from "@/lib/research/eutils";
+import { parseSources } from "@/lib/research/sources";
 
 const CACHE_CONTROL = "public, s-maxage=21600, stale-while-revalidate=86400";
 const PAGE_SIZE = 20;
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const term = buildSearchTerm({
     topicId: params.get("topic") ?? undefined,
     journalId: params.get("journal") ?? undefined,
+    journalName: params.get("journalName") ?? undefined,
     meshTerm: params.get("mesh") ?? undefined,
     demoIds,
   });
@@ -46,9 +48,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  const wanted = parseSources(params.get("sources"));
+
   const [pubmed, europe] = await Promise.all([
     searchPublications(term, { limit: PAGE_SIZE }),
-    europePmcSearch(toEuropePmcQuery(term), { pageSize: PAGE_SIZE }),
+    wanted.includes("europepmc")
+      ? europePmcSearch(toEuropePmcQuery(term), { pageSize: PAGE_SIZE })
+      : null,
   ]);
 
   if (isFailure(pubmed)) return pubmed.error;
@@ -56,7 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   let extra: Publication[] = [];
   let sources: Publication["source"][] = ["pubmed"];
 
-  if (!isFailure(europe)) {
+  if (europe !== null && !isFailure(europe)) {
     try {
       extra = parseEuropePmcSearch(europe);
       sources = ["pubmed", "europepmc"];

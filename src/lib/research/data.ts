@@ -57,7 +57,7 @@ export const TOPICS: ResearchTopic[] = [
     description:
       "Fenestrated and branched repairs reach sicker anatomy in sicker patients; frailty may matter more than anatomy.",
     query:
-      "(fenestrated[tiab] OR branched[tiab]) AND endovascular[tiab] AND aortic[tiab] AND (\"frailty\"[mh] OR frail[tiab])",
+      '(fenestrated[tiab] OR branched[tiab]) AND endovascular[tiab] AND aortic[tiab] AND ("frailty"[mh] OR frail[tiab])',
   },
   {
     id: "tevar-timing-dissection",
@@ -277,7 +277,11 @@ export const JOURNALS: Journal[] = [
     name: "European Journal of Vascular and Endovascular Surgery",
     pubmedName: "Eur J Vasc Endovasc Surg",
   },
-  { id: "avs", name: "Annals of Vascular Surgery", pubmedName: "Ann Vasc Surg" },
+  {
+    id: "avs",
+    name: "Annals of Vascular Surgery",
+    pubmedName: "Ann Vasc Surg",
+  },
   {
     id: "jvsvl",
     name: "JVS: Venous and Lymphatic Disorders",
@@ -298,10 +302,7 @@ export const JOURNALS: Journal[] = [
 ];
 
 export type DemographicGroup =
-  | "Sex"
-  | "Age"
-  | "Race & ethnicity"
-  | "Health populations";
+  "Sex" | "Age" | "Race & ethnicity" | "Health populations";
 
 export type DemographicFacet = {
   id: string;
@@ -314,7 +315,12 @@ export type DemographicFacet = {
 export const DEMOGRAPHICS: DemographicFacet[] = [
   { id: "female", label: "Women", group: "Sex", clause: '"female"[mh]' },
   { id: "male", label: "Men", group: "Sex", clause: '"male"[mh]' },
-  { id: "aged-65", label: "Older adults (65+)", group: "Age", clause: '"aged"[mh]' },
+  {
+    id: "aged-65",
+    label: "Older adults (65+)",
+    group: "Age",
+    clause: '"aged"[mh]',
+  },
   {
     id: "aged-80",
     label: "Very elderly (80+)",

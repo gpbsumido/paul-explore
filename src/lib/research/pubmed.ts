@@ -13,6 +13,13 @@ import { TOPICS, JOURNALS, DEMOGRAPHICS, ALL_VASCULAR_QUERY } from "./data";
 const MESH_DESCRIPTOR = /^[A-Za-z0-9][A-Za-z0-9 ,'()\-.]{1,80}$/;
 
 /**
+ * A PubMed journal title abbreviation ("J Vasc Surg"). Custom journals are
+ * typed in by hand, so they get the same treatment as a discovered MeSH term:
+ * validated into a known shape rather than escaped.
+ */
+const JOURNAL_ABBREV = /^[A-Za-z0-9][A-Za-z0-9 .\-()]{1,60}$/;
+
+/**
  * Pure PubMed logic: term building, payload parsing, and evidence
  * classification. No fetching here, so both the BFF routes and the client
  * (for response schemas) can import it safely.
@@ -48,11 +55,13 @@ export function classifyEvidence({
 export function buildSearchTerm({
   topicId,
   journalId,
+  journalName,
   meshTerm,
   demoIds,
 }: {
   topicId?: string;
   journalId?: string;
+  journalName?: string;
   meshTerm?: string;
   demoIds?: string[];
 }): string | null {
@@ -73,6 +82,11 @@ export function buildSearchTerm({
     const journal = JOURNALS.find((j) => j.id === journalId);
     if (!journal) return null;
     parts.push(`("${journal.pubmedName}"[ta])`);
+  }
+
+  if (journalName !== undefined) {
+    if (!JOURNAL_ABBREV.test(journalName)) return null;
+    parts.push(`("${journalName}"[ta])`);
   }
 
   for (const id of demoIds ?? []) {
@@ -101,7 +115,10 @@ const esearchSchema = z.object({
 /** Reads the total hit count and the returned PMIDs out of an esearch response. */
 export function parseEsearch(json: unknown): { count: number; ids: string[] } {
   const parsed = esearchSchema.parse(json);
-  return { count: parsed.esearchresult.count, ids: parsed.esearchresult.idlist };
+  return {
+    count: parsed.esearchresult.count,
+    ids: parsed.esearchresult.idlist,
+  };
 }
 
 const summaryItemSchema = z.object({
@@ -116,9 +133,7 @@ const summaryItemSchema = z.object({
 });
 
 const esummarySchema = z.object({
-  result: z
-    .object({ uids: z.array(z.string()) })
-    .catchall(z.unknown()),
+  result: z.object({ uids: z.array(z.string()) }).catchall(z.unknown()),
 });
 
 export const publicationSchema = z.object({
@@ -149,8 +164,7 @@ export function parsePublications(json: unknown): Publication[] {
   const { result } = esummarySchema.parse(json);
   return result.uids.map((uid) => {
     const item = summaryItemSchema.parse(result[uid]);
-    const doi =
-      item.articleids?.find((a) => a.idtype === "doi")?.value ?? null;
+    const doi = item.articleids?.find((a) => a.idtype === "doi")?.value ?? null;
     return {
       id: item.uid,
       title: item.title,

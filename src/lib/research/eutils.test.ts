@@ -47,7 +47,9 @@ describe("countAll", () => {
     server.use(
       http.get(ESEARCH, () => {
         calls += 1;
-        return calls > 2 ? HttpResponse.error() : HttpResponse.json({ esearchresult: { count: "1" } });
+        return calls > 2
+          ? HttpResponse.error()
+          : HttpResponse.json({ esearchresult: { count: "1" } });
       }),
     );
     const result = await countAll(items, (item) => [item], { waveMs: 0 });
