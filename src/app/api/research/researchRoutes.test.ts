@@ -151,10 +151,12 @@ describe("GET /api/research/publications", () => {
       ),
     );
     const body = await res.json();
-    expect(body.publications.map((p: { source: string }) => p.source)).toEqual([
-      "pubmed",
-      "europepmc",
-    ]);
+    // Ordering is by publication date across the union, not by source, so the
+    // Europe PMC preprint (2026-03-02) legitimately precedes the PubMed record
+    // (2026 Jan). Assert both are present rather than pinning the order here.
+    expect(
+      body.publications.map((p: { source: string }) => p.source).sort(),
+    ).toEqual(["europepmc", "pubmed"]);
     expect(body.sources).toEqual(["pubmed", "europepmc"]);
   });
 

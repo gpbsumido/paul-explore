@@ -562,3 +562,110 @@ describe("ResearchContent filters that lead nowhere", () => {
     boxes.forEach((b) => expect(b).toBeEnabled());
   });
 });
+
+describe("ResearchContent publication paging", () => {
+  const manyPapers = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: String(100 + i),
+      title: `Paper number ${i + 1}`,
+      journal: "Journal of Vascular Surgery",
+      pubDate: "2026 Feb",
+      authors: ["Smith J"],
+      doi: null,
+      url: `https://pubmed.ncbi.nlm.nih.gov/${100 + i}/`,
+      source: "pubmed",
+    }));
+
+  beforeEach(() => {
+    server.use(
+      http.get("/api/research/publications", () =>
+        HttpResponse.json({
+          total: 20,
+          publications: manyPapers(20),
+          sources: ["pubmed"],
+        }),
+      ),
+    );
+  });
+
+  it("shows five papers under a population before asking for more", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+    const row = (await screen.findByText(DEMOGRAPHICS[0].label)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+
+    expect(
+      await within(row!).findByRole("link", { name: "Paper number 5" }),
+    ).toBeInTheDocument();
+    expect(
+      within(row!).queryByRole("link", { name: "Paper number 6" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("reveals the rest on request, and says how many are left", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+    const row = (await screen.findByText(DEMOGRAPHICS[0].label)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+    await within(row!).findByRole("link", { name: "Paper number 5" });
+
+    await user.click(within(row!).getByRole("button", { name: /Show 5 more/ }));
+    expect(
+      await within(row!).findByRole("link", { name: "Paper number 10" }),
+    ).toBeInTheDocument();
+    expect(
+      within(row!).queryByRole("link", { name: "Paper number 11" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("stops offering more once everything is shown", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: "Paper number 1" });
+
+    // A topic list opens at twenty, which is everything the route returns.
+    expect(
+      screen.queryByRole("button", { name: /Show \d+ more/ }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent counts what it is actually showing", () => {
+  it("never claims a total smaller than the list beneath it", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/publications", () =>
+        HttpResponse.json({
+          // PubMed matched 5; Europe PMC contributed 3 more it doesn't index.
+          total: 5,
+          publications: Array.from({ length: 8 }, (_, i) => ({
+            id: String(i),
+            title: `Paper ${i + 1}`,
+            journal: "J",
+            pubDate: "2026 Feb",
+            authors: [],
+            doi: null,
+            url: `https://pubmed.ncbi.nlm.nih.gov/${i}/`,
+            source: i < 5 ? "pubmed" : "europepmc",
+          })),
+          sources: ["pubmed", "europepmc"],
+        }),
+      ),
+    );
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: "Paper 1" });
+
+    // "5 matching papers" above eight rows was simply wrong: the total counted
+    // PubMed only while the list merged both sources.
+    expect(screen.getByText(/showing 8 of 8/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^5 matching/)).not.toBeInTheDocument();
+  });
+});

@@ -482,6 +482,7 @@ function PublicationList({
   meshTerm,
   demoIds = [],
   sources,
+  pageSize = 20,
 }: {
   topicId?: string;
   journalId?: string;
@@ -489,7 +490,10 @@ function PublicationList({
   meshTerm?: string;
   demoIds?: string[];
   sources: SourceId[];
+  /** How many to show before offering the rest. The route returns 20. */
+  pageSize?: number;
 }) {
+  const [shown, setShown] = useState(pageSize);
   const params = new URLSearchParams();
   if (topicId) params.set("topic", topicId);
   if (journalId) params.set("journal", journalId);
@@ -525,7 +529,9 @@ function PublicationList({
     );
   }
 
-  const publications = query.data?.publications ?? [];
+  const all = query.data?.publications ?? [];
+  const publications = all.slice(0, shown);
+  const remaining = all.length - publications.length;
 
   // The list is capped at 20 newest, so the oldest one here is the real floor
   // of what is on screen -- not the floor of what the search matched.
@@ -541,12 +547,18 @@ function PublicationList({
 
   return (
     <>
+      {/* Count what is on screen, not what one source matched. `total` is the
+          PubMed hit count, and the list merges Europe PMC on top of it, so
+          rendering `total` above the list read "5 matching papers" over eight
+          rows. The PubMed figure is still worth showing -- it is the size of
+          the searchable corpus -- but it has to be labelled as that. */}
       <p className="mb-3 text-xs text-muted">
-        {query.data?.total} matching papers across all years, newest first ·
-        searched{" "}
+        Showing {publications.length} of {all.length} retrieved, newest first ·{" "}
         {(query.data?.sources ?? ["pubmed"])
           .map((s) => SOURCE_LABELS[s])
           .join(" · ")}
+        {typeof query.data?.total === "number" &&
+          ` · PubMed matches ${query.data.total} across all years`}
         {oldest && ` · oldest shown: ${oldest}`}
       </p>
       <ul className="space-y-3">
@@ -572,6 +584,16 @@ function PublicationList({
           </li>
         ))}
       </ul>
+
+      {remaining > 0 && (
+        <button
+          type="button"
+          onClick={() => setShown((n) => n + pageSize)}
+          className="mt-3 min-h-11 w-full rounded-lg border border-border bg-surface px-4 text-sm text-muted transition-colors hover:text-foreground sm:min-h-9 sm:w-auto"
+        >
+          Show {Math.min(remaining, pageSize)} more
+        </button>
+      )}
     </>
   );
 }
@@ -850,6 +872,7 @@ function DemographicsPanel({
                           topicId={topicId ?? undefined}
                           demoIds={[facet.id]}
                           sources={sources}
+                          pageSize={5}
                         />
                       </div>
                     )}

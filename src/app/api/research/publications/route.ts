@@ -50,11 +50,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const wanted = parseSources(params.get("sources"));
 
+  const europeQuery = wanted.includes("europepmc")
+    ? toEuropePmcQuery(term)
+    : null;
+
   const [pubmed, europe] = await Promise.all([
     searchPublications(term, { limit: PAGE_SIZE }),
-    wanted.includes("europepmc")
-      ? europePmcSearch(toEuropePmcQuery(term), { pageSize: PAGE_SIZE })
-      : null,
+    europeQuery ? europePmcSearch(europeQuery, { pageSize: PAGE_SIZE }) : null,
   ]);
 
   if (isFailure(pubmed)) return pubmed.error;

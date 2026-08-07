@@ -174,7 +174,10 @@ export function parsePublications(json: unknown): Publication[] {
     const doi = item.articleids?.find((a) => a.idtype === "doi")?.value ?? null;
     return {
       id: item.uid,
-      title: item.title,
+      title: item.title
+        .replace(/<[^>]+>/g, "")
+        .replace(/\s+/g, " ")
+        .trim(),
       journal: item.fulljournalname ?? "",
       pubDate: item.pubdate ?? "",
       authors: (item.authors ?? []).map((a) => a.name),
