@@ -23,6 +23,11 @@ const FULL_PAGE = [
     note: "Hub — sticky header, feature card grid, dev-notes cards",
   },
   {
+    label: "ResearchLoading",
+    href: "/dev/skeletons/research",
+    note: "/research — sticky nav, title, tab row, topic cards in category groups",
+  },
+  {
     label: "SetsLoading",
     href: "/dev/skeletons/tcg-sets",
     note: "/tcg/pokemon/sets — sticky nav, title, 3 series sections with set cards",

@@ -104,14 +104,25 @@ export default function ResearchExplorerContent() {
             crowded field. It&apos;s a crowded field with a hole in it, and the
             hole is the project.
           </Step>
-          <Step n={4} title="Use the Demographics tab to find the hole first.">
+          <Step n={4} title="Check the Discovered tab for what I didn't think of.">
+            The curated topics are the ones I decided were worth asking about,
+            which is a real limitation — it can only surface gaps someone already
+            suspected. The Discovered tab asks the literature instead: it samples
+            the last hundred vascular papers, tallies their MeSH headings, throws
+            out the boilerplate and anything already on the Topics tab, and
+            scores what&apos;s left the same way. A heading that keeps recurring
+            in recent work but has almost no accumulated literature behind it is
+            a field turning its attention somewhere before the evidence has
+            caught up. That&apos;s a good place to be early.
+          </Step>
+          <Step n={5} title="Use the Demographics tab to find the hole first.">
             Same data, inverted. Instead of picking a topic and checking its
             coverage, it charts coverage across every population for a scope, so
             the underrepresented groups are visible before you&apos;ve committed
             to a question. Open a topic on the Topics tab and this rescopes to
             it; leave it closed and you get the whole field.
           </Step>
-          <Step n={5} title="Use the Journals tab to aim the finished paper.">
+          <Step n={6} title="Use the Journals tab to aim the finished paper.">
             Browsing recent output journal by journal answers a different
             question — not &quot;what&apos;s unstudied&quot; but &quot;where does
             work like mine get published, and what does that journal currently
@@ -127,14 +138,13 @@ export default function ResearchExplorerContent() {
 
       <Section title="Where the data comes from">
         <p className="mb-3 text-muted">
-          PubMed, through the NCBI E-utilities API. I looked at scraping journal
-          sites and it&apos;s the wrong trade: E-utilities is free, needs no key,
-          indexes essentially every medical journal, and returns structured
-          records with MeSH terms already applied. A scraper would be more code,
-          more fragile, legally murkier, and worse data. The one thing scraping
-          would buy is coverage of preprints and grey literature, and Europe PMC
-          exposes most of that through an API too, so that&apos;s the direction
-          if I extend it.
+          Two databases, both through public APIs. I looked at scraping journal
+          sites and it&apos;s the wrong trade: NCBI&apos;s E-utilities is free,
+          needs no key, indexes essentially every medical journal, and returns
+          structured records with MeSH terms already applied. A scraper would be
+          more code, more fragile, legally murkier, and worse data. Europe PMC
+          joins it as a second source for the coverage scraping would otherwise
+          have been for — preprints and records PubMed doesn&apos;t carry.
         </p>
         <ul className="space-y-2 text-sm text-muted">
           <Bullet>
@@ -145,14 +155,29 @@ export default function ResearchExplorerContent() {
           <Bullet>
             <span className={code}>esearch</span> then{" "}
             <span className={code}>esummary</span> for the paper lists, sorted by
-            date.
+            date, merged with Europe PMC results and deduped by DOI, then by
+            normalized title when a record has no DOI.
+          </Bullet>
+          <Bullet>
+            Europe PMC&apos;s <span className={code}>resultType=core</span>{" "}
+            returns MeSH headings as JSON. PubMed only offers them as XML, and
+            that difference is the entire reason auto-derived topics were cheap
+            enough to build.
           </Bullet>
           <Bullet>
             Nothing is stored. It&apos;s live through BFF routes with a day-long
-            CDN cache, so PubMed sees about one scan a day no matter how many
-            people browse.
+            CDN cache, so the upstreams see about one scan a day no matter how
+            many people browse.
           </Bullet>
         </ul>
+        <p className="mt-3 text-sm text-muted">
+          Every publication list names the databases it searched, and the two
+          sources are deliberately not equal partners: evidence levels are
+          computed from PubMed alone. Mixing indexes into one denominator would
+          make the none/sparse/active numbers mean something different depending
+          on which sources answered, which is worse than a slightly narrower
+          count that always means the same thing.
+        </p>
       </Section>
 
       <Section title="The curated layer is the actual product">
@@ -165,11 +190,26 @@ export default function ResearchExplorerContent() {
           paste into PubMed yourself and verify.
         </p>
         <p className="mb-3 text-muted">
-          I did consider deriving topics automatically from MeSH co-occurrence in
-          recent vascular literature. It would look more impressive and be much
-          less useful — the output is noisy term pairs, not research questions,
-          and a research question is the thing being asked for. Curated topics
-          are editable in one file, which is the right amount of machinery.
+          I originally planned to leave it there, on the grounds that
+          auto-derived topics would be noisy term soup rather than research
+          questions. Building both changed my mind about the framing rather than
+          the criticism: derived headings genuinely are worse as questions, but
+          they&apos;re better as <em>signal</em>. The curated list can only
+          contain gaps I already suspected, and a tool whose whole purpose is
+          finding what nobody has looked at shouldn&apos;t be bounded by what one
+          person thought of. So the two tabs do different jobs — curated topics
+          are questions you can act on today, discovered headings are where to
+          look next — and keeping them separate is what makes the noisier half
+          tolerable.
+        </p>
+        <p className="mb-3 text-muted">
+          The discovered path is also the one place a search fragment originates
+          upstream instead of from my file, so it gets validated as a MeSH
+          descriptor before it can become part of a query — words, digits, and
+          the comma-and-hyphen punctuation NLM actually uses. Anything else is
+          rejected rather than escaped, since a descriptor never needs quotes or
+          brackets and the only thing that would want them is an injected
+          clause.
         </p>
       </Section>
 
@@ -199,6 +239,19 @@ export default function ResearchExplorerContent() {
         </ul>
       </Section>
 
+      <Section title="Two decisions I reversed">
+        <p className="mb-3 text-muted">
+          I wrote the plan before the code and reviewed it before building, which
+          caught both of the things I&apos;d have otherwise shipped wrong.
+          Curated-only topics was one, covered above. The other was calling
+          PubMed sufficient on its own — true for counting, false for reading,
+          because preprints are exactly where an unclaimed topic shows early
+          activity and PubMed is the last place they appear. Both changes cost
+          more in the plan than they would have cost to skip, and far less than
+          discovering them after the fact.
+        </p>
+      </Section>
+
       <Section title="What's next">
         <ul className="space-y-2 text-sm text-muted">
           <Bullet>
@@ -207,12 +260,14 @@ export default function ResearchExplorerContent() {
             more than configuring where it comes from.
           </Bullet>
           <Bullet>
-            Europe PMC as a second source, deduped by DOI, for preprints.
-          </Bullet>
-          <Bullet>
             Saving a snapshot of a scan so the same topics can be compared over
             months. That needs somewhere to put it, which this app doesn&apos;t
             have yet.
+          </Bullet>
+          <Bullet>
+            Study-design tagging — RCT versus retrospective cohort versus case
+            series — so &quot;12 papers&quot; can distinguish a settled question
+            from twelve case reports.
           </Bullet>
         </ul>
       </Section>
