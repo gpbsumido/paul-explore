@@ -213,10 +213,6 @@ export const discoverResponseSchema = z.object({
   ),
 });
 
-export type DiscoveredTopic = z.infer<
-  typeof discoverResponseSchema
->["topics"][number];
-
 export const demographicsResponseSchema = z.object({
   facets: z.array(z.object({ id: z.string(), count: z.number() })),
 });
