@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-07 - version 3.13.14
+
+- **Refreshed the résumé and unified the landing header controls.** `/resume` now serves the 2026 résumé in all three formats — the PDF, the plain-text version, and the Word export all carry the current content: an Open Source section for the helika-web-sdk, commit-count metrics from the Helika work, the retitled Refmint and PeopleInsight roles, and the current project write-ups. Filenames are unchanged, so the page itself needed no edit. On the v4 landing and hub, the four header controls (search, Résumé, the theme menu, and the log-in call to action) previously mixed four different treatments and even sat at slightly different heights; they now share one pill spec — `h-9 rounded-full` on `border-border bg-surface/70` with a backdrop blur, the height pinned explicitly rather than left to derive from padding — with the Résumé pill keeping its orange accent as the single highlighted control. The menu trigger reaches the new look through an opt-in `triggerClassName` on `HeaderMenu`, so every other page keeps the standard trigger.
+
 ## 2026-08-05 - version 3.13.13
 
 - **Wrote up the angular-paul hybrid-rendering pass.** New Thoughts page on giving each Angular route the render mode it actually needs: the SEO-critical Thoughts routes prerender to static HTML at build time via per-route `RenderMode`, with `getPrerenderParams()` enumerating every slug so each thought gets its own static page, a `SeoService` writing the head and JSON-LD `BlogPosting` on the server, and the interactive desktop shell left client-rendered. Covers the hydration bugs that surfaced once the shell really server-rendered (the clock interval, the menu bar's `ngSkipHydration`) and the build-output proof that the essay body and head tags land before any JavaScript runs. Filed under Architecture & Backend.
