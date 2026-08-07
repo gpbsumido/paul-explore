@@ -133,9 +133,15 @@ describe("ResearchContent", () => {
     await expect.poll(() => seen.topics).toBe(2);
   });
 
-  it("names the data source the evidence comes from", async () => {
+  it("names both databases it draws on, and links them", async () => {
     renderPage();
-    expect(await screen.findByText(/PubMed/)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("link", { name: "PubMed" }),
+    ).toHaveAttribute("href", "https://pubmed.ncbi.nlm.nih.gov/");
+    expect(screen.getByRole("link", { name: "Europe PMC" })).toHaveAttribute(
+      "href",
+      "https://europepmc.org/",
+    );
   });
 });
 

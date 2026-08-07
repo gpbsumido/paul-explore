@@ -58,15 +58,15 @@ export default function ResearchExplorerContent() {
       title="Measuring the Literature to Find a Research Topic"
       intro={
         <>
-          A vascular surgery resident needs a research project, and the hard part
-          isn&apos;t generating ideas. It&apos;s knowing which idea is actually
-          unclaimed. &quot;Has anyone studied this?&quot; is a question you can
-          only answer by searching, and searching twenty candidate topics by hand
-          is an afternoon you spend before you&apos;ve learned anything. So I
-          built the afternoon into a page: every candidate topic gets scored
-          against how much literature already exists, the papers behind that
-          score are one click away, and the populations those papers enrolled are
-          charted so the gaps show themselves.
+          A vascular surgery resident needs a research project, and the hard
+          part isn&apos;t generating ideas. It&apos;s knowing which idea is
+          actually unclaimed. &quot;Has anyone studied this?&quot; is a question
+          you can only answer by searching, and searching twenty candidate
+          topics by hand is an afternoon you spend before you&apos;ve learned
+          anything. So I built the afternoon into a page: every candidate topic
+          gets scored against how much literature already exists, the papers
+          behind that score are one click away, and the populations those papers
+          enrolled are charted so the gaps show themselves.
         </>
       }
     >
@@ -95,25 +95,32 @@ export default function ResearchExplorerContent() {
             single-center retrospective cohorts, that&apos;s a signal about what
             is feasible at one hospital.
           </Step>
-          <Step n={3} title="Narrow to a population and watch the count collapse.">
+          <Step
+            n={3}
+            title="Narrow to a population and watch the count collapse."
+          >
             Inside an open topic there are filter chips for sex, age band, race
             and ethnicity, and health populations — diabetes, CKD and dialysis,
             smokers, obesity, rural, frail. Toggle one and the paper list
-            re-queries scoped to it. A topic with 300 papers that drops to 4 when
-            you add <em>Indigenous peoples</em> or <em>dialysis</em> is not a
-            crowded field. It&apos;s a crowded field with a hole in it, and the
-            hole is the project.
+            re-queries scoped to it. A topic with 300 papers that drops to 4
+            when you add <em>Indigenous peoples</em> or <em>dialysis</em> is not
+            a crowded field. It&apos;s a crowded field with a hole in it, and
+            the hole is the project.
           </Step>
-          <Step n={4} title="Check the Discovered tab for what I didn't think of.">
+          <Step
+            n={4}
+            title="Check the Discovered tab for what I didn't think of."
+          >
             The curated topics are the ones I decided were worth asking about,
-            which is a real limitation — it can only surface gaps someone already
-            suspected. The Discovered tab asks the literature instead: it samples
-            the last hundred vascular papers, tallies their MeSH headings, throws
-            out the boilerplate and anything already on the Topics tab, and
-            scores what&apos;s left the same way. A heading that keeps recurring
-            in recent work but has almost no accumulated literature behind it is
-            a field turning its attention somewhere before the evidence has
-            caught up. That&apos;s a good place to be early.
+            which is a real limitation — it can only surface gaps someone
+            already suspected. The Discovered tab asks the literature instead:
+            it samples the two hundred most recent vascular papers, tallies
+            their MeSH headings, throws out the boilerplate and anything already
+            on the Topics tab, and scores what&apos;s left the same way. A
+            heading that keeps recurring in recent work but has almost no
+            accumulated literature behind it is a field turning its attention
+            somewhere before the evidence has caught up. That&apos;s a good
+            place to be early.
           </Step>
           <Step n={5} title="Use the Demographics tab to find the hole first.">
             Same data, inverted. Instead of picking a topic and checking its
@@ -124,15 +131,15 @@ export default function ResearchExplorerContent() {
           </Step>
           <Step n={6} title="Use the Journals tab to aim the finished paper.">
             Browsing recent output journal by journal answers a different
-            question — not &quot;what&apos;s unstudied&quot; but &quot;where does
-            work like mine get published, and what does that journal currently
-            care about.&quot; Worth doing before writing, not after.
+            question — not &quot;what&apos;s unstudied&quot; but &quot;where
+            does work like mine get published, and what does that journal
+            currently care about.&quot; Worth doing before writing, not after.
           </Step>
         </ol>
         <p className="mt-4 text-sm text-muted">
           The shape of a good answer coming out of this: a specific question, in
-          a specific population, that the literature has left thin, with three or
-          four existing papers whose methods you can adapt.
+          a specific population, that the literature has left thin, with three
+          or four existing papers whose methods you can adapt.
         </p>
       </Section>
 
@@ -149,13 +156,13 @@ export default function ResearchExplorerContent() {
         <ul className="space-y-2 text-sm text-muted">
           <Bullet>
             <span className={code}>esearch</span> with{" "}
-            <span className={code}>rettype=count</span> for the evidence levels —
-            two calls per topic, all-time and last five years.
+            <span className={code}>rettype=count</span> for the evidence levels
+            — two calls per topic, all-time and last five years.
           </Bullet>
           <Bullet>
             <span className={code}>esearch</span> then{" "}
-            <span className={code}>esummary</span> for the paper lists, sorted by
-            date, merged with Europe PMC results and deduped by DOI, then by
+            <span className={code}>esummary</span> for the paper lists, sorted
+            by date, merged with Europe PMC results and deduped by DOI, then by
             normalized title when a record has no DOI.
           </Bullet>
           <Bullet>
@@ -185,9 +192,9 @@ export default function ResearchExplorerContent() {
           The API is the easy half. What makes the page useful is a hand-written
           data file: about two dozen candidate topics, each with its own PubMed
           query in PubMed&apos;s own syntax, plus the journals and the
-          demographic clauses. Keeping the queries as data rather than generating
-          them means every number on the page is traceable to a search you can
-          paste into PubMed yourself and verify.
+          demographic clauses. Keeping the queries as data rather than
+          generating them means every number on the page is traceable to a
+          search you can paste into PubMed yourself and verify.
         </p>
         <p className="mb-3 text-muted">
           I originally planned to leave it there, on the grounds that
@@ -196,11 +203,11 @@ export default function ResearchExplorerContent() {
           the criticism: derived headings genuinely are worse as questions, but
           they&apos;re better as <em>signal</em>. The curated list can only
           contain gaps I already suspected, and a tool whose whole purpose is
-          finding what nobody has looked at shouldn&apos;t be bounded by what one
-          person thought of. So the two tabs do different jobs — curated topics
-          are questions you can act on today, discovered headings are where to
-          look next — and keeping them separate is what makes the noisier half
-          tolerable.
+          finding what nobody has looked at shouldn&apos;t be bounded by what
+          one person thought of. So the two tabs do different jobs — curated
+          topics are questions you can act on today, discovered headings are
+          where to look next — and keeping them separate is what makes the
+          noisier half tolerable.
         </p>
         <p className="mb-3 text-muted">
           The discovered path is also the one place a search fragment originates
@@ -232,17 +239,17 @@ export default function ResearchExplorerContent() {
             </strong>{" "}
             The whole feature rests on believing a count of zero. If the API is
             unreachable and the page renders every topic as &quot;no research
-            yet,&quot; it isn&apos;t degraded — it&apos;s lying, and lying in the
-            most damaging direction. So a failed scan returns 502 and the page
-            says so.
+            yet,&quot; it isn&apos;t degraded — it&apos;s lying, and lying in
+            the most damaging direction. So a failed scan returns 502 and the
+            page says so.
           </Bullet>
         </ul>
       </Section>
 
       <Section title="Two decisions I reversed">
         <p className="mb-3 text-muted">
-          I wrote the plan before the code and reviewed it before building, which
-          caught both of the things I&apos;d have otherwise shipped wrong.
+          I wrote the plan before the code and reviewed it before building,
+          which caught both of the things I&apos;d have otherwise shipped wrong.
           Curated-only topics was one, covered above. The other was calling
           PubMed sufficient on its own — true for counting, false for reading,
           because preprints are exactly where an unclaimed topic shows early

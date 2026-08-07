@@ -40,7 +40,8 @@ const STATUS_LABEL: Record<EvidenceStatus, string> = {
 // for anyone who can't distinguish the hues.
 const STATUS_STYLE: Record<EvidenceStatus, string> = {
   none: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
-  sparse: "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  sparse:
+    "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
   active: "border-border bg-surface text-muted",
 };
 
@@ -75,9 +76,7 @@ export default function ResearchContent() {
 
   const toggleDemo = (id: string) =>
     setDemoIds((current) =>
-      current.includes(id)
-        ? current.filter((d) => d !== id)
-        : [...current, id],
+      current.includes(id) ? current.filter((d) => d !== id) : [...current, id],
     );
 
   const openTopic = (id: string) => {
@@ -94,7 +93,7 @@ export default function ResearchContent() {
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted">
             Candidate project topics scored against the literature that already
-            exists. Evidence levels and papers come live from{" "}
+            exists. Evidence levels come live from{" "}
             <a
               className="underline hover:text-foreground"
               href="https://pubmed.ncbi.nlm.nih.gov/"
@@ -103,7 +102,16 @@ export default function ResearchContent() {
             >
               PubMed
             </a>{" "}
-            via the NCBI E-utilities API.
+            via the NCBI E-utilities API; publication lists add{" "}
+            <a
+              className="underline hover:text-foreground"
+              href="https://europepmc.org/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Europe PMC
+            </a>{" "}
+            for preprints and records PubMed doesn&apos;t carry.
           </p>
         </div>
         <Button
@@ -120,7 +128,11 @@ export default function ResearchContent() {
         </Button>
       </header>
 
-      <div role="tablist" aria-label="Research views" className="mb-6 flex gap-2">
+      <div
+        role="tablist"
+        aria-label="Research views"
+        className="mb-6 flex gap-2"
+      >
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -269,7 +281,9 @@ function TopicCard({
         className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
       >
         <span className="min-w-0">
-          <span className="block font-medium text-foreground">{topic.name}</span>
+          <span className="block font-medium text-foreground">
+            {topic.name}
+          </span>
           <span className="mt-0.5 block text-sm text-muted">
             {topic.description}
           </span>
@@ -401,7 +415,10 @@ function PublicationList({
       </p>
       <ul className="space-y-3">
         {publications.map((pub) => (
-          <li key={pub.id} className="rounded-lg border border-border bg-surface p-3">
+          <li
+            key={pub.id}
+            className="rounded-lg border border-border bg-surface p-3"
+          >
             <a
               href={pub.url}
               target="_blank"
@@ -412,7 +429,8 @@ function PublicationList({
             </a>
             <p className="mt-1 text-xs text-muted">
               {[pub.journal, pub.pubDate].filter(Boolean).join(" · ")}
-              {pub.authors.length > 0 && ` · ${pub.authors.slice(0, 3).join(", ")}`}
+              {pub.authors.length > 0 &&
+                ` · ${pub.authors.slice(0, 3).join(", ")}`}
               {pub.authors.length > 3 && " et al."}
             </p>
           </li>
@@ -470,8 +488,9 @@ function DiscoveredPanel({
   return (
     <>
       <p className="mb-4 text-sm text-muted">
-        MeSH headings recurring across the last hundred vascular surgery papers,
-        with the boilerplate and anything already on the Topics tab removed.
+        MeSH headings recurring across the two hundred most recent vascular
+        surgery papers, with the boilerplate and anything already on the Topics
+        tab removed.
       </p>
       <ul className="space-y-3">
         {topics.map((topic) => {
@@ -545,7 +564,9 @@ function JournalsPanel({
               aria-controls={panelId}
               className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
             >
-              <span className="font-medium text-foreground">{journal.name}</span>
+              <span className="font-medium text-foreground">
+                {journal.name}
+              </span>
               <span className="text-xs text-muted">{journal.pubmedName}</span>
             </button>
             {isOpen && (
@@ -591,8 +612,9 @@ function DemographicsPanel({ topicId }: { topicId: string | null }) {
   return (
     <div className="space-y-8">
       <p className="text-sm text-muted">
-        How many papers on <strong className="text-foreground">{scopeName}</strong>{" "}
-        include each population. Open a topic on the Topics tab to rescope this.
+        How many papers on{" "}
+        <strong className="text-foreground">{scopeName}</strong> include each
+        population. Open a topic on the Topics tab to rescope this.
       </p>
 
       {groups.map((group) => (
@@ -612,7 +634,9 @@ function DemographicsPanel({ topicId }: { topicId: string | null }) {
                     <span
                       className="block h-full rounded-full bg-foreground/40"
                       style={{
-                        width: count ? `${Math.round((count / max) * 100)}%` : "0%",
+                        width: count
+                          ? `${Math.round((count / max) * 100)}%`
+                          : "0%",
                       }}
                     />
                   </span>
