@@ -39,6 +39,15 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/design-system-showcase",
   },
   {
+    id: "research",
+    title: "Research Explorer",
+    description:
+      "A tool for picking a vascular surgery research project: curated topics scored live against PubMed, recent papers with links, journal browsing, and the demographic gaps in who the existing studies actually enrolled.",
+    href: "/research",
+    color: "#14b8a6",
+    thoughtsHref: "/thoughts/research-explorer",
+  },
+  {
     id: "flags",
     title: "Feature Flags",
     description:
@@ -139,6 +148,13 @@ export const FEATURES: FeatureItem[] = [
 
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "Research Explorer",
+    href: "/thoughts/research-explorer",
+    preview:
+      "Finding a research topic by measuring the literature: PubMed counts as evidence levels, a curated query layer, and demographic coverage as the gap finder",
+    color: "#14b8a6",
+  },
   {
     title: "TypeScript 7",
     href: "/thoughts/typescript-7",
@@ -364,6 +380,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Turning a desktop clone's dead top-bar labels into a signal-driven macOS menu system — menus derived from window and dock state, real actions, and full keyboard a11y",
     color: "#0a84ff",
+  },
+  {
+    title: "Hybrid Rendering",
+    href: "/thoughts/hybrid-rendering",
+    preview:
+      "Giving each Angular route the render mode it needs — the Thoughts pages prerender to static HTML at build time via per-route RenderMode, a SeoService writes the head and JSON-LD on the server, and the interactive shell stays client-rendered",
+    color: "#dd0031",
   },
   {
     title: "Shared Design System",

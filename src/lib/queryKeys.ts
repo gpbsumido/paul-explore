@@ -171,6 +171,61 @@ export const queryKeys = {
       ["operator", "sales-analytics", granularity, timeZone] as const,
   },
 
+  research: {
+    /**
+     * Evidence scan across every curated vascular topic. One key, because the
+     * scan is all-or-nothing and Refresh invalidates exactly this.
+     */
+    topics: () => ["research", "topics"] as const,
+
+    /**
+     * Recent publications for a topic or journal, narrowed by demographic
+     * facets. Every filter combination is its own cache entry, so toggling a
+     * facet off returns to an already-fetched list instantly.
+     */
+    publications: (params: {
+      topicId?: string;
+      journalId?: string;
+      journalName?: string;
+      meshTerm?: string;
+      demoIds: string[];
+      sources: string[];
+    }) => ["research", "publications", params] as const,
+
+    /**
+     * The same evidence scan scoped to one population. Its own key so the
+     * unscoped scan stays cached alongside it -- the Counts tab reads both at
+     * once to work out each topic's share.
+     */
+    topicsByDemo: (demoId: string) =>
+      ["research", "topics", "demo", demoId] as const,
+
+    /**
+     * Which populations still have papers once some are already selected.
+     * Keyed by scope and selection because the answer changes with both.
+     */
+    facetAvailability: (
+      scope: { topicId?: string; meshTerm?: string },
+      selected: string[],
+    ) => ["research", "facet-availability", scope, selected] as const,
+
+    /** Topics derived from the MeSH headings of recent vascular literature. */
+    discover: () => ["research", "discover"] as const,
+
+    /**
+     * Per-facet literature counts, scoped to a topic or the whole field, and
+     * optionally bounded to a recent window. The window is part of the key: an
+     * all-time split and a five-year split are different answers.
+     */
+    demographics: (topicId?: string, windowYears?: number) =>
+      [
+        "research",
+        "demographics",
+        topicId ?? "all",
+        windowYears ?? "all-time",
+      ] as const,
+  },
+
   flags: {
     /** All feature flags and their per-environment config. */
     list: () => ["flags", "list"] as const,

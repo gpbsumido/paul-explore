@@ -8,6 +8,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   {
     name: "Features",
     slugs: [
+      "research-explorer",
       "gallery-wall",
       "feature-flags",
       "search-bar",
@@ -55,6 +56,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
     slugs: [
       "graphql",
       "routing",
+      "hybrid-rendering",
       "improvements",
       "api-backend-overhaul",
       "login-redirect",
