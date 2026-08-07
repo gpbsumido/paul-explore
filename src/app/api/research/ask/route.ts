@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { parseBody } from "@/lib/parseBody";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { auth0 } from "@/lib/auth0";
 
 /**
  * Ask a model about a paper.
@@ -27,7 +28,73 @@ const askSchema = z.object({
   }),
 });
 
-const MODEL = "gpt-4o-mini";
+/**
+ * The model, overridable without a deploy.
+ *
+ * Not gpt-4o-mini, which is what this shipped with and was the wrong pick.
+ * Critical appraisal is a reasoning task -- working out what a design cannot
+ * support, and where an abstract is quietly silent -- and the mini tier is
+ * exactly where that goes vague and agreeable. The volume here is a handful of
+ * questions behind a 10-per-minute cap, so the cheaper tier saves pennies and
+ * costs the thing the feature exists for.
+ *
+ * gpt-4.1 rather than gpt-5, which this account also has: gpt-4.1 reliably
+ * accepts the plain chat-completions shape below, including `temperature`,
+ * whereas newer reasoning models can reject it. With no API credit on the
+ * account I could not verify gpt-5 against this endpoint, and defaulting to
+ * something unverified would mean the feature breaks the moment credit is
+ * added. Set OPENAI_MODEL=gpt-5 to try it once there is quota to test with.
+ */
+const MODEL = process.env.OPENAI_MODEL || "gpt-4.1";
+
+/**
+ * Per-person burst cap.
+ *
+ * This route spends real money on someone else's account, so the interesting
+ * question is not where the code runs but who is allowed to run it and how
+ * often. In-memory is honest about its limits: it resets on redeploy and is
+ * per-instance, which is enough to stop a runaway loop or an idle tab hammering
+ * the API, and is not a substitute for a shared limiter if this ever needs one.
+ */
+/**
+ * Who may spend the credits, as a comma-separated env var.
+ *
+ * Deliberately NOT hard-coded. This repo is public, and committing a personal
+ * email address publishes it to every scraper that walks GitHub -- permanently,
+ * since it stays in history even if removed later. Config keeps the addresses
+ * out of the source entirely.
+ *
+ * Unset means nobody, not everybody. An access list that silently opens up when
+ * misconfigured is worse than one that locks you out, because only one of those
+ * failures is noisy.
+ */
+function allowedEmails(): string[] {
+  return (process.env.RESEARCH_ASK_ALLOWED_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60_000;
+
+const hits = new Map<string, number[]>();
+
+/** Test seam: the limiter is module state, so tests need it cleared. */
+export function __resetAskLimiter(): void {
+  hits.clear();
+}
+
+function overLimit(who: string, now: number): boolean {
+  const recent = (hits.get(who) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT) {
+    hits.set(who, recent);
+    return true;
+  }
+  recent.push(now);
+  hits.set(who, recent);
+  return false;
+}
 
 /** Answers are per-question, so nothing here is cacheable. */
 const CACHE_CONTROL = "no-store";
@@ -41,6 +108,37 @@ const SYSTEM_PROMPT = [
 ].join(" ");
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Signed-in only. The site is public and this route spends money, so leaving
+  // it open would let anyone who found the path drain the account -- which is
+  // the actual exposure here, not where the handler happens to run.
+  const session = await auth0.getSession(request);
+  const who = session?.user?.sub;
+  if (!who) {
+    return NextResponse.json(
+      { error: "Sign in to ask about a paper." },
+      { status: 401, headers: { "Cache-Control": CACHE_CONTROL } },
+    );
+  }
+
+  // An email claim is only as trustworthy as the provider's verification of
+  // it. An unverified address can be typed in by anyone at signup, so treating
+  // it as identity would make the allowlist decorative.
+  const email = session.user?.email?.trim().toLowerCase();
+  const verified = session.user?.email_verified === true;
+  if (!email || !verified || !allowedEmails().includes(email)) {
+    return NextResponse.json(
+      { error: "Ask is not enabled for this account." },
+      { status: 403, headers: { "Cache-Control": CACHE_CONTROL } },
+    );
+  }
+
+  if (overLimit(who, Date.now())) {
+    return NextResponse.json(
+      { error: "That's a lot of questions at once — try again in a minute." },
+      { status: 429, headers: { "Cache-Control": CACHE_CONTROL } },
+    );
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(

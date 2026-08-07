@@ -2,7 +2,17 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { NextRequest } from "next/server";
 import { server } from "@/test/server";
+
+vi.mock("@/lib/auth0", () => ({ auth0: { getSession: vi.fn() } }));
+
+import { auth0 } from "@/lib/auth0";
 import { POST as askPOST } from "./ask/route";
+import { __resetAskLimiter } from "./ask/route";
+
+type Session = Awaited<ReturnType<typeof auth0.getSession>>;
+const signedIn = {
+  user: { sub: "auth0|123", email: "allowed@example.com", email_verified: true },
+} as Session;
 
 const OPENAI = "https://api.openai.com/v1/chat/completions";
 
@@ -24,7 +34,13 @@ const valid = {
 };
 
 beforeEach(() => {
+  __resetAskLimiter();
+  vi.mocked(auth0.getSession).mockResolvedValue(signedIn);
   vi.stubEnv("OPENAI_API_KEY", "sk-test-key");
+  vi.stubEnv(
+    "RESEARCH_ASK_ALLOWED_EMAILS",
+    "allowed@example.com, second@example.com",
+  );
   server.use(
     http.post(OPENAI, () =>
       HttpResponse.json({
@@ -133,5 +149,96 @@ describe("POST /api/research/ask", () => {
   it("is never cached, since answers are per-question", async () => {
     const res = await askPOST(post(valid));
     expect(res.headers.get("Cache-Control")).toContain("no-store");
+  });
+});
+
+describe("POST /api/research/ask is not an open door to a paid API", () => {
+  it("refuses anyone who is not signed in", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(null);
+    const res = await askPOST(post(valid));
+    expect(res.status).toBe(401);
+    expect((await res.json()).error).toMatch(/sign in/i);
+  });
+
+  it("does not call the paid API at all when signed out", async () => {
+    vi.mocked(auth0.getSession).mockResolvedValue(null);
+    let called = false;
+    server.use(
+      http.post(OPENAI, () => {
+        called = true;
+        return HttpResponse.json({ choices: [{ message: { content: "x" } }] });
+      }),
+    );
+    await askPOST(post(valid));
+    expect(called).toBe(false);
+  });
+
+  it("caps how much one person can spend in a burst", async () => {
+    const statuses: number[] = [];
+    for (let i = 0; i < 12; i += 1) {
+      statuses.push((await askPOST(post(valid))).status);
+    }
+    expect(statuses.filter((s) => s === 200).length).toBeLessThanOrEqual(10);
+    expect(statuses).toContain(429);
+  });
+
+  it("counts the limit per person, not globally", async () => {
+    for (let i = 0; i < 10; i += 1) await askPOST(post(valid));
+    expect((await askPOST(post(valid))).status).toBe(429);
+
+    vi.mocked(auth0.getSession).mockResolvedValue({
+      user: {
+        sub: "auth0|someone-else",
+        email: "second@example.com",
+        email_verified: true,
+      },
+    } as Session);
+    expect((await askPOST(post(valid))).status).toBe(200);
+  });
+});
+
+describe("POST /api/research/ask is limited to named people", () => {
+  const asUser = (user: Record<string, unknown>) =>
+    vi.mocked(auth0.getSession).mockResolvedValue({ user } as Session);
+
+  it("lets an allowed address through", async () => {
+    asUser({ sub: "a", email: "second@example.com", email_verified: true });
+    expect((await askPOST(post(valid))).status).toBe(200);
+  });
+
+  it("turns away a signed-in address that is not on the list", async () => {
+    asUser({ sub: "b", email: "stranger@example.com", email_verified: true });
+    const res = await askPOST(post(valid));
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toMatch(/not enabled/i);
+  });
+
+  it("ignores case and padding in the address", async () => {
+    asUser({ sub: "c", email: "  Allowed@Example.COM ", email_verified: true });
+    expect((await askPOST(post(valid))).status).toBe(200);
+  });
+
+  it("refuses an unverified address, which the holder may not own", async () => {
+    asUser({ sub: "d", email: "allowed@example.com", email_verified: false });
+    expect((await askPOST(post(valid))).status).toBe(403);
+  });
+
+  it("fails closed when no allowlist is configured", async () => {
+    vi.stubEnv("RESEARCH_ASK_ALLOWED_EMAILS", "");
+    asUser({ sub: "e", email: "allowed@example.com", email_verified: true });
+    expect((await askPOST(post(valid))).status).toBe(403);
+  });
+
+  it("never reaches the paid API for a stranger", async () => {
+    let called = false;
+    server.use(
+      http.post(OPENAI, () => {
+        called = true;
+        return HttpResponse.json({ choices: [{ message: { content: "x" } }] });
+      }),
+    );
+    asUser({ sub: "f", email: "stranger@example.com", email_verified: true });
+    await askPOST(post(valid));
+    expect(called).toBe(false);
   });
 });
