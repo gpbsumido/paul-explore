@@ -57,4 +57,20 @@ describe("LandingActions", () => {
     const cta = screen.getByRole("link", { name: /log out/i });
     expect(cta).toHaveAttribute("href", "/auth/logout");
   });
+
+  it("renders the menu trigger and auth CTA as matching pills", () => {
+    renderActions(false);
+    const trigger = screen.getByRole("button", { name: /open menu/i });
+    const cta = screen.getByRole("link", { name: /log in/i });
+    // The v4 header treats every control as the same rounded pill on the same
+    // surface; the trigger and CTA must both carry that shared treatment.
+    for (const el of [trigger, cta]) {
+      expect(el.className).toContain("rounded-full");
+      expect(el.className).toContain("border-border");
+      expect(el.className).toContain("bg-surface/70");
+      // Content height differs between icon-only and text pills, so the
+      // uniform height has to be explicit, not derived from padding.
+      expect(el.className).toContain("h-9");
+    }
+  });
 });

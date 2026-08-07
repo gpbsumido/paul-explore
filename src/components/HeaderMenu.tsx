@@ -126,6 +126,12 @@ interface HeaderMenuProps {
   showLogout?: boolean;
   /** Show the weather effects toggle section. Defaults to false. */
   showWeatherToggle?: boolean;
+  /**
+   * Replaces the trigger button's classes entirely. Lets a page restyle the
+   * trigger to match its own header chrome (the v4 landing pills) without
+   * touching the default look every other page relies on.
+   */
+  triggerClassName?: string;
 }
 
 /**
@@ -136,6 +142,7 @@ export default function HeaderMenu({
   showSettings = true,
   showLogout = true,
   showWeatherToggle = false,
+  triggerClassName,
 }: HeaderMenuProps) {
   const { preference, setPreference } = useTheme();
   const weather = useWeatherContext();
@@ -200,7 +207,10 @@ export default function HeaderMenu({
         aria-expanded={open}
         aria-haspopup="true"
         aria-label="Open menu"
-        className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-foreground transition-colors hover:bg-surface-raised"
+        className={
+          triggerClassName ??
+          "flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-foreground transition-colors hover:bg-surface-raised"
+        }
       >
         <ActiveThemeIcon preference={preference} />
         <svg
