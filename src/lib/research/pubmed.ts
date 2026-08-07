@@ -25,16 +25,33 @@ const JOURNAL_ABBREV = /^[A-Za-z0-9][A-Za-z0-9 .\-()]{1,60}$/;
  * (for response schemas) can import it safely.
  */
 
-export type EvidenceStatus = "none" | "sparse" | "active";
+export type EvidenceStatus = "none" | "sparse" | "emerging" | "active";
 
 /**
  * Turns raw publication counts into the label a topic card shows.
  *
- * The thresholds are the measurable contract of the whole feature: zero papers
- * is an honest "no research yet", under 25 ever or under 10 in the recent
- * window reads as a sparse literature worth adding to, anything bigger is an
- * active field where the angle matters more than the topic.
+ * These thresholds are calibrated against what the curated topics actually
+ * return, not guessed. The first version was guessed -- zero, under 25 total,
+ * everything else -- and against real data it put 20 of 25 topics in one bucket
+ * while the "no research yet" badge never appeared at all. Both were wrong.
+ * A recognised research area always has some literature, so a topic-level zero
+ * is essentially unreachable; the real zeros live in topic-and-population
+ * intersections, which the Counts tab surfaces as "0 of N". And collapsing a
+ * 15-to-502 range into the single word "active" told the reader nothing.
+ *
+ * The observed spread of recent (five-year) counts is 4 to 502, median 74,
+ * lower quartile about 20. So the bands follow the data: the bottom quartile is
+ * sparse, everything below the median is emerging, the busier half is active.
+ *
+ * Recency leads because that is the question being asked -- is this being
+ * worked on now. A topic with 824 papers all-time and six in five years is a
+ * field that has moved on, and calling it crowded would be the wrong steer.
+ * Zero stays its own label: an absence must never be rendered as a small
+ * number.
  */
+const SPARSE_RECENT_MAX = 20;
+const EMERGING_RECENT_MAX = 75;
+
 export function classifyEvidence({
   total,
   recent,
@@ -43,7 +60,8 @@ export function classifyEvidence({
   recent: number;
 }): EvidenceStatus {
   if (total === 0) return "none";
-  if (total < 25 || recent < 10) return "sparse";
+  if (recent < SPARSE_RECENT_MAX) return "sparse";
+  if (recent < EMERGING_RECENT_MAX) return "emerging";
   return "active";
 }
 
@@ -202,7 +220,7 @@ export const topicsResponseSchema = z.object({
       id: z.string(),
       total: z.number(),
       recent: z.number(),
-      status: z.enum(["none", "sparse", "active"]),
+      status: z.enum(["none", "sparse", "emerging", "active"]),
     }),
   ),
 });
@@ -225,7 +243,7 @@ export const discoverResponseSchema = z.object({
       papers: z.number(),
       total: z.number(),
       recent: z.number(),
-      status: z.enum(["none", "sparse", "active"]),
+      status: z.enum(["none", "sparse", "emerging", "active"]),
     }),
   ),
 });

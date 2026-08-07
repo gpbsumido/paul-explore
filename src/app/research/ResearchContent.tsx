@@ -39,6 +39,7 @@ const TABS: { id: Tab; label: string }[] = [
 const STATUS_LABEL: Record<EvidenceStatus, string> = {
   none: "No research yet",
   sparse: "Sparse",
+  emerging: "Emerging",
   active: "Active",
 };
 
@@ -48,6 +49,7 @@ const STATUS_STYLE: Record<EvidenceStatus, string> = {
   none: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
   sparse:
     "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  emerging: "border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-300",
   active: "border-border bg-surface text-muted",
 };
 
@@ -247,7 +249,10 @@ function CoverageNote({ window }: { window: CountWindow }) {
   return (
     <p className="text-xs text-muted">
       Totals cover all years indexed by PubMed. &ldquo;Recent&rdquo; means{" "}
-      {window ? `${window.fromYear}–${window.toYear}` : "the last 5 years"}.
+      {window ? `${window.fromYear}–${window.toYear}` : "the last 5 years"}, and
+      the badge reflects that recent count: under 20 is sparse, under 75
+      emerging, above that active. Every curated topic has some literature, so
+      the gaps are in the population filters rather than in a topic on its own.
     </p>
   );
 }

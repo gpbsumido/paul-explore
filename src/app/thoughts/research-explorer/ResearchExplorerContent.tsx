@@ -121,16 +121,30 @@ export default function ResearchExplorerContent() {
           question you can actually answer with the patients you have access to.
         </p>
         <ol className="space-y-4 text-sm">
-          <Step n={1} title="Scan the Topics tab for the green badges.">
+          <Step n={1} title="Scan the Topics tab for the amber Sparse badges.">
             Topics are grouped by area — aortic, limb salvage, carotid, venous,
-            access, training, disparities. A topic marked{" "}
-            <em>No research yet</em> has literally zero PubMed hits for its
-            query, and <em>Sparse</em> means fewer than 25 papers ever or fewer
-            than 10 in the last five years. Those are the ones where a good
+            access, training, disparities. The badge reflects the last five
+            years: <em>Sparse</em> under twenty papers, <em>Emerging</em> under
+            seventy-five, <em>Active</em> above that. Sparse is where a good
             retrospective review is genuinely additive rather than the twelfth
-            entry in a crowded field.
+            entry in a crowded field, and Emerging is where a field is picking
+            up but the evidence hasn&apos;t caught up yet.
           </Step>
-          <Step n={2} title="Open a topic and read what already exists.">
+          <Step
+            n={2}
+            title="Don't wait for a topic that says zero — there isn't one."
+          >
+            There is a <em>No research yet</em> badge and you will never see it
+            on this tab, which is worth saying plainly because I originally
+            wrote this guide telling you to look for it. Every topic here is a
+            recognised area of vascular surgery, and recognised areas have
+            literature — the quietest one still has eight papers. A true zero
+            exists, but it lives in the <em>intersection</em> of a topic and a
+            population, not in a topic on its own. That is what the filters and
+            the Counts tab are for, and reading <em>0 of 15 · 0%</em> there is
+            the finding the green badge was supposed to represent.
+          </Step>
+          <Step n={3} title="Open a topic and read what already exists.">
             Every topic expands into its most recent papers, newest first, each
             linking straight to PubMed. This is the step that saves the most
             time: five minutes of reading tells you whether the sparse count
@@ -141,7 +155,7 @@ export default function ResearchExplorerContent() {
             is feasible at one hospital.
           </Step>
           <Step
-            n={3}
+            n={4}
             title="Narrow to a population and watch the count collapse."
           >
             Inside an open topic there are filter chips for sex, age band, race
@@ -153,7 +167,7 @@ export default function ResearchExplorerContent() {
             the hole is the project.
           </Step>
           <Step
-            n={4}
+            n={5}
             title="Check the Discovered tab for what I didn't think of."
           >
             The curated topics are the ones I decided were worth asking about,
@@ -167,14 +181,14 @@ export default function ResearchExplorerContent() {
             somewhere before the evidence has caught up. That&apos;s a good
             place to be early.
           </Step>
-          <Step n={5} title="Use the Demographics tab to find the hole first.">
+          <Step n={6} title="Use the Demographics tab to find the hole first.">
             Same data, inverted. Instead of picking a topic and checking its
             coverage, it charts coverage across every population for a scope, so
             the underrepresented groups are visible before you&apos;ve committed
             to a question. Open a topic on the Topics tab and this rescopes to
             it; leave it closed and you get the whole field.
           </Step>
-          <Step n={6} title="Use the Journals tab to aim the finished paper.">
+          <Step n={7} title="Use the Journals tab to aim the finished paper.">
             Browsing recent output journal by journal answers a different
             question — not &quot;what&apos;s unstudied&quot; but &quot;where
             does work like mine get published, and what does that journal

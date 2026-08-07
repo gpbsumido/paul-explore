@@ -71,7 +71,9 @@ describe("GET /api/research/topics", () => {
       (t: { id: string }) => t.id !== TOPICS[0].id,
     );
     rest.forEach((t: { status: string; total: number; recent: number }) => {
-      expect(t).toMatchObject({ total: 120, recent: 40, status: "active" });
+      // 40 recent sits below the 75 mark, so it reads as emerging rather than
+      // active under the calibrated scale.
+      expect(t).toMatchObject({ total: 120, recent: 40, status: "emerging" });
     });
   });
 
