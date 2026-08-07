@@ -209,6 +209,10 @@ export const queryKeys = {
       selected: string[],
     ) => ["research", "facet-availability", scope, selected] as const,
 
+    /** Recent papers with discussion material, for one topic. */
+    journalClub: (topicId: string) =>
+      ["research", "journal-club", topicId] as const,
+
     /** Topics derived from the MeSH headings of recent vascular literature. */
     discover: () => ["research", "discover"] as const,
 

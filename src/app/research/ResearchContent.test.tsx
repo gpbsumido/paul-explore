@@ -395,6 +395,7 @@ describe("ResearchContent on a phone", () => {
     expect(labels).toEqual([
       "Topics",
       "Counts",
+      "Journal club",
       "Discovered",
       "Journals",
       "Demographics",
@@ -667,5 +668,81 @@ describe("ResearchContent counts what it is actually showing", () => {
     // PubMed only while the list merged both sources.
     expect(screen.getByText(/showing 8 of 8/i)).toBeInTheDocument();
     expect(screen.queryByText(/^5 matching/)).not.toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent journal club", () => {
+  const jcPaper = {
+    id: "europepmc-PMC9",
+    title: "Limb salvage on dialysis: a four-centre review.",
+    journal: "Annals of Vascular Surgery",
+    pubDate: "2025-04-02",
+    authors: ["Doe A"],
+    doi: null,
+    url: "https://europepmc.org/article/MED/PMC9",
+    design: { label: "Multicentre study", caveat: "Sites vary.", canSupportCausality: false },
+    points: ["Point one is long enough.", "Point two is long enough.", "Point three is long enough."],
+    questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
+  };
+
+  beforeEach(() => {
+    server.use(
+      http.get("/api/research/journal-club", () =>
+        HttpResponse.json({
+          papers: [jcPaper],
+          window: { fromYear: THIS_YEAR - 2, toYear: THIS_YEAR },
+        }),
+      ),
+    );
+  });
+
+  it("lists recent papers with their design, for a chosen topic", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    expect(await screen.findByText(/four-centre review/)).toBeInTheDocument();
+    expect(screen.getByText("Multicentre study")).toBeInTheDocument();
+  });
+
+  it("opens a paper to at least three points and three questions", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await user.click(await screen.findByRole("button", { name: /four-centre review/ }));
+
+    expect(await screen.findByText("Point one is long enough.")).toBeInTheDocument();
+    expect(screen.getByText("Question three at length?")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Read the paper/ })).toHaveAttribute(
+      "href",
+      "https://europepmc.org/article/MED/PMC9",
+    );
+  });
+
+  it("says which years it searched", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    expect(
+      await screen.findByText(new RegExp(`${THIS_YEAR - 2}\\s*[–-]\\s*${THIS_YEAR}`)),
+    ).toBeInTheDocument();
+  });
+
+  it("asks for a topic before fetching anything", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    // "Pick a topic" is also the group label, so match the empty-state sentence.
+    expect(
+      await screen.findByText(/discussion material attached/i),
+    ).toBeInTheDocument();
   });
 });

@@ -248,6 +248,28 @@ export const discoverResponseSchema = z.object({
   ),
 });
 
+export const journalClubResponseSchema = z.object({
+  window: windowSchema.nullable().default(null),
+  papers: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      journal: z.string(),
+      pubDate: z.string(),
+      authors: z.array(z.string()),
+      doi: z.string().nullable(),
+      url: z.string(),
+      design: z.object({
+        label: z.string(),
+        caveat: z.string(),
+        canSupportCausality: z.boolean(),
+      }),
+      points: z.array(z.string()),
+      questions: z.array(z.string()),
+    }),
+  ),
+});
+
 export const demographicsResponseSchema = z.object({
   window: windowSchema.nullable().default(null),
   facets: z.array(z.object({ id: z.string(), count: z.number() })),

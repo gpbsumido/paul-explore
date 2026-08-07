@@ -19,17 +19,25 @@ import {
   publicationsResponseSchema,
   demographicsResponseSchema,
   discoverResponseSchema,
+  journalClubResponseSchema,
   SOURCE_LABELS,
   type EvidenceStatus,
   type TopicEvidence,
 } from "@/lib/research/pubmed";
 
 type Tab =
-  "topics" | "counts" | "discovered" | "journals" | "demographics" | "sources";
+  | "topics"
+  | "counts"
+  | "journal-club"
+  | "discovered"
+  | "journals"
+  | "demographics"
+  | "sources";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "topics", label: "Topics" },
   { id: "counts", label: "Counts" },
+  { id: "journal-club", label: "Journal club" },
   { id: "discovered", label: "Discovered" },
   { id: "journals", label: "Journals" },
   { id: "demographics", label: "Demographics" },
@@ -183,6 +191,8 @@ export default function ResearchContent() {
       )}
 
       {tab === "counts" && <CountsPanel />}
+
+      {tab === "journal-club" && <JournalClubPanel />}
 
       {tab === "discovered" && (
         <DiscoveredPanel
@@ -1314,6 +1324,184 @@ function TopicSplit({ topicId }: { topicId: string }) {
         })}
       </ul>
     </>
+  );
+}
+
+/**
+ * Recent papers packaged for teaching.
+ *
+ * A topic has to be chosen first rather than defaulting to everything: the
+ * value here is depth on a handful of papers, and an undirected list of the
+ * whole field's last two years is a reading pile, not a journal club.
+ */
+function JournalClubPanel() {
+  const [topicId, setTopicId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const query = useQuery({
+    queryKey: queryKeys.research.journalClub(topicId ?? ""),
+    queryFn: () => getJson(`/api/research/journal-club?topic=${topicId}`),
+    select: (json) => journalClubResponseSchema.parse(json),
+    staleTime: 60 * 60 * 1000,
+    enabled: topicId !== null,
+  });
+
+  const window = query.data?.window ?? null;
+  const papers = query.data?.papers ?? [];
+
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted">
+        Papers from the last two years with enough substance to discuss, each
+        with points to raise and questions to put to the room. Prompts are built
+        from the paper&apos;s own abstract and its indexed study design, so they
+        argue with this paper rather than any paper.
+      </p>
+
+      <div role="group" aria-labelledby="jc-topic" className="mb-5">
+        <p
+          id="jc-topic"
+          className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted"
+        >
+          Pick a topic
+        </p>
+        <div className="flex min-w-0 flex-wrap gap-2">
+          {TOPICS.map((topic) => (
+            <button
+              key={topic.id}
+              type="button"
+              aria-pressed={topicId === topic.id}
+              onClick={() => {
+                setTopicId(topic.id === topicId ? null : topic.id);
+                setOpenId(null);
+              }}
+              className={`min-h-11 rounded-full border px-3 text-xs transition-colors sm:min-h-8 ${
+                topicId === topic.id
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-surface text-muted hover:text-foreground"
+              }`}
+            >
+              {topic.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {topicId === null && (
+        <p className="text-sm text-muted">
+          Pick a topic above and I&apos;ll pull its recent papers with
+          discussion material attached.
+        </p>
+      )}
+
+      {topicId !== null && query.isError && (
+        <ErrorState
+          message="Couldn't load papers for this topic."
+          onRetry={() => query.refetch()}
+        />
+      )}
+
+      {topicId !== null && query.isLoading && (
+        <ScanningNote label="the last two years" />
+      )}
+
+      {topicId !== null && query.isSuccess && papers.length === 0 && (
+        <p className="text-sm text-muted">
+          Nothing with an abstract in the last two years for this topic. That is
+          itself worth knowing.
+        </p>
+      )}
+
+      {papers.length > 0 && (
+        <>
+          <p className="mb-3 text-xs text-muted">
+            {papers.length} papers ·{" "}
+            {window ? `${window.fromYear}–${window.toYear}` : "last two years"}{" "}
+            · Europe PMC
+          </p>
+          <ul className="space-y-3">
+            {papers.map((paper) => {
+              const isOpen = openId === paper.id;
+              const panelId = `jc-${paper.id}`;
+              return (
+                <li
+                  key={paper.id}
+                  className="overflow-hidden rounded-xl border border-border bg-surface/60"
+                >
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    onClick={() => setOpenId(isOpen ? null : paper.id)}
+                    className="flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-surface"
+                  >
+                    <span className="font-medium text-foreground">
+                      {paper.title}
+                    </span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-muted">
+                        {paper.design.label}
+                      </span>
+                      <span className="text-xs text-muted">
+                        {[paper.journal, paper.pubDate]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <div
+                      id={panelId}
+                      className="space-y-4 border-t border-border px-4 py-4"
+                    >
+                      <div>
+                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                          Points to raise
+                        </h3>
+                        <ul className="space-y-2">
+                          {paper.points.map((point) => (
+                            <li key={point} className="flex gap-2 text-sm">
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                              <span className="text-foreground">{point}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                          Questions to put to the room
+                        </h3>
+                        <ul className="space-y-2">
+                          {paper.questions.map((question) => (
+                            <li key={question} className="flex gap-2 text-sm">
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/30" />
+                              <span className="text-foreground">
+                                {question}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <a
+                        href={paper.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex min-h-11 items-center text-sm text-foreground underline-offset-2 hover:underline sm:min-h-0"
+                      >
+                        Read the paper ↗
+                      </a>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+    </div>
   );
 }
 
