@@ -261,3 +261,107 @@ describe("ResearchContent sources panel", () => {
     ).not.toBeInTheDocument();
   });
 });
+
+describe("ResearchContent counts", () => {
+  const openCounts = async (user: ReturnType<typeof userEvent.setup>) => {
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+  };
+
+  it("lists topics with how many papers each has in the last 5 years", async () => {
+    const user = userEvent.setup();
+    await openCounts(user);
+    expect(await screen.findByText(TOPICS[1].name)).toBeInTheDocument();
+    // TOPICS[1] is seeded with recent: 4, TOPICS[0] with recent: 0.
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText("0")).toBeInTheDocument();
+  });
+
+  it("sorts fewest-first so the thin topics surface", async () => {
+    const user = userEvent.setup();
+    await openCounts(user);
+    await screen.findByText(TOPICS[1].name);
+    await user.click(screen.getByRole("button", { name: /Fewest/ }));
+    const names = screen
+      .getAllByRole("button", { name: /papers in the last 5 years/ })
+      .map((b) => b.textContent ?? "");
+    expect(names[0]).toContain(TOPICS[0].name);
+  });
+
+  it("shows the count and share within a chosen population", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/topics", ({ request }) => {
+        const demo = new URL(request.url).searchParams.get("demo");
+        if (!demo) return HttpResponse.json(topicsPayload());
+        return HttpResponse.json({
+          topics: TOPICS.map((t) => ({
+            id: t.id,
+            total: 1,
+            recent: 1,
+            status: "sparse",
+          })),
+        });
+      }),
+    );
+    await openCounts(user);
+    await screen.findByText(TOPICS[1].name);
+    await user.click(screen.getByRole("button", { name: DEMOGRAPHICS[0].label }));
+    // TOPICS[1]: 1 of 4 in this population.
+    expect(await screen.findByText(/1 of 4/)).toBeInTheDocument();
+    expect(screen.getByText(/25%/)).toBeInTheDocument();
+  });
+
+  it("expands a topic to show its demographic split", async () => {
+    const user = userEvent.setup();
+    await openCounts(user);
+    await user.click(
+      await screen.findByRole("button", {
+        name: new RegExp(`${TOPICS[1].name}.*papers in the last 5 years`),
+      }),
+    );
+    expect(await screen.findByText(DEMOGRAPHICS[0].label)).toBeInTheDocument();
+  });
+
+  it("asks for the split over the same 5-year window the column shows", async () => {
+    const user = userEvent.setup();
+    const urls: string[] = [];
+    server.use(
+      http.get("/api/research/demographics", ({ request }) => {
+        urls.push(request.url);
+        return HttpResponse.json({
+          facets: DEMOGRAPHICS.map((d) => ({ id: d.id, count: 3 })),
+        });
+      }),
+    );
+    await openCounts(user);
+    await user.click(
+      await screen.findByRole("button", {
+        name: new RegExp(`${TOPICS[1].name}.*papers in the last 5 years`),
+      }),
+    );
+    await screen.findByText(DEMOGRAPHICS[0].label);
+    expect(new URL(urls.at(-1) ?? "").searchParams.get("window")).toBe("5");
+  });
+});
+
+describe("ResearchContent on a phone", () => {
+  it("wraps the tab row so no tab is pushed off screen", async () => {
+    renderPage();
+    const tablist = await screen.findByRole("tablist");
+    expect(tablist.className).toContain("flex-wrap");
+  });
+
+  it("keeps every tab reachable", async () => {
+    renderPage();
+    const labels = (await screen.findAllByRole("tab")).map((t) => t.textContent);
+    expect(labels).toEqual([
+      "Topics",
+      "Counts",
+      "Discovered",
+      "Journals",
+      "Demographics",
+      "Sources",
+    ]);
+  });
+});

@@ -48,7 +48,9 @@ beforeEach(() => server.use(countHandler(), epmcHandler()));
 
 describe("GET /api/research/topics", () => {
   it("returns an evidence status for every curated topic with a day-long cache", async () => {
-    const res = await topicsGET();
+    const res = await topicsGET(
+      new NextRequest("http://localhost/api/research/topics"),
+    );
     expect(res.status).toBe(200);
     expect(res.headers.get("Cache-Control")).toBe(
       "public, s-maxage=86400, stale-while-revalidate=604800",
@@ -67,7 +69,9 @@ describe("GET /api/research/topics", () => {
 
   it("fails loudly when PubMed is unreachable instead of faking empty topics", async () => {
     server.use(http.get(ESEARCH, () => HttpResponse.error()));
-    const res = await topicsGET();
+    const res = await topicsGET(
+      new NextRequest("http://localhost/api/research/topics"),
+    );
     expect(res.status).toBe(502);
   });
 });
@@ -329,5 +333,81 @@ describe("GET /api/research/discover", () => {
     server.use(http.get(EPMC, () => HttpResponse.error()));
     const res = await discoverGET();
     expect(res.status).toBe(502);
+  });
+});
+
+describe("GET /api/research/topics?demo=", () => {
+  it("scopes every topic count to the demographic asked for", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        const term = new URL(request.url).searchParams.get("term") ?? "";
+        terms.push(term);
+        return HttpResponse.json(esearchJson(5));
+      }),
+    );
+    const res = await topicsGET(
+      new NextRequest("http://localhost/api/research/topics?demo=female"),
+    );
+    expect(res.status).toBe(200);
+    const facet = DEMOGRAPHICS.find((d) => d.id === "female");
+    expect(terms.every((t) => t.includes(facet!.clause))).toBe(true);
+    const body = await res.json();
+    expect(body.topics).toHaveLength(TOPICS.length);
+  });
+
+  it("400s on a demographic the curated layer doesn't define", async () => {
+    const res = await topicsGET(
+      new NextRequest("http://localhost/api/research/topics?demo=nope"),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("leaves the unfiltered scan alone when no demographic is given", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(5));
+      }),
+    );
+    await topicsGET(new NextRequest("http://localhost/api/research/topics"));
+    const femaleClause = DEMOGRAPHICS.find((d) => d.id === "female")!.clause;
+    expect(terms.some((t) => t.includes(femaleClause))).toBe(false);
+  });
+});
+
+describe("GET /api/research/demographics?window=", () => {
+  it("bounds every facet count to the window asked for", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(2));
+      }),
+    );
+    const res = await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}&window=5`,
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(terms.every((t) => /\d{4}:3000\[dp\]/.test(t))).toBe(true);
+  });
+
+  it("counts all of time when no window is given", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(2));
+      }),
+    );
+    await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}`,
+      ),
+    );
+    expect(terms.some((t) => /\[dp\]/.test(t))).toBe(false);
   });
 });
