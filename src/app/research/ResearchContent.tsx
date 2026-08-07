@@ -99,27 +99,32 @@ export default function ResearchContent() {
           <h1 className="text-2xl font-bold text-foreground">
             Vascular research explorer
           </h1>
+          {/* The provenance sentence matters, but on a phone it pushed the
+              first real number below the fold. Kept for tablets and up. */}
           <p className="mt-1 max-w-2xl text-sm text-muted">
             Candidate project topics scored against the literature that already
-            exists. Evidence levels come live from{" "}
-            <a
-              className="underline hover:text-foreground"
-              href="https://pubmed.ncbi.nlm.nih.gov/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              PubMed
-            </a>{" "}
-            via the NCBI E-utilities API; publication lists add{" "}
-            <a
-              className="underline hover:text-foreground"
-              href="https://europepmc.org/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Europe PMC
-            </a>{" "}
-            for preprints and records PubMed doesn&apos;t carry.
+            exists.{" "}
+            <span className="hidden sm:inline">
+              Evidence levels come live from{" "}
+              <a
+                className="underline hover:text-foreground"
+                href="https://pubmed.ncbi.nlm.nih.gov/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                PubMed
+              </a>{" "}
+              via the NCBI E-utilities API; publication lists add{" "}
+              <a
+                className="underline hover:text-foreground"
+                href="https://europepmc.org/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Europe PMC
+              </a>{" "}
+              for preprints and records PubMed doesn&apos;t carry.
+            </span>
           </p>
         </div>
         <Button
@@ -940,9 +945,11 @@ function CountsPanel() {
   return (
     <div>
       <p className="mb-4 text-sm text-muted">
-        Papers published in the last five years, per topic. Sort fewest-first to
-        put the thin topics on top, or pick a population to see how much of each
-        topic actually studied those patients.
+        Papers published in the last five years, per topic.{" "}
+        <span className="hidden sm:inline">
+          Sort fewest-first to put the thin topics on top, or pick a population
+          to see how much of each topic actually studied those patients.
+        </span>
       </p>
 
       <div className="mb-4 flex flex-wrap gap-2">

@@ -14,7 +14,7 @@ const browser = await chromium.launch();
 const PHONE = { ...devices["iPhone 13"], deviceScaleFactor: 1 };
 const DESKTOP = { viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1 };
 
-async function shoot(name, ctxOpts, path, theme, drive, settle = 22000) {
+async function shoot(name, ctxOpts, path, theme, drive, settle = 40000) {
   const context = await browser.newContext(ctxOpts);
   const page = await context.newPage();
   await page.addInitScript((t) => {
@@ -35,12 +35,12 @@ const openCounts = async (page) => {
 };
 
 // Phone
-await shoot("phone-tabs", PHONE, "/research", "dark", null, 20000);
-await shoot("phone-counts", PHONE, "/research", "dark", openCounts, 20000);
+await shoot("phone-tabs", PHONE, "/research", "dark", null, 40000);
+await shoot("phone-counts", PHONE, "/research", "dark", openCounts, 40000);
 await shoot("phone-demographics", PHONE, "/research", "dark", async (page) => {
   await page.getByRole("tab", { name: "Demographics" }).click();
-  await page.waitForTimeout(26000);
-}, 20000);
+  await page.waitForTimeout(40000);
+}, 40000);
 
 // Desktop
 await shoot("counts", DESKTOP, "/research", "light", openCounts, 22000);
@@ -48,8 +48,8 @@ await shoot("counts-filtered", DESKTOP, "/research", "light", async (page) => {
   await openCounts(page);
   await page.getByRole("button", { name: "Fewest papers" }).click();
   await page.getByRole("button", { name: "Indigenous peoples" }).click();
-  await page.waitForTimeout(30000);
-}, 22000);
+  await page.waitForTimeout(60000);
+}, 40000);
 await shoot("thoughts", DESKTOP, "/thoughts/research-explorer", "light", null, 4000);
 
 await browser.close();
