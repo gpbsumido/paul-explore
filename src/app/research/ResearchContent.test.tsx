@@ -681,6 +681,7 @@ describe("ResearchContent journal club", () => {
     doi: null,
     url: "https://europepmc.org/article/MED/PMC9",
     design: { label: "Multicentre study", caveat: "Sites vary.", canSupportCausality: false },
+    innovation: { score: 2, signals: ["first-in-human", "robotic"] },
     points: ["Point one is long enough.", "Point two is long enough.", "Point three is long enough."],
     questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
   };
@@ -744,5 +745,115 @@ describe("ResearchContent journal club", () => {
     expect(
       await screen.findByText(/discussion material attached/i),
     ).toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent innovation and ask", () => {
+  const jc = {
+    id: "europepmc-PMC9",
+    title: "Robotic repair: a first-in-human series.",
+    journal: "Annals of Vascular Surgery",
+    pubDate: "2025-04-02",
+    authors: ["Doe A"],
+    doi: null,
+    url: "https://europepmc.org/article/MED/PMC9",
+    design: { label: "Case report", caveat: "One case.", canSupportCausality: false },
+    innovation: { score: 2, signals: ["first-in-human", "robotic"] },
+    points: ["Point one is long enough here.", "Point two is long enough here.", "Point three is long enough."],
+    questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
+  };
+
+  const openPaper = async (user: ReturnType<typeof userEvent.setup>) => {
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await user.click(await screen.findByRole("button", { name: /first-in-human series/ }));
+  };
+
+  beforeEach(() => {
+    server.use(
+      http.get("/api/research/journal-club", ({ request }) => {
+        const only = new URL(request.url).searchParams.get("innovative");
+        return HttpResponse.json({
+          papers: only === "true" ? [jc] : [jc],
+          window: { fromYear: THIS_YEAR - 2, toYear: THIS_YEAR },
+        });
+      }),
+    );
+  });
+
+  it("shows why a paper counts as innovative rather than just asserting it", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    expect(await screen.findByText("first-in-human")).toBeInTheDocument();
+    expect(screen.getByText("robotic")).toBeInTheDocument();
+  });
+
+  it("asks the API for innovative papers only when the filter is on", async () => {
+    const user = userEvent.setup();
+    const urls: string[] = [];
+    server.use(
+      http.get("/api/research/journal-club", ({ request }) => {
+        urls.push(request.url);
+        return HttpResponse.json({
+          papers: [jc],
+          window: { fromYear: THIS_YEAR - 2, toYear: THIS_YEAR },
+        });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByText(/first-in-human series/);
+    await user.click(
+      screen.getByRole("checkbox", { name: /doing something new/i }),
+    );
+    await expect
+      .poll(() => new URL(urls.at(-1) ?? "http://x/").searchParams.get("innovative"))
+      .toBe("true");
+  });
+
+  it("answers a question about the paper", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.post("/api/research/ask", () =>
+        HttpResponse.json({ answer: "Confounding by indication." }),
+      ),
+    );
+    await openPaper(user);
+    await user.type(
+      screen.getByLabelText(/ask about this paper/i),
+      "Main weakness?",
+    );
+    await user.click(screen.getByRole("button", { name: "Ask" }));
+    expect(
+      await screen.findByText("Confounding by indication."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the setup message instead of looking broken when no key is set", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.post("/api/research/ask", () =>
+        HttpResponse.json(
+          { error: "Ask is not configured. Set OPENAI_API_KEY on the server." },
+          { status: 503 },
+        ),
+      ),
+    );
+    await openPaper(user);
+    await user.type(screen.getByLabelText(/ask about this paper/i), "Why?");
+    await user.click(screen.getByRole("button", { name: "Ask" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /not configured/i,
+    );
   });
 });

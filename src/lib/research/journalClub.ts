@@ -288,6 +288,89 @@ export function extractSampleSize(text: string): number | null {
   return looksLikeYear ? null : value;
 }
 
+export type Innovation = {
+  /** How many distinct innovation signals the paper carries. */
+  score: number;
+  /** The matched signals, named so the reason is visible rather than a black box. */
+  signals: string[];
+};
+
+/**
+ * Signals that a paper is about something new rather than another outcomes
+ * series. Two kinds: claims of novelty, and named emerging technologies.
+ *
+ * The matched signals are returned, not just a score, because "this is
+ * innovative, trust me" is not a useful thing to tell a reader deciding what to
+ * spend an hour on. Seeing that it matched "first-in-human" and "robotic" lets
+ * her judge whether the label is earned.
+ */
+const INNOVATION_SIGNALS: { label: string; pattern: RegExp }[] = [
+  { label: "first-in-human", pattern: /\bfirst[- ]in[- ]human\b/i },
+  {
+    label: "first report",
+    pattern: /\bfirst (?:report|case|series|experience)\b/i,
+  },
+  { label: "novel", pattern: /(?<!no |nothing )\bnovel\b/i },
+  {
+    label: "new technique",
+    pattern: /\bnew (?:technique|approach|device|method)\b/i,
+  },
+  { label: "innovative", pattern: /\binnovat(?:ive|ion)\b/i },
+  { label: "proof of concept", pattern: /\bproof[- ]of[- ]concept\b/i },
+  { label: "feasibility study", pattern: /\bfeasibility\b/i },
+  { label: "pilot study", pattern: /\bpilot (?:study|trial)\b/i },
+  { label: "initial experience", pattern: /\b(?:initial|early) experience\b/i },
+  { label: "emerging", pattern: /\bemerging\b/i },
+  { label: "next-generation", pattern: /\bnext[- ]generation\b/i },
+  {
+    label: "machine learning",
+    pattern: /\b(?:machine learning|deep learning|neural network)\b/i,
+  },
+  {
+    label: "artificial intelligence",
+    pattern: /\b(?:artificial intelligence|\bAI\b)/,
+  },
+  { label: "robotic", pattern: /\brobotic?\b/i },
+  { label: "3D printing", pattern: /\b3[dD][- ]print/i },
+  {
+    label: "bioengineered",
+    pattern: /\bbio(?:engineered|printed|resorbable)\b/i,
+  },
+  {
+    label: "gene or cell therapy",
+    pattern: /\b(?:gene therapy|cell therapy|stem cell)\b/i,
+  },
+  {
+    label: "wearable or remote monitoring",
+    pattern: /\b(?:wearable|remote monitoring|telemonitoring)\b/i,
+  },
+];
+
+/** Phrases that use a signal word to deny it. */
+const NEGATIONS = /\b(?:no|nothing|not) (?:novel|new|innovative)\b/i;
+
+export function detectInnovation({
+  title,
+  abstract,
+}: {
+  title: string;
+  abstract: string;
+}): Innovation {
+  const text = stripTags(`${title} ${abstract}`);
+  const negated = NEGATIONS.test(text);
+
+  const signals = INNOVATION_SIGNALS.filter(({ label, pattern }) => {
+    if (!pattern.test(text)) return false;
+    // "No novel complications were observed" is the opposite claim.
+    const claimsNovelty = ["novel", "new technique", "innovative"].includes(
+      label,
+    );
+    return !(negated && claimsNovelty);
+  }).map(({ label }) => label);
+
+  return { score: signals.length, signals };
+}
+
 export type Discussion = {
   design: Design;
   points: string[];

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { buildSearchTerm } from "@/lib/research/pubmed";
 import { toEuropePmcQuery } from "@/lib/research/europepmc";
-import { buildDiscussion } from "@/lib/research/journalClub";
+import { buildDiscussion, detectInnovation } from "@/lib/research/journalClub";
 import { europePmcSearch, isFailure } from "@/lib/research/eutils";
 
 const CACHE_CONTROL = "public, s-maxage=21600, stale-while-revalidate=86400";
@@ -87,6 +87,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       const journal = r.journalInfo?.journal?.title ?? "";
       const pubDate = r.firstPublicationDate ?? r.pubYear ?? "";
+      const innovation = detectInnovation({
+        title: r.title,
+        abstract: r.abstractText,
+      });
+
       const discussion = buildDiscussion({
         title: r.title,
         journal,
@@ -110,13 +115,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           .filter(Boolean),
         doi: r.doi ?? null,
         url: `https://europepmc.org/article/${r.source ?? "MED"}/${r.id}`,
+        innovation,
         ...discussion,
       };
     })
     .filter((p): p is NonNullable<typeof p> => p !== null);
 
+  // Innovation-first ordering, when asked. Papers announcing something new are
+  // rare next to outcomes series, so this is a sort with an optional filter
+  // rather than a search term -- Europe PMC has no field for "is this novel".
+  const innovativeOnly = params.get("innovative") === "true";
+  const shown = innovativeOnly
+    ? papers.filter((p) => p.innovation.score > 0)
+    : papers;
+  shown.sort((a, b) => b.innovation.score - a.innovation.score);
+
   return NextResponse.json(
-    { papers, window: { fromYear, toYear } },
+    { papers: shown, window: { fromYear, toYear } },
     { headers: { "Cache-Control": CACHE_CONTROL } },
   );
 }

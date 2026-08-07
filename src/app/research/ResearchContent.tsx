@@ -1337,10 +1337,16 @@ function TopicSplit({ topicId }: { topicId: string }) {
 function JournalClubPanel() {
   const [topicId, setTopicId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [innovativeOnly, setInnovativeOnly] = useState(false);
 
   const query = useQuery({
-    queryKey: queryKeys.research.journalClub(topicId ?? ""),
-    queryFn: () => getJson(`/api/research/journal-club?topic=${topicId}`),
+    queryKey: queryKeys.research.journalClub(topicId ?? "", innovativeOnly),
+    queryFn: () =>
+      getJson(
+        `/api/research/journal-club?topic=${topicId}${
+          innovativeOnly ? "&innovative=true" : ""
+        }`,
+      ),
     select: (json) => journalClubResponseSchema.parse(json),
     staleTime: 60 * 60 * 1000,
     enabled: topicId !== null,
@@ -1386,6 +1392,16 @@ function JournalClubPanel() {
           ))}
         </div>
       </div>
+
+      <label className="mb-5 flex min-h-11 w-fit cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm text-muted transition-colors hover:text-foreground sm:min-h-9">
+        <input
+          type="checkbox"
+          checked={innovativeOnly}
+          onChange={() => setInnovativeOnly((v) => !v)}
+          className="h-4 w-4 accent-foreground"
+        />
+        Only papers doing something new
+      </label>
 
       {topicId === null && (
         <p className="text-sm text-muted">
@@ -1442,6 +1458,14 @@ function JournalClubPanel() {
                       <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-muted">
                         {paper.design.label}
                       </span>
+                      {paper.innovation.signals.map((signal) => (
+                        <span
+                          key={signal}
+                          className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-0.5 text-xs text-sky-600 dark:text-sky-300"
+                        >
+                          {signal}
+                        </span>
+                      ))}
                       <span className="text-xs text-muted">
                         {[paper.journal, paper.pubDate]
                           .filter(Boolean)
@@ -1485,6 +1509,8 @@ function JournalClubPanel() {
                         </ul>
                       </div>
 
+                      <AskBox paper={paper} />
+
                       <a
                         href={paper.url}
                         target="_blank"
@@ -1501,6 +1527,95 @@ function JournalClubPanel() {
           </ul>
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * A question box for one paper.
+ *
+ * The model only ever sees this paper's title and abstract, and the route is
+ * told to say so when the abstract does not contain the answer rather than
+ * filling it in from general knowledge. That matters more here than usual: a
+ * confident invented number in a journal club is worse than no answer.
+ *
+ * The key lives on the server. If it is not configured the route says so in
+ * words and this shows that message, rather than looking broken.
+ */
+function AskBox({
+  paper,
+}: {
+  paper: { title: string; journal: string; pubDate: string };
+}) {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const ask = async () => {
+    const asked = question.trim();
+    if (!asked || pending) return;
+    setPending(true);
+    setAnswer(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/research/ask", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ question: asked, paper }),
+      });
+      const json = (await res.json()) as { answer?: string; error?: string };
+      if (!res.ok) setError(json.error ?? `Request failed (${res.status}).`);
+      else setAnswer(json.answer ?? "");
+    } catch {
+      setError("Couldn't reach the server.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-surface p-3">
+      <label
+        htmlFor={`ask-${paper.title.slice(0, 20)}`}
+        className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted"
+      >
+        Ask about this paper
+      </label>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          id={`ask-${paper.title.slice(0, 20)}`}
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && ask()}
+          placeholder="What would change this conclusion?"
+          className="min-h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm text-foreground sm:min-h-9"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          loading={pending}
+          onClick={ask}
+          disabled={question.trim().length === 0}
+        >
+          Ask
+        </Button>
+      </div>
+
+      {answer !== null && (
+        <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">
+          {answer}
+        </p>
+      )}
+      {error !== null && (
+        <p role="alert" className="mt-3 text-sm text-muted">
+          {error}
+        </p>
+      )}
+      <p className="mt-2 text-xs text-muted">
+        Answers come from the title and abstract only. Check anything that
+        matters against the full text.
+      </p>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   detectDesign,
   extractSampleSize,
   buildDiscussion,
+  detectInnovation,
 } from "./journalClub";
 
 const structured =
@@ -165,5 +166,65 @@ describe("buildDiscussion", () => {
   it("asks every question as a question", () => {
     const d = buildDiscussion(paper);
     d.questions.forEach((q) => expect(q.trim().endsWith("?")).toBe(true));
+  });
+});
+
+describe("detectInnovation", () => {
+  it("recognises a paper announcing something new", () => {
+    const r = detectInnovation({
+      title: "First-in-human experience with a novel bioresorbable scaffold.",
+      abstract: "We report the initial experience in six patients.",
+    });
+    expect(r.score).toBeGreaterThan(0);
+    expect(r.signals.join(" ").toLowerCase()).toContain("first-in-human");
+  });
+
+  it("recognises a paper about an emerging technology", () => {
+    const r = detectInnovation({
+      title: "Machine learning for predicting aneurysm growth.",
+      abstract: "A deep learning model was trained on serial imaging.",
+    });
+    expect(r.score).toBeGreaterThan(0);
+    expect(r.signals.some((s) => /machine learning/i.test(s))).toBe(true);
+  });
+
+  it("scores a paper carrying several signals above one carrying a single signal", () => {
+    const many = detectInnovation({
+      title: "First-in-human robotic endovascular repair: a novel technique.",
+      abstract: "Proof of concept in three patients.",
+    });
+    const one = detectInnovation({
+      title: "A novel scoring system.",
+      abstract: "Retrospective validation.",
+    });
+    expect(many.score).toBeGreaterThan(one.score);
+  });
+
+  it("does not call a routine outcomes paper innovative", () => {
+    const r = detectInnovation({
+      title: "Thirty-day mortality after elective open repair.",
+      abstract:
+        "We retrospectively reviewed consecutive patients and report standard outcomes.",
+    });
+    expect(r.score).toBe(0);
+    expect(r.signals).toEqual([]);
+  });
+
+  it("does not fire on a paper merely saying results were not novel", () => {
+    // "no novel" and "nothing novel" are the opposite claim.
+    const r = detectInnovation({
+      title: "Outcomes after repair.",
+      abstract: "No novel complications were observed during follow-up.",
+    });
+    expect(r.score).toBe(0);
+  });
+
+  it("names every signal it matched, so the reason is visible", () => {
+    const r = detectInnovation({
+      title: "A novel robotic approach.",
+      abstract: "",
+    });
+    expect(r.signals.length).toBeGreaterThan(0);
+    r.signals.forEach((s) => expect(s.trim().length).toBeGreaterThan(0));
   });
 });

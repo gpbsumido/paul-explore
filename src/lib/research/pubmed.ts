@@ -264,6 +264,9 @@ export const journalClubResponseSchema = z.object({
         caveat: z.string(),
         canSupportCausality: z.boolean(),
       }),
+      innovation: z
+        .object({ score: z.number(), signals: z.array(z.string()) })
+        .default({ score: 0, signals: [] }),
       points: z.array(z.string()),
       questions: z.array(z.string()),
     }),
