@@ -18,6 +18,7 @@ Public (no login). Listed most-to-least prominent, matching the apps order acros
 - [Explore Toronto](https://paulsumido.com/world) — a walkable 3D low-poly downtown Toronto at night; WASD past the CN Tower and City Hall to exhibits that open every feature on this site
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
 - [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground
+- [Research Explorer](https://paulsumido.com/research) — a tool for picking a vascular surgery research project: curated topics scored live against PubMed and Europe PMC, recent papers with links, demographic filters that show which populations the literature actually enrolled, and topics auto-derived from what the field is publishing now
 - [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine
 - [Fleet Operator](https://paulsumido.com/operator) — unattended-retail operator dashboard over a real Postgres-backed API; slot-by-slot auditable restocking with expiry and shrinkage reasons, scheduled promotions that report back against the period before them, per-store sales and tax, an interactive planogram, and every time bucket resolved in the store's own timezone
 - [Learn](https://paulsumido.com/learn) — 14 interactive algorithm & frontend-pattern deep-dives
