@@ -74,13 +74,14 @@ export default function ResearchContent() {
   const topicsQuery = useQuery({
     queryKey: queryKeys.research.topics(),
     queryFn: () => getJson("/api/research/topics"),
-    select: (json) => topicsResponseSchema.parse(json).topics,
+    select: (json) => topicsResponseSchema.parse(json),
     staleTime: 60 * 60 * 1000,
   });
 
   const evidenceById = new Map<string, TopicEvidence>(
-    (topicsQuery.data ?? []).map((t) => [t.id, t]),
+    (topicsQuery.data?.topics ?? []).map((t) => [t.id, t]),
   );
+  const window = topicsQuery.data?.window ?? null;
 
   const toggleDemo = (id: string) =>
     setDemoIds((current) =>
@@ -167,6 +168,7 @@ export default function ResearchContent() {
       {tab === "topics" && (
         <TopicsPanel
           evidenceById={evidenceById}
+          window={window}
           isLoading={topicsQuery.isLoading}
           isError={topicsQuery.isError}
           onRetry={() => topicsQuery.refetch()}
@@ -207,6 +209,25 @@ export default function ResearchContent() {
   );
 }
 
+type CountWindow = { fromYear: number; toYear: number } | null;
+
+/**
+ * States how far back the numbers reach.
+ *
+ * Every count on this page is a search against a live index, and "824 papers"
+ * means nothing without knowing whether that is one year or forty. The all-time
+ * figure really is unbounded -- PubMed indexes back to the 1800s in places -- so
+ * it says so rather than leaving the reader to assume a decade.
+ */
+function CoverageNote({ window }: { window: CountWindow }) {
+  return (
+    <p className="text-xs text-muted">
+      Totals cover all years indexed by PubMed. &ldquo;Recent&rdquo; means{" "}
+      {window ? `${window.fromYear}–${window.toYear}` : "the last 5 years"}.
+    </p>
+  );
+}
+
 function EvidenceBadge({ status }: { status: EvidenceStatus }) {
   return (
     <span
@@ -219,6 +240,7 @@ function EvidenceBadge({ status }: { status: EvidenceStatus }) {
 
 function TopicsPanel({
   evidenceById,
+  window,
   isLoading,
   isError,
   onRetry,
@@ -229,6 +251,7 @@ function TopicsPanel({
   sources,
 }: {
   evidenceById: Map<string, TopicEvidence>;
+  window: CountWindow;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -249,6 +272,7 @@ function TopicsPanel({
 
   return (
     <div className="space-y-8">
+      <CoverageNote window={window} />
       {TOPIC_CATEGORIES.map((category) => {
         const topics = TOPICS.filter((t) => t.category === category);
         if (topics.length === 0) return null;
@@ -438,6 +462,10 @@ function PublicationList({
 
   const publications = query.data?.publications ?? [];
 
+  // The list is capped at 20 newest, so the oldest one here is the real floor
+  // of what is on screen -- not the floor of what the search matched.
+  const oldest = publications.at(-1)?.pubDate ?? null;
+
   if (publications.length === 0) {
     return (
       <p className="text-sm text-muted">
@@ -449,10 +477,12 @@ function PublicationList({
   return (
     <>
       <p className="mb-3 text-xs text-muted">
-        {query.data?.total} matching papers, newest first · searched{" "}
+        {query.data?.total} matching papers across all years, newest first ·
+        searched{" "}
         {(query.data?.sources ?? ["pubmed"])
           .map((s) => SOURCE_LABELS[s])
           .join(" · ")}
+        {oldest && ` · oldest shown: ${oldest}`}
       </p>
       <ul className="space-y-3">
         {publications.map((pub) => (
@@ -906,14 +936,14 @@ function CountsPanel() {
   const all = useQuery({
     queryKey: queryKeys.research.topics(),
     queryFn: () => getJson("/api/research/topics"),
-    select: (json) => topicsResponseSchema.parse(json).topics,
+    select: (json) => topicsResponseSchema.parse(json),
     staleTime: 60 * 60 * 1000,
   });
 
   const scoped = useQuery({
     queryKey: queryKeys.research.topicsByDemo(demoId ?? ""),
     queryFn: () => getJson(`/api/research/topics?demo=${demoId}`),
-    select: (json) => topicsResponseSchema.parse(json).topics,
+    select: (json) => topicsResponseSchema.parse(json),
     staleTime: 60 * 60 * 1000,
     enabled: demoId !== null,
   });
@@ -927,8 +957,13 @@ function CountsPanel() {
     );
   }
 
-  const recentById = new Map((all.data ?? []).map((t) => [t.id, t.recent]));
-  const scopedById = new Map((scoped.data ?? []).map((t) => [t.id, t.recent]));
+  const window = all.data?.window ?? null;
+  const recentById = new Map(
+    (all.data?.topics ?? []).map((t) => [t.id, t.recent]),
+  );
+  const scopedById = new Map(
+    (scoped.data?.topics ?? []).map((t) => [t.id, t.recent]),
+  );
 
   const rows = TOPICS.map((topic) => ({
     topic,
@@ -945,7 +980,11 @@ function CountsPanel() {
   return (
     <div>
       <p className="mb-4 text-sm text-muted">
-        Papers published in the last five years, per topic.{" "}
+        Papers published{" "}
+        {window
+          ? `${window.fromYear}–${window.toYear}`
+          : "in the last five years"}
+        , per topic.{" "}
         <span className="hidden sm:inline">
           Sort fewest-first to put the thin topics on top, or pick a population
           to see how much of each topic actually studied those patients.

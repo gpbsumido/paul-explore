@@ -39,7 +39,8 @@ const esearchJson = (count: number, ids: string[] = []) => ({
 const countHandler = () =>
   http.get(ESEARCH, ({ request }) => {
     const term = new URL(request.url).searchParams.get("term") ?? "";
-    if (term.includes(TOPICS[0].query)) return HttpResponse.json(esearchJson(0));
+    if (term.includes(TOPICS[0].query))
+      return HttpResponse.json(esearchJson(0));
     if (term.includes("[dp]")) return HttpResponse.json(esearchJson(40));
     return HttpResponse.json(esearchJson(120));
   });
@@ -60,8 +61,15 @@ describe("GET /api/research/topics", () => {
     const first = body.topics.find(
       (t: { id: string }) => t.id === TOPICS[0].id,
     );
-    expect(first).toEqual({ id: TOPICS[0].id, total: 0, recent: 0, status: "none" });
-    const rest = body.topics.filter((t: { id: string }) => t.id !== TOPICS[0].id);
+    expect(first).toEqual({
+      id: TOPICS[0].id,
+      total: 0,
+      recent: 0,
+      status: "none",
+    });
+    const rest = body.topics.filter(
+      (t: { id: string }) => t.id !== TOPICS[0].id,
+    );
     rest.forEach((t: { status: string; total: number; recent: number }) => {
       expect(t).toMatchObject({ total: 120, recent: 40, status: "active" });
     });
@@ -324,9 +332,9 @@ describe("GET /api/research/discover", () => {
       recent: 4,
       status: "sparse",
     });
-    expect(
-      body.topics.some((t: { name: string }) => t.name === "Humans"),
-    ).toBe(false);
+    expect(body.topics.some((t: { name: string }) => t.name === "Humans")).toBe(
+      false,
+    );
   });
 
   it("502s when Europe PMC cannot be reached for the discovery scan", async () => {
@@ -411,5 +419,39 @@ describe("GET /api/research/demographics?window=", () => {
       ),
     );
     expect(terms.some((t) => /\[dp\]/.test(t))).toBe(false);
+  });
+});
+
+describe("data coverage is reported, not implied", () => {
+  it("topics says which years the recent count covers", async () => {
+    const res = await topicsGET(
+      new NextRequest("http://localhost/api/research/topics"),
+    );
+    const body = await res.json();
+    const thisYear = new Date().getFullYear();
+    expect(body.window).toEqual({ fromYear: thisYear - 5, toYear: thisYear });
+  });
+
+  it("demographics reports the window it actually applied", async () => {
+    const res = await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}&window=5`,
+      ),
+    );
+    const body = await res.json();
+    expect(body.window).toEqual({
+      fromYear: new Date().getFullYear() - 5,
+      toYear: new Date().getFullYear(),
+    });
+  });
+
+  it("demographics reports no window when counting all of time", async () => {
+    const res = await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}`,
+      ),
+    );
+    const body = await res.json();
+    expect(body.window).toBeNull();
   });
 });

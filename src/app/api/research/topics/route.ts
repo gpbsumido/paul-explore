@@ -32,7 +32,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (demoId) {
     const facet = DEMOGRAPHICS.find((d) => d.id === demoId);
     if (!facet) {
-      return NextResponse.json({ error: "Unknown demographic" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Unknown demographic" },
+        { status: 400 },
+      );
     }
     scope = ` AND (${facet.clause})`;
   }
@@ -57,7 +60,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   });
 
   return NextResponse.json(
-    { topics },
+    // The window is reported rather than left for the UI to infer, so "recent"
+    // always names the actual years it counted.
+    { topics, window: { fromYear, toYear: new Date().getFullYear() } },
     { headers: { "Cache-Control": CACHE_CONTROL } },
   );
 }

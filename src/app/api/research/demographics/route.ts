@@ -33,7 +33,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const windowRaw = request.nextUrl.searchParams.get("window");
   const windowYears = windowRaw === null ? null : Number(windowRaw);
-  if (windowYears !== null && (!Number.isFinite(windowYears) || windowYears <= 0)) {
+  if (
+    windowYears !== null &&
+    (!Number.isFinite(windowYears) || windowYears <= 0)
+  ) {
     return NextResponse.json({ error: "Invalid window" }, { status: 400 });
   }
   const fromYear =
@@ -52,7 +55,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }));
 
   return NextResponse.json(
-    { facets },
+    {
+      facets,
+      window:
+        fromYear === null
+          ? null
+          : { fromYear, toYear: new Date().getFullYear() },
+    },
     { headers: { "Cache-Control": CACHE_CONTROL } },
   );
 }

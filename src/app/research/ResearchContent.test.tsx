@@ -10,7 +10,10 @@ import ResearchContent from "./ResearchContent";
 /** Requests the page made, so tests can assert the query contract. */
 const seen = { topics: 0, publicationUrls: [] as string[] };
 
+const THIS_YEAR = new Date().getFullYear();
+
 const topicsPayload = () => ({
+  window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
   topics: TOPICS.map((t, i) => {
     if (i === 0) return { id: t.id, total: 0, recent: 0, status: "none" };
     if (i === 1) return { id: t.id, total: 12, recent: 4, status: "sparse" };
@@ -300,6 +303,7 @@ describe("ResearchContent counts", () => {
         const demo = new URL(request.url).searchParams.get("demo");
         if (!demo) return HttpResponse.json(topicsPayload());
         return HttpResponse.json({
+          window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
           topics: TOPICS.map((t) => ({
             id: t.id,
             total: 1,
@@ -396,5 +400,37 @@ describe("ResearchContent on a phone", () => {
       "Demographics",
       "Sources",
     ]);
+  });
+});
+
+describe("ResearchContent data coverage", () => {
+  it("names the years the counts cover instead of just saying 5 years", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+    const thisYear = new Date().getFullYear();
+    expect(
+      await screen.findByText(
+        new RegExp(`${thisYear - 5}\\s*[–-]\\s*${thisYear}`),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says how far back a publication list actually reaches", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: /Topic paper/ });
+    // The date also appears on the paper's own meta line, so assert on the
+    // coverage line specifically: it must name the oldest paper on screen.
+    expect(screen.getByText(/oldest shown: 2026 Feb/i)).toBeInTheDocument();
+    expect(screen.getByText(/across all years/i)).toBeInTheDocument();
+  });
+
+  it("says the all-time column really is all of PubMed", async () => {
+    renderPage();
+    expect(await screen.findByText(/all years indexed/i)).toBeInTheDocument();
   });
 });

@@ -178,8 +178,15 @@ export function parsePublications(json: unknown): Publication[] {
   });
 }
 
+/** The years a count actually covers, so the UI never has to guess. */
+export const windowSchema = z.object({
+  fromYear: z.number(),
+  toYear: z.number(),
+});
+
 /** Response shapes of the /api/research routes, parsed on the client at the trust boundary. */
 export const topicsResponseSchema = z.object({
+  window: windowSchema.nullable().default(null),
   topics: z.array(
     z.object({
       id: z.string(),
@@ -214,5 +221,6 @@ export const discoverResponseSchema = z.object({
 });
 
 export const demographicsResponseSchema = z.object({
+  window: windowSchema.nullable().default(null),
   facets: z.array(z.object({ id: z.string(), count: z.number() })),
 });
