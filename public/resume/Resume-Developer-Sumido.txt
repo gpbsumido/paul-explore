@@ -20,8 +20,8 @@ production-ready experiences.
 SKILLS
 ============================================================
 Languages:              TypeScript, JavaScript (ES2023), HTML5, CSS3 / Sass, Python, SQL
-Frameworks & UI:        React 19, Next.js, Angular 21 (signals, zoneless, SSR), Redux,
-                        Zustand, TanStack Query, MUI, Tailwind, Framer Motion, GSAP
+Frameworks & UI:        React 19, Next.js, Angular 21, Redux, Zustand, TanStack
+                        Query, MUI, Tailwind, Framer Motion, GSAP
 Design Systems:         Design tokens, CSS custom properties, component library
                         architecture, Storybook, Figma, WCAG accessibility
 Data & Viz:             Custom SVG charting, ECharts, Recharts, Chart.js, ag-Grid,
@@ -39,10 +39,9 @@ EXPERIENCE
 Helika - Senior Software Developer (Frontend Lead)          Jun 2023 - Feb 2026
 Web3 gaming-analytics SaaS | Calgary (Remote)
 - Led frontend development of Helika's enterprise gaming-analytics platform as
-  top contributor across its core apps: 456 of 829 commits (~55%) on the
-  ~100K-line analytics portal and 2,300+ commits on the ~93K-line AI content
-  platform, shipping 170+ tracked feature tickets in React, Next.js, and
-  TypeScript.
+  top contributor, building a reusable 15-component charting library powering
+  game, web, and on-chain dashboards of 20+ visualizations each in React,
+  Next.js, and TypeScript.
 - Designed and shipped Helika AI, a production conversational analytics
   assistant clients use to query game data in natural language and receive
   live, interactive artifacts - charts, dashboards, leaderboards, config
@@ -51,11 +50,10 @@ Web3 gaming-analytics SaaS | Calgary (Remote)
   the UI swap a single chat endpoint for a session-scoped multi-agent backend
   without a rewrite.
 - Built the portal's drag-and-drop Dashboard and Visual Designer (ECharts,
-  ag-Grid, gridstack) and a reusable 15-component charting library powering
-  game, web, and on-chain dashboards of 20+ visualizations each, serving
-  studios including Nexon.
-- Drove portal-wide performance work: rewrote the 3,600-line API/query layer
-  in a 107-file refactor with a net code reduction, built a data-service
+  ag-Grid, gridstack) powering game, web, and on-chain dashboards, serving
+  multiple enterprise studios.
+- Drove portal-wide performance work: rewrote the API/query layer in a large
+  refactor with a net code reduction of over 15%, built a data-service
   cache-busting system, eliminated redundant network calls, and modularized
   monolithic components.
 - Hardened the product with response streaming, Auth0 authentication, and
@@ -78,6 +76,8 @@ Enterprise HR analytics | Ottawa
 - Developed survey-driven data-collection workflows with validation logic and
   automated testing, and automated data-processing pipelines that reduced
   manual effort and improved data quality.
+- Reduced data-analytics QA time by 80% through automated verification
+  queries.
 
 ============================================================
 OPEN SOURCE
