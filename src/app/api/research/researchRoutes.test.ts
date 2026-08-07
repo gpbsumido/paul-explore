@@ -6,9 +6,30 @@ import { TOPICS, DEMOGRAPHICS } from "@/lib/research/data";
 import { GET as topicsGET } from "./topics/route";
 import { GET as publicationsGET } from "./publications/route";
 import { GET as demographicsGET } from "./demographics/route";
+import { GET as discoverGET } from "./discover/route";
 
 const ESEARCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi";
 const ESUMMARY = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi";
+const EPMC = "https://www.ebi.ac.uk/europepmc/webservices/rest/search";
+
+/** Europe PMC contributes a second, non-duplicate paper unless a test says otherwise. */
+const epmcHandler = (
+  body: unknown = {
+    hitCount: 1,
+    resultList: {
+      result: [
+        {
+          id: "PPR1",
+          source: "PPR",
+          doi: "10.1000/preprint.1",
+          title: "A vascular preprint.",
+          authorString: "Ng K.",
+          firstPublicationDate: "2026-03-02",
+        },
+      ],
+    },
+  },
+) => http.get(EPMC, () => HttpResponse.json(body));
 
 const esearchJson = (count: number, ids: string[] = []) => ({
   esearchresult: { count: String(count), idlist: ids },
@@ -23,7 +44,7 @@ const countHandler = () =>
     return HttpResponse.json(esearchJson(120));
   });
 
-beforeEach(() => server.use(countHandler()));
+beforeEach(() => server.use(countHandler(), epmcHandler()));
 
 describe("GET /api/research/topics", () => {
   it("returns an evidence status for every curated topic with a day-long cache", async () => {
@@ -95,29 +116,96 @@ describe("GET /api/research/publications", () => {
     );
     const body = await res.json();
     expect(body.total).toBe(1);
-    expect(body.publications).toEqual([
-      {
-        id: "11",
-        title: "Limb salvage in dialysis patients.",
-        journal: "Annals of Vascular Surgery",
-        pubDate: "2026 Jan",
-        authors: ["Doe A"],
-        doi: "10.1000/avs.11",
-        url: "https://pubmed.ncbi.nlm.nih.gov/11/",
-        source: "pubmed",
-      },
-    ]);
+    expect(body.publications).toContainEqual({
+      id: "11",
+      title: "Limb salvage in dialysis patients.",
+      journal: "Annals of Vascular Surgery",
+      pubDate: "2026 Jan",
+      authors: ["Doe A"],
+      doi: "10.1000/avs.11",
+      url: "https://pubmed.ncbi.nlm.nih.gov/11/",
+      source: "pubmed",
+    });
   });
 
-  it("skips the summary call and returns an empty list when nothing matches", async () => {
-    server.use(http.get(ESEARCH, () => HttpResponse.json(esearchJson(0))));
+  it("merges in Europe PMC results the PubMed index does not carry", async () => {
+    server.use(
+      http.get(ESEARCH, () => HttpResponse.json(esearchJson(1, ["11"]))),
+      summaryHandler,
+    );
+    const res = await publicationsGET(
+      new NextRequest(
+        `http://localhost/api/research/publications?topic=${TOPICS[0].id}`,
+      ),
+    );
+    const body = await res.json();
+    expect(body.publications.map((p: { source: string }) => p.source)).toEqual([
+      "pubmed",
+      "europepmc",
+    ]);
+    expect(body.sources).toEqual(["pubmed", "europepmc"]);
+  });
+
+  it("drops the Europe PMC copy of a paper PubMed already returned", async () => {
+    server.use(
+      http.get(ESEARCH, () => HttpResponse.json(esearchJson(1, ["11"]))),
+      summaryHandler,
+      epmcHandler({
+        hitCount: 1,
+        resultList: {
+          result: [
+            {
+              id: "MED11",
+              source: "MED",
+              doi: "10.1000/avs.11",
+              title: "Limb salvage in dialysis patients.",
+              firstPublicationDate: "2026-01-04",
+            },
+          ],
+        },
+      }),
+    );
+    const res = await publicationsGET(
+      new NextRequest(
+        `http://localhost/api/research/publications?topic=${TOPICS[0].id}`,
+      ),
+    );
+    const body = await res.json();
+    expect(body.publications).toHaveLength(1);
+    expect(body.publications[0].source).toBe("pubmed");
+  });
+
+  it("still serves PubMed results when Europe PMC is down", async () => {
+    server.use(
+      http.get(ESEARCH, () => HttpResponse.json(esearchJson(1, ["11"]))),
+      summaryHandler,
+      http.get(EPMC, () => HttpResponse.error()),
+    );
     const res = await publicationsGET(
       new NextRequest(
         `http://localhost/api/research/publications?topic=${TOPICS[0].id}`,
       ),
     );
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ total: 0, publications: [] });
+    const body = await res.json();
+    expect(body.publications).toHaveLength(1);
+    expect(body.sources).toEqual(["pubmed"]);
+  });
+
+  it("skips the summary call and still returns an empty list when nothing matches", async () => {
+    server.use(
+      http.get(ESEARCH, () => HttpResponse.json(esearchJson(0))),
+      epmcHandler({ hitCount: 0, resultList: { result: [] } }),
+    );
+    const res = await publicationsGET(
+      new NextRequest(
+        `http://localhost/api/research/publications?topic=${TOPICS[0].id}`,
+      ),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.total).toBe(0);
+    expect(body.publications).toEqual([]);
   });
 
   it("502s when PubMed is down instead of rendering an empty state", async () => {
@@ -163,5 +251,72 @@ describe("GET /api/research/demographics", () => {
       new NextRequest("http://localhost/api/research/demographics?topic=nope"),
     );
     expect(res.status).toBe(400);
+  });
+});
+
+describe("GET /api/research/discover", () => {
+  const meshPayload = {
+    hitCount: 2,
+    resultList: {
+      result: [
+        {
+          id: "a",
+          source: "MED",
+          title: "One.",
+          meshHeadingList: {
+            meshHeading: [
+              { descriptorName: "Humans" },
+              { descriptorName: "Sarcopenia" },
+            ],
+          },
+        },
+        {
+          id: "b",
+          source: "MED",
+          title: "Two.",
+          meshHeadingList: {
+            meshHeading: [
+              { descriptorName: "Aged" },
+              { descriptorName: "Sarcopenia" },
+            ],
+          },
+        },
+      ],
+    },
+  };
+
+  it("derives topics from recent MeSH headings and scores them against PubMed", async () => {
+    server.use(
+      epmcHandler(meshPayload),
+      http.get(ESEARCH, ({ request }) => {
+        const term = new URL(request.url).searchParams.get("term") ?? "";
+        return HttpResponse.json(esearchJson(term.includes("[dp]") ? 4 : 12));
+      }),
+    );
+    const res = await discoverGET();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Cache-Control")).toBe(
+      "public, s-maxage=86400, stale-while-revalidate=604800",
+    );
+    const body = await res.json();
+    expect(body.topics.length).toBeGreaterThan(0);
+    const sarcopenia = body.topics.find(
+      (t: { name: string }) => t.name === "Sarcopenia",
+    );
+    expect(sarcopenia).toMatchObject({
+      id: "mesh-sarcopenia",
+      total: 12,
+      recent: 4,
+      status: "sparse",
+    });
+    expect(
+      body.topics.some((t: { name: string }) => t.name === "Humans"),
+    ).toBe(false);
+  });
+
+  it("502s when Europe PMC cannot be reached for the discovery scan", async () => {
+    server.use(http.get(EPMC, () => HttpResponse.error()));
+    const res = await discoverGET();
+    expect(res.status).toBe(502);
   });
 });

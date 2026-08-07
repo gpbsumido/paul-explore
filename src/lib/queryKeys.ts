@@ -171,6 +171,29 @@ export const queryKeys = {
       ["operator", "sales-analytics", granularity, timeZone] as const,
   },
 
+  research: {
+    /**
+     * Evidence scan across every curated vascular topic. One key, because the
+     * scan is all-or-nothing and Refresh invalidates exactly this.
+     */
+    topics: () => ["research", "topics"] as const,
+
+    /**
+     * Recent publications for a topic or journal, narrowed by demographic
+     * facets. Every filter combination is its own cache entry, so toggling a
+     * facet off returns to an already-fetched list instantly.
+     */
+    publications: (params: {
+      topicId?: string;
+      journalId?: string;
+      demoIds: string[];
+    }) => ["research", "publications", params] as const,
+
+    /** Per-facet literature counts, scoped to a topic or the whole field. */
+    demographics: (topicId?: string) =>
+      ["research", "demographics", topicId ?? "all"] as const,
+  },
+
   flags: {
     /** All feature flags and their per-environment config. */
     list: () => ["flags", "list"] as const,

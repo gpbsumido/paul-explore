@@ -39,6 +39,15 @@ export const FEATURES: FeatureItem[] = [
     thoughtsHref: "/thoughts/design-system-showcase",
   },
   {
+    id: "research",
+    title: "Research Explorer",
+    description:
+      "A tool for picking a vascular surgery research project: curated topics scored live against PubMed, recent papers with links, journal browsing, and the demographic gaps in who the existing studies actually enrolled.",
+    href: "/research",
+    color: "#14b8a6",
+    thoughtsHref: "/thoughts/research-explorer",
+  },
+  {
     id: "flags",
     title: "Feature Flags",
     description:
@@ -139,6 +148,13 @@ export const FEATURES: FeatureItem[] = [
 
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "Research Explorer",
+    href: "/thoughts/research-explorer",
+    preview:
+      "Finding a research topic by measuring the literature: PubMed counts as evidence levels, a curated query layer, and demographic coverage as the gap finder",
+    color: "#14b8a6",
+  },
   {
     title: "TypeScript 7",
     href: "/thoughts/typescript-7",
