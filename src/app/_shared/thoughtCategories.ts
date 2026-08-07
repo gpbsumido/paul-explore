@@ -55,6 +55,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
     slugs: [
       "graphql",
       "routing",
+      "hybrid-rendering",
       "improvements",
       "api-backend-overhaul",
       "login-redirect",
