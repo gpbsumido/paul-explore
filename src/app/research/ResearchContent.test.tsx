@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -10,7 +10,10 @@ import ResearchContent from "./ResearchContent";
 /** Requests the page made, so tests can assert the query contract. */
 const seen = { topics: 0, publicationUrls: [] as string[] };
 
+const THIS_YEAR = new Date().getFullYear();
+
 const topicsPayload = () => ({
+  window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
   topics: TOPICS.map((t, i) => {
     if (i === 0) return { id: t.id, total: 0, recent: 0, status: "none" };
     if (i === 1) return { id: t.id, total: 12, recent: 4, status: "sparse" };
@@ -259,5 +262,410 @@ describe("ResearchContent sources panel", () => {
     expect(
       screen.queryByRole("button", { name: new RegExp(JOURNALS[0].name) }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent counts", () => {
+  const openCounts = async (user: ReturnType<typeof userEvent.setup>) => {
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+  };
+
+  it("lists topics with how many papers each has in the last 5 years", async () => {
+    const user = userEvent.setup();
+    await openCounts(user);
+    expect(await screen.findByText(TOPICS[1].name)).toBeInTheDocument();
+    // TOPICS[1] is seeded with recent: 4, TOPICS[0] with recent: 0.
+    expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText("0")).toBeInTheDocument();
+  });
+
+  it("sorts fewest-first so the thin topics surface", async () => {
+    const user = userEvent.setup();
+    await openCounts(user);
+    await screen.findByText(TOPICS[1].name);
+    await user.click(screen.getByRole("button", { name: /Fewest/ }));
+    const names = screen
+      .getAllByRole("button", { name: /papers in the last 5 years/ })
+      .map((b) => b.textContent ?? "");
+    expect(names[0]).toContain(TOPICS[0].name);
+
+    // Most topics tie at 40 recent papers, so which one lands last is
+    // arbitrary. The contract that matters is that counts never decrease.
+    const counts = names.map((n) => Number(n.match(/(\d+)papers/)?.[1] ?? -1));
+    expect(counts).toEqual([...counts].sort((a, b) => a - b));
+  });
+
+  it("shows the count and share within a chosen population", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/topics", ({ request }) => {
+        const demo = new URL(request.url).searchParams.get("demo");
+        if (!demo) return HttpResponse.json(topicsPayload());
+        return HttpResponse.json({
+          window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
+          topics: TOPICS.map((t) => ({
+            id: t.id,
+            total: 1,
+            recent: 1,
+            status: "sparse",
+          })),
+        });
+      }),
+    );
+    await openCounts(user);
+    await screen.findByText(TOPICS[1].name);
+    await user.click(
+      screen.getByRole("button", { name: DEMOGRAPHICS[0].label }),
+    );
+
+    // TOPICS[1] has 4 recent papers unfiltered and 1 in this population.
+    // Scoped to its own row, because "1 of 40 · 3%" on other rows also
+    // contains the substring "1 of 4".
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    expect(row).not.toBeNull();
+    expect(await within(row!).findByText("1 of 4 · 25%")).toBeInTheDocument();
+  });
+
+  it("expands a topic to show its demographic split", async () => {
+    const user = userEvent.setup();
+    await openCounts(user);
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+
+    // "Women" is also a filter chip above the list, so scope to this row.
+    expect(
+      await within(row!).findByText(/how many papers include each/),
+    ).toBeInTheDocument();
+    expect(within(row!).getByText(DEMOGRAPHICS[0].label)).toBeInTheDocument();
+  });
+
+  it("asks for the split over the same 5-year window the column shows", async () => {
+    const user = userEvent.setup();
+    const urls: string[] = [];
+    server.use(
+      http.get("/api/research/demographics", ({ request }) => {
+        urls.push(request.url);
+        return HttpResponse.json({
+          facets: DEMOGRAPHICS.map((d) => ({ id: d.id, count: 3 })),
+        });
+      }),
+    );
+    await openCounts(user);
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+    await within(row!).findByText(/how many papers include each/);
+    expect(new URL(urls.at(-1) ?? "").searchParams.get("window")).toBe("5");
+  });
+
+  it("renders real characters, not escape sequences, in the loading note", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/topics", async ({ request }) => {
+        if (new URL(request.url).searchParams.get("demo")) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
+        return HttpResponse.json(topicsPayload());
+      }),
+    );
+    await openCounts(user);
+    await screen.findByText(TOPICS[1].name);
+    await user.click(
+      screen.getByRole("button", { name: DEMOGRAPHICS[0].label }),
+    );
+
+    // A \uXXXX escape is only interpreted inside a string literal. Written as
+    // JSX text it renders verbatim, which is how "topic\u2026" shipped.
+    expect(document.body.textContent ?? "").not.toMatch(/\\u[0-9a-fA-F]{4}/);
+  });
+});
+
+describe("ResearchContent on a phone", () => {
+  it("wraps the tab row so no tab is pushed off screen", async () => {
+    renderPage();
+    const tablist = await screen.findByRole("tablist");
+    expect(tablist.className).toContain("flex-wrap");
+  });
+
+  it("keeps every tab reachable", async () => {
+    renderPage();
+    const labels = (await screen.findAllByRole("tab")).map(
+      (t) => t.textContent,
+    );
+    expect(labels).toEqual([
+      "Topics",
+      "Counts",
+      "Discovered",
+      "Journals",
+      "Demographics",
+      "Sources",
+    ]);
+  });
+});
+
+describe("ResearchContent data coverage", () => {
+  it("names the years the counts cover instead of just saying 5 years", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+    const thisYear = new Date().getFullYear();
+    expect(
+      await screen.findByText(
+        new RegExp(`${thisYear - 5}\\s*[–-]\\s*${thisYear}`),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says how far back a publication list actually reaches", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: /Topic paper/ });
+    // The date also appears on the paper's own meta line, so assert on the
+    // coverage line specifically: it must name the oldest paper on screen.
+    expect(screen.getByText(/oldest shown: 2026 Feb/i)).toBeInTheDocument();
+    expect(screen.getByText(/across all years/i)).toBeInTheDocument();
+  });
+
+  it("says the all-time column really is all of PubMed", async () => {
+    renderPage();
+    expect(await screen.findByText(/all years indexed/i)).toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent loading is never mistaken for data", () => {
+  it("says the demographics scan is running instead of showing empty bars", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/demographics", async () => {
+        await new Promise((r) => setTimeout(r, 600));
+        return HttpResponse.json({
+          window: null,
+          facets: DEMOGRAPHICS.map((d) => ({ id: d.id, count: 7 })),
+        });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+
+    // A zero here is a real finding, so a scan in progress must not look like
+    // one: it says so in words, and hides the counts until they are real.
+    expect(await screen.findByText(/counting across/i)).toBeInTheDocument();
+    expect(screen.queryByText("7")).not.toBeInTheDocument();
+
+    expect(await screen.findAllByText("7")).not.toHaveLength(0);
+    expect(screen.queryByText(/counting across/i)).not.toBeInTheDocument();
+  });
+
+  it("says a topic's split is still counting", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/demographics", async () => {
+        await new Promise((r) => setTimeout(r, 600));
+        return HttpResponse.json({
+          window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
+          facets: DEMOGRAPHICS.map((d) => ({ id: d.id, count: 3 })),
+        });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+    expect(
+      await within(row!).findByText(/counting across/i),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent demographic drill-in", () => {
+  it("opens a population on the Demographics tab to the research beneath it", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+    const row = (await screen.findByText(DEMOGRAPHICS[0].label)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+
+    // The papers appear inside that population's own row, not elsewhere.
+    // The stub titles a demo-scoped list "Filtered paper".
+    expect(
+      await within(row!).findByRole("link", { name: /Filtered paper/ }),
+    ).toBeInTheDocument();
+    const last = seen.publicationUrls.at(-1) ?? "";
+    expect(new URL(last).searchParams.get("demo")).toBe(DEMOGRAPHICS[0].id);
+  });
+
+  it("scopes that research to the open topic when there is one", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: /Topic paper/ });
+    await user.click(screen.getByRole("tab", { name: "Demographics" }));
+    const row = (await screen.findByText(DEMOGRAPHICS[0].label)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+    await within(row!).findByRole("link", { name: /Filtered paper/ });
+    const last = new URL(seen.publicationUrls.at(-1) ?? "");
+    expect(last.searchParams.get("topic")).toBe(TOPICS[1].id);
+    expect(last.searchParams.get("demo")).toBe(DEMOGRAPHICS[0].id);
+  });
+});
+
+describe("ResearchContent filters that lead nowhere", () => {
+  it("disables the populations that would return no papers", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/demographics", () =>
+        HttpResponse.json({
+          window: null,
+          facets: DEMOGRAPHICS.map((d, i) => ({
+            id: d.id,
+            // Everything past the first two combines to nothing.
+            count: i < 2 ? 5 : 0,
+          })),
+        }),
+      ),
+    );
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await user.click(
+      await screen.findByRole("checkbox", { name: DEMOGRAPHICS[0].label }),
+    );
+
+    // Labels like "Older adults (65+)" are not regex-safe, so match by prefix.
+    const byLabel = (label: string) => (name: string) => name.startsWith(label);
+
+    await screen.findByRole("checkbox", {
+      name: byLabel(DEMOGRAPHICS[2].label),
+    });
+    expect(
+      screen.getByRole("checkbox", { name: byLabel(DEMOGRAPHICS[2].label) }),
+    ).toBeDisabled();
+    // The one still worth picking stays enabled.
+    expect(
+      screen.getByRole("checkbox", { name: DEMOGRAPHICS[1].label }),
+    ).toBeEnabled();
+  });
+
+  it("never disables a population before anything is chosen", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    const boxes = await screen.findAllByRole("checkbox");
+    boxes.forEach((b) => expect(b).toBeEnabled());
+  });
+});
+
+describe("ResearchContent publication paging", () => {
+  const manyPapers = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      id: String(100 + i),
+      title: `Paper number ${i + 1}`,
+      journal: "Journal of Vascular Surgery",
+      pubDate: "2026 Feb",
+      authors: ["Smith J"],
+      doi: null,
+      url: `https://pubmed.ncbi.nlm.nih.gov/${100 + i}/`,
+      source: "pubmed",
+    }));
+
+  beforeEach(() => {
+    server.use(
+      http.get("/api/research/publications", () =>
+        HttpResponse.json({
+          total: 20,
+          publications: manyPapers(20),
+          sources: ["pubmed"],
+        }),
+      ),
+    );
+  });
+
+  it("shows five papers under a population before asking for more", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+    const row = (await screen.findByText(DEMOGRAPHICS[0].label)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+
+    expect(
+      await within(row!).findByRole("link", { name: "Paper number 5" }),
+    ).toBeInTheDocument();
+    expect(
+      within(row!).queryByRole("link", { name: "Paper number 6" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("reveals the rest on request, and says how many are left", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+    const row = (await screen.findByText(DEMOGRAPHICS[0].label)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+    await within(row!).findByRole("link", { name: "Paper number 5" });
+
+    await user.click(within(row!).getByRole("button", { name: /Show 5 more/ }));
+    expect(
+      await within(row!).findByRole("link", { name: "Paper number 10" }),
+    ).toBeInTheDocument();
+    expect(
+      within(row!).queryByRole("link", { name: "Paper number 11" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("stops offering more once everything is shown", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: "Paper number 1" });
+
+    // A topic list opens at twenty, which is everything the route returns.
+    expect(
+      screen.queryByRole("button", { name: /Show \d+ more/ }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent counts what it is actually showing", () => {
+  it("never claims a total smaller than the list beneath it", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/publications", () =>
+        HttpResponse.json({
+          // PubMed matched 5; Europe PMC contributed 3 more it doesn't index.
+          total: 5,
+          publications: Array.from({ length: 8 }, (_, i) => ({
+            id: String(i),
+            title: `Paper ${i + 1}`,
+            journal: "J",
+            pubDate: "2026 Feb",
+            authors: [],
+            doi: null,
+            url: `https://pubmed.ncbi.nlm.nih.gov/${i}/`,
+            source: i < 5 ? "pubmed" : "europepmc",
+          })),
+          sources: ["pubmed", "europepmc"],
+        }),
+      ),
+    );
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: "Paper 1" });
+
+    // "5 matching papers" above eight rows was simply wrong: the total counted
+    // PubMed only while the list merged both sources.
+    expect(screen.getByText(/showing 8 of 8/i)).toBeInTheDocument();
+    expect(screen.queryByText(/^5 matching/)).not.toBeInTheDocument();
   });
 });

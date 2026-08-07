@@ -6,6 +6,7 @@ import {
   mergePublications,
   GENERIC_MESH,
   toEuropePmcQuery,
+  pubDateOrder,
 } from "./europepmc";
 import type { Publication } from "./pubmed";
 
@@ -115,7 +116,12 @@ describe("mergePublications", () => {
         },
       }),
     );
-    expect(merged.map((p) => p.source)).toEqual(["pubmed", "europepmc"]);
+    // Order is by date now, not by source, so assert on membership.
+    expect(merged).toHaveLength(2);
+    expect(merged.map((p) => p.source).sort()).toEqual([
+      "europepmc",
+      "pubmed",
+    ]);
   });
 });
 
@@ -195,9 +201,12 @@ describe("topic discovery from MeSH headings", () => {
 });
 
 describe("toEuropePmcQuery", () => {
-  it("strips PubMed field tags Europe PMC does not understand", () => {
+  it("searches title and abstract rather than whole documents", () => {
+    // Bare terms hit Europe PMC's full text, so ANDing common words like
+    // "screening" and "female" matched anything that mentions them anywhere --
+    // knee arthroplasty and hepatitis papers turned up under AAA screening.
     expect(toEuropePmcQuery('("frailty"[mh] OR frail[tiab])')).toBe(
-      '("frailty" OR frail)',
+      '(TITLE:"frailty" OR ABSTRACT:"frailty" OR TITLE:"frail" OR ABSTRACT:"frail")',
     );
   });
 
@@ -208,13 +217,19 @@ describe("toEuropePmcQuery", () => {
   });
 
   it("leaves a date clause out rather than sending PubMed syntax", () => {
-    expect(toEuropePmcQuery("(aaa) AND 2021:3000[dp]")).toBe("(aaa)");
+    expect(toEuropePmcQuery("(aaa[tiab]) AND 2021:3000[dp]")).toBe(
+      '(TITLE:"aaa" OR ABSTRACT:"aaa")',
+    );
   });
 
-  it("keeps a compound topic-plus-demographic query intact", () => {
+  it("keeps the AND structure between groups", () => {
     expect(toEuropePmcQuery('("aortic aneurysm"[mh]) AND ("female"[mh])')).toBe(
-      '("aortic aneurysm") AND ("female")',
+      '(TITLE:"aortic aneurysm" OR ABSTRACT:"aortic aneurysm") AND (TITLE:"female" OR ABSTRACT:"female")',
     );
+  });
+
+  it("returns null when nothing survives translation", () => {
+    expect(toEuropePmcQuery("2021:3000[dp]")).toBeNull();
   });
 });
 
@@ -282,5 +297,85 @@ describe("discovery quality", () => {
       "Animals",
       "Randomized Controlled Trials as Topic",
     ].forEach((t) => expect(GENERIC_MESH.has(t)).toBe(true));
+  });
+});
+
+describe("merged lists read the way they claim to", () => {
+  const pub = (over: Partial<Publication>): Publication => ({
+    id: "x",
+    title: "A paper.",
+    journal: "J",
+    pubDate: "2020 Jan",
+    authors: [],
+    doi: null,
+    url: "u",
+    source: "pubmed",
+    ...over,
+  });
+
+  it("orders the merged list newest first across both sources", () => {
+    const merged = mergePublications(
+      [
+        pub({ id: "a", doi: "1", title: "Paper A.", pubDate: "2024 Dec" }),
+        pub({ id: "b", doi: "2", title: "Paper B.", pubDate: "2004 Nov" }),
+      ],
+      [
+        pub({
+          id: "c",
+          doi: "3",
+          title: "Paper C.",
+          pubDate: "2026-06-23",
+          source: "europepmc",
+        }),
+        pub({
+          id: "d",
+          doi: "4",
+          title: "Paper D.",
+          pubDate: "2016 Mar",
+          source: "europepmc",
+        }),
+      ],
+    );
+    expect(merged.map((p) => p.id)).toEqual(["c", "a", "d", "b"]);
+  });
+
+  it("understands the date shapes the two sources actually emit", () => {
+    expect(pubDateOrder("2026-06-23")).toBeGreaterThan(
+      pubDateOrder("2026 Feb"),
+    );
+    expect(pubDateOrder("2026 Feb")).toBeGreaterThan(pubDateOrder("2025"));
+    expect(pubDateOrder("2004 Nov")).toBeGreaterThan(pubDateOrder("1998 Jan"));
+    expect(pubDateOrder("")).toBe(0);
+  });
+
+  it("strips the markup Europe PMC leaves in titles", () => {
+    const [p] = parseEuropePmcSearch({
+      hitCount: 1,
+      resultList: {
+        result: [
+          {
+            id: "1",
+            source: "MED",
+            title:
+              "Gut dysbiosis via &lt;i&gt;Escherichia coli&lt;/i&gt;-driven neutrophils.",
+          },
+        ],
+      },
+    });
+    expect(p.title).toBe(
+      "Gut dysbiosis via Escherichia coli-driven neutrophils.",
+    );
+  });
+
+  it("strips real tags too, not just escaped ones", () => {
+    const [p] = parseEuropePmcSearch({
+      hitCount: 1,
+      resultList: {
+        result: [
+          { id: "1", source: "MED", title: "A <i>Klebsiella</i> study." },
+        ],
+      },
+    });
+    expect(p.title).toBe("A Klebsiella study.");
   });
 });

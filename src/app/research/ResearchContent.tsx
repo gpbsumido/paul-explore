@@ -24,10 +24,12 @@ import {
   type TopicEvidence,
 } from "@/lib/research/pubmed";
 
-type Tab = "topics" | "discovered" | "journals" | "demographics" | "sources";
+type Tab =
+  "topics" | "counts" | "discovered" | "journals" | "demographics" | "sources";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "topics", label: "Topics" },
+  { id: "counts", label: "Counts" },
   { id: "discovered", label: "Discovered" },
   { id: "journals", label: "Journals" },
   { id: "demographics", label: "Demographics" },
@@ -37,6 +39,7 @@ const TABS: { id: Tab; label: string }[] = [
 const STATUS_LABEL: Record<EvidenceStatus, string> = {
   none: "No research yet",
   sparse: "Sparse",
+  emerging: "Emerging",
   active: "Active",
 };
 
@@ -46,6 +49,7 @@ const STATUS_STYLE: Record<EvidenceStatus, string> = {
   none: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
   sparse:
     "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  emerging: "border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-300",
   active: "border-border bg-surface text-muted",
 };
 
@@ -72,13 +76,14 @@ export default function ResearchContent() {
   const topicsQuery = useQuery({
     queryKey: queryKeys.research.topics(),
     queryFn: () => getJson("/api/research/topics"),
-    select: (json) => topicsResponseSchema.parse(json).topics,
+    select: (json) => topicsResponseSchema.parse(json),
     staleTime: 60 * 60 * 1000,
   });
 
   const evidenceById = new Map<string, TopicEvidence>(
-    (topicsQuery.data ?? []).map((t) => [t.id, t]),
+    (topicsQuery.data?.topics ?? []).map((t) => [t.id, t]),
   );
+  const window = topicsQuery.data?.window ?? null;
 
   const toggleDemo = (id: string) =>
     setDemoIds((current) =>
@@ -97,27 +102,32 @@ export default function ResearchContent() {
           <h1 className="text-2xl font-bold text-foreground">
             Vascular research explorer
           </h1>
+          {/* The provenance sentence matters, but on a phone it pushed the
+              first real number below the fold. Kept for tablets and up. */}
           <p className="mt-1 max-w-2xl text-sm text-muted">
             Candidate project topics scored against the literature that already
-            exists. Evidence levels come live from{" "}
-            <a
-              className="underline hover:text-foreground"
-              href="https://pubmed.ncbi.nlm.nih.gov/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              PubMed
-            </a>{" "}
-            via the NCBI E-utilities API; publication lists add{" "}
-            <a
-              className="underline hover:text-foreground"
-              href="https://europepmc.org/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Europe PMC
-            </a>{" "}
-            for preprints and records PubMed doesn&apos;t carry.
+            exists.{" "}
+            <span className="hidden sm:inline">
+              Evidence levels come live from{" "}
+              <a
+                className="underline hover:text-foreground"
+                href="https://pubmed.ncbi.nlm.nih.gov/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                PubMed
+              </a>{" "}
+              via the NCBI E-utilities API; publication lists add{" "}
+              <a
+                className="underline hover:text-foreground"
+                href="https://europepmc.org/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Europe PMC
+              </a>{" "}
+              for preprints and records PubMed doesn&apos;t carry.
+            </span>
           </p>
         </div>
         <Button
@@ -137,7 +147,7 @@ export default function ResearchContent() {
       <div
         role="tablist"
         aria-label="Research views"
-        className="mb-6 flex gap-2"
+        className="mb-6 flex flex-wrap gap-2"
       >
         {TABS.map((t) => (
           <button
@@ -146,7 +156,7 @@ export default function ResearchContent() {
             type="button"
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
-            className={`h-9 rounded-full border px-4 text-sm transition-colors ${
+            className={`min-h-11 rounded-full border px-4 text-sm transition-colors sm:min-h-9 ${
               tab === t.id
                 ? "border-foreground bg-foreground text-background"
                 : "border-border bg-surface/70 text-muted hover:text-foreground"
@@ -160,6 +170,7 @@ export default function ResearchContent() {
       {tab === "topics" && (
         <TopicsPanel
           evidenceById={evidenceById}
+          window={window}
           isLoading={topicsQuery.isLoading}
           isError={topicsQuery.isError}
           onRetry={() => topicsQuery.refetch()}
@@ -170,6 +181,8 @@ export default function ResearchContent() {
           sources={activeSources}
         />
       )}
+
+      {tab === "counts" && <CountsPanel />}
 
       {tab === "discovered" && (
         <DiscoveredPanel
@@ -191,10 +204,56 @@ export default function ResearchContent() {
         />
       )}
 
-      {tab === "demographics" && <DemographicsPanel topicId={topicId} />}
+      {tab === "demographics" && (
+        <DemographicsPanel topicId={topicId} sources={activeSources} />
+      )}
 
       {tab === "sources" && <SourcesPanel prefs={sourcePrefs} />}
     </div>
+  );
+}
+
+type CountWindow = { fromYear: number; toYear: number } | null;
+
+/**
+ * States how far back the numbers reach.
+ *
+ * Every count on this page is a search against a live index, and "824 papers"
+ * means nothing without knowing whether that is one year or forty. The all-time
+ * figure really is unbounded -- PubMed indexes back to the 1800s in places -- so
+ * it says so rather than leaving the reader to assume a decade.
+ */
+
+/**
+ * Shown while a per-facet scan is running.
+ *
+ * The scan is sixteen paced upstream counts, so it takes roughly twenty
+ * seconds. Rendering the bars at zero width in the meantime is the exact
+ * failure this feature exists to avoid: on this page a zero is a real finding,
+ * so a scan in progress must never look like one.
+ */
+function ScanningNote({ label }: { label: string }) {
+  return (
+    <div
+      role="status"
+      className="flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-muted"
+    >
+      <span className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-border border-t-foreground" />
+      Counting across {label}. Roughly twenty seconds — PubMed is queried once
+      per population.
+    </div>
+  );
+}
+
+function CoverageNote({ window }: { window: CountWindow }) {
+  return (
+    <p className="text-xs text-muted">
+      Totals cover all years indexed by PubMed. &ldquo;Recent&rdquo; means{" "}
+      {window ? `${window.fromYear}–${window.toYear}` : "the last 5 years"}, and
+      the badge reflects that recent count: under 20 is sparse, under 75
+      emerging, above that active. Every curated topic has some literature, so
+      the gaps are in the population filters rather than in a topic on its own.
+    </p>
   );
 }
 
@@ -210,6 +269,7 @@ function EvidenceBadge({ status }: { status: EvidenceStatus }) {
 
 function TopicsPanel({
   evidenceById,
+  window,
   isLoading,
   isError,
   onRetry,
@@ -220,6 +280,7 @@ function TopicsPanel({
   sources,
 }: {
   evidenceById: Map<string, TopicEvidence>;
+  window: CountWindow;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -240,6 +301,7 @@ function TopicsPanel({
 
   return (
     <div className="space-y-8">
+      <CoverageNote window={window} />
       {TOPIC_CATEGORIES.map((category) => {
         const topics = TOPICS.filter((t) => t.category === category);
         if (topics.length === 0) return null;
@@ -326,7 +388,11 @@ function TopicCard({
 
       {isOpen && (
         <div id={panelId} className="border-t border-border px-4 py-4">
-          <DemographicFilters selected={demoIds} onToggle={onToggleDemo} />
+          <DemographicFilters
+            selected={demoIds}
+            onToggle={onToggleDemo}
+            scope={{ topicId: topic.id }}
+          />
           <PublicationList
             topicId={topic.id}
             demoIds={demoIds}
@@ -338,25 +404,60 @@ function TopicCard({
   );
 }
 
+/**
+ * Population filters for one topic.
+ *
+ * Once something is selected, the remaining facets are counted on top of it and
+ * any combination that would return nothing is disabled. Offering a filter that
+ * leads to an empty list wastes the one thing this tool is trying to save.
+ */
 function DemographicFilters({
   selected,
   onToggle,
+  scope,
 }: {
   selected: string[];
   onToggle: (id: string) => void;
+  scope: { topicId?: string; meshTerm?: string };
 }) {
+  const params = new URLSearchParams();
+  if (scope.topicId) params.set("topic", scope.topicId);
+  if (scope.meshTerm) params.set("mesh", scope.meshTerm);
+  if (selected.length > 0) params.set("demo", selected.join(","));
+
+  const availability = useQuery({
+    queryKey: queryKeys.research.facetAvailability(scope, selected),
+    queryFn: () => getJson(`/api/research/demographics?${params.toString()}`),
+    select: (json) => demographicsResponseSchema.parse(json).facets,
+    staleTime: 60 * 60 * 1000,
+    enabled: selected.length > 0,
+  });
+
+  const counts = new Map((availability.data ?? []).map((f) => [f.id, f.count]));
+
+  // Nothing chosen yet means nothing to rule out, and a scan still running
+  // must not disable anything on the strength of data it does not have.
+  const deadEnd = (id: string): boolean =>
+    selected.length > 0 &&
+    !selected.includes(id) &&
+    availability.isSuccess &&
+    counts.get(id) === 0;
+
   return (
-    <fieldset className="mb-4">
+    <fieldset className="mb-4 min-w-0">
       <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
         Narrow to a population
       </legend>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex min-w-0 flex-wrap gap-2">
         {DEMOGRAPHICS.map((facet) => {
           const checked = selected.includes(facet.id);
+          const disabled = deadEnd(facet.id);
           return (
             <label
               key={facet.id}
-              className={`cursor-pointer rounded-full border px-3 py-1 text-xs transition-colors focus-within:ring-2 focus-within:ring-foreground ${
+              className={`flex min-h-11 items-center rounded-full border px-3 text-xs transition-colors focus-within:ring-2 focus-within:ring-foreground sm:min-h-8 ${
+                disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"
+              } ${
                 checked
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-surface text-muted hover:text-foreground"
@@ -366,9 +467,11 @@ function DemographicFilters({
                 type="checkbox"
                 className="sr-only"
                 checked={checked}
+                disabled={disabled}
                 onChange={() => onToggle(facet.id)}
               />
               {facet.label}
+              {disabled && " (0)"}
             </label>
           );
         })}
@@ -384,6 +487,7 @@ function PublicationList({
   meshTerm,
   demoIds = [],
   sources,
+  pageSize = 20,
 }: {
   topicId?: string;
   journalId?: string;
@@ -391,7 +495,10 @@ function PublicationList({
   meshTerm?: string;
   demoIds?: string[];
   sources: SourceId[];
+  /** How many to show before offering the rest. The route returns 20. */
+  pageSize?: number;
 }) {
+  const [shown, setShown] = useState(pageSize);
   const params = new URLSearchParams();
   if (topicId) params.set("topic", topicId);
   if (journalId) params.set("journal", journalId);
@@ -427,7 +534,13 @@ function PublicationList({
     );
   }
 
-  const publications = query.data?.publications ?? [];
+  const all = query.data?.publications ?? [];
+  const publications = all.slice(0, shown);
+  const remaining = all.length - publications.length;
+
+  // The list is capped at 20 newest, so the oldest one here is the real floor
+  // of what is on screen -- not the floor of what the search matched.
+  const oldest = publications.at(-1)?.pubDate ?? null;
 
   if (publications.length === 0) {
     return (
@@ -439,11 +552,19 @@ function PublicationList({
 
   return (
     <>
+      {/* Count what is on screen, not what one source matched. `total` is the
+          PubMed hit count, and the list merges Europe PMC on top of it, so
+          rendering `total` above the list read "5 matching papers" over eight
+          rows. The PubMed figure is still worth showing -- it is the size of
+          the searchable corpus -- but it has to be labelled as that. */}
       <p className="mb-3 text-xs text-muted">
-        {query.data?.total} matching papers, newest first · searched{" "}
+        Showing {publications.length} of {all.length} retrieved, newest first ·{" "}
         {(query.data?.sources ?? ["pubmed"])
           .map((s) => SOURCE_LABELS[s])
           .join(" · ")}
+        {typeof query.data?.total === "number" &&
+          ` · PubMed matches ${query.data.total} across all years`}
+        {oldest && ` · oldest shown: ${oldest}`}
       </p>
       <ul className="space-y-3">
         {publications.map((pub) => (
@@ -468,6 +589,16 @@ function PublicationList({
           </li>
         ))}
       </ul>
+
+      {remaining > 0 && (
+        <button
+          type="button"
+          onClick={() => setShown((n) => n + pageSize)}
+          className="mt-3 min-h-11 w-full rounded-lg border border-border bg-surface px-4 text-sm text-muted transition-colors hover:text-foreground sm:min-h-9 sm:w-auto"
+        >
+          Show {Math.min(remaining, pageSize)} more
+        </button>
+      )}
     </>
   );
 }
@@ -540,7 +671,7 @@ function DiscoveredPanel({
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => setOpenId(isOpen ? null : topic.id)}
-                className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
+                className="flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-surface sm:flex-row sm:items-center sm:justify-between sm:gap-3"
               >
                 <span className="min-w-0">
                   <span className="block font-medium text-foreground">
@@ -562,6 +693,7 @@ function DiscoveredPanel({
                   <DemographicFilters
                     selected={demoIds}
                     onToggle={onToggleDemo}
+                    scope={{ meshTerm: topic.name }}
                   />
                   <PublicationList
                     meshTerm={topic.name}
@@ -636,7 +768,15 @@ function JournalsPanel({
   );
 }
 
-function DemographicsPanel({ topicId }: { topicId: string | null }) {
+function DemographicsPanel({
+  topicId,
+  sources,
+}: {
+  topicId: string | null;
+  sources: SourceId[];
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
   const query = useQuery({
     queryKey: queryKeys.research.demographics(topicId ?? undefined),
     queryFn: () =>
@@ -672,38 +812,81 @@ function DemographicsPanel({ topicId }: { topicId: string | null }) {
         population. Open a topic on the Topics tab to rescope this.
       </p>
 
-      {groups.map((group) => (
-        <section key={group}>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-            {group}
-          </h2>
-          <ul className="space-y-2">
-            {DEMOGRAPHICS.filter((d) => d.group === group).map((facet) => {
-              const count = counts.get(facet.id);
-              return (
-                <li key={facet.id} className="flex items-center gap-3">
-                  <span className="w-48 shrink-0 text-sm text-foreground">
-                    {facet.label}
-                  </span>
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-surface">
-                    <span
-                      className="block h-full rounded-full bg-foreground/40"
-                      style={{
-                        width: count
-                          ? `${Math.round((count / max) * 100)}%`
-                          : "0%",
-                      }}
-                    />
-                  </span>
-                  <span className="w-16 shrink-0 text-right text-sm tabular-nums text-muted">
-                    {query.isLoading ? "…" : (count ?? 0)}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
+      {query.isLoading && (
+        <ScanningNote label={`${DEMOGRAPHICS.length} populations`} />
+      )}
+
+      {!query.isLoading &&
+        groups.map((group) => (
+          <section key={group}>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+              {group}
+            </h2>
+            <ul className="space-y-2">
+              {DEMOGRAPHICS.filter((d) => d.group === group).map((facet) => {
+                const count = counts.get(facet.id);
+                const isOpen = openId === facet.id;
+                const panelId = `facet-papers-${facet.id}`;
+                return (
+                  <li
+                    key={facet.id}
+                    className="overflow-hidden rounded-lg border border-border bg-surface/40"
+                  >
+                    {/* Label and number share a line, bar sits under them. On a
+                      phone a fixed label column left the bar a useless sliver. */}
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      onClick={() => setOpenId(isOpen ? null : facet.id)}
+                      className="w-full px-3 py-2 text-left hover:bg-surface"
+                    >
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span className="text-sm text-foreground">
+                          {facet.label}
+                        </span>
+                        <span className="shrink-0 text-sm tabular-nums text-muted">
+                          {count ?? 0}
+                        </span>
+                      </span>
+                      <span className="mt-1 block h-2 overflow-hidden rounded-full bg-surface">
+                        <span
+                          className="block h-full rounded-full bg-foreground/40"
+                          style={{
+                            width: count
+                              ? `${Math.round((count / max) * 100)}%`
+                              : "0%",
+                          }}
+                        />
+                      </span>
+                    </button>
+
+                    {isOpen && (
+                      <div
+                        id={panelId}
+                        className="border-t border-border px-3 py-3"
+                      >
+                        <p className="mb-2 text-xs text-muted">
+                          Recent papers on{" "}
+                          <strong className="text-foreground">
+                            {scopeName}
+                          </strong>{" "}
+                          that include {facet.label.toLowerCase()}.
+                        </p>
+                        <PublicationList
+                          topicId={topicId ?? undefined}
+                          demoIds={[facet.id]}
+                          sources={sources}
+                          pageSize={5}
+                        />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
     </div>
   );
 }
@@ -863,6 +1046,274 @@ function SourcesPanel({ prefs }: { prefs: ReturnType<typeof useSourcePrefs> }) {
         </div>
       </section>
     </div>
+  );
+}
+
+type SortMode = "most" | "fewest" | "alpha";
+
+const SORTS: { id: SortMode; label: string }[] = [
+  { id: "most", label: "Most papers" },
+  { id: "fewest", label: "Fewest papers" },
+  { id: "alpha", label: "A–Z" },
+];
+
+/**
+ * The numbers view: every topic with how many papers it has in the last five
+ * years, narrowable to one population.
+ *
+ * Sorting fewest-first is the one that earns its keep -- it puts the thin topics
+ * at the top, which is the whole question this tool exists to answer.
+ *
+ * Laid out for a phone first: each row is a stacked block that becomes a single
+ * line at `sm:` and up, so nothing scrolls sideways and no column has a fixed
+ * width fighting a 390px screen.
+ */
+function CountsPanel() {
+  const [sort, setSort] = useState<SortMode>("most");
+  const [demoId, setDemoId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const all = useQuery({
+    queryKey: queryKeys.research.topics(),
+    queryFn: () => getJson("/api/research/topics"),
+    select: (json) => topicsResponseSchema.parse(json),
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const scoped = useQuery({
+    queryKey: queryKeys.research.topicsByDemo(demoId ?? ""),
+    queryFn: () => getJson(`/api/research/topics?demo=${demoId}`),
+    select: (json) => topicsResponseSchema.parse(json),
+    staleTime: 60 * 60 * 1000,
+    enabled: demoId !== null,
+  });
+
+  if (all.isError) {
+    return (
+      <ErrorState
+        message="Couldn't reach PubMed for the counts."
+        onRetry={() => all.refetch()}
+      />
+    );
+  }
+
+  const window = all.data?.window ?? null;
+  const recentById = new Map(
+    (all.data?.topics ?? []).map((t) => [t.id, t.recent]),
+  );
+  const scopedById = new Map(
+    (scoped.data?.topics ?? []).map((t) => [t.id, t.recent]),
+  );
+
+  const rows = TOPICS.map((topic) => ({
+    topic,
+    recent: recentById.get(topic.id) ?? 0,
+    inDemo: demoId ? scopedById.get(topic.id) : undefined,
+  })).sort((a, b) => {
+    if (sort === "alpha") return a.topic.name.localeCompare(b.topic.name);
+    if (sort === "fewest") return a.recent - b.recent;
+    return b.recent - a.recent;
+  });
+
+  const selected = DEMOGRAPHICS.find((d) => d.id === demoId);
+
+  return (
+    <div>
+      <p className="mb-4 text-sm text-muted">
+        Papers published{" "}
+        {window
+          ? `${window.fromYear}–${window.toYear}`
+          : "in the last five years"}
+        , per topic.{" "}
+        <span className="hidden sm:inline">
+          Sort fewest-first to put the thin topics on top, or pick a population
+          to see how much of each topic actually studied those patients.
+        </span>
+      </p>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {SORTS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            aria-pressed={sort === s.id}
+            onClick={() => setSort(s.id)}
+            className={`min-h-11 rounded-full border px-4 text-sm transition-colors sm:min-h-9 ${
+              sort === s.id
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-surface text-muted hover:text-foreground"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* A group, not a fieldset: these are toggle buttons rather than form
+          controls, and a fieldset refuses to shrink below its min-content
+          width, which defeated flex-wrap and pushed chips off a phone screen. */}
+      <div role="group" aria-labelledby="counts-population" className="mb-5">
+        <p
+          id="counts-population"
+          className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted"
+        >
+          Narrow to a population
+        </p>
+        <div className="flex min-w-0 flex-wrap gap-2">
+          <button
+            type="button"
+            aria-pressed={demoId === null}
+            onClick={() => setDemoId(null)}
+            className={`min-h-11 rounded-full border px-3 text-xs transition-colors sm:min-h-8 ${
+              demoId === null
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-surface text-muted hover:text-foreground"
+            }`}
+          >
+            All papers
+          </button>
+          {DEMOGRAPHICS.map((facet) => (
+            <button
+              key={facet.id}
+              type="button"
+              aria-pressed={demoId === facet.id}
+              onClick={() => setDemoId(demoId === facet.id ? null : facet.id)}
+              className={`min-h-11 rounded-full border px-3 text-xs transition-colors sm:min-h-8 ${
+                demoId === facet.id
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-surface text-muted hover:text-foreground"
+              }`}
+            >
+              {facet.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {all.isLoading && (
+        <div className="mb-3">
+          <ScanningNote label={`${TOPICS.length} topics`} />
+        </div>
+      )}
+
+      {demoId !== null && scoped.isLoading && (
+        <p className="mb-3 text-xs text-muted">
+          Counting {selected?.label} across every topic…
+        </p>
+      )}
+
+      <ul className="space-y-2">
+        {rows.map(({ topic, recent, inDemo }) => {
+          const isOpen = openId === topic.id;
+          const panelId = `counts-panel-${topic.id}`;
+          const share =
+            inDemo !== undefined && recent > 0
+              ? Math.round((inDemo / recent) * 100)
+              : null;
+          return (
+            <li
+              key={topic.id}
+              className="overflow-hidden rounded-xl border border-border bg-surface/60"
+            >
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+                onClick={() => setOpenId(isOpen ? null : topic.id)}
+                className="flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-surface sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+              >
+                <span className="font-medium text-foreground">
+                  {topic.name}
+                </span>
+                <span className="flex shrink-0 items-baseline gap-2 sm:justify-end">
+                  <span className="text-lg font-semibold tabular-nums text-foreground">
+                    {all.isLoading ? "…" : recent}
+                  </span>
+                  <span className="text-xs text-muted">
+                    papers in the last 5 years
+                  </span>
+                  {inDemo !== undefined && (
+                    <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs tabular-nums text-muted">
+                      {inDemo} of {recent}
+                      {share !== null && ` · ${share}%`}
+                    </span>
+                  )}
+                </span>
+              </button>
+
+              {isOpen && (
+                <div id={panelId} className="border-t border-border px-4 py-4">
+                  <TopicSplit topicId={topic.id} />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * A topic's demographic split over the same five-year window as the column it
+ * expands from. An all-time split beside a five-year total would be two
+ * different questions sharing a row.
+ */
+function TopicSplit({ topicId }: { topicId: string }) {
+  const query = useQuery({
+    queryKey: queryKeys.research.demographics(topicId, 5),
+    queryFn: () =>
+      getJson(`/api/research/demographics?topic=${topicId}&window=5`),
+    select: (json) => demographicsResponseSchema.parse(json).facets,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  if (query.isError) {
+    return (
+      <ErrorState
+        message="Couldn't load the split for this topic."
+        onRetry={() => query.refetch()}
+      />
+    );
+  }
+
+  const counts = new Map((query.data ?? []).map((f) => [f.id, f.count]));
+  const max = Math.max(1, ...[...counts.values()]);
+
+  if (query.isLoading) {
+    return <ScanningNote label={`${DEMOGRAPHICS.length} populations`} />;
+  }
+
+  return (
+    <>
+      <p className="mb-3 text-xs text-muted">
+        Of this topic&apos;s last five years, how many papers include each
+        population.
+      </p>
+      <ul className="space-y-2">
+        {DEMOGRAPHICS.map((facet) => {
+          const count = counts.get(facet.id);
+          return (
+            <li key={facet.id}>
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm text-foreground">{facet.label}</span>
+                <span className="text-sm tabular-nums text-muted">
+                  {query.isLoading ? "…" : (count ?? 0)}
+                </span>
+              </div>
+              <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-surface">
+                <span
+                  className="block h-full rounded-full bg-foreground/40"
+                  style={{
+                    width: count ? `${Math.round((count / max) * 100)}%` : "0%",
+                  }}
+                />
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 

@@ -192,12 +192,38 @@ export const queryKeys = {
       sources: string[];
     }) => ["research", "publications", params] as const,
 
+    /**
+     * The same evidence scan scoped to one population. Its own key so the
+     * unscoped scan stays cached alongside it -- the Counts tab reads both at
+     * once to work out each topic's share.
+     */
+    topicsByDemo: (demoId: string) =>
+      ["research", "topics", "demo", demoId] as const,
+
+    /**
+     * Which populations still have papers once some are already selected.
+     * Keyed by scope and selection because the answer changes with both.
+     */
+    facetAvailability: (
+      scope: { topicId?: string; meshTerm?: string },
+      selected: string[],
+    ) => ["research", "facet-availability", scope, selected] as const,
+
     /** Topics derived from the MeSH headings of recent vascular literature. */
     discover: () => ["research", "discover"] as const,
 
-    /** Per-facet literature counts, scoped to a topic or the whole field. */
-    demographics: (topicId?: string) =>
-      ["research", "demographics", topicId ?? "all"] as const,
+    /**
+     * Per-facet literature counts, scoped to a topic or the whole field, and
+     * optionally bounded to a recent window. The window is part of the key: an
+     * all-time split and a five-year split are different answers.
+     */
+    demographics: (topicId?: string, windowYears?: number) =>
+      [
+        "research",
+        "demographics",
+        topicId ?? "all",
+        windowYears ?? "all-time",
+      ] as const,
   },
 
   flags: {

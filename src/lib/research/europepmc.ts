@@ -38,12 +38,67 @@ const searchSchema = z.object({
 
 export type EuropePmcRecord = z.infer<typeof searchResultSchema>;
 
+const MONTHS: Record<string, number> = {
+  jan: 1,
+  feb: 2,
+  mar: 3,
+  apr: 4,
+  may: 5,
+  jun: 6,
+  jul: 7,
+  aug: 8,
+  sep: 9,
+  oct: 10,
+  nov: 11,
+  dec: 12,
+};
+
+/**
+ * A sortable number for the date shapes the two sources actually emit:
+ * "2026-06-23" from Europe PMC, "2026 Feb" or a bare "2025" from PubMed.
+ *
+ * Returns 0 for anything unparseable, which sorts it last rather than throwing
+ * away the record.
+ */
+export function pubDateOrder(pubDate: string): number {
+  const iso = pubDate.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/);
+  if (iso) {
+    return (
+      Number(iso[1]) * 10000 + Number(iso[2]) * 100 + Number(iso[3] ?? "0")
+    );
+  }
+
+  const named = pubDate.match(/^(\d{4})(?:\s+([A-Za-z]{3}))?(?:\s+(\d{1,2}))?/);
+  if (named) {
+    const month = named[2] ? (MONTHS[named[2].toLowerCase()] ?? 0) : 0;
+    return Number(named[1]) * 10000 + month * 100 + Number(named[3] ?? "0");
+  }
+
+  return 0;
+}
+
+/**
+ * Titles arrive with markup in them -- Europe PMC escapes it
+ * ("&lt;i&gt;Escherichia coli&lt;/i&gt;") and PubMed sometimes sends it raw.
+ * Either way it is formatting, not content, and it belongs nowhere near a
+ * rendered title.
+ */
+function cleanTitle(title: string): string {
+  return title
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** Parses a Europe PMC search response into the shared publication shape. */
 export function parseEuropePmcSearch(json: unknown): Publication[] {
   const parsed = searchSchema.parse(json);
   return parsed.resultList.result.map((r) => ({
     id: `europepmc-${r.id}`,
-    title: r.title,
+    title: cleanTitle(r.title),
     journal: r.journalInfo?.journal?.title ?? "",
     pubDate: r.firstPublicationDate ?? r.pubYear ?? "",
     authors: (r.authorString ?? "")
@@ -66,20 +121,61 @@ export function parseEuropePmcRecords(json: unknown): EuropePmcRecord[] {
  * Rewrites a PubMed search expression into something Europe PMC understands.
  *
  * The curated queries are written in PubMed syntax on purpose -- they can be
- * pasted straight into PubMed and audited. Europe PMC has its own field tags,
- * so rather than maintaining two hand-written queries per topic, the PubMed
- * tags are stripped: an untagged term searches everything, which is broader but
- * never wrong. Journal gets a real translation because Europe PMC has an exact
- * equivalent, and the date clause is dropped since results are already sorted
- * newest-first.
+ * pasted straight into PubMed and audited -- but Europe PMC has its own fields,
+ * and the first version of this simply stripped the tags. That was a mistake I
+ * only saw against real data: an unfielded Europe PMC term matches the whole
+ * document, so ANDing ordinary words like "screening" and "female" returned
+ * papers that merely mention them somewhere. A search for AAA screening in
+ * women came back with knee arthroplasty and hepatitis B.
+ *
+ * Each term is now scoped to title and abstract, which is the closest
+ * equivalent of PubMed's [tiab] and what [mh] is really standing in for. On the
+ * AAA query that took Europe PMC from 6,041 hits to 240, and the top results
+ * from unrelated to exactly on topic.
+ *
+ * Journal keeps a real translation because Europe PMC has an exact equivalent,
+ * and the date clause is dropped since results are already sorted newest-first.
+ * Returns null when nothing survives, so the caller skips the source rather
+ * than sending an empty query.
  */
-export function toEuropePmcQuery(term: string): string {
-  return term
-    .replace(/"([^"]+)"\[ta\]/gi, 'JOURNAL:"$1"')
+export function toEuropePmcQuery(term: string): string | null {
+  const withoutDates = term
     .replace(/\s*AND\s*\d{4}:\d{4}\[dp\]/gi, "")
-    .replace(/\[[a-z]+\]/gi, "")
-    .replace(/\s+/g, " ")
+    .replace(/\d{4}:\d{4}\[dp\]/gi, "")
     .trim();
+
+  const groups = withoutDates
+    .split(/\s+AND\s+/)
+    .map((group) =>
+      group
+        .trim()
+        .replace(/^\(+|\)+$/g, "")
+        .trim(),
+    )
+    .filter(Boolean)
+    .map((group) => {
+      const clauses = group
+        .split(/\s+OR\s+/)
+        .map((clause) => clause.trim())
+        .filter(Boolean)
+        .map((clause) => {
+          const journal = clause.match(/^"([^"]+)"\[ta\]$/i);
+          if (journal) return `JOURNAL:"${journal[1]}"`;
+
+          const bare = clause
+            .replace(/\[[a-z]+\]/gi, "")
+            .replace(/^"|"$/g, "")
+            .trim();
+          if (!bare) return null;
+          return `TITLE:"${bare}" OR ABSTRACT:"${bare}"`;
+        })
+        .filter((c): c is string => c !== null);
+
+      return clauses.length > 0 ? `(${clauses.join(" OR ")})` : null;
+    })
+    .filter((g): g is string => g !== null);
+
+  return groups.length > 0 ? groups.join(" AND ") : null;
 }
 
 const normalizeTitle = (title: string): string =>
@@ -108,7 +204,11 @@ export function mergePublications(
     return !seenTitles.has(normalizeTitle(p.title));
   });
 
-  return [...pubmed, ...extra];
+  // Appending Europe PMC after PubMed left a 2026 preprint sitting below a 2004
+  // paper under a heading that said "newest first". Sort the union.
+  return [...pubmed, ...extra].sort(
+    (a, b) => pubDateOrder(b.pubDate) - pubDateOrder(a.pubDate),
+  );
 }
 
 /**
