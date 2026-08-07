@@ -202,7 +202,9 @@ export default function ResearchContent() {
         />
       )}
 
-      {tab === "demographics" && <DemographicsPanel topicId={topicId} />}
+      {tab === "demographics" && (
+        <DemographicsPanel topicId={topicId} sources={activeSources} />
+      )}
 
       {tab === "sources" && <SourcesPanel prefs={sourcePrefs} />}
     </div>
@@ -219,6 +221,28 @@ type CountWindow = { fromYear: number; toYear: number } | null;
  * figure really is unbounded -- PubMed indexes back to the 1800s in places -- so
  * it says so rather than leaving the reader to assume a decade.
  */
+
+/**
+ * Shown while a per-facet scan is running.
+ *
+ * The scan is sixteen paced upstream counts, so it takes roughly twenty
+ * seconds. Rendering the bars at zero width in the meantime is the exact
+ * failure this feature exists to avoid: on this page a zero is a real finding,
+ * so a scan in progress must never look like one.
+ */
+function ScanningNote({ label }: { label: string }) {
+  return (
+    <div
+      role="status"
+      className="flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-3 py-2 text-xs text-muted"
+    >
+      <span className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-border border-t-foreground" />
+      Counting across {label}. Roughly twenty seconds — PubMed is queried once
+      per population.
+    </div>
+  );
+}
+
 function CoverageNote({ window }: { window: CountWindow }) {
   return (
     <p className="text-xs text-muted">
@@ -359,7 +383,11 @@ function TopicCard({
 
       {isOpen && (
         <div id={panelId} className="border-t border-border px-4 py-4">
-          <DemographicFilters selected={demoIds} onToggle={onToggleDemo} />
+          <DemographicFilters
+            selected={demoIds}
+            onToggle={onToggleDemo}
+            scope={{ topicId: topic.id }}
+          />
           <PublicationList
             topicId={topic.id}
             demoIds={demoIds}
@@ -371,13 +399,45 @@ function TopicCard({
   );
 }
 
+/**
+ * Population filters for one topic.
+ *
+ * Once something is selected, the remaining facets are counted on top of it and
+ * any combination that would return nothing is disabled. Offering a filter that
+ * leads to an empty list wastes the one thing this tool is trying to save.
+ */
 function DemographicFilters({
   selected,
   onToggle,
+  scope,
 }: {
   selected: string[];
   onToggle: (id: string) => void;
+  scope: { topicId?: string; meshTerm?: string };
 }) {
+  const params = new URLSearchParams();
+  if (scope.topicId) params.set("topic", scope.topicId);
+  if (scope.meshTerm) params.set("mesh", scope.meshTerm);
+  if (selected.length > 0) params.set("demo", selected.join(","));
+
+  const availability = useQuery({
+    queryKey: queryKeys.research.facetAvailability(scope, selected),
+    queryFn: () => getJson(`/api/research/demographics?${params.toString()}`),
+    select: (json) => demographicsResponseSchema.parse(json).facets,
+    staleTime: 60 * 60 * 1000,
+    enabled: selected.length > 0,
+  });
+
+  const counts = new Map((availability.data ?? []).map((f) => [f.id, f.count]));
+
+  // Nothing chosen yet means nothing to rule out, and a scan still running
+  // must not disable anything on the strength of data it does not have.
+  const deadEnd = (id: string): boolean =>
+    selected.length > 0 &&
+    !selected.includes(id) &&
+    availability.isSuccess &&
+    counts.get(id) === 0;
+
   return (
     <fieldset className="mb-4 min-w-0">
       <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -386,10 +446,13 @@ function DemographicFilters({
       <div className="flex min-w-0 flex-wrap gap-2">
         {DEMOGRAPHICS.map((facet) => {
           const checked = selected.includes(facet.id);
+          const disabled = deadEnd(facet.id);
           return (
             <label
               key={facet.id}
-              className={`flex min-h-11 cursor-pointer items-center rounded-full border px-3 text-xs transition-colors focus-within:ring-2 focus-within:ring-foreground sm:min-h-8 ${
+              className={`flex min-h-11 items-center rounded-full border px-3 text-xs transition-colors focus-within:ring-2 focus-within:ring-foreground sm:min-h-8 ${
+                disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"
+              } ${
                 checked
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-surface text-muted hover:text-foreground"
@@ -399,9 +462,11 @@ function DemographicFilters({
                 type="checkbox"
                 className="sr-only"
                 checked={checked}
+                disabled={disabled}
                 onChange={() => onToggle(facet.id)}
               />
               {facet.label}
+              {disabled && " (0)"}
             </label>
           );
         })}
@@ -601,6 +666,7 @@ function DiscoveredPanel({
                   <DemographicFilters
                     selected={demoIds}
                     onToggle={onToggleDemo}
+                    scope={{ meshTerm: topic.name }}
                   />
                   <PublicationList
                     meshTerm={topic.name}
@@ -675,7 +741,15 @@ function JournalsPanel({
   );
 }
 
-function DemographicsPanel({ topicId }: { topicId: string | null }) {
+function DemographicsPanel({
+  topicId,
+  sources,
+}: {
+  topicId: string | null;
+  sources: SourceId[];
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
   const query = useQuery({
     queryKey: queryKeys.research.demographics(topicId ?? undefined),
     queryFn: () =>
@@ -711,42 +785,80 @@ function DemographicsPanel({ topicId }: { topicId: string | null }) {
         population. Open a topic on the Topics tab to rescope this.
       </p>
 
-      {groups.map((group) => (
-        <section key={group}>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-            {group}
-          </h2>
-          <ul className="space-y-2">
-            {DEMOGRAPHICS.filter((d) => d.group === group).map((facet) => {
-              const count = counts.get(facet.id);
-              return (
-                <li key={facet.id}>
-                  {/* Label and number share a line, bar sits under them. On a
+      {query.isLoading && (
+        <ScanningNote label={`${DEMOGRAPHICS.length} populations`} />
+      )}
+
+      {!query.isLoading &&
+        groups.map((group) => (
+          <section key={group}>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+              {group}
+            </h2>
+            <ul className="space-y-2">
+              {DEMOGRAPHICS.filter((d) => d.group === group).map((facet) => {
+                const count = counts.get(facet.id);
+                const isOpen = openId === facet.id;
+                const panelId = `facet-papers-${facet.id}`;
+                return (
+                  <li
+                    key={facet.id}
+                    className="overflow-hidden rounded-lg border border-border bg-surface/40"
+                  >
+                    {/* Label and number share a line, bar sits under them. On a
                       phone a fixed label column left the bar a useless sliver. */}
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-sm text-foreground">
-                      {facet.label}
-                    </span>
-                    <span className="shrink-0 text-sm tabular-nums text-muted">
-                      {query.isLoading ? "…" : (count ?? 0)}
-                    </span>
-                  </div>
-                  <span className="mt-1 block h-2 overflow-hidden rounded-full bg-surface">
-                    <span
-                      className="block h-full rounded-full bg-foreground/40"
-                      style={{
-                        width: count
-                          ? `${Math.round((count / max) * 100)}%`
-                          : "0%",
-                      }}
-                    />
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      onClick={() => setOpenId(isOpen ? null : facet.id)}
+                      className="w-full px-3 py-2 text-left hover:bg-surface"
+                    >
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span className="text-sm text-foreground">
+                          {facet.label}
+                        </span>
+                        <span className="shrink-0 text-sm tabular-nums text-muted">
+                          {count ?? 0}
+                        </span>
+                      </span>
+                      <span className="mt-1 block h-2 overflow-hidden rounded-full bg-surface">
+                        <span
+                          className="block h-full rounded-full bg-foreground/40"
+                          style={{
+                            width: count
+                              ? `${Math.round((count / max) * 100)}%`
+                              : "0%",
+                          }}
+                        />
+                      </span>
+                    </button>
+
+                    {isOpen && (
+                      <div
+                        id={panelId}
+                        className="border-t border-border px-3 py-3"
+                      >
+                        <p className="mb-2 text-xs text-muted">
+                          Recent papers on{" "}
+                          <strong className="text-foreground">
+                            {scopeName}
+                          </strong>{" "}
+                          that include {facet.label.toLowerCase()}.
+                        </p>
+                        <PublicationList
+                          topicId={topicId ?? undefined}
+                          demoIds={[facet.id]}
+                          sources={sources}
+                        />
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
     </div>
   );
 }
@@ -1050,6 +1162,12 @@ function CountsPanel() {
         </div>
       </div>
 
+      {all.isLoading && (
+        <div className="mb-3">
+          <ScanningNote label={`${TOPICS.length} topics`} />
+        </div>
+      )}
+
       {demoId !== null && scoped.isLoading && (
         <p className="mb-3 text-xs text-muted">
           Counting {selected?.label} across every topic…
@@ -1133,6 +1251,10 @@ function TopicSplit({ topicId }: { topicId: string }) {
 
   const counts = new Map((query.data ?? []).map((f) => [f.id, f.count]));
   const max = Math.max(1, ...[...counts.values()]);
+
+  if (query.isLoading) {
+    return <ScanningNote label={`${DEMOGRAPHICS.length} populations`} />;
+  }
 
   return (
     <>

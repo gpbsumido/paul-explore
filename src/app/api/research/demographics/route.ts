@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { DEMOGRAPHICS, TOPICS, ALL_VASCULAR_QUERY } from "@/lib/research/data";
-import { recentTerm } from "@/lib/research/pubmed";
+import { recentTerm, buildSearchTerm } from "@/lib/research/pubmed";
 import { countAll, isFailure } from "@/lib/research/eutils";
 
 const CACHE_CONTROL = "public, s-maxage=86400, stale-while-revalidate=604800";
@@ -20,18 +20,47 @@ export const maxDuration = 60;
  * two different questions sharing a row.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const topicId = request.nextUrl.searchParams.get("topic");
+  const params = request.nextUrl.searchParams;
+  const topicId = params.get("topic");
+  const meshTerm = params.get("mesh");
 
-  let scope = ALL_VASCULAR_QUERY;
-  if (topicId) {
+  // Facets the reader has already chosen. Counting each remaining facet on top
+  // of these is what lets the UI grey out the combinations that would return
+  // nothing, instead of offering a filter that leads to an empty list.
+  const chosen = (params.get("demo") ?? "")
+    .split(",")
+    .map((d) => d.trim())
+    .filter(Boolean);
+
+  let scope: string;
+  if (meshTerm !== null) {
+    const term = buildSearchTerm({ meshTerm });
+    if (!term) {
+      return NextResponse.json({ error: "Unknown topic" }, { status: 400 });
+    }
+    scope = term;
+  } else if (topicId) {
     const topic = TOPICS.find((t) => t.id === topicId);
     if (!topic) {
       return NextResponse.json({ error: "Unknown topic" }, { status: 400 });
     }
     scope = topic.query;
+  } else {
+    scope = ALL_VASCULAR_QUERY;
   }
 
-  const windowRaw = request.nextUrl.searchParams.get("window");
+  for (const id of chosen) {
+    const facet = DEMOGRAPHICS.find((d) => d.id === id);
+    if (!facet) {
+      return NextResponse.json(
+        { error: "Unknown demographic" },
+        { status: 400 },
+      );
+    }
+    scope = `(${scope}) AND (${facet.clause})`;
+  }
+
+  const windowRaw = params.get("window");
   const windowYears = windowRaw === null ? null : Number(windowRaw);
   if (
     windowYears !== null &&

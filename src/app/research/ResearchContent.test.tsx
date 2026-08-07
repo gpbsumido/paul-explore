@@ -434,3 +434,131 @@ describe("ResearchContent data coverage", () => {
     expect(await screen.findByText(/all years indexed/i)).toBeInTheDocument();
   });
 });
+
+describe("ResearchContent loading is never mistaken for data", () => {
+  it("says the demographics scan is running instead of showing empty bars", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/demographics", async () => {
+        await new Promise((r) => setTimeout(r, 600));
+        return HttpResponse.json({
+          window: null,
+          facets: DEMOGRAPHICS.map((d) => ({ id: d.id, count: 7 })),
+        });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+
+    // A zero here is a real finding, so a scan in progress must not look like
+    // one: it says so in words, and hides the counts until they are real.
+    expect(await screen.findByText(/counting across/i)).toBeInTheDocument();
+    expect(screen.queryByText("7")).not.toBeInTheDocument();
+
+    expect(await screen.findAllByText("7")).not.toHaveLength(0);
+    expect(screen.queryByText(/counting across/i)).not.toBeInTheDocument();
+  });
+
+  it("says a topic's split is still counting", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/demographics", async () => {
+        await new Promise((r) => setTimeout(r, 600));
+        return HttpResponse.json({
+          window: { fromYear: THIS_YEAR - 5, toYear: THIS_YEAR },
+          facets: DEMOGRAPHICS.map((d) => ({ id: d.id, count: 3 })),
+        });
+      }),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Counts" }));
+    const row = (await screen.findByText(TOPICS[1].name)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+    expect(
+      await within(row!).findByText(/counting across/i),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("ResearchContent demographic drill-in", () => {
+  it("opens a population on the Demographics tab to the research beneath it", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Demographics" }));
+    const row = (await screen.findByText(DEMOGRAPHICS[0].label)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+
+    // The papers appear inside that population's own row, not elsewhere.
+    // The stub titles a demo-scoped list "Filtered paper".
+    expect(
+      await within(row!).findByRole("link", { name: /Filtered paper/ }),
+    ).toBeInTheDocument();
+    const last = seen.publicationUrls.at(-1) ?? "";
+    expect(new URL(last).searchParams.get("demo")).toBe(DEMOGRAPHICS[0].id);
+  });
+
+  it("scopes that research to the open topic when there is one", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await screen.findByRole("link", { name: /Topic paper/ });
+    await user.click(screen.getByRole("tab", { name: "Demographics" }));
+    const row = (await screen.findByText(DEMOGRAPHICS[0].label)).closest("li");
+    await user.click(within(row!).getByRole("button"));
+    await within(row!).findByRole("link", { name: /Filtered paper/ });
+    const last = new URL(seen.publicationUrls.at(-1) ?? "");
+    expect(last.searchParams.get("topic")).toBe(TOPICS[1].id);
+    expect(last.searchParams.get("demo")).toBe(DEMOGRAPHICS[0].id);
+  });
+});
+
+describe("ResearchContent filters that lead nowhere", () => {
+  it("disables the populations that would return no papers", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/demographics", () =>
+        HttpResponse.json({
+          window: null,
+          facets: DEMOGRAPHICS.map((d, i) => ({
+            id: d.id,
+            // Everything past the first two combines to nothing.
+            count: i < 2 ? 5 : 0,
+          })),
+        }),
+      ),
+    );
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await user.click(
+      await screen.findByRole("checkbox", { name: DEMOGRAPHICS[0].label }),
+    );
+
+    // Labels like "Older adults (65+)" are not regex-safe, so match by prefix.
+    const byLabel = (label: string) => (name: string) => name.startsWith(label);
+
+    await screen.findByRole("checkbox", {
+      name: byLabel(DEMOGRAPHICS[2].label),
+    });
+    expect(
+      screen.getByRole("checkbox", { name: byLabel(DEMOGRAPHICS[2].label) }),
+    ).toBeDisabled();
+    // The one still worth picking stays enabled.
+    expect(
+      screen.getByRole("checkbox", { name: DEMOGRAPHICS[1].label }),
+    ).toBeEnabled();
+  });
+
+  it("never disables a population before anything is chosen", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    const boxes = await screen.findAllByRole("checkbox");
+    boxes.forEach((b) => expect(b).toBeEnabled());
+  });
+});

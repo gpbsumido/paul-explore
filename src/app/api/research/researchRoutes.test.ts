@@ -455,3 +455,58 @@ describe("data coverage is reported, not implied", () => {
     expect(body.window).toBeNull();
   });
 });
+
+describe("GET /api/research/demographics with facets already chosen", () => {
+  it("counts each facet on top of the ones already selected", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(1));
+      }),
+    );
+    const female = DEMOGRAPHICS.find((d) => d.id === "female")!;
+    const res = await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}&demo=female`,
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(terms.every((t) => t.includes(female.clause))).toBe(true);
+  });
+
+  it("400s when an already-selected facet is unknown", async () => {
+    const res = await demographicsGET(
+      new NextRequest(
+        `http://localhost/api/research/demographics?topic=${TOPICS[0].id}&demo=nope`,
+      ),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("counts a discovered MeSH topic's populations too", async () => {
+    const terms: string[] = [];
+    server.use(
+      http.get(ESEARCH, ({ request }) => {
+        terms.push(new URL(request.url).searchParams.get("term") ?? "");
+        return HttpResponse.json(esearchJson(1));
+      }),
+    );
+    const res = await demographicsGET(
+      new NextRequest(
+        "http://localhost/api/research/demographics?mesh=Sarcopenia",
+      ),
+    );
+    expect(res.status).toBe(200);
+    expect(terms.every((t) => t.includes('"Sarcopenia"[mh]'))).toBe(true);
+  });
+
+  it("400s on a mesh term that isn't descriptor-shaped", async () => {
+    const res = await demographicsGET(
+      new NextRequest(
+        'http://localhost/api/research/demographics?mesh=x"[mh] OR 1=1',
+      ),
+    );
+    expect(res.status).toBe(400);
+  });
+});

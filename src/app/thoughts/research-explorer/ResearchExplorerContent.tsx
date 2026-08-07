@@ -70,6 +70,51 @@ export default function ResearchExplorerContent() {
         </>
       }
     >
+      <nav
+        aria-label="Update timeline"
+        className="rounded-xl border border-border bg-surface p-5"
+      >
+        <h2 className="text-sm font-semibold text-foreground">Timeline</h2>
+        <p className="mt-1 text-xs text-muted">
+          Newest first &mdash; this write-up has updates, jump to one.
+        </p>
+        <ol className="mt-3 space-y-2 text-sm">
+          <li className="flex items-baseline gap-3">
+            <span className="w-24 shrink-0 text-xs tabular-nums text-muted">
+              Aug 7, 2026
+            </span>
+            <a
+              href="#update-2026-08-07-counts"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              Counts: papers per topic as plain numbers, split by population
+            </a>
+          </li>
+          <li className="flex items-baseline gap-3">
+            <span className="w-24 shrink-0 text-xs tabular-nums text-muted">
+              Aug 7, 2026
+            </span>
+            <a
+              href="#update-2026-08-07-coverage"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              Every count says how far back it reaches
+            </a>
+          </li>
+          <li className="flex items-baseline gap-3">
+            <span className="w-24 shrink-0 text-xs tabular-nums text-muted">
+              Aug 7, 2026
+            </span>
+            <a
+              href="#update-2026-08-07-mobile"
+              className="text-primary-600 hover:underline dark:text-primary-400"
+            >
+              Mobile first, and the guard for a route I shipped broken
+            </a>
+          </li>
+        </ol>
+      </nav>
+
       <Section title="How to use it, if you're the one doing the research">
         <p className="mb-4 text-muted">
           The page is built around one workflow: narrow from a field to a
@@ -259,6 +304,142 @@ export default function ResearchExplorerContent() {
         </p>
       </Section>
 
+      <section
+        id="update-2026-08-07-counts"
+        className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+          Update &mdash; August 7, 2026
+        </p>
+        <h2 className="mt-1 mb-3 text-lg font-bold">
+          Counts: papers per topic as plain numbers, split by population
+        </h2>
+        <p className="text-muted">
+          The evidence badges answer &quot;is this crowded?&quot; but they round
+          a number into a word, and the question I actually kept asking was
+          numeric: how many papers, on this topic, in the last five years, about
+          these patients. So there is now a Counts tab that is just that &mdash;
+          every topic with its five-year count, sortable fewest-first so the
+          thin ones rise to the top.
+        </p>
+        <p className="mt-3 text-muted">
+          Picking a population adds two things to each row: the count within it,
+          and the share of that topic&apos;s own total. The share is the part
+          that earns its place. A raw filtered count can&apos;t distinguish a
+          small topic from an underrepresented population &mdash; four papers is
+          a lot for a niche question and nothing for a busy one. Reading{" "}
+          <em>0 of 15 &middot; 0%</em> down a sorted column is the fastest way
+          I&apos;ve found to see where a group simply hasn&apos;t been studied.
+          It costs no extra request either: the unscoped and scoped scans are
+          both already in the query cache, so the share is a division.
+        </p>
+        <p className="mt-3 text-muted">
+          <strong>What I deliberately did not build.</strong> The obvious
+          version of this is the full matrix &mdash; every topic against every
+          population, precomputed. That is 384 upstream queries, roughly two
+          minutes of paced calls, and the first visitor would wait all of it for
+          a grid they would read four cells of. The split is fetched per topic,
+          on expand, over the same five-year window as the column it came from.
+          An all-time split sitting beside a five-year total would be two
+          different questions sharing a row.
+        </p>
+        <p className="mt-3 text-muted">
+          Filters that lead nowhere are now disabled rather than offered: once a
+          population is selected, the remaining ones are counted on top of it
+          and any combination that would return zero papers is greyed out with
+          its count. Offering a filter that leads to an empty list wastes
+          exactly the time this tool exists to save.
+        </p>
+      </section>
+
+      <section
+        id="update-2026-08-07-coverage"
+        className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+          Update &mdash; August 7, 2026
+        </p>
+        <h2 className="mt-1 mb-3 text-lg font-bold">
+          Every count says how far back it reaches
+        </h2>
+        <p className="text-muted">
+          &quot;824 papers&quot; means nothing without knowing whether that is
+          one year or forty, and the page was quietly leaving that to inference.
+          The routes now return the window they actually counted, so Counts
+          reads <em>Papers published 2021&ndash;2026</em> with real years rather
+          than a vague &quot;last five years&quot;, and the all-time columns say
+          plainly that they cover every year PubMed indexes. Publication lists
+          name the oldest paper on screen &mdash; they are capped at the twenty
+          newest, so that is the floor of what you are looking at, not the floor
+          of what matched.
+        </p>
+        <p className="mt-3 text-muted">
+          The demographic scans also say when they are still running. Sixteen
+          paced upstream counts take about twenty seconds, and until this change
+          the bars rendered at zero width in the meantime. On a page whose
+          entire purpose is that a zero is a real finding, a scan in progress
+          that looks identical to &quot;nobody has studied this&quot; is the
+          worst possible failure. Now it says so, in words, and withholds the
+          numbers until they are real.
+        </p>
+        <p className="mt-3 text-muted">
+          Each population on the Demographics tab is also clickable now, opening
+          the papers for that group as its own section underneath &mdash; scoped
+          to the open topic when there is one, or the whole field when there
+          isn&apos;t. Seeing that a group has 80 papers and being unable to read
+          any of them was a dead end.
+        </p>
+      </section>
+
+      <section
+        id="update-2026-08-07-mobile"
+        className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+          Update &mdash; August 7, 2026
+        </p>
+        <h2 className="mt-1 mb-3 text-lg font-bold">
+          Mobile first, and the guard for a route I shipped broken
+        </h2>
+        <p className="text-muted">
+          This page shipped with no <code className={code}>page.tsx</code>. It
+          was registered in both registries, appeared on the index, and loaded
+          an error page. Its own test rendered the content component directly,
+          which passed happily while the route did not exist &mdash; the test
+          asserted the wrong thing, which is the more interesting half of the
+          bug.
+        </p>
+        <p className="mt-3 text-muted">
+          Adding the file was one line. The fix worth having is the guard: a
+          test now walks the feature and write-up registries and checks the
+          filesystem for a real page behind every internal link. It failed on
+          the branch naming this exact page, and it will fail for the next
+          registry entry someone adds without a route. A one-line fix would have
+          left the same hole open.
+        </p>
+        <p className="mt-3 text-muted">
+          The explorer is also laid out for a phone now, and it needed to be: on
+          a 390px screen the tab row ran off the right edge, so two of six tabs
+          were unreachable &mdash; Demographics clipped, Sources invisible
+          entirely. The demographic rows pinned a fixed-width label and count
+          against a flexible bar, which left the bar a sliver. Labels and
+          numbers now share a line with the bar full-width beneath, tap targets
+          are 44px, cards stack instead of cramping, and the provenance sentence
+          in the header is hidden on small screens because it was pushing the
+          first real number below the fold.
+        </p>
+        <p className="mt-3 text-muted">
+          <strong>One correction worth recording.</strong> I read the phone
+          screenshot as showing the population chips clipped at the right edge
+          and changed a <code className={code}>fieldset</code> to a labelled
+          group to fix it. Measuring the elements in the browser showed the
+          chips had been wrapping correctly the whole time and I had mistaken
+          the fold for a cut. The change stayed, because a row of toggle buttons
+          genuinely should not be a fieldset, but it fixed nothing &mdash; and I
+          would rather have that written down than quietly filed as a win.
+        </p>
+      </section>
+
       <Section title="What's next">
         <ul className="space-y-2 text-sm text-muted">
           <Bullet>
@@ -275,6 +456,20 @@ export default function ResearchExplorerContent() {
             Study-design tagging — RCT versus retrospective cohort versus case
             series — so &quot;12 papers&quot; can distinguish a settled question
             from twelve case reports.
+          </Bullet>
+          <Bullet>
+            <strong className="text-foreground">A node graph</strong> of the
+            whole corpus: papers as nodes, linked to the topics and populations
+            they cover, so clusters and empty regions are visible at a glance
+            rather than one query at a time. The tabs answer questions you
+            already thought to ask; a graph would show the shape of the
+            literature, including the gaps between clusters that no filter
+            combination would surface because nobody would think to try it. The
+            data is already there — every paper carries MeSH headings, and the
+            topic and demographic clauses are exactly the edges — so this is a
+            rendering problem rather than a data one. Deferred because laying
+            out thousands of nodes usefully, and keeping it readable on a phone,
+            is its own project.
           </Bullet>
         </ul>
       </Section>

@@ -96,6 +96,13 @@ export function buildSearchTerm({
   }
 
   if (parts.length === 0) return null;
+
+  // A population on its own would search all of PubMed for "female"[mh], which
+  // is millions of papers and nothing to do with this tool. When nothing else
+  // narrows the search, the field itself does.
+  const narrowed = Boolean(topicId || journalId || journalName || meshTerm);
+  if (!narrowed) return `(${ALL_VASCULAR_QUERY}) AND ${parts.join(" AND ")}`;
+
   return parts.join(" AND ");
 }
 

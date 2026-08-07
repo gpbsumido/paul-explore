@@ -169,3 +169,19 @@ describe("buildSearchTerm for discovered MeSH topics", () => {
     expect(term).toContain(DEMOGRAPHICS[0].clause);
   });
 });
+
+describe("buildSearchTerm for a population on its own", () => {
+  it("scopes a demographic-only search to vascular surgery", () => {
+    const term = buildSearchTerm({ demoIds: [DEMOGRAPHICS[0].id] });
+    expect(term).toContain(DEMOGRAPHICS[0].clause);
+    expect(term).toContain("vascular");
+  });
+
+  it("does not add the field scope when a topic already narrows it", () => {
+    const term = buildSearchTerm({
+      topicId: TOPICS[0].id,
+      demoIds: [DEMOGRAPHICS[0].id],
+    });
+    expect(term).toBe(`(${TOPICS[0].query}) AND (${DEMOGRAPHICS[0].clause})`);
+  });
+});

@@ -200,6 +200,15 @@ export const queryKeys = {
     topicsByDemo: (demoId: string) =>
       ["research", "topics", "demo", demoId] as const,
 
+    /**
+     * Which populations still have papers once some are already selected.
+     * Keyed by scope and selection because the answer changes with both.
+     */
+    facetAvailability: (
+      scope: { topicId?: string; meshTerm?: string },
+      selected: string[],
+    ) => ["research", "facet-availability", scope, selected] as const,
+
     /** Topics derived from the MeSH headings of recent vascular literature. */
     discover: () => ["research", "discover"] as const,
 
