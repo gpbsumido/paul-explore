@@ -89,10 +89,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!result.ok) return upstreamErrorResponse(result);
 
   if (!result.response.ok) {
-    // Pass the status through: a 429 is a quota problem the reader can act on,
-    // and flattening it to 502 would hide that.
+    // Pass the status through, and the API's own message with it. A 429 means
+    // either "no credits" or "slow down", which call for opposite responses;
+    // a bare status number tells the reader neither. This is the one place
+    // relaying an upstream message earns its keep, because it is the only
+    // thing that says what to actually do about it.
+    let detail = "";
+    try {
+      const body = (await result.response.json()) as {
+        error?: { message?: string };
+      };
+      detail = body.error?.message?.trim() ?? "";
+    } catch {
+      // No parseable body; the status alone will have to do.
+    }
+
     return NextResponse.json(
-      { error: `The model API returned ${result.response.status}.` },
+      {
+        error: detail || `The model API returned ${result.response.status}.`,
+      },
       {
         status: result.response.status,
         headers: { "Cache-Control": CACHE_CONTROL },

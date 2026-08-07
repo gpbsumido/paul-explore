@@ -100,6 +100,36 @@ describe("POST /api/research/ask", () => {
     expect(res.status).toBe(429);
   });
 
+  it("relays what the API actually said, since the reason is the actionable part", async () => {
+    // A 429 is either "no credits" or "slow down", and those need opposite
+    // responses from the reader. A bare status number tells them neither.
+    server.use(
+      http.post(OPENAI, () =>
+        HttpResponse.json(
+          {
+            error: {
+              type: "insufficient_quota",
+              message: "You have no credits remaining. Add credits to continue.",
+            },
+          },
+          { status: 429 },
+        ),
+      ),
+    );
+    const res = await askPOST(post(valid));
+    const body = await res.json();
+    expect(body.error).toContain("no credits remaining");
+  });
+
+  it("still says something useful when the API sends no message", async () => {
+    server.use(
+      http.post(OPENAI, () => new HttpResponse(null, { status: 500 })),
+    );
+    const res = await askPOST(post(valid));
+    expect(res.status).toBe(500);
+    expect((await res.json()).error).toMatch(/500/);
+  });
+
   it("is never cached, since answers are per-question", async () => {
     const res = await askPOST(post(valid));
     expect(res.headers.get("Cache-Control")).toContain("no-store");
