@@ -472,6 +472,34 @@ export default function ResearchExplorerContent() {
             from twelve case reports.
           </Bullet>
           <Bullet>
+            <strong className="text-foreground">
+              Retune the badge thresholds, or stop hard-coding them.
+            </strong>{" "}
+            The 20 and 75 cutoffs come from one snapshot of the curated topics
+            &mdash; five-year counts running 4 to 502, median 74 &mdash; and the
+            literature will drift out from under them. Three options, roughly in
+            order of effort. Retune the two constants when the spread moves,
+            which is the honest minimum. Add a fourth band, since 12 of 25 still
+            sit in Active and the busiest topic has 33 times the papers of the
+            quietest. Or make the thresholds percentile-relative, computed from
+            the current scan so they self-adjust &mdash; more robust, but the
+            labels stop meaning a fixed thing and a topic can change band
+            because its neighbours moved, not because it did. I&apos;d want to
+            see a second snapshot before choosing.
+          </Bullet>
+          <Bullet>
+            <strong className="text-foreground">
+              A zero state that can actually be reached.
+            </strong>{" "}
+            &quot;No research yet&quot; is unreachable on a topic and always
+            will be, because the topics are curated recognised areas. It fires
+            only on topic-and-population intersections, which live on Counts.
+            Either surface those intersections as first-class findings on the
+            Topics tab &mdash; &quot;this topic has three populations with zero
+            papers&quot; &mdash; or drop the badge from the topic scale and stop
+            implying a state that cannot happen there.
+          </Bullet>
+          <Bullet>
             <strong className="text-foreground">A node graph</strong> of the
             whole corpus: papers as nodes, linked to the topics and populations
             they cover, so clusters and empty regions are visible at a glance

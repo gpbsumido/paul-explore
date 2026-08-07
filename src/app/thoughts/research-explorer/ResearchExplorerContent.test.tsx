@@ -41,4 +41,10 @@ describe("ResearchExplorerContent updates", () => {
     render(<ResearchExplorerContent />);
     expect(screen.getByText(/node graph/i)).toBeInTheDocument();
   });
+
+  it("records that the badge thresholds are a snapshot that will drift", () => {
+    render(<ResearchExplorerContent />);
+    expect(screen.getByText(/percentile/i)).toBeInTheDocument();
+    expect(screen.getByText(/drift/i)).toBeInTheDocument();
+  });
 });
