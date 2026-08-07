@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
@@ -855,5 +855,72 @@ describe("ResearchContent innovation and ask", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       /not configured/i,
     );
+  });
+});
+
+describe("ResearchContent ask access", () => {
+  const jc = {
+    id: "europepmc-PMC9",
+    title: "Robotic repair: a first-in-human series.",
+    journal: "Annals of Vascular Surgery",
+    pubDate: "2025-04-02",
+    authors: ["Doe A"],
+    doi: null,
+    url: "https://europepmc.org/article/MED/PMC9",
+    design: { label: "Case report", caveat: "One case.", canSupportCausality: false },
+    innovation: { score: 1, signals: ["first-in-human"] },
+    points: ["Point one is long enough here.", "Point two is long enough here.", "Point three is long enough."],
+    questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
+  };
+
+  const askWith = async (status: number, error: string) => {
+    const user = userEvent.setup();
+    server.use(
+      http.get("/api/research/journal-club", () =>
+        HttpResponse.json({
+          papers: [jc],
+          window: { fromYear: THIS_YEAR - 2, toYear: THIS_YEAR },
+        }),
+      ),
+      http.post("/api/research/ask", () =>
+        HttpResponse.json({ error }, { status }),
+      ),
+    );
+    renderPage();
+    await user.click(await screen.findByRole("tab", { name: "Journal club" }));
+    await user.click(
+      await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
+    );
+    await user.click(await screen.findByRole("button", { name: /first-in-human series/ }));
+    await user.type(screen.getByLabelText(/ask about this paper/i), "Why?");
+    await user.click(screen.getByRole("button", { name: "Ask" }));
+    return user;
+  };
+
+  it("tells a signed-out visitor in a dialog that this is beta-only", async () => {
+    await askWith(401, "Sign in to ask about a paper.");
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(/beta/i);
+  });
+
+  it("says the same to a signed-in account that is not on the list", async () => {
+    await askWith(403, "Ask is not enabled for this account.");
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(/beta/i);
+  });
+
+  it("can be dismissed", async () => {
+    const user = await askWith(403, "Ask is not enabled for this account.");
+    await screen.findByRole("dialog");
+    await user.click(screen.getByRole("button", { name: /close|got it/i }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("keeps other failures inline rather than interrupting with a dialog", async () => {
+    await askWith(429, "You have no credits remaining.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(/no credits/i);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

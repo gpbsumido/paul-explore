@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   TOPICS,
@@ -1557,6 +1558,7 @@ function AskBox({
   const [answer, setAnswer] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   const ask = async () => {
     const asked = question.trim();
@@ -1571,8 +1573,15 @@ function AskBox({
         body: JSON.stringify({ question: asked, paper, model }),
       });
       const json = (await res.json()) as { answer?: string; error?: string };
-      if (!res.ok) setError(json.error ?? `Request failed (${res.status}).`);
-      else setAnswer(json.answer ?? "");
+      if (res.status === 401 || res.status === 403) {
+        // Not being allowed in is a different kind of failure from a request
+        // going wrong, and an inline line of grey text reads as the latter.
+        setBlocked(true);
+      } else if (!res.ok) {
+        setError(json.error ?? `Request failed (${res.status}).`);
+      } else {
+        setAnswer(json.answer ?? "");
+      }
     } catch {
       setError("Couldn't reach the server.");
     } finally {
@@ -1647,6 +1656,32 @@ function AskBox({
         Answers come from the title and abstract only. Check anything that
         matters against the full text.
       </p>
+
+      <Modal
+        open={blocked}
+        onClose={() => setBlocked(false)}
+        aria-labelledby="ask-beta-title"
+      >
+        <div className="max-w-sm p-6">
+          <h2 id="ask-beta-title" className="text-lg font-bold text-foreground">
+            Beta users only
+          </h2>
+          <p className="mt-2 text-sm text-muted">
+            Asking about a paper is in beta and limited to a few accounts while
+            it is being tried out. Everything else on this page is open to
+            everyone — the topics, counts, publications and discussion points
+            all work without signing in.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() => setBlocked(false)}
+          >
+            Got it
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
