@@ -37,6 +37,16 @@ describe("ResearchExplorerContent updates", () => {
     });
   });
 
+  it("documents the journal club update with its own anchor", () => {
+    const { container } = render(<ResearchExplorerContent />);
+    expect(
+      container.querySelector("#update-2026-08-08-journal-club"),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('a[href="#update-2026-08-08-journal-club"]'),
+    ).not.toBeNull();
+  });
+
   it("keeps a note about the graph view I still want to build", () => {
     render(<ResearchExplorerContent />);
     expect(screen.getByText(/node graph/i)).toBeInTheDocument();
