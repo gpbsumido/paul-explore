@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -441,6 +442,20 @@ await waitFor(() =>
           shared between tests.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Factory functions instead of shared fixtures, so a test says what matters to it and nothing else.",
+          "The overlap layout algorithm tested as pure logic, which is why the hardest part of the calendar is also the best covered.",
+          "CI and deploy gates, so the suite blocks rather than informs.",
+        ]}
+        couldImprove={[
+          "Coverage is uneven by design and not by decision — the parts written test-first are well covered and the earlier features are not.",
+          "There is no mutation testing, so the suite proves the tests run rather than that they would fail on a real break.",
+        ]}
+        upcoming={[
+          "Run mutation testing against the pure cores — the layout engine, the flag engine, the evidence classifier — where it is cheapest and most likely to find a hollow test.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -369,6 +370,20 @@ export default function TreeShakingContent() {
           </Bullet>
         </ul>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "Three distinct kinds of dead weight named separately, because they need different removals and lumping them together is how the analysis stalls.",
+          "A method rather than a one-off: analyse, verify, remove, track — with the tracking being the part that usually gets skipped.",
+          "The judgement calls recorded, including what was deliberately left in.",
+        ]}
+        couldImprove={[
+          "Nothing prevents regrowth. The tracking was manual and a dependency added tomorrow gets no scrutiny.",
+          "The analysis is whole-bundle, so a single heavy route hides in the total.",
+        ]}
+        upcoming={[
+          "A size budget in CI, which is what turns this from a periodic effort into a standing constraint.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import type { ReactNode } from "react";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
@@ -347,6 +348,19 @@ export default function DeploymentContent() {
           the pipeline identical everywhere.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A written record of the concrete setup rather than a general description of deployment, which is what makes it useful when something breaks at an awkward time.",
+          "Preview deployments per pull request, so a change is looked at in a browser before it is merged rather than after.",
+        ]}
+        couldImprove={[
+          "There is no documented rollback procedure, which is the thing you want written down precisely when you have least patience for reading.",
+          "Environment variables are documented in an example file and nothing verifies a deploy actually has them — a missing key surfaces as a broken feature rather than a failed deploy.",
+        ]}
+        upcoming={[
+          "A startup check for required environment variables, so a misconfigured deploy fails loudly instead of shipping a dark feature — the ask box needing two new keys is exactly this case.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

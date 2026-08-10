@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -669,6 +670,21 @@ export default function E2eContent() {
           configurations.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Three suites split by what they are for rather than one suite doing everything, so the fast one can gate every push and the slow one runs before a release.",
+          "Real auth and real isolation, because the parts most worth testing end to end are exactly the parts mocking would remove.",
+        ]}
+        couldImprove={[
+          "The full suite runs pre-release only, so a break can sit on develop unnoticed until a release exposes it.",
+          "Nothing tracks which specs are intermittently failing, so flakiness is remembered rather than measured.",
+          "There is no visual regression coverage — the suite asserts behaviour and would not notice a layout collapsing.",
+        ]}
+        upcoming={[
+          "Stabilise the work-portfolio ticker specs, which failed a release run and passed on re-run.",
+          "Record per-spec flake rates, so the worst offenders are a list rather than a memory.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

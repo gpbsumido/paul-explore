@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function NpmToPnpmContent() {
@@ -293,6 +294,19 @@ export default function NpmToPnpmContent() {
           or muscle memory will generate one and confuse the next deploy.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A migration done for a stated reason — strict resolution and disk — rather than because the tool was newer.",
+          "The breakages recorded honestly, including the version ranges that only failed under strict resolution and had been quietly wrong under npm.",
+        ]}
+        couldImprove={[
+          "Nothing pins the package manager at the CI level beyond convention, so a stray npm install would still half-work.",
+          "The lockfile is not audited on a schedule; it gets attention when something breaks.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. A completed migration is a completed migration, and a roadmap for it would be invented.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

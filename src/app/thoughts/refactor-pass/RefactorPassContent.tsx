@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline code chip, matching the rest of the write-ups. */
 const C = ({ children }: { children: React.ReactNode }) => (
@@ -464,6 +465,20 @@ export default function RefactorPassContent() {
           </li>
         </ul>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A verdict stated first, then the guardrails, then the plan — so a reader can disagree with the conclusion without reading the whole thing.",
+          "Characterisation tests before behaviour-preserving swaps, which is what made a large change safe to believe.",
+          "Stacked pull requests so each step was reviewable on its own rather than one large diff.",
+        ]}
+        couldImprove={[
+          "The pass was a deliberate effort rather than a standing practice, and duplication has accrued since — the ticker and the thoughts timeline both needed extracting after it.",
+          "Nothing measures maintainability, so the next pass will again start from reading rather than from a signal.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. The trigger I actually trust is copying something a third time, which is what prompted the shared timeline component in this sweep.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

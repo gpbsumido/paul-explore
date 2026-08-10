@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -492,6 +493,19 @@ const { token } = await auth0.getAccessToken();
           </li>
         </ul>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "An analyzer wired into the build rather than run ad hoc, so the question of what is in the bundle has an answer at any time.",
+          "The finding acted on rather than filed: the write-up names what was heavy and what replaced it.",
+        ]}
+        couldImprove={[
+          "Nothing budgets the bundle. The analysis is available and no size regression fails a build, which means it only gets looked at deliberately.",
+          "The analysis is whole-app rather than per-route, so a single heavy route is averaged away.",
+        ]}
+        upcoming={[
+          "A size budget in CI, which turns this from a report into a gate — the same argument as the per-route budgets on the vitals page.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

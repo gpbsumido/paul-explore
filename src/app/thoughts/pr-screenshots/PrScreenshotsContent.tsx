@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -274,6 +275,20 @@ export default function PrScreenshotsContent() {
           hygiene.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A method that actually works from a CLI, arrived at by elimination — gists reject binaries and the drag-drop CDN needs a browser session, so committing the image to the branch is what is left.",
+          "URLs pinned to a commit SHA rather than a branch, since a merged branch is deleted and every branch-pinned image silently dies with it.",
+          "Dev-mode overlays hidden before capture, so the screenshot shows the product rather than the tooling.",
+        ]}
+        couldImprove={[
+          "The images live in git history permanently, so the repository grows with every visual PR and nothing prunes it.",
+          "Capture is manual per PR rather than something CI does, which means it happens when I remember.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. This is a working method, and the honest trigger to revisit it is GitHub changing what is possible.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

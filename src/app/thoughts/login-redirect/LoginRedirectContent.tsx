@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -252,6 +253,19 @@ export default function LoginRedirectContent() {
           denied-consent case, just a different prompt.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "The fix made at the choke point rather than at each call site, which is why two separate bugs closed with one change.",
+          "A callback that fails softly, because an auth redirect that throws leaves someone stranded with no way to describe what happened.",
+        ]}
+        couldImprove={[
+          "The return path is not covered by an end-to-end test, so the regression it fixes would be caught by noticing.",
+          "Deep links into authenticated routes still land on the destination rather than the thing that was being attempted, which is a subtler version of the same problem.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. This documents a fix that has held, and I would rather say so than invent follow-on work.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

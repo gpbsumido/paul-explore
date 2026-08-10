@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import type { ReactNode } from "react";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -741,6 +742,21 @@ export default function ApiBackendOverhaulContent() {
           any of the twelve phases.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Three deliberately different data-access patterns rather than one imposed everywhere, because the cost of the wrong abstraction is higher than some inconsistency.",
+          "Structured logging through middleware, so a request can be followed without adding log lines to chase it.",
+          "TypeScript throughout with the structure set up front, which is far cheaper than retrofitting it.",
+        ]}
+        couldImprove={[
+          "Three patterns is defensible and needs a written rule for choosing between them; without one it degrades into whichever the last author preferred.",
+          "There is no load testing, so the reliability claims are structural rather than measured.",
+          "The API and this app version independently, and nothing catches a contract drifting between them.",
+        ]}
+        upcoming={[
+          "A contract check between this app's BFF routes and the API, which is the gap most likely to bite and the cheapest of these to close.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

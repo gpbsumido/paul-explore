@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -390,6 +391,20 @@ AUTH0_DOMAIN: \${{ secrets.AUTH0_DOMAIN || 'placeholder.auth0.com' }}`}
           the test actually exercises.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Real backends in end-to-end runs rather than mocking everything, because a suite that mocks the integration cannot test the integration.",
+          "A general pattern for the flake rather than a retry, since retries turn a signal into noise.",
+        ]}
+        couldImprove={[
+          "Flake is handled by pattern but not measured — nothing tracks which specs fail intermittently, so the worst offenders are found by memory.",
+          "The full suite runs on pre-release only, which means a break can land on develop and stay hidden until a release.",
+        ]}
+        upcoming={[
+          "Stabilise the work-portfolio ticker specs, which failed on a release and passed on re-run — exactly how a real signal gets trained into noise.",
+          "Track intermittent failures per spec so the flakiest are known rather than remembered.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

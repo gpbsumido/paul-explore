@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Sent, Received, Timestamp } from "@/lib/threads";
 
@@ -921,6 +922,19 @@ export default function V2RedesignContent() {
           . The banner is a server component — no JS needed.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Bundle splitting treated as part of the redesign rather than a follow-up, so the new work did not arrive as a regression.",
+          "Zero changes to v1 while v2 was built, which is what made it safe to develop in the open.",
+        ]}
+        couldImprove={[
+          "Superseded by v3 and v4, so it is history rather than current guidance.",
+          "The component-by-component structure documented here has drifted as the design system absorbed parts of it.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. Kept for the record of how the versioned-redesign approach started.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

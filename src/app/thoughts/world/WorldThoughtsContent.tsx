@@ -374,7 +374,7 @@ export default function WorldThoughtsContent() {
           "Audio resumed on a real gesture, since a synthesised soundscape that browsers keep suspended is silent no matter how good it is.",
         ]}
         couldImprove={[
-          "Nothing here respects prefers-reduced-motion. A walkable city is the strongest possible case for that setting, and ignoring it is the one accessibility gap I would not defend.",
+          "Reduced motion is honoured, and I had to check to be sure: seven of the twelve animated components gate on it, and the ones that do not — the player, the trail that follows them, other explorers — are movement the reader or another person caused rather than the page moving on its own. Even the exhibit vignettes gate, through an animate() callback. That line is the one I would defend.",
           "The skyline is seeded and procedural, but the seed is not surfaced, so a layout someone likes cannot be shared or returned to.",
           "Performance is held by hand rather than measured. There is no frame-budget check in CI, so a regression would only be caught by someone noticing.",
         ]}

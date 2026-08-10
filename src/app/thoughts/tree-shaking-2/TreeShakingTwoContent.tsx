@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -532,6 +533,19 @@ export default function TreeShakingTwoContent() {
           </Bullet>
         </ul>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "A second pass that started from green rather than assuming the first had held, which is the only honest way to run one.",
+          "The distinction between bundle size and what was actually gating the paint — the two are related and not the same, and only one of them was the problem.",
+        ]}
+        couldImprove={[
+          "Still no budget in CI, so a third pass will be needed for the same reason as the second.",
+          "The soft spot the web-vitals check surfaced is documented rather than resolved.",
+        ]}
+        upcoming={[
+          "A size budget, which both of these write-ups have now independently concluded is the missing piece.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

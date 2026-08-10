@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -504,6 +505,22 @@ async function gql(query, variables, signal) {
           bundle entirely.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "GraphQL where it genuinely earns its place — a schema with deep relations and a client that wants different slices — rather than as a default.",
+          "Plain fetch instead of a client library, because caching came from React Query already and Apollo would have been a second cache to reconcile.",
+          "Variables rather than string interpolation, which is the injection boundary and not a style preference.",
+          "Server-side initial data so the first paint is not a spinner.",
+        ]}
+        couldImprove={[
+          "Responses are typed by hand rather than generated from the schema, so a schema change surfaces at runtime rather than in the type checker.",
+          "There is no persisted-query or depth limiting, which matters more against an upstream I do not control.",
+          "Errors come back as whatever the endpoint sends; nothing normalises a GraphQL partial-error response into something the UI can reason about.",
+        ]}
+        upcoming={[
+          "Generate types from the schema, which is the one change that would move a whole class of failure from runtime to build time.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

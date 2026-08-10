@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -319,6 +320,19 @@ export default function BundlersContent() {
           </Bullet>
         </ul>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "A written position on what this project runs and why, rather than switching on the basis of benchmarks that measure someone else's app.",
+          "The conditions under which I would actually reach for something else, stated up front so the decision is not re-litigated every release.",
+        ]}
+        couldImprove={[
+          "The position is not re-measured. It was true when written and nothing prompts a recheck as the tooling moves.",
+          "Build times are not tracked over time, so 'is this still fine' is answered by feel.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. This is a decision record, and the honest trigger to revisit it is a real problem rather than a date.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

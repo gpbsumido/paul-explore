@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** A section heading with a short "why we looked" line under it. */
 function Finding({
@@ -602,6 +603,19 @@ export default function ProjectReviewContent() {
           prioritised.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A review that named specific problems with locations rather than general concerns, which is the difference between a review and a mood.",
+          "Findings that turned into actual work — the repeated logic it flagged is what the refactor pass then went and fixed.",
+        ]}
+        couldImprove={[
+          "It was a point-in-time pass with nothing scheduling the next one, so the picture is already older than the code.",
+          "Findings were not tracked to closure anywhere, so which ones remain open is reconstructed by reading rather than known.",
+        ]}
+        upcoming={[
+          "The physics-engine test gap it identified is still the largest untested surface named here, and it is the one I would close first.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

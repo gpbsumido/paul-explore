@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -827,6 +828,20 @@ import { m } from "framer-motion";
           only way to use a tool like this.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A static-analysis pass worked to conclusion rather than run and admired, with the fixes that landed separated from the ones deliberately declined.",
+          "False positives recorded as false positives, because a tool's output is evidence rather than a to-do list.",
+          "Severity treated as distinct from priority, which is the whole judgement a tool cannot make for you.",
+        ]}
+        couldImprove={[
+          "It is not part of CI, so the same issues can reaccumulate between deliberate passes.",
+          "The deferred items have no trigger for revisiting — they are deferred by design and effectively indefinitely.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. Rerunning it is cheap and worth doing when something feels off rather than on a calendar.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Dev-notes write-up for the v3 node-graph landing: the design, the physics, and the audit. */
 export default function V3RedesignContent() {
@@ -251,6 +252,20 @@ export default function V3RedesignContent() {
           holds the higher bar now, not just this page.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Two views over one data model, so the graph and the list cannot disagree about what exists.",
+          "Accessibility taken seriously in a graph interface, which is the hardest possible case for it and the one most often skipped.",
+          "A flat mobile fallback rather than a pannable graph on a phone, because the interaction does not survive the screen size.",
+        ]}
+        couldImprove={[
+          "The graph is beautiful and not the fastest way to find anything, which is what the command palette exists to cover.",
+          "Superseded by v4 as the default landing experience.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. It remains reachable and the current work is on v4.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

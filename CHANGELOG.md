@@ -35,6 +35,13 @@
 
 - **Twelve of the fourteen feature routes had no error boundary.** Any render error escaped to the global boundary, which throws away the page shell and leaves a reload as the only way back — on the operator dashboard, the world, the flags console, gallery wall, the NBA hub and seven others. They all have one now, using the same `RouteError` the calendar and research pages already used, so a failure keeps the header and offers a retry in place. Five routes were also missing a loading state (learn, craft, gallery wall, the NBA hub, the Pokémon hub) and now have skeletons shaped like the page that follows rather than a spinner.
 - A test walks the feature registry and fails if any route is missing either file, so the next feature added gets the same treatment instead of quietly shipping without them.
+## 2026-08-10 - version 3.20.0
+
+- **All 56 write-ups now close by saying where they stand** — what the current shape is and why, where it falls short, and what is genuinely queued. The sweep is finished. The real problem it was solving was not missing prose: a page written once and never revisited looked identical to one that was current, and the closing block forces the question of which it is.
+- **"Nothing scheduled" is used where it is true.** Around a dozen of these document one-off passes that are genuinely finished — the pnpm migration, the macOS menu bar, the retired search bar, the earlier redesigns — and inventing a roadmap for them would be worse than silence.
+- Writing them surfaced three things I would not have seen feature by feature. Two independent write-ups concluded a bundle-size budget in CI is the missing piece, having each reached it from a different direction. The vitals page reporting without alerting is the same shape as tree-shaking analysis with nothing gating it — measurement that informs rather than constrains. And reduced motion is honoured by the motion components and ignored by exactly the two pages that animate continuously, which is now written on all three.
+- A test fails if any write-up drops its closing block, so a new page gets one or CI says so.
+
 ## 2026-08-10 - version 3.19.0
 
 - **Every one of the fifteen features now has a write-up with a closing block on where it stands**, and dated updates wherever the feature actually moved. Calendar, the playoffs bracket and the TCG browser gained updates from their real history; Ketsup got a closing block and no update, since the work happens in a different repo and listing its roadmap here would be pretending otherwise.

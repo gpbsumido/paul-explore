@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -329,6 +330,21 @@ export default function DesignSystemChartsContent() {
           </li>
         </ul>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Three primitives rather than a chart component per chart type, because the variation is in composition and a component per type multiplies with every new one.",
+          "Accessibility built into the primitives rather than added per chart — a chart that is only meaningful visually is a chart that excludes people by construction.",
+          "Framework-agnostic, so the charting choice is not welded to this app's React version.",
+        ]}
+        couldImprove={[
+          "Only the chart types this project needed exist. The primitives are general and the coverage is not.",
+          "There is no data-table fallback rendered alongside each chart, which is the most reliable accessible representation and the one screen readers handle best.",
+          "Nothing snapshots the rendered output, so a primitive change can alter every chart silently.",
+        ]}
+        upcoming={[
+          "A tabular fallback per chart, which is a stronger accessibility answer than describing the shape in a label.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

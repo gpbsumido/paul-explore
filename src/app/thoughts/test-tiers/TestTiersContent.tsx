@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -416,6 +417,19 @@ export default function TestTiersContent() {
           on every commit.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A stated strategy with each tier assigned a purpose, so the question stops being how much to test and becomes which tier this belongs in.",
+          "Actually implemented rather than aspirational — the playoffs feature was where it went from a description to a practice.",
+        ]}
+        couldImprove={[
+          "Tier placement is a judgement with no rule, so a test can land in the slowest tier that a faster one would have caught.",
+          "Nothing tracks the ratio between tiers, which is the number that would show the pyramid inverting.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. The strategy holds; the work it implies is in the e2e page's flake tracking.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }
