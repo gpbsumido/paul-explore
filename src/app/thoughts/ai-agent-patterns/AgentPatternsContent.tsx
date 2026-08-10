@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -667,6 +668,21 @@ function createTestStream() {
 }`}
         </pre>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Server-sent events rather than WebSockets, because the traffic is one-directional and a full duplex channel would be machinery with nothing to carry.",
+          "fetch with a ReadableStream instead of EventSource, which is what makes POST bodies and headers possible.",
+          "State machines over booleans, so impossible combinations cannot be represented rather than merely avoided.",
+        ]}
+        couldImprove={[
+          "Reconnection is naive. A dropped stream restarts rather than resuming from the last event id, which the SSE protocol already supports.",
+          "There is no backpressure story — a fast producer and a slow consumer have not been tested against each other.",
+          "The patterns are demonstrated but not extracted, so using one elsewhere means reading this page and reimplementing.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. This documents patterns rather than a feature that accrues work, and inventing a roadmap for it would be dishonest.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

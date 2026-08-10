@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function SecurityContent() {
@@ -423,6 +424,21 @@ export default function SecurityContent() {
           GitHub raw for Pokémon sprites.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A content security policy that is actually restrictive, rather than one broad enough to be decorative.",
+          "The unsafe-inline problem confronted instead of worked around, which is the difference between having a CSP and appearing to.",
+          "Middleware kept cheap, since a header on every request is the one place overhead compounds.",
+        ]}
+        couldImprove={[
+          "Nothing reports violations, so a policy blocking something legitimate is discovered by a broken page rather than a report.",
+          "The policy is not tested — no check fails if a header stops being sent.",
+          "It predates the ask route, which added a first outbound call to a third party and deserves a look against the connect-src rule.",
+        ]}
+        upcoming={[
+          "Assert the security headers in a test, so removing one fails a build rather than being noticed later.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

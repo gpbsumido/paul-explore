@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Sent, Received, Timestamp } from "@/lib/threads";
 import SearchDemo from "./SearchDemo";
@@ -293,6 +294,19 @@ export default function ThreadList({ threads }) {
           over 4 items. No more.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "The server and client boundary chosen deliberately rather than by default, which was the actual decision in the feature.",
+          "Kept as a record after the feature was retired, because the reasoning outlived the code.",
+        ]}
+        couldImprove={[
+          "It documents an approach that is no longer in the app, so it is history rather than guidance.",
+          "The command palette that replaced it made different trade-offs, and nothing here connects the two.",
+        ]}
+        upcoming={[
+          "Nothing scheduled — this is marked deprecated and kept for the reasoning.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

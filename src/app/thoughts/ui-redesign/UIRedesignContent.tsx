@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Sent, Received, Timestamp } from "@/lib/threads";
 
@@ -693,6 +694,19 @@ const HeroScene = dynamic(() => import("./HeroScene"), { ssr: false });
           so the redesign looks the same and just measures better.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A visual system with rules — monochrome with a pastel accent — rather than per-page choices, which is what made later redesigns possible without starting over.",
+          "Motion chosen deliberately, with the library decision written down rather than absorbed.",
+        ]}
+        couldImprove={[
+          "Superseded by later redesigns, so it documents a state the app is no longer in.",
+          "The heavier effects it introduced are the ones later performance passes had to unwind.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. It is a record of a design generation, and the current work is on v4.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline code, matching the muted-mono treatment the other write-ups use. */
 const C = ({ children }: { children: React.ReactNode }) => (
@@ -134,6 +135,19 @@ export default function HybridRenderingContent() {
           show up.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Per-route render modes rather than one strategy for the whole app, because the right answer genuinely differs between an essay and an interactive shell.",
+          "Static prerendering with enumerated params for the routes where SEO is the point, and client rendering left alone where interactivity is.",
+        ]}
+        couldImprove={[
+          "The hydration bugs it describes were found by looking rather than by a check — nothing fails a build when a server-rendered page depends on browser state.",
+          "There is no measurement of whether prerendering actually helped the routes it was applied to.",
+        ]}
+        upcoming={[
+          "Nothing scheduled here. The follow-on work is really the vitals page growing per-route budgets, which is where the effect would show up.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

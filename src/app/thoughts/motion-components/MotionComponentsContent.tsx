@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -237,6 +238,19 @@ export default function MotionComponentsContent() {
           </Bullet>
         </ul>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "Reduced motion as the default rather than a fallback, so the accessible path is the one that runs unless something opts out.",
+          "Motion behind components rather than scattered animation calls, which is what makes a policy like that enforceable at all.",
+        ]}
+        couldImprove={[
+          "Adoption is incomplete. The world and the particle lab animate continuously and neither goes through these components, which is exactly why they still ignore reduced motion.",
+          "There is no test that a new animation went through the components rather than around them.",
+        ]}
+        upcoming={[
+          "Bring the world and the particle lab onto these components, which is the concrete way their reduced-motion gap actually closes.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

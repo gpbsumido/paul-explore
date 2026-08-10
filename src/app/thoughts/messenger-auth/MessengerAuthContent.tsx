@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -300,6 +301,17 @@ export default function MessengerAuthContent() {
           header feels incomplete.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "The user-visible symptom traced back to an auth boundary rather than treated as a UI glitch, which is where it actually lived.",
+          "The UX side fixed alongside the cause, because a correct auth flow that still confuses people is only half done.",
+        ]}
+        couldImprove={[
+          "No regression test covers the flow, so the same class of failure would be caught by someone hitting it.",
+          "The write-up documents one bug rather than the auth model around it, which is the thing a reader would need to avoid the next one.",
+        ]}
+        upcoming={["Nothing scheduled. It documents a fix that has held."]}
+      />
     </ThoughtLayout>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function ImprovementsContent() {
@@ -561,6 +562,21 @@ export default function ImprovementsContent() {
           state that looks like no results.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Zod at the trust boundaries rather than types alone, since a type is a claim and a schema is a check.",
+          "Rate limiting where an endpoint costs something, which is the same reasoning that later gated the research ask box.",
+          "Hardening treated as its own pass rather than sprinkled through feature work, so it actually got finished.",
+        ]}
+        couldImprove={[
+          "Rate limiting is in-memory and per-instance, which stops a runaway loop and would not stop a determined caller.",
+          "Not every boundary is covered — the newer routes parse their upstreams and some of the older ones still narrow with an assertion.",
+          "There is no automated check that a new route has a schema, so coverage depends on remembering.",
+        ]}
+        upcoming={[
+          "Bring the remaining older routes onto zod parsing, so the boundary rule is uniform rather than a convention with exceptions.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

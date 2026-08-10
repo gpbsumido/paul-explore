@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline code, matching the muted-mono treatment the other write-ups use. */
 const C = ({ children }: { children: React.ReactNode }) => (
@@ -156,6 +157,19 @@ export default function MacMenuBarContent() {
           show up.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "The menu derived from state rather than assembled imperatively, so what is enabled and what is checked cannot drift from what is true.",
+          "A faithful reproduction used as a constraint — matching a well-known interface forces the details that get skipped when inventing one.",
+        ]}
+        couldImprove={[
+          "Keyboard traversal is partial. A real menu bar is fully operable from the keyboard, and this is closer to mouse-first with keyboard support.",
+          "The menu model is local to this page rather than a primitive anything else could use.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. It is a faithful reproduction that has not needed changing, which is the honest status.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

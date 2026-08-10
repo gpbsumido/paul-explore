@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Dev-notes write-up for the v4 slot-machine landing: the reels, the spin, and the a11y model. */
 export default function V4RedesignContent() {
@@ -278,6 +279,20 @@ export default function V4RedesignContent() {
           fit&rdquo;: it wasn&rsquo;t zooming, and now it fits.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A slot machine that never makes anything unreachable, which was the constraint that made the idea acceptable rather than merely fun.",
+          "A listbox underneath the costume, so the whole thing is operable and announced properly rather than being a visual toy.",
+          "The feature registry as its data source, so a new feature appears without being registered twice.",
+        ]}
+        couldImprove={[
+          "Novelty has a cost for repeat visitors — the spin is a delight once and a delay on the tenth visit, and there is no way to skip straight to a destination.",
+          "Nothing measures whether people actually reach features through it or route around it via the palette.",
+        ]}
+        upcoming={[
+          "A way to bypass the spin for anyone who knows where they are going, which the write-up already lists as the next thing and is the strongest of these.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

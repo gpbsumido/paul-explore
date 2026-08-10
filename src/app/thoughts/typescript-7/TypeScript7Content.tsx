@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -183,6 +184,20 @@ tsc  --noEmit     # the one eslint resolves against`}
           trust.
         </p>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "A decision to not upgrade, with the measurement that justified it — a four-second type-check makes a ten-times speedup worth very little.",
+          "The blocker named precisely: the lint stack peer-caps below it, so the choice was never really available.",
+          "The speed pursued by other means rather than treating the upgrade as the only route to it.",
+        ]}
+        couldImprove={[
+          "The measurement is a snapshot. The type-check will get slower and the calculation flips at some point with nothing prompting a recheck.",
+          "Type-check duration is not tracked, so the number that would trigger revisiting is not being watched.",
+        ]}
+        upcoming={[
+          "Revisit when the lint stack supports it, which is the actual gate rather than a date I would be inventing.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

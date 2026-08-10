@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -161,6 +162,21 @@ export default function CommandPaletteThoughtsContent() {
           keep in sync.
         </p>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "One instance mounted once and opened from anywhere, rather than a palette per page that would drift in behaviour.",
+          "The registry built from the hub's own feature data, so a new feature appears in the palette without being registered twice.",
+          "A fuzzy matcher small enough to read in one sitting, instead of a dependency for eighty lines of logic.",
+        ]}
+        couldImprove={[
+          "Only static routes and features are indexed. It cannot find a specific card, store or paper, which is what people would actually search for.",
+          "There is no recent or frequent ordering, so the tenth use is exactly as much work as the first.",
+          "The matcher has no notion of aliases, so the word someone actually types has to be in the title.",
+        ]}
+        upcoming={[
+          "Index deeper than routes, starting with whatever a page's own search already knows how to find.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

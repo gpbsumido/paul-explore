@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -582,6 +583,19 @@ const FeaturesSection = dynamic(
           , the effect returns early and lets the navigation complete.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "The five vitals treated separately, because they fail for different reasons and a single performance score hides which one moved.",
+          "ISR for TTFB and server-seeded content for LCP — fixes matched to the metric rather than general advice applied everywhere.",
+        ]}
+        couldImprove={[
+          "The work is recorded and not defended: nothing fails a build when a metric regresses, so these gains rely on nobody undoing them.",
+          "Measurement is P75 across the site rather than per route, so one slow page hides inside the aggregate.",
+        ]}
+        upcoming={[
+          "Per-route budgets on the vitals page, which is the change that would turn all of this from a past effort into a standing guarantee.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

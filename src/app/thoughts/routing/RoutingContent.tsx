@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -420,6 +421,19 @@ export default function RoutingContent() {
           frontend first, then backend.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A route structure chosen for a stated security model rather than for tidiness, so the boundaries mean something.",
+          "The force-static trade-off written down explicitly, since the cost only shows up later and by then nobody remembers the reasoning.",
+        ]}
+        couldImprove={[
+          "The security model is documented and not tested — nothing fails when a route moves to the wrong side of the boundary.",
+          "There is no route inventory, so which routes are static and which are dynamic is answered by reading the code.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. The structure has held through several features, which is the evidence that matters.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

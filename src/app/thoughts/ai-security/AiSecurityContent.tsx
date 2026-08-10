@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function AiSecurityContent() {
@@ -556,6 +557,19 @@ export default function AiSecurityContent() {
           auditable and version-controlled.
         </p>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A concrete threat model for agent tooling rather than general anxiety: what a bare repo can carry, and what an agent will run without being asked.",
+          "Sandboxing as the boundary that actually holds, since prompt-level instructions are advice and a sandbox is a wall.",
+        ]}
+        couldImprove={[
+          "It documents the risk without any enforcement in this repo — nothing checks that an agent session was actually sandboxed.",
+          "The guidance is not versioned against tooling that changes fast, so it will quietly age.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. This is a written position rather than a system, and it should be revised when the tooling changes rather than on a plan.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

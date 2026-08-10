@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Button, Input, Modal } from "@/components/ui";
 import styles from "@/app/thoughts/_shared/chat.module.css";
@@ -689,6 +690,20 @@ export default function StylingContent() {
           </li>
         </ul>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "Three deliberate layers — tokens, Tailwind, theme switching — each with a job, rather than one mechanism stretched over all three.",
+          "Tokens as the contract, which is what lets the theme change without components knowing.",
+          "CSS Modules kept only where they genuinely fit, instead of banning them for consistency's sake.",
+        ]}
+        couldImprove={[
+          "Two mechanisms means a judgement call per component, and nothing writes down which to reach for.",
+          "There is no check that a component uses tokens rather than a raw colour, which is how a theme quietly stops working in one corner.",
+        ]}
+        upcoming={[
+          "A lint rule against raw colour values outside the token layer, which is the cheapest way to keep the contract real.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

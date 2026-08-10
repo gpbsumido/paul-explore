@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import Paywall from "./Paywall";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -279,6 +280,20 @@ export default function HarnessVisualPlanContent() {
           </Section>
         </div>
       </Paywall>
+      <WhatsNext
+        nowShipped={[
+          "Planning in a structured artefact rather than chat prose, so the plan survives the conversation and can be checked against what shipped.",
+          "Local files only, with no hosted planning service, which was a deliberate call after a security review rather than a preference.",
+          "A recap built from the real diff, so drift between plan and result is visible instead of quietly absorbed.",
+        ]}
+        couldImprove={[
+          "Nothing enforces that a plan was written. It is a practice I follow, and a skipped plan leaves no trace.",
+          "Plans are untracked, so the reasoning behind a change is not in the repository with the change — deliberate, and it does mean the history is thinner than it could be.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. This documents a working practice rather than a system, and it changes when the practice does.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }
