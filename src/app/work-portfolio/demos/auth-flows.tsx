@@ -93,7 +93,9 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+        <p className="text-[13px] font-semibold text-foreground">
+          {feature.title}
+        </p>
         <div className="flex gap-1">
           {SCREENS.map((s, i) => (
             <button
@@ -104,7 +106,8 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
               onClick={() => setIndex(i)}
               className="h-1.5 w-6 rounded-full"
               style={{
-                backgroundColor: i === index ? ACCENT : "var(--color-border, #8884)",
+                backgroundColor:
+                  i === index ? ACCENT : "var(--color-border, #8884)",
               }}
             />
           ))}
@@ -117,7 +120,9 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
             {screen.title}
           </p>
           {screen.note && (
-            <p className="mb-3 text-center text-[11px] text-muted">{screen.note}</p>
+            <p className="mb-3 text-center text-[11px] text-muted">
+              {screen.note}
+            </p>
           )}
           <div className="space-y-2">
             {screen.fields.map((f) => {
@@ -129,14 +134,22 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
                     aria-label={f.label}
                     placeholder={f.label}
                     value={value}
-                    type={f.kind === "password" || f.kind === "confirm" ? "password" : "text"}
+                    type={
+                      f.kind === "password" || f.kind === "confirm"
+                        ? "password"
+                        : "text"
+                    }
                     inputMode={f.kind === "code" ? "numeric" : undefined}
                     onChange={(e) => set(f.label, e.target.value)}
                     aria-invalid={Boolean(error)}
                     className="w-full rounded-md border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
-                    style={{ borderColor: error ? "#ef4444" : "var(--color-border)" }}
+                    style={{
+                      borderColor: error ? "#ef4444" : "var(--color-border)",
+                    }}
                   />
-                  {error && <p className="mt-0.5 text-[10px] text-red-500">{error}</p>}
+                  {error && (
+                    <p className="mt-0.5 text-[10px] text-red-500">{error}</p>
+                  )}
                 </div>
               );
             })}

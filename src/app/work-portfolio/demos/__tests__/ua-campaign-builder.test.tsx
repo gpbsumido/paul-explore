@@ -22,7 +22,9 @@ describe("ua campaign builder demo", () => {
     fireEvent.change(screen.getByLabelText("Channel"), {
       target: { value: "Influencer" },
     });
-    expect(within(preview).getByText(/Influencer campaign/)).toBeInTheDocument();
+    expect(
+      within(preview).getByText(/Influencer campaign/),
+    ).toBeInTheDocument();
   });
 
   it("gates advancing past basics until the campaign has a name", () => {

@@ -26,110 +26,106 @@ export default function PrScreenshotsContent() {
       }
       chat={
         <ChatThread>
-              <Timestamp>Today 2:12 PM</Timestamp>
+          <Timestamp>Today 2:12 PM</Timestamp>
 
-              <Received pos="first">
-                the harness should put before/after screenshots in every PR that
-                changes the UI
-              </Received>
-              <Received pos="last">inline in the description, not links</Received>
+          <Received pos="first">
+            the harness should put before/after screenshots in every PR that
+            changes the UI
+          </Received>
+          <Received pos="last">inline in the description, not links</Received>
 
-              <Sent pos="first">
-                the problem is the agent has no browser. GitHub&apos;s own image
-                upload — the one that gives you user-attachments URLs — only
-                works from a logged-in session. it&apos;s not scriptable
-              </Sent>
-              <Sent pos="last">
-                so the image has to already live at some URL the markdown can
-                point at, and gh has to be able to put it there
-              </Sent>
+          <Sent pos="first">
+            the problem is the agent has no browser. GitHub&apos;s own image
+            upload — the one that gives you user-attachments URLs — only works
+            from a logged-in session. it&apos;s not scriptable
+          </Sent>
+          <Sent pos="last">
+            so the image has to already live at some URL the markdown can point
+            at, and gh has to be able to put it there
+          </Sent>
 
-              <Timestamp>2:15 PM</Timestamp>
+          <Timestamp>2:15 PM</Timestamp>
 
-              <Received>gist? gh gist create</Received>
+          <Received>gist? gh gist create</Received>
 
-              <Sent pos="last">
-                tried it. gh gist rejects binary files outright — &quot;binary
-                file not supported.&quot; it literally can&apos;t host a PNG
-              </Sent>
+          <Sent pos="last">
+            tried it. gh gist rejects binary files outright — &quot;binary file
+            not supported.&quot; it literally can&apos;t host a PNG
+          </Sent>
 
-              <Timestamp>2:16 PM</Timestamp>
+          <Timestamp>2:16 PM</Timestamp>
 
-              <Received>release assets then. gh release upload works</Received>
+          <Received>release assets then. gh release upload works</Received>
 
-              <Sent pos="first">
-                it does work, and the CDN URL renders inline. but it&apos;s
-                semantically wrong — now every screenshot needs a release tag,
-                and the Releases page fills up with junk tags that aren&apos;t
-                releases
-              </Sent>
-              <Sent pos="last">
-                you&apos;d be abusing the releases feature as a blob store to
-                avoid abusing git as a blob store. no cleaner, just less obvious
-              </Sent>
+          <Sent pos="first">
+            it does work, and the CDN URL renders inline. but it&apos;s
+            semantically wrong — now every screenshot needs a release tag, and
+            the Releases page fills up with junk tags that aren&apos;t releases
+          </Sent>
+          <Sent pos="last">
+            you&apos;d be abusing the releases feature as a blob store to avoid
+            abusing git as a blob store. no cleaner, just less obvious
+          </Sent>
 
-              <Timestamp>2:19 PM</Timestamp>
+          <Timestamp>2:19 PM</Timestamp>
 
-              <Received>so what actually worked</Received>
+          <Received>so what actually worked</Received>
 
-              <Sent pos="first">
-                commit the PNGs onto the PR&apos;s own branch, then embed them
-                with branch-pinned raw.githubusercontent URLs —
-                raw.githubusercontent.com/owner/repo/branch/path
-              </Sent>
-              <Sent pos="middle">
-                because they&apos;re on the branch the PR is built from, they
-                render the moment the description loads. this is what
-                paul-explore #237 actually did — it&apos;s not theoretical
-              </Sent>
-              <Sent pos="last">
-                release PRs (develop→main) don&apos;t re-shoot anything — they
-                reuse the develop PR&apos;s images, since the same commits carry
-                them up
-              </Sent>
+          <Sent pos="first">
+            commit the PNGs onto the PR&apos;s own branch, then embed them with
+            branch-pinned raw.githubusercontent URLs —
+            raw.githubusercontent.com/owner/repo/branch/path
+          </Sent>
+          <Sent pos="middle">
+            because they&apos;re on the branch the PR is built from, they render
+            the moment the description loads. this is what paul-explore #237
+            actually did — it&apos;s not theoretical
+          </Sent>
+          <Sent pos="last">
+            release PRs (develop→main) don&apos;t re-shoot anything — they reuse
+            the develop PR&apos;s images, since the same commits carry them up
+          </Sent>
 
-              <Timestamp>2:23 PM</Timestamp>
+          <Timestamp>2:23 PM</Timestamp>
 
-              <Received>
-                doesn&apos;t that leave screenshots sitting in main? delete them
-                at release time to keep it clean
-              </Received>
+          <Received>
+            doesn&apos;t that leave screenshots sitting in main? delete them at
+            release time to keep it clean
+          </Received>
 
-              <Sent pos="first">
-                that&apos;s the tempting one, and it&apos;s theater. once the
-                blobs merge develop→main they&apos;re in git history forever
-              </Sent>
-              <Sent pos="middle">
-                deleting the working-tree copy reclaims nothing — the objects
-                are still in the packfile — and it risks breaking a live PR
-                description that points at the path
-              </Sent>
-              <Sent pos="last">
-                so we don&apos;t prune. we just keep the shots small. the only
-                honest lever is size, not a cleanup ritual that doesn&apos;t
-                clean
-              </Sent>
+          <Sent pos="first">
+            that&apos;s the tempting one, and it&apos;s theater. once the blobs
+            merge develop→main they&apos;re in git history forever
+          </Sent>
+          <Sent pos="middle">
+            deleting the working-tree copy reclaims nothing — the objects are
+            still in the packfile — and it risks breaking a live PR description
+            that points at the path
+          </Sent>
+          <Sent pos="last">
+            so we don&apos;t prune. we just keep the shots small. the only
+            honest lever is size, not a cleanup ritual that doesn&apos;t clean
+          </Sent>
 
-              <Timestamp>2:26 PM</Timestamp>
+          <Timestamp>2:26 PM</Timestamp>
 
-              <Received>one more thing — the dev overlays</Received>
+          <Received>one more thing — the dev overlays</Received>
 
-              <Sent pos="first">
-                right. the Next.js dev indicator sits bottom-left and the React
-                Query devtools button bottom-right. both get hidden before
-                capture
-              </Sent>
-              <Sent pos="last">
-                a screenshot should show the product, not the tooling parked on
-                top of it
-              </Sent>
+          <Sent pos="first">
+            right. the Next.js dev indicator sits bottom-left and the React
+            Query devtools button bottom-right. both get hidden before capture
+          </Sent>
+          <Sent pos="last">
+            a screenshot should show the product, not the tooling parked on top
+            of it
+          </Sent>
 
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </ChatThread>
+          <div className={styles.typingDots}>
+            <span />
+            <span />
+            <span />
+          </div>
+        </ChatThread>
       }
     >
       <section>
@@ -139,9 +135,9 @@ export default function PrScreenshotsContent() {
           before/after screenshots <em>inline</em> in the description — not as
           links a reviewer has to open, but as images that render where they are
           already looking. Release PRs (<code className={code}>develop</code> →{" "}
-          <code className={code}>main</code>) shouldn&apos;t re-capture anything;
-          they should reuse the screenshots from the feature PRs that fed into
-          the release.
+          <code className={code}>main</code>) shouldn&apos;t re-capture
+          anything; they should reuse the screenshots from the feature PRs that
+          fed into the release.
         </p>
         <p className="mt-3 text-muted">
           The constraint that makes this interesting: the author is the{" "}
@@ -162,18 +158,17 @@ export default function PrScreenshotsContent() {
         </p>
         <p className="mt-3 text-muted">
           <strong>GitHub&apos;s native upload</strong> — the drag-and-drop that
-          mints{" "}
-          <code className={code}>user-attachments</code> CDN links — is the
-          canonical answer. It is a browser-session feature. There
-          is no <code className={code}>gh</code> command and no documented API
-          that reproduces it, so an unattended agent simply cannot reach it.
+          mints <code className={code}>user-attachments</code> CDN links — is
+          the canonical answer. It is a browser-session feature. There is no{" "}
+          <code className={code}>gh</code> command and no documented API that
+          reproduces it, so an unattended agent simply cannot reach it.
         </p>
         <p className="mt-3 text-muted">
           <strong>
             <code className={code}>gh gist create</code>
           </strong>{" "}
-          looks like a free blob host, but it{" "}
-          <em>rejects binary files</em>. Feed it a PNG and it returns{" "}
+          looks like a free blob host, but it <em>rejects binary files</em>.
+          Feed it a PNG and it returns{" "}
           <code className={code}>binary file not supported</code>. It can host
           the markdown, not the image the markdown needs. Dead end.
         </p>
@@ -245,21 +240,20 @@ export default function PrScreenshotsContent() {
           So deleting the file reclaims no space and undoes no commit. It only
           adds risk: a live PR description embeds a branch-pinned URL, and
           removing the file underneath it can break that render. We do{" "}
-          <em>not</em> prune. The only honest lever on repo weight is keeping the
-          screenshots small in the first place, so that is the one we pull.
+          <em>not</em> prune. The only honest lever on repo weight is keeping
+          the screenshots small in the first place, so that is the one we pull.
         </p>
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold">
-          Hiding the dev-mode overlays
-        </h2>
+        <h2 className="mb-3 text-lg font-bold">Hiding the dev-mode overlays</h2>
         <p className="text-muted">
           A screenshot should show the product, not the tooling sitting on top
           of it. Before capture, the harness hides the two dev-mode overlays:
           the Next.js dev indicator in the bottom-left corner and the React
-          Query devtools button in the bottom-right. Otherwise the &quot;after&quot;
-          image documents the dev chrome instead of the UI change under review.
+          Query devtools button in the bottom-right. Otherwise the
+          &quot;after&quot; image documents the dev chrome instead of the UI
+          change under review.
         </p>
       </section>
 

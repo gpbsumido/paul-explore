@@ -10,10 +10,34 @@ type Node = { id: string; label: string; x: number; y: number; code: string };
 type Edge = [string, string];
 
 const INITIAL_NODES: Node[] = [
-  { id: "trigger", label: "On purchase", x: 20, y: 40, code: "on(event = \"purchase\")" },
-  { id: "filter", label: "Filter whales", x: 150, y: 20, code: "where(spend_30d > 100)" },
-  { id: "enrich", label: "Enrich profile", x: 150, y: 90, code: "join(profiles, on = \"user_id\")" },
-  { id: "action", label: "Send reward", x: 280, y: 55, code: "grant(item = \"vip_crate\")" },
+  {
+    id: "trigger",
+    label: "On purchase",
+    x: 20,
+    y: 40,
+    code: 'on(event = "purchase")',
+  },
+  {
+    id: "filter",
+    label: "Filter whales",
+    x: 150,
+    y: 20,
+    code: "where(spend_30d > 100)",
+  },
+  {
+    id: "enrich",
+    label: "Enrich profile",
+    x: 150,
+    y: 90,
+    code: 'join(profiles, on = "user_id")',
+  },
+  {
+    id: "action",
+    label: "Send reward",
+    x: 280,
+    y: 55,
+    code: 'grant(item = "vip_crate")',
+  },
 ];
 
 const INITIAL_EDGES: Edge[] = [
@@ -29,7 +53,12 @@ const VIEW_W = 400;
 const VIEW_H = 150;
 
 /** Move one node to a new position, leaving the rest untouched. */
-export function moveNode(nodes: Node[], id: string, x: number, y: number): Node[] {
+export function moveNode(
+  nodes: Node[],
+  id: string,
+  x: number,
+  y: number,
+): Node[] {
   return nodes.map((n) => (n.id === id ? { ...n, x, y } : n));
 }
 
@@ -51,14 +80,24 @@ export function removeEdge(edges: Edge[], from: string, to: string): Edge[] {
  * or remove connections between them. The original paired a node-graph library
  * with a code editor; this rebuilds the idea from scratch.
  */
-export default function WorkflowEditorDemo({ feature }: { feature: WorkFeature }) {
+export default function WorkflowEditorDemo({
+  feature,
+}: {
+  feature: WorkFeature;
+}) {
   const [nodes, setNodes] = useState<Node[]>(INITIAL_NODES);
   const [edges, setEdges] = useState<Edge[]>(INITIAL_EDGES);
   const [selected, setSelected] = useState<string>("trigger");
   const [from, setFrom] = useState<string>("trigger");
   const [to, setTo] = useState<string>("action");
   const svgRef = useRef<SVGSVGElement>(null);
-  const drag = useRef<{ id: string; startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const drag = useRef<{
+    id: string;
+    startX: number;
+    startY: number;
+    origX: number;
+    origY: number;
+  } | null>(null);
 
   const byId = (id: string) => nodes.find((n) => n.id === id)!;
   const node = byId(selected);
@@ -71,7 +110,13 @@ export default function WorkflowEditorDemo({ feature }: { feature: WorkFeature }
   const onPointerDown = (e: ReactPointerEvent, id: string) => {
     setSelected(id);
     const n = byId(id);
-    drag.current = { id, startX: e.clientX, startY: e.clientY, origX: n.x, origY: n.y };
+    drag.current = {
+      id,
+      startX: e.clientX,
+      startY: e.clientY,
+      origX: n.x,
+      origY: n.y,
+    };
     (e.target as Element).setPointerCapture?.(e.pointerId);
   };
 
@@ -79,8 +124,10 @@ export default function WorkflowEditorDemo({ feature }: { feature: WorkFeature }
     if (!drag.current || !svgRef.current) return;
     const scaleX = VIEW_W / svgRef.current.clientWidth;
     const scaleY = VIEW_H / svgRef.current.clientHeight;
-    const nextX = drag.current.origX + (e.clientX - drag.current.startX) * scaleX;
-    const nextY = drag.current.origY + (e.clientY - drag.current.startY) * scaleY;
+    const nextX =
+      drag.current.origX + (e.clientX - drag.current.startX) * scaleX;
+    const nextY =
+      drag.current.origY + (e.clientY - drag.current.startY) * scaleY;
     const clampedX = Math.max(0, Math.min(VIEW_W - NODE_W, nextX));
     const clampedY = Math.max(0, Math.min(VIEW_H - NODE_H, nextY));
     setNodes((ns) => moveNode(ns, drag.current!.id, clampedX, clampedY));
@@ -92,7 +139,9 @@ export default function WorkflowEditorDemo({ feature }: { feature: WorkFeature }
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+      <p className="text-[13px] font-semibold text-foreground">
+        {feature.title}
+      </p>
 
       <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border bg-background/40">
         <svg
@@ -140,7 +189,13 @@ export default function WorkflowEditorDemo({ feature }: { feature: WorkFeature }
                   strokeOpacity={active ? 1 : 0.3}
                   strokeWidth={active ? 2 : 1}
                 />
-                <text x={NODE_W / 2} y={NODE_H / 2 + 3} textAnchor="middle" fontSize={9} fill="currentColor">
+                <text
+                  x={NODE_W / 2}
+                  y={NODE_H / 2 + 3}
+                  textAnchor="middle"
+                  fontSize={9}
+                  fill="currentColor"
+                >
                   {n.label}
                 </text>
               </g>
@@ -175,7 +230,9 @@ export default function WorkflowEditorDemo({ feature }: { feature: WorkFeature }
               className="min-w-0 flex-1 rounded-md border border-border bg-background px-1.5 py-1 text-[11px] text-foreground"
             >
               {nodes.map((n) => (
-                <option key={n.id} value={n.id}>{n.label}</option>
+                <option key={n.id} value={n.id}>
+                  {n.label}
+                </option>
               ))}
             </select>
             <span className="text-muted">→</span>
@@ -186,7 +243,9 @@ export default function WorkflowEditorDemo({ feature }: { feature: WorkFeature }
               className="min-w-0 flex-1 rounded-md border border-border bg-background px-1.5 py-1 text-[11px] text-foreground"
             >
               {nodes.map((n) => (
-                <option key={n.id} value={n.id}>{n.label}</option>
+                <option key={n.id} value={n.id}>
+                  {n.label}
+                </option>
               ))}
             </select>
             <button
@@ -205,7 +264,9 @@ export default function WorkflowEditorDemo({ feature }: { feature: WorkFeature }
                 data-testid="edge-row"
                 className="flex items-center justify-between rounded border border-border px-1.5 py-0.5 text-[10px] text-muted"
               >
-                <span>{byId(f).label} → {byId(t).label}</span>
+                <span>
+                  {byId(f).label} → {byId(t).label}
+                </span>
                 <button
                   type="button"
                   aria-label={`Remove edge ${f} to ${t}`}

@@ -3,7 +3,6 @@ import { API_URL } from "@/lib/apiUrl";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
-
 // GET /api/vitals/by-version — returns { byVersion: VersionMetrics[] }
 // P75 per metric for the last 5 versions, oldest→newest. Public (same pattern
 // as /api/vitals GET): forwards a token when present, otherwise unauthenticated.
@@ -16,9 +15,12 @@ export async function GET() {
   }
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/vitals/by-version`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/vitals/by-version`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
 

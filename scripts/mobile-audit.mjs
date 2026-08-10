@@ -60,7 +60,10 @@ for (const route of ROUTES) {
         .filter((el) => {
           const r = el.getBoundingClientRect();
           // The skip link is 1x1 until focused, which is correct.
-        if (el.className?.toString?.().includes("sr-only")) return false;
+        const cls = el.className?.toString?.() ?? "";
+        // sr-only is 1x1 until focused, and .touch-target supplies a 44px
+        // pseudo-element the bounding box does not include.
+        if (cls.includes("sr-only") || cls.includes("touch-target")) return false;
         return r.width > 0 && r.height > 0 && r.height < 32;
         })
         .slice(0, 4)

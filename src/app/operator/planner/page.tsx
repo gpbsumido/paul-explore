@@ -51,10 +51,10 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
         <div>
           <h1 className="text-xl font-bold text-foreground">Plan a location</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted">
-            Deciding whether to open another store? Model its revenue and payback
-            before you commit. Move the assumptions and the projection updates
-            live — including the honest answer when a location never pays back.
-            Share the link to send someone the exact scenario.
+            Deciding whether to open another store? Model its revenue and
+            payback before you commit. Move the assumptions and the projection
+            updates live — including the honest answer when a location never
+            pays back. Share the link to send someone the exact scenario.
           </p>
         </div>
 

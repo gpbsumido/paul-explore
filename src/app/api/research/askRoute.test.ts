@@ -11,7 +11,11 @@ import { __resetAskLimiter } from "./ask/route";
 
 type Session = Awaited<ReturnType<typeof auth0.getSession>>;
 const signedIn = {
-  user: { sub: "auth0|123", email: "allowed@example.com", email_verified: true },
+  user: {
+    sub: "auth0|123",
+    email: "allowed@example.com",
+    email_verified: true,
+  },
 } as Session;
 
 const OPENAI = "https://api.openai.com/v1/chat/completions";
@@ -128,7 +132,8 @@ describe("POST /api/research/ask", () => {
           {
             error: {
               type: "insufficient_quota",
-              message: "You have no credits remaining. Add credits to continue.",
+              message:
+                "You have no credits remaining. Add credits to continue.",
             },
           },
           { status: 429 },

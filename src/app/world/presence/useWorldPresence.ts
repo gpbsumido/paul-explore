@@ -35,7 +35,8 @@ async function presenceAllowed(visitorKey: string): Promise<boolean> {
     const flag = fleet.data.flags.find((f) => f.key === WORLD_PRESENCE_FLAG);
     if (!flag) return true;
     return (
-      evaluateFlag(flag, "production", { key: visitorKey, attributes: {} }).value === true
+      evaluateFlag(flag, "production", { key: visitorKey, attributes: {} })
+        .value === true
     );
   } catch {
     return true;
@@ -70,7 +71,11 @@ type PresenceOptions = {
  * when the world-live-presence flag is off. Peers vanish after the timeout —
  * no explicit leave protocol needed.
  */
-export function useWorldPresence({ enabled, playerRef, outfitId }: PresenceOptions) {
+export function useWorldPresence({
+  enabled,
+  playerRef,
+  outfitId,
+}: PresenceOptions) {
   const peersRef = useRef<Map<string, PeerState>>(new Map());
   const [peers, setPeers] = useState<readonly PeerMeta[]>([]);
   const outfitRef = useRef(outfitId);
@@ -101,7 +106,13 @@ export function useWorldPresence({ enabled, playerRef, outfitId }: PresenceOptio
       );
     };
 
-    const handleMessage = ({ peerId: from, snap }: { peerId: string; snap: PresenceSnapshot }) => {
+    const handleMessage = ({
+      peerId: from,
+      snap,
+    }: {
+      peerId: string;
+      snap: PresenceSnapshot;
+    }) => {
       if (cancelled) return;
       const map = peersRef.current;
       const existing = map.get(from);
@@ -112,14 +123,18 @@ export function useWorldPresence({ enabled, playerRef, outfitId }: PresenceOptio
         name: snap.name,
       });
       const metaChanged =
-        !existing || existing.outfitId !== snap.outfitId || existing.name !== snap.name;
+        !existing ||
+        existing.outfitId !== snap.outfitId ||
+        existing.name !== snap.name;
       if (metaChanged) publishMeta();
     };
 
     void (async () => {
       if (!(await presenceAllowed(peerId)) || cancelled) return;
       const apiKey = process.env.NEXT_PUBLIC_ABLY_KEY;
-      transport = apiKey ? await createAblyTransport(apiKey, peerId, handleMessage) : null;
+      transport = apiKey
+        ? await createAblyTransport(apiKey, peerId, handleMessage)
+        : null;
       transport ??= createLocalTransport(peerId, handleMessage);
       if (cancelled || !transport) {
         transport?.close();

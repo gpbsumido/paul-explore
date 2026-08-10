@@ -53,10 +53,7 @@ export default function ThoughtsIndexContent() {
   return (
     <PageShell colorA="#818cf8" colorB="#38bdf8">
       <PageHeader
-        breadcrumbs={[
-          { label: "Hub", href: "/" },
-          { label: "Thoughts" },
-        ]}
+        breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Thoughts" }]}
         maxWidth="max-w-5xl"
       />
 

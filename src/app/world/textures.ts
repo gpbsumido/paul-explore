@@ -5,7 +5,10 @@ import * as THREE from "three";
 // dynamic import of WorldCanvas.
 
 /** Facade texture: a dark curtain wall with a scattering of lit windows. */
-export function makeWindowTexture(litChance = 0.4, tintHex = "#0e1420"): THREE.CanvasTexture {
+export function makeWindowTexture(
+  litChance = 0.4,
+  tintHex = "#0e1420",
+): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 128;
   canvas.height = 256;
@@ -20,10 +23,13 @@ export function makeWindowTexture(litChance = 0.4, tintHex = "#0e1420"): THREE.C
   for (let col = 0; col < cols; col += 1) {
     for (let row = 0; row < rows; row += 1) {
       // Hash-based instead of Math.random so every load looks identical.
-      const hash = Math.abs(Math.sin(col * 127.1 + row * 311.7) * 43758.5453) % 1;
+      const hash =
+        Math.abs(Math.sin(col * 127.1 + row * 311.7) * 43758.5453) % 1;
       if (hash > litChance) continue;
-      const warm = hash * 2.5 % 1 > 0.5;
-      ctx.fillStyle = warm ? "rgba(255, 214, 150, 0.9)" : "rgba(170, 210, 255, 0.75)";
+      const warm = (hash * 2.5) % 1 > 0.5;
+      ctx.fillStyle = warm
+        ? "rgba(255, 214, 150, 0.9)"
+        : "rgba(170, 210, 255, 0.75)";
       ctx.fillRect(col * cellW + 2, row * cellH + 2, cellW - 4, cellH - 5);
     }
   }
@@ -44,8 +50,17 @@ type TextTextureOptions = {
 };
 
 /** Crisp text on a transparent (or pill) background, for signs and labels. */
-export function makeTextTexture(text: string, options: TextTextureOptions = {}): THREE.CanvasTexture {
-  const { fontSize = 64, color = "#ffffff", background, padding = 24, letterColors } = options;
+export function makeTextTexture(
+  text: string,
+  options: TextTextureOptions = {},
+): THREE.CanvasTexture {
+  const {
+    fontSize = 64,
+    color = "#ffffff",
+    background,
+    padding = 24,
+    letterColors,
+  } = options;
   const font = `700 ${fontSize}px "Avenir Next", "Helvetica Neue", sans-serif`;
 
   const measure = document.createElement("canvas").getContext("2d")!;

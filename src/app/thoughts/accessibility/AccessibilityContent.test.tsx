@@ -11,13 +11,17 @@ describe("the accessibility write-up", () => {
   it("owns the violation I introduced myself", () => {
     render(<AccessibilityContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/I had invented a worse version of a\s+solved problem/);
+    expect(body).toMatch(
+      /I had invented a worse version of a\s+solved problem/,
+    );
   });
 
   it("says the shared-library violation was fixed, not just found", () => {
     render(<AccessibilityContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/That one is fixed upstream now, in both framework packages/);
+    expect(body).toMatch(
+      /That one is fixed upstream now, in both framework packages/,
+    );
     expect(body).toMatch(
       /the first consumer to look properly finds it for everyone/,
     );
@@ -26,7 +30,9 @@ describe("the accessibility write-up", () => {
   it("explains why a contrast scan needs a pinned theme", () => {
     render(<AccessibilityContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/races that, and sometimes measures muted text against the other/);
+    expect(body).toMatch(
+      /races that, and sometimes measures muted text against the other/,
+    );
     expect(body).toMatch(/real-looking, unreproducible, and not a bug/);
   });
 

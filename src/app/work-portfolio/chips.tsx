@@ -29,7 +29,9 @@ function ChipShell({
   return (
     <span
       className={`flex shrink-0 items-center rounded-full border bg-background text-[13px] transition-shadow ${
-        active ? "border-foreground/60 ring-2 ring-foreground/30" : "border-border"
+        active
+          ? "border-foreground/60 ring-2 ring-foreground/30"
+          : "border-border"
       }`}
     >
       <Button
@@ -38,7 +40,7 @@ function ChipShell({
         aria-label={label}
         aria-pressed={active}
         onClick={onClick}
-        className="!rounded-l-full !rounded-r-none !px-3 !py-1"
+        className="!rounded-l-full !rounded-r-none !px-3 !py-1 max-sm:!min-h-11"
       >
         <span
           aria-hidden
@@ -53,7 +55,7 @@ function ChipShell({
         onClick={onInfo}
         onMouseEnter={() => onInfoHover?.(true)}
         onMouseLeave={() => onInfoHover?.(false)}
-        className="mr-1 !h-5 !w-5 text-[10px] font-bold"
+        className="touch-target mr-1 !h-5 !w-5 text-[10px] font-bold"
       >
         i
       </IconButton>

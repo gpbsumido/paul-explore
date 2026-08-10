@@ -175,11 +175,7 @@ export default function LeagueContent() {
 
       {/* ---- Season selector ---- */}
       <FilterBar label="Season filter">
-        <Select
-          label="Season"
-          value={season}
-          onChange={handleSeasonChange}
-        >
+        <Select label="Season" value={season} onChange={handleSeasonChange}>
           {SEASONS.map((yr) => (
             <option key={yr} value={yr}>
               {yr - 1}–{yr} Season

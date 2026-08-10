@@ -76,7 +76,11 @@ export default function Textarea({
       )}
 
       {error && (
-        <p id={errorId} className="mt-1.5 text-sm text-error-600 dark:text-error-500" role="alert">
+        <p
+          id={errorId}
+          className="mt-1.5 text-sm text-error-600 dark:text-error-500"
+          role="alert"
+        >
           {error}
         </p>
       )}

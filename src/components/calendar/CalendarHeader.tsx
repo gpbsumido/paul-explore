@@ -25,7 +25,13 @@ interface CalendarHeaderProps {
 /** Small person silhouette indicating a shared (non-owned) calendar. */
 function PersonIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+    >
       <circle cx="5" cy="3.5" r="2" stroke="currentColor" strokeWidth="1.2" />
       <path
         d="M1 9c0-2.2 1.8-4 4-4s4 1.8 4 4"
@@ -39,7 +45,13 @@ function PersonIcon() {
 
 function PencilIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M7 1.5l1.5 1.5L3 8.5H1.5V7L7 1.5z"
         stroke="currentColor"
@@ -54,7 +66,13 @@ function PencilIcon() {
 /** Door-with-arrow icon representing "leave". */
 function LeaveIcon() {
   return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+    <svg
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M4 2H2a1 1 0 00-1 1v4a1 1 0 001 1h2M6.5 7l2-2-2-2M8.5 5H4"
         stroke="currentColor"
@@ -107,7 +125,8 @@ export default function CalendarHeader({
   useEffect(() => {
     if (!dropdownOpen) return;
     document.addEventListener("mousedown", handleDropdownOutsideClick);
-    return () => document.removeEventListener("mousedown", handleDropdownOutsideClick);
+    return () =>
+      document.removeEventListener("mousedown", handleDropdownOutsideClick);
   }, [dropdownOpen, handleDropdownOutsideClick]);
 
   // Auto-dismiss the banner after 5 seconds. The timeout is reset whenever
@@ -131,12 +150,16 @@ export default function CalendarHeader({
       const result = await leaveCalendar(calendarId);
       if (!result.googleAclRemoved) {
         setBanner({
-          message: "You left the calendar. Your Google Calendar access may still be active — remove it from your Google Calendar settings.",
+          message:
+            "You left the calendar. Your Google Calendar access may still be active — remove it from your Google Calendar settings.",
           variant: "warning",
         });
       }
     } catch {
-      setBanner({ message: "Could not leave the calendar. Please try again.", variant: "warning" });
+      setBanner({
+        message: "Could not leave the calendar. Please try again.",
+        variant: "warning",
+      });
     } finally {
       setLeavingId(null);
     }
@@ -160,7 +183,8 @@ export default function CalendarHeader({
           ].join(" ")}
         >
           <span>{banner.message}</span>
-          <button type="button"
+          <button
+            type="button"
             onClick={() => setBanner(null)}
             aria-label="Dismiss"
             className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
@@ -219,13 +243,16 @@ export default function CalendarHeader({
               />
               {calendars[0].name}
               {calendars[0].role !== "owner" && (
-                <span title={`Shared by ${calendars[0].ownerEmail ?? "another user"}`}>
+                <span
+                  title={`Shared by ${calendars[0].ownerEmail ?? "another user"}`}
+                >
                   <PersonIcon />
                 </span>
               )}
               {/* edit (owner) or leave (member) button — visible on hover */}
               {calendars[0].role === "owner" ? (
-                <button type="button"
+                <button
+                  type="button"
                   onClick={() => setEditingCalendar(calendars[0])}
                   aria-label="Edit calendar"
                   title="Edit calendar"
@@ -234,7 +261,8 @@ export default function CalendarHeader({
                   <PencilIcon />
                 </button>
               ) : (
-                <button type="button"
+                <button
+                  type="button"
                   onClick={() => handleLeave(calendars[0].id)}
                   disabled={leavingId === calendars[0].id}
                   aria-label="Leave calendar"
@@ -247,7 +275,8 @@ export default function CalendarHeader({
             </span>
           ) : calendars.length > 1 ? (
             <div data-calendar-dropdown className="hidden sm:block relative">
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => setDropdownOpen((v) => !v)}
                 className="flex items-center gap-1.5 px-2 py-0.5 text-xs rounded border border-border bg-background text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               >
@@ -255,32 +284,61 @@ export default function CalendarHeader({
                   <span
                     className="inline-block w-2 h-2 rounded-full shrink-0"
                     style={{
-                      backgroundColor: calendars.find((c) => c.id === selectedCalendarId)?.color,
+                      backgroundColor: calendars.find(
+                        (c) => c.id === selectedCalendarId,
+                      )?.color,
                     }}
                   />
                 )}
                 {selectedCalendarId
-                  ? calendars.find((c) => c.id === selectedCalendarId)?.name ?? "Calendar"
+                  ? (calendars.find((c) => c.id === selectedCalendarId)?.name ??
+                    "Calendar")
                   : "All calendars"}
-                <svg width="8" height="5" viewBox="0 0 8 5" fill="none" aria-hidden="true">
-                  <path d="M1 1l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  width="8"
+                  height="5"
+                  viewBox="0 0 8 5"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M1 1l3 3 3-3"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </button>
               {dropdownOpen && (
                 <div className="absolute left-0 top-full mt-1 min-w-[180px] rounded-lg border border-border bg-background shadow-md z-50 py-1">
-                  <button type="button"
-                    onClick={() => { onSelectCalendar(null); setDropdownOpen(false); }}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelectCalendar(null);
+                      setDropdownOpen(false);
+                    }}
                     className="w-full px-3 py-1.5 text-xs text-left text-muted hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                   >
                     All calendars
                   </button>
                   {calendars.map((c) => (
-                    <div key={c.id} className="flex items-center group/item hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
-                      <button type="button"
-                        onClick={() => { onSelectCalendar(c.id); setDropdownOpen(false); }}
+                    <div
+                      key={c.id}
+                      className="flex items-center group/item hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onSelectCalendar(c.id);
+                          setDropdownOpen(false);
+                        }}
                         className="flex-1 flex items-center gap-2 px-3 py-1.5 text-xs text-left min-w-0"
                       >
-                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: c.color }}
+                        />
                         <span className="flex-1 truncate">{c.name}</span>
                         {c.role !== "owner" && (
                           <span
@@ -293,8 +351,13 @@ export default function CalendarHeader({
                       </button>
                       {/* edit (owner) or leave (member) */}
                       {c.role === "owner" ? (
-                        <button type="button"
-                          onClick={(e) => { e.stopPropagation(); setEditingCalendar(c); setDropdownOpen(false); }}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingCalendar(c);
+                            setDropdownOpen(false);
+                          }}
                           aria-label={`Edit ${c.name}`}
                           title="Edit calendar"
                           className="px-2 py-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity text-muted hover:text-foreground shrink-0"
@@ -302,8 +365,12 @@ export default function CalendarHeader({
                           <PencilIcon />
                         </button>
                       ) : (
-                        <button type="button"
-                          onClick={(e) => { e.stopPropagation(); handleLeave(c.id); }}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLeave(c.id);
+                          }}
                           disabled={leavingId === c.id}
                           aria-label={`Leave ${c.name}`}
                           title="Leave calendar"
@@ -319,7 +386,8 @@ export default function CalendarHeader({
             </div>
           ) : null}
           <span className="hidden sm:inline-flex items-center gap-1">
-            <button type="button"
+            <button
+              type="button"
               onClick={() => {
                 setCalendarModalOpen(true);
               }}
@@ -327,7 +395,13 @@ export default function CalendarHeader({
               title="New calendar"
               className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
-              <svg width="8" height="8" viewBox="0 0 8 8" fill="none" aria-hidden="true">
+              <svg
+                width="8"
+                height="8"
+                viewBox="0 0 8 8"
+                fill="none"
+                aria-hidden="true"
+              >
                 <path
                   d="M4 1v6M1 4h6"
                   stroke="currentColor"
@@ -338,10 +412,12 @@ export default function CalendarHeader({
               Calendar
             </button>
             <InfoTip maxWidth={240} side="bottom">
-              Calendars organize your events. Each calendar has its own color and sync mode.
-              Hover over a calendar name to edit it or manage sharing.
+              Calendars organize your events. Each calendar has its own color
+              and sync mode. Hover over a calendar name to edit it or manage
+              sharing.
               {"\n\n"}
-              Sync modes: Local only (app only), Push (import from Google, read-only), Two-way (full sync with Google Calendar).
+              Sync modes: Local only (app only), Push (import from Google,
+              read-only), Two-way (full sync with Google Calendar).
             </InfoTip>
           </span>
         </div>
@@ -364,10 +440,13 @@ export default function CalendarHeader({
               Countdowns
             </Link>
             <InfoTip maxWidth={220} side="bottom">
-              Countdowns track time until a specific date — like a trip, exam, or deadline. They show on the calendar grid as chips and have their own dedicated page.
+              Countdowns track time until a specific date — like a trip, exam,
+              or deadline. They show on the calendar grid as chips and have
+              their own dedicated page.
             </InfoTip>
             {onNewCountdown && (
-              <button type="button"
+              <button
+                type="button"
                 onClick={onNewCountdown}
                 aria-label="New countdown"
                 className="flex items-center justify-center w-4 h-4 rounded-full text-muted hover:text-foreground hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
@@ -399,7 +478,8 @@ export default function CalendarHeader({
                 className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0"
                 title="Synced with Google Calendar"
               />
-              <button type="button"
+              <button
+                type="button"
                 onClick={handleSync}
                 aria-label="Refresh calendar from Google"
                 title="Refresh from Google Calendar"
@@ -428,7 +508,8 @@ export default function CalendarHeader({
           {/* View switcher — Year hidden on mobile (too small to be useful) */}
           <div className="flex items-center rounded-lg border border-border p-0.5 gap-0.5">
             {VIEWS.map((v) => (
-              <button type="button"
+              <button
+                type="button"
                 key={v}
                 onClick={() => onViewChange(v)}
                 className={[
@@ -451,7 +532,9 @@ export default function CalendarHeader({
       {calendarModalOpen && (
         <CalendarModal
           onSave={(fields) =>
-            createCalendar(fields as Pick<Calendar, "name" | "color" | "syncMode">)
+            createCalendar(
+              fields as Pick<Calendar, "name" | "color" | "syncMode">,
+            )
           }
           onClose={() => setCalendarModalOpen(false)}
           onBanner={(message, variant) => setBanner({ message, variant })}

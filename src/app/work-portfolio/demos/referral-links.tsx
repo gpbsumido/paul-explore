@@ -24,7 +24,11 @@ const TARGETS = [
  * create it; the server enforces slug uniqueness. Shows the created link with
  * copy. Falls back gracefully if the API is unreachable.
  */
-export default function ReferralLinksDemo({ feature }: { feature: WorkFeature }) {
+export default function ReferralLinksDemo({
+  feature,
+}: {
+  feature: WorkFeature;
+}) {
   const [targetPath, setTargetPath] = useState(TARGETS[0].path);
   const [slug, setSlug] = useState("");
   const [copied, setCopied] = useState(false);
@@ -57,10 +61,14 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+      <p className="text-[13px] font-semibold text-foreground">
+        {feature.title}
+      </p>
 
       <label className="block">
-        <span className="mb-0.5 block text-[11px] text-muted">Link points to</span>
+        <span className="mb-0.5 block text-[11px] text-muted">
+          Link points to
+        </span>
         <select
           aria-label="Target page"
           value={targetPath}
@@ -80,7 +88,9 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
         size="sm"
         placeholder="auto-generated if blank"
         value={slug}
-        onChange={(e) => setSlug(e.target.value.replace(/[^a-z0-9-]/gi, "").toLowerCase())}
+        onChange={(e) =>
+          setSlug(e.target.value.replace(/[^a-z0-9-]/gi, "").toLowerCase())
+        }
       />
 
       <Button size="sm" onClick={submit} disabled={create.isPending}>
@@ -118,13 +128,18 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
       )}
 
       {created && (
-        <div aria-label="Referral stats" className="rounded-lg border border-border p-3">
+        <div
+          aria-label="Referral stats"
+          className="rounded-lg border border-border p-3"
+        >
           <div className="flex items-center justify-between">
-            <p className="text-[11px] uppercase tracking-wider text-muted">Clicks</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted">
+              Clicks
+            </p>
             <button
               type="button"
               onClick={recordVisit}
-              className="rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-foreground/5"
+              className="touch-min rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-foreground/5"
             >
               Open link
             </button>
@@ -146,15 +161,23 @@ export default function ReferralLinksDemo({ feature }: { feature: WorkFeature })
               </p>
               <ol className="mt-1 flex flex-col gap-0.5">
                 {stats.data.recent.slice(0, 4).map((r, i) => (
-                  <li key={i} className="flex items-center gap-1.5 text-[11px] text-muted">
-                    <span aria-hidden style={{ color: ACCENT }}>•</span>
+                  <li
+                    key={i}
+                    className="flex items-center gap-1.5 text-[11px] text-muted"
+                  >
+                    <span aria-hidden style={{ color: ACCENT }}>
+                      •
+                    </span>
                     {new Date(r.at).toLocaleString()}
                   </li>
                 ))}
               </ol>
             </>
           ) : (
-            <p data-testid="stats-total" className="mt-1 text-[12px] text-muted">
+            <p
+              data-testid="stats-total"
+              className="mt-1 text-[12px] text-muted"
+            >
               No clicks yet — share your link to start tracking.
             </p>
           )}

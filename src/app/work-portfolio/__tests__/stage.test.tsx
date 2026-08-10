@@ -4,7 +4,12 @@ import WorkPortfolioContent from "../WorkPortfolioContent";
 import RealtimeMetricsDemo from "../demos/realtime-metrics";
 import ComingSoonDemo from "../demos/ComingSoonDemo";
 import DemoStage from "../DemoStage";
-import { FEATURES, PROJECTS, projectFor, featureIndexBySlug } from "../_data/catalog";
+import {
+  FEATURES,
+  PROJECTS,
+  projectFor,
+  featureIndexBySlug,
+} from "../_data/catalog";
 
 beforeEach(() => window.history.replaceState(null, "", "/work-portfolio"));
 afterEach(() => vi.useRealTimers());

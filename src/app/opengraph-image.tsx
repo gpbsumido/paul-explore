@@ -14,56 +14,54 @@ export const contentType = "image/png";
  */
 export default function OGImage() {
   return new ImageResponse(
-    (
-      <div
+    <div
+      style={{
+        background: "#0a0a0a",
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        padding: "60px 80px",
+        justifyContent: "space-between",
+      }}
+    >
+      {/* site label — top left */}
+      <span
         style={{
-          background: "#0a0a0a",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          padding: "60px 80px",
-          justifyContent: "space-between",
+          color: "#404040",
+          fontSize: 18,
+          fontFamily: "sans-serif",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
         }}
       >
-        {/* site label — top left */}
+        paul-explore
+      </span>
+
+      {/* main content — bottom */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <span
           style={{
-            color: "#404040",
-            fontSize: 18,
+            color: "#fafafa",
+            fontSize: 60,
             fontFamily: "sans-serif",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
+            fontWeight: 700,
+            lineHeight: 1.15,
           }}
         >
-          paul-explore
+          Personal playground and portfolio.
         </span>
-
-        {/* main content — bottom */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <span
-            style={{
-              color: "#fafafa",
-              fontSize: 60,
-              fontFamily: "sans-serif",
-              fontWeight: 700,
-              lineHeight: 1.15,
-            }}
-          >
-            Personal playground and portfolio.
-          </span>
-          <span
-            style={{
-              color: "#6b7280",
-              fontSize: 24,
-              fontFamily: "sans-serif",
-            }}
-          >
-            NBA stats · Pokémon TCG · GraphQL Pokédex · Calendar
-          </span>
-        </div>
+        <span
+          style={{
+            color: "#6b7280",
+            fontSize: 24,
+            fontFamily: "sans-serif",
+          }}
+        >
+          NBA stats · Pokémon TCG · GraphQL Pokédex · Calendar
+        </span>
       </div>
-    ),
+    </div>,
     { ...size },
   );
 }

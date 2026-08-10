@@ -49,7 +49,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "bar-chart",
@@ -64,7 +65,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "donut-chart",
@@ -79,7 +81,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "funnel-chart",
@@ -94,7 +97,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "radar-chart",
@@ -109,7 +113,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "scatter-plot",
@@ -124,7 +129,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "heatmap-chart",
@@ -139,7 +145,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "pareto-chart",
@@ -154,7 +161,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "gauge-chart",
@@ -169,7 +177,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "word-cloud",
@@ -184,7 +193,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "stacked-line-chart",
@@ -199,7 +209,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colours come from the --paul-chart-* ramp, which is checked for contrast and for deuteranopia separation",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package, drawn from the same dependency-free geometry core as its Angular twin; this app has not adopted it yet.",
   },
   {
     id: "tilt-card",
@@ -214,7 +225,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Content inside keeps its own semantics and focus behaviour",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
   },
   {
     id: "spotlight",
@@ -229,7 +241,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Pointer-only by design, so it never traps focus or interferes with keyboard use",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
   },
   {
     id: "gradient-background",
@@ -244,7 +257,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Colour is decorative only — nothing depends on it to convey meaning",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
+    elsewhere:
+      "Ships in the shared package and is exercised in Storybook; this app has not adopted it yet.",
   },
   {
     id: "button",
@@ -430,7 +444,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "interactive variant keeps a visible focus ring",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package; this app still uses its own local card wrapper.",
+    elsewhere:
+      "Ships in the shared package; this app still uses its own local card wrapper.",
   },
   {
     id: "badge",
@@ -444,7 +459,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Decorative dot is hidden from assistive tech",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package; this app renders local status pills for now.",
+    elsewhere:
+      "Ships in the shared package; this app renders local status pills for now.",
   },
   {
     id: "avatar",
@@ -458,7 +474,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Falls back to text initials, not a broken-image icon",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package; used for profile chrome in the Angular app and Ketsup, not yet here.",
+    elsewhere:
+      "Ships in the shared package; used for profile chrome in the Angular app and Ketsup, not yet here.",
   },
   {
     id: "switch",
@@ -500,7 +517,8 @@ export const COMPONENTS: ComponentDoc[] = [
       "Reserves space so content doesn't jump on load",
     ],
     usedOn: [],
-    elsewhere: "Ships in the shared package; this app hand-rolls its loading skeletons today.",
+    elsewhere:
+      "Ships in the shared package; this app hand-rolls its loading skeletons today.",
   },
   {
     id: "divider",

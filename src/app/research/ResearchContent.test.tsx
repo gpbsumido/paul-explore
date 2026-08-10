@@ -680,10 +680,22 @@ describe("ResearchContent journal club", () => {
     authors: ["Doe A"],
     doi: null,
     url: "https://europepmc.org/article/MED/PMC9",
-    design: { label: "Multicentre study", caveat: "Sites vary.", canSupportCausality: false },
+    design: {
+      label: "Multicentre study",
+      caveat: "Sites vary.",
+      canSupportCausality: false,
+    },
     innovation: { score: 2, signals: ["first-in-human", "robotic"] },
-    points: ["Point one is long enough.", "Point two is long enough.", "Point three is long enough."],
-    questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
+    points: [
+      "Point one is long enough.",
+      "Point two is long enough.",
+      "Point three is long enough.",
+    ],
+    questions: [
+      "Question one at length?",
+      "Question two at length?",
+      "Question three at length?",
+    ],
   };
 
   beforeEach(() => {
@@ -715,14 +727,17 @@ describe("ResearchContent journal club", () => {
     await user.click(
       await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
     );
-    await user.click(await screen.findByRole("button", { name: /four-centre review/ }));
-
-    expect(await screen.findByText("Point one is long enough.")).toBeInTheDocument();
-    expect(screen.getByText("Question three at length?")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Read the paper/ })).toHaveAttribute(
-      "href",
-      "https://europepmc.org/article/MED/PMC9",
+    await user.click(
+      await screen.findByRole("button", { name: /four-centre review/ }),
     );
+
+    expect(
+      await screen.findByText("Point one is long enough."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Question three at length?")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Read the paper/ }),
+    ).toHaveAttribute("href", "https://europepmc.org/article/MED/PMC9");
   });
 
   it("says which years it searched", async () => {
@@ -733,7 +748,9 @@ describe("ResearchContent journal club", () => {
       await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
     );
     expect(
-      await screen.findByText(new RegExp(`${THIS_YEAR - 2}\\s*[–-]\\s*${THIS_YEAR}`)),
+      await screen.findByText(
+        new RegExp(`${THIS_YEAR - 2}\\s*[–-]\\s*${THIS_YEAR}`),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -757,10 +774,22 @@ describe("ResearchContent innovation and ask", () => {
     authors: ["Doe A"],
     doi: null,
     url: "https://europepmc.org/article/MED/PMC9",
-    design: { label: "Case report", caveat: "One case.", canSupportCausality: false },
+    design: {
+      label: "Case report",
+      caveat: "One case.",
+      canSupportCausality: false,
+    },
     innovation: { score: 2, signals: ["first-in-human", "robotic"] },
-    points: ["Point one is long enough here.", "Point two is long enough here.", "Point three is long enough."],
-    questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
+    points: [
+      "Point one is long enough here.",
+      "Point two is long enough here.",
+      "Point three is long enough.",
+    ],
+    questions: [
+      "Question one at length?",
+      "Question two at length?",
+      "Question three at length?",
+    ],
   };
 
   const openPaper = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -769,7 +798,9 @@ describe("ResearchContent innovation and ask", () => {
     await user.click(
       await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
     );
-    await user.click(await screen.findByRole("button", { name: /first-in-human series/ }));
+    await user.click(
+      await screen.findByRole("button", { name: /first-in-human series/ }),
+    );
   };
 
   beforeEach(() => {
@@ -817,7 +848,9 @@ describe("ResearchContent innovation and ask", () => {
       screen.getByRole("checkbox", { name: /doing something new/i }),
     );
     await expect
-      .poll(() => new URL(urls.at(-1) ?? "http://x/").searchParams.get("innovative"))
+      .poll(() =>
+        new URL(urls.at(-1) ?? "http://x/").searchParams.get("innovative"),
+      )
       .toBe("true");
   });
 
@@ -867,10 +900,22 @@ describe("ResearchContent ask access", () => {
     authors: ["Doe A"],
     doi: null,
     url: "https://europepmc.org/article/MED/PMC9",
-    design: { label: "Case report", caveat: "One case.", canSupportCausality: false },
+    design: {
+      label: "Case report",
+      caveat: "One case.",
+      canSupportCausality: false,
+    },
     innovation: { score: 1, signals: ["first-in-human"] },
-    points: ["Point one is long enough here.", "Point two is long enough here.", "Point three is long enough."],
-    questions: ["Question one at length?", "Question two at length?", "Question three at length?"],
+    points: [
+      "Point one is long enough here.",
+      "Point two is long enough here.",
+      "Point three is long enough.",
+    ],
+    questions: [
+      "Question one at length?",
+      "Question two at length?",
+      "Question three at length?",
+    ],
   };
 
   const askWith = async (status: number, error: string) => {
@@ -891,7 +936,9 @@ describe("ResearchContent ask access", () => {
     await user.click(
       await screen.findByRole("button", { name: new RegExp(TOPICS[1].name) }),
     );
-    await user.click(await screen.findByRole("button", { name: /first-in-human series/ }));
+    await user.click(
+      await screen.findByRole("button", { name: /first-in-human series/ }),
+    );
     await user.type(screen.getByLabelText(/ask about this paper/i), "Why?");
     await user.click(screen.getByRole("button", { name: "Ask" }));
     return user;

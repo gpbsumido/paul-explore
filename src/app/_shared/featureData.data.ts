@@ -146,7 +146,6 @@ export const FEATURES: FeatureItem[] = [
   },
 ];
 
-
 export const THOUGHTS: ThoughtItem[] = [
   {
     title: "Research Explorer",
@@ -443,7 +442,8 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Which bundler this project runs and why, whether it's the right one, and the real situations where a lead reaches for a different bundler — the deliverable and the dominant constraint pick it, not taste",
     color: "#a855f7",
-  },{
+  },
+  {
     title: "Tree Shaking",
     href: "/thoughts/tree-shaking",
     preview:
@@ -530,14 +530,12 @@ export const THOUGHTS: ThoughtItem[] = [
 // background with white ink — same pattern as the landing page sections, just
 // theme-aware this time.
 
-
 export const PLAYOFF_ROWS = [
   { conf: "E", s1: 1, t1: "BOS", s2: 8, t2: "MIA", pick: 1 },
   { conf: "W", s1: 1, t1: "OKC", s2: 8, t2: "MEM", pick: 1 },
   { conf: "E", s1: 2, t1: "CLE", s2: 7, t2: "ORL", pick: 2 },
   { conf: "W", s1: 2, t1: "GSW", s2: 7, t2: "LAL", pick: 2 },
 ];
-
 
 export const TCG_CARDS = [
   { name: "Charizard", gradient: "from-orange-500 to-red-600" },
@@ -548,10 +546,8 @@ export const TCG_CARDS = [
   { name: "Eevee", gradient: "from-amber-400 to-orange-400" },
 ];
 
-
 export const POCKET_EXPANSIONS = [
   { name: "Genetic Apex", gradient: "from-indigo-500 to-violet-700" },
   { name: "Mythical Island", gradient: "from-teal-500 to-cyan-700" },
   { name: "Space-Time Smackdown", gradient: "from-blue-600 to-indigo-700" },
 ];
-

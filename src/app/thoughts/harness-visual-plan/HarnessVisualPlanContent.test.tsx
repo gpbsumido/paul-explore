@@ -48,7 +48,9 @@ describe("HarnessVisualPlanContent", () => {
     const haze = screen.getByTestId("paywall-teaser");
     expect(haze).toHaveAttribute("aria-hidden", "true");
     expect(haze).toHaveTextContent(/interview/i);
-    expect(haze).not.toHaveTextContent(/I used to jump straight into the code/i);
+    expect(haze).not.toHaveTextContent(
+      /I used to jump straight into the code/i,
+    );
   });
 
   it("sends the locked-out reader to the resume rather than straight to mail", () => {

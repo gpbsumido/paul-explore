@@ -52,7 +52,9 @@ describe("galleryReducer", () => {
       sizeId: "16x20",
     });
     expect(state.images[0].frame.sizeId).toBe("16x20");
-    expect(state.images[1].frame.sizeId).toBe(withImages().images[1].frame.sizeId);
+    expect(state.images[1].frame.sizeId).toBe(
+      withImages().images[1].frame.sizeId,
+    );
   });
 
   it("changes a single image's orientation", () => {

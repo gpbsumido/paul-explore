@@ -92,14 +92,18 @@ describe("learn page steppers", () => {
       const [, den] = firstCounter();
 
       clickFirst("Play");
-      expect(screen.getAllByRole("button", { name: "Pause" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("button", { name: "Pause" })[0],
+      ).toBeInTheDocument();
 
       // the interval ticks every 800ms; run well past the total
       act(() => vi.advanceTimersByTime(800 * (den + 3)));
 
       expect(firstCounter()[0]).toBe(den); // reached the last step
       // stopped at the end: the control is back to Play
-      expect(screen.getAllByRole("button", { name: "Play" })[0]).toBeInTheDocument();
+      expect(
+        screen.getAllByRole("button", { name: "Play" })[0],
+      ).toBeInTheDocument();
     });
   });
 });

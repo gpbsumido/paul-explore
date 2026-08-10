@@ -15,8 +15,10 @@ const KEEP_OUT: Rect[] = [
   { left: 44, right: 56, top: 78, bottom: 91 },
 ];
 
-const place = (rand = Math.random, avoid: { left: number; top: number }[] = []) =>
-  placeChalkWord(rand, avoid, KEEP_OUT);
+const place = (
+  rand = Math.random,
+  avoid: { left: number; top: number }[] = [],
+) => placeChalkWord(rand, avoid, KEEP_OUT);
 
 describe("isClear", () => {
   it("rejects a spot inside an obstacle", () => {
@@ -76,7 +78,11 @@ describe("placeChalkWord", () => {
     for (let i = 0; i < 60; i += 1) {
       const p = place(Math.random, crowd);
       if (!p) continue;
-      if (crowd.some((c) => Math.abs(p.left - c.left) < 8 && Math.abs(p.top - c.top) < 5)) {
+      if (
+        crowd.some(
+          (c) => Math.abs(p.left - c.left) < 8 && Math.abs(p.top - c.top) < 5,
+        )
+      ) {
         tooClose += 1;
       }
     }
@@ -97,11 +103,15 @@ describe("extent-aware clearance", () => {
   it("rejects a wide word whose centre is clear but whose end is not", () => {
     // The anchor sits outside the zone; the word reaches into it.
     expect(isClear({ left: 30, top: 45 }, zone)).toBe(true);
-    expect(isClear({ left: 30, top: 45 }, zone, { halfW: 12, halfH: 2 })).toBe(false);
+    expect(isClear({ left: 30, top: 45 }, zone, { halfW: 12, halfH: 2 })).toBe(
+      false,
+    );
   });
 
   it("accepts a narrow word in the same spot", () => {
-    expect(isClear({ left: 20, top: 45 }, zone, { halfW: 3, halfH: 2 })).toBe(true);
+    expect(isClear({ left: 20, top: 45 }, zone, { halfW: 3, halfH: 2 })).toBe(
+      true,
+    );
   });
 });
 

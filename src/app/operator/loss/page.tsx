@@ -39,11 +39,13 @@ export default function LossPage() {
 
       <main className="reveal-up mx-auto max-w-5xl px-4 sm:px-6 py-6 space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Shrink &amp; loss</h1>
+          <h1 className="text-xl font-bold text-foreground">
+            Shrink &amp; loss
+          </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted">
-            Where the margin leaks. Every completed restock count reconciled: the
-            stock that went missing with no reason logged, kept apart from what
-            was pulled for a reason. Stores are ranked by the shrink worth
+            Where the margin leaks. Every completed restock count reconciled:
+            the stock that went missing with no reason logged, kept apart from
+            what was pulled for a reason. Stores are ranked by the shrink worth
             chasing first.
           </p>
         </div>

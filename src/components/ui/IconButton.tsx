@@ -11,6 +11,13 @@ type IconButtonProps = ComponentProps<typeof PaulIconButton>;
  * working while the styling now comes from the design system's .icon-btn class
  * instead of hand-rolled Tailwind.
  */
-export default function IconButton(props: IconButtonProps) {
-  return <PaulIconButton {...props} />;
+export default function IconButton({ className, ...props }: IconButtonProps) {
+  // An icon button is small on purpose, so the hit area grows and the icon
+  // does not — the alternative is a row of chunky circles on every toolbar.
+  return (
+    <PaulIconButton
+      {...props}
+      className={className ? `touch-target ${className}` : "touch-target"}
+    />
+  );
 }

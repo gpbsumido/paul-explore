@@ -120,7 +120,9 @@ function CategoryRow({
     <tr className="border-b border-border/50 last:border-b-0">
       <td
         className={`px-3 py-2 text-right text-[13px] font-mono tabular-nums ${
-          awayWins && !tied ? "font-bold text-[#c2410c] dark:text-[#FF6B35]" : "text-muted"
+          awayWins && !tied
+            ? "font-bold text-[#c2410c] dark:text-[#FF6B35]"
+            : "text-muted"
         }`}
       >
         {Number.isInteger(awayVal) ? awayVal : awayVal.toFixed(1)}
@@ -130,7 +132,9 @@ function CategoryRow({
       </td>
       <td
         className={`px-3 py-2 text-left text-[13px] font-mono tabular-nums ${
-          homeWins && !tied ? "font-bold text-[#0e7490] dark:text-[#00D4FF]" : "text-muted"
+          homeWins && !tied
+            ? "font-bold text-[#0e7490] dark:text-[#00D4FF]"
+            : "text-muted"
         }`}
       >
         {Number.isInteger(homeVal) ? homeVal : homeVal.toFixed(1)}
@@ -343,38 +347,34 @@ export default function MatchupContent() {
 
       {/* Season + week selector */}
       <FilterBar label="Matchup filters">
-          <Select
-            label="Season"
-            value={season}
-            onChange={handleSeasonChange}
-          >
-            {SEASONS.map((yr) => (
-              <option key={yr} value={yr}>
-                {yr - 1}–{yr}
+        <Select label="Season" value={season} onChange={handleSeasonChange}>
+          {SEASONS.map((yr) => (
+            <option key={yr} value={yr}>
+              {yr - 1}–{yr}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          label="Week"
+          value={activeWeek}
+          onChange={handleWeekChange}
+          disabled={!data}
+        >
+          {Array.from({ length: totalWeeks }, (_, i) => i + 1).map((w) => {
+            const isPlayoff = w > regularSeasonWeeks;
+            const round = w - regularSeasonWeeks;
+            return (
+              <option key={w} value={w}>
+                {isPlayoff ? `Playoffs R${round} (Wk ${w})` : `Week ${w}`}
               </option>
-            ))}
-          </Select>
+            );
+          })}
+        </Select>
 
-          <Select
-            label="Week"
-            value={activeWeek}
-            onChange={handleWeekChange}
-            disabled={!data}
-          >
-            {Array.from({ length: totalWeeks }, (_, i) => i + 1).map((w) => {
-              const isPlayoff = w > regularSeasonWeeks;
-              const round = w - regularSeasonWeeks;
-              return (
-                <option key={w} value={w}>
-                  {isPlayoff ? `Playoffs R${round} (Wk ${w})` : `Week ${w}`}
-                </option>
-              );
-            })}
-          </Select>
-
-          {/* Prediction picker, pushed to the right on mobile so it sits apart
+        {/* Prediction picker, pushed to the right on mobile so it sits apart
               from the season/week controls */}
-          <div className="ml-auto sm:ml-0">
+        <div className="ml-auto sm:ml-0">
           <Select
             label="Prediction for"
             value={myTeamId ?? ""}
@@ -400,53 +400,53 @@ export default function MatchupContent() {
               </option>
             ))}
           </Select>
-          </div>
+        </div>
 
-          {/* Week navigation arrows */}
-          <div className="flex items-center gap-1 sm:ml-auto">
-            <button
-              type="button"
-              aria-label="Previous week"
-              className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
-              disabled={activeWeek <= 1}
-              onClick={() => setWeek(activeWeek - 1)}
+        {/* Week navigation arrows */}
+        <div className="flex items-center gap-1 sm:ml-auto">
+          <button
+            type="button"
+            aria-label="Previous week"
+            className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
+            disabled={activeWeek <= 1}
+            onClick={() => setWeek(activeWeek - 1)}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              aria-label="Next week"
-              className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
-              disabled={activeWeek >= totalWeeks}
-              onClick={() => setWeek(activeWeek + 1)}
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="Next week"
+            className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-border bg-surface text-muted transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
+            disabled={activeWeek >= totalWeeks}
+            onClick={() => setWeek(activeWeek + 1)}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
       </FilterBar>
 
       {/* Content */}

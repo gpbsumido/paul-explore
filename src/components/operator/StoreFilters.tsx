@@ -41,7 +41,7 @@ export default function StoreFilters({
             role="radio"
             aria-checked={status === opt.value}
             onClick={() => onStatusChange(opt.value)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
+            className={`touch-min rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
               status === opt.value
                 ? "bg-primary-600 text-white"
                 : "bg-surface-raised text-muted hover:text-foreground"

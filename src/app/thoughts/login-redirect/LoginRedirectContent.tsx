@@ -24,79 +24,79 @@ export default function LoginRedirectContent() {
       }
       chat={
         <ChatThread>
-              <Timestamp>Today 9:12 AM</Timestamp>
+          <Timestamp>Today 9:12 AM</Timestamp>
 
-              <Received pos="first">
-                log in from the calendar and it sends you to the landing page
-              </Received>
-              <Received pos="last">every route does it</Received>
+          <Received pos="first">
+            log in from the calendar and it sends you to the landing page
+          </Received>
+          <Received pos="last">every route does it</Received>
 
-              <Sent pos="first">
-                because every log in link is a bare /auth/login. no returnTo, so
-                the SDK defaults the post-login redirect to /
-              </Sent>
-              <Sent pos="last">
-                there are like ten of those links. i don&apos;t want to edit all
-                of them
-              </Sent>
+          <Sent pos="first">
+            because every log in link is a bare /auth/login. no returnTo, so the
+            SDK defaults the post-login redirect to /
+          </Sent>
+          <Sent pos="last">
+            there are like ten of those links. i don&apos;t want to edit all of
+            them
+          </Sent>
 
-              <Timestamp>9:15 AM</Timestamp>
+          <Timestamp>9:15 AM</Timestamp>
 
-              <Received>where do they all pass through</Received>
+          <Received>where do they all pass through</Received>
 
-              <Sent pos="first">
-                the proxy already intercepts /auth/*. so i fill the returnTo in
-                there, from the same-origin Referer, before handing off to Auth0
-              </Sent>
-              <Sent pos="last">
-                one fix at the choke point. every current link gets it, and so
-                does any link i add later
-              </Sent>
+          <Sent pos="first">
+            the proxy already intercepts /auth/*. so i fill the returnTo in
+            there, from the same-origin Referer, before handing off to Auth0
+          </Sent>
+          <Sent pos="last">
+            one fix at the choke point. every current link gets it, and so does
+            any link i add later
+          </Sent>
 
-              <Timestamp>9:19 AM</Timestamp>
+          <Timestamp>9:19 AM</Timestamp>
 
-              <Received>and the deny thing</Received>
+          <Received>and the deny thing</Received>
 
-              <Sent pos="first">
-                if you hit Deny on the consent screen the callback comes back
-                with error=access_denied, and the SDK&apos;s default onCallback
-                just returns a 500 with the message
-              </Sent>
-              <Sent pos="middle">
-                so i wrote my own onCallback. catch that one case, redirect back
-                to the page you came from with ?authError=permissions
-              </Sent>
-              <Sent pos="last">
-                a little toast reads that flag and says you can&apos;t log in
-                without granting permissions. every other error keeps the 500 so
-                real misconfig still shows
-              </Sent>
+          <Sent pos="first">
+            if you hit Deny on the consent screen the callback comes back with
+            error=access_denied, and the SDK&apos;s default onCallback just
+            returns a 500 with the message
+          </Sent>
+          <Sent pos="middle">
+            so i wrote my own onCallback. catch that one case, redirect back to
+            the page you came from with ?authError=permissions
+          </Sent>
+          <Sent pos="last">
+            a little toast reads that flag and says you can&apos;t log in
+            without granting permissions. every other error keeps the 500 so
+            real misconfig still shows
+          </Sent>
 
-              <Timestamp>9:24 AM</Timestamp>
+          <Timestamp>9:24 AM</Timestamp>
 
-              <Received pos="first">
-                one more. after i deny, i click log in again and it goes
-                straight back to the permission screen
-              </Received>
-              <Received pos="last">never asks who&apos;s logging in</Received>
+          <Received pos="first">
+            one more. after i deny, i click log in again and it goes straight
+            back to the permission screen
+          </Received>
+          <Received pos="last">never asks who&apos;s logging in</Received>
 
-              <Sent pos="first">
-                right, because the Auth0 session is still alive. you
-                authenticated, you just declined consent, so the next login sees
-                the session and skips to consent
-              </Sent>
-              <Sent pos="last">
-                so on deny i set a one-shot cookie, and the proxy adds
-                prompt=login to the next /auth/login and clears the cookie. one
-                fresh prompt, then back to normal
-              </Sent>
+          <Sent pos="first">
+            right, because the Auth0 session is still alive. you authenticated,
+            you just declined consent, so the next login sees the session and
+            skips to consent
+          </Sent>
+          <Sent pos="last">
+            so on deny i set a one-shot cookie, and the proxy adds prompt=login
+            to the next /auth/login and clears the cookie. one fresh prompt,
+            then back to normal
+          </Sent>
 
-              <div className={styles.typingDots}>
-                <span />
-                <span />
-                <span />
-              </div>
-            </ChatThread>
+          <div className={styles.typingDots}>
+            <span />
+            <span />
+            <span />
+          </div>
+        </ChatThread>
       }
     >
       <section>
@@ -104,10 +104,9 @@ export default function LoginRedirectContent() {
         <p className="text-muted">
           The site has login links everywhere — the header menu, the landing
           hero and footer, the v2/v3/v4 hubs, the flags console. Every one of
-          them points at a bare{" "}
-          <code className={code}>/auth/login</code>. That works, but{" "}
-          <code className={code}>@auth0/nextjs-auth0</code> defaults the
-          post-login redirect to <code className={code}>/</code> when no{" "}
+          them points at a bare <code className={code}>/auth/login</code>. That
+          works, but <code className={code}>@auth0/nextjs-auth0</code> defaults
+          the post-login redirect to <code className={code}>/</code> when no{" "}
           <code className={code}>returnTo</code> is given. So no matter where I
           signed in from, I&rsquo;d land on the home page and have to navigate
           back.
@@ -142,9 +141,9 @@ export default function LoginRedirectContent() {
           The Referer is only trusted when it&rsquo;s same-origin, so a spoofed
           header can&rsquo;t turn login into an open redirect. Auth referers are
           dropped so login never loops back into itself, and the bare root is
-          dropped because that&rsquo;s the SDK default anyway. The logic lives in
-          a pure <code className={code}>loginReturnToFromReferer</code> helper so
-          it can be unit tested without dragging{" "}
+          dropped because that&rsquo;s the SDK default anyway. The logic lives
+          in a pure <code className={code}>loginReturnToFromReferer</code>{" "}
+          helper so it can be unit tested without dragging{" "}
           <code className={code}>next/server</code> and the whole Auth0 client
           into the test.
         </p>
@@ -175,15 +174,14 @@ export default function LoginRedirectContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">The toast</h2>
         <p className="text-muted">
-          A small client component,{" "}
-          <code className={code}>AuthErrorToast</code>, is mounted once in the
-          root layout. It reads{" "}
+          A small client component, <code className={code}>AuthErrorToast</code>
+          , is mounted once in the root layout. It reads{" "}
           <code className={code}>?authError=permissions</code> from the URL and
           shows a dismissible toast:{" "}
-          <em>You can&rsquo;t log in without granting permissions.</em> It&rsquo;s
-          a <code className={code}>role=&quot;alert&quot;</code> with an assertive
-          live region so a screen reader announces it, it auto-dismisses after a
-          few seconds, and it respects{" "}
+          <em>You can&rsquo;t log in without granting permissions.</em>{" "}
+          It&rsquo;s a <code className={code}>role=&quot;alert&quot;</code> with
+          an assertive live region so a screen reader announces it, it
+          auto-dismisses after a few seconds, and it respects{" "}
           <code className={code}>prefers-reduced-motion</code>.
         </p>
         <p className="mt-3 text-muted">
@@ -192,13 +190,15 @@ export default function LoginRedirectContent() {
           the flag would break the back button, and leaving it there costs
           nothing but a lingering query param. I didn&rsquo;t reuse the operator
           toast provider either; it&rsquo;s mounted per-page, so wiring it in
-          app-wide would double-render its notifications on the operator screens.
-          A self-contained toast keeps the two apart.
+          app-wide would double-render its notifications on the operator
+          screens. A self-contained toast keeps the two apart.
         </p>
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold">Asking who&rsquo;s logging in</h2>
+        <h2 className="mb-3 text-lg font-bold">
+          Asking who&rsquo;s logging in
+        </h2>
         <p className="text-muted">
           One more thing surfaced after the toast shipped. Declining consent
           doesn&rsquo;t end the Auth0 session — you authenticated fine, you just
@@ -219,8 +219,8 @@ export default function LoginRedirectContent() {
           <code className={code}>/auth/login</code> and clears the cookie in the
           same response. One fresh prompt right after a deny, then straight back
           to normal. I reached for this instead of a full Auth0 logout because
-          logout&rsquo;s return URL has to be whitelisted in the tenant, and this
-          needs no config at all.
+          logout&rsquo;s return URL has to be whitelisted in the tenant, and
+          this needs no config at all.
         </p>
       </section>
 
@@ -238,18 +238,18 @@ export default function LoginRedirectContent() {
           clock.
         </p>
         <p className="mt-3 text-muted">
-          The hard part is noticing the timeout. Once the session cookie
-          expires it&rsquo;s just gone — there&rsquo;s nothing left to tell a
-          timed-out user apart from one who was never logged in. So I set a
-          second, longer-lived marker cookie on every authenticated response. It
+          The hard part is noticing the timeout. Once the session cookie expires
+          it&rsquo;s just gone — there&rsquo;s nothing left to tell a timed-out
+          user apart from one who was never logged in. So I set a second,
+          longer-lived marker cookie on every authenticated response. It
           outlives the session, and when the proxy sees a missing session but a
           lingering marker, that&rsquo;s a timeout: it bounces the user to the
           landing page with a <code className={code}>?authError=timeout</code>{" "}
           flag so the toast can render, clears the marker so it only says it
           once, and arms the next login with{" "}
           <code className={code}>prompt=consent</code> so Auth0 re-shows the
-          permission screen. Same one-shot cookie mechanism as the denied-consent
-          case, just a different prompt.
+          permission screen. Same one-shot cookie mechanism as the
+          denied-consent case, just a different prompt.
         </p>
       </section>
     </ThoughtLayout>

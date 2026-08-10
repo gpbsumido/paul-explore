@@ -11,9 +11,12 @@ export const GET = withBackend<RouteCtx>(
   "calendar event GET",
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events/${id}`, {
-      headers: buildHeaders(token, email),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/events/${id}`,
+      {
+        headers: buildHeaders(token, email),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {
@@ -36,13 +39,16 @@ export const PUT = withBackend<RouteCtx>(
     const bodyResult = await parseBody(request, updateEventBodySchema);
     if (!bodyResult.ok) return bodyResult.response;
 
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events/${id}`, {
-      method: "PUT",
-      headers: buildHeaders(token, email, {
-        "Content-Type": "application/json",
-      }),
-      body: JSON.stringify(bodyResult.data),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/events/${id}`,
+      {
+        method: "PUT",
+        headers: buildHeaders(token, email, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(bodyResult.data),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {
@@ -61,10 +67,13 @@ export const DELETE = withBackend<RouteCtx>(
   "calendar event DELETE",
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events/${id}`, {
-      method: "DELETE",
-      headers: buildHeaders(token, email),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/events/${id}`,
+      {
+        method: "DELETE",
+        headers: buildHeaders(token, email),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {

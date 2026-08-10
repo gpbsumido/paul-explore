@@ -38,8 +38,8 @@ const HAZE = (
         If you can read this, you went looking, and I like that. The blur is not
         hiding a trade secret. It is hiding about ten more sections on how I
         plan, what the process costs me, and where I think it breaks down. I am
-        happy to hand all of it over. I would just rather do it in a conversation
-        than in a wall of text you skim once and forget.
+        happy to hand all of it over. I would just rather do it in a
+        conversation than in a wall of text you skim once and forget.
       </p>
       <p>
         The short version: I write the plan before the code, as a real file with
@@ -54,16 +54,16 @@ const HAZE = (
       <p>
         Because the interesting part of this is not that I wrote a process down.
         It is the reasoning underneath it, and that comes across far better when
-        you can push back on it in real time. Ask me why the recap earns its keep
-        on a messy branch. Ask me where the process is overhead I have not
+        you can push back on it in real time. Ask me why the recap earns its
+        keep on a messy branch. Ask me where the process is overhead I have not
         managed to justify yet. I have answers for both, including the
         uncomfortable one.
       </p>
       <p>
         I would also rather you judge me on the work than on a page that markets
         itself. This whole site is the artifact: the code, the tests, the
-        history, the things I got wrong and then fixed in public. Read any of it.
-        Then come ask me about the parts that look strange.
+        history, the things I got wrong and then fixed in public. Read any of
+        it. Then come ask me about the parts that look strange.
       </p>
     </HazeSection>
 
@@ -72,8 +72,8 @@ const HAZE = (
         Shipping small, reversible changes without breaking the thing that
         already works. I write the test first because it is the cheapest way to
         find out I misunderstood the problem, and I keep the increments small
-        enough that a bad call costs an afternoon instead of a sprint. That habit
-        is most of what I bring.
+        enough that a bad call costs an afternoon instead of a sprint. That
+        habit is most of what I bring.
       </p>
       <p>
         The rest is taste about boundaries: knowing when to reuse the mechanism
@@ -94,21 +94,22 @@ const HAZE = (
       <p>
         I ask questions early, when they are cheap, and I would rather be told I
         am wrong on a wireframe than on a branch that took a week. If you want
-        someone who will disagree with you in the planning meeting and then fully
-        commit once it is decided, that is the way I like to work.
+        someone who will disagree with you in the planning meeting and then
+        fully commit once it is decided, that is the way I like to work.
       </p>
     </HazeSection>
 
     <HazeSection title="So, get in touch">
       <p>
         The button below opens an email to me. There is no form, no funnel, and
-        nothing gets collected. It is one message to one person, and I answer all
-        of them.
+        nothing gets collected. It is one message to one person, and I answer
+        all of them.
       </p>
       <p>
         Tell me what you are building and I will tell you honestly whether I am
-        the right fit for it. If I am not, I will say so. If I am, I will walk you
-        through the rest of this write-up and anything else you want to open up.
+        the right fit for it. If I am not, I will say so. If I am, I will walk
+        you through the rest of this write-up and anything else you want to open
+        up.
       </p>
     </HazeSection>
   </div>

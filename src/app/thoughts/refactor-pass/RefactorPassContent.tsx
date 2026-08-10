@@ -76,12 +76,12 @@ export default function RefactorPassContent() {
           >
             whole-project review
           </Link>{" "}
-          told me where the code was weak. This is the plan for fixing it &mdash;
-          what I&rsquo;m deduping against abstractions that already exist, what
-          I&rsquo;m deliberately leaving alone so I don&rsquo;t overfit, and the
-          order I&rsquo;m shipping it in. The goal is a codebase that&rsquo;s
-          easier for the next engineer and cheaper for an AI to work in, without
-          a rewrite.
+          told me where the code was weak. This is the plan for fixing it
+          &mdash; what I&rsquo;m deduping against abstractions that already
+          exist, what I&rsquo;m deliberately leaving alone so I don&rsquo;t
+          overfit, and the order I&rsquo;m shipping it in. The goal is a
+          codebase that&rsquo;s easier for the next engineer and cheaper for an
+          AI to work in, without a rewrite.
         </>
       }
     >
@@ -136,27 +136,31 @@ export default function RefactorPassContent() {
             status="shipped"
           >
             <p>
-              All 50 <C>thoughts/*</C> and 14 <C>learn/*</C> pages hand-wrote the
-              same ~25-line <C>Metadata</C> block &mdash; openGraph and twitter
-              copy-pasted per page. There&rsquo;s now a{" "}
-              <C>buildArticleMetadata(&#123; title, description, path, ogType &#125;)</C>{" "}
+              All 50 <C>thoughts/*</C> and 14 <C>learn/*</C> pages hand-wrote
+              the same ~25-line <C>Metadata</C> block &mdash; openGraph and
+              twitter copy-pasted per page. There&rsquo;s now a{" "}
+              <C>
+                buildArticleMetadata(&#123; title, description, path, ogType
+                &#125;)
+              </C>{" "}
               helper next to the existing <C>SITE_URL</C>/<C>OG_IMAGE</C> in{" "}
               <C>lib/site.ts</C>, and the pages call it.
             </p>
             <p>
-              <Tag kind="gain" /> Net <C>&minus;737</C> lines across 65 files, and
-              an OG-convention change is now one edit instead of 65.
+              <Tag kind="gain" /> Net <C>&minus;737</C> lines across 65 files,
+              and an OG-convention change is now one edit instead of 65.
             </p>
             <p>
               <Tag kind="keep" /> It deliberately doesn&rsquo;t pull the
               description from the hub&rsquo;s <C>THOUGHTS</C> registry &mdash;
               that stores the shorter card <C>preview</C>, not the SEO
-              description, and coupling them would have silently changed the meta
-              text. The <C>world</C> write-up keeps its hand-written block because
-              its social copy intentionally differs; <C>routing</C>, which had no
-              og tags at all, gained them. I used <C>satisfies Metadata</C>{" "}
-              instead of a return annotation so the concrete shape stays readable
-              in the test &mdash; no type assertion.
+              description, and coupling them would have silently changed the
+              meta text. The <C>world</C> write-up keeps its hand-written block
+              because its social copy intentionally differs; <C>routing</C>,
+              which had no og tags at all, gained them. I used{" "}
+              <C>satisfies Metadata</C> instead of a return annotation so the
+              concrete shape stays readable in the test &mdash; no type
+              assertion.
             </p>
           </Step>
 
@@ -167,13 +171,16 @@ export default function RefactorPassContent() {
           >
             <p>
               The fallback{" "}
-              <C>process.env.NEXT_PUBLIC_API_URL ?? &quot;http://localhost:3001&quot;</C>{" "}
+              <C>
+                process.env.NEXT_PUBLIC_API_URL ??
+                &quot;http://localhost:3001&quot;
+              </C>{" "}
               is re-declared in 19 files even though <C>backendFetch.ts</C>{" "}
               already exports <C>API_URL</C>. The fix isn&rsquo;t just to import
-              it everywhere: <C>backendFetch.ts</C> also imports <C>auth0</C> and{" "}
-              <C>next/server</C>, so pulling <C>API_URL</C> into client modules
-              (<C>flags-client</C>, <C>referrals</C>, the vitals and calendar
-              pages) would drag server-only code into client bundles.
+              it everywhere: <C>backendFetch.ts</C> also imports <C>auth0</C>{" "}
+              and <C>next/server</C>, so pulling <C>API_URL</C> into client
+              modules (<C>flags-client</C>, <C>referrals</C>, the vitals and
+              calendar pages) would drag server-only code into client bundles.
             </p>
             <p>
               <Tag kind="gain" /> Extract the constant to a dependency-free{" "}
@@ -189,11 +196,11 @@ export default function RefactorPassContent() {
           >
             <p>
               The iMessage &ldquo;phone&rdquo; shell &mdash; the same three-div{" "}
-              <C>flex justify-center</C> &rarr; <C>.phone</C> &rarr; <C>.chat</C>{" "}
-              wrapper &mdash; is duplicated in 36 write-ups. Worse, its
-              stylesheet lives inside <span className="italic">one</span>{" "}
-              feature&rsquo;s folder (<C>thoughts/styling/styling.module.css</C>)
-              but is imported by 40 unrelated pages.
+              <C>flex justify-center</C> &rarr; <C>.phone</C> &rarr;{" "}
+              <C>.chat</C> wrapper &mdash; is duplicated in 36 write-ups. Worse,
+              its stylesheet lives inside <span className="italic">one</span>{" "}
+              feature&rsquo;s folder (<C>thoughts/styling/styling.module.css</C>
+              ) but is imported by 40 unrelated pages.
             </p>
             <p>
               <Tag kind="gain" /> Add a <C>ChatThread</C> component to{" "}
@@ -223,16 +230,16 @@ export default function RefactorPassContent() {
             status="shipped"
           >
             <p>
-              Five hooks (<C>useOperatorSales</C>/<C>Stores</C>/<C>Inventory</C>/
-              <C>Activity</C>/<C>Planogram</C>) repeat the same
-              fetch&rarr;check&rarr;<C>schema.parse</C>&rarr;poll shape. A generic{" "}
-              <C>useOperatorResource</C> collapses them; each existing hook
-              becomes an ~8-line adapter that keeps its current return shape, so
-              no call site changes.
+              Five hooks (<C>useOperatorSales</C>/<C>Stores</C>/<C>Inventory</C>
+              /<C>Activity</C>/<C>Planogram</C>) repeat the same
+              fetch&rarr;check&rarr;<C>schema.parse</C>&rarr;poll shape. A
+              generic <C>useOperatorResource</C> collapses them; each existing
+              hook becomes an ~8-line adapter that keeps its current return
+              shape, so no call site changes.
             </p>
             <p>
-              <Tag kind="keep" /> The polling tiers are intentional, so they stay
-              as explicit per-hook config, and the response field is a{" "}
+              <Tag kind="keep" /> The polling tiers are intentional, so they
+              stay as explicit per-hook config, and the response field is a{" "}
               <C>select</C> function rather than a magic string &mdash; an
               odd-shaped endpoint shouldn&rsquo;t break the abstraction. The
               tradeoff: a slightly longer call site per hook, bought in exchange
@@ -262,7 +269,8 @@ export default function RefactorPassContent() {
             <p>
               <Tag kind="gain" /> The two families that genuinely shared a shape
               collapsed onto one helper each: the NBA routes onto a{" "}
-              <C>proxyUpstream</C> (public GET → JSON, beside <C>fetchUpstream</C>
+              <C>proxyUpstream</C> (public GET → JSON, beside{" "}
+              <C>fetchUpstream</C>
               ), and the TCG list routes onto a <C>serveTcg</C> (in a
               server-only module so the client bundle stays clean &mdash; the{" "}
               <Link
@@ -275,15 +283,16 @@ export default function RefactorPassContent() {
               written against the old routes that still pass.
             </p>
             <p>
-              <Tag kind="keep" /> No uber-wrapper, and I stopped there on purpose.
-              The vitals and google routes are authenticated with bespoke shaping
-              (a beacon POST, parallel fetches, field defaulting) &mdash; the
-              &ldquo;genuinely unique, keep the <C>try/catch</C>&rdquo; case. And
-              the <C>localStorage</C>-vs-<C>usePersistentState</C> item turned out
-              to be a documented no-op: the hook is already used everywhere it
-              fits, and the rest deliberately use custom serialisation or
-              read-after-mount for hydration, so forcing them through it would
-              reset saved preferences or break hydration.
+              <Tag kind="keep" /> No uber-wrapper, and I stopped there on
+              purpose. The vitals and google routes are authenticated with
+              bespoke shaping (a beacon POST, parallel fetches, field
+              defaulting) &mdash; the &ldquo;genuinely unique, keep the{" "}
+              <C>try/catch</C>&rdquo; case. And the <C>localStorage</C>-vs-
+              <C>usePersistentState</C> item turned out to be a documented
+              no-op: the hook is already used everywhere it fits, and the rest
+              deliberately use custom serialisation or read-after-mount for
+              hydration, so forcing them through it would reset saved
+              preferences or break hydration.
             </p>
           </Step>
         </div>
@@ -302,11 +311,11 @@ export default function RefactorPassContent() {
             <p>
               <C>ThoughtLayout</C> (summary/chat toggle, &ldquo;Dev notes&rdquo;
               eyebrow) and the <C>learn</C> pages&rsquo; <C>PageHeader</C> +
-              section-nav pattern are only conceptually similar &mdash; different
-              navigation model, voice, and theming. Fusing them into one
-              component with a dozen mode flags is the textbook overfit this whole
-              review exists to avoid. Step 1 already unified the part that&rsquo;s
-              genuinely identical: the metadata.
+              section-nav pattern are only conceptually similar &mdash;
+              different navigation model, voice, and theming. Fusing them into
+              one component with a dozen mode flags is the textbook overfit this
+              whole review exists to avoid. Step 1 already unified the part
+              that&rsquo;s genuinely identical: the metadata.
             </p>
           </Step>
           <Step
@@ -316,13 +325,13 @@ export default function RefactorPassContent() {
           >
             <p>
               <C>OperatorDashboardContent.tsx</C> was 5,120 lines &mdash; the
-              biggest file in the repo. I split the worst offender into a 32-line
-              orchestrator plus five section components (the chat, the
-              timeline/overview, the build write-up, and the dated updates in two
-              halves), cut only at <C>&lt;section&gt;</C> boundaries so the prose
-              is byte-identical. Its exhaustive test suite &mdash; 72 assertions
-              on exact text, section order, and every anchor &mdash; passes
-              unchanged, which is the proof nothing moved.
+              biggest file in the repo. I split the worst offender into a
+              32-line orchestrator plus five section components (the chat, the
+              timeline/overview, the build write-up, and the dated updates in
+              two halves), cut only at <C>&lt;section&gt;</C> boundaries so the
+              prose is byte-identical. Its exhaustive test suite &mdash; 72
+              assertions on exact text, section order, and every anchor &mdash;
+              passes unchanged, which is the proof nothing moved.
             </p>
             <p>
               <Tag kind="keep" /> The remaining 1,000&ndash;2,000-line write-ups
@@ -342,17 +351,20 @@ export default function RefactorPassContent() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold">How I&rsquo;m keeping it honest</h2>
+        <h2 className="mb-3 text-lg font-bold">
+          How I&rsquo;m keeping it honest
+        </h2>
         <p className="text-muted">
-          Every step is test-first and small enough to review in one sitting. The
-          logic-bearing steps (the metadata builder, the <C>apiUrl</C> module, the{" "}
-          <C>ChatThread</C> shell, the operator factory) land in <C>lib</C>/
-          <C>hooks</C>, which the coverage gate already watches; the mechanical
-          migrations and the route work lean on behaviour tests, since those
-          files sit outside the gate. <C>ts-prune</C> and <C>depcheck</C> both
-          block CI, so a stray export or dependency from an extraction can&rsquo;t
-          sneak through. The measure of success is boring: fewer lines, the same
-          rendered output, and a shorter path to the code the next change needs.
+          Every step is test-first and small enough to review in one sitting.
+          The logic-bearing steps (the metadata builder, the <C>apiUrl</C>{" "}
+          module, the <C>ChatThread</C> shell, the operator factory) land in{" "}
+          <C>lib</C>/<C>hooks</C>, which the coverage gate already watches; the
+          mechanical migrations and the route work lean on behaviour tests,
+          since those files sit outside the gate. <C>ts-prune</C> and{" "}
+          <C>depcheck</C> both block CI, so a stray export or dependency from an
+          extraction can&rsquo;t sneak through. The measure of success is
+          boring: fewer lines, the same rendered output, and a shorter path to
+          the code the next change needs.
         </p>
       </section>
 
@@ -365,20 +377,21 @@ export default function RefactorPassContent() {
             </span>{" "}
             Each step bumps the version and the changelog, so independent
             branches off the same base would collide on both files every time.
-            Stacking each PR on the previous serialises the bumps and keeps every
-            diff minimal &mdash; the cost is that they merge in order rather than
-            any order, which is the right trade for a clean history.
+            Stacking each PR on the previous serialises the bumps and keeps
+            every diff minimal &mdash; the cost is that they merge in order
+            rather than any order, which is the right trade for a clean history.
           </li>
           <li>
             <span className="font-semibold text-foreground">
               Characterisation tests before behaviour-preserving swaps.
             </span>{" "}
             For the route work and the file split there was no new behaviour to
-            drive out with a red test, so I pinned the <em>existing</em> behaviour
-            first &mdash; the NBA and TCG route contracts, the operator page&rsquo;s
-            72 content-and-order assertions &mdash; ran them green against the old
-            code, then refactored and watched them stay green. A test that passed
-            before and after is the proof nothing moved.
+            drive out with a red test, so I pinned the <em>existing</em>{" "}
+            behaviour first &mdash; the NBA and TCG route contracts, the
+            operator page&rsquo;s 72 content-and-order assertions &mdash; ran
+            them green against the old code, then refactored and watched them
+            stay green. A test that passed before and after is the proof nothing
+            moved.
           </li>
           <li>
             <span className="font-semibold text-foreground">
@@ -394,9 +407,9 @@ export default function RefactorPassContent() {
             <span className="font-semibold text-foreground">
               A green suite that wasn&rsquo;t.
             </span>{" "}
-            Four tests were failing the whole time on{" "}
-            <C>@paul-portfolio/*</C> version drift &mdash; not my changes, just a
-            local <C>node_modules</C> that never got reinstalled. A{" "}
+            Four tests were failing the whole time on <C>@paul-portfolio/*</C>{" "}
+            version drift &mdash; not my changes, just a local{" "}
+            <C>node_modules</C> that never got reinstalled. A{" "}
             <C>pnpm install</C> cleared it; worth writing down because &ldquo;it
             was already red&rdquo; is easy to say and easy to be wrong about.
           </li>

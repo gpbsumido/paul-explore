@@ -53,7 +53,9 @@ export default function AuditLog({ audit }: { audit: AuditEntry[] }) {
               <div className="min-w-0">
                 <p className="text-[13px] text-foreground">
                   {entry.summary}{" "}
-                  <code className="text-[11px] text-muted">{entry.flagKey}</code>
+                  <code className="text-[11px] text-muted">
+                    {entry.flagKey}
+                  </code>
                 </p>
                 <p className="mt-0.5 text-[11px] text-muted">
                   {entry.actor} ·{" "}

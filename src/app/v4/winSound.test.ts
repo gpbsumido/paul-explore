@@ -75,7 +75,10 @@ class FakeAudioContext {
 const installAudio = () => {
   built.length = 0;
   vi.stubGlobal("AudioContext", FakeAudioContext);
-  Reflect.deleteProperty(window as unknown as Record<string, unknown>, "webkitAudioContext");
+  Reflect.deleteProperty(
+    window as unknown as Record<string, unknown>,
+    "webkitAudioContext",
+  );
 };
 
 const loadSound = async () => {
@@ -127,7 +130,10 @@ describe("winSound", () => {
 
   it("never throws when Web Audio is unavailable", async () => {
     vi.stubGlobal("AudioContext", undefined);
-    Reflect.deleteProperty(window as unknown as Record<string, unknown>, "webkitAudioContext");
+    Reflect.deleteProperty(
+      window as unknown as Record<string, unknown>,
+      "webkitAudioContext",
+    );
     const { unlockWinAudio, playWinSound } = await loadSound();
 
     expect(() => {

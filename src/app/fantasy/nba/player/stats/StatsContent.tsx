@@ -181,36 +181,34 @@ export default function StatsContent() {
           ))}
         </Select>
 
-          {selectedTeamId && (
-            <button
-              type="button"
-              aria-label={
-                compareOpen
-                  ? "Close player comparison"
-                  : "Open player comparison"
-              }
-              onClick={() => setCompareOpen((prev) => !prev)}
-              disabled={rows.length < 2}
-              className={`ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:border-foreground/30 hover:text-foreground ${rows.length < 2 ? "invisible" : ""}`}
+        {selectedTeamId && (
+          <button
+            type="button"
+            aria-label={
+              compareOpen ? "Close player comparison" : "Open player comparison"
+            }
+            onClick={() => setCompareOpen((prev) => !prev)}
+            disabled={rows.length < 2}
+            className={`ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:border-foreground/30 hover:text-foreground ${rows.length < 2 ? "invisible" : ""}`}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+              aria-label="Toggle player comparison"
+              className={`transition-transform ${compareOpen ? "rotate-180" : ""}`}
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-                aria-label="Toggle player comparison"
-                className={`transition-transform ${compareOpen ? "rotate-180" : ""}`}
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-              Compare
-            </button>
-          )}
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+            Compare
+          </button>
+        )}
       </FilterBar>
 
       {/* ---- Content ---- */}

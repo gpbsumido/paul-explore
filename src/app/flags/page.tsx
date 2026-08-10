@@ -32,7 +32,10 @@ export default function FlagsPage() {
   return (
     <PageShell colorA="#fb923c" colorB="#38bdf8" className="font-sans">
       <PageHeader
-        breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Feature Flags" }]}
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "Feature Flags" },
+        ]}
       />
 
       <Suspense fallback={<FlagsLoading />}>

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.5
+
+- **Finished the tap-target pass across every route.** Every page now measures clean at 390px except one control, which lives in the published design system rather than here. Two utilities carry it, and which one a control gets is the actual decision: `.touch-min` grows a control that has room — a button, a text input, a filter pill — and `.touch-target` leaves the visual alone and centres an invisible 44px box on it, for things that genuinely cannot grow. A checkbox scaled to 44px looks broken, a toggle switch has a conventional size people recognise, a colour swatch has to stay a small round chip, and the world's HUD floats over the view it controls where every pixel of chrome is a pixel of city you cannot see.
+- Both are keyed on `pointer: coarse` rather than a width breakpoint, because this is about fingers rather than screen size — a touch laptop wants it and a narrow desktop window does not. Nothing moves on a mouse-driven screen.
+- Applied at the primitive level where possible: `Button`, `IconButton`, `Input` and `Select` now carry it, which closed most of the long tail in one change rather than page by page. The rest were hand-rolled controls that bypass those primitives.
+- `scripts/mobile-audit.mjs` knows about both utilities, so it stops reporting a control whose hit area is supplied by a pseudo-element the bounding box does not include.
+
 ## 2026-08-10 - version 3.16.4
 
 - **Some work-portfolio ticker chips did nothing when clicked.** The cause was upstream: the shared `Ticker` duplicates its chips so the ambient loop looks seamless, and the clone carried `inert` — which removes a subtree from the accessibility tree *and* from the pointer. The loop wraps at half the scroll width, so roughly half of what is on screen at any moment was the clone, and clicking those chips silently did nothing. It came back because unifying the bespoke tickers onto the shared component adopted a copy that had `inert` added for a real reason: tabbable controls inside an `aria-hidden` container is a serious axe violation. Right instinct, aimed one notch too broadly. Fixed in `@paul-portfolio/react` 0.5.1 — the clone stays `aria-hidden` with its focusables dropped from the tab order in a layout effect, which runs before paint and closes the same window `inert` was closing, without touching the pointer.

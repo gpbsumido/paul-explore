@@ -32,6 +32,8 @@ describe("ai content engine demo", () => {
     expect(screen.getByText(/Posted as Meme Lord/i)).toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(4000));
-    expect(screen.getByLabelText("Generated output")).toHaveTextContent(/no cap/i);
+    expect(screen.getByLabelText("Generated output")).toHaveTextContent(
+      /no cap/i,
+    );
   });
 });

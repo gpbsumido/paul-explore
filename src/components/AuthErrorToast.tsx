@@ -46,7 +46,9 @@ export default function AuthErrorToast() {
             className="pointer-events-auto flex items-center gap-3 rounded-lg bg-error-600 px-4 py-3 text-sm font-medium text-white shadow-lg"
             initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.95 }}
+            exit={
+              reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.95 }
+            }
             transition={{ duration: reduceMotion ? 0 : 0.2 }}
           >
             <span>{message}</span>

@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { API_URL } from "@/lib/apiUrl";
 
-
 function clientIp(req: NextRequest): string {
   return (
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??

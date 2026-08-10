@@ -110,7 +110,13 @@ describe("forces", () => {
   });
 
   it("bounds pull a node that has drifted off screen back inside", () => {
-    const bounds = { xMin: -400, xMax: 400, yMin: -300, yMax: 300, strength: 0.12 };
+    const bounds = {
+      xMin: -400,
+      xMax: 400,
+      yMin: -300,
+      yMax: 300,
+      strength: 0.12,
+    };
     // node 0 is way past the right/bottom edge; node 1 parked far away.
     const s = pairState(900, 700, -2000, -2000);
     const before = { x: s.nodes[0].x, y: s.nodes[0].y };
@@ -125,7 +131,13 @@ describe("forces", () => {
   });
 
   it("bounds leave a node already inside the box alone", () => {
-    const bounds = { xMin: -400, xMax: 400, yMin: -300, yMax: 300, strength: 0.12 };
+    const bounds = {
+      xMin: -400,
+      xMax: 400,
+      yMin: -300,
+      yMax: 300,
+      strength: 0.12,
+    };
     const inside = pairState(0, 0, 2000, 2000);
     const control = pairState(0, 0, 2000, 2000);
     stepSimulation(inside, DEFAULT_PARAMS, 1, null, bounds);

@@ -39,7 +39,9 @@ describe("post queue kanban demo", () => {
 
   it("edits a post's title through the card modal", () => {
     render(<PostQueueDemo feature={feature} />);
-    fireEvent.click(screen.getByRole("button", { name: "Edit Patch 4.1 recap" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Edit Patch 4.1 recap" }),
+    );
 
     const titleField = screen.getByLabelText("Title");
     fireEvent.change(titleField, { target: { value: "Patch 4.1 highlights" } });

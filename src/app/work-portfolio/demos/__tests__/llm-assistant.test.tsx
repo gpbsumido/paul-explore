@@ -77,7 +77,9 @@ describe("llm assistant demo", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Stop" }));
     fireEvent.click(screen.getByRole("button", { name: "Chat" }));
-    fireEvent.click(screen.getByRole("button", { name: "What about revenue?" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "What about revenue?" }),
+    );
     expect(screen.queryByTestId("agent-plan")).toBeNull();
   });
 });
