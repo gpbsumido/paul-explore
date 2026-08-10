@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.3
+
+- **Tap targets across the app were too small on a phone.** I rendered every route at 390px and measured rather than guessing, and the biggest finding was in the shared header: breadcrumb links were 20px tall, the write-up pill and the theme trigger 28px. That is one fix that lifts every page, since every page uses it. Also fixed the Craft evidence links (31 of them at 28px), the Web Vitals version selector, and seven links on the v4 landing. The `InfoTip` trigger keeps its 14px dot — shrinking or growing it would change every layout it sits in — and gains an invisible 44px hit area on touch screens only.
+- No page scrolls sideways at 390px, which was the first thing I checked and the one that would have been worst.
+- `scripts/mobile-audit.mjs` is kept as a tool: run it against a dev server and it reports, per route, sideways scroll, elements escaping the viewport without a scrollable parent, and undersized targets. It is deliberately not a unit test — jsdom has no layout, so none of this is measurable there, and the honest way to check a phone layout is to render it at phone size and look.
+
 ## 2026-08-10 - version 3.16.2
 
 - **Fixed the calendar jumping while you scroll it.** The infinite scroller compensated for exactly one kind of change: prepending a period at the top, where it captured `scrollHeight` before the insert and corrected `scrollTop` after. Right idea, applied too narrowly. Period content also changes height when event data arrives, when a refetch lands, and when countdowns load — `renderPeriod` depends on all three — and any of those growing above the viewport shoves what you're reading down the screen. That was the jump. Rather than add a second special case, the scroller now anchors on what you're actually looking at: it remembers which period sits at the top of the container and where, and puts it back after any render. One mechanism covers prepends, data arrival, and whatever gets added later. The anchor is seeded on mount too, since the top sentinel can fire before you've scrolled at all and that first prepend used to go uncompensated. Sub-pixel drift is ignored so layout rounding doesn't cause its own jitter, and a deliberate jump — the header's month nav — clears the anchor rather than fighting it.

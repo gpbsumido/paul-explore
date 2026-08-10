@@ -209,7 +209,7 @@ export default function HeaderMenu({
         aria-label="Open menu"
         className={
           triggerClassName ??
-          "flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-foreground transition-colors hover:bg-surface-raised"
+          "flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-foreground transition-colors hover:bg-surface-raised sm:min-h-0"
         }
       >
         <ActiveThemeIcon preference={preference} />
