@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.7
+
+- **The particle lab ignored `prefers-reduced-motion` entirely.** The landing sections get the preference from framer-motion, but a 3D scene animates in a render loop that never touches a motion component, so it had no way of hearing the setting. `usePrefersReducedMotion` is a small hook on `useSyncExternalStore` — read during render, false on the server — and works in both worlds without adding a dependency to a bundle where three.js is already the expensive part. The drift speed becomes zero rather than the field being hidden: the point of the page is the network of points and the lines between them, and the drifting is decoration, which is what the setting is asking to drop. Camera parallax and pointer attraction stay, because both are the reader moving something rather than the page moving on its own.
+- Worth recording that I had assumed the world was the other offender and audited before fixing: it already gates every ambient animation, and the components that do not — the player, the trail that follows them, other explorers — are movement someone caused rather than the page animating itself. The assumption was wrong, which is the sort that sends a fix at the wrong page.
+
 ## 2026-08-10 - version 3.16.6
 
 - **Adopted `@paul-portfolio/css` 0.6.0, which meets touch targets by default, and deleted the local equivalents.** The two utilities this app invented are now `.paul-touch-min` and `.paul-touch-target` from the package, and the `Button`, `IconButton`, `Input` and `Select` wrappers went back to being thin pass-throughs — the package's own `.btn`, `.icon-btn`, `.input` and `.select` carry the floor now. Net 97 lines added against 160 deleted, which is the right direction for a change whose whole point was that the app was compensating for something the design system should have owned.
