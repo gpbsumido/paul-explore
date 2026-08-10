@@ -7,15 +7,27 @@ import type { TimeOfDay } from "@/lib/world/daylight";
 export type SkyPreset = {
   readonly background: string;
   readonly fog: readonly [color: string, near: number, far: number];
-  readonly hemisphere: readonly [sky: string, ground: number | string, intensity: number];
-  readonly sun: { readonly color: string; readonly intensity: number; readonly position: readonly [number, number, number] };
+  readonly hemisphere: readonly [
+    sky: string,
+    ground: number | string,
+    intensity: number,
+  ];
+  readonly sun: {
+    readonly color: string;
+    readonly intensity: number;
+    readonly position: readonly [number, number, number];
+  };
   readonly ambient: { readonly color: string; readonly intensity: number };
   // Emissive strength of the lit-window texture on towers.
   readonly windowGlow: number;
   readonly showStars: boolean;
   readonly showMoon: boolean;
   // The visible sun disc; null when it isn't in the sky.
-  readonly sunDisc: { readonly color: string; readonly position: readonly [number, number, number]; readonly radius: number } | null;
+  readonly sunDisc: {
+    readonly color: string;
+    readonly position: readonly [number, number, number];
+    readonly radius: number;
+  } | null;
   readonly lampsOn: boolean;
   readonly lantern: number;
   readonly lake: string;

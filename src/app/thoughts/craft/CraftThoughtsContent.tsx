@@ -47,7 +47,7 @@ export default function CraftThoughtsContent() {
           A résumé says &ldquo;strong performance skills.&rdquo; Anyone can. The{" "}
           <Link
             href="/craft"
-            className="font-medium text-foreground underline underline-offset-2"
+            className="paul-touch-min inline-flex items-center font-medium text-foreground underline underline-offset-2"
           >
             Craft page
           </Link>{" "}
@@ -122,13 +122,14 @@ export default function CraftThoughtsContent() {
 
       <Section title="Accessible by construction">
         <p>
-          Each trait is a header <C>button</C> that owns its <C>aria-expanded</C>{" "}
-          state and points at the panel it controls with <C>aria-controls</C>,
-          so the whole matrix is operable from the keyboard with a visible focus
-          ring. Everything starts expanded so nothing hides behind a click, a
-          single toggle collapses or expands the set, and the reveal animation
-          is gated on <C>prefers-reduced-motion</C>. A <C>vitest-axe</C> scan in
-          the test suite fails the build on a violation.
+          Each trait is a header <C>button</C> that owns its{" "}
+          <C>aria-expanded</C> state and points at the panel it controls with{" "}
+          <C>aria-controls</C>, so the whole matrix is operable from the
+          keyboard with a visible focus ring. Everything starts expanded so
+          nothing hides behind a click, a single toggle collapses or expands the
+          set, and the reveal animation is gated on{" "}
+          <C>prefers-reduced-motion</C>. A <C>vitest-axe</C> scan in the test
+          suite fails the build on a violation.
         </p>
       </Section>
 

@@ -21,8 +21,12 @@ describe("SlotMachine reels", () => {
   it("keeps each reel an accessible region named for its column", () => {
     renderMachine();
     // Apps is the default landed category, so the middle reel names an app link.
-    expect(screen.getByRole("listbox", { name: "Category" })).toBeInTheDocument();
-    expect(screen.getByRole("listbox", { name: "App link" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("listbox", { name: "Category" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("listbox", { name: "App link" }),
+    ).toBeInTheDocument();
     // The Write-up reel is a listbox when it has options and a plain group when
     // the landed app has no write-up yet; either way it's present and labelled.
     const writeup =

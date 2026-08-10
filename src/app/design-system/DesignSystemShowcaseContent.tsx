@@ -76,7 +76,13 @@ const A11Y_NOTES: string[] = [
 
 function StarIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
       <path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5 20.4l1.4-6.8L1.3 9l6.9-.7L12 2z" />
     </svg>
   );
@@ -97,7 +103,10 @@ function Reveal({
   className?: string;
 }) {
   return (
-    <section id={id} className={["reveal-up", className].filter(Boolean).join(" ")}>
+    <section
+      id={id}
+      className={["reveal-up", className].filter(Boolean).join(" ")}
+    >
       {children}
     </section>
   );
@@ -132,7 +141,10 @@ function ButtonPlayground() {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <div className="space-y-4">
-        <FilterBar label="Button playground controls" className="flex-wrap gap-4">
+        <FilterBar
+          label="Button playground controls"
+          className="flex-wrap gap-4"
+        >
           <Select
             label="Variant"
             value={state.variant}
@@ -162,21 +174,21 @@ function ButtonPlayground() {
         </FilterBar>
 
         <div className="flex flex-wrap items-center gap-5">
-          <label className="flex items-center gap-2 text-sm text-foreground">
+          <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
             <input
               type="checkbox"
               checked={state.loading}
               onChange={(e) => set("loading", e.target.checked)}
-              className="h-4 w-4 accent-primary-500"
+              className="paul-touch-target h-4 w-4 accent-primary-500"
             />
             Loading
           </label>
-          <label className="flex items-center gap-2 text-sm text-foreground">
+          <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
             <input
               type="checkbox"
               checked={state.disabled}
               onChange={(e) => set("disabled", e.target.checked)}
-              className="h-4 w-4 accent-primary-500"
+              className="paul-touch-target h-4 w-4 accent-primary-500"
             />
             Disabled
           </label>
@@ -244,7 +256,7 @@ function ModalDemo() {
 function SwitchDemo() {
   const [on, setOn] = useState(true);
   return (
-    <label className="flex items-center gap-2 text-sm text-foreground">
+    <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
       <Switch
         checked={on}
         onCheckedChange={setOn}
@@ -269,7 +281,9 @@ function ChipDemo() {
         />
       ))}
       {tags.length === 0 && (
-        <span className="text-sm text-muted">All removed — refresh to reset.</span>
+        <span className="text-sm text-muted">
+          All removed — refresh to reset.
+        </span>
       )}
     </div>
   );
@@ -349,7 +363,9 @@ const PREVIEWS: Record<string, ReactNode> = {
   card: (
     <Card variant="elevated" className="w-full">
       <Card.Header>
-        <span className="text-sm font-semibold text-foreground">Card title</span>
+        <span className="text-sm font-semibold text-foreground">
+          Card title
+        </span>
       </Card.Header>
       <Card.Body>
         <span className="text-[13px] text-muted">
@@ -453,7 +469,7 @@ function ComponentCard({ component }: { component: ComponentDoc }) {
                 <Link
                   key={`${component.id}-${link.href}`}
                   href={link.href}
-                  className="rounded-full border border-border px-2.5 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/40 hover:bg-surface"
+                  className="paul-touch-min rounded-full border border-border px-2.5 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/40 hover:bg-surface"
                 >
                   {link.label}
                 </Link>
@@ -483,7 +499,9 @@ function TokenGallery() {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-foreground">Colour ramps</h3>
+        <h3 className="mb-3 text-sm font-semibold text-foreground">
+          Colour ramps
+        </h3>
         <div className="space-y-3">
           {COLOR_SCALES.map((ramp) => (
             <div key={ramp.name}>
@@ -522,7 +540,9 @@ function TokenGallery() {
         </div>
 
         <div>
-          <h3 className="mb-3 text-sm font-semibold text-foreground">Shadows</h3>
+          <h3 className="mb-3 text-sm font-semibold text-foreground">
+            Shadows
+          </h3>
           <div className="flex flex-wrap gap-4">
             {SHADOW_TOKENS.map((token) => (
               <div key={token.var} className="text-center">
@@ -589,9 +609,9 @@ export default function DesignSystemShowcaseContent() {
               @paul-portfolio/react
             </code>{" "}
             — not a screenshot. The same package backs this Next.js app, a
-            sibling Angular app, and Ketsup, so this gallery is the shared source
-            of truth. Play with the controls, read how each one is used, and see
-            where it ships.
+            sibling Angular app, and Ketsup, so this gallery is the shared
+            source of truth. Play with the controls, read how each one is used,
+            and see where it ships.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
@@ -686,9 +706,9 @@ export default function DesignSystemShowcaseContent() {
         <Reveal>
           <SectionHeading>Accessibility built in</SectionHeading>
           <p className="mb-5 mt-2 max-w-2xl text-sm text-muted">
-            Accessibility is a property of the primitives, not a checklist bolted
-            on later. Tab through this page — every control takes focus and shows
-            it.
+            Accessibility is a property of the primitives, not a checklist
+            bolted on later. Tab through this page — every control takes focus
+            and shows it.
           </p>
           <div className="glass-card rounded-2xl p-5 sm:p-6">
             <ul className="space-y-2 text-sm text-foreground">

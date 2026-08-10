@@ -37,7 +37,10 @@ export default function WorkPortfolioContent() {
     (hovering: boolean) => {
       if (hoverTimer.current) clearTimeout(hoverTimer.current);
       if (hovering) {
-        hoverTimer.current = setTimeout(() => setExplainer({ subject, edge }), 350);
+        hoverTimer.current = setTimeout(
+          () => setExplainer({ subject, edge }),
+          350,
+        );
       }
     };
 
@@ -137,12 +140,12 @@ export default function WorkPortfolioContent() {
             transition={{ duration: 0.18 }}
             className="h-full"
           >
-              {selected === null ? (
-                <IntroCard />
-              ) : (
-                <div className="flex h-full flex-col gap-1.5">
-                  {/* compact header row so the demo surface gets ~95% of the space */}
-                  <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5">
+            {selected === null ? (
+              <IntroCard />
+            ) : (
+              <div className="flex h-full flex-col gap-1.5">
+                {/* compact header row so the demo surface gets ~95% of the space */}
+                <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5">
                   <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
                     {projectFor(selected).name}
                   </p>
@@ -191,15 +194,15 @@ export default function WorkPortfolioContent() {
                   <p className="hidden text-[13px] text-muted sm:block">
                     {selected.tagline}
                   </p>
-                  </div>
-                  <div className="min-h-0 flex-1">
-                    <DemoStage
-                      feature={selected}
-                      project={projectFor(selected)}
-                    />
-                  </div>
                 </div>
-              )}
+                <div className="min-h-0 flex-1">
+                  <DemoStage
+                    feature={selected}
+                    project={projectFor(selected)}
+                  />
+                </div>
+              </div>
+            )}
           </m.div>
         </div>
         <StageArrow dir="next" onClick={() => step(1)} />

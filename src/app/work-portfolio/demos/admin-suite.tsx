@@ -19,7 +19,13 @@ const ROLE_TINT: Record<Role, string> = {
 };
 
 type Org = { id: string; name: string };
-type User = { id: string; name: string; email: string; role: Role; orgId: string };
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  orgId: string;
+};
 type ApiKey = { id: string; label: string; key: string; userId: string };
 type Config = { id: string; name: string; value: string; orgId: string };
 
@@ -31,20 +37,48 @@ const INIT_ORGS: Org[] = [
   { id: "o2", name: "Pixel Forge" },
 ];
 const INIT_USERS: User[] = [
-  { id: "u1", name: "Ana P.", email: "ana@studio.example", role: "Owner", orgId: "o1" },
-  { id: "u2", name: "Devon R.", email: "devon@studio.example", role: "Admin", orgId: "o1" },
-  { id: "u3", name: "Kim L.", email: "kim@studio.example", role: "Analyst", orgId: "o2" },
-  { id: "u4", name: "Sam W.", email: "sam@studio.example", role: "Viewer", orgId: "o2" },
+  {
+    id: "u1",
+    name: "Ana P.",
+    email: "ana@studio.example",
+    role: "Owner",
+    orgId: "o1",
+  },
+  {
+    id: "u2",
+    name: "Devon R.",
+    email: "devon@studio.example",
+    role: "Admin",
+    orgId: "o1",
+  },
+  {
+    id: "u3",
+    name: "Kim L.",
+    email: "kim@studio.example",
+    role: "Analyst",
+    orgId: "o2",
+  },
+  {
+    id: "u4",
+    name: "Sam W.",
+    email: "sam@studio.example",
+    role: "Viewer",
+    orgId: "o2",
+  },
 ];
 const INIT_KEYS: ApiKey[] = [
-  { id: "k1", label: "Production", key: "sk_live_9f2a_7c41_demo_only_not_real", userId: "u1" },
+  {
+    id: "k1",
+    label: "Production",
+    key: "sk_live_9f2a_7c41_demo_only_not_real",
+    userId: "u1",
+  },
 ];
 const INIT_CONFIGS: Config[] = [
   { id: "c1", name: "data_retention_days", value: "90", orgId: "o1" },
 ];
 
-const uid = (prefix: string) =>
-  `${prefix}${crypto.randomUUID().slice(0, 8)}`;
+const uid = (prefix: string) => `${prefix}${crypto.randomUUID().slice(0, 8)}`;
 
 function genKey(): string {
   return `sk_live_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}_demo`;
@@ -159,26 +193,76 @@ function CreateModal({
 
         {tab === "Users" && (
           <>
-            <Input label="Name" size="sm" value={fields.name} onChange={(e) => set({ name: e.target.value })} />
-            <Input label="Email" size="sm" value={fields.email} onChange={(e) => set({ email: e.target.value })} />
-            <SelectField label="Role" value={fields.role} onChange={(role) => set({ role })} options={ROLES.map((r) => ({ id: r, label: r }))} />
-            <SelectField label="Org" value={fields.orgId} onChange={(orgId) => set({ orgId })} options={orgs.map((o) => ({ id: o.id, label: o.name }))} />
+            <Input
+              label="Name"
+              size="sm"
+              value={fields.name}
+              onChange={(e) => set({ name: e.target.value })}
+            />
+            <Input
+              label="Email"
+              size="sm"
+              value={fields.email}
+              onChange={(e) => set({ email: e.target.value })}
+            />
+            <SelectField
+              label="Role"
+              value={fields.role}
+              onChange={(role) => set({ role })}
+              options={ROLES.map((r) => ({ id: r, label: r }))}
+            />
+            <SelectField
+              label="Org"
+              value={fields.orgId}
+              onChange={(orgId) => set({ orgId })}
+              options={orgs.map((o) => ({ id: o.id, label: o.name }))}
+            />
           </>
         )}
         {tab === "Orgs" && (
-          <Input label="Name" size="sm" value={fields.name} onChange={(e) => set({ name: e.target.value })} />
+          <Input
+            label="Name"
+            size="sm"
+            value={fields.name}
+            onChange={(e) => set({ name: e.target.value })}
+          />
         )}
         {tab === "Keys" && (
           <>
-            <Input label="Label" size="sm" value={fields.label} onChange={(e) => set({ label: e.target.value })} />
-            <SelectField label="Owner" value={fields.userId} onChange={(userId) => set({ userId })} options={users.map((u) => ({ id: u.id, label: u.name }))} />
+            <Input
+              label="Label"
+              size="sm"
+              value={fields.label}
+              onChange={(e) => set({ label: e.target.value })}
+            />
+            <SelectField
+              label="Owner"
+              value={fields.userId}
+              onChange={(userId) => set({ userId })}
+              options={users.map((u) => ({ id: u.id, label: u.name }))}
+            />
           </>
         )}
         {tab === "Configs" && (
           <>
-            <Input label="Key" size="sm" value={fields.name} onChange={(e) => set({ name: e.target.value })} />
-            <Input label="Value" size="sm" value={fields.value} onChange={(e) => set({ value: e.target.value })} />
-            <SelectField label="Org" value={fields.orgId} onChange={(orgId) => set({ orgId })} options={orgs.map((o) => ({ id: o.id, label: o.name }))} />
+            <Input
+              label="Key"
+              size="sm"
+              value={fields.name}
+              onChange={(e) => set({ name: e.target.value })}
+            />
+            <Input
+              label="Value"
+              size="sm"
+              value={fields.value}
+              onChange={(e) => set({ value: e.target.value })}
+            />
+            <SelectField
+              label="Org"
+              value={fields.orgId}
+              onChange={(orgId) => set({ orgId })}
+              options={orgs.map((o) => ({ id: o.id, label: o.name }))}
+            />
           </>
         )}
 
@@ -186,7 +270,11 @@ function CreateModal({
           <Button variant="ghost" size="sm" onClick={onClose}>
             Cancel
           </Button>
-          <Button size="sm" disabled={!required} onClick={() => onCreate(fields)}>
+          <Button
+            size="sm"
+            disabled={!required}
+            onClick={() => onCreate(fields)}
+          >
             Create
           </Button>
         </div>
@@ -203,9 +291,18 @@ function CreateModal({
 export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
   // The console persists to localStorage (local memory), never a backend.
   const [orgs, setOrgs] = usePersistentState<Org[]>("wp-admin-orgs", INIT_ORGS);
-  const [users, setUsers] = usePersistentState<User[]>("wp-admin-users", INIT_USERS);
-  const [keys, setKeys] = usePersistentState<ApiKey[]>("wp-admin-keys", INIT_KEYS);
-  const [configs, setConfigs] = usePersistentState<Config[]>("wp-admin-configs", INIT_CONFIGS);
+  const [users, setUsers] = usePersistentState<User[]>(
+    "wp-admin-users",
+    INIT_USERS,
+  );
+  const [keys, setKeys] = usePersistentState<ApiKey[]>(
+    "wp-admin-keys",
+    INIT_KEYS,
+  );
+  const [configs, setConfigs] = usePersistentState<Config[]>(
+    "wp-admin-configs",
+    INIT_CONFIGS,
+  );
   const [tab, setTab] = useState<Tab>("Users");
   const [creating, setCreating] = useState<Tab | null>(null);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
@@ -215,14 +312,36 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
     if (tab === "Users") {
       setUsers((u) => [
         ...u,
-        { id: uid("u"), name: payload.name, email: payload.email, role: payload.role as Role, orgId: payload.orgId },
+        {
+          id: uid("u"),
+          name: payload.name,
+          email: payload.email,
+          role: payload.role as Role,
+          orgId: payload.orgId,
+        },
       ]);
     } else if (tab === "Orgs") {
       setOrgs((o) => [...o, { id: uid("o"), name: payload.name }]);
     } else if (tab === "Keys") {
-      setKeys((k) => [...k, { id: uid("k"), label: payload.label, key: genKey(), userId: payload.userId }]);
+      setKeys((k) => [
+        ...k,
+        {
+          id: uid("k"),
+          label: payload.label,
+          key: genKey(),
+          userId: payload.userId,
+        },
+      ]);
     } else {
-      setConfigs((c) => [...c, { id: uid("c"), name: payload.name, value: payload.value, orgId: payload.orgId }]);
+      setConfigs((c) => [
+        ...c,
+        {
+          id: uid("c"),
+          name: payload.name,
+          value: payload.value,
+          orgId: payload.orgId,
+        },
+      ]);
     }
     setCreating(null);
   };
@@ -284,9 +403,14 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
         {tab === "Users" && (
           <ul aria-label="Users" className="divide-y divide-border text-[12px]">
             {users.map((u) => (
-              <li key={u.id} className="flex items-center justify-between gap-2 py-1.5">
+              <li
+                key={u.id}
+                className="flex items-center justify-between gap-2 py-1.5"
+              >
                 <span className="min-w-0">
-                  <span className="block truncate text-foreground">{u.name}</span>
+                  <span className="block truncate text-foreground">
+                    {u.name}
+                  </span>
                   <span className="text-[10px] text-muted">{u.email}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
@@ -311,7 +435,10 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
         {tab === "Orgs" && (
           <ul aria-label="Orgs" className="divide-y divide-border text-[12px]">
             {orgs.map((o) => (
-              <li key={o.id} className="flex items-center justify-between py-1.5">
+              <li
+                key={o.id}
+                className="flex items-center justify-between py-1.5"
+              >
                 <span className="text-foreground">{o.name}</span>
                 <span className="text-[10px] text-muted">
                   {users.filter((u) => u.orgId === o.id).length} users ·{" "}
@@ -339,7 +466,11 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
                   <code className="min-w-0 flex-1 truncate rounded bg-black/5 px-2 py-1 font-mono text-[11px] text-foreground dark:bg-white/10">
                     {revealed.has(k.id) ? k.key : "•".repeat(28)}
                   </code>
-                  <Button variant="outline" size="xs" onClick={() => toggleReveal(k.id)}>
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() => toggleReveal(k.id)}
+                  >
                     {revealed.has(k.id) ? "Hide" : "Reveal"}
                   </Button>
                   <Button
@@ -359,9 +490,15 @@ export default function AdminSuiteDemo({ feature }: { feature: WorkFeature }) {
         )}
 
         {tab === "Configs" && (
-          <ul aria-label="Configs" className="divide-y divide-border text-[12px]">
+          <ul
+            aria-label="Configs"
+            className="divide-y divide-border text-[12px]"
+          >
             {configs.map((c) => (
-              <li key={c.id} className="flex items-center justify-between gap-2 py-1.5">
+              <li
+                key={c.id}
+                className="flex items-center justify-between gap-2 py-1.5"
+              >
                 <span className="min-w-0">
                   <code className="font-mono text-foreground">{c.name}</code>
                   <span className="ml-2 text-muted">= {c.value}</span>

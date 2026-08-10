@@ -171,14 +171,21 @@ export default function StandardAnalyticsDemo({
           height="100%"
           className="!absolute inset-0"
         >
-          <AreaChart data={series} margin={{ top: 6, right: 6, bottom: 0, left: -24 }}>
+          <AreaChart
+            data={series}
+            margin={{ top: 6, right: 6, bottom: 0, left: -24 }}
+          >
             <defs>
               <linearGradient id="saArea" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={ACCENT} stopOpacity={0.4} />
                 <stop offset="100%" stopColor={ACCENT} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="currentColor"
+              strokeOpacity={0.08}
+            />
             <XAxis dataKey="i" tick={{ fontSize: 9 }} stroke="currentColor" />
             <YAxis tick={{ fontSize: 9 }} stroke="currentColor" />
             <Tooltip />

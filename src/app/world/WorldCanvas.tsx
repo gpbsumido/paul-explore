@@ -26,7 +26,11 @@ const fogScaleFor = (condition: WorldCanvasProps["condition"]) =>
  * Sky and fog come from the visitor's local time of day; render resolution
  * scales with the fidelity slider.
  */
-export default function WorldCanvas({ timeOfDay, fidelity, ...sceneProps }: WorldCanvasProps) {
+export default function WorldCanvas({
+  timeOfDay,
+  fidelity,
+  ...sceneProps
+}: WorldCanvasProps) {
   const preset = SKY_PRESETS[timeOfDay];
   const fogScale = fogScaleFor(sceneProps.condition);
   return (
@@ -39,7 +43,11 @@ export default function WorldCanvas({ timeOfDay, fidelity, ...sceneProps }: Worl
       <color attach="background" args={[preset.background]} />
       <fog
         attach="fog"
-        args={[preset.fog[0], preset.fog[1] * fogScale, preset.fog[2] * fogScale]}
+        args={[
+          preset.fog[0],
+          preset.fog[1] * fogScale,
+          preset.fog[2] * fogScale,
+        ]}
       />
       <PauseWhenOffscreen />
       <DetailContext.Provider value={fidelity}>

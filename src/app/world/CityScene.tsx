@@ -3,14 +3,24 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
-import { ROADS, BUILDINGS, LAKE_EDGE_Z, STREETCAR_ROUTE } from "@/lib/world/cityLayout";
+import {
+  ROADS,
+  BUILDINGS,
+  LAKE_EDGE_Z,
+  STREETCAR_ROUTE,
+} from "@/lib/world/cityLayout";
 import { streetcarAt, STREETCAR_STOPS } from "@/lib/world/transit";
 import { SEASON_DRESSING, type Season } from "@/lib/world/seasons";
 import { WORLD_BOUNDS } from "@/lib/world/movement";
 import type { SkyPreset } from "./skyPresets";
-import { makeWindowTexture, makeDashTexture, makeTextTexture } from "./textures";
+import {
+  makeWindowTexture,
+  makeDashTexture,
+  makeTextTexture,
+} from "./textures";
 
-const hash01 = (n: number) => Math.abs(Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1;
+const hash01 = (n: number) =>
+  Math.abs(Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1;
 
 // Vertical layering: enough separation between coplanar layers that nothing
 // z-fights at grazing angles.
@@ -41,7 +51,16 @@ function Buildings({ preset }: { readonly preset: SkyPreset }) {
         };
         const antenna =
           b.tint > 0.62
-            ? [{ x: b.x, z: b.z, y: b.height + 2.2, sx: 0.18, sy: 4.4, sz: 0.18 }]
+            ? [
+                {
+                  x: b.x,
+                  z: b.z,
+                  y: b.height + 2.2,
+                  sx: 0.18,
+                  sy: 4.4,
+                  sz: 0.18,
+                },
+              ]
             : [];
         return [penthouse, ...antenna];
       }),
@@ -57,11 +76,21 @@ function Buildings({ preset }: { readonly preset: SkyPreset }) {
       emissiveIntensity: 0.85,
       roughness: 0.85,
     });
-    const roof = new THREE.MeshStandardMaterial({ color: "#242b3b", roughness: 0.95 });
+    const roof = new THREE.MeshStandardMaterial({
+      color: "#242b3b",
+      roughness: 0.95,
+    });
     return {
       geometry: new THREE.BoxGeometry(1, 1, 1),
       // Box face order: +x, -x, +y, -y, +z, -z — windows on walls, plain roof.
-      materials: [facadeMaterial, facadeMaterial, roof, roof, facadeMaterial, facadeMaterial],
+      materials: [
+        facadeMaterial,
+        facadeMaterial,
+        roof,
+        roof,
+        facadeMaterial,
+        facadeMaterial,
+      ],
       facade: facadeMaterial,
     };
   }, []);
@@ -110,8 +139,14 @@ function Buildings({ preset }: { readonly preset: SkyPreset }) {
 
   return (
     <group>
-      <instancedMesh ref={meshRef} args={[geometry, materials, BUILDINGS.length]} />
-      <instancedMesh ref={roofRef} args={[undefined, undefined, rooftops.length]}>
+      <instancedMesh
+        ref={meshRef}
+        args={[geometry, materials, BUILDINGS.length]}
+      />
+      <instancedMesh
+        ref={roofRef}
+        args={[undefined, undefined, rooftops.length]}
+      >
         <boxGeometry />
         <meshStandardMaterial color="#333c50" roughness={0.9} />
       </instancedMesh>
@@ -134,7 +169,10 @@ function Roads({ preset }: { readonly preset: SkyPreset }) {
       }),
     [],
   );
-  useEffect(() => () => dashTextures.forEach((t) => t.dispose()), [dashTextures]);
+  useEffect(
+    () => () => dashTextures.forEach((t) => t.dispose()),
+    [dashTextures],
+  );
 
   return (
     <group>
@@ -155,7 +193,12 @@ function Roads({ preset }: { readonly preset: SkyPreset }) {
             </mesh>
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, Y_DASH, 0]}>
               <planeGeometry args={[length, 0.35]} />
-              <meshBasicMaterial map={dash} transparent opacity={0.75} depthWrite={false} />
+              <meshBasicMaterial
+                map={dash}
+                transparent
+                opacity={0.75}
+                depthWrite={false}
+              />
             </mesh>
           </group>
         );
@@ -231,7 +274,12 @@ function Streetcar({ prefersReduced }: { readonly prefersReduced: boolean }) {
       </mesh>
       <mesh position={[0, Y_ROAD + 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[7.4, 2.6]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.3} depthWrite={false} />
+        <meshBasicMaterial
+          color="#000000"
+          transparent
+          opacity={0.3}
+          depthWrite={false}
+        />
       </mesh>
     </group>
   );
@@ -241,7 +289,13 @@ function Streetcar({ prefersReduced }: { readonly prefersReduced: boolean }) {
 // Lamps, trees, sky, water.
 // ---------------------------------------------------------------------------
 
-const LAMP_ROADS = ["Queen St W", "Front St W", "Dundas St W", "College St", "Yonge St"];
+const LAMP_ROADS = [
+  "Queen St W",
+  "Front St W",
+  "Dundas St W",
+  "College St",
+  "Yonge St",
+];
 
 function StreetLamps({ preset }: { readonly preset: SkyPreset }) {
   const lamps = useMemo(
@@ -272,7 +326,10 @@ function StreetLamps({ preset }: { readonly preset: SkyPreset }) {
             <meshBasicMaterial color={preset.lampsOn ? "#ffd9a0" : "#4a5060"} />
           </mesh>
           {preset.lampsOn && (
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, Y_LAMP_GLOW, 0]}>
+            <mesh
+              rotation={[-Math.PI / 2, 0, 0]}
+              position={[0, Y_LAMP_GLOW, 0]}
+            >
               <circleGeometry args={[2.4, 20]} />
               <meshBasicMaterial
                 color="#ffd9a0"
@@ -291,18 +348,38 @@ function StreetLamps({ preset }: { readonly preset: SkyPreset }) {
 
 const TREE_SPOTS: readonly { x: number; z: number }[] = [
   // Queen's Park oval
-  { x: -43, z: -66 }, { x: -42, z: -74 }, { x: -18, z: -66 }, { x: -19, z: -74 },
-  { x: -36, z: -64.5 }, { x: -24, z: -64.5 }, { x: -30, z: -77.5 }, { x: -44, z: -70 },
+  { x: -43, z: -66 },
+  { x: -42, z: -74 },
+  { x: -18, z: -66 },
+  { x: -19, z: -74 },
+  { x: -36, z: -64.5 },
+  { x: -24, z: -64.5 },
+  { x: -30, z: -77.5 },
+  { x: -44, z: -70 },
   { x: -16, z: -70 },
   // U of T campus
-  { x: -48, z: -66.5 }, { x: -45, z: -77 }, { x: -55, z: -68 }, { x: -37, z: -72 },
+  { x: -48, z: -66.5 },
+  { x: -45, z: -77 },
+  { x: -55, z: -68 },
+  { x: -37, z: -72 },
   // Nathan Phillips Square
-  { x: -28, z: -16 }, { x: -11, z: -18 }, { x: -28, z: -24 },
+  { x: -28, z: -16 },
+  { x: -11, z: -18 },
+  { x: -28, z: -24 },
   // waterfront promenade
-  { x: -48, z: 50 }, { x: -30, z: 49.5 }, { x: -20, z: 50 }, { x: 24, z: 49.5 },
-  { x: 36, z: 50 }, { x: 52, z: 49.5 }, { x: 66, z: 48 },
+  { x: -48, z: 50 },
+  { x: -30, z: 49.5 },
+  { x: -20, z: 50 },
+  { x: 24, z: 49.5 },
+  { x: 36, z: 50 },
+  { x: 52, z: 49.5 },
+  { x: 66, z: 48 },
   // scattered street trees
-  { x: 66, z: 24 }, { x: 60, z: 14 }, { x: -74, z: -31 }, { x: -66, z: -55 }, { x: -68, z: 34 },
+  { x: 66, z: 24 },
+  { x: 60, z: 14 },
+  { x: -74, z: -31 },
+  { x: -66, z: -55 },
+  { x: -68, z: 34 },
 ];
 
 /** Streetcar stop poles along Queen — where you can flag down the 501. */
@@ -365,15 +442,24 @@ function Trees({ season }: { readonly season: Season }) {
               <>
                 <mesh position={[0, 1.75, 0]}>
                   <sphereGeometry args={[0.85, 16, 12]} />
-                  <meshStandardMaterial color={dressing.foliage} roughness={0.85} />
+                  <meshStandardMaterial
+                    color={dressing.foliage}
+                    roughness={0.85}
+                  />
                 </mesh>
                 <mesh position={[0.45, 2.2, 0.15]}>
                   <sphereGeometry args={[0.5, 14, 10]} />
-                  <meshStandardMaterial color={dressing.foliage} roughness={0.85} />
+                  <meshStandardMaterial
+                    color={dressing.foliage}
+                    roughness={0.85}
+                  />
                 </mesh>
                 <mesh position={[-0.4, 2.15, -0.15]}>
                   <sphereGeometry args={[0.45, 14, 10]} />
-                  <meshStandardMaterial color={dressing.foliage} roughness={0.85} />
+                  <meshStandardMaterial
+                    color={dressing.foliage}
+                    roughness={0.85}
+                  />
                 </mesh>
               </>
             )}
@@ -403,7 +489,10 @@ function Sky({ preset }: { readonly preset: SkyPreset }) {
       {preset.showStars && (
         <points>
           <bufferGeometry>
-            <bufferAttribute attach="attributes-position" args={[starPositions, 3]} />
+            <bufferAttribute
+              attach="attributes-position"
+              args={[starPositions, 3]}
+            />
           </bufferGeometry>
           <pointsMaterial
             size={1.4}
@@ -424,19 +513,37 @@ function Sky({ preset }: { readonly preset: SkyPreset }) {
           </mesh>
           <mesh position={[58, 74, -129.5]}>
             <circleGeometry args={[11, 40]} />
-            <meshBasicMaterial color="#f2eedd" transparent opacity={0.12} fog={false} />
+            <meshBasicMaterial
+              color="#f2eedd"
+              transparent
+              opacity={0.12}
+              fog={false}
+            />
           </mesh>
         </group>
       )}
       {preset.sunDisc && (
-        <group position={[...preset.sunDisc.position]} rotation={[0, Math.atan2(preset.sunDisc.position[0], preset.sunDisc.position[2]) + Math.PI, 0]}>
+        <group
+          position={[...preset.sunDisc.position]}
+          rotation={[
+            0,
+            Math.atan2(preset.sunDisc.position[0], preset.sunDisc.position[2]) +
+              Math.PI,
+            0,
+          ]}
+        >
           <mesh>
             <circleGeometry args={[preset.sunDisc.radius, 40]} />
             <meshBasicMaterial color={preset.sunDisc.color} fog={false} />
           </mesh>
           <mesh position={[0, 0, -0.5]}>
             <circleGeometry args={[preset.sunDisc.radius * 1.7, 40]} />
-            <meshBasicMaterial color={preset.sunDisc.color} transparent opacity={0.15} fog={false} />
+            <meshBasicMaterial
+              color={preset.sunDisc.color}
+              transparent
+              opacity={0.15}
+              fog={false}
+            />
           </mesh>
         </group>
       )}
@@ -447,14 +554,29 @@ function Sky({ preset }: { readonly preset: SkyPreset }) {
 function Lake({ preset }: { readonly preset: SkyPreset }) {
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, LAKE_EDGE_Z + 25]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -0.05, LAKE_EDGE_Z + 25]}
+      >
         <planeGeometry args={[190, 60]} />
-        <meshStandardMaterial color={preset.lake} roughness={0.25} metalness={0.4} />
+        <meshStandardMaterial
+          color={preset.lake}
+          roughness={0.25}
+          metalness={0.4}
+        />
       </mesh>
       {/* light glint on the water */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[45, 0.01, LAKE_EDGE_Z + 18]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[45, 0.01, LAKE_EDGE_Z + 18]}
+      >
         <planeGeometry args={[10, 34]} />
-        <meshBasicMaterial color={preset.lakeGlint} transparent opacity={0.1} depthWrite={false} />
+        <meshBasicMaterial
+          color={preset.lakeGlint}
+          transparent
+          opacity={0.1}
+          depthWrite={false}
+        />
       </mesh>
       {/* Toronto Islands, a silhouette across the harbour */}
       <mesh position={[20, 0.4, LAKE_EDGE_Z + 22]}>
@@ -474,7 +596,11 @@ type CitySceneProps = {
 };
 
 /** Everything that makes it Toronto except the landmark set pieces. */
-export default function CityScene({ prefersReduced, preset, season }: CitySceneProps) {
+export default function CityScene({
+  prefersReduced,
+  preset,
+  season,
+}: CitySceneProps) {
   const dressing = SEASON_DRESSING[season];
   // Winter whitens the parks; other seasons follow the time-of-day grade.
   const parkColor = dressing.snow ? dressing.park : preset.park;
@@ -496,7 +622,10 @@ export default function CityScene({ prefersReduced, preset, season }: CitySceneP
         <meshStandardMaterial color={parkColor} roughness={1} />
       </mesh>
       {/* waterfront boardwalk */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, Y_BOARDWALK, (WORLD_BOUNDS.maxZ + LAKE_EDGE_Z) / 2 - 2]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, Y_BOARDWALK, (WORLD_BOUNDS.maxZ + LAKE_EDGE_Z) / 2 - 2]}
+      >
         <planeGeometry args={[160, 8]} />
         <meshStandardMaterial color="#33291d" roughness={0.95} />
       </mesh>

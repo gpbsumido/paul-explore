@@ -16,7 +16,9 @@ describe("auth flows demo", () => {
   it("jumps straight to a screen from the dots", () => {
     render(<AuthFlowsDemo feature={feature} />);
     fireEvent.click(screen.getByRole("button", { name: "Wallet passport" }));
-    expect(screen.getByRole("button", { name: "Connect wallet" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Connect wallet" }),
+    ).toBeInTheDocument();
   });
 
   it("lets you type into the fields", () => {
@@ -28,7 +30,9 @@ describe("auth flows demo", () => {
 
   it("shows an inline validation message for a bad email", () => {
     render(<AuthFlowsDemo feature={feature} />);
-    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "nope" } });
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "nope" },
+    });
     expect(screen.getByText(/valid email/i)).toBeInTheDocument();
   });
 

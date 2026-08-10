@@ -12,8 +12,16 @@ describe("tokenizeJson", () => {
   });
 
   it("round-trips the original text", () => {
-    const src = JSON.stringify({ slug: "overview", tiles: ["a", "b"], n: 3 }, null, 2);
-    expect(tokenizeJson(src).map((t) => t.text).join("")).toBe(src);
+    const src = JSON.stringify(
+      { slug: "overview", tiles: ["a", "b"], n: 3 },
+      null,
+      2,
+    );
+    expect(
+      tokenizeJson(src)
+        .map((t) => t.text)
+        .join(""),
+    ).toBe(src);
   });
 
   it("tells a key apart from a string value", () => {

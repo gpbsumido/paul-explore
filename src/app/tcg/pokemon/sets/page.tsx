@@ -53,7 +53,7 @@ export default async function SetsPage() {
         right={
           <Link
             href="/tcg/pocket"
-            className="text-sm text-muted hover:text-foreground transition-colors"
+            className="paul-touch-min inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
           >
             Pocket
           </Link>

@@ -6,9 +6,12 @@ import { parseBody } from "@/lib/parseBody";
 
 // GET /api/calendar/calendars
 export const GET = withBackend("calendars GET", async ({ token, email }) => {
-  const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars`, {
-    headers: buildHeaders(token, email),
-  });
+  const upstreamResult = await fetchUpstream(
+    `${API_URL}/api/calendar/calendars`,
+    {
+      headers: buildHeaders(token, email),
+    },
+  );
   if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
   const res = upstreamResult.response;
   if (!res.ok) {
@@ -29,13 +32,16 @@ export const POST = withBackend(
     const bodyResult = await parseBody(request, createCalendarBodySchema);
     if (!bodyResult.ok) return bodyResult.response;
 
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars`, {
-      method: "POST",
-      headers: buildHeaders(token, email, {
-        "Content-Type": "application/json",
-      }),
-      body: JSON.stringify(bodyResult.data),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/calendars`,
+      {
+        method: "POST",
+        headers: buildHeaders(token, email, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(bodyResult.data),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {

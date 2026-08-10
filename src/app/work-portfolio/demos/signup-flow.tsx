@@ -71,13 +71,18 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
   if (done) {
     return (
       <div className="flex h-full min-h-64 flex-col items-center justify-center gap-2 p-4 text-center">
-        <span aria-hidden className="text-3xl">🎉</span>
+        <span aria-hidden className="text-3xl">
+          🎉
+        </span>
         <p className="text-[15px] font-bold text-foreground">
           Welcome aboard, {form.name || "driver"}
         </p>
         <p className="text-[12px] text-muted">
           Signup complete. Attributed to{" "}
-          <span className="font-medium text-foreground">{attribution.source}</span>.
+          <span className="font-medium text-foreground">
+            {attribution.source}
+          </span>
+          .
         </p>
         <Button
           variant="outline"
@@ -98,9 +103,11 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+        <p className="text-[13px] font-semibold text-foreground">
+          {feature.title}
+        </p>
         <span
-          className="rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted"
+          className="paul-touch-min rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted"
           title="campaign attribution from the entry link"
         >
           utm: {attribution.source}
@@ -129,14 +136,34 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
       <div className="min-h-0 flex-1 space-y-2">
         {current === "Contact" && (
           <>
-            <Field label="Full name" value={form.name} error={errors.name} onChange={(v) => set("name", v)} />
-            <Field label="Email" value={form.email} error={errors.email} onChange={(v) => set("email", v)} />
+            <Field
+              label="Full name"
+              value={form.name}
+              error={errors.name}
+              onChange={(v) => set("name", v)}
+            />
+            <Field
+              label="Email"
+              value={form.email}
+              error={errors.email}
+              onChange={(v) => set("email", v)}
+            />
           </>
         )}
         {current === "Vehicle" && (
           <>
-            <Field label="Make & model" value={form.make} error={errors.make} onChange={(v) => set("make", v)} />
-            <Field label="License plate" value={form.plate} error={errors.plate} onChange={(v) => set("plate", v)} />
+            <Field
+              label="Make & model"
+              value={form.make}
+              error={errors.make}
+              onChange={(v) => set("make", v)}
+            />
+            <Field
+              label="License plate"
+              value={form.plate}
+              error={errors.plate}
+              onChange={(v) => set("plate", v)}
+            />
           </>
         )}
         {current === "Review" && (
@@ -149,7 +176,10 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
                 ["Plate", form.plate],
               ] as const
             ).map(([k, v]) => (
-              <div key={k} className="flex justify-between border-b border-border py-1">
+              <div
+                key={k}
+                className="flex justify-between border-b border-border py-1"
+              >
                 <dt className="text-muted">{k}</dt>
                 <dd className="text-foreground">{v || "—"}</dd>
               </div>

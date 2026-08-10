@@ -97,7 +97,8 @@ export default function TaxTab({ storeId }: TaxTabProps) {
           </div>
           <div className="rounded-md bg-surface px-3 py-2">
             <dt className="text-[11px] uppercase tracking-wide text-muted">
-              Provincial ({provincialLabel}){province ? ` · ${province.name}` : ""}
+              Provincial ({provincialLabel})
+              {province ? ` · ${province.name}` : ""}
             </dt>
             <dd className="mt-0.5 font-semibold tabular-nums text-foreground">
               {formatCAD(owed.provincialOwed)}

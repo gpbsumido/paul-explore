@@ -676,7 +676,8 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
         }
       })
       .catch((err: unknown) => {
-        const aborted = err instanceof DOMException && err.name === "AbortError";
+        const aborted =
+          err instanceof DOMException && err.name === "AbortError";
         if (!aborted) setSaveStatus("idle");
       });
 
@@ -988,7 +989,9 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 <span className="text-foreground">
                   Finals MVP (correct name)
                 </span>
-                <span className="font-mono text-orange-700 dark:text-orange-400">+5 pts</span>
+                <span className="font-mono text-orange-700 dark:text-orange-400">
+                  +5 pts
+                </span>
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5">
                 <span className="text-foreground">

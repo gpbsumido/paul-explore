@@ -2,11 +2,7 @@ import { type ComponentPropsWithRef, type ReactNode } from "react";
 import { Button as PaulButton } from "@paul-portfolio/react";
 
 export type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "outline"
-  | "ghost"
-  | "danger";
+  "primary" | "secondary" | "outline" | "ghost" | "danger";
 export type ButtonSize = "xs" | "sm" | "md" | "lg";
 
 interface ButtonProps extends ComponentPropsWithRef<"button"> {

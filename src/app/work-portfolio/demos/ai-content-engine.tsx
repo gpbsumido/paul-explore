@@ -21,18 +21,28 @@ const OUTPUT: Record<Template, string> = {
 
 /** Each voice restyles the base copy so the "post" reads in that character. */
 const VOICES = [
-  { id: "hype", name: "Hype Announcer", style: (t: string) => `🔥 ${t} LET'S GOOO! 🔥` },
+  {
+    id: "hype",
+    name: "Hype Announcer",
+    style: (t: string) => `🔥 ${t} LET'S GOOO! 🔥`,
+  },
   {
     id: "vet",
     name: "Grumpy Veteran",
-    style: (t: string) => `Ugh, fine, here it is: ${t} ...anyway, back in my day the grind was real.`,
+    style: (t: string) =>
+      `Ugh, fine, here it is: ${t} ...anyway, back in my day the grind was real.`,
   },
   {
     id: "lore",
     name: "Lore Keeper",
-    style: (t: string) => `Hear ye, travelers. ${t} May your blades stay sharp.`,
+    style: (t: string) =>
+      `Hear ye, travelers. ${t} May your blades stay sharp.`,
   },
-  { id: "meme", name: "Meme Lord", style: (t: string) => `${t} no cap fr fr 💀🙏` },
+  {
+    id: "meme",
+    name: "Meme Lord",
+    style: (t: string) => `${t} no cap fr fr 💀🙏`,
+  },
 ] as const;
 type Voice = (typeof VOICES)[number];
 
@@ -69,7 +79,9 @@ function PostModal({
                     ? "border-transparent text-white"
                     : "border-border text-muted"
                 }`}
-                style={voice.id === v.id ? { backgroundColor: ACCENT } : undefined}
+                style={
+                  voice.id === v.id ? { backgroundColor: ACCENT } : undefined
+                }
               >
                 {v.name}
               </button>
@@ -162,7 +174,7 @@ export default function AiContentEngineDemo({
           <button
             type="button"
             onClick={() => setPosting(true)}
-            className="rounded-md border border-border px-3 py-1 text-[12px] text-foreground transition-colors hover:bg-foreground/5"
+            className="paul-touch-min rounded-md border border-border px-3 py-1 text-[12px] text-foreground transition-colors hover:bg-foreground/5"
           >
             Post to social
           </button>

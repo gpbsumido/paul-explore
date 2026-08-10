@@ -119,7 +119,10 @@ export function buildGraphData(): GraphData {
     edges.push({ source: "hub:features", target: id, rest: 150 });
 
     // Only bridge to the write-up if it still exists in the graph.
-    if (feature.thoughtsHref && thoughtIds.has(thoughtNodeId(feature.thoughtsHref))) {
+    if (
+      feature.thoughtsHref &&
+      thoughtIds.has(thoughtNodeId(feature.thoughtsHref))
+    ) {
       edges.push({
         source: id,
         target: thoughtNodeId(feature.thoughtsHref),

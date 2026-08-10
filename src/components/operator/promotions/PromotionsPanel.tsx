@@ -59,14 +59,18 @@ export default function PromotionsPanel({
   const [showForm, setShowForm] = useState(false);
   // Fetched per promotion on demand, so opening the tab does not fire a
   // performance query for every promotion a store has ever run.
-  const [openPerformanceId, setOpenPerformanceId] = useState<string | null>(null);
+  const [openPerformanceId, setOpenPerformanceId] = useState<string | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const timeZone = useMemo(() => storeTimeZone(store), [store]);
 
   const [percent, setPercent] = useState(modelledPercent || 10);
-  const [productName, setProductName] = useState<string | null>(modelledProduct);
+  const [productName, setProductName] = useState<string | null>(
+    modelledProduct,
+  );
   const [startsAt, setStartsAt] = useState(() => toLocalInputValue(new Date()));
   const [endsAt, setEndsAt] = useState("");
 
@@ -116,7 +120,9 @@ export default function PromotionsPanel({
       });
       if (!res.ok) throw new Error("rejected");
 
-      addToast({ message: `Scheduled ${percent}% off ${productName ?? "everything"}` });
+      addToast({
+        message: `Scheduled ${percent}% off ${productName ?? "everything"}`,
+      });
       setShowForm(false);
       await load();
     } catch {
@@ -129,10 +135,9 @@ export default function PromotionsPanel({
   const handleEnd = useCallback(
     async (promotionId: string) => {
       try {
-        const res = await fetch(
-          `/api/operator/promotions/${promotionId}/end`,
-          { method: "PATCH" },
-        );
+        const res = await fetch(`/api/operator/promotions/${promotionId}/end`, {
+          method: "PATCH",
+        });
         if (!res.ok) throw new Error("failed");
         addToast({ message: "Promotion ended" });
         await load();
@@ -355,8 +360,8 @@ export default function PromotionsPanel({
       {live.length > 0 && (
         <p className="text-xs text-muted">
           {live.length} running now, measured in {zoneLabel(timeZone)}. Open
-          Results on any that has started to see it against the period before it,
-          which is a comparison and not proof it caused the change.
+          Results on any that has started to see it against the period before
+          it, which is a comparison and not proof it caused the change.
         </p>
       )}
     </section>

@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  render,
-  screen,
-  within,
-  fireEvent,
-  act,
-} from "@testing-library/react";
+import { render, screen, within, fireEvent, act } from "@testing-library/react";
 import WorkPortfolioContent from "../WorkPortfolioContent";
 import { PROJECTS, FEATURES, projectFor } from "../_data/catalog";
 
@@ -18,12 +12,18 @@ describe("explainer window", () => {
     const bottom = screen.getByLabelText("Features ticker");
     const feature = FEATURES[4];
     fireEvent.click(
-      within(bottom).getAllByRole("button", { name: `About ${feature.title}` })[0],
+      within(bottom).getAllByRole("button", {
+        name: `About ${feature.title}`,
+      })[0],
     );
 
-    const dialog = screen.getByRole("dialog", { name: `About ${feature.title}` });
+    const dialog = screen.getByRole("dialog", {
+      name: `About ${feature.title}`,
+    });
     expect(within(dialog).getByText(feature.explainer.did)).toBeInTheDocument();
-    expect(within(dialog).getByText(feature.explainer.mocked)).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(feature.explainer.mocked),
+    ).toBeInTheDocument();
     expect(
       within(dialog).getByText(projectFor(feature).name),
     ).toBeInTheDocument();
@@ -37,7 +37,9 @@ describe("explainer window", () => {
       within(top).getAllByRole("button", { name: `About ${project.name}` })[0],
     );
 
-    const dialog = screen.getByRole("dialog", { name: `About ${project.name}` });
+    const dialog = screen.getByRole("dialog", {
+      name: `About ${project.name}`,
+    });
     expect(within(dialog).getByText(project.blurb)).toBeInTheDocument();
     expect(within(dialog).getByText(project.stack)).toBeInTheDocument();
     expect(
@@ -124,6 +126,8 @@ describe("explainer window", () => {
     const dialog = screen.getByRole("dialog");
     fireEvent.keyDown(dialog, { key: "ArrowRight" });
     // still on the intro, the arrow press inside the dialog was swallowed
-    expect(screen.queryByRole("heading", { name: FEATURES[0].title })).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: FEATURES[0].title }),
+    ).toBeNull();
   });
 });

@@ -93,13 +93,26 @@ export function transferAsset<T extends { id: number; wallet: WalletSide }>(
 }
 
 /** Read-only detail view for one asset: metadata, traits, and provenance. */
-function AssetDetail({ asset, onClose }: { asset: Asset; onClose: () => void }) {
+function AssetDetail({
+  asset,
+  onClose,
+}: {
+  asset: Asset;
+  onClose: () => void;
+}) {
   return (
-    <Modal open onClose={onClose} aria-label={`${asset.name} details`} className="w-[22rem] max-w-[92vw]">
+    <Modal
+      open
+      onClose={onClose}
+      aria-label={`${asset.name} details`}
+      className="w-[22rem] max-w-[92vw]"
+    >
       <div className="flex flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-sm font-semibold text-foreground">{asset.name}</p>
+            <p className="text-sm font-semibold text-foreground">
+              {asset.name}
+            </p>
             <p className="text-[11px] text-muted">{asset.collection}</p>
           </div>
           <button
@@ -112,34 +125,56 @@ function AssetDetail({ asset, onClose }: { asset: Asset; onClose: () => void }) 
           </button>
         </div>
 
-        <div className="h-24 rounded-lg" style={{ backgroundColor: `hsl(${asset.hue} 55% 55%)` }} />
+        <div
+          className="h-24 rounded-lg"
+          style={{ backgroundColor: `hsl(${asset.hue} 55% 55%)` }}
+        />
 
         <div className="flex items-center justify-between text-[11px]">
-          <span className="font-semibold" style={{ color: RARITY_TINT[asset.rarity] }}>
+          <span
+            className="font-semibold"
+            style={{ color: RARITY_TINT[asset.rarity] }}
+          >
             {asset.rarity}
           </span>
           <span className="font-mono text-muted">Token #{asset.tokenId}</span>
         </div>
 
         <div>
-          <p className="mb-1 text-[10px] uppercase tracking-wider text-muted">Attributes</p>
+          <p className="mb-1 text-[10px] uppercase tracking-wider text-muted">
+            Attributes
+          </p>
           <div className="grid grid-cols-3 gap-1.5">
             {asset.attributes.map((a) => (
-              <div key={a.trait} className="rounded-md border border-border bg-background/50 p-1.5">
-                <p className="text-[8px] uppercase tracking-wider text-muted">{a.trait}</p>
-                <p className="truncate text-[11px] font-medium text-foreground">{a.value}</p>
+              <div
+                key={a.trait}
+                className="rounded-md border border-border bg-background/50 p-1.5"
+              >
+                <p className="text-[8px] uppercase tracking-wider text-muted">
+                  {a.trait}
+                </p>
+                <p className="truncate text-[11px] font-medium text-foreground">
+                  {a.value}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
         <div>
-          <p className="mb-1 text-[10px] uppercase tracking-wider text-muted">Provenance</p>
+          <p className="mb-1 text-[10px] uppercase tracking-wider text-muted">
+            Provenance
+          </p>
           <ol className="flex flex-col gap-1">
             {asset.history.map((h, i) => (
-              <li key={i} className="flex items-center justify-between text-[11px]">
+              <li
+                key={i}
+                className="flex items-center justify-between text-[11px]"
+              >
                 <span className="flex items-center gap-1.5">
-                  <span aria-hidden style={{ color: ACCENT }}>•</span>
+                  <span aria-hidden style={{ color: ACCENT }}>
+                    •
+                  </span>
                   <span className="text-foreground">{h.event}</span>
                   <span className="font-mono text-muted">{h.who}</span>
                 </span>
@@ -154,7 +189,13 @@ function AssetDetail({ asset, onClose }: { asset: Asset; onClose: () => void }) 
 }
 
 /** One draggable asset chip inside a transfer pane, with a keyboard-friendly send button. */
-function TransferChip({ asset, onSend }: { asset: Asset; onSend: (id: number) => void }) {
+function TransferChip({
+  asset,
+  onSend,
+}: {
+  asset: Asset;
+  onSend: (id: number) => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: asset.id,
   });
@@ -173,8 +214,13 @@ function TransferChip({ asset, onSend }: { asset: Asset; onSend: (id: number) =>
         {...attributes}
         className="flex min-w-0 flex-1 cursor-grab items-center gap-1.5 text-left"
       >
-        <span className="h-4 w-4 shrink-0 rounded" style={{ backgroundColor: `hsl(${asset.hue} 55% 55%)` }} />
-        <span className="truncate text-[10px] font-medium text-foreground">{asset.name}</span>
+        <span
+          className="h-4 w-4 shrink-0 rounded"
+          style={{ backgroundColor: `hsl(${asset.hue} 55% 55%)` }}
+        />
+        <span className="truncate text-[10px] font-medium text-foreground">
+          {asset.name}
+        </span>
       </button>
       <button
         type="button"
@@ -234,13 +280,16 @@ export function shortAddress(address: string): string {
  * The transfer is a simulation, no chain transaction is sent.
  */
 export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
-  const { address, ensName, balanceLabel, isConnected, disconnect } = useWallet();
+  const { address, ensName, balanceLabel, isConnected, disconnect } =
+    useWallet();
   const [selected, setSelected] = useState<Asset | null>(null);
   const [transferMode, setTransferMode] = useState(false);
   const [assets, setAssets] = useState<Asset[]>(inventory);
   const [activeId, setActiveId] = useState<number | null>(null);
   const activeAsset = assets.find((a) => a.id === activeId) ?? null;
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+  );
 
   const send = (id: number, to: WalletSide) =>
     setAssets((prev) => transferAsset(prev, id, to));
@@ -260,7 +309,9 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+        <p className="text-[13px] font-semibold text-foreground">
+          {feature.title}
+        </p>
         <div className="flex items-center gap-1.5">
           {isConnected ? (
             <>
@@ -268,14 +319,14 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
                 type="button"
                 onClick={() => setTransferMode((t) => !t)}
                 aria-pressed={transferMode}
-                className="rounded-md border border-border px-2 py-1 text-[11px] font-medium text-foreground"
+                className="paul-touch-min rounded-md border border-border px-2 py-1 text-[11px] font-medium text-foreground"
               >
                 {transferMode ? "Done" : "Transfer"}
               </button>
               <button
                 type="button"
                 onClick={() => disconnect()}
-                className="rounded-md border border-border px-2 py-1 text-[11px] font-medium text-muted hover:text-foreground"
+                className="paul-touch-min rounded-md border border-border px-2 py-1 text-[11px] font-medium text-muted hover:text-foreground"
               >
                 Disconnect
               </button>
@@ -295,7 +346,9 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
 
       {!isConnected ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-          <span aria-hidden className="text-3xl">👛</span>
+          <span aria-hidden className="text-3xl">
+            👛
+          </span>
           <p className="text-[12px] text-muted">
             connect a wallet to see your on-chain items
           </p>
@@ -322,8 +375,13 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
           <DragOverlay dropAnimation={null}>
             {activeAsset ? (
               <div className="flex cursor-grabbing items-center gap-1.5 rounded-md border border-border bg-background/90 p-1.5 shadow-lg">
-                <span className="h-4 w-4 shrink-0 rounded" style={{ backgroundColor: `hsl(${activeAsset.hue} 55% 55%)` }} />
-                <span className="truncate text-[10px] font-medium text-foreground">{activeAsset.name}</span>
+                <span
+                  className="h-4 w-4 shrink-0 rounded"
+                  style={{ backgroundColor: `hsl(${activeAsset.hue} 55% 55%)` }}
+                />
+                <span className="truncate text-[10px] font-medium text-foreground">
+                  {activeAsset.name}
+                </span>
               </div>
             ) : null}
           </DragOverlay>
@@ -340,7 +398,10 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
               onClick={() => setSelected(item)}
               className="overflow-hidden rounded-lg border border-border text-left transition hover:border-foreground/40"
             >
-              <div className="h-14" style={{ backgroundColor: `hsl(${item.hue} 55% 55%)` }} />
+              <div
+                className="h-14"
+                style={{ backgroundColor: `hsl(${item.hue} 55% 55%)` }}
+              />
               <div className="p-1.5">
                 <p className="truncate text-[10px] font-medium text-foreground">
                   {item.name}
@@ -357,7 +418,9 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
         </div>
       )}
 
-      {selected && <AssetDetail asset={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <AssetDetail asset={selected} onClose={() => setSelected(null)} />
+      )}
     </div>
   );
 }
@@ -366,7 +429,11 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
  * Vignette wrapper: mounts the app's Web3Provider so the panel's wallet reads
  * work here without loading wallet code app-wide. Rendered client-only.
  */
-export default function NftInventoryDemo({ feature }: { feature: WorkFeature }) {
+export default function NftInventoryDemo({
+  feature,
+}: {
+  feature: WorkFeature;
+}) {
   return (
     <Web3Provider>
       <NftInventoryPanel feature={feature} />

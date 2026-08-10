@@ -27,15 +27,15 @@ export default function DesignSystemChartsContent() {
             <Timestamp>Aug 2, 2026</Timestamp>
 
             <Sent>
-              the charts in this app are all recharts and unovis. great in react,
-              but the angular package in the design system has nothing. every
-              chart is stuck on one side of the fence
+              the charts in this app are all recharts and unovis. great in
+              react, but the angular package in the design system has nothing.
+              every chart is stuck on one side of the fence
             </Sent>
 
             <Received>
-              so the charting library is the coupling. if you want the same chart
-              in both frameworks you can&apos;t depend on a react-only runtime to
-              draw it
+              so the charting library is the coupling. if you want the same
+              chart in both frameworks you can&apos;t depend on a react-only
+              runtime to draw it
             </Received>
 
             <Sent>
@@ -50,38 +50,44 @@ export default function DesignSystemChartsContent() {
             </Received>
 
             <Sent>
-              exactly. Sparkline, BarChart, DonutChart in both @paul-portfolio/react
-              and @paul-portfolio/angular. same geometry in, same svg out. the
-              only difference is the templating syntax
+              exactly. Sparkline, BarChart, DonutChart in both
+              @paul-portfolio/react and @paul-portfolio/angular. same geometry
+              in, same svg out. the only difference is the templating syntax
             </Sent>
 
             <Received>
-              how do you stop the two copies of the geometry from drifting? that&apos;s
-              the classic trap with &quot;shared&quot; code that isn&apos;t actually shared
+              how do you stop the two copies of the geometry from drifting?
+              that&apos;s the classic trap with &quot;shared&quot; code that
+              isn&apos;t actually shared
             </Received>
 
             <Sent>
               the geometry went red-first — 20 tests, and i mirrored the exact
               same suite in both packages. if someone tweaks the react copy and
-              forgets the angular one, a test goes red. the tests are the contract
-              that keeps them honest
+              forgets the angular one, a test goes red. the tests are the
+              contract that keeps them honest
             </Sent>
 
-            <Received>what about accessibility? svg charts are usually a black hole for that</Received>
+            <Received>
+              what about accessibility? svg charts are usually a black hole for
+              that
+            </Received>
 
             <Sent>
-              every chart is role=&quot;img&quot; with a data summary as its accessible
-              name. so a screen reader hears &quot;revenue trending up, 12 points&quot;
-              instead of nothing. colour is never the only signal, and axe tests
-              confirm no violations
+              every chart is role=&quot;img&quot; with a data summary as its
+              accessible name. so a screen reader hears &quot;revenue trending
+              up, 12 points&quot; instead of nothing. colour is never the only
+              signal, and axe tests confirm no violations
             </Sent>
 
-            <Received>and the palette? consumers will want to reskin these</Received>
+            <Received>
+              and the palette? consumers will want to reskin these
+            </Received>
 
             <Sent>
               a new chart.css with a token-driven --paul-chart-1..6 palette. a
-              consumer overrides those custom properties and every chart follows.
-              nothing hard-coded
+              consumer overrides those custom properties and every chart
+              follows. nothing hard-coded
             </Sent>
 
             <Received>
@@ -89,11 +95,11 @@ export default function DesignSystemChartsContent() {
             </Received>
 
             <Sent>
-              yeah, the charts were the headline but i also paid down some of the
-              angular parity debt. four components whose css already shipped —
-              Divider, Spinner, IconButton, Switch — got their angular ports, and
-              the angular package got its first vitest config and geometry tests.
-              it had no test runner at all before
+              yeah, the charts were the headline but i also paid down some of
+              the angular parity debt. four components whose css already shipped
+              — Divider, Spinner, IconButton, Switch — got their angular ports,
+              and the angular package got its first vitest config and geometry
+              tests. it had no test runner at all before
             </Sent>
 
             <Received>full suite green?</Received>
@@ -102,10 +108,10 @@ export default function DesignSystemChartsContent() {
               react 184, angular 20, tokens 4, all green. version bumps and the
               changelog rode in the same PR. still plenty deferred though — the
               specialty gallery charts (funnel, radar, scatter, cohort heatmap),
-              multi-series sparklines, and the rest of the angular ports. angular
-              render tests are waiting on TestBed infra that isn&apos;t there yet,
-              so for now the geometry is unit-tested and react is the tested
-              reference for the rendered contract
+              multi-series sparklines, and the rest of the angular ports.
+              angular render tests are waiting on TestBed infra that isn&apos;t
+              there yet, so for now the geometry is unit-tested and react is the
+              tested reference for the rendered contract
             </Sent>
           </div>
         </main>
@@ -114,15 +120,14 @@ export default function DesignSystemChartsContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">The problem</h2>
         <p className="text-muted">
-          This app drew every chart with{" "}
-          <code className={code}>recharts</code> and{" "}
-          <code className={code}>@unovis</code>. Both are React-only. The design
-          system I&apos;d been building has an Angular package too, and it had no
-          charts at all — the charting library was the coupling. Any chart I
-          wanted in both frameworks was stuck behind a React-only runtime that
-          drew it. On top of that, bundling a charting library into a published
-          design system package drags a heavy dependency into every consumer,
-          whether they render a chart or not.
+          This app drew every chart with <code className={code}>recharts</code>{" "}
+          and <code className={code}>@unovis</code>. Both are React-only. The
+          design system I&apos;d been building has an Angular package too, and
+          it had no charts at all — the charting library was the coupling. Any
+          chart I wanted in both frameworks was stuck behind a React-only
+          runtime that drew it. On top of that, bundling a charting library into
+          a published design system package drags a heavy dependency into every
+          consumer, whether they render a chart or not.
         </p>
       </section>
 
@@ -194,10 +199,10 @@ export default function DesignSystemChartsContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">Accessibility built in</h2>
         <p className="text-muted">
-          SVG charts are usually an accessibility black hole. Every chart here is{" "}
-          <code className={code}>role=&quot;img&quot;</code> with a data summary
-          as its accessible name, so a screen reader announces something useful
-          instead of nothing. Colour is never the only signal, and{" "}
+          SVG charts are usually an accessibility black hole. Every chart here
+          is <code className={code}>role=&quot;img&quot;</code> with a data
+          summary as its accessible name, so a screen reader announces something
+          useful instead of nothing. Colour is never the only signal, and{" "}
           <code className={code}>axe</code> tests confirm there are no
           violations. The React components were tested with Testing Library and
           axe before the implementation existed.
@@ -255,24 +260,23 @@ export default function DesignSystemChartsContent() {
         <h2 className="mb-3 text-lg font-bold">All of that has since landed</h2>
         <p className="text-muted">
           Every item on that list shipped in the follow-up work: the specialty
-          gallery, multi-series{" "}
-          <code className={code}>Sparkline</code>, the last eight Angular ports,
-          and the TestBed infrastructure the render tests were waiting on. I am
-          leaving the paragraph above as it was written rather than editing it
-          into looking prescient, because the interesting part is what happened
-          next.
+          gallery, multi-series <code className={code}>Sparkline</code>, the
+          last eight Angular ports, and the TestBed infrastructure the render
+          tests were waiting on. I am leaving the paragraph above as it was
+          written rather than editing it into looking prescient, because the
+          interesting part is what happened next.
         </p>
         <p className="mt-3 text-muted">
           The TestBed work paid for itself on its first probe, which failed.
           Mount a component, set an input, assert the render &mdash; the
           template rendered and setting the input did nothing. The Angular
-          package was built with plain{" "}
-          <code className={code}>tsc</code>, so what it published was raw
-          decorators with no compiled component definitions, and every component
-          in it uses a signal input, which needs the compiler. Any consumer
-          binding an input got nothing back, silently, for as long as the
-          package had existed. Nothing caught it because every test imported
-          source files and nothing consumed the build.
+          package was built with plain <code className={code}>tsc</code>, so
+          what it published was raw decorators with no compiled component
+          definitions, and every component in it uses a signal input, which
+          needs the compiler. Any consumer binding an input got nothing back,
+          silently, for as long as the package had existed. Nothing caught it
+          because every test imported source files and nothing consumed the
+          build.
         </p>
         <p className="mt-3 text-muted">
           That is the sharper version of the lesson this page already ends on.
@@ -285,31 +289,34 @@ export default function DesignSystemChartsContent() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold">How to think about this next time</h2>
+        <h2 className="mb-3 text-lg font-bold">
+          How to think about this next time
+        </h2>
         <ul className="mt-3 space-y-4 text-muted">
           <li>
             <strong className="text-foreground">
               Separate the geometry from the rendering.
             </strong>{" "}
             A chart is a data-to-coordinates function plus a way to draw the
-            coordinates. Keep the first part framework-agnostic and dependency-free
-            and the second part becomes trivial to reimplement anywhere.
+            coordinates. Keep the first part framework-agnostic and
+            dependency-free and the second part becomes trivial to reimplement
+            anywhere.
           </li>
           <li>
             <strong className="text-foreground">
               Mirror the test suite to prevent drift.
             </strong>{" "}
-            Shared logic copied across packages will drift unless something fails
-            when it does. The same 20 geometry tests in both packages are that
-            something.
+            Shared logic copied across packages will drift unless something
+            fails when it does. The same 20 geometry tests in both packages are
+            that something.
           </li>
           <li>
             <strong className="text-foreground">
               A charting library is a dependency you can often avoid.
             </strong>{" "}
-            Line, bar, and donut charts are a few dozen lines of SVG math. Pulling
-            in recharts or unovis for them couples you to a framework and bloats
-            every consumer. Hand-drawn SVG ships nothing extra.
+            Line, bar, and donut charts are a few dozen lines of SVG math.
+            Pulling in recharts or unovis for them couples you to a framework
+            and bloats every consumer. Hand-drawn SVG ships nothing extra.
           </li>
           <li>
             <strong className="text-foreground">

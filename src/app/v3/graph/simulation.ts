@@ -281,10 +281,14 @@ export function stepSimulation(
     for (let i = 0; i < n; i++) {
       const node = nodes[i];
       if (node.pinned) continue;
-      if (node.x < bounds.xMin) fx[i] += (bounds.xMin - node.x) * bounds.strength;
-      else if (node.x > bounds.xMax) fx[i] += (bounds.xMax - node.x) * bounds.strength;
-      if (node.y < bounds.yMin) fy[i] += (bounds.yMin - node.y) * bounds.strength;
-      else if (node.y > bounds.yMax) fy[i] += (bounds.yMax - node.y) * bounds.strength;
+      if (node.x < bounds.xMin)
+        fx[i] += (bounds.xMin - node.x) * bounds.strength;
+      else if (node.x > bounds.xMax)
+        fx[i] += (bounds.xMax - node.x) * bounds.strength;
+      if (node.y < bounds.yMin)
+        fy[i] += (bounds.yMin - node.y) * bounds.strength;
+      else if (node.y > bounds.yMax)
+        fy[i] += (bounds.yMax - node.y) * bounds.strength;
     }
   }
 
@@ -359,7 +363,11 @@ export function radialLayout(state: SimState, data: GraphData): void {
     children.forEach((childId, ci) => {
       const spread = (children.length - 1) / 2;
       const childAngle = angle + (ci - spread) * 0.16;
-      place(childId, Math.cos(childAngle) * outer, Math.sin(childAngle) * outer);
+      place(
+        childId,
+        Math.cos(childAngle) * outer,
+        Math.sin(childAngle) * outer,
+      );
     });
   });
 }

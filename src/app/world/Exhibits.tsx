@@ -22,7 +22,12 @@ type ExhibitProps = {
   readonly activeIdRef: RefObject<string | null>;
 };
 
-function Exhibit({ exhibit, playerRef, prefersReduced, activeIdRef }: ExhibitProps) {
+function Exhibit({
+  exhibit,
+  playerRef,
+  prefersReduced,
+  activeIdRef,
+}: ExhibitProps) {
   const feature = FEATURES.find((f) => f.id === exhibit.featureId);
   const round = useSegments(36);
   const ringRef = useRef<THREE.Mesh>(null);
@@ -55,14 +60,17 @@ function Exhibit({ exhibit, playerRef, prefersReduced, activeIdRef }: ExhibitPro
     const isActive = activeIdRef.current === exhibit.featureId;
     if (ringRef.current) {
       const pulse =
-        isActive && !prefersReduced ? 1 + Math.sin(clock.elapsedTime * 5) * 0.06 : 1;
+        isActive && !prefersReduced
+          ? 1 + Math.sin(clock.elapsedTime * 5) * 0.06
+          : 1;
       ringRef.current.scale.set(pulse, pulse, 1);
     }
     if (beaconRef.current) {
       beaconRef.current.opacity = isActive ? 0.22 : 0.09;
     }
     if (floatRef.current && animate()) {
-      floatRef.current.position.y = 2.6 + Math.sin(clock.elapsedTime * 1.1) * 0.12;
+      floatRef.current.position.y =
+        2.6 + Math.sin(clock.elapsedTime * 1.1) * 0.12;
       floatRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.4) * 0.25;
     }
   });
@@ -76,17 +84,33 @@ function Exhibit({ exhibit, playerRef, prefersReduced, activeIdRef }: ExhibitPro
     <group position={[exhibit.position.x, 0, exhibit.position.z]}>
       {/* glowing ground ring — floats above the road layer so it never z-fights */}
       <group scale={[footprint, 1, footprint]}>
-        <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.08, 0]}>
+        <mesh
+          ref={ringRef}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, 0.08, 0]}
+        >
           <ringGeometry args={[1.15, 1.55, round]} />
-          <meshBasicMaterial color={feature.color} transparent opacity={0.85} side={THREE.DoubleSide} />
+          <meshBasicMaterial
+            color={feature.color}
+            transparent
+            opacity={0.85}
+            side={THREE.DoubleSide}
+          />
         </mesh>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.07, 0]}>
           <circleGeometry args={[1.15, round]} />
-          <meshBasicMaterial color={feature.color} transparent opacity={0.08} depthWrite={false} />
+          <meshBasicMaterial
+            color={feature.color}
+            transparent
+            opacity={0.08}
+            depthWrite={false}
+          />
         </mesh>
         {/* light beam */}
         <mesh position={[0, 4.5, 0]}>
-          <cylinderGeometry args={[0.55, 1.1, 9, Math.ceil(round / 2), 1, true]} />
+          <cylinderGeometry
+            args={[0.55, 1.1, 9, Math.ceil(round / 2), 1, true]}
+          />
           <meshBasicMaterial
             ref={beaconRef}
             color={feature.color}
@@ -125,7 +149,11 @@ function Exhibit({ exhibit, playerRef, prefersReduced, activeIdRef }: ExhibitPro
       {/* name tag, always facing the camera */}
       <sprite
         position={[0, featured ? 5.4 : 4.7, 0]}
-        scale={[labelAspect * (featured ? 1.1 : 0.85), featured ? 1.1 : 0.85, 1]}
+        scale={[
+          labelAspect * (featured ? 1.1 : 0.85),
+          featured ? 1.1 : 0.85,
+          1,
+        ]}
       >
         <spriteMaterial map={label} transparent depthWrite={false} />
       </sprite>
@@ -140,7 +168,11 @@ type ExhibitsProps = {
 };
 
 /** Every feature booth in the city, one per landmark. */
-export default function Exhibits({ playerRef, prefersReduced, activeIdRef }: ExhibitsProps) {
+export default function Exhibits({
+  playerRef,
+  prefersReduced,
+  activeIdRef,
+}: ExhibitsProps) {
   return (
     <group>
       {EXHIBITS.map((exhibit) => (

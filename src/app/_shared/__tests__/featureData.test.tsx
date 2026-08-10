@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { FEATURES, FeatureCard, FEATURE_TOKEN, PREVIEW_MAP } from "../featureData";
+import {
+  FEATURES,
+  FeatureCard,
+  FEATURE_TOKEN,
+  PREVIEW_MAP,
+} from "../featureData";
 
 const workPortfolio = FEATURES.find((f) => f.id === "work-portfolio")!;
 const world = FEATURES.find((f) => f.id === "world")!;
@@ -43,7 +48,9 @@ describe("Explore Toronto hub card", () => {
 
   it("renders the skyline preview and the walk hint", () => {
     render(<FeatureCard feature={world} prefersReduced={false} />);
-    expect(screen.getByRole("heading", { name: "Explore Toronto" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Explore Toronto" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("walk the city")).toBeInTheDocument();
   });
 });

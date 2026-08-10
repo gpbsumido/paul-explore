@@ -51,7 +51,9 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
     const params = new URLSearchParams();
     if (latestPage > 1) params.set("page", String(latestPage));
     const qs = params.toString();
-    router.replace(`/tcg/pokemon/sets/${setId}${qs ? `?${qs}` : ""}`, { scroll: false });
+    router.replace(`/tcg/pokemon/sets/${setId}${qs ? `?${qs}` : ""}`, {
+      scroll: false,
+    });
   }, [latestPage, setId, router]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -68,7 +70,9 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) onScrollRef.current(); },
+      ([entry]) => {
+        if (entry.isIntersecting) onScrollRef.current();
+      },
       { rootMargin: "200px" },
     );
     observer.observe(el);
@@ -90,11 +94,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
       ) : isError ? (
         <div className="flex flex-col items-center gap-3 py-20 text-center text-muted text-sm">
           <span>Failed to load cards.</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-          >
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
             Retry
           </Button>
         </div>
@@ -119,17 +119,21 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
                   loading="lazy"
                 />
               ) : (
-                <div className="w-full bg-surface-raised" style={{ aspectRatio: "2.5/3.5" }} />
+                <div
+                  className="w-full bg-surface-raised"
+                  style={{ aspectRatio: "2.5/3.5" }}
+                />
               )}
             </Link>
           ))}
-          {isFetchingNextPage && Array.from({ length: PER_PAGE }).map((_, i) => (
-            <div
-              key={`sk-${i}`}
-              className="rounded-lg bg-surface animate-pulse"
-              style={{ aspectRatio: "2.5/3.5" }}
-            />
-          ))}
+          {isFetchingNextPage &&
+            Array.from({ length: PER_PAGE }).map((_, i) => (
+              <div
+                key={`sk-${i}`}
+                className="rounded-lg bg-surface animate-pulse"
+                style={{ aspectRatio: "2.5/3.5" }}
+              />
+            ))}
         </div>
       )}
 

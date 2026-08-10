@@ -1,6 +1,10 @@
 "use client";
 
-import { useRef, type PointerEvent as ReactPointerEvent, type KeyboardEvent } from "react";
+import {
+  useRef,
+  type PointerEvent as ReactPointerEvent,
+  type KeyboardEvent,
+} from "react";
 import { clientDeltaToWall, type Placement } from "./_lib/arrange";
 import type { FramedImage, Position, Wall } from "./_lib/state";
 
@@ -64,7 +68,9 @@ export default function WallStage({
   const svgRef = useRef<SVGSVGElement>(null);
   const drag = useRef<DragSession | null>(null);
   const srcById = new Map(images.map((image) => [image.id, image.src]));
-  const labelById = new Map(images.map((image, i) => [image.id, `Frame ${i + 1}`]));
+  const labelById = new Map(
+    images.map((image, i) => [image.id, `Frame ${i + 1}`]),
+  );
   const invalid = new Set(invalidIds);
   const interactive = Boolean(onMove);
 

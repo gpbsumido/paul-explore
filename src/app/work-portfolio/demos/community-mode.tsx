@@ -113,8 +113,17 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 /** Per-post analytics: current counts and a like trend over time. */
-function AnalyticsModal({ post, onClose }: { post: Post; onClose: () => void }) {
-  const series = useMemo(() => trendFor(post.id, post.likes), [post.id, post.likes]);
+function AnalyticsModal({
+  post,
+  onClose,
+}: {
+  post: Post;
+  onClose: () => void;
+}) {
+  const series = useMemo(
+    () => trendFor(post.id, post.likes),
+    [post.id, post.likes],
+  );
   const max = Math.max(1, ...series);
   const engagement = Math.round((post.likes / (post.likes + 40)) * 100);
   return (
@@ -140,7 +149,10 @@ function AnalyticsModal({ post, onClose }: { post: Post; onClose: () => void }) 
               <div
                 key={i}
                 className="flex-1 rounded-t"
-                style={{ height: `${(v / max) * 100}%`, backgroundColor: ACCENT }}
+                style={{
+                  height: `${(v / max) * 100}%`,
+                  backgroundColor: ACCENT,
+                }}
               />
             ))}
           </div>
@@ -178,7 +190,9 @@ export default function CommunityModeDemo({
         if (ps.length === 0) return ps;
         const i = Math.floor(Math.random() * ps.length);
         return ps.map((p, idx) =>
-          idx === i ? { ...p, likes: p.likes + 1 + Math.floor(Math.random() * 3) } : p,
+          idx === i
+            ? { ...p, likes: p.likes + 1 + Math.floor(Math.random() * 3) }
+            : p,
         );
       });
     }, 2000);
@@ -191,7 +205,9 @@ export default function CommunityModeDemo({
     const isLiked = liked.has(id);
     setPosts((p) =>
       p.map((post) =>
-        post.id === id ? { ...post, likes: post.likes + (isLiked ? -1 : 1) } : post,
+        post.id === id
+          ? { ...post, likes: post.likes + (isLiked ? -1 : 1) }
+          : post,
       ),
     );
     setLiked((s) => {
@@ -248,7 +264,10 @@ export default function CommunityModeDemo({
         </div>
       </div>
 
-      <ul aria-label="Feed" className="min-h-0 flex-1 space-y-2 overflow-y-auto">
+      <ul
+        aria-label="Feed"
+        className="min-h-0 flex-1 space-y-2 overflow-y-auto"
+      >
         {posts.map((p) => (
           <li key={p.id} className="rounded-lg border border-border p-2.5">
             <p className="text-[11px] font-medium" style={{ color: ACCENT }}>

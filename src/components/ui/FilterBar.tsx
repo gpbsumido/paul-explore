@@ -15,7 +15,11 @@ interface FilterBarProps {
  * holds a wrapping row of filter controls (typically Select). Replaces the old
  * page-local FilterBar under fantasy/nba.
  */
-export default function FilterBar({ label, className, children }: FilterBarProps) {
+export default function FilterBar({
+  label,
+  className,
+  children,
+}: FilterBarProps) {
   return (
     <PaulFilterBar label={label} className={className}>
       {children}

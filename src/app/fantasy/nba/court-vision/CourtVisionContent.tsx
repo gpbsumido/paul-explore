@@ -106,7 +106,9 @@ export default function CourtVisionContent() {
           label="Player"
           value={playerId ?? ""}
           onChange={handlePlayerChange}
-          disabled={!selectedTeamId || playersQuery.isPending || players.length === 0}
+          disabled={
+            !selectedTeamId || playersQuery.isPending || players.length === 0
+          }
         >
           <option value="">
             {playersQuery.isPending ? "Loading players…" : "Select a player…"}

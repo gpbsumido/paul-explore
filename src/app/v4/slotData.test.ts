@@ -63,9 +63,9 @@ describe("buildSlots", () => {
     expect(placeholder.disabled).toBe(true);
     expect(placeholder.label).toBe("Write-up only");
     expect(placeholder.href).toBe("");
-    expect(placeholder.thoughts.some((t) => t.href === "/thoughts/deployment")).toBe(
-      true,
-    );
+    expect(
+      placeholder.thoughts.some((t) => t.href === "/thoughts/deployment"),
+    ).toBe(true);
   });
 
   it("keeps deprecated write-ups reachable through a Deprecated category", () => {

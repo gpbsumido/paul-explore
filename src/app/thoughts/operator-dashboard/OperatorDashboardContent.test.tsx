@@ -118,7 +118,9 @@ describe("OperatorDashboardContent", () => {
 
   it("links the maintainability update to the refactor write-up", () => {
     const { container } = render(<OperatorDashboardContent />);
-    const section = container.querySelector("#update-2026-08-05-maintainability");
+    const section = container.querySelector(
+      "#update-2026-08-05-maintainability",
+    );
     expect(section).not.toBeNull();
     const hrefs = [...(section?.querySelectorAll("a") ?? [])].map((a) =>
       a.getAttribute("href"),
@@ -313,7 +315,9 @@ describe("OperatorDashboardContent", () => {
   it("explains why migrations are not run automatically on deploy", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/run migrations\s+automatically as part of the deploy/);
+    expect(body).toMatch(
+      /run migrations\s+automatically as part of the deploy/,
+    );
     expect(body).toMatch(/safe to run\s+against the currently deployed code/);
   });
 
@@ -369,7 +373,9 @@ describe("OperatorDashboardContent", () => {
     expect(body).toMatch(
       /a partial fix and a\s+complete one produce identical test output/,
     );
-    expect(body).toMatch(/A guard nobody has watched fail is just another\s+claim/);
+    expect(body).toMatch(
+      /A guard nobody has watched fail is just another\s+claim/,
+    );
   });
 
   it("says why a passing build still has to be read", () => {
@@ -383,7 +389,9 @@ describe("OperatorDashboardContent", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
     expect(body).toMatch(/How it is tested/);
-    expect(body).toMatch(/what each layer\s+is structurally incapable of seeing/);
+    expect(body).toMatch(
+      /what each layer\s+is structurally incapable of seeing/,
+    );
   });
 
   it("records the infrastructure findings, not just the product ones", () => {
@@ -397,14 +405,20 @@ describe("OperatorDashboardContent", () => {
   it("records the write flow that was aimed at production", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/luck standing in for a decision, and luck is not\s+a control/);
-    expect(body).toMatch(/scheduled write traffic\s+against the production database/);
+    expect(body).toMatch(
+      /luck standing in for a decision, and luck is not\s+a control/,
+    );
+    expect(body).toMatch(
+      /scheduled write traffic\s+against the production database/,
+    );
   });
 
   it("records validating releases against what is deployed", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/green for reasons\s+unrelated to the thing it claims to check/);
+    expect(body).toMatch(
+      /green for reasons\s+unrelated to the thing it claims to check/,
+    );
     expect(body).toMatch(/precisely when to fix it/);
   });
 
@@ -412,7 +426,9 @@ describe("OperatorDashboardContent", () => {
     render(<OperatorDashboardContent />);
     const body = document.body.textContent ?? "";
     expect(body).toMatch(/sat out the one merge that is actually a\s+release/);
-    expect(body).toMatch(/correct in every situation except the one it\s+was named for/);
+    expect(body).toMatch(
+      /correct in every situation except the one it\s+was named for/,
+    );
   });
 
   it("names the CI trigger gap instead of quietly changing it", () => {
@@ -470,7 +486,10 @@ describe("OperatorDashboardContent", () => {
   it("orders the timeline newest first", () => {
     const { container } = render(<OperatorDashboardContent />);
     const dates = [...container.querySelectorAll("ol li a")]
-      .map((a) => a.getAttribute("href")?.match(/#update-(\d{4}-\d{2}-\d{2})/)?.[1])
+      .map(
+        (a) =>
+          a.getAttribute("href")?.match(/#update-(\d{4}-\d{2}-\d{2})/)?.[1],
+      )
       .filter((d): d is string => Boolean(d));
 
     expect(dates.length).toBeGreaterThan(5);
@@ -532,7 +551,9 @@ describe("OperatorDashboardContent", () => {
     const body = document.body.textContent ?? "";
     expect(body).toMatch(/A live deployment hits these too/);
     expect(body).toMatch(/Artefacts of faking it/);
-    expect(body).toMatch(/two screens\s+describing the same shelf and disagreeing/);
+    expect(body).toMatch(
+      /two screens\s+describing the same shelf and disagreeing/,
+    );
   });
 
   it("names the habit the fixtures trained, not just the bugs", () => {

@@ -13,9 +13,9 @@ export default function RenderPerfContent() {
       intro={
         <>
           A second performance pass, this time focused on runtime rendering
-              costs rather than network-level vitals. Context value instability,
-              resize handler allocation, GPU-heavy CSS, unbounded DOM growth,
-              and transition waste. Working through these incrementally.
+          costs rather than network-level vitals. Context value instability,
+          resize handler allocation, GPU-heavy CSS, unbounded DOM growth, and
+          transition waste. Working through these incrementally.
         </>
       }
       chat={<RenderPerfChat />}

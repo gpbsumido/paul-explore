@@ -13,10 +13,9 @@ export default function AccessibilityContent() {
       intro={
         <>
           Adding WCAG 2.1 AA compliance to the app. Not a weekend checkbox
-              exercise — a systematic audit of every primitive component, backed
-              by automated axe scans at both the unit and E2E layers. The
-              interesting part is where the tooling helps and where it
-              doesn&apos;t.
+          exercise — a systematic audit of every primitive component, backed by
+          automated axe scans at both the unit and E2E layers. The interesting
+          part is where the tooling helps and where it doesn&apos;t.
         </>
       }
       chat={<AccessibilityChat />}

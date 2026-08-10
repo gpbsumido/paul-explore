@@ -28,7 +28,6 @@ export const metadata: Metadata = {
   },
 };
 
-
 /**
  * Fetches all countdowns server-side so the list renders with real data on
  * first paint. Calls the backend directly rather than through the BFF route

@@ -188,7 +188,8 @@ export default function SettingsContent() {
             ].join(" ")}
           >
             <span>{banner.message}</span>
-            <button type="button"
+            <button
+              type="button"
               onClick={() => setBanner(null)}
               className="shrink-0 text-current opacity-60 hover:opacity-100 transition-opacity"
               aria-label="Dismiss"

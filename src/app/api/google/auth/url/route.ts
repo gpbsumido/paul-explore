@@ -3,7 +3,6 @@ import { API_URL } from "@/lib/apiUrl";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
-
 /**
  * GET /api/google/auth/url
  *

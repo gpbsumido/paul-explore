@@ -62,7 +62,10 @@ function readImage(file: File): Promise<UploadedImage> {
     const src = URL.createObjectURL(file);
     const probe = new Image();
     probe.onload = () => {
-      const aspect = probe.naturalHeight === 0 ? 1 : probe.naturalWidth / probe.naturalHeight;
+      const aspect =
+        probe.naturalHeight === 0
+          ? 1
+          : probe.naturalWidth / probe.naturalHeight;
       resolve({
         id: `${file.name}-${file.size}-${file.lastModified}`,
         src,
@@ -111,9 +114,12 @@ export default function GalleryWallContent({ initialState }: Props) {
   // Width of the preview window's scrollbar, so the minimap can clear it.
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   // Grab-to-pan the wall itself while zoomed in.
-  const pan = useRef<{ x: number; y: number; left: number; top: number } | null>(
-    null,
-  );
+  const pan = useRef<{
+    x: number;
+    y: number;
+    left: number;
+    top: number;
+  } | null>(null);
   const [panning, setPanning] = useState(false);
   const draggingMinimap = useRef(false);
   // Pop the settings column out into a floating, draggable panel so the wall
@@ -359,7 +365,9 @@ export default function GalleryWallContent({ initialState }: Props) {
   };
 
   const hangSheet = computeHangSheet(state);
-  const cost = estimatePrintCost(state.images.map((image) => image.frame.sizeId));
+  const cost = estimatePrintCost(
+    state.images.map((image) => image.frame.sizeId),
+  );
   const tax = taxRateFor(place);
 
   return (
@@ -378,7 +386,10 @@ export default function GalleryWallContent({ initialState }: Props) {
             floating ? "lg:grid-cols-1" : "lg:grid-cols-[1fr_320px]"
           }`}
         >
-          <section aria-label="Wall preview" className="relative min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+          <section
+            aria-label="Wall preview"
+            className="relative min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1"
+          >
             <header className="mb-6">
               <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
                 Arranger
@@ -411,12 +422,19 @@ export default function GalleryWallContent({ initialState }: Props) {
                   // touches the left and right edges while the top and bottom
                   // keep the letterbox slack.
                   className={`h-[clamp(320px,52vh,520px)] overflow-auto rounded-lg border border-border bg-surface/40 p-3 ${
-                    zoom > 1 ? (panning ? "cursor-grabbing" : "cursor-grab") : ""
+                    zoom > 1
+                      ? panning
+                        ? "cursor-grabbing"
+                        : "cursor-grab"
+                      : ""
                   }`}
                 >
                   <div
                     className="h-full w-full"
-                    style={{ width: `${zoom * 100}%`, height: `${zoom * 100}%` }}
+                    style={{
+                      width: `${zoom * 100}%`,
+                      height: `${zoom * 100}%`,
+                    }}
                   >
                     <WallStage
                       wall={state.wall}
@@ -435,63 +453,61 @@ export default function GalleryWallContent({ initialState }: Props) {
                   </div>
                 </div>
 
-
                 {/* Zoom controls float over the wall, bottom-left, so they stay
                     reachable without stealing a row above the preview. */}
                 <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg border border-border bg-background/85 px-2 py-1.5 shadow-sm backdrop-blur [&>*]:pointer-events-auto">
-
-                <label className="mr-1 flex items-center gap-1 text-[12px] text-muted">
-                  <span className="sr-only">Zoom percent</span>
-                  <input
-                    type="number"
-                    min={ZOOM_MIN * 100}
-                    max={ZOOM_MAX * 100}
-                    step={10}
-                    value={zoomText ?? Math.round(zoom * 100)}
-                    onChange={(e) => setZoomText(e.target.value)}
-                    onBlur={commitZoom}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        commitZoom();
-                      }
-                    }}
-                    className="w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right tabular-nums text-foreground"
-                  />
-                  <span aria-hidden>%</span>
-                </label>
-                <button
-                  type="button"
-                  aria-label="Zoom out"
-                  disabled={zoom <= ZOOM_MIN}
-                  onClick={() => setZoomTo(zoom - ZOOM_STEP)}
-                  className="h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <span aria-hidden>&minus;</span>
-                </button>
-                <button
-                  type="button"
-                  aria-label="Zoom in"
-                  disabled={zoom >= ZOOM_MAX}
-                  onClick={() => setZoomTo(zoom + ZOOM_STEP)}
-                  className="h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <span aria-hidden>+</span>
-                </button>
-                {/* Always in the DOM so the +/- buttons never shift under the
+                  <label className="mr-1 flex items-center gap-1 text-[12px] text-muted">
+                    <span className="sr-only">Zoom percent</span>
+                    <input
+                      type="number"
+                      min={ZOOM_MIN * 100}
+                      max={ZOOM_MAX * 100}
+                      step={10}
+                      value={zoomText ?? Math.round(zoom * 100)}
+                      onChange={(e) => setZoomText(e.target.value)}
+                      onBlur={commitZoom}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          commitZoom();
+                        }
+                      }}
+                      className="paul-touch-min w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right tabular-nums text-foreground"
+                    />
+                    <span aria-hidden>%</span>
+                  </label>
+                  <button
+                    type="button"
+                    aria-label="Zoom out"
+                    disabled={zoom <= ZOOM_MIN}
+                    onClick={() => setZoomTo(zoom - ZOOM_STEP)}
+                    className="paul-touch-target h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <span aria-hidden>&minus;</span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Zoom in"
+                    disabled={zoom >= ZOOM_MAX}
+                    onClick={() => setZoomTo(zoom + ZOOM_STEP)}
+                    className="paul-touch-target h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <span aria-hidden>+</span>
+                  </button>
+                  {/* Always in the DOM so the +/- buttons never shift under the
                     cursor; just hidden and inert until you've zoomed in. */}
-                <button
-                  type="button"
-                  onClick={() => setZoomTo(1)}
-                  aria-hidden={zoom === 1}
-                  tabIndex={zoom === 1 ? -1 : 0}
-                  disabled={zoom === 1}
-                  className={`rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30 ${
-                    zoom === 1 ? "invisible" : ""
-                  }`}
-                >
-                  Fit
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setZoomTo(1)}
+                    aria-hidden={zoom === 1}
+                    tabIndex={zoom === 1 ? -1 : 0}
+                    disabled={zoom === 1}
+                    className={`paul-touch-min rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30 ${
+                      zoom === 1 ? "invisible" : ""
+                    }`}
+                  >
+                    Fit
+                  </button>
                 </div>
 
                 {/* The how-to lives in a tooltip rather than a line of text
@@ -503,7 +519,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                     aria-expanded={showHelp}
                     onClick={() => setShowHelp((v) => !v)}
                     onBlur={() => setShowHelp(false)}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background/85 text-[12px] font-bold text-muted shadow-sm backdrop-blur transition-colors hover:text-foreground"
+                    className="paul-touch-target flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background/85 text-[12px] font-bold text-muted shadow-sm backdrop-blur transition-colors hover:text-foreground"
                   >
                     <span aria-hidden>i</span>
                   </button>
@@ -537,7 +553,9 @@ export default function GalleryWallContent({ initialState }: Props) {
                       onPointerUp={endMinimapDrag}
                       onPointerCancel={endMinimapDrag}
                       className="w-full cursor-pointer touch-none"
-                      style={{ aspectRatio: `${state.wall.width} / ${state.wall.height}` }}
+                      style={{
+                        aspectRatio: `${state.wall.width} / ${state.wall.height}`,
+                      }}
                     >
                       <rect
                         x={0}
@@ -565,7 +583,9 @@ export default function GalleryWallContent({ initialState }: Props) {
                         height={minimapView.height}
                         fill="none"
                         stroke={ACCENT}
-                        strokeWidth={Math.max(state.wall.width, state.wall.height) * 0.012}
+                        strokeWidth={
+                          Math.max(state.wall.width, state.wall.height) * 0.012
+                        }
                       />
                     </svg>
                   </div>
@@ -593,14 +613,13 @@ export default function GalleryWallContent({ initialState }: Props) {
                       ⚠
                     </span>
                     <span>
-                      Some frames hang off the wall. Move them back on so they fit
-                      the wall before saving.
+                      Some frames hang off the wall. Move them back on so they
+                      fit the wall before saving.
                     </span>
                   </div>
                 ) : null}
               </div>
             </div>
-
 
             {showHangSheet && hangSheet.length > 0 ? (
               <div className="mt-4 glass-card overflow-x-auto rounded-2xl p-4">
@@ -611,7 +630,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="rounded-md border border-border px-3 py-1 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                    className="paul-touch-min rounded-md border border-border px-3 py-1 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
                   >
                     Print
                   </button>
@@ -680,336 +699,361 @@ export default function GalleryWallContent({ initialState }: Props) {
                   type="button"
                   onClick={() => setFloating(false)}
                   aria-pressed
-                  className="rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                  className="paul-touch-min rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
                 >
                   Dock panel
                 </button>
               </div>
             ) : null}
-            <div className={floating ? "flex flex-col gap-6 overflow-y-auto p-3" : "contents"}>
-            <div className="glass-card rounded-2xl p-4">
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold text-foreground">
-                  Wall &amp; photos
-                </h2>
-                {!floating ? (
-                  <button
-                    type="button"
-                    onClick={() => setFloating(true)}
-                    aria-pressed={false}
-                    disabled={!canFloat}
-                    title={
-                      canFloat
-                        ? undefined
-                        : "Needs a wider window to float the panel"
-                    }
-                    className="rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Float panel
-                  </button>
-                ) : null}
-              </div>
-
-              <label className="block cursor-pointer rounded-lg border border-dashed border-border px-3 py-4 text-center text-sm text-muted transition-colors hover:border-foreground/30 hover:text-foreground">
-                <span className="font-medium">Add photos</span>
-                <span className="mt-0.5 block text-[12px]">
-                  JPG or PNG, several at once
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="sr-only"
-                  onChange={onFiles}
-                />
-              </label>
-
-              <fieldset className="mt-4 border-0 p-0">
-                <legend className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">
-                  Wall size
-                </legend>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="text-[13px] text-muted">
-                    Wall width ({unitLabel})
-                    <input
-                      type="number"
-                      min={1}
-                      value={toDisplay(state.wall.width, unit)}
-                      onChange={(e) => setWall("width", Number(e.target.value))}
-                      className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground"
-                    />
-                  </label>
-                  <label className="text-[13px] text-muted">
-                    Wall height ({unitLabel})
-                    <input
-                      type="number"
-                      min={1}
-                      value={toDisplay(state.wall.height, unit)}
-                      onChange={(e) => setWall("height", Number(e.target.value))}
-                      className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground"
-                    />
-                  </label>
-                  <label className="text-[13px] text-muted">
-                    Spacing ({unitLabel})
-                    <input
-                      type="number"
-                      min={0}
-                      value={toDisplay(state.gap, unit)}
-                      onChange={(e) =>
-                        dispatch({
-                          type: "set-gap",
-                          gap: toInches(Number(e.target.value), unit),
-                        })
+            <div
+              className={
+                floating
+                  ? "flex flex-col gap-6 overflow-y-auto p-3"
+                  : "contents"
+              }
+            >
+              <div className="glass-card rounded-2xl p-4">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    Wall &amp; photos
+                  </h2>
+                  {!floating ? (
+                    <button
+                      type="button"
+                      onClick={() => setFloating(true)}
+                      aria-pressed={false}
+                      disabled={!canFloat}
+                      title={
+                        canFloat
+                          ? undefined
+                          : "Needs a wider window to float the panel"
                       }
-                      className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground"
-                    />
-                  </label>
-                  <label className="text-[13px] text-muted">
-                    Units
-                    <select
-                      value={unit}
-                      onChange={(e) => setUnit(e.target.value as Unit)}
-                      className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground"
+                      className="paul-touch-min rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      <option value="in">Inches</option>
-                      <option value="cm">Centimetres</option>
-                    </select>
-                  </label>
+                      Float panel
+                    </button>
+                  ) : null}
                 </div>
-              </fieldset>
 
-              {state.images.length > 0 ? (
-                <div className="mt-4 border-t border-border pt-4">
-                  <div
-                    role="group"
-                    aria-label="Auto layout"
-                    className="mb-3"
-                  >
-                    <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wide text-muted">
-                      Layout
-                    </span>
-                    <div className="flex gap-1">
-                      {(["rows", "masonry", "aesthetic"] as LayoutMode[]).map((mode) => {
-                        const active = state.layout === mode;
-                        return (
-                          <button
-                            key={mode}
-                            type="button"
-                            aria-pressed={active}
-                            onClick={() =>
-                              dispatch({ type: "set-layout", layout: mode })
-                            }
-                            className={`flex-1 rounded-md border px-2 py-1 text-[12px] capitalize transition-colors ${
-                              active
-                                ? "border-transparent text-white"
-                                : "border-border text-muted hover:text-foreground"
-                            }`}
-                            style={active ? { backgroundColor: ACCENT } : undefined}
-                          >
-                            {mode}
-                          </button>
-                        );
-                      })}
+                <label className="block cursor-pointer rounded-lg border border-dashed border-border px-3 py-4 text-center text-sm text-muted transition-colors hover:border-foreground/30 hover:text-foreground">
+                  <span className="font-medium">Add photos</span>
+                  <span className="mt-0.5 block text-[12px]">
+                    JPG or PNG, several at once
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="sr-only"
+                    onChange={onFiles}
+                  />
+                </label>
+
+                <fieldset className="mt-4 border-0 p-0">
+                  <legend className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">
+                    Wall size
+                  </legend>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="text-[13px] text-muted">
+                      Wall width ({unitLabel})
+                      <input
+                        type="number"
+                        min={1}
+                        value={toDisplay(state.wall.width, unit)}
+                        onChange={(e) =>
+                          setWall("width", Number(e.target.value))
+                        }
+                        className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground"
+                      />
+                    </label>
+                    <label className="text-[13px] text-muted">
+                      Wall height ({unitLabel})
+                      <input
+                        type="number"
+                        min={1}
+                        value={toDisplay(state.wall.height, unit)}
+                        onChange={(e) =>
+                          setWall("height", Number(e.target.value))
+                        }
+                        className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground"
+                      />
+                    </label>
+                    <label className="text-[13px] text-muted">
+                      Spacing ({unitLabel})
+                      <input
+                        type="number"
+                        min={0}
+                        value={toDisplay(state.gap, unit)}
+                        onChange={(e) =>
+                          dispatch({
+                            type: "set-gap",
+                            gap: toInches(Number(e.target.value), unit),
+                          })
+                        }
+                        className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground"
+                      />
+                    </label>
+                    <label className="text-[13px] text-muted">
+                      Units
+                      <select
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value as Unit)}
+                        className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground"
+                      >
+                        <option value="in">Inches</option>
+                        <option value="cm">Centimetres</option>
+                      </select>
+                    </label>
+                  </div>
+                </fieldset>
+
+                {state.images.length > 0 ? (
+                  <div className="mt-4 border-t border-border pt-4">
+                    <div role="group" aria-label="Auto layout" className="mb-3">
+                      <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wide text-muted">
+                        Layout
+                      </span>
+                      <div className="flex gap-1">
+                        {(["rows", "masonry", "aesthetic"] as LayoutMode[]).map(
+                          (mode) => {
+                            const active = state.layout === mode;
+                            return (
+                              <button
+                                key={mode}
+                                type="button"
+                                aria-pressed={active}
+                                onClick={() =>
+                                  dispatch({ type: "set-layout", layout: mode })
+                                }
+                                className={`flex-1 rounded-md border px-2 py-1 text-[12px] capitalize transition-colors ${
+                                  active
+                                    ? "border-transparent text-white"
+                                    : "border-border text-muted hover:text-foreground"
+                                }`}
+                                style={
+                                  active
+                                    ? { backgroundColor: ACCENT }
+                                    : undefined
+                                }
+                              >
+                                {mode}
+                              </button>
+                            );
+                          },
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => dispatch({ type: "auto-arrange" })}
+                        className="paul-touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                      >
+                        Auto-arrange
+                      </button>
+                      {/* One-shot: gather everything into a balanced cluster in
+                        the middle of the wall, biggest piece anchoring it. */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          dispatch({
+                            type: "auto-arrange",
+                            layout: "aesthetic",
+                          })
+                        }
+                        className="paul-touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                      >
+                        Aesthetic arrange
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowHangSheet((v) => !v)}
+                        aria-pressed={showHangSheet}
+                        className="paul-touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                      >
+                        Hang sheet
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => dispatch({ type: "auto-arrange" })}
-                      className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
-                    >
-                      Auto-arrange
-                    </button>
-                    {/* One-shot: gather everything into a balanced cluster in
-                        the middle of the wall, biggest piece anchoring it. */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        dispatch({ type: "auto-arrange", layout: "aesthetic" })
-                      }
-                      className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
-                    >
-                      Aesthetic arrange
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowHangSheet((v) => !v)}
-                      aria-pressed={showHangSheet}
-                      className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
-                    >
-                      Hang sheet
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <WallsPanel
-              state={state}
-              getFiles={() => filesById.current}
-              canSave={validation.canSave}
-              onOpen={openWall}
-              onNew={newWall}
-            />
-
-            {state.images.length > 0 ? (
-              <ul className="flex flex-col gap-3">
-                {state.images.map((image, index) => (
-                  <li key={image.id}>
-                    <fieldset className="glass-card rounded-xl border border-border p-3">
-                      <legend className="px-1 text-[12px] font-semibold text-foreground">
-                        Photo {index + 1}
-                      </legend>
-                      <div className="flex gap-3">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded blob URL, no known dimensions for next/image */}
-                        <img
-                          src={image.src}
-                          alt={`Frame ${index + 1}`}
-                          className="h-14 w-14 shrink-0 rounded-md object-cover"
-                        />
-                        <div className="flex min-w-0 flex-1 flex-col gap-2">
-                          <label className="text-[12px] text-muted">
-                            Frame size
-                            <select
-                              aria-label={`Frame size for photo ${index + 1}`}
-                              value={image.frame.sizeId}
-                              onChange={(e) =>
-                                dispatch({
-                                  type: "set-frame-size",
-                                  id: image.id,
-                                  sizeId: e.target.value,
-                                })
-                              }
-                              className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1 text-[13px] text-foreground"
-                            >
-                              {FRAME_SIZES.map((size) => (
-                                <option key={size.id} value={size.id}>
-                                  {size.label}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-
-                          <div
-                            role="group"
-                            aria-label={`Orientation for photo ${index + 1}`}
-                            className="flex gap-1"
-                          >
-                            {(["portrait", "landscape"] as Orientation[]).map(
-                              (orientation) => {
-                                const active = image.frame.orientation === orientation;
-                                return (
-                                  <button
-                                    key={orientation}
-                                    type="button"
-                                    aria-pressed={active}
-                                    onClick={() =>
-                                      dispatch({
-                                        type: "set-orientation",
-                                        id: image.id,
-                                        orientation,
-                                      })
-                                    }
-                                    className={`flex-1 rounded-md border px-2 py-1 text-[12px] capitalize transition-colors ${
-                                      active
-                                        ? "border-transparent text-white"
-                                        : "border-border text-muted hover:text-foreground"
-                                    }`}
-                                    style={active ? { backgroundColor: ACCENT } : undefined}
-                                  >
-                                    {orientation}
-                                  </button>
-                                );
-                              },
-                            )}
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            dispatch({ type: "remove-image", id: image.id })
-                          }
-                          className="shrink-0 self-start rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:border-red-500/40 hover:text-red-500"
-                        >
-                          Remove
-                          <span className="sr-only"> photo {index + 1}</span>
-                        </button>
-                      </div>
-                    </fieldset>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            {state.images.length > 0 ? (
-              <div className="glass-card rounded-2xl p-4">
-                <h2 className="mb-2 text-sm font-semibold text-foreground">
-                  Print cost
-                </h2>
-                <dl className="flex flex-col gap-1 text-[13px]">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <dt className="text-muted">
-                      Subtotal ({cost.priced}{" "}
-                      {cost.priced === 1 ? "print" : "prints"})
-                    </dt>
-                    <dd className="tabular-nums text-foreground">
-                      {formatCad(cost.total)}
-                    </dd>
-                  </div>
-                  {tax.rate !== null ? (
-                    <>
-                      <div className="flex items-baseline justify-between gap-2">
-                        <dt className="text-muted">
-                          Tax &middot; {tax.region} (
-                          {(tax.rate * 100).toFixed(tax.rate * 100 % 1 === 0 ? 0 : 3)}%)
-                        </dt>
-                        <dd className="tabular-nums text-foreground">
-                          {formatCad(
-                            Math.round(cost.total * tax.rate * 100) / 100,
-                          )}
-                        </dd>
-                      </div>
-                      <div className="mt-1 flex items-baseline justify-between gap-2 border-t border-border pt-1.5">
-                        <dt className="font-semibold text-foreground">Total</dt>
-                        <dd className="text-lg font-bold tabular-nums text-foreground">
-                          {formatCad(withTax(cost.total, tax.rate))}{" "}
-                          <span className="text-[11px] font-medium text-muted">
-                            {PRICE_SOURCE.currency}
-                          </span>
-                        </dd>
-                      </div>
-                    </>
-                  ) : null}
-                </dl>
-                {tax.rate === null ? (
-                  <p className="mt-1 text-[12px] text-muted">
-                    Before tax &mdash;{" "}
-                    {tax.region
-                      ? `no rate on file for ${tax.region}.`
-                      : "we could not tell where you are."}
-                  </p>
-                ) : null}
-                <p className="mt-2 text-[11px] leading-relaxed text-muted">
-                  Rough estimate at{" "}
-                  <a
-                    href={PRICE_SOURCE.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline underline-offset-2"
-                  >
-                    {PRICE_SOURCE.vendor}
-                  </a>{" "}
-                  matte list prices (checked {PRICE_SOURCE.checkedOn}). Shipping
-                  and frames not included.
-                </p>
-                {cost.unpriced.length > 0 ? (
-                  <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
-                    No price on file for {cost.unpriced.join(", ")}.
-                  </p>
                 ) : null}
               </div>
-            ) : null}
+
+              <WallsPanel
+                state={state}
+                getFiles={() => filesById.current}
+                canSave={validation.canSave}
+                onOpen={openWall}
+                onNew={newWall}
+              />
+
+              {state.images.length > 0 ? (
+                <ul className="flex flex-col gap-3">
+                  {state.images.map((image, index) => (
+                    <li key={image.id}>
+                      <fieldset className="glass-card rounded-xl border border-border p-3">
+                        <legend className="px-1 text-[12px] font-semibold text-foreground">
+                          Photo {index + 1}
+                        </legend>
+                        <div className="flex gap-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded blob URL, no known dimensions for next/image */}
+                          <img
+                            src={image.src}
+                            alt={`Frame ${index + 1}`}
+                            className="h-14 w-14 shrink-0 rounded-md object-cover"
+                          />
+                          <div className="flex min-w-0 flex-1 flex-col gap-2">
+                            <label className="text-[12px] text-muted">
+                              Frame size
+                              <select
+                                aria-label={`Frame size for photo ${index + 1}`}
+                                value={image.frame.sizeId}
+                                onChange={(e) =>
+                                  dispatch({
+                                    type: "set-frame-size",
+                                    id: image.id,
+                                    sizeId: e.target.value,
+                                  })
+                                }
+                                className="mt-1 w-full rounded-md border border-border bg-surface px-2 py-1 text-[13px] text-foreground"
+                              >
+                                {FRAME_SIZES.map((size) => (
+                                  <option key={size.id} value={size.id}>
+                                    {size.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+
+                            <div
+                              role="group"
+                              aria-label={`Orientation for photo ${index + 1}`}
+                              className="flex gap-1"
+                            >
+                              {(["portrait", "landscape"] as Orientation[]).map(
+                                (orientation) => {
+                                  const active =
+                                    image.frame.orientation === orientation;
+                                  return (
+                                    <button
+                                      key={orientation}
+                                      type="button"
+                                      aria-pressed={active}
+                                      onClick={() =>
+                                        dispatch({
+                                          type: "set-orientation",
+                                          id: image.id,
+                                          orientation,
+                                        })
+                                      }
+                                      className={`flex-1 rounded-md border px-2 py-1 text-[12px] capitalize transition-colors ${
+                                        active
+                                          ? "border-transparent text-white"
+                                          : "border-border text-muted hover:text-foreground"
+                                      }`}
+                                      style={
+                                        active
+                                          ? { backgroundColor: ACCENT }
+                                          : undefined
+                                      }
+                                    >
+                                      {orientation}
+                                    </button>
+                                  );
+                                },
+                              )}
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              dispatch({ type: "remove-image", id: image.id })
+                            }
+                            className="shrink-0 self-start rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:border-red-500/40 hover:text-red-500"
+                          >
+                            Remove
+                            <span className="sr-only"> photo {index + 1}</span>
+                          </button>
+                        </div>
+                      </fieldset>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {state.images.length > 0 ? (
+                <div className="glass-card rounded-2xl p-4">
+                  <h2 className="mb-2 text-sm font-semibold text-foreground">
+                    Print cost
+                  </h2>
+                  <dl className="flex flex-col gap-1 text-[13px]">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <dt className="text-muted">
+                        Subtotal ({cost.priced}{" "}
+                        {cost.priced === 1 ? "print" : "prints"})
+                      </dt>
+                      <dd className="tabular-nums text-foreground">
+                        {formatCad(cost.total)}
+                      </dd>
+                    </div>
+                    {tax.rate !== null ? (
+                      <>
+                        <div className="flex items-baseline justify-between gap-2">
+                          <dt className="text-muted">
+                            Tax &middot; {tax.region} (
+                            {(tax.rate * 100).toFixed(
+                              (tax.rate * 100) % 1 === 0 ? 0 : 3,
+                            )}
+                            %)
+                          </dt>
+                          <dd className="tabular-nums text-foreground">
+                            {formatCad(
+                              Math.round(cost.total * tax.rate * 100) / 100,
+                            )}
+                          </dd>
+                        </div>
+                        <div className="mt-1 flex items-baseline justify-between gap-2 border-t border-border pt-1.5">
+                          <dt className="font-semibold text-foreground">
+                            Total
+                          </dt>
+                          <dd className="text-lg font-bold tabular-nums text-foreground">
+                            {formatCad(withTax(cost.total, tax.rate))}{" "}
+                            <span className="text-[11px] font-medium text-muted">
+                              {PRICE_SOURCE.currency}
+                            </span>
+                          </dd>
+                        </div>
+                      </>
+                    ) : null}
+                  </dl>
+                  {tax.rate === null ? (
+                    <p className="mt-1 text-[12px] text-muted">
+                      Before tax &mdash;{" "}
+                      {tax.region
+                        ? `no rate on file for ${tax.region}.`
+                        : "we could not tell where you are."}
+                    </p>
+                  ) : null}
+                  <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                    Rough estimate at{" "}
+                    <a
+                      href={PRICE_SOURCE.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-2"
+                    >
+                      {PRICE_SOURCE.vendor}
+                    </a>{" "}
+                    matte list prices (checked {PRICE_SOURCE.checkedOn}).
+                    Shipping and frames not included.
+                  </p>
+                  {cost.unpriced.length > 0 ? (
+                    <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
+                      No price on file for {cost.unpriced.join(", ")}.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </aside>
         </div>

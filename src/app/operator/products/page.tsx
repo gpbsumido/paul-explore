@@ -46,8 +46,8 @@ export default function ProductsPage() {
             Which products carry the fleet, and which are dead weight. Ranked by
             revenue, judged against each product&apos;s own category average, so
             a cheap snack isn&apos;t measured against a sandwich. Stocked
-            products with no sales stay in the list &mdash; those are the ones to
-            cut.
+            products with no sales stay in the list &mdash; those are the ones
+            to cut.
           </p>
         </div>
 

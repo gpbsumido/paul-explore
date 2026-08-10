@@ -54,7 +54,11 @@ function Token({ x, z, elevated, playerRef, prefersReduced }: TokenProps) {
         </mesh>
         <mesh>
           <torusGeometry args={[0.34, 0.045, 10, round]} />
-          <meshStandardMaterial color="#d4a017" roughness={0.35} metalness={0.6} />
+          <meshStandardMaterial
+            color="#d4a017"
+            roughness={0.35}
+            metalness={0.6}
+          />
         </mesh>
       </group>
       {/* soft landing light so tokens read from a distance */}
@@ -79,19 +83,25 @@ type CollectiblesProps = {
 };
 
 /** Every token still out there. Collected ones simply stop existing. */
-export default function Collectibles({ collected, playerRef, prefersReduced }: CollectiblesProps) {
+export default function Collectibles({
+  collected,
+  playerRef,
+  prefersReduced,
+}: CollectiblesProps) {
   return (
     <group>
-      {COLLECTIBLES.filter((token) => !collected.includes(token.id)).map((token) => (
-        <Token
-          key={token.id}
-          x={token.x}
-          z={token.z}
-          elevated={!!token.elevated}
-          playerRef={playerRef}
-          prefersReduced={prefersReduced}
-        />
-      ))}
+      {COLLECTIBLES.filter((token) => !collected.includes(token.id)).map(
+        (token) => (
+          <Token
+            key={token.id}
+            x={token.x}
+            z={token.z}
+            elevated={!!token.elevated}
+            playerRef={playerRef}
+            prefersReduced={prefersReduced}
+          />
+        ),
+      )}
     </group>
   );
 }

@@ -4,7 +4,11 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import type { RefObject } from "react";
-import { trailStrength, TRAIL_MAX_POINTS, type TrailPoint } from "@/lib/world/trail";
+import {
+  trailStrength,
+  TRAIL_MAX_POINTS,
+  type TrailPoint,
+} from "@/lib/world/trail";
 
 type TrailProps = {
   // Newest-first ring buffer maintained by the owner's frame loop.
@@ -22,7 +26,10 @@ type TrailProps = {
 export default function Trail({ pointsRef, color, intensity = 1 }: TrailProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const baseColor = useMemo(() => new THREE.Color(color), [color]);
-  const scratch = useRef({ dummy: new THREE.Object3D(), color: new THREE.Color() });
+  const scratch = useRef({
+    dummy: new THREE.Object3D(),
+    color: new THREE.Color(),
+  });
 
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
@@ -31,7 +38,9 @@ export default function Trail({ pointsRef, color, intensity = 1 }: TrailProps) {
     const { dummy, color: tint } = scratch.current;
     for (let i = 0; i < TRAIL_MAX_POINTS; i += 1) {
       const point = points[i];
-      const strength = point ? trailStrength(point, clock.elapsedTime) * intensity : 0;
+      const strength = point
+        ? trailStrength(point, clock.elapsedTime) * intensity
+        : 0;
       if (!point || strength <= 0) {
         dummy.position.set(0, -10, 0);
         dummy.scale.setScalar(0.0001);
@@ -50,7 +59,11 @@ export default function Trail({ pointsRef, color, intensity = 1 }: TrailProps) {
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, TRAIL_MAX_POINTS]} frustumCulled={false}>
+    <instancedMesh
+      ref={meshRef}
+      args={[undefined, undefined, TRAIL_MAX_POINTS]}
+      frustumCulled={false}
+    >
       <circleGeometry args={[0.22, 16]} />
       <meshBasicMaterial
         color="#ffffff"

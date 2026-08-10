@@ -15,9 +15,10 @@ function reasonBreakdown(byReason: Record<string, number>): string {
   const parts = Object.entries(byReason)
     .sort((a, b) => b[1] - a[1])
     .map(([reason, units]) => {
-      const label = REMOVAL_REASON_LABELS[
-        reason as keyof typeof REMOVAL_REASON_LABELS
-      ]?.toLowerCase();
+      const label =
+        REMOVAL_REASON_LABELS[
+          reason as keyof typeof REMOVAL_REASON_LABELS
+        ]?.toLowerCase();
       return `${units} ${label ?? reason}`;
     });
   return parts.join(", ");

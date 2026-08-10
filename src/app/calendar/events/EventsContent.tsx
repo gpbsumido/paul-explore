@@ -44,11 +44,11 @@ export default function EventsContent() {
       }
       if (debouncedCardName) params.set("cardName", debouncedCardName);
       const qs = params.toString();
-      const res = await fetch(
-        `/api/calendar/events${qs ? `?${qs}` : ""}`,
-        { signal },
-      );
-      if (!res.ok) throw new Error("Couldn't load events — check your connection.");
+      const res = await fetch(`/api/calendar/events${qs ? `?${qs}` : ""}`, {
+        signal,
+      });
+      if (!res.ok)
+        throw new Error("Couldn't load events — check your connection.");
       const data = await res.json();
       return data.events ?? [];
     },

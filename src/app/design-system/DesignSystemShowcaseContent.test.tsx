@@ -37,9 +37,7 @@ describe("DesignSystemShowcaseContent", () => {
   describe("Button playground", () => {
     it("shows the minimal snippet for default props", () => {
       render(<DesignSystemShowcaseContent />);
-      expect(
-        screen.getByText("<Button>Click me</Button>"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("<Button>Click me</Button>")).toBeInTheDocument();
     });
 
     it("regenerates the snippet when a control changes", async () => {
@@ -68,7 +66,9 @@ describe("DesignSystemShowcaseContent", () => {
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-      await user.click(screen.getByRole("button", { name: /open the dialog/i }));
+      await user.click(
+        screen.getByRole("button", { name: /open the dialog/i }),
+      );
       expect(screen.getByRole("dialog")).toBeInTheDocument();
 
       await user.keyboard("{Escape}");

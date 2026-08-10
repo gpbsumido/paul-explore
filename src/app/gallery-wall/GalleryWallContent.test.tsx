@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  within,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 import { axe } from "vitest-axe";
 import GalleryWallContent from "./GalleryWallContent";
 import type { GalleryState, FramedImage, Position } from "./_lib/state";
@@ -10,8 +16,16 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 vi.mock("./_lib/walls-api", () => ({
   listWalls: vi.fn(async () => []),
   getWall: vi.fn(),
-  createWall: vi.fn(async () => ({ id: "w1", name: "Hallway", updatedAt: "t" })),
-  updateWall: vi.fn(async () => ({ id: "w1", name: "Hallway", updatedAt: "t" })),
+  createWall: vi.fn(async () => ({
+    id: "w1",
+    name: "Hallway",
+    updatedAt: "t",
+  })),
+  updateWall: vi.fn(async () => ({
+    id: "w1",
+    name: "Hallway",
+    updatedAt: "t",
+  })),
   deleteWall: vi.fn(async () => undefined),
 }));
 
@@ -38,13 +52,25 @@ const seededState = (overrides: Partial<GalleryState> = {}): GalleryState => ({
 const overlapping = (): GalleryState =>
   seededState({
     images: [
-      framed("a", 0.8, { sizeId: "8x10", orientation: "portrait" }, { x: 10, y: 10 }),
-      framed("b", 0.8, { sizeId: "8x10", orientation: "portrait" }, { x: 12, y: 12 }),
+      framed(
+        "a",
+        0.8,
+        { sizeId: "8x10", orientation: "portrait" },
+        { x: 10, y: 10 },
+      ),
+      framed(
+        "b",
+        0.8,
+        { sizeId: "8x10", orientation: "portrait" },
+        { x: 12, y: 12 },
+      ),
     ],
   });
 
 const frameRectX = (container: HTMLElement, id: string): number =>
-  Number(container.querySelector(`[data-frame-id="${id}"] rect`)?.getAttribute("x"));
+  Number(
+    container.querySelector(`[data-frame-id="${id}"] rect`)?.getAttribute("x"),
+  );
 
 /** Pretend the window is wide (or not), which gates the floating panel. */
 const setViewportWide = (wide: boolean) => {
@@ -82,7 +108,9 @@ describe("GalleryWallContent", () => {
   });
 
   it("renders the to-scale preview with one frame per photo", () => {
-    const { container } = render(<GalleryWallContent initialState={seededState()} />);
+    const { container } = render(
+      <GalleryWallContent initialState={seededState()} />,
+    );
     expect(container.querySelectorAll("svg image")).toHaveLength(2);
   });
 
@@ -103,7 +131,9 @@ describe("GalleryWallContent", () => {
   });
 
   it("moves a frame to the right when its handle is nudged with the arrow key", () => {
-    const { container } = render(<GalleryWallContent initialState={seededState()} />);
+    const { container } = render(
+      <GalleryWallContent initialState={seededState()} />,
+    );
     const before = frameRectX(container, "a");
     fireEvent.keyDown(container.querySelector('[data-frame-id="a"]')!, {
       key: "ArrowRight",
@@ -210,10 +240,9 @@ describe("GalleryWallContent", () => {
     fireEvent.pointerUp(dock, { clientX: 90, clientY: 70, pointerId: 1 });
     fireEvent.click(dock);
 
-    expect(screen.getByRole("button", { name: /float panel/i })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
+    expect(
+      screen.getByRole("button", { name: /float panel/i }),
+    ).toHaveAttribute("aria-pressed", "false");
   });
 
   it("does not drag the floating panel when its header button is pressed", () => {
@@ -260,8 +289,18 @@ describe("GalleryWallContent", () => {
       <GalleryWallContent
         initialState={seededState({
           images: [
-            framed("a", 0.8, { sizeId: "8x10", orientation: "portrait" }, { x: 1, y: 1 }),
-            framed("b", 1.5, { sizeId: "11x14", orientation: "landscape" }, { x: 60, y: 40 }),
+            framed(
+              "a",
+              0.8,
+              { sizeId: "8x10", orientation: "portrait" },
+              { x: 1, y: 1 },
+            ),
+            framed(
+              "b",
+              1.5,
+              { sizeId: "11x14", orientation: "landscape" },
+              { x: 60, y: 40 },
+            ),
           ],
         })}
       />,
@@ -296,19 +335,25 @@ describe("GalleryWallContent", () => {
 
   it("warns when a frame hangs off the wall", () => {
     render(
-      <GalleryWallContent initialState={seededState({ wall: { width: 12, height: 12 } })} />,
+      <GalleryWallContent
+        initialState={seededState({ wall: { width: 12, height: 12 } })}
+      />,
     );
     expect(screen.getByText(/off the wall|fit the wall/i)).toBeInTheDocument();
   });
 
   it("converts the wall size when switching to centimetres", () => {
     render(<GalleryWallContent initialState={seededState()} />);
-    fireEvent.change(screen.getByLabelText(/units/i), { target: { value: "cm" } });
+    fireEvent.change(screen.getByLabelText(/units/i), {
+      target: { value: "cm" },
+    });
     expect(screen.getByLabelText(/wall width/i)).toHaveValue(244);
   });
 
   it("has no accessibility violations", async () => {
-    const { container } = render(<GalleryWallContent initialState={seededState()} />);
+    const { container } = render(
+      <GalleryWallContent initialState={seededState()} />,
+    );
     expect(await axe(container)).toHaveNoViolations();
   });
 });

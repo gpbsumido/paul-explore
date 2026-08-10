@@ -592,7 +592,7 @@ function PublicationList({
               href={pub.url}
               target="_blank"
               rel="noreferrer"
-              className="font-medium text-foreground underline-offset-2 hover:underline"
+              className="paul-touch-min inline-flex items-center font-medium text-foreground underline-offset-2 hover:underline"
             >
               {pub.title}
             </a>
@@ -761,7 +761,7 @@ function JournalsPanel({
               onClick={() => onOpenJournal(journal.id)}
               aria-expanded={isOpen}
               aria-controls={panelId}
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
+              className="paul-touch-min flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-surface"
             >
               <span className="font-medium text-foreground">
                 {journal.name}
@@ -956,7 +956,7 @@ function SourcesPanel({ prefs }: { prefs: ReturnType<typeof useSourcePrefs> }) {
                       href={source.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="font-medium text-foreground underline-offset-2 hover:underline"
+                      className="paul-touch-min inline-flex items-center font-medium text-foreground underline-offset-2 hover:underline"
                     >
                       {source.name}
                     </a>
@@ -971,7 +971,7 @@ function SourcesPanel({ prefs }: { prefs: ReturnType<typeof useSourcePrefs> }) {
                       disabled={source.scoresEvidence}
                       onChange={() => prefs.toggleSource(source.id)}
                       aria-label={`Use ${source.name}`}
-                      className="h-4 w-4 accent-foreground"
+                      className="paul-touch-target h-4 w-4 accent-foreground"
                     />
                     {source.scoresEvidence ? "Always on" : "Search this"}
                   </label>
@@ -1005,7 +1005,7 @@ function SourcesPanel({ prefs }: { prefs: ReturnType<typeof useSourcePrefs> }) {
                     checked={on}
                     onChange={() => prefs.toggleJournal(journal.id)}
                     aria-label={`Use ${journal.name}`}
-                    className="h-4 w-4 accent-foreground"
+                    className="paul-touch-target h-4 w-4 accent-foreground"
                   />
                   <span className="text-foreground">{journal.name}</span>
                   <span className="text-xs text-muted">
@@ -1249,7 +1249,7 @@ function CountsPanel() {
                     papers in the last 5 years
                   </span>
                   {inDemo !== undefined && (
-                    <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs tabular-nums text-muted">
+                    <span className="paul-touch-min rounded-full border border-border bg-surface px-2 py-0.5 text-xs tabular-nums text-muted">
                       {inDemo} of {recent}
                       {share !== null && ` · ${share}%`}
                     </span>
@@ -1404,7 +1404,7 @@ function JournalClubPanel() {
           type="checkbox"
           checked={innovativeOnly}
           onChange={() => setInnovativeOnly((v) => !v)}
-          className="h-4 w-4 accent-foreground"
+          className="paul-touch-target h-4 w-4 accent-foreground"
         />
         Only papers doing something new
       </label>
@@ -1461,7 +1461,7 @@ function JournalClubPanel() {
                       {paper.title}
                     </span>
                     <span className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-muted">
+                      <span className="paul-touch-min rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-muted">
                         {paper.design.label}
                       </span>
                       {paper.innovation.signals.map((signal) => (

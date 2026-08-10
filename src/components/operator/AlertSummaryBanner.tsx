@@ -38,7 +38,7 @@ export default function AlertSummaryBanner({
           <button
             type="button"
             onClick={onFilterCritical}
-            className="rounded font-medium text-error-700 hover:text-error-800 dark:text-error-400 dark:hover:text-error-300 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+            className="paul-touch-min inline-flex items-center rounded font-medium text-error-700 hover:text-error-800 dark:text-error-400 dark:hover:text-error-300 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
             {criticalCount} critical
           </button>
@@ -47,7 +47,7 @@ export default function AlertSummaryBanner({
           <button
             type="button"
             onClick={onFilterWarning}
-            className="rounded font-medium text-warning-700 hover:text-warning-800 dark:text-warning-400 dark:hover:text-warning-300 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+            className="paul-touch-min inline-flex items-center rounded font-medium text-warning-700 hover:text-warning-800 dark:text-warning-400 dark:hover:text-warning-300 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
           >
             {warningCount} warning{warningCount !== 1 ? "s" : ""}
           </button>

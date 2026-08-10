@@ -10,7 +10,10 @@ describe("DesignSystemChartsContent", () => {
   it("renders the write-up heading", () => {
     render(<DesignSystemChartsContent />);
     expect(
-      screen.getByRole("heading", { level: 1, name: /framework-agnostic charts/i }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: /framework-agnostic charts/i,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -70,7 +73,9 @@ describe("DesignSystemChartsContent", () => {
   it("records the bug the deferred tests were hiding", () => {
     render(<DesignSystemChartsContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/raw\s+decorators with no compiled component definitions/);
+    expect(body).toMatch(
+      /raw\s+decorators with no compiled component definitions/,
+    );
     expect(body).toMatch(
       /it is the class of bug you left yourself\s+unable to see/,
     );

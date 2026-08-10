@@ -28,7 +28,5 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default function MatchupsPage() {
-  return (
-    <MatchupContent />
-  );
+  return <MatchupContent />;
 }

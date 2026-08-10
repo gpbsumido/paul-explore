@@ -45,7 +45,9 @@ export default function UaCampaignBuilderDemo({
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+        <p className="text-[13px] font-semibold text-foreground">
+          {feature.title}
+        </p>
         <p className="text-[11px] text-muted">
           Step {step + 1} of {STEPS.length} · {STEPS[step]}
         </p>
@@ -89,7 +91,9 @@ export default function UaCampaignBuilderDemo({
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-0.5 block text-[11px] text-muted">Channel</span>
+                  <span className="mb-0.5 block text-[11px] text-muted">
+                    Channel
+                  </span>
                   <select
                     aria-label="Channel"
                     value={campaign.channel}
@@ -105,14 +109,20 @@ export default function UaCampaignBuilderDemo({
             )}
 
             {step === 2 && (
-              <dl aria-label="Campaign review" className="space-y-1.5 text-[12px]">
+              <dl
+                aria-label="Campaign review"
+                className="space-y-1.5 text-[12px]"
+              >
                 {[
                   ["Name", campaign.name || "Untitled"],
                   ["Reward", campaign.reward],
                   ["Budget", `$${campaign.budget.toLocaleString()}`],
                   ["Channel", campaign.channel],
                 ].map(([k, v]) => (
-                  <div key={k} className="flex items-center justify-between border-b border-border pb-1">
+                  <div
+                    key={k}
+                    className="flex items-center justify-between border-b border-border pb-1"
+                  >
                     <dt className="text-muted">{k}</dt>
                     <dd className="font-medium text-foreground">{v}</dd>
                   </div>
@@ -136,7 +146,9 @@ export default function UaCampaignBuilderDemo({
               <Button
                 size="sm"
                 disabled={!canAdvance}
-                onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
+                onClick={() =>
+                  setStep((s) => Math.min(STEPS.length - 1, s + 1))
+                }
               >
                 Next
               </Button>
@@ -150,14 +162,20 @@ export default function UaCampaignBuilderDemo({
           style={{ borderColor: ACCENT, backgroundColor: `${ACCENT}12` }}
         >
           <div>
-            <p className="text-[10px] uppercase tracking-wider" style={{ color: ACCENT }}>
+            <p
+              className="text-[10px] uppercase tracking-wider"
+              style={{ color: ACCENT }}
+            >
               {campaign.channel} campaign
             </p>
             <p className="text-lg font-bold text-foreground">
               {campaign.name || "Untitled"}
             </p>
             <p className="mt-1 text-[12px] text-muted">
-              Earn <span className="font-medium text-foreground">{campaign.reward}</span>{" "}
+              Earn{" "}
+              <span className="font-medium text-foreground">
+                {campaign.reward}
+              </span>{" "}
               for every friend who signs up.
             </p>
           </div>

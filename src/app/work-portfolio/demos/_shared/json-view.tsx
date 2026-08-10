@@ -16,7 +16,8 @@ const COLORS: Record<JsonToken["kind"], string> = {
 
 // Matches a JSON string, number, or true/false/null literal in one pass so we
 // can colour each chunk. A string followed by a colon is a key, not a value.
-const TOKEN = /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b/g;
+const TOKEN =
+  /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b/g;
 
 /**
  * Split pretty-printed JSON into coloured tokens without a syntax-highlight

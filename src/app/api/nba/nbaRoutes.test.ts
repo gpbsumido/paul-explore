@@ -45,7 +45,9 @@ const cases = [
 describe("NBA proxy routes", () => {
   for (const c of cases) {
     it(`${c.name}: forwards upstream JSON with its cache window`, async () => {
-      stubFetch(() => new Response(JSON.stringify({ ok: c.name }), { status: 200 }));
+      stubFetch(
+        () => new Response(JSON.stringify({ ok: c.name }), { status: 200 }),
+      );
       const res = await c.call();
       expect(res.status).toBe(200);
       expect(res.headers.get("Cache-Control")).toBe(c.cache);

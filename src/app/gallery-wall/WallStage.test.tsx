@@ -21,26 +21,47 @@ const images: FramedImage[] = [
 ];
 
 const wall = { width: 96, height: 60 };
-const arrangement = computeArrangement({ images, wall, gap: 3, layout: "rows" });
+const arrangement = computeArrangement({
+  images,
+  wall,
+  gap: 3,
+  layout: "rows",
+});
 const placementFor = (id: string) =>
   arrangement.placements.find((p) => p.id === id)!;
 
 describe("WallStage", () => {
   it("exposes the preview as a labelled image region", () => {
-    render(<WallStage wall={wall} placements={arrangement.placements} images={images} />);
+    render(
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+      />,
+    );
     expect(screen.getByRole("img", { name: /wall/i })).toBeInTheDocument();
   });
 
   it("scales the viewBox to the physical wall size", () => {
     const { container } = render(
-      <WallStage wall={wall} placements={arrangement.placements} images={images} />,
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+      />,
     );
-    expect(container.querySelector("svg")?.getAttribute("viewBox")).toBe("0 0 96 60");
+    expect(container.querySelector("svg")?.getAttribute("viewBox")).toBe(
+      "0 0 96 60",
+    );
   });
 
   it("renders one photo per placed frame", () => {
     const { container } = render(
-      <WallStage wall={wall} placements={arrangement.placements} images={images} />,
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+      />,
     );
     const photos = container.querySelectorAll("image");
     expect(photos).toHaveLength(2);
@@ -66,7 +87,13 @@ describe("WallStage", () => {
   });
 
   it("has no static button when it is not interactive", () => {
-    render(<WallStage wall={wall} placements={arrangement.placements} images={images} />);
+    render(
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+      />,
+    );
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
@@ -122,7 +149,11 @@ describe("WallStage", () => {
 
   it("has no accessibility violations", async () => {
     const { container } = render(
-      <WallStage wall={wall} placements={arrangement.placements} images={images} />,
+      <WallStage
+        wall={wall}
+        placements={arrangement.placements}
+        images={images}
+      />,
     );
     expect(await axe(container)).toHaveNoViolations();
   });

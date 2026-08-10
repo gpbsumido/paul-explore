@@ -9,8 +9,14 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
-import { rankCommands, groupRankedCommands } from "@/lib/command-palette/filter";
-import { paletteReducer, initialPaletteState } from "@/lib/command-palette/state";
+import {
+  rankCommands,
+  groupRankedCommands,
+} from "@/lib/command-palette/filter";
+import {
+  paletteReducer,
+  initialPaletteState,
+} from "@/lib/command-palette/state";
 import type {
   Command,
   MatchRange,
@@ -161,8 +167,12 @@ export default function CommandPalette({
             initial={
               prefersReduced ? undefined : { opacity: 0, scale: 0.98, y: -8 }
             }
-            animate={prefersReduced ? undefined : { opacity: 1, scale: 1, y: 0 }}
-            exit={prefersReduced ? undefined : { opacity: 0, scale: 0.98, y: -8 }}
+            animate={
+              prefersReduced ? undefined : { opacity: 1, scale: 1, y: 0 }
+            }
+            exit={
+              prefersReduced ? undefined : { opacity: 0, scale: 0.98, y: -8 }
+            }
             transition={{ duration: 0.15 }}
           >
             <div className="flex items-center gap-2 border-b border-border px-4">

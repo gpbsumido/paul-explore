@@ -5,148 +5,145 @@ import { Timestamp, Sent, Received } from "@/lib/threads";
 export function CalendarChatPart1() {
   return (
     <>
-              <Timestamp>Today 10:00 AM</Timestamp>
+      <Timestamp>Today 10:00 AM</Timestamp>
 
-              <Received pos="first">
-                so what did you actually build here
-              </Received>
-              <Received pos="last">just a calendar?</Received>
+      <Received pos="first">so what did you actually build here</Received>
+      <Received pos="last">just a calendar?</Received>
 
-              <Sent pos="first">
-                a full-stack personal calendar — four views (day, week, month,
-                year), navigable with prev/next and a today jump
-              </Sent>
-              <Sent pos="middle">
-                click any cell or time slot to create an event. click an
-                existing event chip to edit or delete it. events persist in
-                Postgres, scoped per user via Auth0
-              </Sent>
-              <Sent pos="last">
-                you can also attach Pokémon cards to events — there&apos;s a
-                searchable events list at <code>/calendar/events</code> and a
-                detail page per event showing everything attached to it
-              </Sent>
+      <Sent pos="first">
+        a full-stack personal calendar — four views (day, week, month, year),
+        navigable with prev/next and a today jump
+      </Sent>
+      <Sent pos="middle">
+        click any cell or time slot to create an event. click an existing event
+        chip to edit or delete it. events persist in Postgres, scoped per user
+        via Auth0
+      </Sent>
+      <Sent pos="last">
+        you can also attach Pokémon cards to events — there&apos;s a searchable
+        events list at <code>/calendar/events</code> and a detail page per event
+        showing everything attached to it
+      </Sent>
 
-              <Received>wait, why did you actually build this</Received>
+      <Received>wait, why did you actually build this</Received>
 
-              <Sent pos="first">
-                my partner and I play Pokémon Pocket together a lot. we have
-                this thing where if I pull something special I want to show her
-                — but then I forget what I got or when
-              </Sent>
-              <Sent pos="middle">
-                so the calendar started as a way to log those moments. mark the
-                day we played, note what happened, attach the cards I pulled,
-                and have something to look back at
-              </Sent>
-              <Sent pos="last">
-                the rest of the features — all four views, the event list, the
-                card search — grew out of wanting it to actually be usable
-                rather than just a proof-of-concept
-              </Sent>
+      <Sent pos="first">
+        my partner and I play Pokémon Pocket together a lot. we have this thing
+        where if I pull something special I want to show her — but then I forget
+        what I got or when
+      </Sent>
+      <Sent pos="middle">
+        so the calendar started as a way to log those moments. mark the day we
+        played, note what happened, attach the cards I pulled, and have
+        something to look back at
+      </Sent>
+      <Sent pos="last">
+        the rest of the features — all four views, the event list, the card
+        search — grew out of wanting it to actually be usable rather than just a
+        proof-of-concept
+      </Sent>
 
-              <Timestamp>10:04 AM</Timestamp>
+      <Timestamp>10:04 AM</Timestamp>
 
-              <Received>why date-fns instead of moment</Received>
+      <Received>why date-fns instead of moment</Received>
 
-              <Sent pos="first">
-                moment is effectively unmaintained and ships the entire locale
-                bundle regardless of what you import
-              </Sent>
-              <Sent pos="last">
-                date-fns is tree-shakeable — you only pay for what you use. the
-                API is functional (pure functions, no mutation) which makes it
-                easier to reason about, especially for grid construction where
-                you&apos;re deriving a lot of values from a single source date
-              </Sent>
+      <Sent pos="first">
+        moment is effectively unmaintained and ships the entire locale bundle
+        regardless of what you import
+      </Sent>
+      <Sent pos="last">
+        date-fns is tree-shakeable — you only pay for what you use. the API is
+        functional (pure functions, no mutation) which makes it easier to reason
+        about, especially for grid construction where you&apos;re deriving a lot
+        of values from a single source date
+      </Sent>
 
-              <Received>
-                why build your own calendar instead of using FullCalendar
-              </Received>
+      <Received>
+        why build your own calendar instead of using FullCalendar
+      </Received>
 
-              <Sent pos="first">
-                FullCalendar&apos;s React wrapper requires a paid license for
-                full features — drag-and-drop, resource views, recurring events
-              </Sent>
-              <Sent pos="middle">
-                the free tier is limited enough that you end up working around
-                it anyway. building custom keeps the bundle lean and gives full
-                control over the interaction model — click handlers, event
-                chips, modal behavior
-              </Sent>
-              <Sent pos="last">
-                it&apos;s also just a better portfolio piece. &quot;I used
-                FullCalendar&quot; isn&apos;t very interesting. &quot;I built
-                the grid from scratch with date-fns&quot; is
-              </Sent>
+      <Sent pos="first">
+        FullCalendar&apos;s React wrapper requires a paid license for full
+        features — drag-and-drop, resource views, recurring events
+      </Sent>
+      <Sent pos="middle">
+        the free tier is limited enough that you end up working around it
+        anyway. building custom keeps the bundle lean and gives full control
+        over the interaction model — click handlers, event chips, modal behavior
+      </Sent>
+      <Sent pos="last">
+        it&apos;s also just a better portfolio piece. &quot;I used
+        FullCalendar&quot; isn&apos;t very interesting. &quot;I built the grid
+        from scratch with date-fns&quot; is
+      </Sent>
 
-              <Timestamp>10:11 AM</Timestamp>
+      <Timestamp>10:11 AM</Timestamp>
 
-              <Received>walk me through the frontend architecture</Received>
+      <Received>walk me through the frontend architecture</Received>
 
-              <Sent pos="first">
-                view state lives in a single <code>CalendarView</code> string —{" "}
-                <code>day | week | month | year</code>. a switch on that value
-                determines which grid component renders. no router params needed
-                for view changes — it&apos;s purely local state
-              </Sent>
-              <Sent pos="last">
-                the date window (what events to fetch) is computed from{" "}
-                <code>currentDate + view</code>. month view expands to cover the
-                full grid including overflow days from adjacent months so events
-                don&apos;t disappear at the edges
-              </Sent>
+      <Sent pos="first">
+        view state lives in a single <code>CalendarView</code> string —{" "}
+        <code>day | week | month | year</code>. a switch on that value
+        determines which grid component renders. no router params needed for
+        view changes — it&apos;s purely local state
+      </Sent>
+      <Sent pos="last">
+        the date window (what events to fetch) is computed from{" "}
+        <code>currentDate + view</code>. month view expands to cover the full
+        grid including overflow days from adjacent months so events don&apos;t
+        disappear at the edges
+      </Sent>
 
-              <div className={styles.codeBubble}>
-                {`// month grid includes days from adjacent months
+      <div className={styles.codeBubble}>
+        {`// month grid includes days from adjacent months
 const start = startOfWeek(startOfMonth(currentDate));
 const end = endOfWeek(endOfMonth(currentDate));
 // → always a complete 5-or-6 week grid`}
-              </div>
+      </div>
 
-              <Received>how does data fetching work across views</Received>
+      <Received>how does data fetching work across views</Received>
 
-              <Sent pos="first">
-                a <code>useCalendarEvents</code> hook owns the fetch lifecycle.
-                it watches <code>currentDate</code> and <code>view</code>,
-                computes the window, and re-fetches whenever either changes
-              </Sent>
-              <Sent pos="middle">
-                loading state is derived — not a separate boolean. there&apos;s
-                a resolved-ranges set; loading is true if the current window
-                isn&apos;t in it yet. avoids setState firing synchronously in
-                the effect body, which the ESLint rule flags
-              </Sent>
-              <Sent pos="last">
-                after create/edit/delete the hook re-fetches the current window.
-                no optimistic UI — a simple refetch is more reliable for a
-                portfolio app and the latency is fine
-              </Sent>
+      <Sent pos="first">
+        a <code>useCalendarEvents</code> hook owns the fetch lifecycle. it
+        watches <code>currentDate</code> and <code>view</code>, computes the
+        window, and re-fetches whenever either changes
+      </Sent>
+      <Sent pos="middle">
+        loading state is derived — not a separate boolean. there&apos;s a
+        resolved-ranges set; loading is true if the current window isn&apos;t in
+        it yet. avoids setState firing synchronously in the effect body, which
+        the ESLint rule flags
+      </Sent>
+      <Sent pos="last">
+        after create/edit/delete the hook re-fetches the current window. no
+        optimistic UI — a simple refetch is more reliable for a portfolio app
+        and the latency is fine
+      </Sent>
 
-              <Timestamp>10:19 AM</Timestamp>
+      <Timestamp>10:19 AM</Timestamp>
 
-              <Received>tell me about the BFF pattern you used</Received>
+      <Received>tell me about the BFF pattern you used</Received>
 
-              <Sent pos="first">
-                the browser never touches Auth0 access tokens. it calls Next.js
-                API routes (<code>/api/calendar/events</code>), those routes
-                call <code>auth0.getAccessToken()</code> server-side and attach
-                the JWT before forwarding to the Express backend
-              </Sent>
-              <Sent pos="middle">
-                so the token lives entirely in server memory — it&apos;s never
-                in the browser&apos;s network tab, never in localStorage,
-                can&apos;t be extracted by a script
-              </Sent>
-              <Sent pos="last">
-                Auth0 had to be configured as a custom API and set to RS256 JWTs
-                specifically — by default it issues opaque tokens that{" "}
-                <code>express-oauth2-jwt-bearer</code> can&apos;t verify. that
-                took a while to figure out
-              </Sent>
+      <Sent pos="first">
+        the browser never touches Auth0 access tokens. it calls Next.js API
+        routes (<code>/api/calendar/events</code>), those routes call{" "}
+        <code>auth0.getAccessToken()</code> server-side and attach the JWT
+        before forwarding to the Express backend
+      </Sent>
+      <Sent pos="middle">
+        so the token lives entirely in server memory — it&apos;s never in the
+        browser&apos;s network tab, never in localStorage, can&apos;t be
+        extracted by a script
+      </Sent>
+      <Sent pos="last">
+        Auth0 had to be configured as a custom API and set to RS256 JWTs
+        specifically — by default it issues opaque tokens that{" "}
+        <code>express-oauth2-jwt-bearer</code> can&apos;t verify. that took a
+        while to figure out
+      </Sent>
 
-              <div className={styles.codeBubble}>
-                {`// Next.js API route — token never leaves the server
+      <div className={styles.codeBubble}>
+        {`// Next.js API route — token never leaves the server
 export async function GET(request: Request) {
   const { token } = await auth0.getAccessToken();
   const res = await fetch(\`\${API_URL}/calendar/events\`, {
@@ -154,47 +151,47 @@ export async function GET(request: Request) {
   });
   return Response.json(await res.json());
 }`}
-              </div>
+      </div>
 
-              <Timestamp>10:26 AM</Timestamp>
+      <Timestamp>10:26 AM</Timestamp>
 
-              <Received>what about the backend — how is it structured</Received>
+      <Received>what about the backend — how is it structured</Received>
 
-              <Sent pos="first">
-                Express with a Postgres connection (Railway). events table, plus
-                a separate <code>event_cards</code> junction table for TCG card
-                attachments
-              </Sent>
-              <Sent pos="middle">
-                junction table instead of a JSON column so you can query events
-                by card — &quot;show me all events where I had Charizard&quot;
-                is a simple join. JSON column would require scanning every row
-              </Sent>
-              <Sent pos="last">
-                <code>user_id</code> is the Auth0 sub claim stored as text —
-                avoids needing a users table entirely. every query scopes by{" "}
-                <code>user_id</code> so events are private per user by default
-              </Sent>
+      <Sent pos="first">
+        Express with a Postgres connection (Railway). events table, plus a
+        separate <code>event_cards</code> junction table for TCG card
+        attachments
+      </Sent>
+      <Sent pos="middle">
+        junction table instead of a JSON column so you can query events by card
+        — &quot;show me all events where I had Charizard&quot; is a simple join.
+        JSON column would require scanning every row
+      </Sent>
+      <Sent pos="last">
+        <code>user_id</code> is the Auth0 sub claim stored as text — avoids
+        needing a users table entirely. every query scopes by{" "}
+        <code>user_id</code> so events are private per user by default
+      </Sent>
 
-              <Received>any timezone issues</Received>
+      <Received>any timezone issues</Received>
 
-              <Sent pos="first">
-                yes — <code>datetime-local</code> inputs produce naive strings
-                with no offset, like <code>2026-02-24T14:00</code>
-              </Sent>
-              <Sent pos="middle">
-                if you send that directly, Postgres treats it as UTC. if your
-                local timezone is UTC-8, an event you set for 2pm shows up at
-                6am the next day in the grid
-              </Sent>
-              <Sent pos="last">
-                fix: wrap with <code>formatISO(parseISO(s))</code> before the
-                value leaves the browser. that adds the local offset — Postgres
-                then stores the correct UTC moment
-              </Sent>
+      <Sent pos="first">
+        yes — <code>datetime-local</code> inputs produce naive strings with no
+        offset, like <code>2026-02-24T14:00</code>
+      </Sent>
+      <Sent pos="middle">
+        if you send that directly, Postgres treats it as UTC. if your local
+        timezone is UTC-8, an event you set for 2pm shows up at 6am the next day
+        in the grid
+      </Sent>
+      <Sent pos="last">
+        fix: wrap with <code>formatISO(parseISO(s))</code> before the value
+        leaves the browser. that adds the local offset — Postgres then stores
+        the correct UTC moment
+      </Sent>
 
-              <div className={styles.codeBubble}>
-                {`// naive string from the input
+      <div className={styles.codeBubble}>
+        {`// naive string from the input
 "2026-02-24T14:00"
 
 // after formatISO(parseISO(s))
@@ -202,54 +199,52 @@ export async function GET(request: Request) {
 
 // what Postgres actually stores (UTC)
 "2026-02-24T22:00:00Z" ✓`}
-              </div>
+      </div>
 
-              <Timestamp>10:34 AM</Timestamp>
+      <Timestamp>10:34 AM</Timestamp>
 
-              <Received>were there any tricky rendering problems</Received>
+      <Received>were there any tricky rendering problems</Received>
 
-              <Sent pos="first">
-                multi-day events were wrong for a while — an event spanning
-                Monday through Thursday would only show a chip on Monday
-              </Sent>
-              <Sent pos="middle">
-                the backend was already doing the right thing with overlap
-                queries. the bug was on the frontend: I was using{" "}
-                <code>isSameDay(startDate, day)</code> to filter, which only
-                matched the start day. switched to{" "}
-                <code>differenceInCalendarDays</code> offset checks — if the
-                event started on or before this day and ends on or after it,
-                show a chip
-              </Sent>
-              <Sent pos="last">
-                multi-day timed events also now go in the all-day row instead of
-                having a partial bar floating in the time grid. a Tuesday 10am
-                event that ends Wednesday 2pm shouldn&apos;t try to fit inside a
-                single hour slot — Google Calendar routes those to all-day too
-              </Sent>
+      <Sent pos="first">
+        multi-day events were wrong for a while — an event spanning Monday
+        through Thursday would only show a chip on Monday
+      </Sent>
+      <Sent pos="middle">
+        the backend was already doing the right thing with overlap queries. the
+        bug was on the frontend: I was using{" "}
+        <code>isSameDay(startDate, day)</code> to filter, which only matched the
+        start day. switched to <code>differenceInCalendarDays</code> offset
+        checks — if the event started on or before this day and ends on or after
+        it, show a chip
+      </Sent>
+      <Sent pos="last">
+        multi-day timed events also now go in the all-day row instead of having
+        a partial bar floating in the time grid. a Tuesday 10am event that ends
+        Wednesday 2pm shouldn&apos;t try to fit inside a single hour slot —
+        Google Calendar routes those to all-day too
+      </Sent>
 
-              <Received>what about events at the same time</Received>
+      <Received>what about events at the same time</Received>
 
-              <Sent pos="first">
-                the time grid used to stack them on top of each other, titles
-                completely illegible
-              </Sent>
-              <Sent pos="middle">
-                fixed with a greedy interval scheduling algorithm. sort events
-                by start time, assign each to the first column whose last
-                occupant has already ended. then for each event, walk all
-                overlapping events to find the widest concurrent group —
-                that&apos;s how many columns to divide the width by
-              </Sent>
-              <Sent pos="last">
-                the positioning is percentage-based left/right so five events at
-                9am each get exactly 20% of the column width. same approach
-                Google Calendar uses — it scales gracefully, just gets narrower
-                as more events pile in
-              </Sent>
+      <Sent pos="first">
+        the time grid used to stack them on top of each other, titles completely
+        illegible
+      </Sent>
+      <Sent pos="middle">
+        fixed with a greedy interval scheduling algorithm. sort events by start
+        time, assign each to the first column whose last occupant has already
+        ended. then for each event, walk all overlapping events to find the
+        widest concurrent group — that&apos;s how many columns to divide the
+        width by
+      </Sent>
+      <Sent pos="last">
+        the positioning is percentage-based left/right so five events at 9am
+        each get exactly 20% of the column width. same approach Google Calendar
+        uses — it scales gracefully, just gets narrower as more events pile in
+      </Sent>
 
-              <div className={styles.codeBubble}>
-                {`// greedy column assignment, O(n²) — fine at calendar scale
+      <div className={styles.codeBubble}>
+        {`// greedy column assignment, O(n²) — fine at calendar scale
 const col = colEnds.findIndex(end => end <= startMs);
 
 // walk overlapping events to find total concurrent columns
@@ -259,135 +254,123 @@ for (let j = 0; j < sorted.length; j++) {
     maxCol = Math.max(maxCol, eventCols[j]);
 }
 // → totalColumns = maxCol + 1`}
-              </div>
+      </div>
 
-              <Timestamp>10:43 AM</Timestamp>
+      <Timestamp>10:43 AM</Timestamp>
 
-              <Received>how does the card attachment work</Received>
+      <Received>how does the card attachment work</Received>
 
-              <Sent pos="first">
-                the event modal has a debounced card search that reuses the
-                existing TCGdex browse endpoint. pick a card and it appears in
-                an attached list
-              </Sent>
-              <Sent pos="middle">
-                changes are staged locally — additions, quantity edits, removals
-                — while the modal is open. nothing hits the backend until you
-                hit save
-              </Sent>
-              <Sent pos="last">
-                on save: event persists first, then cards flush in batch —
-                removes first, then adds/updates in parallel. the order matters
-                to avoid FK violations on the junction table
-              </Sent>
+      <Sent pos="first">
+        the event modal has a debounced card search that reuses the existing
+        TCGdex browse endpoint. pick a card and it appears in an attached list
+      </Sent>
+      <Sent pos="middle">
+        changes are staged locally — additions, quantity edits, removals — while
+        the modal is open. nothing hits the backend until you hit save
+      </Sent>
+      <Sent pos="last">
+        on save: event persists first, then cards flush in batch — removes
+        first, then adds/updates in parallel. the order matters to avoid FK
+        violations on the junction table
+      </Sent>
 
-              <Received>
-                did you do a ui pass on the modal at some point
-              </Received>
+      <Received>did you do a ui pass on the modal at some point</Received>
 
-              <Sent pos="first">
-                yeah the first version was one long column — title, description,
-                dates, colors, then all the card stuff stacked below. it worked
-                but felt like a form from 2012
-              </Sent>
-              <Sent pos="middle">
-                split it into two columns on desktop: event details on the left,
-                card search and attached cards on the right. stacks back to
-                single column on mobile. section headers with trailing rules
-                keep it from feeling like one undifferentiated blob
-              </Sent>
-              <Sent pos="last">
-                other small things: color swatches show a white checkmark
-                instead of a ring, quantity stepper replaced the raw number
-                input, explicit Add button per search result instead of
-                click-anywhere, and there&apos;s an inline warning if end is
-                before start
-              </Sent>
+      <Sent pos="first">
+        yeah the first version was one long column — title, description, dates,
+        colors, then all the card stuff stacked below. it worked but felt like a
+        form from 2012
+      </Sent>
+      <Sent pos="middle">
+        split it into two columns on desktop: event details on the left, card
+        search and attached cards on the right. stacks back to single column on
+        mobile. section headers with trailing rules keep it from feeling like
+        one undifferentiated blob
+      </Sent>
+      <Sent pos="last">
+        other small things: color swatches show a white checkmark instead of a
+        ring, quantity stepper replaced the raw number input, explicit Add
+        button per search result instead of click-anywhere, and there&apos;s an
+        inline warning if end is before start
+      </Sent>
 
-              <Received>what about the event chips on the grid</Received>
+      <Received>what about the event chips on the grid</Received>
 
-              <Sent pos="first">
-                chips in the time grid are translucent at rest — you can see any
-                events behind them through the color wash. solid on hover so you
-                can clearly identify the one you&apos;re pointing at without
-                everything becoming opaque
-              </Sent>
-              <Sent pos="last">
-                title tooltips use a custom Tooltip primitive instead of the
-                native browser <code>title</code> attribute. position:fixed so
-                it escapes the overflow:hidden calendar container without a
-                portal, 500ms delay so it doesn&apos;t fire on every
-                pass-through
-              </Sent>
+      <Sent pos="first">
+        chips in the time grid are translucent at rest — you can see any events
+        behind them through the color wash. solid on hover so you can clearly
+        identify the one you&apos;re pointing at without everything becoming
+        opaque
+      </Sent>
+      <Sent pos="last">
+        title tooltips use a custom Tooltip primitive instead of the native
+        browser <code>title</code> attribute. position:fixed so it escapes the
+        overflow:hidden calendar container without a portal, 500ms delay so it
+        doesn&apos;t fire on every pass-through
+      </Sent>
 
-              <Timestamp>10:52 AM</Timestamp>
+      <Timestamp>10:52 AM</Timestamp>
 
-              <Timestamp>10:47 AM</Timestamp>
+      <Timestamp>10:47 AM</Timestamp>
 
-              <Received>
-                did you do any render optimization on the calendar components
-              </Received>
+      <Received>
+        did you do any render optimization on the calendar components
+      </Received>
 
-              <Sent pos="first">
-                yeah, all four view components are wrapped in{" "}
-                <code>React.memo</code> now. without it, opening or closing the
-                event modal re-rendered everything including the full month grid
-              </Sent>
-              <Sent pos="middle">
-                the trick is that memo only works if the props are actually
-                stable. callbacks passed inline (
-                <code>() =&gt; setModal(...)</code>) create a new function
-                reference on every render, so memo sees a prop change and
-                re-renders anyway. had to add <code>useCallback</code> to the
-                three handlers passed down to the views
-              </Sent>
-              <Sent pos="last">
-                also wrapped <code>layoutDayEvents</code> in{" "}
-                <code>useMemo</code> in <code>DayView</code> and{" "}
-                <code>WeekView</code>. that&apos;s the greedy overlap algorithm
-                that figures out side-by-side positioning for concurrent events.
-                it only needs to rerun when the events list actually changes,
-                not every time the component renders
-              </Sent>
+      <Sent pos="first">
+        yeah, all four view components are wrapped in <code>React.memo</code>{" "}
+        now. without it, opening or closing the event modal re-rendered
+        everything including the full month grid
+      </Sent>
+      <Sent pos="middle">
+        the trick is that memo only works if the props are actually stable.
+        callbacks passed inline (<code>() =&gt; setModal(...)</code>) create a
+        new function reference on every render, so memo sees a prop change and
+        re-renders anyway. had to add <code>useCallback</code> to the three
+        handlers passed down to the views
+      </Sent>
+      <Sent pos="last">
+        also wrapped <code>layoutDayEvents</code> in <code>useMemo</code> in{" "}
+        <code>DayView</code> and <code>WeekView</code>. that&apos;s the greedy
+        overlap algorithm that figures out side-by-side positioning for
+        concurrent events. it only needs to rerun when the events list actually
+        changes, not every time the component renders
+      </Sent>
 
-              <div className={styles.codeBubble}>
-                {`// in WeekView — compute all 7 columns at once, not inline in the loop
+      <div className={styles.codeBubble}>
+        {`// in WeekView — compute all 7 columns at once, not inline in the loop
 const timedLayouts = useMemo(
   () => weekDays.map((day) =>
     layoutDayEvents(singleDayTimedEventsForDay(events, day), ROW_HEIGHT)
   ),
   [events, weekDays],
 );`}
-              </div>
+      </div>
 
-              <Received>
-                how does the initial load feel performance-wise
-              </Received>
+      <Received>how does the initial load feel performance-wise</Received>
 
-              <Sent pos="first">
-                the calendar was showing a blank page until JavaScript hydrated
-                and the client-side fetch finished. FCP and LCP were both bad
-              </Sent>
-              <Sent pos="middle">
-                fixed it with streaming SSR. there&apos;s now a{" "}
-                <code>CalendarWithData</code> async server component that
-                fetches the current month&apos;s events directly from the
-                backend at request time. it&apos;s wrapped in a{" "}
-                <code>Suspense</code> boundary with <code>loading.tsx</code> as
-                the fallback, so the skeleton streams in the HTML shell
-                immediately and the real grid replaces it once the server fetch
-                resolves
-              </Sent>
-              <Sent pos="last">
-                the server component calls the backend directly instead of going
-                through <code>/api/calendar/events</code> -- that avoids a
-                loopback HTTP call to the same server. if auth or the backend is
-                down it just falls back gracefully and lets the client fetch on
-                mount as before
-              </Sent>
+      <Sent pos="first">
+        the calendar was showing a blank page until JavaScript hydrated and the
+        client-side fetch finished. FCP and LCP were both bad
+      </Sent>
+      <Sent pos="middle">
+        fixed it with streaming SSR. there&apos;s now a{" "}
+        <code>CalendarWithData</code> async server component that fetches the
+        current month&apos;s events directly from the backend at request time.
+        it&apos;s wrapped in a <code>Suspense</code> boundary with{" "}
+        <code>loading.tsx</code> as the fallback, so the skeleton streams in the
+        HTML shell immediately and the real grid replaces it once the server
+        fetch resolves
+      </Sent>
+      <Sent pos="last">
+        the server component calls the backend directly instead of going through{" "}
+        <code>/api/calendar/events</code> -- that avoids a loopback HTTP call to
+        the same server. if auth or the backend is down it just falls back
+        gracefully and lets the client fetch on mount as before
+      </Sent>
 
-              <div className={styles.codeBubble}>
-                {`// page.tsx -- server component fetches before first paint
+      <div className={styles.codeBubble}>
+        {`// page.tsx -- server component fetches before first paint
 async function CalendarWithData() {
   const { token } = await auth0.getAccessToken();
   const res = await fetch(\`\${API_URL}/api/calendar/events?...\`, {
@@ -397,48 +380,45 @@ async function CalendarWithData() {
   const { events } = await res.json();
   return <CalendarContent initialEvents={events} />;
 }`}
-              </div>
+      </div>
 
-              <Received>
-                and the hook doesn&apos;t re-fetch if you already have data?
-              </Received>
+      <Received>
+        and the hook doesn&apos;t re-fetch if you already have data?
+      </Received>
 
-              <Sent pos="first">
-                right -- <code>useCalendarEvents</code> accepts an{" "}
-                <code>initialEvents</code> prop. when it&apos;s provided, the
-                hook seeds state from that data and pre-marks the current range
-                as loaded
-              </Sent>
-              <Sent pos="last">
-                so the first client render has real data immediately -- no
-                loading state, no skeleton, no extra network request. if the
-                user navigates to a different month it re-fetches normally from
-                there
-              </Sent>
+      <Sent pos="first">
+        right -- <code>useCalendarEvents</code> accepts an{" "}
+        <code>initialEvents</code> prop. when it&apos;s provided, the hook seeds
+        state from that data and pre-marks the current range as loaded
+      </Sent>
+      <Sent pos="last">
+        so the first client render has real data immediately -- no loading
+        state, no skeleton, no extra network request. if the user navigates to a
+        different month it re-fetches normally from there
+      </Sent>
 
-              <Received>
-                what about the other views -- do they all load upfront too
-              </Received>
+      <Received>
+        what about the other views -- do they all load upfront too
+      </Received>
 
-              <Sent pos="first">
-                no -- DayView, WeekView, YearView, and EventModal are all lazily
-                loaded with <code>next/dynamic</code>
-              </Sent>
-              <Sent pos="middle">
-                CalendarGrid stays as a static import since it&apos;s the LCP
-                element and needs to be in the initial bundle. the others only
-                load when the user actually switches views or opens the modal,
-                so they don&apos;t cost anything on the default month view load
-              </Sent>
-              <Sent pos="last">
-                each dynamic view has a pixel-matched skeleton as its{" "}
-                <code>loading</code> fallback. DaySkeleton, WeekSkeleton, and
-                YearSkeleton mirror the real views&apos; exact row heights and
-                grid structure, so the page doesn&apos;t shift when the chunk
-                arrives. without that, switching to day view on first load would
-                cause a big CLS hit
-              </Sent>
-
+      <Sent pos="first">
+        no -- DayView, WeekView, YearView, and EventModal are all lazily loaded
+        with <code>next/dynamic</code>
+      </Sent>
+      <Sent pos="middle">
+        CalendarGrid stays as a static import since it&apos;s the LCP element
+        and needs to be in the initial bundle. the others only load when the
+        user actually switches views or opens the modal, so they don&apos;t cost
+        anything on the default month view load
+      </Sent>
+      <Sent pos="last">
+        each dynamic view has a pixel-matched skeleton as its{" "}
+        <code>loading</code> fallback. DaySkeleton, WeekSkeleton, and
+        YearSkeleton mirror the real views&apos; exact row heights and grid
+        structure, so the page doesn&apos;t shift when the chunk arrives.
+        without that, switching to day view on first load would cause a big CLS
+        hit
+      </Sent>
     </>
   );
 }

@@ -73,9 +73,7 @@ export default function SalesTab({ storeId }: SalesTabProps) {
   }
 
   if (sales.length === 0) {
-    return (
-      <p className="text-sm text-muted py-8 text-center">No sales yet.</p>
-    );
+    return <p className="text-sm text-muted py-8 text-center">No sales yet.</p>;
   }
 
   return (
