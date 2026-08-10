@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -558,6 +563,17 @@ onScrollRef.current = () => {
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-10-virtualised",
+            date: "Aug 10, 2026",
+            title:
+              "Virtualising the lists, and putting the Pocket page behind a flag",
+          },
+        ]}
+      />
+
       <section
         id="update-2026-08-05-serve-tcg"
         className="scroll-mt-24 rounded-xl border border-primary-400/40 bg-primary-500/5 p-5"
@@ -811,6 +827,43 @@ onScrollRef.current = () => {
           catch needed.
         </p>
       </section>
+      <Update
+        id="update-2026-08-10-virtualised"
+        date="August 10, 2026"
+        title="Virtualising the lists, and putting the Pocket page behind a flag"
+      >
+        <p>
+          The card browser renders thousands of cards, and the honest answer for
+          a long time was that it rendered all of them. Virtualising the lists
+          was the fix, and memoising the card content was the other half &mdash;
+          virtualisation stops you paying for off-screen rows, memoisation stops
+          you paying again for on-screen rows that did not change. Doing one
+          without the other leaves most of the win on the table.
+        </p>
+        <p>
+          <strong>The Pocket page is gated on a feature flag</strong>, which
+          made this the first place the flags console had a real consumer rather
+          than demo data. That is the part I would keep: a flag system with
+          nothing behind it is a demo of a flag system. Wiring one real page to
+          it turned the console into something that can be wrong, which is what
+          made it worth building carefully.
+        </p>
+      </Update>
+      <WhatsNext
+        nowShipped={[
+          "A BFF proxy in front of the card API, so the browser never talks to the upstream directly and caching lives in one place.",
+          "Virtualised lists plus memoised card content — the two halves of the same problem, and doing one without the other leaves most of the win unclaimed.",
+          "The Pocket page gated on a real feature flag, which gave the flags console its first genuine consumer.",
+        ]}
+        couldImprove={[
+          "Search is server-driven per keystroke behind a debounce. It works, and a client-side index over the loaded set would make the common case instant.",
+          "Card images are not preloaded around the viewport, so fast scrolling outruns them.",
+          "There is no offline or stale view — a card you looked at a second ago is refetched from scratch on return.",
+        ]}
+        upcoming={[
+          "Preload images just outside the viewport, which is the cheapest remaining perceived-performance win now the lists are virtualised.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

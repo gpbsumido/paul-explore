@@ -35,6 +35,14 @@
 
 - **Twelve of the fourteen feature routes had no error boundary.** Any render error escaped to the global boundary, which throws away the page shell and leaves a reload as the only way back — on the operator dashboard, the world, the flags console, gallery wall, the NBA hub and seven others. They all have one now, using the same `RouteError` the calendar and research pages already used, so a failure keeps the header and offers a retry in place. Five routes were also missing a loading state (learn, craft, gallery wall, the NBA hub, the Pokémon hub) and now have skeletons shaped like the page that follows rather than a spinner.
 - A test walks the feature registry and fails if any route is missing either file, so the next feature added gets the same treatment instead of quietly shipping without them.
+## 2026-08-10 - version 3.19.0
+
+- **Every one of the fifteen features now has a write-up with a closing block on where it stands**, and dated updates wherever the feature actually moved. Calendar, the playoffs bracket and the TCG browser gained updates from their real history; Ketsup got a closing block and no update, since the work happens in a different repo and listing its roadmap here would be pretending otherwise.
+- Calendar: the scroll-jump fix written up properly — compensating for a *known* mutation is a trap, because the next mutation won't be known, and anchoring on what the reader is looking at makes the mechanism independent of what changed. The accessibility pass is noted as the invasive kind: enforcing axe best-practice rules on a grid of interactive cells meant changing markup rather than adding attributes.
+- Playoffs bracket: the write-up used to describe a tiered testing strategy the repo didn't have. It has one now, and the gap is named rather than quietly closed — a write-up describing an intention reads exactly like one describing a practice, and only one is true. Also the deadline work: an empty state and a hung request are indistinguishable to a reader, and the empty one is a confident lie.
+- TCG: virtualising the lists and memoising the card content are the two halves of one problem, and doing either alone leaves most of the win unclaimed. Gating the Pocket page on a real flag gave the flags console its first genuine consumer — a flag system with nothing behind it is a demo of a flag system.
+- Operator dashboard and research explorer already had timelines, so they gained the closing block only.
+
 ## 2026-08-10 - version 3.18.0
 
 - **Seven feature write-ups now carry dated updates and a closing block on where they stand.** Every update is written from that feature's actual commit history, and a page whose feature genuinely hasn't moved gets no timeline rather than a manufactured one — Craft is written up with no update and an explicit "nothing scheduled", because that's true.

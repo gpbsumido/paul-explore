@@ -1,6 +1,11 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -244,6 +249,17 @@ export default function PlayoffsContent() {
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-10-tiers",
+            date: "Aug 10, 2026",
+            title:
+              "Actually implementing the testing strategy this page described",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">Data flow</h2>
         <p className="text-muted">
@@ -544,6 +560,54 @@ export default function PlayoffsContent() {
           array).
         </p>
       </section>
+      <Update
+        id="update-2026-08-10-tiers"
+        date="August 10, 2026"
+        title="Actually implementing the testing strategy this page described"
+      >
+        <p>
+          This write-up described a tiered testing approach before the repo had
+          one. That gap is worth naming rather than quietly closing: a write-up
+          that describes an intention reads exactly like one that describes a
+          practice, and only one of them is true.
+        </p>
+        <p>
+          It is implemented now &mdash; unit tests against pure logic,
+          integration tests through MSW at the data boundary, and end-to-end
+          only where a real browser is the point. The value showed up
+          immediately in where bugs got caught: bracket resolution logic failed
+          in unit tests where it is cheap to debug, rather than in an E2E run
+          where it would surface as a screenshot of the wrong team.
+        </p>
+        <p>
+          <strong>
+            The other real fix was making loading stop looking like empty.
+          </strong>{" "}
+          Every BFF call is now bounded by a deadline. Before that, a slow
+          upstream produced a page that looked like it had loaded and found
+          nothing &mdash; an empty state and a hung request are
+          indistinguishable to a reader, and the empty one is a confident lie.
+          Absence rendering as data is the failure mode I keep coming back to,
+          and it is the same instinct behind the research explorer returning a
+          502 rather than showing every topic as having no papers.
+        </p>
+      </Update>
+      <WhatsNext
+        nowShipped={[
+          "Derived state over stored state: the bracket is computed from picks and results rather than kept in sync, so the two cannot disagree.",
+          "The tiered testing strategy this page described is actually in place, which it was not when the page first claimed it.",
+          "Every upstream call bounded by a deadline, so a slow API cannot render as a confident empty state.",
+          "The leaderboard shipped before results existed, which kept the feature useful during the part of the season when nothing had happened yet.",
+        ]}
+        couldImprove={[
+          "Picks have no history — you can change one, but there is no record of what you thought before, which is most of the fun of a bracket after the fact.",
+          "The shot chart is an SVG built by hand and would not survive a much larger dataset without virtualisation.",
+          "Nothing verifies the ESPN payload shape at the boundary, so an upstream change surfaces as a render error rather than a parse failure with a clear message.",
+        ]}
+        upcoming={[
+          "Zod-parse the upstream payloads at the boundary, which is the pattern the newer features use and the one this predates.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }
