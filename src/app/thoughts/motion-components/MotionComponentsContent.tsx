@@ -244,11 +244,11 @@ export default function MotionComponentsContent() {
           "Motion behind components rather than scattered animation calls, which is what makes a policy like that enforceable at all.",
         ]}
         couldImprove={[
-          "Adoption is incomplete. The world and the particle lab animate continuously and neither goes through these components, which is exactly why they still ignore reduced motion.",
+          "Adoption is incomplete, though less than I assumed. The 3D scenes animate in a render loop that never touches a motion component, so they answer the preference through their own hook instead — the world already did, the particle lab did not until it was fixed.",
           "There is no test that a new animation went through the components rather than around them.",
         ]}
         upcoming={[
-          "Bring the world and the particle lab onto these components, which is the concrete way their reduced-motion gap actually closes.",
+          "A check that any new animated component answers prefers-reduced-motion somehow — through these components or its own hook — since the gap is not knowing, rather than any one page.",
         ]}
       />
     </ThoughtLayout>

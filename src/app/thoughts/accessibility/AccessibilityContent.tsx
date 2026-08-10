@@ -32,10 +32,10 @@ export default function AccessibilityContent() {
         couldImprove={[
           "Automated checks catch roughly a third of what matters. Nothing here covers whether the app is actually operable by keyboard end to end, which no linter can tell you.",
           "There is no screen-reader pass recorded anywhere, so the claim rests on the tooling rather than on having listened to it.",
-          "prefers-reduced-motion is honoured unevenly — the animated pages that most need it are the ones that ignore it.",
+          "prefers-reduced-motion was honoured unevenly. I assumed the 3D pages were the offenders and audited before fixing: the world already gated every ambient animation, and only the particle lab ignored the setting entirely. Worth recording that the assumption was wrong, because it is the sort that sends a fix at the wrong page.",
         ]}
         upcoming={[
-          "Honour prefers-reduced-motion on the world and the particle lab, which are the two worst offenders and both have it listed as next on their own pages.",
+          "Keep the audit honest rather than assumed — nothing checks that a new animated component gates on the preference, so the next one added is on whoever remembers.",
         ]}
       />
     </ThoughtLayout>
