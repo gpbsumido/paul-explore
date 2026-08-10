@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.4
+
+- **Some work-portfolio ticker chips did nothing when clicked.** The cause was upstream: the shared `Ticker` duplicates its chips so the ambient loop looks seamless, and the clone carried `inert` — which removes a subtree from the accessibility tree *and* from the pointer. The loop wraps at half the scroll width, so roughly half of what is on screen at any moment was the clone, and clicking those chips silently did nothing. It came back because unifying the bespoke tickers onto the shared component adopted a copy that had `inert` added for a real reason: tabbable controls inside an `aria-hidden` container is a serious axe violation. Right instinct, aimed one notch too broadly. Fixed in `@paul-portfolio/react` 0.5.1 — the clone stays `aria-hidden` with its focusables dropped from the tab order in a layout effect, which runs before paint and closes the same window `inert` was closing, without touching the pointer.
+- A guard test on this side asserts nothing on the page renders with `inert`, so a future version of the package cannot quietly bring it back. It is written as an attribute assertion rather than a click, because jsdom does not implement `inert` — a click test passes whether or not the bug is present, which is very likely how it shipped the first time. The same shape of test exists upstream.
+
 ## 2026-08-08 - version 3.16.0
 
 - **Journal club can filter to papers doing something new, and shows why.** An "only papers doing something new" toggle, plus innovation-first ordering by default. Detection is two kinds of signal — claims of novelty (first-in-human, proof of concept, initial experience) and named emerging technologies (machine learning, robotic, 3D printing, gene and cell therapy) — and the matched signals are shown as badges on the paper rather than folded into a hidden score, because "this is innovative, trust me" is not useful to someone deciding what to spend an hour on. Negations are handled: "no novel complications were observed" is the opposite claim and doesn't count.
