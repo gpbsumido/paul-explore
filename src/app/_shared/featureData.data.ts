@@ -19,6 +19,7 @@ export const FEATURES: FeatureItem[] = [
       "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
     href: "/work-portfolio",
     color: "#60a5fa",
+    thoughtsHref: "/thoughts/work-portfolio",
   },
   {
     id: "world",
@@ -81,6 +82,7 @@ export const FEATURES: FeatureItem[] = [
       "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
     href: "/learn",
     color: "#34d399",
+    thoughtsHref: "/thoughts/learn",
   },
   {
     id: "craft",
@@ -134,6 +136,7 @@ export const FEATURES: FeatureItem[] = [
       "Interactive R3F particle network with real-time controls: speed, connection distance, 5 pastel color themes, mouse attraction toggle.",
     href: "/lab/particles",
     color: "#a5f3fc",
+    thoughtsHref: "/thoughts/particles",
   },
   {
     id: "ketsup",
@@ -147,6 +150,20 @@ export const FEATURES: FeatureItem[] = [
 ];
 
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "Learn",
+    href: "/thoughts/learn",
+    preview:
+      "Thirteen demos that each rebuilt the same stepper, one useStepPlayer hook, and the overrun the characterisation tests caught",
+    color: "#22d3ee",
+  },
+  {
+    title: "Particle Lab",
+    href: "/thoughts/particles",
+    preview:
+      "Two point clouds instead of an object per particle, and why the connection-distance slider is really the performance dial",
+    color: "#a5f3fc",
+  },
   {
     title: "Research Explorer",
     href: "/thoughts/research-explorer",

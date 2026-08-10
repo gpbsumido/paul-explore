@@ -33,7 +33,11 @@ describe("UpdateTimeline", () => {
 describe("Update", () => {
   it("carries the anchor the timeline points at", () => {
     const { container } = render(
-      <Update id="update-2026-08-08-counts" date="Aug 8, 2026" title="Counts view">
+      <Update
+        id="update-2026-08-08-counts"
+        date="Aug 8, 2026"
+        title="Counts view"
+      >
         <p>Body.</p>
       </Update>,
     );

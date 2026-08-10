@@ -25,10 +25,16 @@ describe("buildSlots", () => {
   });
 
   it("gives a feature without a write-up an empty reel 3", () => {
-    // work-portfolio's feature entry has no thoughtsHref.
-    const wp = apps.options.find((o) => o.id === "feat:work-portfolio");
-    expect(wp).toBeDefined();
-    expect(wp!.thoughts).toEqual([]);
+    // Asserted against whichever features genuinely lack a thoughtsHref rather
+    // than a named one. This used to point at work-portfolio, which then got a
+    // write-up and broke a test that was really about the rule, not the
+    // feature. If every feature has one, the rule still holds vacuously.
+    const withoutWriteUp = FEATURES.filter((f) => !f.thoughtsHref);
+    withoutWriteUp.forEach((feature) => {
+      const option = apps.options.find((o) => o.id === `feat:${feature.id}`);
+      expect(option).toBeDefined();
+      expect(option!.thoughts).toEqual([]);
+    });
   });
 
   it("drops the bridge when a feature's write-up is deprecated", () => {
