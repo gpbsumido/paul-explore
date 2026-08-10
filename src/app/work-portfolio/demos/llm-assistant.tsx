@@ -24,10 +24,19 @@ type Answer = {
 };
 
 /** The steps the "agent" walks through, shown as a plan in agent mode. */
-const PLAN = ["Read the question", "Query the warehouse", "Summarize the finding"];
+const PLAN = [
+  "Read the question",
+  "Query the warehouse",
+  "Summarize the finding",
+];
 
 /** Canned answers keyed by a keyword, each with its tool call and sources. */
-const ANSWERS: { match: RegExp; tool: Answer["tool"]; reply: string; citations: string[] }[] = [
+const ANSWERS: {
+  match: RegExp;
+  tool: Answer["tool"];
+  reply: string;
+  citations: string[];
+}[] = [
   {
     match: /retention|churn/i,
     tool: { name: "query_warehouse", args: "metric: retention, window: 30d" },
@@ -58,14 +67,21 @@ const DEFAULT = {
   citations: ["demo_readme"],
 };
 
-const SUGGESTIONS = ["How is retention?", "What about revenue?", "Who are the whales?"];
+const SUGGESTIONS = [
+  "How is retention?",
+  "What about revenue?",
+  "Who are the whales?",
+];
 
 function answerFor(prompt: string): Answer {
   const match = ANSWERS.find((a) => a.match.test(prompt)) ?? DEFAULT;
   return { tool: match.tool, reply: match.reply, citations: match.citations };
 }
 
-type Timer = { id: ReturnType<typeof setTimeout>; kind: "timeout" | "interval" };
+type Timer = {
+  id: ReturnType<typeof setTimeout>;
+  kind: "timeout" | "interval";
+};
 
 /**
  * Flagship demo for portal v2's LLM assistant. A chat surface that mocks the
@@ -73,7 +89,11 @@ type Timer = { id: ReturnType<typeof setTimeout>; kind: "timeout" | "interval" }
  * tool-call row that runs then completes, tokens that stream in, citation
  * chips, and stop/retry controls. Everything is canned, there is no model.
  */
-export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) {
+export default function LlmAssistantDemo({
+  feature,
+}: {
+  feature: WorkFeature;
+}) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -105,7 +125,12 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
     setMessages((m) =>
       m.map((msg) =>
         msg.id === replyId
-          ? { ...msg, text: "", citations: undefined, tool: { ...answer.tool, status: "running" } }
+          ? {
+              ...msg,
+              text: "",
+              citations: undefined,
+              tool: { ...answer.tool, status: "running" },
+            }
           : msg,
       ),
     );
@@ -124,14 +149,18 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
         i += 1;
         setMessages((m) =>
           m.map((msg) =>
-            msg.id === replyId ? { ...msg, text: words.slice(0, i).join(" ") } : msg,
+            msg.id === replyId
+              ? { ...msg, text: words.slice(0, i).join(" ") }
+              : msg,
           ),
         );
         if (i >= words.length) {
           clearInterval(streamTimer);
           setMessages((m) =>
             m.map((msg) =>
-              msg.id === replyId ? { ...msg, citations: answer.citations } : msg,
+              msg.id === replyId
+                ? { ...msg, citations: answer.citations }
+                : msg,
             ),
           );
           setStreaming(false);
@@ -174,12 +203,16 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
     run(msg.id, answerFor(msg.prompt));
   };
 
-  const lastAssistantId = [...messages].reverse().find((m) => m.role === "assistant")?.id;
+  const lastAssistantId = [...messages]
+    .reverse()
+    .find((m) => m.role === "assistant")?.id;
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-2 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+        <p className="text-[13px] font-semibold text-foreground">
+          {feature.title}
+        </p>
         <div className="flex overflow-hidden rounded-md border border-border text-[11px]">
           {(["agent", "chat"] as const).map((m) => (
             <button
@@ -188,7 +221,11 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
               aria-pressed={mode === m}
               onClick={() => setMode(m)}
               className="px-2 py-0.5"
-              style={mode === m ? { backgroundColor: ACCENT, color: "#fff" } : undefined}
+              style={
+                mode === m
+                  ? { backgroundColor: ACCENT, color: "#fff" }
+                  : undefined
+              }
             >
               {m === "agent" ? "Agent" : "Chat"}
             </button>
@@ -206,19 +243,36 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
           </p>
         )}
         {messages.map((m) => (
-          <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            key={m.id}
+            className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+          >
             <div className="flex max-w-[85%] flex-col gap-1">
               {mode === "agent" && m.plan && (
-                <ol data-testid="agent-plan" className="rounded-md border border-border bg-background/60 p-1.5 text-[10px]">
+                <ol
+                  data-testid="agent-plan"
+                  className="rounded-md border border-border bg-background/60 p-1.5 text-[10px]"
+                >
                   {m.plan.map((step, i) => {
-                    const progress = m.text ? m.plan!.length : m.tool?.status === "done" ? m.plan!.length - 1 : 1;
+                    const progress = m.text
+                      ? m.plan!.length
+                      : m.tool?.status === "done"
+                        ? m.plan!.length - 1
+                        : 1;
                     const done = i < progress;
                     return (
                       <li key={step} className="flex items-center gap-1.5">
-                        <span aria-hidden className={done ? "text-emerald-500" : "text-muted"}>
+                        <span
+                          aria-hidden
+                          className={done ? "text-emerald-500" : "text-muted"}
+                        >
                           {done ? "✓" : "•"}
                         </span>
-                        <span className={done ? "text-foreground" : "text-muted"}>{step}</span>
+                        <span
+                          className={done ? "text-foreground" : "text-muted"}
+                        >
+                          {step}
+                        </span>
                       </li>
                     );
                   })}
@@ -229,7 +283,14 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
                   data-testid="tool-call"
                   className="flex items-center gap-1.5 rounded-md border border-border bg-background/60 px-2 py-1 font-mono text-[10px] text-muted"
                 >
-                  <span aria-hidden className={m.tool.status === "running" ? "animate-pulse" : "text-emerald-500"}>
+                  <span
+                    aria-hidden
+                    className={
+                      m.tool.status === "running"
+                        ? "animate-pulse"
+                        : "text-emerald-500"
+                    }
+                  >
                     {m.tool.status === "running" ? "◷" : "✓"}
                   </span>
                   <span className="text-foreground">{m.tool.name}</span>
@@ -238,13 +299,17 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
               )}
               {m.text !== "" && (
                 <div
-                  data-testid={m.role === "assistant" ? "assistant-text" : undefined}
+                  data-testid={
+                    m.role === "assistant" ? "assistant-text" : undefined
+                  }
                   className={`rounded-2xl px-3 py-1.5 text-[12px] ${
                     m.role === "user"
                       ? "self-end text-white"
                       : "border border-border bg-background text-foreground"
                   }`}
-                  style={m.role === "user" ? { backgroundColor: ACCENT } : undefined}
+                  style={
+                    m.role === "user" ? { backgroundColor: ACCENT } : undefined
+                  }
                 >
                   {m.text}
                 </div>
@@ -262,15 +327,18 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
                   ))}
                 </div>
               )}
-              {m.role === "assistant" && m.id === lastAssistantId && m.text !== "" && !streaming && (
-                <button
-                  type="button"
-                  onClick={() => retry(m)}
-                  className="self-start text-[10px] text-muted underline hover:text-foreground"
-                >
-                  Retry
-                </button>
-              )}
+              {m.role === "assistant" &&
+                m.id === lastAssistantId &&
+                m.text !== "" &&
+                !streaming && (
+                  <button
+                    type="button"
+                    onClick={() => retry(m)}
+                    className="self-start text-[10px] text-muted underline hover:text-foreground"
+                  >
+                    Retry
+                  </button>
+                )}
             </div>
           </div>
         ))}
@@ -283,7 +351,7 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
             type="button"
             onClick={() => send(s)}
             disabled={streaming}
-            className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted hover:text-foreground disabled:opacity-50"
+            className="paul-touch-min rounded-full border border-border px-2.5 py-1 text-[11px] text-muted hover:text-foreground disabled:opacity-50"
           >
             {s}
           </button>
@@ -310,7 +378,7 @@ export default function LlmAssistantDemo({ feature }: { feature: WorkFeature }) 
           <button
             type="button"
             onClick={stop}
-            className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground"
+            className="paul-touch-min rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground"
           >
             Stop
           </button>

@@ -4,7 +4,12 @@ import { useRef } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import type { RefObject } from "react";
-import { RACCOONS, raccoonStep, type Raccoon, type RaccoonState } from "@/lib/world/wildlife";
+import {
+  RACCOONS,
+  raccoonStep,
+  type Raccoon,
+  type RaccoonState,
+} from "@/lib/world/wildlife";
 import type { PlayerSnapshot } from "./refs";
 import { useSegments } from "./detail";
 
@@ -47,7 +52,10 @@ function OneRaccoon({ raccoon, playerRef, prefersReduced }: OneRaccoonProps) {
   });
 
   return (
-    <group ref={groupRef} position={[raccoon.patrol[0].x, 0, raccoon.patrol[0].z]}>
+    <group
+      ref={groupRef}
+      position={[raccoon.patrol[0].x, 0, raccoon.patrol[0].z]}
+    >
       <group ref={bodyRef}>
         <mesh position={[0, 0.24, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <capsuleGeometry args={[0.16, 0.3, 4, round]} />
@@ -77,7 +85,12 @@ function OneRaccoon({ raccoon, playerRef, prefersReduced }: OneRaccoonProps) {
       </group>
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.28, 14]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.28} depthWrite={false} />
+        <meshBasicMaterial
+          color="#000000"
+          transparent
+          opacity={0.28}
+          depthWrite={false}
+        />
       </mesh>
     </group>
   );

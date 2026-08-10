@@ -38,7 +38,9 @@ const isLocal = (src: string): boolean =>
 
 /** Ids of the images that still need uploading on the next save. */
 export function localImageIds(state: GalleryState): string[] {
-  return state.images.filter((image) => isLocal(image.src)).map((image) => image.id);
+  return state.images
+    .filter((image) => isLocal(image.src))
+    .map((image) => image.id);
 }
 
 /**
@@ -51,7 +53,11 @@ export function localImageIds(state: GalleryState): string[] {
  * server could not match an upload back to its image and quietly left the dead
  * `blob:` src in place, so the wall reopened blank.
  */
-export function buildWallFormData({ name, state, filesById }: SaveInput): FormData {
+export function buildWallFormData({
+  name,
+  state,
+  filesById,
+}: SaveInput): FormData {
   const form = new FormData();
   if (name !== undefined) form.append("name", name);
   form.append("state", serializeGallery(state));
@@ -67,14 +73,17 @@ async function unwrap<T>(res: Response): Promise<T> {
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     const message =
-      (data as { error?: string } | null)?.error ?? `Request failed (${res.status})`;
+      (data as { error?: string } | null)?.error ??
+      `Request failed (${res.status})`;
     throw new Error(message);
   }
   return data as T;
 }
 
 export async function listWalls(): Promise<WallSummary[]> {
-  return unwrap<WallSummary[]>(await fetch("/api/walls", { cache: "no-store" }));
+  return unwrap<WallSummary[]>(
+    await fetch("/api/walls", { cache: "no-store" }),
+  );
 }
 
 export async function getWall(id: string): Promise<WallManifest> {
@@ -85,11 +94,17 @@ export async function getWall(id: string): Promise<WallManifest> {
 
 export async function createWall(input: SaveInput): Promise<WallSummary> {
   return unwrap<WallSummary>(
-    await fetch("/api/walls", { method: "POST", body: buildWallFormData(input) }),
+    await fetch("/api/walls", {
+      method: "POST",
+      body: buildWallFormData(input),
+    }),
   );
 }
 
-export async function updateWall(id: string, input: SaveInput): Promise<WallSummary> {
+export async function updateWall(
+  id: string,
+  input: SaveInput,
+): Promise<WallSummary> {
   return unwrap<WallSummary>(
     await fetch(`/api/walls/${encodeURIComponent(id)}`, {
       method: "PUT",

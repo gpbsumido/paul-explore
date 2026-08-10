@@ -90,7 +90,7 @@ function ControlSlider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="h-1 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-white"
+        className="paul-touch-target h-1 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-white"
       />
     </div>
   );
@@ -170,9 +170,18 @@ function SpringPlayground() {
 // ===========================================================================
 
 const TILE_COLORS = [
-  "#6366f1", "#7c3aed", "#a855f7", "#d946ef",
-  "#ec4899", "#f43f5e", "#fb923c", "#f59e0b",
-  "#eab308", "#84cc16", "#22c55e", "#10b981",
+  "#6366f1",
+  "#7c3aed",
+  "#a855f7",
+  "#d946ef",
+  "#ec4899",
+  "#f43f5e",
+  "#fb923c",
+  "#f59e0b",
+  "#eab308",
+  "#84cc16",
+  "#22c55e",
+  "#10b981",
 ];
 
 function StaggerGrid() {
@@ -188,7 +197,9 @@ function StaggerGrid() {
       <m.div
         key={gridKey}
         className="mb-5 grid grid-cols-6 gap-2"
-        variants={{ visible: { transition: { staggerChildren: staggerDelay } } }}
+        variants={{
+          visible: { transition: { staggerChildren: staggerDelay } },
+        }}
         initial="hidden"
         animate="visible"
       >
@@ -217,7 +228,8 @@ function StaggerGrid() {
             display={staggerDelay.toFixed(2) + "s"}
           />
         </div>
-        <button type="button"
+        <button
+          type="button"
           onClick={() => setGridKey((k) => k + 1)}
           className="shrink-0 rounded-lg bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-white/20"
         >
@@ -236,10 +248,10 @@ type ListItem = { id: string; label: string; color: string };
 
 const INITIAL_ITEMS: ListItem[] = [
   { id: "1", label: "Hold and drag to reorder", color: "#6366f1" },
-  { id: "2", label: "Items animate with layout prop",  color: "#10b981" },
-  { id: "3", label: "Spring physics on drop",          color: "#f43f5e" },
-  { id: "4", label: "Built on Framer Reorder.Group",   color: "#f59e0b" },
-  { id: "5", label: "No external lib required",        color: "#a855f7" },
+  { id: "2", label: "Items animate with layout prop", color: "#10b981" },
+  { id: "3", label: "Spring physics on drop", color: "#f43f5e" },
+  { id: "4", label: "Built on Framer Reorder.Group", color: "#f59e0b" },
+  { id: "5", label: "No external lib required", color: "#a855f7" },
 ];
 
 function ReorderList() {
@@ -251,7 +263,12 @@ function ReorderList() {
       tag="layout"
       description="Drag rows to reorder. Framer's layout prop smoothly repositions the siblings."
     >
-      <Reorder.Group axis="y" values={items} onReorder={setItems} className="space-y-2">
+      <Reorder.Group
+        axis="y"
+        values={items}
+        onReorder={setItems}
+        className="space-y-2"
+      >
         {items.map((item) => (
           <Reorder.Item
             key={item.id}
@@ -265,7 +282,9 @@ function ReorderList() {
               style={{ backgroundColor: item.color }}
             />
             <span className="flex-1">{item.label}</span>
-            <span className="shrink-0 select-none text-[12px] text-white/70">⠿</span>
+            <span className="shrink-0 select-none text-[12px] text-white/70">
+              ⠿
+            </span>
           </Reorder.Item>
         ))}
       </Reorder.Group>
@@ -281,9 +300,9 @@ function ScrollParallax() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ container: containerRef });
 
-  const yBack  = useTransform(scrollYProgress, [0, 1], [0, -60]);
-  const yMid   = useTransform(scrollYProgress, [0, 1], [0, -120]);
-  const scale  = useTransform(scrollYProgress, [0, 1], [1, 1.5]);
+  const yBack = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  const yMid = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.5]);
   const rotate = useTransform(scrollYProgress, [0, 1], [0, 180]);
   const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.8, 0.2]);
 
@@ -346,17 +365,17 @@ type GestureState = "idle" | "hover" | "tap" | "drag";
 // Deepened one step from the indigo/violet palette so white label text clears
 // AA contrast on every state (the lighter originals failed for small text).
 const GESTURE_COLORS: Record<GestureState, string> = {
-  idle:  "#4f46e5",
+  idle: "#4f46e5",
   hover: "#7c3aed",
-  tap:   "#9333ea",
-  drag:  "#6d28d9",
+  tap: "#9333ea",
+  drag: "#6d28d9",
 };
 
 const GESTURE_LABELS: Record<GestureState, string> = {
-  idle:  "Waiting for input",
+  idle: "Waiting for input",
   hover: "Pointer hovering",
-  tap:   "Pointer pressed",
-  drag:  "Being dragged",
+  tap: "Pointer pressed",
+  drag: "Being dragged",
 };
 
 function GestureCard() {
@@ -406,9 +425,13 @@ function GestureCard() {
               animate={{ scale: [1, 1.5, 1] }}
               transition={{ duration: 0.25 }}
             />
-            <span className="font-mono text-sm font-semibold text-white">{state}</span>
+            <span className="font-mono text-sm font-semibold text-white">
+              {state}
+            </span>
           </div>
-          <p className="mt-1 text-[12px] text-white/70">{GESTURE_LABELS[state]}</p>
+          <p className="mt-1 text-[12px] text-white/70">
+            {GESTURE_LABELS[state]}
+          </p>
           <div className="mt-4 grid grid-cols-2 gap-1.5">
             {(Object.keys(GESTURE_COLORS) as GestureState[]).map((s) => (
               <div
@@ -557,8 +580,9 @@ export default function MotionPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Motion Lab</h1>
           <p className="mt-1.5 text-[14px] text-neutral-400">
-            Six interactive Framer Motion demos — spring physics, stagger, layout
-            reorder, scroll parallax, gesture tracking, and shared layout transitions.
+            Six interactive Framer Motion demos — spring physics, stagger,
+            layout reorder, scroll parallax, gesture tracking, and shared layout
+            transitions.
           </p>
         </div>
 

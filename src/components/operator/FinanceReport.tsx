@@ -108,7 +108,8 @@ export default function FinanceReport() {
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-left text-sm">
           <caption className="sr-only">
-            Weekly payouts, newest first, with gross revenue, fees and net payout
+            Weekly payouts, newest first, with gross revenue, fees and net
+            payout
           </caption>
           <thead>
             <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">

@@ -69,7 +69,10 @@ const INITIAL: Widget[] = [
 
 function miniSeries(seed: number) {
   const rng = makeRng(seed);
-  return Array.from({ length: 8 }, (_, i) => ({ d: i, v: roundish(100 + rng() * 500) }));
+  return Array.from({ length: 8 }, (_, i) => ({
+    d: i,
+    v: roundish(100 + rng() * 500),
+  }));
 }
 
 /** The visual content of one widget by kind. */
@@ -88,12 +91,24 @@ function WidgetBody({ widget }: { widget: Widget }) {
         {widget.kind === "line" ? (
           <LineChart data={data}>
             <Tooltip />
-            <Line type="monotone" dataKey="v" stroke={ACCENT} strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Line
+              type="monotone"
+              dataKey="v"
+              stroke={ACCENT}
+              strokeWidth={2}
+              dot={false}
+              isAnimationActive={false}
+            />
           </LineChart>
         ) : (
           <BarChart data={data}>
             <Tooltip />
-            <Bar dataKey="v" fill={ACCENT} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+            <Bar
+              dataKey="v"
+              fill={ACCENT}
+              radius={[2, 2, 0, 0]}
+              isAnimationActive={false}
+            />
           </BarChart>
         )}
       </ResponsiveContainer>
@@ -142,10 +157,20 @@ function WidgetCell({
           {widget.title}
         </span>
         <span className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted">
-          <IconButton size="sm" aria-label={`Move ${widget.title} left`} onClick={() => onMove(widget.id, -1)} className="!h-5 !w-5">
+          <IconButton
+            size="sm"
+            aria-label={`Move ${widget.title} left`}
+            onClick={() => onMove(widget.id, -1)}
+            className="!h-5 !w-5"
+          >
             ‹
           </IconButton>
-          <IconButton size="sm" aria-label={`Move ${widget.title} right`} onClick={() => onMove(widget.id, 1)} className="!h-5 !w-5">
+          <IconButton
+            size="sm"
+            aria-label={`Move ${widget.title} right`}
+            onClick={() => onMove(widget.id, 1)}
+            className="!h-5 !w-5"
+          >
             ›
           </IconButton>
           <IconButton
@@ -157,7 +182,12 @@ function WidgetCell({
           >
             {widget.span === 2 ? "▢" : "▭"}
           </IconButton>
-          <IconButton size="sm" aria-label={`Remove ${widget.title}`} onClick={() => onRemove(widget.id)} className="!h-5 !w-5">
+          <IconButton
+            size="sm"
+            aria-label={`Remove ${widget.title}`}
+            onClick={() => onRemove(widget.id)}
+            className="!h-5 !w-5"
+          >
             ✕
           </IconButton>
         </span>
@@ -197,13 +227,16 @@ export default function DashboardDesignerDemo({
 }) {
   const [widgets, setWidgets] = useState<Widget[]>(INITIAL);
   const [nextId, setNextId] = useState(4);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+  );
 
   const add = (kind: WidgetKind, title: string) => {
     setWidgets((w) => [...w, { id: nextId, kind, title, span: 1 }]);
     setNextId((n) => n + 1);
   };
-  const remove = (id: number) => setWidgets((w) => w.filter((x) => x.id !== id));
+  const remove = (id: number) =>
+    setWidgets((w) => w.filter((x) => x.id !== id));
 
   const toggleSpan = (id: number) =>
     setWidgets((w) =>
@@ -231,7 +264,9 @@ export default function DashboardDesignerDemo({
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+        <p className="text-[13px] font-semibold text-foreground">
+          {feature.title}
+        </p>
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] text-muted">Add:</span>
           {PALETTE.map((p) => (

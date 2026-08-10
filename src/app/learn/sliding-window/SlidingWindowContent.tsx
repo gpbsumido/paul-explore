@@ -161,7 +161,8 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button type="button"
+    <button
+      type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",

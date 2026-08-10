@@ -3,7 +3,10 @@
 import { type ComponentPropsWithRef, useId } from "react";
 import { Input as PaulInput } from "@paul-portfolio/react";
 
-interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id" | "size"> {
+interface InputProps extends Omit<
+  ComponentPropsWithRef<"input">,
+  "id" | "size"
+> {
   /** Visible label text */
   label: string;
   /** Visually hide the label while keeping it accessible */

@@ -63,33 +63,33 @@ export default function CommandPaletteRoot() {
   return (
     <>
       {showFloatingTrigger && (
-      <button
-        type="button"
-        onClick={handleOpen}
-        aria-label="Open command palette"
-        aria-haspopup="dialog"
-        className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full border border-border bg-surface/90 px-3 py-2 text-[12px] text-muted shadow-md backdrop-blur transition-colors hover:bg-surface-raised hover:text-foreground"
-      >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
+        <button
+          type="button"
+          onClick={handleOpen}
+          aria-label="Open command palette"
+          aria-haspopup="dialog"
+          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full border border-border bg-surface/90 px-3 py-2 text-[12px] text-muted shadow-md backdrop-blur transition-colors hover:bg-surface-raised hover:text-foreground"
         >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        {shortcut ? (
-          <kbd className="font-sans text-[11px] tracking-wide text-foreground">
-            {shortcut}K
-          </kbd>
-        ) : null}
-      </button>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          {shortcut ? (
+            <kbd className="font-sans text-[11px] tracking-wide text-foreground">
+              {shortcut}K
+            </kbd>
+          ) : null}
+        </button>
       )}
 
       <CommandPalette

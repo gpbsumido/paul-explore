@@ -57,21 +57,24 @@ export default function SkeletonHub() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-10 space-y-16">
-
         {/* Page header */}
         <div className="border-b border-border pb-6">
           <h1 className="text-2xl font-bold mb-1">Skeleton Preview</h1>
           <p className="text-sm text-muted">
-            Dev only. All skeleton states in one place — no loading flash to catch.
-            Full-page skeletons (with their own navs) open in their own route.
+            Dev only. All skeleton states in one place — no loading flash to
+            catch. Full-page skeletons (with their own navs) open in their own
+            route.
           </p>
         </div>
 
         {/* Full-page skeleton links */}
         <section>
-          <h2 className="text-sm font-semibold text-foreground mb-1">Full-page skeletons</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-1">
+            Full-page skeletons
+          </h2>
           <p className="text-xs text-muted mb-4">
-            These have their own sticky nav + min-h-dvh so they need a dedicated URL.
+            These have their own sticky nav + min-h-dvh so they need a dedicated
+            URL.
           </p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {FULL_PAGE.map(({ label, href, note }) => (
@@ -80,7 +83,9 @@ export default function SkeletonHub() {
                 href={href}
                 className="flex flex-col gap-1 rounded-xl border border-border bg-surface p-4 hover:bg-surface-raised transition-colors"
               >
-                <span className="font-mono text-sm font-semibold text-foreground">{label}</span>
+                <span className="font-mono text-sm font-semibold text-foreground">
+                  {label}
+                </span>
                 <span className="text-xs text-muted">{note}</span>
               </Link>
             ))}
@@ -147,14 +152,18 @@ export default function SkeletonHub() {
         >
           <div className="flex flex-col gap-6">
             <div>
-              <p className="text-xs text-muted mb-2">header user info (hidden on mobile)</p>
+              <p className="text-xs text-muted mb-2">
+                header user info (hidden on mobile)
+              </p>
               <div className="flex flex-col gap-0.5">
                 <div className="h-[11px] w-[88px] rounded bg-surface animate-pulse" />
                 <div className="h-[10px] w-[120px] rounded bg-surface animate-pulse" />
               </div>
             </div>
             <div>
-              <p className="text-xs text-muted mb-2">greeting first-name slot in the page h1</p>
+              <p className="text-xs text-muted mb-2">
+                greeting first-name slot in the page h1
+              </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-lg font-semibold">Hey</span>
                 <span className="inline-block h-4 w-16 translate-y-0.5 rounded bg-surface animate-pulse" />
@@ -162,7 +171,6 @@ export default function SkeletonHub() {
             </div>
           </div>
         </InlineSection>
-
       </div>
     </div>
   );
@@ -180,7 +188,9 @@ function InlineSection({
   return (
     <section>
       <div className="mb-3">
-        <h2 className="font-mono text-sm font-semibold text-foreground">{label}</h2>
+        <h2 className="font-mono text-sm font-semibold text-foreground">
+          {label}
+        </h2>
         <p className="text-xs text-muted mt-0.5">{note}</p>
       </div>
       <div className="rounded-xl border border-border bg-background overflow-hidden p-4">

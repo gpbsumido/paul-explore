@@ -3,7 +3,6 @@ import { API_URL } from "@/lib/apiUrl";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
-
 /**
  * DELETE /api/google/auth/disconnect
  *
@@ -16,20 +15,32 @@ export async function DELETE() {
   try {
     ({ token } = await auth0.getAccessToken());
   } catch (err) {
-    console.error("[google BFF] DELETE /auth/disconnect — getAccessToken failed:", err);
+    console.error(
+      "[google BFF] DELETE /auth/disconnect — getAccessToken failed:",
+      err,
+    );
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/google/auth/disconnect`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/google/auth/disconnect`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {
-      console.error("[google BFF] DELETE /auth/disconnect — backend returned", res.status);
-      return NextResponse.json({ error: "Failed to disconnect" }, { status: res.status });
+      console.error(
+        "[google BFF] DELETE /auth/disconnect — backend returned",
+        res.status,
+      );
+      return NextResponse.json(
+        { error: "Failed to disconnect" },
+        { status: res.status },
+      );
     }
     return new NextResponse(null, { status: 204 });
   } catch (err) {

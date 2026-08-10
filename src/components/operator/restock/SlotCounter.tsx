@@ -82,7 +82,10 @@ export default function SlotCounter({
       {/* Counted */}
       <section aria-labelledby="counted-label" className="space-y-2">
         <div className="flex items-center justify-between gap-3">
-          <span id="counted-label" className="text-sm font-medium text-foreground">
+          <span
+            id="counted-label"
+            className="text-sm font-medium text-foreground"
+          >
             Counted on the shelf
           </span>
           {/*
@@ -91,7 +94,9 @@ export default function SlotCounter({
           */}
           <button
             type="button"
-            onClick={() => setCount(local.countedQty === null ? item.currentStock : null)}
+            onClick={() =>
+              setCount(local.countedQty === null ? item.currentStock : null)
+            }
             aria-pressed={local.countedQty === null}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
               local.countedQty === null
@@ -106,8 +111,12 @@ export default function SlotCounter({
           label="counted quantity"
           value={local.countedQty}
           placeholder="not counted"
-          onDecrement={() => setCount(Math.max(0, (local.countedQty ?? item.currentStock) - 1))}
-          onIncrement={() => setCount((local.countedQty ?? item.currentStock) + 1)}
+          onDecrement={() =>
+            setCount(Math.max(0, (local.countedQty ?? item.currentStock) - 1))
+          }
+          onIncrement={() =>
+            setCount((local.countedQty ?? item.currentStock) + 1)
+          }
         />
         <p className="text-xs text-muted">
           Skipping is fine. It is recorded as not counted, so a spot-check reads
@@ -138,10 +147,17 @@ export default function SlotCounter({
           aria-required="true"
           aria-describedby={showReasonError ? reasonErrorId : undefined}
         >
-          <legend id={reasonLegendId} className="text-sm font-medium text-foreground">
+          <legend
+            id={reasonLegendId}
+            className="text-sm font-medium text-foreground"
+          >
             Why was it removed?
           </legend>
-          <div role="radiogroup" aria-labelledby={reasonLegendId} className="flex gap-2">
+          <div
+            role="radiogroup"
+            aria-labelledby={reasonLegendId}
+            className="flex gap-2"
+          >
             {REMOVAL_REASONS.map((reason) => (
               <button
                 key={reason}
@@ -149,7 +165,10 @@ export default function SlotCounter({
                 role="radio"
                 aria-checked={local.removalReason === reason}
                 onClick={() => {
-                  setLocal((prev) => ({ ...prev, removalReason: reason as RemovalReason }));
+                  setLocal((prev) => ({
+                    ...prev,
+                    removalReason: reason as RemovalReason,
+                  }));
                   setShowReasonError(false);
                 }}
                 className={`min-h-11 flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
@@ -237,7 +256,9 @@ function Stepper({
           className="min-w-16 text-center text-lg font-semibold tabular-nums text-foreground"
         >
           {value === null ? (
-            <span className="text-sm font-normal text-muted">{placeholder}</span>
+            <span className="text-sm font-normal text-muted">
+              {placeholder}
+            </span>
           ) : (
             value
           )}

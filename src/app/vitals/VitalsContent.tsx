@@ -318,10 +318,7 @@ export default function VitalsContent({
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {IMPROVEMENTS.map(({ metric, what, how }) => (
-              <div
-                key={metric}
-                className="glass-card rounded-xl p-4"
-              >
+              <div key={metric} className="glass-card rounded-xl p-4">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
                   {metric}
                 </span>

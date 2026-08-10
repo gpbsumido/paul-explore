@@ -38,7 +38,9 @@ describe("stage arrows", () => {
     render(<WorkPortfolioContent />);
     fireEvent.click(screen.getByRole("button", { name: "Previous feature" }));
     expect(
-      screen.getByRole("heading", { name: FEATURES[FEATURES.length - 1].title }),
+      screen.getByRole("heading", {
+        name: FEATURES[FEATURES.length - 1].title,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -80,7 +82,9 @@ describe("keyboard navigation", () => {
     input.focus();
     fireEvent.keyDown(input, { key: "ArrowRight" });
     // still on the intro card, nothing selected
-    expect(screen.queryByRole("heading", { name: FEATURES[0].title })).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: FEATURES[0].title }),
+    ).toBeNull();
   });
 
   it("ignores arrows inside an isolated keyboard scope", () => {
@@ -95,7 +99,9 @@ describe("keyboard navigation", () => {
     const inside = screen.getByRole("button", { name: "inside" });
     inside.focus();
     fireEvent.keyDown(inside, { key: "ArrowRight" });
-    expect(screen.queryByRole("heading", { name: FEATURES[0].title })).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: FEATURES[0].title }),
+    ).toBeNull();
   });
 });
 
@@ -114,7 +120,9 @@ describe("deep links", () => {
   it("an unknown slug leaves the intro card up", () => {
     window.history.replaceState(null, "", "/work-portfolio?feature=nope");
     render(<WorkPortfolioContent />);
-    expect(screen.queryByRole("heading", { name: FEATURES[0].title })).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: FEATURES[0].title }),
+    ).toBeNull();
     window.history.replaceState(null, "", "/work-portfolio");
   });
 

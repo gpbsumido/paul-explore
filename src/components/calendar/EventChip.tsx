@@ -68,7 +68,9 @@ function EventChip({
         }}
         className={[
           "w-full text-left text-xs font-medium px-2 py-0.5 text-foreground border-l-[3px] rounded-r-sm rounded-l-none",
-          block ? "h-full truncate overflow-hidden" : "block truncate mb-0.5 hover:opacity-75 transition-opacity",
+          block
+            ? "h-full truncate overflow-hidden"
+            : "block truncate mb-0.5 hover:opacity-75 transition-opacity",
           continuation && "rounded-sm opacity-80",
         ]
           .filter(Boolean)

@@ -109,19 +109,20 @@ export default function OperatorDashboard() {
   // derive inventory comparison chart data from summaries + store names
   const inventoryComparison = useMemo(
     () =>
-      stores.map((store) => {
-        const summary = summaryByStore.get(store.id);
-        const name =
-          store.name.length > MAX_CHART_NAME_LENGTH
-            ? store.name.slice(0, MAX_CHART_NAME_LENGTH - 1) + "\u2026"
-            : store.name;
-        return { name, health: summary?.inventoryHealth ?? null };
-      })
-      // A store with no summary is unknown, not empty. Plotting it at zero
-      // turned a failed load into a wall of bars that looked like real data.
-      .filter(
-        (row): row is { name: string; health: number } => row.health !== null,
-      ),
+      stores
+        .map((store) => {
+          const summary = summaryByStore.get(store.id);
+          const name =
+            store.name.length > MAX_CHART_NAME_LENGTH
+              ? store.name.slice(0, MAX_CHART_NAME_LENGTH - 1) + "\u2026"
+              : store.name;
+          return { name, health: summary?.inventoryHealth ?? null };
+        })
+        // A store with no summary is unknown, not empty. Plotting it at zero
+        // turned a failed load into a wall of bars that looked like real data.
+        .filter(
+          (row): row is { name: string; health: number } => row.health !== null,
+        ),
     [stores, summaryByStore],
   );
 
@@ -172,8 +173,8 @@ export default function OperatorDashboard() {
       {/* One-line orientation for a cold visitor landing on a dense dashboard */}
       <p className="text-sm text-muted">
         A demo of running a smart-store fleet &mdash; live-style status, alerts,
-        inventory health, and analytics. Filter the stores below, or click one to
-        drill in.
+        inventory health, and analytics. Filter the stores below, or click one
+        to drill in.
       </p>
       {/* Heads-up: the demo runs on a real database that re-seeds on a schedule,
           so operator actions don't persist forever. */}
@@ -183,42 +184,42 @@ export default function OperatorDashboard() {
       >
         <span className="font-medium text-foreground">Heads up:</span> this is a
         live demo backed by a real database that re-seeds on a schedule. Changes
-        you make &mdash; dismissing an alert, rearranging a planogram &mdash; are
-        saved for real, but reset periodically to keep the demo fresh.
+        you make &mdash; dismissing an alert, rearranging a planogram &mdash;
+        are saved for real, but reset periodically to keep the demo fresh.
       </p>
       {/* Operator tools: search the fleet, model a new store, or dig into sales. */}
       <div className="flex flex-wrap gap-2">
         <Link
           href="/operator/search"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+          className="paul-touch-min inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
         >
           Search
           <span aria-hidden="true">&rarr;</span>
         </Link>
         <Link
           href="/operator/planner"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+          className="paul-touch-min inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
         >
           Plan a location
           <span aria-hidden="true">&rarr;</span>
         </Link>
         <Link
           href="/operator/products"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+          className="paul-touch-min inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
         >
           Product performance
           <span aria-hidden="true">&rarr;</span>
         </Link>
         <Link
           href="/operator/loss"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+          className="paul-touch-min inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
         >
           Shrink &amp; loss
           <span aria-hidden="true">&rarr;</span>
         </Link>
         <Link
           href="/operator/finance"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
+          className="paul-touch-min inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:hover:text-primary-400"
         >
           Finance
           <span aria-hidden="true">&rarr;</span>

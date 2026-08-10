@@ -257,7 +257,8 @@ export default function NbaSection() {
             {/* Dot indicators — pill style, close together */}
             <div className="mt-3 flex items-center gap-1.5">
               {SLIDES.map((slide, i) => (
-                <button type="button"
+                <button
+                  type="button"
                   key={slide.id}
                   onClick={() => setActiveSlide(i)}
                   aria-label={`View ${slide.title}`}

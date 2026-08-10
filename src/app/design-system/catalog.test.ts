@@ -70,8 +70,12 @@ describe("token scales", () => {
   });
 
   it("exposes radius and shadow tokens", () => {
-    expect(RADIUS_TOKENS.every((t) => t.var.startsWith("--radius-"))).toBe(true);
-    expect(SHADOW_TOKENS.every((t) => t.var.startsWith("--shadow-"))).toBe(true);
+    expect(RADIUS_TOKENS.every((t) => t.var.startsWith("--radius-"))).toBe(
+      true,
+    );
+    expect(SHADOW_TOKENS.every((t) => t.var.startsWith("--shadow-"))).toBe(
+      true,
+    );
   });
 
   it("carries the full shadow ramp through 2xl", () => {
@@ -100,15 +104,15 @@ describe("buildButtonSnippet", () => {
   });
 
   it("includes only the props that differ from the defaults", () => {
-    expect(
-      buildButtonSnippet({ ...base, variant: "danger", size: "lg" }),
-    ).toBe('<Button variant="danger" size="lg">Click me</Button>');
+    expect(buildButtonSnippet({ ...base, variant: "danger", size: "lg" })).toBe(
+      '<Button variant="danger" size="lg">Click me</Button>',
+    );
   });
 
   it("renders boolean props as bare attributes when enabled", () => {
-    expect(
-      buildButtonSnippet({ ...base, loading: true, disabled: true }),
-    ).toBe("<Button loading disabled>Click me</Button>");
+    expect(buildButtonSnippet({ ...base, loading: true, disabled: true })).toBe(
+      "<Button loading disabled>Click me</Button>",
+    );
   });
 
   it("uses the current label as the button text", () => {

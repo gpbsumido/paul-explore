@@ -30,7 +30,9 @@ const COMMANDS: Command[] = [
   },
 ];
 
-function setup(overrides: Partial<React.ComponentProps<typeof CommandPalette>> = {}) {
+function setup(
+  overrides: Partial<React.ComponentProps<typeof CommandPalette>> = {},
+) {
   const onClose = vi.fn();
   const onSelect = vi.fn();
   const utils = render(
@@ -84,15 +86,9 @@ describe("CommandPalette", () => {
     const input = screen.getByRole("combobox");
     input.focus();
     const optionsBefore = screen.getAllByRole("option");
-    expect(input).toHaveAttribute(
-      "aria-activedescendant",
-      optionsBefore[0].id,
-    );
+    expect(input).toHaveAttribute("aria-activedescendant", optionsBefore[0].id);
     await user.keyboard("{ArrowDown}");
-    expect(input).toHaveAttribute(
-      "aria-activedescendant",
-      optionsBefore[1].id,
-    );
+    expect(input).toHaveAttribute("aria-activedescendant", optionsBefore[1].id);
   });
 
   it("marks the active option as selected", async () => {

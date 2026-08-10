@@ -20,8 +20,13 @@ function ErrorIcon() {
     >
       <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="1.5" />
       <line
-        x1="20" y1="12" x2="20" y2="23"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+        x1="20"
+        y1="12"
+        x2="20"
+        y2="23"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
       <circle cx="20" cy="28" r="1.5" fill="currentColor" />
     </svg>
@@ -40,7 +45,9 @@ export default function RouteError({ reset }: RouteErrorProps) {
     <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background px-6 text-center">
       <ErrorIcon />
       <div>
-        <h1 className="text-lg font-semibold text-foreground">Something went wrong</h1>
+        <h1 className="text-lg font-semibold text-foreground">
+          Something went wrong
+        </h1>
         <p className="mt-1 max-w-xs text-sm leading-relaxed text-muted">
           An unexpected error occurred. The upstream API might be down or the
           request timed out.

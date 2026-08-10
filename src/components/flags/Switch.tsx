@@ -29,7 +29,7 @@ export default function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={[
-        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
+        "paul-touch-target relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
         "disabled:cursor-not-allowed disabled:opacity-50",
         checked ? "bg-success-500" : "bg-neutral-300 dark:bg-neutral-700",

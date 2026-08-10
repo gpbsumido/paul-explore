@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -22,7 +23,9 @@ function Snippet({
         : "text-emerald-400";
   return (
     <div className="mt-3">
-      <p className={`mb-1 text-[11px] font-bold uppercase tracking-wider ${color}`}>
+      <p
+        className={`mb-1 text-[11px] font-bold uppercase tracking-wider ${color}`}
+      >
         {label}
       </p>
       <div className={styles.codeBubble}>{children}</div>
@@ -39,11 +42,10 @@ export default function ReactDoctorContent() {
       intro={
         <>
           React Doctor is a static analyzer that scores a React codebase and
-              flags bugs, performance, accessibility, and maintainability
-              issues. I ran it, it said 36/100, and I worked through the
-              highest-ROI findings. This page is the honest version: what I
-              fixed, one fix that fought back, the false positives, and what I
-              chose not to touch.
+          flags bugs, performance, accessibility, and maintainability issues. I
+          ran it, it said 36/100, and I worked through the highest-ROI findings.
+          This page is the honest version: what I fixed, one fix that fought
+          back, the false positives, and what I chose not to touch.
         </>
       }
       chat={
@@ -61,7 +63,8 @@ export default function ReactDoctorContent() {
             <Received pos="first">What&rsquo;s worth fixing?</Received>
             <Sent pos="first">
               Real bugs + cheap wins: effect cleanups, side effects inside state
-              updaters, missing button types, fetches that skip the status check.
+              updaters, missing button types, fetches that skip the status
+              check.
             </Sent>
             <Sent pos="last">
               Deferred the migration-scale stuff &mdash; full framer-motion
@@ -75,8 +78,8 @@ export default function ReactDoctorContent() {
               &mdash; different rule, same code. Whack-a-mole.
             </Sent>
             <Sent pos="middle">
-              Correct fix is a ref read in the interval callback, but it&rsquo;s a
-              10-file rewrite and those side effects are idempotent anyway.
+              Correct fix is a ref read in the interval callback, but it&rsquo;s
+              a 10-file rewrite and those side effects are idempotent anyway.
             </Sent>
             <Sent pos="last">Reverted the batch, left it as a follow-up.</Sent>
 
@@ -88,18 +91,22 @@ export default function ReactDoctorContent() {
             </Sent>
             <Sent pos="last">Read the file first, always.</Sent>
 
-            <Received pos="first">What about the array-index-key rule?</Received>
+            <Received pos="first">
+              What about the array-index-key rule?
+            </Received>
             <Sent pos="first">
               Read all 65 hits. Every one is a static/append-only list, a
-              recharts &lt;Cell&gt;, or a pure-render map. The lists that reorder
-              already use stable ids.
+              recharts &lt;Cell&gt;, or a pure-render map. The lists that
+              reorder already use stable ids.
             </Sent>
             <Sent pos="middle">
-              So I muted it in <code>doctor.config.json</code> instead of editing
-              65 files. Gotcha: the key needs the{" "}
+              So I muted it in <code>doctor.config.json</code> instead of
+              editing 65 files. Gotcha: the key needs the{" "}
               <code>react-doctor/</code> prefix or it silently no-ops.
             </Sent>
-            <Sent pos="last">Audit first, then suppress. Not the other way around.</Sent>
+            <Sent pos="last">
+              Audit first, then suppress. Not the other way around.
+            </Sent>
 
             <Received pos="first">Verdict?</Received>
             <Sent pos="last">
@@ -114,67 +121,68 @@ export default function ReactDoctorContent() {
       }
     >
       <section>
-              <h2 className="mb-3 text-lg font-bold">The diagnosis</h2>
-              <p className="text-muted">
-                One command, 494 findings, a score of 36/100 (&ldquo;Critical&rdquo;).
-                First job was separating signal from noise: 487 of those were in{" "}
-                <code className="font-mono text-foreground/70">src/</code>, and the
-                other 7 were things like a Python virtualenv that happened to
-                live in the repo and a CI YAML file &mdash; not React, not mine
-                to fix here. The very first &ldquo;top error&rdquo; it showed me
-                was a command-injection warning inside{" "}
-                <code className="font-mono text-foreground/70">pip</code>&rsquo;s
-                source code. Good reminder that a scanner scans everything you
-                point it at.
-              </p>
-              <p className="mt-3 text-muted">
-                I pulled the structured JSON report and ranked the rules by
-                severity and file spread. That ranking, not the pretty terminal
-                output, drove everything after.
-              </p>
-            </section>
+        <h2 className="mb-3 text-lg font-bold">The diagnosis</h2>
+        <p className="text-muted">
+          One command, 494 findings, a score of 36/100 (&ldquo;Critical&rdquo;).
+          First job was separating signal from noise: 487 of those were in{" "}
+          <code className="font-mono text-foreground/70">src/</code>, and the
+          other 7 were things like a Python virtualenv that happened to live in
+          the repo and a CI YAML file &mdash; not React, not mine to fix here.
+          The very first &ldquo;top error&rdquo; it showed me was a
+          command-injection warning inside{" "}
+          <code className="font-mono text-foreground/70">pip</code>&rsquo;s
+          source code. Good reminder that a scanner scans everything you point
+          it at.
+        </p>
+        <p className="mt-3 text-muted">
+          I pulled the structured JSON report and ranked the rules by severity
+          and file spread. That ranking, not the pretty terminal output, drove
+          everything after.
+        </p>
+      </section>
 
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Triage before touching anything</h2>
-              <p className="text-muted">
-                React Doctor&rsquo;s own guidance is sensible and I followed it:
-                treat findings as hypotheses, read the code before confirming,
-                prefer behavior-preserving fixes, and{" "}
-                <em className="text-foreground/80">sample before you sweep</em>{" "}
-                when a single rule spans dozens of files. So I split the work by
-                ROI:
-              </p>
-              <ul className="mt-3 space-y-2 text-muted">
-                <li>
-                  <span className="font-semibold text-foreground">Do now:</span>{" "}
-                  real bugs and cheap mechanical wins &mdash; effect cleanups,
-                  side effects inside state updaters, missing{" "}
-                  <code className="font-mono text-foreground/70">button type</code>,
-                  and fetches that read the body without checking the status.
-                </li>
-                <li>
-                  <span className="font-semibold text-foreground">Defer:</span>{" "}
-                  the migration-scale rules &mdash; a full Framer Motion import
-                  in 53 files, 40 &ldquo;giant components,&rdquo; array-index keys
-                  in 29 files. Each is a project on its own and the wrong thing
-                  to sweep in one unreviewable pass.
-                </li>
-              </ul>
-            </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Triage before touching anything
+        </h2>
+        <p className="text-muted">
+          React Doctor&rsquo;s own guidance is sensible and I followed it: treat
+          findings as hypotheses, read the code before confirming, prefer
+          behavior-preserving fixes, and{" "}
+          <em className="text-foreground/80">sample before you sweep</em> when a
+          single rule spans dozens of files. So I split the work by ROI:
+        </p>
+        <ul className="mt-3 space-y-2 text-muted">
+          <li>
+            <span className="font-semibold text-foreground">Do now:</span> real
+            bugs and cheap mechanical wins &mdash; effect cleanups, side effects
+            inside state updaters, missing{" "}
+            <code className="font-mono text-foreground/70">button type</code>,
+            and fetches that read the body without checking the status.
+          </li>
+          <li>
+            <span className="font-semibold text-foreground">Defer:</span> the
+            migration-scale rules &mdash; a full Framer Motion import in 53
+            files, 40 &ldquo;giant components,&rdquo; array-index keys in 29
+            files. Each is a project on its own and the wrong thing to sweep in
+            one unreviewable pass.
+          </li>
+        </ul>
+      </section>
 
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Fixes that landed</h2>
-              <p className="text-muted">
-                <span className="font-semibold text-foreground">Effect cleanup.</span>{" "}
-                An auto-save effect kicked off a{" "}
-                <code className="font-mono text-foreground/70">fetch</code> and a{" "}
-                <code className="font-mono text-foreground/70">setTimeout</code>{" "}
-                with no cleanup, so an unmount mid-flight could set state on a
-                dead component. Fixed with an{" "}
-                <code className="font-mono text-foreground/70">AbortController</code>{" "}
-                and a cleared timer, plus ignoring the resulting abort error.
-              </p>
-              <Snippet label="Before" tone="before">{`useEffect(() => {
+      <section>
+        <h2 className="mb-3 text-lg font-bold">Fixes that landed</h2>
+        <p className="text-muted">
+          <span className="font-semibold text-foreground">Effect cleanup.</span>{" "}
+          An auto-save effect kicked off a{" "}
+          <code className="font-mono text-foreground/70">fetch</code> and a{" "}
+          <code className="font-mono text-foreground/70">setTimeout</code> with
+          no cleanup, so an unmount mid-flight could set state on a dead
+          component. Fixed with an{" "}
+          <code className="font-mono text-foreground/70">AbortController</code>{" "}
+          and a cleared timer, plus ignoring the resulting abort error.
+        </p>
+        <Snippet label="Before" tone="before">{`useEffect(() => {
   if (!autoSave || !userHasPickedRef.current || isViewMode) return;
   fetch("/api/nba/playoffs/picks", { method: "PUT", /* ... */ })
     .then((res) => {
@@ -185,7 +193,7 @@ export default function ReactDoctorContent() {
     })
     .catch(() => setSaveStatus("idle"));
 }, [autoSave, debouncedPicks, isViewMode, meQuery.data?.name]);`}</Snippet>
-              <Snippet label="After" tone="after">{`useEffect(() => {
+        <Snippet label="After" tone="after">{`useEffect(() => {
   if (!autoSave || !userHasPickedRef.current || isViewMode) return;
   const controller = new AbortController();
   let idleTimer: ReturnType<typeof setTimeout> | undefined;
@@ -202,20 +210,27 @@ export default function ReactDoctorContent() {
     });
   return () => { controller.abort(); if (idleTimer) clearTimeout(idleTimer); };
 }, [autoSave, debouncedPicks, isViewMode, meQuery.data?.name]);`}</Snippet>
-              <p className="mt-3 text-muted">
-                <span className="font-semibold text-foreground">Side effects in state updaters.</span>{" "}
-                The core rule here is that React may call an updater function more
-                than once, so{" "}
-                <code className="font-mono text-foreground/70">setX(prev =&gt; &#123; doSideEffect(); return next &#125;)</code>{" "}
-                is a trap. The clean fixes moved the side effect to where it
-                belongs: the game demo does its round transition in the interval
-                callback via a ref instead of inside{" "}
-                <code className="font-mono text-foreground/70">setProgress</code>;
-                the weather and fleet toggles persist to localStorage in an
-                effect keyed on the value; the calendar&rsquo;s infinite scroll
-                captures scroll height before the prepend rather than during it.
-              </p>
-              <Snippet label="Before — updater does the transition" tone="before">{`setProgress((p) => {
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">
+            Side effects in state updaters.
+          </span>{" "}
+          The core rule here is that React may call an updater function more
+          than once, so{" "}
+          <code className="font-mono text-foreground/70">
+            setX(prev =&gt; &#123; doSideEffect(); return next &#125;)
+          </code>{" "}
+          is a trap. The clean fixes moved the side effect to where it belongs:
+          the game demo does its round transition in the interval callback via a
+          ref instead of inside{" "}
+          <code className="font-mono text-foreground/70">setProgress</code>; the
+          weather and fleet toggles persist to localStorage in an effect keyed
+          on the value; the calendar&rsquo;s infinite scroll captures scroll
+          height before the prepend rather than during it.
+        </p>
+        <Snippet
+          label="Before — updater does the transition"
+          tone="before"
+        >{`setProgress((p) => {
   const next = p + 9 + Math.random() * 11;
   if (next >= 100) {
     clearInterval(timer);
@@ -225,7 +240,10 @@ export default function ReactDoctorContent() {
   }
   return next;
 });`}</Snippet>
-              <Snippet label="After — transition in the interval, via a ref" tone="after">{`const next = progressRef.current + 9 + Math.random() * 11;
+        <Snippet
+          label="After — transition in the interval, via a ref"
+          tone="after"
+        >{`const next = progressRef.current + 9 + Math.random() * 11;
 if (next >= 100) {
   clearInterval(timer);
   progressRef.current = 100; setProgress(100);
@@ -234,38 +252,44 @@ if (next >= 100) {
 } else {
   progressRef.current = next; setProgress(next);
 }`}</Snippet>
-              <p className="mt-4 text-muted">
-                The toggle case is even simpler &mdash; the updater just computes
-                the next value, and persistence moves to an effect keyed on it:
-              </p>
-              <Snippet label="Before" tone="before">{`const toggle = useCallback(() =>
+        <p className="mt-4 text-muted">
+          The toggle case is even simpler &mdash; the updater just computes the
+          next value, and persistence moves to an effect keyed on it:
+        </p>
+        <Snippet label="Before" tone="before">{`const toggle = useCallback(() =>
   setEnabled((v) => {
     const next = !v;
     localStorage.setItem("weather-fx-enabled", String(next)); // in the updater
     return next;
   }), []);`}</Snippet>
-              <Snippet label="After" tone="after">{`const toggle = useCallback(() => setEnabled((v) => !v), []);
+        <Snippet
+          label="After"
+          tone="after"
+        >{`const toggle = useCallback(() => setEnabled((v) => !v), []);
 
 useEffect(() => {
   localStorage.setItem("weather-fx-enabled", String(enabled));
 }, [enabled]);`}</Snippet>
-              <p className="mt-4 text-muted">
-                Two more from the same batch. The landing GraphQL typewriter
-                cleared its interval from inside the updater; now the updater is
-                pure and a small effect stops the interval at the end &mdash; and
-                that effect only calls{" "}
-                <code className="font-mono text-foreground/70">clearInterval</code>,
-                never <code className="font-mono text-foreground/70">setState</code>,
-                so it stays clear of the rule that bit the stepper:
-              </p>
-              <Snippet label="Before" tone="before">{`setCount((prev) => {
+        <p className="mt-4 text-muted">
+          Two more from the same batch. The landing GraphQL typewriter cleared
+          its interval from inside the updater; now the updater is pure and a
+          small effect stops the interval at the end &mdash; and that effect
+          only calls{" "}
+          <code className="font-mono text-foreground/70">clearInterval</code>,
+          never <code className="font-mono text-foreground/70">setState</code>,
+          so it stays clear of the rule that bit the stepper:
+        </p>
+        <Snippet label="Before" tone="before">{`setCount((prev) => {
   if (prev >= query.length) {
     clearInterval(intervalRef.current!); // side effect in the updater
     return prev;
   }
   return prev + 1;
 });`}</Snippet>
-              <Snippet label="After" tone="after">{`setCount((prev) => (prev >= query.length ? prev : prev + 1));
+        <Snippet
+          label="After"
+          tone="after"
+        >{`setCount((prev) => (prev >= query.length ? prev : prev + 1));
 
 useEffect(() => {
   if (count >= query.length && intervalRef.current) {
@@ -273,231 +297,290 @@ useEffect(() => {
     intervalRef.current = null;
   }
 }, [count, query.length]);`}</Snippet>
-              <p className="mt-4 text-muted">
-                And the infinite calendar scroll wrote a ref (the scroll height to
-                restore after a prepend) from inside its updater; that read moves
-                out ahead of the state update, using a ref that mirrors the
-                current periods:
-              </p>
-              <Snippet label="Before" tone="before">{`setPeriods((prev) => {
+        <p className="mt-4 text-muted">
+          And the infinite calendar scroll wrote a ref (the scroll height to
+          restore after a prepend) from inside its updater; that read moves out
+          ahead of the state update, using a ref that mirrors the current
+          periods:
+        </p>
+        <Snippet label="Before" tone="before">{`setPeriods((prev) => {
   const prevPeriod = getPrevPeriod(prev[0]);
   const key = getPeriodKey(prevPeriod);
   if (prev.some((d) => getPeriodKey(d) === key)) return prev;
   if (scrollRef.current) prependHeightRef.current = scrollRef.current.scrollHeight; // ref write
   return [prevPeriod, ...prev];
 });`}</Snippet>
-              <Snippet label="After" tone="after">{`const current = periodsRef.current; // synced to periods in an effect
+        <Snippet
+          label="After"
+          tone="after"
+        >{`const current = periodsRef.current; // synced to periods in an effect
 const prevPeriod = getPrevPeriod(current[0]);
 const key = getPeriodKey(prevPeriod);
 if (current.some((d) => getPeriodKey(d) === key)) return;
 if (scrollRef.current) prependHeightRef.current = scrollRef.current.scrollHeight;
 setPeriods((prev) =>
   prev.some((d) => getPeriodKey(d) === key) ? prev : [prevPeriod, ...prev]);`}</Snippet>
-              <p className="mt-3 text-muted">
-                <span className="font-semibold text-foreground">Button types.</span>{" "}
-                48 buttons across 30 files had no explicit{" "}
-                <code className="font-mono text-foreground/70">type</code>, which
-                defaults to <code className="font-mono text-foreground/70">submit</code>.
-                Before mass-editing I checked that none of those 30 files even
-                contained a <code className="font-mono text-foreground/70">&lt;form&gt;</code>,
-                so <code className="font-mono text-foreground/70">type=&quot;button&quot;</code>{" "}
-                was unambiguously correct &mdash; a genuine submit button would
-                have wanted <code className="font-mono text-foreground/70">type=&quot;submit&quot;</code>{" "}
-                instead. Then a small codemod added the attribute to exactly the
-                flagged lines.
-              </p>
-              <Snippet label="Before" tone="before">{`<button onClick={() => onMove(post.id, -1)}>‹</button>`}</Snippet>
-              <Snippet label="After" tone="after">{`<button type="button" onClick={() => onMove(post.id, -1)}>‹</button>`}</Snippet>
-              <p className="mt-3 text-muted">
-                <span className="font-semibold text-foreground">Fetch status checks.</span>{" "}
-                <code className="font-mono text-foreground/70">fetch()</code> does
-                not reject on a 4xx/5xx &mdash; it resolves, and{" "}
-                <code className="font-mono text-foreground/70">.json()</code> then
-                happily parses an error body. Added{" "}
-                <code className="font-mono text-foreground/70">if (!res.ok) throw</code>{" "}
-                before the reads that lacked it.
-              </p>
-              <Snippet label="Before" tone="before">{`queryFn: () => fetch("/api/me").then((r) => r.json()),`}</Snippet>
-              <Snippet label="After" tone="after">{`queryFn: () =>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">Button types.</span>{" "}
+          48 buttons across 30 files had no explicit{" "}
+          <code className="font-mono text-foreground/70">type</code>, which
+          defaults to{" "}
+          <code className="font-mono text-foreground/70">submit</code>. Before
+          mass-editing I checked that none of those 30 files even contained a{" "}
+          <code className="font-mono text-foreground/70">&lt;form&gt;</code>, so{" "}
+          <code className="font-mono text-foreground/70">
+            type=&quot;button&quot;
+          </code>{" "}
+          was unambiguously correct &mdash; a genuine submit button would have
+          wanted{" "}
+          <code className="font-mono text-foreground/70">
+            type=&quot;submit&quot;
+          </code>{" "}
+          instead. Then a small codemod added the attribute to exactly the
+          flagged lines.
+        </p>
+        <Snippet
+          label="Before"
+          tone="before"
+        >{`<button onClick={() => onMove(post.id, -1)}>‹</button>`}</Snippet>
+        <Snippet
+          label="After"
+          tone="after"
+        >{`<button type="button" onClick={() => onMove(post.id, -1)}>‹</button>`}</Snippet>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">
+            Fetch status checks.
+          </span>{" "}
+          <code className="font-mono text-foreground/70">fetch()</code> does not
+          reject on a 4xx/5xx &mdash; it resolves, and{" "}
+          <code className="font-mono text-foreground/70">.json()</code> then
+          happily parses an error body. Added{" "}
+          <code className="font-mono text-foreground/70">
+            if (!res.ok) throw
+          </code>{" "}
+          before the reads that lacked it.
+        </p>
+        <Snippet
+          label="Before"
+          tone="before"
+        >{`queryFn: () => fetch("/api/me").then((r) => r.json()),`}</Snippet>
+        <Snippet label="After" tone="after">{`queryFn: () =>
   fetch("/api/me").then((r) => {
     if (!r.ok) throw new Error("Failed to load user");
     return r.json();
   }),`}</Snippet>
-              <p className="mt-4 text-muted">
-                One in this batch was a proxy, not a client read: the graphql
-                route forwards the upstream status, so the fix isn&rsquo;t to
-                throw on a bad status &mdash; it&rsquo;s to guard the parse so a
-                non-JSON upstream error can&rsquo;t throw:
-              </p>
-              <Snippet label="Before" tone="before">{`const data = await upstream.json();`}</Snippet>
-              <Snippet label="After" tone="after">{`const data = await upstream.json().catch(() => null);`}</Snippet>
-            </section>
+        <p className="mt-4 text-muted">
+          One in this batch was a proxy, not a client read: the graphql route
+          forwards the upstream status, so the fix isn&rsquo;t to throw on a bad
+          status &mdash; it&rsquo;s to guard the parse so a non-JSON upstream
+          error can&rsquo;t throw:
+        </p>
+        <Snippet
+          label="Before"
+          tone="before"
+        >{`const data = await upstream.json();`}</Snippet>
+        <Snippet
+          label="After"
+          tone="after"
+        >{`const data = await upstream.json().catch(() => null);`}</Snippet>
+      </section>
 
-            <section>
-              <h2 className="mb-3 text-lg font-bold">The fix that fought back</h2>
-              <p className="text-muted">
-                The biggest cluster by count was the same stepper pattern copied
-                across ten algorithm-visualizer pages: a play/advance control
-                that called{" "}
-                <code className="font-mono text-foreground/70">stop()</code>{" "}
-                (clear the interval, set playing false) from{" "}
-                <em className="text-foreground/80">inside</em> the{" "}
-                <code className="font-mono text-foreground/70">setStepIdx</code>{" "}
-                updater. Textbook impure updater.
-              </p>
-              <Snippet label="Before — the impure updater" tone="before">{`setStepIdx((prev) => {
+      <section>
+        <h2 className="mb-3 text-lg font-bold">The fix that fought back</h2>
+        <p className="text-muted">
+          The biggest cluster by count was the same stepper pattern copied
+          across ten algorithm-visualizer pages: a play/advance control that
+          called <code className="font-mono text-foreground/70">stop()</code>{" "}
+          (clear the interval, set playing false) from{" "}
+          <em className="text-foreground/80">inside</em> the{" "}
+          <code className="font-mono text-foreground/70">setStepIdx</code>{" "}
+          updater. Textbook impure updater.
+        </p>
+        <Snippet
+          label="Before — the impure updater"
+          tone="before"
+        >{`setStepIdx((prev) => {
   if (prev >= steps.length - 1) {
     stop(); // clearInterval + setPlaying(false), inside the updater
     return prev;
   }
   return prev + 1;
 });`}</Snippet>
-              <p className="mt-3 text-muted">
-                My first instinct: make the updater pure and move the stop into a
-                small &ldquo;when we reach the last step, stop&rdquo; effect. It
-                read cleanly and typechecked. Then React Doctor flagged the fix
-                with a <em className="text-foreground/80">different</em> rule:
-                calling <code className="font-mono text-foreground/70">setState</code>{" "}
-                synchronously inside an effect body causes cascading renders. I
-                had traded one finding for another &mdash; whack-a-mole.
-              </p>
-              <Snippet label="Attempt — pure updater, but setState in an effect" tone="attempt">{`setStepIdx((prev) => (prev >= steps.length - 1 ? prev : prev + 1));
+        <p className="mt-3 text-muted">
+          My first instinct: make the updater pure and move the stop into a
+          small &ldquo;when we reach the last step, stop&rdquo; effect. It read
+          cleanly and typechecked. Then React Doctor flagged the fix with a{" "}
+          <em className="text-foreground/80">different</em> rule: calling{" "}
+          <code className="font-mono text-foreground/70">setState</code>{" "}
+          synchronously inside an effect body causes cascading renders. I had
+          traded one finding for another &mdash; whack-a-mole.
+        </p>
+        <Snippet
+          label="Attempt — pure updater, but setState in an effect"
+          tone="attempt"
+        >{`setStepIdx((prev) => (prev >= steps.length - 1 ? prev : prev + 1));
 
 useEffect(() => {
   if (playing && stepIdx >= steps.length - 1) stop(); // ← flagged: setState in effect
 }, [playing, stepIdx, steps.length, stop]);`}</Snippet>
-              <p className="mt-3 text-muted">
-                The genuinely correct fix is neither the updater nor an effect:
-                the side effect belongs in the event that drives the change (the
-                interval tick / the click handler), reading the current step from
-                a synced ref. That&rsquo;s right, but it&rsquo;s a per-file
-                restructure across ten files &mdash; and critically, these
-                particular side effects are idempotent (clearing an already-clear
-                interval and setting a boolean false twice are both no-ops), so
-                the real-world harm is close to zero. This is exactly the
-                &ldquo;sample before you sweep&rdquo; case. I reverted the whole
-                stepper batch and left it as a focused follow-up rather than
-                bloat this PR with a risky, low-value ten-file rewrite.
-              </p>
-              <Snippet label="Correct (deferred) — side effect in the callback, via a ref" tone="after">{`// in the interval tick / click handler — not the updater, not an effect
+        <p className="mt-3 text-muted">
+          The genuinely correct fix is neither the updater nor an effect: the
+          side effect belongs in the event that drives the change (the interval
+          tick / the click handler), reading the current step from a synced ref.
+          That&rsquo;s right, but it&rsquo;s a per-file restructure across ten
+          files &mdash; and critically, these particular side effects are
+          idempotent (clearing an already-clear interval and setting a boolean
+          false twice are both no-ops), so the real-world harm is close to zero.
+          This is exactly the &ldquo;sample before you sweep&rdquo; case. I
+          reverted the whole stepper batch and left it as a focused follow-up
+          rather than bloat this PR with a risky, low-value ten-file rewrite.
+        </p>
+        <Snippet
+          label="Correct (deferred) — side effect in the callback, via a ref"
+          tone="after"
+        >{`// in the interval tick / click handler — not the updater, not an effect
 if (stepIdxRef.current >= steps.length - 1) {
   stop();
   return;
 }
 setStepIdx((prev) => prev + 1);`}</Snippet>
-              <p className="mt-3 text-muted">
-                The lesson that stuck: a &ldquo;fix&rdquo; that only relocates a
-                side effect from one disallowed place to another isn&rsquo;t a
-                fix. And a true positive is not automatically worth fixing now
-                &mdash; idempotent impurity in a demo is a different priority
-                than a real leak in a save path.
-              </p>
-              <p className="mt-3 text-muted">
-                <span className="font-semibold text-foreground">Update &mdash; came back and did it.</span>{" "}
-                In a follow-up I applied the correct fix across all ten steppers:
-                a ref mirrors the current step (a ref write in an effect, which
-                is allowed), and play/advance check that ref and{" "}
-                <code className="font-mono text-foreground/70">stop()</code> from
-                the interval or the click handler, leaving the updater pure. That
-                cleared every impure-updater finding in{" "}
-                <code className="font-mono text-foreground/70">learn/</code> (30
-                to 0, twice over) with zero new setState-in-effect &mdash; the
-                proof the recipe was right all along, just in the wrong place the
-                first time. Playback, single-step, and reset behave exactly as
-                before.
-              </p>
-              <Snippet label="Correct — now shipped" tone="after">{`const stepIdxRef = useRef(stepIdx);
+        <p className="mt-3 text-muted">
+          The lesson that stuck: a &ldquo;fix&rdquo; that only relocates a side
+          effect from one disallowed place to another isn&rsquo;t a fix. And a
+          true positive is not automatically worth fixing now &mdash; idempotent
+          impurity in a demo is a different priority than a real leak in a save
+          path.
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">
+            Update &mdash; came back and did it.
+          </span>{" "}
+          In a follow-up I applied the correct fix across all ten steppers: a
+          ref mirrors the current step (a ref write in an effect, which is
+          allowed), and play/advance check that ref and{" "}
+          <code className="font-mono text-foreground/70">stop()</code> from the
+          interval or the click handler, leaving the updater pure. That cleared
+          every impure-updater finding in{" "}
+          <code className="font-mono text-foreground/70">learn/</code> (30 to 0,
+          twice over) with zero new setState-in-effect &mdash; the proof the
+          recipe was right all along, just in the wrong place the first time.
+          Playback, single-step, and reset behave exactly as before.
+        </p>
+        <Snippet
+          label="Correct — now shipped"
+          tone="after"
+        >{`const stepIdxRef = useRef(stepIdx);
 useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]); // ref write, allowed
 
 const advance = useCallback(() => {
   if (stepIdxRef.current >= steps.length - 1) { stop(); return; } // in the handler
   setStepIdx((prev) => prev + 1);                                  // pure updater
 }, [steps.length, stop]);`}</Snippet>
-              <p className="mt-4 text-muted">
-                <span className="font-semibold text-foreground">Then the tests caught it out.</span>{" "}
-                Writing a test that clicks Play and advances fake timers past the
-                end &mdash; the exact thing you&rsquo;d write to lock the behavior
-                in &mdash; blew up with{" "}
-                <code className="font-mono text-foreground/70">Cannot read properties of undefined</code>.
-                The guard reads{" "}
-                <code className="font-mono text-foreground/70">stepIdxRef.current</code>,
-                but that ref is only refreshed by an effect{" "}
-                <em className="text-foreground/80">after</em> React commits. At a
-                real 800ms cadence the effect always flushes between ticks, so it
-                looked correct. Batched timers fire many ticks in one go with no
-                commit in between, so the ref stays stale, the guard never trips,
-                and <code className="font-mono text-foreground/70">stepIdx</code>{" "}
-                runs off the end of the array.
-              </p>
-              <p className="mt-3 text-muted">
-                The fix is to stop leaning on the effect for the value the loop
-                depends on: write the ref synchronously in the same callback that
-                advances the step. The effect stays (it still catches Step and
-                Reset), but the interval no longer races it. Lesson: a fix that
-                &ldquo;works&rdquo; because of a timing gap isn&rsquo;t done until
-                a test closes the gap &mdash; and the test is what found it.
-              </p>
-              <Snippet label="Fragile — guard reads a ref an effect updates a beat later" tone="attempt">{`intervalRef.current = setInterval(() => {
+        <p className="mt-4 text-muted">
+          <span className="font-semibold text-foreground">
+            Then the tests caught it out.
+          </span>{" "}
+          Writing a test that clicks Play and advances fake timers past the end
+          &mdash; the exact thing you&rsquo;d write to lock the behavior in
+          &mdash; blew up with{" "}
+          <code className="font-mono text-foreground/70">
+            Cannot read properties of undefined
+          </code>
+          . The guard reads{" "}
+          <code className="font-mono text-foreground/70">
+            stepIdxRef.current
+          </code>
+          , but that ref is only refreshed by an effect{" "}
+          <em className="text-foreground/80">after</em> React commits. At a real
+          800ms cadence the effect always flushes between ticks, so it looked
+          correct. Batched timers fire many ticks in one go with no commit in
+          between, so the ref stays stale, the guard never trips, and{" "}
+          <code className="font-mono text-foreground/70">stepIdx</code> runs off
+          the end of the array.
+        </p>
+        <p className="mt-3 text-muted">
+          The fix is to stop leaning on the effect for the value the loop
+          depends on: write the ref synchronously in the same callback that
+          advances the step. The effect stays (it still catches Step and Reset),
+          but the interval no longer races it. Lesson: a fix that
+          &ldquo;works&rdquo; because of a timing gap isn&rsquo;t done until a
+          test closes the gap &mdash; and the test is what found it.
+        </p>
+        <Snippet
+          label="Fragile — guard reads a ref an effect updates a beat later"
+          tone="attempt"
+        >{`intervalRef.current = setInterval(() => {
   if (stepIdxRef.current >= steps.length - 1) { stop(); return; } // stale under batched ticks
   setStepIdx((prev) => prev + 1); // ref only catches up after commit
 }, 800);`}</Snippet>
-              <Snippet label="Robust — the callback writes the ref itself" tone="after">{`intervalRef.current = setInterval(() => {
+        <Snippet
+          label="Robust — the callback writes the ref itself"
+          tone="after"
+        >{`intervalRef.current = setInterval(() => {
   if (stepIdxRef.current >= steps.length - 1) { stop(); return; }
   stepIdxRef.current += 1;            // authoritative, synchronous
   setStepIdx(stepIdxRef.current);
 }, 800);`}</Snippet>
-            </section>
+      </section>
 
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Reading before fixing: the false positives</h2>
-              <p className="text-muted">
-                Two flagged items were false positives once I read them. A{" "}
-                &ldquo;side effect in a GET handler&rdquo; (CSRF risk) pointed at{" "}
-                <code className="font-mono text-foreground/70">Query.create()</code>{" "}
-                in the TCG route &mdash; but that&rsquo;s a read-only query
-                builder and the endpoint is idempotent and CDN-cached, no state
-                mutation anywhere. And a &ldquo;fetch used without a status
-                check&rdquo; in the vitals proxy was already resilient: it forwards
-                the upstream status and parses with{" "}
-                <code className="font-mono text-foreground/70">.catch(() =&gt; null)</code>.
-                Both left as-is, documented. The tool says as much itself:
-                don&rsquo;t suppress without evidence from the file.
-              </p>
-            </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Reading before fixing: the false positives
+        </h2>
+        <p className="text-muted">
+          Two flagged items were false positives once I read them. A &ldquo;side
+          effect in a GET handler&rdquo; (CSRF risk) pointed at{" "}
+          <code className="font-mono text-foreground/70">Query.create()</code>{" "}
+          in the TCG route &mdash; but that&rsquo;s a read-only query builder
+          and the endpoint is idempotent and CDN-cached, no state mutation
+          anywhere. And a &ldquo;fetch used without a status check&rdquo; in the
+          vitals proxy was already resilient: it forwards the upstream status
+          and parses with{" "}
+          <code className="font-mono text-foreground/70">
+            .catch(() =&gt; null)
+          </code>
+          . Both left as-is, documented. The tool says as much itself:
+          don&rsquo;t suppress without evidence from the file.
+        </p>
+      </section>
 
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Deferred by design</h2>
-              <p className="text-muted">
-                The migration-scale rules are real and worth doing &mdash; the
-                full <code className="font-mono text-foreground/70">framer-motion</code>{" "}
-                import inflates the bundle, giant components are hard to change,
-                array-index keys bite on reorder &mdash; but they&rsquo;re each a
-                deliberate, reviewable effort with their own trade-offs. Sweeping
-                53 files of motion imports or splitting 40 components in a
-                &ldquo;react-doctor fixes&rdquo; PR would be unreviewable and
-                exactly the failure mode the tool warns about. Those get their own
-                PRs, a sampled recipe first.
-              </p>
-            </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">Deferred by design</h2>
+        <p className="text-muted">
+          The migration-scale rules are real and worth doing &mdash; the full{" "}
+          <code className="font-mono text-foreground/70">framer-motion</code>{" "}
+          import inflates the bundle, giant components are hard to change,
+          array-index keys bite on reorder &mdash; but they&rsquo;re each a
+          deliberate, reviewable effort with their own trade-offs. Sweeping 53
+          files of motion imports or splitting 40 components in a
+          &ldquo;react-doctor fixes&rdquo; PR would be unreviewable and exactly
+          the failure mode the tool warns about. Those get their own PRs, a
+          sampled recipe first.
+        </p>
+      </section>
 
-            <section>
-              <h2 className="mb-3 text-lg font-bold">A second pass: render &amp; layout work</h2>
-              <p className="text-muted">
-                Coming back for a second batch, this time performance rules that
-                were real and safe (as opposed to the migration-scale ones).
-              </p>
-              <p className="mt-3 text-muted">
-                <span className="font-semibold text-foreground">Unmemoized context values.</span>{" "}
-                Two providers built their context{" "}
-                <code className="font-mono text-foreground/70">value</code> inline,
-                so a brand-new object every render &mdash; which makes{" "}
-                <em className="text-foreground/80">every</em> consumer of that
-                context re-render even when nothing it cares about changed. The
-                fix is a <code className="font-mono text-foreground/70">useMemo</code>{" "}
-                keyed on the values that actually change (the store functions are
-                already stable module-level refs).
-              </p>
-              <Snippet label="Before" tone="before">{`<ToastContext.Provider
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          A second pass: render &amp; layout work
+        </h2>
+        <p className="text-muted">
+          Coming back for a second batch, this time performance rules that were
+          real and safe (as opposed to the migration-scale ones).
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">
+            Unmemoized context values.
+          </span>{" "}
+          Two providers built their context{" "}
+          <code className="font-mono text-foreground/70">value</code> inline, so
+          a brand-new object every render &mdash; which makes{" "}
+          <em className="text-foreground/80">every</em> consumer of that context
+          re-render even when nothing it cares about changed. The fix is a{" "}
+          <code className="font-mono text-foreground/70">useMemo</code> keyed on
+          the values that actually change (the store functions are already
+          stable module-level refs).
+        </p>
+        <Snippet label="Before" tone="before">{`<ToastContext.Provider
   value={{
     toasts,
     addToast: toastStore.addToast,
@@ -506,161 +589,199 @@ const advance = useCallback(() => {
 >
   {children}
 </ToastContext.Provider>`}</Snippet>
-              <Snippet label="After" tone="after">{`const value = useMemo(
+        <Snippet label="After" tone="after">{`const value = useMemo(
   () => ({ toasts, addToast: toastStore.addToast, removeToast: toastStore.removeToast }),
   [toasts],
 );
 
 return <ToastContext.Provider value={value}>{children}</ToastContext.Provider>;`}</Snippet>
-              <p className="mt-4 text-muted">
-                <span className="font-semibold text-foreground">toLocaleString() in render.</span>{" "}
-                Two operator components formatted a timestamp with{" "}
-                <code className="font-mono text-foreground/70">toLocaleString()</code>{" "}
-                during render &mdash; but locale and timezone differ between the
-                server and the browser, so that&rsquo;s a hydration mismatch. The
-                interesting part is the fix hit the{" "}
-                <em className="text-foreground/80">same tension as the stepper</em>:
-                the obvious &ldquo;format after mount&rdquo; needs a{" "}
-                <code className="font-mono text-foreground/70">setState</code> in
-                an effect, which React Doctor flags. The clean answer that
-                satisfies both rules is{" "}
-                <code className="font-mono text-foreground/70">useSyncExternalStore</code>{" "}
-                with a server snapshot &mdash; render an empty string on the
-                server, the formatted value on the client, no effect and no
-                mismatch.
-              </p>
-              <Snippet label="Before — formats during render (hydration mismatch)" tone="before">{`<span title={date.toLocaleString()}>
+        <p className="mt-4 text-muted">
+          <span className="font-semibold text-foreground">
+            toLocaleString() in render.
+          </span>{" "}
+          Two operator components formatted a timestamp with{" "}
+          <code className="font-mono text-foreground/70">toLocaleString()</code>{" "}
+          during render &mdash; but locale and timezone differ between the
+          server and the browser, so that&rsquo;s a hydration mismatch. The
+          interesting part is the fix hit the{" "}
+          <em className="text-foreground/80">same tension as the stepper</em>:
+          the obvious &ldquo;format after mount&rdquo; needs a{" "}
+          <code className="font-mono text-foreground/70">setState</code> in an
+          effect, which React Doctor flags. The clean answer that satisfies both
+          rules is{" "}
+          <code className="font-mono text-foreground/70">
+            useSyncExternalStore
+          </code>{" "}
+          with a server snapshot &mdash; render an empty string on the server,
+          the formatted value on the client, no effect and no mismatch.
+        </p>
+        <Snippet
+          label="Before — formats during render (hydration mismatch)"
+          tone="before"
+        >{`<span title={date.toLocaleString()}>
   {formatDistanceToNow(date, { addSuffix: true })}
 </span>`}</Snippet>
-              <Snippet label="Attempt — clears the mismatch, but setState in an effect" tone="attempt">{`const [str, setStr] = useState("");
+        <Snippet
+          label="Attempt — clears the mismatch, but setState in an effect"
+          tone="attempt"
+        >{`const [str, setStr] = useState("");
 useEffect(() => { setStr(date.toLocaleString()); }, [iso]); // ← flagged`}</Snippet>
-              <Snippet label="After — server snapshot, no effect, no mismatch" tone="after">{`export function useLocaleDateTime(iso: string): string {
+        <Snippet
+          label="After — server snapshot, no effect, no mismatch"
+          tone="after"
+        >{`export function useLocaleDateTime(iso: string): string {
   return useSyncExternalStore(
     () => () => {},
     () => new Date(iso).toLocaleString(), // client
     () => "",                             // server
   );
 }`}</Snippet>
-              <p className="mt-4 text-muted">
-                <span className="font-semibold text-foreground">&lt;img&gt; to next/image.</span>{" "}
-                The &ldquo;use next/image&rdquo; rule is mostly a defer &mdash;
-                but the email-studio demo&rsquo;s image block is a real case worth
-                doing. It renders a{" "}
-                <code className="font-mono text-foreground/70">data:</code> URL
-                from a local file import, so there&rsquo;s nothing for the
-                optimizer to actually do; the fix is{" "}
-                <code className="font-mono text-foreground/70">next/image</code>{" "}
-                with <code className="font-mono text-foreground/70">fill</code>{" "}
-                and <code className="font-mono text-foreground/70">unoptimized</code>,
-                which clears the lint and keeps the exact same output.
-              </p>
-              <Snippet label="Before" tone="before">{`<img
+        <p className="mt-4 text-muted">
+          <span className="font-semibold text-foreground">
+            &lt;img&gt; to next/image.
+          </span>{" "}
+          The &ldquo;use next/image&rdquo; rule is mostly a defer &mdash; but
+          the email-studio demo&rsquo;s image block is a real case worth doing.
+          It renders a{" "}
+          <code className="font-mono text-foreground/70">data:</code> URL from a
+          local file import, so there&rsquo;s nothing for the optimizer to
+          actually do; the fix is{" "}
+          <code className="font-mono text-foreground/70">next/image</code> with{" "}
+          <code className="font-mono text-foreground/70">fill</code> and{" "}
+          <code className="font-mono text-foreground/70">unoptimized</code>,
+          which clears the lint and keeps the exact same output.
+        </p>
+        <Snippet label="Before" tone="before">{`<img
   src={block.src}
   alt="email banner"
   className="h-16 w-full rounded-md object-cover"
 />`}</Snippet>
-              <Snippet label="After" tone="after">{`<div className="relative h-16 w-full overflow-hidden rounded-md">
+        <Snippet
+          label="After"
+          tone="after"
+        >{`<div className="relative h-16 w-full overflow-hidden rounded-md">
   <Image src={block.src} alt="email banner" fill unoptimized sizes="100vw" className="object-cover" />
 </div>`}</Snippet>
-              <p className="mt-4 text-muted">
-                <span className="font-semibold text-foreground">Framer Motion, sampled.</span>{" "}
-                The biggest deferred item is the full{" "}
-                <code className="font-mono text-foreground/70">framer-motion</code>{" "}
-                import across ~53 files &mdash; the fix is{" "}
-                <code className="font-mono text-foreground/70">LazyMotion</code>{" "}
-                plus the lighter{" "}
-                <code className="font-mono text-foreground/70">m</code> components.
-                Per the tool&rsquo;s own advice I did a <em className="text-foreground/80">sample</em>{" "}
-                first: mount the provider once and convert three files, to prove
-                the recipe before sweeping the rest. Two things it forced me to
-                get right &mdash; the bundle must be{" "}
-                <code className="font-mono text-foreground/70">domMax</code> (not
-                the smaller <code className="font-mono text-foreground/70">domAnimation</code>)
-                because the app animates <code className="font-mono text-foreground/70">layout</code>{" "}
-                and <code className="font-mono text-foreground/70">drag</code>, and
-                it has to stay <em className="text-foreground/80">non-strict</em>{" "}
-                so the ~50 files still on <code className="font-mono text-foreground/70">motion</code>{" "}
-                kept working while the migration was in flight. That sweep has
-                since landed &mdash; all 50 remaining files are now on{" "}
-                <code className="font-mono text-foreground/70">m</code>.
-              </p>
-              <p className="mt-3 text-muted">
-                <span className="font-semibold text-foreground">Then I measured it, and the honest number is small.</span>{" "}
-                A production build before and after the sweep moves the total
-                client JS by about <code className="font-mono text-foreground/70">2.8&nbsp;KB</code>{" "}
-                gzipped &mdash; roughly 0.1%. That is not the win it looks like on
-                paper, and the reason is the interesting part:{" "}
-                <code className="font-mono text-foreground/70">domMax</code> is a{" "}
-                <em className="text-foreground/80">static</em> import in{" "}
-                <code className="font-mono text-foreground/70">providers.tsx</code>,
-                so the full feature set (layout projection, drag, gestures &mdash;
-                about <code className="font-mono text-foreground/70">38&nbsp;KB</code>{" "}
-                gzipped of Framer code) ships app-wide no matter what. Swapping{" "}
-                <code className="font-mono text-foreground/70">motion</code> for{" "}
-                <code className="font-mono text-foreground/70">m</code> only drops
-                the redundant component wrappers, not the features.
-              </p>
-              <p className="mt-3 text-muted">
-                So the sweep is not the payoff &mdash; it is the{" "}
-                <em className="text-foreground/80">prerequisite</em>. As long as a
-                single file statically imports the full{" "}
-                <code className="font-mono text-foreground/70">motion</code>,{" "}
-                <code className="font-mono text-foreground/70">domMax</code> cannot
-                move to a dynamic import. Now that nothing does, the real next
-                step &mdash; async-loading{" "}
-                <code className="font-mono text-foreground/70">domMax</code> so
-                that ~38&nbsp;KB loads only when an animated view actually mounts
-                &mdash; is finally unblocked. That is where the measurable win
-                lands, and it gets its own PR.
-              </p>
-              <Snippet label="Before" tone="before">{`import { motion } from "framer-motion";
+        <p className="mt-4 text-muted">
+          <span className="font-semibold text-foreground">
+            Framer Motion, sampled.
+          </span>{" "}
+          The biggest deferred item is the full{" "}
+          <code className="font-mono text-foreground/70">framer-motion</code>{" "}
+          import across ~53 files &mdash; the fix is{" "}
+          <code className="font-mono text-foreground/70">LazyMotion</code> plus
+          the lighter <code className="font-mono text-foreground/70">m</code>{" "}
+          components. Per the tool&rsquo;s own advice I did a{" "}
+          <em className="text-foreground/80">sample</em> first: mount the
+          provider once and convert three files, to prove the recipe before
+          sweeping the rest. Two things it forced me to get right &mdash; the
+          bundle must be{" "}
+          <code className="font-mono text-foreground/70">domMax</code> (not the
+          smaller{" "}
+          <code className="font-mono text-foreground/70">domAnimation</code>)
+          because the app animates{" "}
+          <code className="font-mono text-foreground/70">layout</code> and{" "}
+          <code className="font-mono text-foreground/70">drag</code>, and it has
+          to stay <em className="text-foreground/80">non-strict</em> so the ~50
+          files still on{" "}
+          <code className="font-mono text-foreground/70">motion</code> kept
+          working while the migration was in flight. That sweep has since landed
+          &mdash; all 50 remaining files are now on{" "}
+          <code className="font-mono text-foreground/70">m</code>.
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">
+            Then I measured it, and the honest number is small.
+          </span>{" "}
+          A production build before and after the sweep moves the total client
+          JS by about{" "}
+          <code className="font-mono text-foreground/70">2.8&nbsp;KB</code>{" "}
+          gzipped &mdash; roughly 0.1%. That is not the win it looks like on
+          paper, and the reason is the interesting part:{" "}
+          <code className="font-mono text-foreground/70">domMax</code> is a{" "}
+          <em className="text-foreground/80">static</em> import in{" "}
+          <code className="font-mono text-foreground/70">providers.tsx</code>,
+          so the full feature set (layout projection, drag, gestures &mdash;
+          about <code className="font-mono text-foreground/70">38&nbsp;KB</code>{" "}
+          gzipped of Framer code) ships app-wide no matter what. Swapping{" "}
+          <code className="font-mono text-foreground/70">motion</code> for{" "}
+          <code className="font-mono text-foreground/70">m</code> only drops the
+          redundant component wrappers, not the features.
+        </p>
+        <p className="mt-3 text-muted">
+          So the sweep is not the payoff &mdash; it is the{" "}
+          <em className="text-foreground/80">prerequisite</em>. As long as a
+          single file statically imports the full{" "}
+          <code className="font-mono text-foreground/70">motion</code>,{" "}
+          <code className="font-mono text-foreground/70">domMax</code> cannot
+          move to a dynamic import. Now that nothing does, the real next step
+          &mdash; async-loading{" "}
+          <code className="font-mono text-foreground/70">domMax</code> so that
+          ~38&nbsp;KB loads only when an animated view actually mounts &mdash;
+          is finally unblocked. That is where the measurable win lands, and it
+          gets its own PR.
+        </p>
+        <Snippet
+          label="Before"
+          tone="before"
+        >{`import { motion } from "framer-motion";
 // ...
 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} />`}</Snippet>
-              <Snippet label="After" tone="after">{`// providers.tsx — once, app-wide
+        <Snippet label="After" tone="after">{`// providers.tsx — once, app-wide
 <LazyMotion features={domMax}>{children}</LazyMotion>
 
 // a converted component
 import { m } from "framer-motion";
 <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} />`}</Snippet>
-            </section>
+      </section>
 
-            <section>
-              <h2 className="mb-3 text-lg font-bold">Following up on a deferred rule: the array-index keys</h2>
-              <p className="text-muted">
-                One of the deferred rules was{" "}
-                <code className="font-mono text-foreground/70">no-array-index-as-key</code>{" "}
-                &mdash; 65 hits across the codebase. Rather than sweep-edit or
-                keep ignoring it, I actually read all 65. Every single one falls
-                into a safe bucket: a static or append-only list that never
-                reorders, an idiomatic recharts{" "}
-                <code className="font-mono text-foreground/70">&lt;Cell&gt;</code>{" "}
-                inside a <code className="font-mono text-foreground/70">.map</code>,
-                or a pure-render list with no local state to mis-associate. The
-                lists that <em className="text-foreground/80">do</em> reorder
-                (drag-and-drop boards, editable rows) were already keyed by
-                stable ids. So the rule was firing 65 times with a real-world
-                harm of zero.
-              </p>
-              <p className="mt-3 text-muted">
-                Index keys only bite when a list is reordered or has items
-                inserted in the middle: React reuses the wrong DOM node and any
-                per-item local state (focus, an open menu, an animation)
-                attaches to the wrong row. None of that applies to an
-                append-only or never-changing list &mdash; there the index{" "}
-                <em className="text-foreground/80">is</em> a stable identity.
-              </p>
-              <p className="mt-3 text-muted">
-                So the right move was to mute the rule, not edit 65 files. React
-                Doctor takes a{" "}
-                <code className="font-mono text-foreground/70">doctor.config.json</code>{" "}
-                with per-rule severities. One gotcha that cost me a few runs: the
-                rule key has to be the fully-qualified{" "}
-                <code className="font-mono text-foreground/70">react-doctor/no-array-index-as-key</code>{" "}
-                &mdash; the bare short name loads without error but silently
-                doesn&rsquo;t match, so the score never moves. With the prefix,
-                the 65 findings drop out and the score ticked up.
-              </p>
-              <Snippet label="doctor.config.json — mute a rule I audited as safe here" tone="after">{`{
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Following up on a deferred rule: the array-index keys
+        </h2>
+        <p className="text-muted">
+          One of the deferred rules was{" "}
+          <code className="font-mono text-foreground/70">
+            no-array-index-as-key
+          </code>{" "}
+          &mdash; 65 hits across the codebase. Rather than sweep-edit or keep
+          ignoring it, I actually read all 65. Every single one falls into a
+          safe bucket: a static or append-only list that never reorders, an
+          idiomatic recharts{" "}
+          <code className="font-mono text-foreground/70">&lt;Cell&gt;</code>{" "}
+          inside a <code className="font-mono text-foreground/70">.map</code>,
+          or a pure-render list with no local state to mis-associate. The lists
+          that <em className="text-foreground/80">do</em> reorder (drag-and-drop
+          boards, editable rows) were already keyed by stable ids. So the rule
+          was firing 65 times with a real-world harm of zero.
+        </p>
+        <p className="mt-3 text-muted">
+          Index keys only bite when a list is reordered or has items inserted in
+          the middle: React reuses the wrong DOM node and any per-item local
+          state (focus, an open menu, an animation) attaches to the wrong row.
+          None of that applies to an append-only or never-changing list &mdash;
+          there the index <em className="text-foreground/80">is</em> a stable
+          identity.
+        </p>
+        <p className="mt-3 text-muted">
+          So the right move was to mute the rule, not edit 65 files. React
+          Doctor takes a{" "}
+          <code className="font-mono text-foreground/70">
+            doctor.config.json
+          </code>{" "}
+          with per-rule severities. One gotcha that cost me a few runs: the rule
+          key has to be the fully-qualified{" "}
+          <code className="font-mono text-foreground/70">
+            react-doctor/no-array-index-as-key
+          </code>{" "}
+          &mdash; the bare short name loads without error but silently
+          doesn&rsquo;t match, so the score never moves. With the prefix, the 65
+          findings drop out and the score ticked up.
+        </p>
+        <Snippet
+          label="doctor.config.json — mute a rule I audited as safe here"
+          tone="after"
+        >{`{
   "$schema": "https://react.doctor/schema/config.json",
   "rules": {
     // Audited all 65 hits: static/append-only lists, recharts <Cell>,
@@ -668,41 +789,59 @@ import { m } from "framer-motion";
     "react-doctor/no-array-index-as-key": "off"
   }
 }`}</Snippet>
-              <p className="mt-3 text-muted">
-                Config-as-suppression only earns its keep because the audit came
-                first. Muting a rule you haven&rsquo;t read is how you turn a
-                scanner into decoration.
-              </p>
-            </section>
+        <p className="mt-3 text-muted">
+          Config-as-suppression only earns its keep because the audit came
+          first. Muting a rule you haven&rsquo;t read is how you turn a scanner
+          into decoration.
+        </p>
+      </section>
 
-            <section>
-              <h2 className="mb-3 text-lg font-bold">What React Doctor got right, and wrong</h2>
-              <p className="text-muted">
-                <span className="font-semibold text-foreground">Right:</span> the
-                bug rules are high-signal &mdash; impure updators, missing effect
-                cleanup, unchecked fetches, and missing button types are all real.
-                The JSON report is the actual product; ranking rules by severity
-                and spread is what makes it usable. And its meta-advice
-                (&ldquo;sample before you sweep,&rdquo; &ldquo;split broad work
-                into separate PRs&rdquo;) is genuinely good process.
-              </p>
-              <p className="mt-3 text-muted">
-                <span className="font-semibold text-foreground">Wrong / careful:</span>{" "}
-                it scans everything you point it at, so a repo with a stray venv
-                gets you findings inside <code className="font-mono text-foreground/70">pip</code>.
-                Some rules are context-blind (the read-only GET handler, the
-                already-resilient proxy). Severity isn&rsquo;t priority: 73
-                idempotent updater findings in demos ranked above a single real
-                leak. And one of its own rules can flag the naive fix for another
-                &mdash; you have to understand the underlying React model, not
-                just chase the score down.
-              </p>
-              <p className="mt-3 text-muted">
-                Net: a good hypothesis generator, a bad autopilot. Every finding
-                got read before it got fixed, deferred, or dismissed &mdash;
-                which is the only way to use a tool like this.
-              </p>
-            </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          What React Doctor got right, and wrong
+        </h2>
+        <p className="text-muted">
+          <span className="font-semibold text-foreground">Right:</span> the bug
+          rules are high-signal &mdash; impure updators, missing effect cleanup,
+          unchecked fetches, and missing button types are all real. The JSON
+          report is the actual product; ranking rules by severity and spread is
+          what makes it usable. And its meta-advice (&ldquo;sample before you
+          sweep,&rdquo; &ldquo;split broad work into separate PRs&rdquo;) is
+          genuinely good process.
+        </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">
+            Wrong / careful:
+          </span>{" "}
+          it scans everything you point it at, so a repo with a stray venv gets
+          you findings inside{" "}
+          <code className="font-mono text-foreground/70">pip</code>. Some rules
+          are context-blind (the read-only GET handler, the already-resilient
+          proxy). Severity isn&rsquo;t priority: 73 idempotent updater findings
+          in demos ranked above a single real leak. And one of its own rules can
+          flag the naive fix for another &mdash; you have to understand the
+          underlying React model, not just chase the score down.
+        </p>
+        <p className="mt-3 text-muted">
+          Net: a good hypothesis generator, a bad autopilot. Every finding got
+          read before it got fixed, deferred, or dismissed &mdash; which is the
+          only way to use a tool like this.
+        </p>
+      </section>
+      <WhatsNext
+        nowShipped={[
+          "A static-analysis pass worked to conclusion rather than run and admired, with the fixes that landed separated from the ones deliberately declined.",
+          "False positives recorded as false positives, because a tool's output is evidence rather than a to-do list.",
+          "Severity treated as distinct from priority, which is the whole judgement a tool cannot make for you.",
+        ]}
+        couldImprove={[
+          "It is not part of CI, so the same issues can reaccumulate between deliberate passes.",
+          "The deferred items have no trigger for revisiting — they are deferred by design and effectively indefinitely.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. Rerunning it is cheap and worth doing when something feels off rather than on a calendar.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

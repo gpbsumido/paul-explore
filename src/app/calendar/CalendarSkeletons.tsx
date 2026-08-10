@@ -39,7 +39,9 @@ export function MonthSkeleton() {
       <div className="rounded-xl border border-border overflow-hidden">
         <div
           className="grid border-b border-border bg-surface"
-          style={{ gridTemplateColumns: `repeat(${MONTH_COLS}, minmax(0, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${MONTH_COLS}, minmax(0, 1fr))`,
+          }}
         >
           {Array.from({ length: MONTH_COLS }).map((_, i) => (
             <div key={i} className="py-2.5 flex justify-center">
@@ -49,7 +51,9 @@ export function MonthSkeleton() {
         </div>
         <div
           className="grid"
-          style={{ gridTemplateColumns: `repeat(${MONTH_COLS}, minmax(0, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${MONTH_COLS}, minmax(0, 1fr))`,
+          }}
         >
           {Array.from({ length: MONTH_CELLS }).map((_, i) => {
             const isLastCol = (i + 1) % MONTH_COLS === 0;
@@ -84,7 +88,10 @@ export function DaySkeleton() {
         <div className="h-6 sm:h-[30px] w-36 rounded bg-surface animate-pulse" />
       </div>
       <div className="relative flex">
-        <div className="shrink-0 border-r border-border" style={{ width: DAY_GUTTER_WIDTH }}>
+        <div
+          className="shrink-0 border-r border-border"
+          style={{ width: DAY_GUTTER_WIDTH }}
+        >
           {Array.from({ length: HOUR_COUNT }).map((_, i) => (
             <div
               key={i}
@@ -145,7 +152,10 @@ export function WeekSkeleton() {
             ))}
           </div>
           {Array.from({ length: WEEK_DAY_COUNT }).map((_, ci) => (
-            <div key={ci} className="flex-1 border-r border-border last:border-r-0">
+            <div
+              key={ci}
+              className="flex-1 border-r border-border last:border-r-0"
+            >
               {Array.from({ length: HOUR_COUNT }).map((_, ri) => (
                 <div
                   key={ri}
@@ -169,7 +179,10 @@ export function YearSkeleton() {
     <div className="rounded-xl border border-border overflow-hidden p-3 sm:p-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {Array.from({ length: YEAR_MONTH_COUNT }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-border bg-surface p-3">
+          <div
+            key={i}
+            className="rounded-xl border border-border bg-surface p-3"
+          >
             <div className="h-4 w-14 rounded bg-surface-raised animate-pulse mb-2" />
             <div className="grid grid-cols-7">
               {Array.from({ length: WEEK_DAY_COUNT }).map((_, j) => (

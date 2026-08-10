@@ -29,7 +29,8 @@ type State = {
   log: LogEntry[];
   seq: number;
 };
-type Action = { type: "created"; draft: Draft } | { type: "toggled"; id: number };
+type Action =
+  { type: "created"; draft: Draft } | { type: "toggled"; id: number };
 
 const LOG_CAP = 6;
 
@@ -355,29 +356,32 @@ export default function CampaignManagerDemo({
           aria-label="Campaigns"
           className="min-h-0 divide-y divide-border overflow-y-auto"
         >
-        {state.campaigns.map((c) => (
-          <li key={c.id} className="flex items-center justify-between gap-2 py-2">
-            <span className="min-w-0">
-              <span className="block truncate text-[13px] text-foreground">
-                {c.name}
-              </span>
-              <span className="text-[11px] text-muted">
-                {c.objective} · {c.audience}
-              </span>
-            </span>
-            <button
-              type="button"
-              aria-label={`Toggle ${c.name}`}
-              onClick={() => dispatch({ type: "toggled", id: c.id })}
-              className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
-              style={{
-                backgroundColor: c.status === "Live" ? "#34d399" : "#94a3b8",
-              }}
+          {state.campaigns.map((c) => (
+            <li
+              key={c.id}
+              className="flex items-center justify-between gap-2 py-2"
             >
-              {c.status}
-            </button>
-          </li>
-        ))}
+              <span className="min-w-0">
+                <span className="block truncate text-[13px] text-foreground">
+                  {c.name}
+                </span>
+                <span className="text-[11px] text-muted">
+                  {c.objective} · {c.audience}
+                </span>
+              </span>
+              <button
+                type="button"
+                aria-label={`Toggle ${c.name}`}
+                onClick={() => dispatch({ type: "toggled", id: c.id })}
+                className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
+                style={{
+                  backgroundColor: c.status === "Live" ? "#34d399" : "#94a3b8",
+                }}
+              >
+                {c.status}
+              </button>
+            </li>
+          ))}
         </ul>
         <StoreInspector state={state} />
       </div>

@@ -114,24 +114,24 @@ export default function ProductPerformance() {
             aria-label="Performance range"
             className="inline-flex rounded-lg border border-border bg-surface p-0.5"
           >
-          {PERFORMANCE_RANGES.map((range) => {
-            const isActive = range.id === rangeId;
-            return (
-              <button
-                key={range.id}
-                type="button"
-                aria-pressed={isActive}
-                onClick={() => setRangeId(range.id)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 ${
-                  isActive
-                    ? "bg-primary-600 text-white"
-                    : "text-muted hover:text-foreground"
-                }`}
-              >
-                {range.label}
-              </button>
-            );
-          })}
+            {PERFORMANCE_RANGES.map((range) => {
+              const isActive = range.id === rangeId;
+              return (
+                <button
+                  key={range.id}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => setRangeId(range.id)}
+                  className={`paul-touch-min rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 ${
+                    isActive
+                      ? "bg-primary-600 text-white"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  {range.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

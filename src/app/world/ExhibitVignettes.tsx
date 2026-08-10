@@ -80,7 +80,10 @@ function WorkPortfolioVignette({ color, animate }: VignetteProps) {
       {[0, 1, 2, 3].map((i) => (
         <mesh key={i} position={[i * 0.8 - 1.6, (i % 2) * 0.5 - 0.25, 0]}>
           <boxGeometry args={[0.6, 0.34, 0.08]} />
-          <meshStandardMaterial color={i % 2 ? "#3a4a63" : color} roughness={0.5} />
+          <meshStandardMaterial
+            color={i % 2 ? "#3a4a63" : color}
+            roughness={0.5}
+          />
         </mesh>
       ))}
     </group>
@@ -105,7 +108,14 @@ function CalendarVignette({ color, animate }: VignetteProps) {
       </mesh>
       <group ref={cellsRef}>
         {Array.from({ length: 9 }, (_, i) => (
-          <mesh key={i} position={[((i % 3) - 1) * 0.44, (1 - Math.floor(i / 3)) * 0.44, 0.02]}>
+          <mesh
+            key={i}
+            position={[
+              ((i % 3) - 1) * 0.44,
+              (1 - Math.floor(i / 3)) * 0.44,
+              0.02,
+            ]}
+          >
             <boxGeometry args={[0.3, 0.3, 0.05]} />
             <meshBasicMaterial color={i === 4 ? color : "#39445c"} />
           </mesh>
@@ -120,7 +130,8 @@ function VitalsVignette({ color, animate }: VignetteProps) {
   useFrame(({ clock }) => {
     if (!barsRef.current || !animate()) return;
     barsRef.current.children.forEach((bar, i) => {
-      const h = 0.35 + (Math.sin(clock.elapsedTime * 1.6 + i * 1.4) * 0.5 + 0.5) * 0.75;
+      const h =
+        0.35 + (Math.sin(clock.elapsedTime * 1.6 + i * 1.4) * 0.5 + 0.5) * 0.75;
       bar.scale.y = h;
       bar.position.y = h / 2 - 0.55;
     });
@@ -170,7 +181,9 @@ function GalleryWallVignette({ color, animate }: VignetteProps) {
   useFrame(({ clock }) => {
     if (!framesRef.current || !animate()) return;
     framesRef.current.children.forEach((frame, i) => {
-      frame.position.y = Math.sin(clock.elapsedTime * 1.2 + i * 2) * 0.08 + (i === 1 ? 0.15 : -0.1);
+      frame.position.y =
+        Math.sin(clock.elapsedTime * 1.2 + i * 2) * 0.08 +
+        (i === 1 ? 0.15 : -0.1);
     });
   });
   return (
@@ -228,7 +241,9 @@ function OperatorVignette({ color, animate }: VignetteProps) {
   useFrame(({ clock }) => {
     if (!lightRef.current || !animate()) return;
     const warn = Math.sin(clock.elapsedTime * 0.8) > 0.6;
-    lightRef.current.color.copy(warn ? statusColors.current.warn : statusColors.current.good);
+    lightRef.current.color.copy(
+      warn ? statusColors.current.warn : statusColors.current.good,
+    );
   });
   return (
     <group>
@@ -264,7 +279,11 @@ function CraftVignette({ color, animate }: VignetteProps) {
         {[0, 1, 2, 3].map((i) => (
           <mesh
             key={i}
-            position={[Math.cos((i / 4) * Math.PI * 2) * 0.58, Math.sin((i / 4) * Math.PI * 2) * 0.58, 0]}
+            position={[
+              Math.cos((i / 4) * Math.PI * 2) * 0.58,
+              Math.sin((i / 4) * Math.PI * 2) * 0.58,
+              0,
+            ]}
           >
             <boxGeometry args={[0.14, 0.14, 0.14]} />
             <meshStandardMaterial color={color} roughness={0.5} />
@@ -304,7 +323,8 @@ function LearnVignette({ color, animate }: VignetteProps) {
   const ideaRef = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
     if (!ideaRef.current || !animate()) return;
-    ideaRef.current.position.y = 0.55 + Math.sin(clock.elapsedTime * 1.8) * 0.12;
+    ideaRef.current.position.y =
+      0.55 + Math.sin(clock.elapsedTime * 1.8) * 0.12;
   });
   return (
     <group>

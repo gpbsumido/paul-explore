@@ -325,9 +325,7 @@ const hookDropFor = (height: number): number => Math.min(height / 6, 3);
  * printed sheet reads alongside the numbered photos.
  */
 export function computeHangSheet(state: GalleryState): HangRow[] {
-  const placementById = new Map(
-    computePlacements(state).map((p) => [p.id, p]),
-  );
+  const placementById = new Map(computePlacements(state).map((p) => [p.id, p]));
   return state.images.map((image, index) => {
     const placed = placementById.get(image.id)!;
     const hookDrop = hookDropFor(placed.height);
@@ -392,7 +390,10 @@ export function deserializeGallery(raw: string): GalleryState | null {
  * share an id, land in one spot, and trip the overlap guard. The second copy
  * gets a `_2` suffix (then `_3`, and so on).
  */
-export function uniqueImageId(desired: string, taken: ReadonlySet<string>): string {
+export function uniqueImageId(
+  desired: string,
+  taken: ReadonlySet<string>,
+): string {
   if (!taken.has(desired)) return desired;
   let suffix = 2;
   while (taken.has(`${desired}_${suffix}`)) suffix += 1;

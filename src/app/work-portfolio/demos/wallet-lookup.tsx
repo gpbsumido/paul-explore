@@ -54,7 +54,11 @@ const RARITY_TINT: Record<string, string> = {
  * overview; the NFTs and Transactions tabs land in the next commit. Data is
  * a deterministic fake keyed off the address, no chain calls.
  */
-export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) {
+export default function WalletLookupDemo({
+  feature,
+}: {
+  feature: WorkFeature;
+}) {
   const [input, setInput] = useState("");
   const [address, setAddress] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("Overview");
@@ -85,7 +89,9 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
-      <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+      <p className="text-[13px] font-semibold text-foreground">
+        {feature.title}
+      </p>
 
       <form
         onSubmit={(e) => {
@@ -124,7 +130,7 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
                   setInput(s);
                   submit(s);
                 }}
-                className="rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
+                className="paul-touch-min rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
               >
                 {s}
               </button>
@@ -144,7 +150,9 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
                 aria-selected={tab === t}
                 onClick={() => pickTab(t)}
                 className={`-mb-px border-b-2 px-3 py-1.5 text-[12px] ${
-                  tab === t ? "border-current text-foreground" : "border-transparent text-muted"
+                  tab === t
+                    ? "border-current text-foreground"
+                    : "border-transparent text-muted"
                 }`}
                 style={tab === t ? { color: ACCENT } : undefined}
               >
@@ -162,7 +170,10 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
                   ["NFTs", `${wallet.nftCount}`],
                   ["First seen", wallet.firstSeen],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-lg border border-border p-2.5">
+                  <div
+                    key={label}
+                    className="rounded-lg border border-border p-2.5"
+                  >
                     <p className="text-[10px] uppercase tracking-wider text-muted">
                       {label}
                     </p>
@@ -185,7 +196,8 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
               </div>
             )}
 
-            {tab === "NFTs" && !loading &&
+            {tab === "NFTs" &&
+              !loading &&
               (wallet.nfts.length === 0 ? (
                 <p className="py-8 text-center text-[12px] text-muted">
                   this wallet holds no NFTs
@@ -220,15 +232,22 @@ export default function WalletLookupDemo({ feature }: { feature: WorkFeature }) 
             {tab === "Transactions" && !loading && (
               <ul className="divide-y divide-border text-[12px]">
                 {wallet.txns.map((tx) => (
-                  <li key={tx.id} className="flex items-center justify-between py-1.5">
+                  <li
+                    key={tx.id}
+                    className="flex items-center justify-between py-1.5"
+                  >
                     <span
                       className={
-                        tx.kind === "Receive" ? "text-emerald-500" : "text-foreground"
+                        tx.kind === "Receive"
+                          ? "text-emerald-500"
+                          : "text-foreground"
                       }
                     >
                       {tx.kind}
                     </span>
-                    <span className="font-mono text-foreground">{tx.amount} ETH</span>
+                    <span className="font-mono text-foreground">
+                      {tx.amount} ETH
+                    </span>
                     <span className="text-muted">{tx.ago}</span>
                   </li>
                 ))}

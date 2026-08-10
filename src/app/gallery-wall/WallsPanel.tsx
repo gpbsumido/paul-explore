@@ -57,7 +57,9 @@ export default function WallsPanel({
     try {
       setWalls(await listWalls());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load your walls.");
+      setError(
+        err instanceof Error ? err.message : "Could not load your walls.",
+      );
     }
   }, []);
 
@@ -137,7 +139,7 @@ export default function WallsPanel({
         <button
           type="button"
           onClick={startNew}
-          className="rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
+          className="paul-touch-min rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
         >
           New wall
         </button>
@@ -175,7 +177,10 @@ export default function WallsPanel({
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="mt-2 text-[12px] font-medium text-red-600 dark:text-red-400">
+        <p
+          role="alert"
+          className="mt-2 text-[12px] font-medium text-red-600 dark:text-red-400"
+        >
           {error}
         </p>
       ) : null}
@@ -203,14 +208,14 @@ export default function WallsPanel({
                         type="button"
                         onClick={() => commitRename(wall)}
                         disabled={busy}
-                        className="rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30 disabled:opacity-40"
+                        className="paul-touch-min rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30 disabled:opacity-40"
                       >
                         Confirm rename
                       </button>
                       <button
                         type="button"
                         onClick={() => setRenamingId(null)}
-                        className="rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground"
+                        className="paul-touch-min rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground"
                       >
                         Cancel
                       </button>
@@ -233,7 +238,7 @@ export default function WallsPanel({
                       <button
                         type="button"
                         onClick={() => setConfirmingId(null)}
-                        className="rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground"
+                        className="paul-touch-min rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground"
                       >
                         Cancel
                       </button>
@@ -244,7 +249,9 @@ export default function WallsPanel({
                     <span className="min-w-0 flex-1 truncate text-[13px] text-foreground">
                       {wall.name}
                       {currentId === wall.id ? (
-                        <span className="ml-1 text-[11px] text-muted">(open)</span>
+                        <span className="ml-1 text-[11px] text-muted">
+                          (open)
+                        </span>
                       ) : null}
                     </span>
                     {/* One menu rather than three buttons, so the wall's name
@@ -259,7 +266,7 @@ export default function WallsPanel({
                         onClick={() =>
                           setMenuId(menuId === wall.id ? null : wall.id)
                         }
-                        className="rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground disabled:opacity-40"
+                        className="paul-touch-min rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:text-foreground disabled:opacity-40"
                       >
                         <span aria-hidden>&#8943;</span>
                       </button>

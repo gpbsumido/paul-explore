@@ -10,7 +10,11 @@ import { FRAME_SIZES } from "./frames";
 
 describe("estimatePrintCost", () => {
   it("costs nothing for an empty wall", () => {
-    expect(estimatePrintCost([])).toEqual({ total: 0, priced: 0, unpriced: [] });
+    expect(estimatePrintCost([])).toEqual({
+      total: 0,
+      priced: 0,
+      unpriced: [],
+    });
   });
 
   it("adds up the listed price of every photo", () => {
@@ -20,7 +24,10 @@ describe("estimatePrintCost", () => {
   });
 
   it("charges per copy when the same size appears more than once", () => {
-    expect(estimatePrintCost(["8x10", "8x10", "8x10"]).total).toBeCloseTo(16.47, 2);
+    expect(estimatePrintCost(["8x10", "8x10", "8x10"]).total).toBeCloseTo(
+      16.47,
+      2,
+    );
   });
 
   it("reports sizes it has no price for instead of guessing", () => {
@@ -50,17 +57,27 @@ describe("formatCad", () => {
 
 describe("taxRateFor", () => {
   it("knows the combined rate for a Canadian province", () => {
-    expect(taxRateFor({ country: "Canada", regionName: "Ontario" }).rate).toBeCloseTo(0.13, 5);
-    expect(taxRateFor({ country: "Canada", regionName: "Alberta" }).rate).toBeCloseTo(0.05, 5);
-    expect(taxRateFor({ country: "Canada", regionName: "Quebec" }).rate).toBeCloseTo(0.14975, 5);
+    expect(
+      taxRateFor({ country: "Canada", regionName: "Ontario" }).rate,
+    ).toBeCloseTo(0.13, 5);
+    expect(
+      taxRateFor({ country: "Canada", regionName: "Alberta" }).rate,
+    ).toBeCloseTo(0.05, 5);
+    expect(
+      taxRateFor({ country: "Canada", regionName: "Quebec" }).rate,
+    ).toBeCloseTo(0.14975, 5);
   });
 
   it("is case and whitespace tolerant", () => {
-    expect(taxRateFor({ country: "canada", regionName: "  british columbia " }).rate).toBeCloseTo(0.12, 5);
+    expect(
+      taxRateFor({ country: "canada", regionName: "  british columbia " }).rate,
+    ).toBeCloseTo(0.12, 5);
   });
 
   it("has no rate outside Canada, since the vendor is Canadian", () => {
-    expect(taxRateFor({ country: "United States", regionName: "New York" }).rate).toBeNull();
+    expect(
+      taxRateFor({ country: "United States", regionName: "New York" }).rate,
+    ).toBeNull();
   });
 
   it("has no rate when the location is unknown", () => {

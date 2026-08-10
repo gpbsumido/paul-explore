@@ -12,7 +12,11 @@ const RAMP = 0.35;
 /** A few seconds of white noise to loop as the base of every airy sound. */
 function makeNoiseBuffer(context: AudioContext): AudioBuffer {
   const seconds = 4;
-  const buffer = context.createBuffer(1, context.sampleRate * seconds, context.sampleRate);
+  const buffer = context.createBuffer(
+    1,
+    context.sampleRate * seconds,
+    context.sampleRate,
+  );
   const channel = buffer.getChannelData(0);
   for (let i = 0; i < channel.length; i += 1) {
     channel[i] = Math.random() * 2 - 1;
@@ -63,8 +67,9 @@ export function createWorldAudio(): WorldAudio | null {
   const Ctor =
     typeof window === "undefined"
       ? undefined
-      : window.AudioContext ??
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      : (window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext);
   if (!Ctor) return null;
 
   const context = new Ctor();
@@ -78,11 +83,26 @@ export function createWorldAudio(): WorldAudio | null {
   const noise = makeNoiseBuffer(context);
 
   // Traffic: low rumble with a slow swell so it never sits perfectly still.
-  const city = createNoiseChannel(context, master, { type: "lowpass", frequency: 380 }, noise);
+  const city = createNoiseChannel(
+    context,
+    master,
+    { type: "lowpass", frequency: 380 },
+    noise,
+  );
   // Waves: a band around the hiss of water, breathing in and out.
-  const waves = createNoiseChannel(context, master, { type: "bandpass", frequency: 620, q: 0.7 }, noise);
+  const waves = createNoiseChannel(
+    context,
+    master,
+    { type: "bandpass", frequency: 620, q: 0.7 },
+    noise,
+  );
   // Rain: brighter, denser hiss.
-  const rain = createNoiseChannel(context, master, { type: "highpass", frequency: 1400 }, noise);
+  const rain = createNoiseChannel(
+    context,
+    master,
+    { type: "highpass", frequency: 1400 },
+    noise,
+  );
 
   const swell = context.createOscillator();
   swell.frequency.value = 0.08;
@@ -131,7 +151,10 @@ export function createWorldAudio(): WorldAudio | null {
     filter.Q.value = 1.4;
     const gain = context.createGain();
     gain.gain.setValueAtTime(level, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      context.currentTime + duration,
+    );
     source.connect(filter).connect(gain).connect(master);
     source.start();
     source.stop(context.currentTime + duration + 0.02);
@@ -154,10 +177,16 @@ export function createWorldAudio(): WorldAudio | null {
       const osc = context.createOscillator();
       osc.type = "triangle";
       osc.frequency.setValueAtTime(880, context.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1320, context.currentTime + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(
+        1320,
+        context.currentTime + 0.12,
+      );
       const gain = context.createGain();
       gain.gain.setValueAtTime(0.2, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.45);
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        context.currentTime + 0.45,
+      );
       osc.connect(gain).connect(master);
       osc.start();
       osc.stop(context.currentTime + 0.5);
@@ -169,7 +198,9 @@ export function createWorldAudio(): WorldAudio | null {
       rampTo(master.gain, muted ? 0 : 0.7);
     },
     dispose() {
-      [city.source, waves.source, rain.source].forEach((source) => source.stop());
+      [city.source, waves.source, rain.source].forEach((source) =>
+        source.stop(),
+      );
       carOscillators.forEach((osc) => osc.stop());
       swell.stop();
       waveSwell.stop();

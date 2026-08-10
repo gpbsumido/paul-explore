@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -588,6 +589,23 @@ export default function ResearchExplorerContent() {
           </Bullet>
         </ul>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "Curated topics carrying their own PubMed queries in PubMed syntax, so every number on the page traces back to a search anyone can paste in and check.",
+          "Evidence thresholds calibrated against the real spread of counts rather than guessed — the first version put twenty of twenty-five topics in one bucket and promised a badge that could never appear.",
+          "An upstream failure returns an error instead of rendering every topic as having no research, because on this page a zero is the finding and a lie in that direction is the most damaging one available.",
+          "Discussion prompts built from indexed study design and structured abstracts, so they argue with a specific paper rather than fitting any paper.",
+        ]}
+        couldImprove={[
+          "No study-design tagging on the counts, so twelve papers cannot be told apart from twelve case reports without opening them.",
+          "Nothing is persisted, so a scan cannot be compared with the same scan a month later — which is the obvious way to spot a field actually moving.",
+          "The innovation signals are a hand-written list and will miss any technique they do not name.",
+        ]}
+        upcoming={[
+          "The node graph: papers as nodes linked to their topics and populations, so the gaps between clusters are visible at a glance rather than one query at a time.",
+          "Study-design tagging on the counts, which would make the sparse/emerging/active scale considerably more meaningful.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

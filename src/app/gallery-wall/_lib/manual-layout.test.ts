@@ -111,7 +111,9 @@ describe("changing a frame keeps it on the wall", () => {
     const placed = placementFor(bigger, "a");
     const dims = frameDimensions(bigger.images[0].frame);
     expect(placed.x).toBeLessThanOrEqual(bigger.wall.width - dims.width + 1e-6);
-    expect(placed.y).toBeLessThanOrEqual(bigger.wall.height - dims.height + 1e-6);
+    expect(placed.y).toBeLessThanOrEqual(
+      bigger.wall.height - dims.height + 1e-6,
+    );
   });
 });
 
@@ -123,7 +125,12 @@ describe("computeValidation", () => {
       x: 10,
       y: 10,
     });
-    state = galleryReducer(state, { type: "move-image", id: "b", x: 12, y: 12 });
+    state = galleryReducer(state, {
+      type: "move-image",
+      id: "b",
+      x: 12,
+      y: 12,
+    });
     const validation = computeValidation(state);
     expect(new Set(validation.overlaps)).toEqual(new Set(["a", "b"]));
     expect(validation.invalidIds).toContain("a");

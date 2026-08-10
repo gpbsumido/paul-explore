@@ -143,9 +143,7 @@ type ReelItem = {
 type ReelPos = { pos: number };
 
 const still = (index: number): ReelPos => ({ pos: index });
-const glideTo =
-  (next: number) =>
-  (): ReelPos => ({ pos: next });
+const glideTo = (next: number) => (): ReelPos => ({ pos: next });
 
 /** DOM ids need to be attribute-safe, so squash anything odd in the item id. */
 const rowDomId = (reelKey: string, itemId: string): string =>
@@ -317,8 +315,7 @@ function Reel({
   // (single or empty) state the instant it lands.
   const fillerBase = spinFiller.slice(0, 12);
   const fillerLoopH = fillerBase.length * ROW_H;
-  const showFiller =
-    blurring && !reduced && len <= 1 && fillerBase.length > 0;
+  const showFiller = blurring && !reduced && len <= 1 && fillerBase.length > 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (spinning) return;
@@ -509,7 +506,8 @@ function Reel({
                     style={{
                       top: k * ROW_H,
                       height: ROW_H,
-                      opacity: distance === 0 ? 1 : distance === 1 ? 0.32 : 0.14,
+                      opacity:
+                        distance === 0 ? 1 : distance === 1 ? 0.32 : 0.14,
                       // The loupe keeps the landed row crisp and softens its
                       // neighbours, so the eye lands on the middle. Skipped
                       // during the spin, where the whole strip already smears.
@@ -714,7 +712,8 @@ export default function SlotMachine({
   // never resolves ahead of the pick. settledCount counts locked-in columns
   // (1 after the category, 2 after the option, 3 when the write-up lands), and
   // it sits at 3 whenever the machine is idle.
-  const NEUTRAL_EDGE = "color-mix(in srgb, var(--color-foreground) 14%, transparent)";
+  const NEUTRAL_EDGE =
+    "color-mix(in srgb, var(--color-foreground) 14%, transparent)";
   const lensEdge = (accent: string, settledAt: number): string =>
     !spinning || settledCount >= settledAt
       ? `color-mix(in srgb, ${accent} 55%, transparent)`
@@ -877,7 +876,8 @@ export default function SlotMachine({
         return start + 130;
       }
       const fromIndex = wrapIndex(Math.round(fromPos), len);
-      let travel = wrapIndex(targetIndex - fromIndex, len) + (extraTurn ? len : 0);
+      let travel =
+        wrapIndex(targetIndex - fromIndex, len) + (extraTurn ? len : 0);
       if (travel === 0) travel = len;
       const steps = Math.min(14, Math.max(6, travel));
       let prev = 0;
@@ -900,40 +900,75 @@ export default function SlotMachine({
     const setOpt = (v: number) => setOptPos(glideTo(v));
     const setNote = (v: number) => setNotePos(glideTo(v));
 
-    const t1 = runReel(categories.length, catTarget, catPos.pos, (v) =>
-      setCatPos(glideTo(v)), 0, 620, true);
+    const t1 = runReel(
+      categories.length,
+      catTarget,
+      catPos.pos,
+      (v) => setCatPos(glideTo(v)),
+      0,
+      620,
+      true,
+    );
     schedule(() => setSettledCount(1), t1);
 
     const optFrom = freeSpin(optList.length, setOpt, 0, t1);
-    const t2 = runReel(optList.length, optTarget, optFrom, setOpt, t1, 460, false);
+    const t2 = runReel(
+      optList.length,
+      optTarget,
+      optFrom,
+      setOpt,
+      t1,
+      460,
+      false,
+    );
     schedule(() => setSettledCount(2), t2);
 
     const noteFrom = freeSpin(noteList.length, setNote, 0, t2);
-    const t3 = runReel(noteList.length, noteTarget, noteFrom, setNote, t2, 460, false);
+    const t3 = runReel(
+      noteList.length,
+      noteTarget,
+      noteFrom,
+      setNote,
+      t2,
+      460,
+      false,
+    );
 
-    schedule(() => {
-      setSpinning(false);
-      setSettledCount(3);
-      setFrozen(null);
+    schedule(
+      () => {
+        setSpinning(false);
+        setSettledCount(3);
+        setFrozen(null);
 
-      // The payoff: three columns land on an openable app. Reduced-motion gets
-      // the outcome without the flashing, so it just skips straight past.
-      const landedCategory = categories[wrapIndex(catTarget, categories.length)];
-      const landedOption =
-        landedCategory?.options[wrapIndex(optTarget, optList.length)];
-      if (isWinningPull({ category: landedCategory, option: landedOption, reduced })) {
-        setWinKey((k) => k + 1);
-        setFallStyle((prev) => {
-          // Never the same style twice in a row -- repetition is the thing that
-          // makes a celebration feel canned.
-          const options = ([1, 2, 3, 4] as FallStyle[]).filter((v) => v !== prev);
-          return options[Math.floor(Math.random() * options.length)];
-        });
-        setWon(true);
-        playWinSound();
-        schedule(() => setWon(false), WIN_MS);
-      }
-    }, Math.max(t1, t2, t3) + 200);
+        // The payoff: three columns land on an openable app. Reduced-motion gets
+        // the outcome without the flashing, so it just skips straight past.
+        const landedCategory =
+          categories[wrapIndex(catTarget, categories.length)];
+        const landedOption =
+          landedCategory?.options[wrapIndex(optTarget, optList.length)];
+        if (
+          isWinningPull({
+            category: landedCategory,
+            option: landedOption,
+            reduced,
+          })
+        ) {
+          setWinKey((k) => k + 1);
+          setFallStyle((prev) => {
+            // Never the same style twice in a row -- repetition is the thing that
+            // makes a celebration feel canned.
+            const options = ([1, 2, 3, 4] as FallStyle[]).filter(
+              (v) => v !== prev,
+            );
+            return options[Math.floor(Math.random() * options.length)];
+          });
+          setWon(true);
+          playWinSound();
+          schedule(() => setWon(false), WIN_MS);
+        }
+      },
+      Math.max(t1, t2, t3) + 200,
+    );
   };
 
   const totalWriteups = categories.reduce(
@@ -998,7 +1033,7 @@ export default function SlotMachine({
             <h1 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
               paul-explore
             </h1>
-            <span className="rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted backdrop-blur">
+            <span className="paul-touch-min rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted backdrop-blur">
               v4
             </span>
           </div>
@@ -1030,7 +1065,6 @@ export default function SlotMachine({
           </p>
 
           <div className="relative grid grid-cols-3 gap-4 sm:gap-8">
-
             <div
               className="reveal-up min-w-0"
               style={{ animationDelay: "0.05s" }}
@@ -1117,7 +1151,7 @@ export default function SlotMachine({
                     </p>
                     <Link
                       href="/thoughts"
-                      className="rounded font-mono text-[9px] uppercase tracking-[0.12em] text-muted underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 sm:text-[11px] sm:tracking-[0.15em]"
+                      className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 font-mono text-[9px] uppercase tracking-[0.12em] text-muted underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 sm:text-[11px] sm:tracking-[0.15em]"
                     >
                       Browse all →
                     </Link>
@@ -1254,7 +1288,7 @@ export default function SlotMachine({
                         href={option.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+                        className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
                         style={{ color: optAccent }}
                       >
                         Open {option.label} →
@@ -1262,7 +1296,7 @@ export default function SlotMachine({
                     ) : (
                       <Link
                         href={option.href}
-                        className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+                        className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
                         style={{ color: optAccent }}
                       >
                         Open {option.label} →
@@ -1273,7 +1307,7 @@ export default function SlotMachine({
                     <span className="inline-flex items-center gap-1.5">
                       <Link
                         href={thought.href}
-                        className="rounded transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+                        className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
                         style={{ color: noteAccent }}
                       >
                         Read: {thought.title} →
@@ -1310,7 +1344,7 @@ export default function SlotMachine({
       >
         <Link
           href="/thoughts"
-          className="rounded transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+          className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
         >
           Thoughts
         </Link>
@@ -1318,7 +1352,7 @@ export default function SlotMachine({
           href="https://github.com/gpbsumido"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
+          className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
         >
           GitHub
         </a>
@@ -1333,7 +1367,7 @@ export default function SlotMachine({
               <Link
                 key={v}
                 href={`/?version=${v}`}
-                className="rounded px-2 py-1 whitespace-nowrap transition-colors hover:bg-foreground/5 hover:text-foreground"
+                className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 px-2 py-1 whitespace-nowrap transition-colors hover:bg-foreground/5 hover:text-foreground"
               >
                 {v} ↗
               </Link>

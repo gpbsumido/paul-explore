@@ -32,7 +32,9 @@ export default function DataLoadError({
   detail,
   onRetry,
 }: DataLoadErrorProps) {
-  const subject = encodeURIComponent(`Operator dashboard: could not load ${what}`);
+  const subject = encodeURIComponent(
+    `Operator dashboard: could not load ${what}`,
+  );
   const body = encodeURIComponent(
     `I hit an error on the operator dashboard.\n\nWhat failed: ${what}\nDetail: ${detail ?? "none given"}\nPage: ${typeof window === "undefined" ? "" : window.location.href}\n`,
   );

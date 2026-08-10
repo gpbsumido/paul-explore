@@ -16,15 +16,21 @@ export async function DELETE(
   try {
     ({ token, email } = await getBackendAuth());
   } catch (err) {
-    console.error("[calendars BFF] DELETE google — getAccessToken failed:", err);
+    console.error(
+      "[calendars BFF] DELETE google — getAccessToken failed:",
+      err,
+    );
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars/${id}/google`, {
-      method: "DELETE",
-      headers: buildHeaders(token, email),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/calendars/${id}/google`,
+      {
+        method: "DELETE",
+        headers: buildHeaders(token, email),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {

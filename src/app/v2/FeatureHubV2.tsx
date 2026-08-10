@@ -74,8 +74,8 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
           {FEATURES.length} features, all yours.
         </p>
         <p className="mt-1 text-xs text-muted">
-          {TEST_COUNT}+ tests &middot; {THOUGHTS.length} write-ups &middot; 5 CWV
-          metrics
+          {TEST_COUNT}+ tests &middot; {THOUGHTS.length} write-ups &middot; 5
+          CWV metrics
         </p>
       </header>
 
@@ -86,7 +86,8 @@ export default function FeatureHubV2({ initialMe }: { initialMe?: MeData }) {
           style={{ scrollbarWidth: "none" }}
         >
           {CATEGORIES.map((cat, i) => (
-            <button type="button"
+            <button
+              type="button"
               key={cat.label}
               onClick={() => setActive(i)}
               className={[

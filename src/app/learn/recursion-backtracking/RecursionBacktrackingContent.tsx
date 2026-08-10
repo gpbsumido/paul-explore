@@ -469,7 +469,8 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button type="button"
+    <button
+      type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -796,7 +797,6 @@ function FibonacciDemo() {
 // ---------------------------------------------------------------------------
 
 function SubsetsDemo() {
-
   const steps = SUBSET_STEPS;
   const { stepIdx, playing, advance, play, stop, reset } = useStepPlayer(
     steps.length,

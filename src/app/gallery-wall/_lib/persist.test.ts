@@ -75,7 +75,11 @@ describe("computeHangSheet", () => {
 
   it("keeps the numbered order of the photo list", () => {
     const sheet = computeHangSheet(withImages());
-    expect(sheet.map((r) => r.label)).toEqual(["Frame 1", "Frame 2", "Frame 3"]);
+    expect(sheet.map((r) => r.label)).toEqual([
+      "Frame 1",
+      "Frame 2",
+      "Frame 3",
+    ]);
   });
 });
 

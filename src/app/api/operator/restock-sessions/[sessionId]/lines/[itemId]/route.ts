@@ -9,21 +9,23 @@ import { saveRestockLine } from "@/lib/operator-bff";
  * off a shelf always needs a reason, because an unexplained removal is
  * indistinguishable from theft.
  */
-export const PUT = withOperatorErrors(async (
-  request: NextRequest,
-  { params }: { params: Promise<{ sessionId: string; itemId: string }> },
-) => {
-  const { sessionId, itemId } = await params;
+export const PUT = withOperatorErrors(
+  async (
+    request: NextRequest,
+    { params }: { params: Promise<{ sessionId: string; itemId: string }> },
+  ) => {
+    const { sessionId, itemId } = await params;
 
-  const bodyResult = await parseBody(request, restockLineBodySchema);
-  if (!bodyResult.ok) return bodyResult.response;
+    const bodyResult = await parseBody(request, restockLineBodySchema);
+    if (!bodyResult.ok) return bodyResult.response;
 
-  const line = await saveRestockLine(sessionId, itemId, bodyResult.data);
-  if (!line) {
-    return NextResponse.json(
-      { error: "Restock session not found" },
-      { status: 404 },
-    );
-  }
-  return NextResponse.json({ line });
-})
+    const line = await saveRestockLine(sessionId, itemId, bodyResult.data);
+    if (!line) {
+      return NextResponse.json(
+        { error: "Restock session not found" },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json({ line });
+  },
+);

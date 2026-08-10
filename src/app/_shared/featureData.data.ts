@@ -19,6 +19,7 @@ export const FEATURES: FeatureItem[] = [
       "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
     href: "/work-portfolio",
     color: "#60a5fa",
+    thoughtsHref: "/thoughts/work-portfolio",
   },
   {
     id: "world",
@@ -81,6 +82,7 @@ export const FEATURES: FeatureItem[] = [
       "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
     href: "/learn",
     color: "#34d399",
+    thoughtsHref: "/thoughts/learn",
   },
   {
     id: "craft",
@@ -134,6 +136,7 @@ export const FEATURES: FeatureItem[] = [
       "Interactive R3F particle network with real-time controls: speed, connection distance, 5 pastel color themes, mouse attraction toggle.",
     href: "/lab/particles",
     color: "#a5f3fc",
+    thoughtsHref: "/thoughts/particles",
   },
   {
     id: "ketsup",
@@ -146,8 +149,21 @@ export const FEATURES: FeatureItem[] = [
   },
 ];
 
-
 export const THOUGHTS: ThoughtItem[] = [
+  {
+    title: "Learn",
+    href: "/thoughts/learn",
+    preview:
+      "Thirteen demos that each rebuilt the same stepper, one useStepPlayer hook, and the overrun the characterisation tests caught",
+    color: "#22d3ee",
+  },
+  {
+    title: "Particle Lab",
+    href: "/thoughts/particles",
+    preview:
+      "Two point clouds instead of an object per particle, and why the connection-distance slider is really the performance dial",
+    color: "#a5f3fc",
+  },
   {
     title: "Research Explorer",
     href: "/thoughts/research-explorer",
@@ -443,7 +459,8 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "Which bundler this project runs and why, whether it's the right one, and the real situations where a lead reaches for a different bundler — the deliverable and the dominant constraint pick it, not taste",
     color: "#a855f7",
-  },{
+  },
+  {
     title: "Tree Shaking",
     href: "/thoughts/tree-shaking",
     preview:
@@ -530,14 +547,12 @@ export const THOUGHTS: ThoughtItem[] = [
 // background with white ink — same pattern as the landing page sections, just
 // theme-aware this time.
 
-
 export const PLAYOFF_ROWS = [
   { conf: "E", s1: 1, t1: "BOS", s2: 8, t2: "MIA", pick: 1 },
   { conf: "W", s1: 1, t1: "OKC", s2: 8, t2: "MEM", pick: 1 },
   { conf: "E", s1: 2, t1: "CLE", s2: 7, t2: "ORL", pick: 2 },
   { conf: "W", s1: 2, t1: "GSW", s2: 7, t2: "LAL", pick: 2 },
 ];
-
 
 export const TCG_CARDS = [
   { name: "Charizard", gradient: "from-orange-500 to-red-600" },
@@ -548,10 +563,8 @@ export const TCG_CARDS = [
   { name: "Eevee", gradient: "from-amber-400 to-orange-400" },
 ];
 
-
 export const POCKET_EXPANSIONS = [
   { name: "Genetic Apex", gradient: "from-indigo-500 to-violet-700" },
   { name: "Mythical Island", gradient: "from-teal-500 to-cyan-700" },
   { name: "Space-Time Smackdown", gradient: "from-blue-600 to-indigo-700" },
 ];
-

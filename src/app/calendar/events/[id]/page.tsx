@@ -31,7 +31,6 @@ export const metadata: Metadata = {
   },
 };
 
-
 /**
  * Fetches event and its attached cards in parallel directly from the backend.
  * Same BFF pattern as CalendarWithData -- call the backend with an access token

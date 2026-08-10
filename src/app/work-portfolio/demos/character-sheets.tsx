@@ -17,8 +17,18 @@ const BUDGET = 30;
 type Character = { id: number; name: string; cls: string; stats: Stats };
 
 const INITIAL: Character[] = [
-  { id: 1, name: "Aria Vale", cls: "Ranger", stats: { STR: 6, AGI: 9, INT: 5, LCK: 4 } },
-  { id: 2, name: "Bran Oskar", cls: "Warrior", stats: { STR: 10, AGI: 4, INT: 3, LCK: 5 } },
+  {
+    id: 1,
+    name: "Aria Vale",
+    cls: "Ranger",
+    stats: { STR: 6, AGI: 9, INT: 5, LCK: 4 },
+  },
+  {
+    id: 2,
+    name: "Bran Oskar",
+    cls: "Warrior",
+    stats: { STR: 10, AGI: 4, INT: 3, LCK: 5 },
+  },
 ];
 
 const sum = (s: Stats) => STATS.reduce((a, k) => a + s[k], 0);
@@ -42,7 +52,9 @@ function StatRow({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-8 text-[11px] font-medium text-foreground">{stat}</span>
+      <span className="w-8 text-[11px] font-medium text-foreground">
+        {stat}
+      </span>
       <IconButton
         size="sm"
         aria-label={`Lower ${stat}`}
@@ -153,7 +165,9 @@ function CreateCharacterModal({
                 key={s}
                 stat={s}
                 value={stats[s]}
-                onBump={(stat, dir) => setStats((st) => bumpStat(st, stat, dir))}
+                onBump={(stat, dir) =>
+                  setStats((st) => bumpStat(st, stat, dir))
+                }
               />
             ))}
           </div>
@@ -176,7 +190,10 @@ function CreateCharacterModal({
               Next
             </Button>
           ) : (
-            <Button size="sm" onClick={() => onCreate({ name: name.trim(), cls, stats })}>
+            <Button
+              size="sm"
+              onClick={() => onCreate({ name: name.trim(), cls, stats })}
+            >
               Create character
             </Button>
           )}
@@ -212,7 +229,9 @@ export default function CharacterSheetsDemo({
   const bump = (stat: Stat, dir: -1 | 1) =>
     setCharacters((cs) =>
       cs.map((c) =>
-        c.id === selected.id ? { ...c, stats: bumpStat(c.stats, stat, dir) } : c,
+        c.id === selected.id
+          ? { ...c, stats: bumpStat(c.stats, stat, dir) }
+          : c,
       ),
     );
 
@@ -233,10 +252,7 @@ export default function CharacterSheetsDemo({
       </div>
 
       <div className="grid min-h-0 flex-1 gap-3 sm:grid-cols-[9rem_1fr]">
-        <ul
-          aria-label="Roster"
-          className="min-h-0 space-y-1 overflow-y-auto"
-        >
+        <ul aria-label="Roster" className="min-h-0 space-y-1 overflow-y-auto">
           {characters.map((c) => (
             <li key={c.id}>
               <button

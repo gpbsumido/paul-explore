@@ -58,9 +58,12 @@ export default function NodeGraph({ reducedMotion }: Props) {
   const INSET_BOTTOM = 64;
 
   // Drag bookkeeping (sx/sy are the pointer-down position in container px).
-  const dragRef = useRef<{ i: number; moved: boolean; sx: number; sy: number } | null>(
-    null,
-  );
+  const dragRef = useRef<{
+    i: number;
+    moved: boolean;
+    sx: number;
+    sy: number;
+  } | null>(null);
   // Set on pointer-up when the gesture was a drag, and read (then cleared) by
   // the click that follows, so a drag-drop never navigates. dragRef itself is
   // already nulled by pointer-up before the click fires, so it can't carry this.
@@ -133,7 +136,8 @@ export default function NodeGraph({ reducedMotion }: Props) {
     // coordinate mapping stays stable — otherwise neighbours spreading out (or
     // nodes moving out of the popover) grows the bbox, rescales the graph, and
     // slides the hovered/dragged node out from under the cursor.
-    if (dragRef.current || sim.focus != null || popoverActiveRef.current) return;
+    if (dragRef.current || sim.focus != null || popoverActiveRef.current)
+      return;
     const W = container.clientWidth;
     const H = container.clientHeight;
 
@@ -607,7 +611,12 @@ export default function NodeGraph({ reducedMotion }: Props) {
                 // Release the previously focused node (a grace period may have
                 // left it pinned) before pinning the new one.
                 const prev = sim.focus;
-                if (prev != null && prev !== i && prev !== 0 && !dragRef.current) {
+                if (
+                  prev != null &&
+                  prev !== i &&
+                  prev !== 0 &&
+                  !dragRef.current
+                ) {
                   sim.nodes[prev].pinned = false;
                 }
                 sim.focus = i;

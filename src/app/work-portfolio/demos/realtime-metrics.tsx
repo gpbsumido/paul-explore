@@ -42,7 +42,10 @@ export default function RealtimeMetricsDemo({
   }, []);
 
   const conversion = ((signups % 90) / 10 + 14).toFixed(1);
-  const data = series.map((value, i) => ({ minute: `-${series.length - i}m`, value }));
+  const data = series.map((value, i) => ({
+    minute: `-${series.length - i}m`,
+    value,
+  }));
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-4 p-6">
@@ -83,8 +86,15 @@ export default function RealtimeMetricsDemo({
 
       <div className="min-h-40 flex-1" aria-label="Signups per minute chart">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
-            <XAxis dataKey="minute" tick={{ fontSize: 10 }} stroke="currentColor" />
+          <LineChart
+            data={data}
+            margin={{ top: 8, right: 8, bottom: 0, left: -20 }}
+          >
+            <XAxis
+              dataKey="minute"
+              tick={{ fontSize: 10 }}
+              stroke="currentColor"
+            />
             <YAxis tick={{ fontSize: 10 }} stroke="currentColor" />
             <Tooltip />
             <Line

@@ -5,7 +5,6 @@ import { auth0 } from "@/lib/auth0";
 import { parseBody } from "@/lib/parseBody";
 import { vitalsBeaconSchema } from "@/lib/schemas";
 
-
 // POST /api/vitals
 // open ingestion — no session check, just validate the shape and forward
 export async function POST(request: NextRequest) {

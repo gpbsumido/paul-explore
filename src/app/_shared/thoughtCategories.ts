@@ -9,6 +9,9 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
     name: "Features",
     slugs: [
       "research-explorer",
+      "learn",
+      "particles",
+      "world",
       "gallery-wall",
       "feature-flags",
       "search-bar",

@@ -28,7 +28,8 @@ export default function Weather({ condition, prefersReduced }: WeatherProps) {
 
   const { positions, drifts } = useMemo(() => {
     // Hash-scattered rather than random so a re-render never reshuffles the sky.
-    const scatter = (n: number) => Math.abs(Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1;
+    const scatter = (n: number) =>
+      Math.abs(Math.sin(n * 127.1 + 311.7) * 43758.5453) % 1;
     const pos = new Float32Array(Math.max(count, 1) * 3);
     const drift = new Float32Array(Math.max(count, 1));
     for (let i = 0; i < count; i += 1) {
@@ -50,7 +51,9 @@ export default function Weather({ condition, prefersReduced }: WeatherProps) {
   useFrame(({ camera, clock }, dt) => {
     const points = pointsRef.current;
     if (points && count > 0) {
-      const attribute = geometry.getAttribute("position") as THREE.BufferAttribute;
+      const attribute = geometry.getAttribute(
+        "position",
+      ) as THREE.BufferAttribute;
       const array = attribute.array as Float32Array;
       const snowy = dressing.precipitation === "snow";
       for (let i = 0; i < count; i += 1) {
@@ -58,7 +61,8 @@ export default function Weather({ condition, prefersReduced }: WeatherProps) {
         array[yIndex] -= dressing.fallSpeed * dt;
         if (snowy) {
           // Snow wanders on the way down; rain does not.
-          array[i * 3] += Math.sin(clock.elapsedTime * 0.8 + i) * drifts[i] * dt;
+          array[i * 3] +=
+            Math.sin(clock.elapsedTime * 0.8 + i) * drifts[i] * dt;
         }
         if (array[yIndex] < 0) {
           array[yIndex] = CEILING;
@@ -98,7 +102,13 @@ export default function Weather({ condition, prefersReduced }: WeatherProps) {
         </points>
       )}
       {dressing.lightning && !prefersReduced && (
-        <pointLight ref={flashRef} intensity={0} distance={400} decay={1.4} color="#dce8ff" />
+        <pointLight
+          ref={flashRef}
+          intensity={0}
+          distance={400}
+          decay={1.4}
+          color="#dce8ff"
+        />
       )}
     </group>
   );

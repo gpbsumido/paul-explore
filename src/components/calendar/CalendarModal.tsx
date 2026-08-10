@@ -183,7 +183,8 @@ function SharingTab({
                     className="flex items-center rounded border border-border overflow-hidden shrink-0"
                   >
                     {(["editor", "viewer"] as const).map((r) => (
-                      <button type="button"
+                      <button
+                        type="button"
                         key={r}
                         role="radio"
                         aria-checked={m.role === r}
@@ -201,7 +202,8 @@ function SharingTab({
                       </button>
                     ))}
                   </div>
-                  <button type="button"
+                  <button
+                    type="button"
                     onClick={() => handleRemove(m.userSub)}
                     aria-label={`Remove ${m.email}`}
                     className="shrink-0 text-red-500 hover:text-red-700 transition-colors"
@@ -272,7 +274,8 @@ function SharingTab({
               className="flex items-center rounded border border-border overflow-hidden shrink-0"
             >
               {(["editor", "viewer"] as const).map((r) => (
-                <button type="button"
+                <button
+                  type="button"
                   key={r}
                   role="radio"
                   aria-checked={inviteRole === r}
@@ -484,7 +487,8 @@ export default function CalendarModal({
           className="flex gap-0.5 rounded-lg border border-border p-0.5 mb-4"
         >
           {(["details", "sharing"] as const).map((t) => (
-            <button type="button"
+            <button
+              type="button"
               key={t}
               role="tab"
               aria-selected={tab === t}

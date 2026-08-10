@@ -11,10 +11,13 @@ export const GET = withBackend<RouteCtx>(
   "wall GET",
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
-      headers: buildHeaders(token, email),
-      cache: "no-store",
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/walls/${encodeURIComponent(id)}`,
+      {
+        headers: buildHeaders(token, email),
+        cache: "no-store",
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     const data = await res.json();
@@ -31,13 +34,17 @@ export const PUT = withBackend<RouteCtx>(
   async ({ token, email }, request, { params }) => {
     const { id } = await params;
     const body = await request.arrayBuffer();
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
-      method: "PUT",
-      headers: buildHeaders(token, email, {
-        "Content-Type": request.headers.get("content-type") ?? "application/octet-stream",
-      }),
-      body,
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/walls/${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: buildHeaders(token, email, {
+          "Content-Type":
+            request.headers.get("content-type") ?? "application/octet-stream",
+        }),
+        body,
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     const data = await res.json();
@@ -52,10 +59,13 @@ export const DELETE = withBackend<RouteCtx>(
   "wall DELETE",
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/walls/${encodeURIComponent(id)}`, {
-      method: "DELETE",
-      headers: buildHeaders(token, email),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/walls/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: buildHeaders(token, email),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     const data = await res.json();

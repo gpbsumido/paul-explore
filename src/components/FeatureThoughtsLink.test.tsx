@@ -9,14 +9,18 @@ describe("FeatureThoughtsLink", () => {
   it("offers the write-up when you're on the feature", () => {
     path.mockReturnValue("/gallery-wall");
     render(<FeatureThoughtsLink />);
-    const link = screen.getByRole("link", { name: /write-up on Gallery Wall/i });
+    const link = screen.getByRole("link", {
+      name: /write-up on Gallery Wall/i,
+    });
     expect(link).toHaveAttribute("href", "/thoughts/gallery-wall");
   });
 
   it("offers the app when you're on the write-up", () => {
     path.mockReturnValue("/thoughts/gallery-wall");
     render(<FeatureThoughtsLink />);
-    const link = screen.getByRole("link", { name: /open the Gallery Wall app/i });
+    const link = screen.getByRole("link", {
+      name: /open the Gallery Wall app/i,
+    });
     expect(link).toHaveAttribute("href", "/gallery-wall");
   });
 

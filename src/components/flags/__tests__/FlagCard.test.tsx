@@ -1,7 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import FlagCard from "@/components/flags/FlagCard";
-import { buildFlag, buildEnvironmentConfig, buildRule } from "@/test/factories/flags";
+import {
+  buildFlag,
+  buildEnvironmentConfig,
+  buildRule,
+} from "@/test/factories/flags";
 import type { EvaluationResult } from "@/types/flags";
 
 const noop = () => {};

@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -51,69 +52,67 @@ export default function MotionComponentsContent() {
       }
       chat={
         <ChatThread>
-              <Timestamp>Today 9:14 AM</Timestamp>
+          <Timestamp>Today 9:14 AM</Timestamp>
 
-              <Received pos="first">saw the new tilt card thing</Received>
-              <Received pos="last">
-                the one that leans toward the mouse with the shine on it
-              </Received>
+          <Received pos="first">saw the new tilt card thing</Received>
+          <Received pos="last">
+            the one that leans toward the mouse with the shine on it
+          </Received>
 
-              <Sent pos="first">
-                yeah, TiltCard. it reads the pointer position, maps it to a
-                rotate on two axes, and moves a glare highlight to follow the
-                cursor. pointer-only though
-              </Sent>
-              <Sent pos="last">
-                keyboard users never trigger it, and reduced-motion flattens it
-                to a plain static card. no tilt, no glare
-              </Sent>
+          <Sent pos="first">
+            yeah, TiltCard. it reads the pointer position, maps it to a rotate
+            on two axes, and moves a glare highlight to follow the cursor.
+            pointer-only though
+          </Sent>
+          <Sent pos="last">
+            keyboard users never trigger it, and reduced-motion flattens it to a
+            plain static card. no tilt, no glare
+          </Sent>
 
-              <Received>
-                so did you write the reduced-motion check three times, once per
-                component
-              </Received>
+          <Received>
+            so did you write the reduced-motion check three times, once per
+            component
+          </Received>
 
-              <Sent pos="first">
-                no. that was the refactor. i pulled it into one exported hook,
-                usePrefersReducedMotion, and moved the Ticker onto it too so
-                there&apos;s one source of truth
-              </Sent>
-              <Sent pos="last">
-                GradientBackground doesn&apos;t even need it in JS, the animation
-                is pure CSS and a media query just stops it. no javascript runs
-                for that one at all
-              </Sent>
+          <Sent pos="first">
+            no. that was the refactor. i pulled it into one exported hook,
+            usePrefersReducedMotion, and moved the Ticker onto it too so
+            there&apos;s one source of truth
+          </Sent>
+          <Sent pos="last">
+            GradientBackground doesn&apos;t even need it in JS, the animation is
+            pure CSS and a media query just stops it. no javascript runs for
+            that one at all
+          </Sent>
 
-              <Received>and the spotlight one?</Received>
+          <Received>and the spotlight one?</Received>
 
-              <Sent pos="first">
-                soft radial glow that chases the cursor. under reduced motion it
-                pins to center and stops tracking, so it&apos;s a static
-                vignette instead of a moving one
-              </Sent>
-              <Sent pos="last">
-                all three take children and are SSR-stable, so they&apos;re just
-                backgrounds you wrap around anything. tokens fill in the colors
-                if you don&apos;t pass your own
-              </Sent>
+          <Sent pos="first">
+            soft radial glow that chases the cursor. under reduced motion it
+            pins to center and stops tracking, so it&apos;s a static vignette
+            instead of a moving one
+          </Sent>
+          <Sent pos="last">
+            all three take children and are SSR-stable, so they&apos;re just
+            backgrounds you wrap around anything. tokens fill in the colors if
+            you don&apos;t pass your own
+          </Sent>
 
-              <Received>tests?</Received>
+          <Received>tests?</Received>
 
-              <Sent pos="last">
-                red-green per component, plus axe on all three. 146 in the react
-                package, 139 in css. angular ports deferred, same as the last
-                few
-              </Sent>
-            </ChatThread>
+          <Sent pos="last">
+            red-green per component, plus axe on all three. 146 in the react
+            package, 139 in css. angular ports deferred, same as the last few
+          </Sent>
+        </ChatThread>
       }
     >
       <Section title="What shipped">
         <p className="mb-3 text-muted">
-          Three content-agnostic surfaces landed in{" "}
-          <C>@paul-portfolio/css</C> and <C>@paul-portfolio/react</C>, plus a
-          shared-hook refactor. Each one wraps arbitrary <C>children</C> and is
-          stable on the server, so they behave like backgrounds you drop around
-          any content.
+          Three content-agnostic surfaces landed in <C>@paul-portfolio/css</C>{" "}
+          and <C>@paul-portfolio/react</C>, plus a shared-hook refactor. Each
+          one wraps arbitrary <C>children</C> and is stable on the server, so
+          they behave like backgrounds you drop around any content.
         </p>
         <ul className="mt-2 space-y-2 text-muted">
           <Bullet>
@@ -124,8 +123,8 @@ export default function MotionComponentsContent() {
           <Bullet>
             <strong className="text-foreground">GradientBackground</strong> — a
             flowing multi-stop gradient, animated entirely in CSS. Props:{" "}
-            <C>colors</C>, <C>angle</C>, <C>speed</C>, <C>animate</C>; falls back
-            to the brand token palette.
+            <C>colors</C>, <C>angle</C>, <C>speed</C>, <C>animate</C>; falls
+            back to the brand token palette.
           </Bullet>
           <Bullet>
             <strong className="text-foreground">Spotlight</strong> — a soft
@@ -214,8 +213,8 @@ export default function MotionComponentsContent() {
           </Bullet>
           <Bullet>
             Storybook stories added for each component, and versions bumped:{" "}
-            <C>@paul-portfolio/css</C> 0.4.5→0.4.6,{" "}
-            <C>@paul-portfolio/react</C> 0.4.4→0.4.5, with a changelog entry.
+            <C>@paul-portfolio/css</C> 0.4.5→0.4.6, <C>@paul-portfolio/react</C>{" "}
+            0.4.4→0.4.5, with a changelog entry.
           </Bullet>
           <Bullet>
             Angular ports deferred — the same call made for Select, FilterBar,
@@ -239,6 +238,19 @@ export default function MotionComponentsContent() {
           </Bullet>
         </ul>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "Reduced motion as the default rather than a fallback, so the accessible path is the one that runs unless something opts out.",
+          "Motion behind components rather than scattered animation calls, which is what makes a policy like that enforceable at all.",
+        ]}
+        couldImprove={[
+          "Adoption is incomplete, though less than I assumed. The 3D scenes animate in a render loop that never touches a motion component, so they answer the preference through their own hook instead — the world already did, the particle lab did not until it was fixed.",
+          "There is no test that a new animation went through the components rather than around them.",
+        ]}
+        upcoming={[
+          "A check that any new animated component answers prefers-reduced-motion somehow — through these components or its own hook — since the gap is not knowing, rather than any one page.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

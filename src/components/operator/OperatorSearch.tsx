@@ -39,7 +39,9 @@ export default function OperatorSearch({ onSelect }: OperatorSearchProps) {
     queryFn: async ({ signal }) => {
       const res = await fetch("/api/operator/search-index", { signal });
       if (!res.ok) throw new Error("Failed to load the search index");
-      return buildSearchIndex(searchIndexResponseSchema.parse(await res.json()));
+      return buildSearchIndex(
+        searchIndexResponseSchema.parse(await res.json()),
+      );
     },
     staleTime: 5 * 60_000,
   });

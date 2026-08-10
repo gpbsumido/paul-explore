@@ -209,7 +209,7 @@ export default function HeaderMenu({
         aria-label="Open menu"
         className={
           triggerClassName ??
-          "flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-foreground transition-colors hover:bg-surface-raised"
+          "flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[13px] text-foreground transition-colors hover:bg-surface-raised sm:min-h-0"
         }
       >
         <ActiveThemeIcon preference={preference} />
@@ -314,7 +314,7 @@ export default function HeaderMenu({
                     <button
                       type="button"
                       onClick={() => setEffectOpen((v) => !v)}
-                      className="flex w-full items-center justify-between rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12px] text-foreground transition-colors hover:bg-surface-raised"
+                      className="paul-touch-min flex w-full items-center justify-between rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12px] text-foreground transition-colors hover:bg-surface-raised"
                     >
                       <span className="flex items-center gap-1.5">
                         <span>
