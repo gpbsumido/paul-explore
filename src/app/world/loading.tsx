@@ -4,7 +4,10 @@
  */
 export default function WorldLoading() {
   return (
-    <main className="relative overflow-hidden bg-black" style={{ height: "100dvh" }}>
+    <main
+      className="relative overflow-hidden bg-black"
+      style={{ height: "100dvh" }}
+    >
       <div className="absolute left-4 top-4 hidden h-9 w-72 animate-pulse rounded-2xl bg-white/5 md:pointer-fine:block" />
       <div className="absolute right-4 top-4 h-[172px] w-[164px] animate-pulse rounded-2xl bg-white/5 max-md:h-10 max-md:w-44" />
       <div className="absolute inset-0 flex items-center justify-center">

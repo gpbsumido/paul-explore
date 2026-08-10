@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { flushSync } from "react-dom";
 import { parseISO } from "date-fns";
+import { anchorCorrection } from "./scrollAnchor";
 
 export interface InfiniteCalendarScrollHandle {
   scrollToDate(date: Date): void;
@@ -101,8 +102,10 @@ const InfiniteCalendarScroll = memo(
       const topSentinelRef = useRef<HTMLDivElement>(null);
       const bottomSentinelRef = useRef<HTMLDivElement>(null);
 
-      // Saved scrollHeight right before a prepend — useLayoutEffect compensates after the DOM update.
-      const prependHeightRef = useRef<number | null>(null);
+      // The period the reader is looking at, and where it sat. Restored after
+      // every render so anything that changes height above the viewport --
+      // a prepend, event data arriving, a refetch -- does not shove the page.
+      const anchorRef = useRef<{ key: string; top: number } | null>(null);
 
       // Mirror of periods so the observer callbacks can read the latest value
       // and do the scroll-height capture outside the setPeriods updater.
@@ -121,14 +124,27 @@ const InfiniteCalendarScroll = memo(
         onPeriodsChange(periods);
       }, [periods, onPeriodsChange]);
 
-      // Restore scroll position synchronously before the browser paints after a prepend.
+      // Put the anchored period back where it was, before the browser paints.
+      //
+      // This replaces compensation that only knew about prepends. Period
+      // content also grows when events and countdowns load, and that case used
+      // to shove whatever you were reading down the screen -- which is what the
+      // months "jumping" while scrolling actually was.
       useLayoutEffect(() => {
-        if (prependHeightRef.current !== null && scrollRef.current) {
-          const delta =
-            scrollRef.current.scrollHeight - prependHeightRef.current;
-          scrollRef.current.scrollTop += delta;
-          prependHeightRef.current = null;
-        }
+        const container = scrollRef.current;
+        const anchor = anchorRef.current;
+        if (!container || !anchor) return;
+
+        const el = container.querySelector<HTMLElement>(
+          `[data-period-key="${anchor.key}"]`,
+        );
+        if (!el) return;
+
+        const currentTop =
+          el.getBoundingClientRect().top -
+          container.getBoundingClientRect().top;
+        const delta = anchorCorrection(anchor.top, currentTop);
+        if (delta !== 0) container.scrollTop += delta;
       });
 
       // Bottom sentinel → append next period.
@@ -164,10 +180,6 @@ const InfiniteCalendarScroll = memo(
             const prevPeriod = getPrevPeriod(current[0]);
             const key = getPeriodKey(prevPeriod);
             if (current.some((d) => getPeriodKey(d) === key)) return;
-            // Capture scroll height before the prepend, outside the updater.
-            if (scrollRef.current) {
-              prependHeightRef.current = scrollRef.current.scrollHeight;
-            }
             setPeriods((prev) =>
               prev.some((d) => getPeriodKey(d) === key)
                 ? prev
@@ -200,6 +212,11 @@ const InfiniteCalendarScroll = memo(
           if (best) {
             const key = best.getAttribute("data-period-key");
             if (key) {
+              // Remember what is in view so the layout effect can restore it.
+              anchorRef.current = {
+                key,
+                top: best.getBoundingClientRect().top - containerTop,
+              };
               // After programmatic navigation, reject scroll-detected updates
               // that would revert away from the target within a settling window.
               // This handles all async scroll events (IntersectionObserver prepends,
@@ -228,6 +245,15 @@ const InfiniteCalendarScroll = memo(
         if (el) {
           container.scrollTop = scrollTopFor(container, el);
           adjustScrollForTarget(container);
+          // Seed the anchor here too. The top sentinel can fire before the
+          // reader has scrolled at all, and without an anchor that first
+          // prepend would go uncompensated -- a jump on load.
+          anchorRef.current = {
+            key,
+            top:
+              el.getBoundingClientRect().top -
+              container.getBoundingClientRect().top,
+          };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []); // run once on mount
@@ -244,7 +270,8 @@ const InfiniteCalendarScroll = memo(
         // Always reset to a clean 3-period window centered on the target.
         // Accumulated periods from scrolling can create unpredictable scroll
         // state that interferes with scrollTop assignment.
-        prependHeightRef.current = null;
+        // A deliberate jump replaces the anchor rather than fighting it.
+        anchorRef.current = null;
         flushSync(() => {
           setPeriods([getPrevPeriod(date), date, getNextPeriod(date)]);
         });
@@ -256,6 +283,12 @@ const InfiniteCalendarScroll = memo(
         if (el) {
           container.scrollTop = scrollTopFor(container, el);
           if (adjustForTarget) adjustScrollForTarget(container);
+          anchorRef.current = {
+            key,
+            top:
+              el.getBoundingClientRect().top -
+              container.getBoundingClientRect().top,
+          };
         }
 
         onVisibleDateChange(parseISO(key));
