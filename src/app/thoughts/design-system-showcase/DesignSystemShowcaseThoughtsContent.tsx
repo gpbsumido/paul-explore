@@ -14,9 +14,10 @@ export default function DesignSystemShowcaseThoughtsContent() {
         <>
           The shared design system already lived in three npm packages and a set
           of thin wrappers, but nobody could <em>see</em> it. This is the story
-          of building a live, in-app gallery at <code className={code}>/design-system</code>{" "}
-          that renders every primitive for real, lets you play with its props,
-          and links out to the pages where it already ships.
+          of building a live, in-app gallery at{" "}
+          <code className={code}>/design-system</code> that renders every
+          primitive for real, lets you play with its props, and links out to the
+          pages where it already ships.
         </>
       }
     >
@@ -44,10 +45,11 @@ export default function DesignSystemShowcaseThoughtsContent() {
           That matters because the package is shared. The same primitives back
           this Next.js app, a sibling{" "}
           <strong className="text-foreground">Angular</strong> app, and{" "}
-          <strong className="text-foreground">Ketsup</strong>, so a component can
-          ship and get adopted in one place before it lands in another. A card
-          for a primitive this app hasn&rsquo;t wrapped yet says so honestly
-          under <em>Availability</em> instead of inventing an in-app link.
+          <strong className="text-foreground">Ketsup</strong>, so a component
+          can ship and get adopted in one place before it lands in another. A
+          card for a primitive this app hasn&rsquo;t wrapped yet says so
+          honestly under <em>Availability</em> instead of inventing an in-app
+          link.
         </p>
       </section>
 
@@ -62,15 +64,17 @@ export default function DesignSystemShowcaseThoughtsContent() {
         </p>
         <p className="mt-3 text-muted">
           Keeping it as plain data unlocked the check I cared about most: a test
-          asserts the documented set is <strong className="text-foreground">exactly</strong>{" "}
-          the component set exported from{" "}
-          <code className={code}>@paul-portfolio/react</code> (minus the one
-          non-component export, the <code className={code}>cx</code> helper). Add
-          a primitive to the package and forget to document it, or document one
-          that no longer exists, and CI goes red. This is the check that caught
-          the gallery falling behind: the package had grown a{" "}
-          <code className={code}>Ticker</code>, a <code className={code}>Card</code>,
-          a <code className={code}>Switch</code> and more, and anchoring the test
+          asserts the documented set is{" "}
+          <strong className="text-foreground">exactly</strong> the component set
+          exported from <code className={code}>@paul-portfolio/react</code>{" "}
+          (minus the one non-component export, the{" "}
+          <code className={code}>cx</code> helper). Add a primitive to the
+          package and forget to document it, or document one that no longer
+          exists, and CI goes red. This is the check that caught the gallery
+          falling behind: the package had grown a{" "}
+          <code className={code}>Ticker</code>, a{" "}
+          <code className={code}>Card</code>, a{" "}
+          <code className={code}>Switch</code> and more, and anchoring the test
           to the package — not this app&rsquo;s thin wrapper barrel — is what
           makes that drift fail loudly instead of going unnoticed.
         </p>
@@ -94,8 +98,9 @@ export default function DesignSystemShowcaseThoughtsContent() {
         <p className="text-muted">
           The Button playground dogfoods the system to build itself: the
           controls are the design system&rsquo;s own{" "}
-          <code className={code}>Select</code>, <code className={code}>Input</code>,
-          and <code className={code}>FilterBar</code>. Change the variant, size,
+          <code className={code}>Select</code>,{" "}
+          <code className={code}>Input</code>, and{" "}
+          <code className={code}>FilterBar</code>. Change the variant, size,
           loading, or disabled state and both the live button and a generated
           code snippet update together. The snippet omits any prop left at its
           default, so what you copy reads like real, minimal code rather than an
@@ -106,21 +111,22 @@ export default function DesignSystemShowcaseThoughtsContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">Tooltips that teach</h2>
         <p className="text-muted">
-          An <code className={code}>InfoTip</code> next to each name opens a rich,
-          multi-line note on how and when to reach for the component. Using the
-          real overlay here matters: it proves the system&rsquo;s own popover
-          escapes the card&rsquo;s <code className={code}>overflow</code>, opens
-          on keyboard focus, and dismisses on Escape.
+          An <code className={code}>InfoTip</code> next to each name opens a
+          rich, multi-line note on how and when to reach for the component.
+          Using the real overlay here matters: it proves the system&rsquo;s own
+          popover escapes the card&rsquo;s{" "}
+          <code className={code}>overflow</code>, opens on keyboard focus, and
+          dismisses on Escape.
         </p>
         <p className="mt-3 text-muted">
           An earlier version also wrapped every live preview in a{" "}
           <code className={code}>Tooltip</code> repeating the tagline. On the
           Tooltip and InfoTip cards — whose previews are themselves an overlay —
-          that stacked a second popover on top of the first and read as a glitch,
-          and everywhere else it just echoed text already sitting above the
-          preview. So it came out. The tagline stays as plain text, the{" "}
-          <code className={code}>InfoTip</code> carries the depth, and Tooltip is
-          still demonstrated live by its own card. Less is the fix.
+          that stacked a second popover on top of the first and read as a
+          glitch, and everywhere else it just echoed text already sitting above
+          the preview. So it came out. The tagline stays as plain text, the{" "}
+          <code className={code}>InfoTip</code> carries the depth, and Tooltip
+          is still demonstrated live by its own card. Less is the fix.
         </p>
       </section>
 
@@ -148,10 +154,11 @@ export default function DesignSystemShowcaseThoughtsContent() {
         <h2 className="mb-3 text-lg font-bold">What I&rsquo;d revisit</h2>
         <p className="text-muted">
           The catalog validates that links start with a route path, not that the
-          route resolves — a future pass could cross-check against the app&rsquo;s
-          real route table the way the landing graph test already validates
-          category anchors. And the playground only drives Button today; the same
-          pattern would extend cleanly to a controls surface per primitive.
+          route resolves — a future pass could cross-check against the
+          app&rsquo;s real route table the way the landing graph test already
+          validates category anchors. And the playground only drives Button
+          today; the same pattern would extend cleanly to a controls surface per
+          primitive.
         </p>
       </section>
     </ThoughtLayout>

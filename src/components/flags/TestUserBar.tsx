@@ -25,12 +25,24 @@ const PRESETS: ReadonlyArray<{ label: string; hint: string; draft: Draft }> = [
   {
     label: "Enterprise user",
     hint: "plan = enterprise",
-    draft: { key: "ava-42", plan: "enterprise", country: "US", email: "ava@acme.com", beta: false },
+    draft: {
+      key: "ava-42",
+      plan: "enterprise",
+      country: "US",
+      email: "ava@acme.com",
+      beta: false,
+    },
   },
   {
     label: "Beta tester",
     hint: "beta opt-in, pro plan",
-    draft: { key: "sam-beta", plan: "pro", country: "CA", email: "sam@gmail.com", beta: true },
+    draft: {
+      key: "sam-beta",
+      plan: "pro",
+      country: "CA",
+      email: "sam@gmail.com",
+      beta: true,
+    },
   },
   {
     label: "Anonymous visitor",
@@ -114,7 +126,7 @@ export default function TestUserBar({
             type="button"
             onClick={() => commit(preset.draft)}
             title={preset.hint}
-            className="rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+            className="touch-min rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 max-sm:min-h-11"
           >
             {preset.label}
           </button>
@@ -183,7 +195,7 @@ export default function TestUserBar({
             type="checkbox"
             checked={draft.beta}
             onChange={(e) => commit({ ...draft, beta: e.target.checked })}
-            className="h-4 w-4 accent-primary-600"
+            className="touch-target h-4 w-4 accent-primary-600"
           />
           <label htmlFor={betaId} className="text-[13px] text-foreground">
             Beta opt-in

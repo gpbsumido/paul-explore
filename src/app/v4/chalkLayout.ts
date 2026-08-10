@@ -107,8 +107,10 @@ function candidate(rand: () => number, charCount: number): ChalkPlacement {
 const MIN_GAP = 22;
 
 /** Squared distance, weighting the vertical since words are wide and short. */
-const spread = (a: { left: number; top: number }, b: { left: number; top: number }) =>
-  (a.left - b.left) ** 2 + ((a.top - b.top) * 2.2) ** 2;
+const spread = (
+  a: { left: number; top: number },
+  b: { left: number; top: number },
+) => (a.left - b.left) ** 2 + ((a.top - b.top) * 2.2) ** 2;
 
 /**
  * Place a word somewhere clear of the machine, and clear of the words already

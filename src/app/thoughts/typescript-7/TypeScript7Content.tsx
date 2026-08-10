@@ -53,14 +53,15 @@ export default function TypeScript7Content() {
           declares:
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[12px] font-mono">
-{`peerDependencies:
+          {`peerDependencies:
   typescript: '>=4.8.4 <6.1.0'`}
         </pre>
         <p className="mt-3">
           TypeScript <code className={code}>7.0.2</code> is outside that range.
-          This project never installs <code className={code}>typescript-eslint</code>{" "}
-          directly, which is exactly why it is easy to miss &mdash; it arrives
-          through <code className={code}>eslint-config-next</code>, and shows up
+          This project never installs{" "}
+          <code className={code}>typescript-eslint</code> directly, which is
+          exactly why it is easy to miss &mdash; it arrives through{" "}
+          <code className={code}>eslint-config-next</code>, and shows up
           fifty-five times in the lockfile. Linting is a gate on every commit
           here, so &ldquo;lint stops working&rdquo; is not a cost you absorb for
           a faster type-check.
@@ -77,8 +78,8 @@ export default function TypeScript7Content() {
         </p>
         <p className="mt-3">
           Type-aware linting is not reading your source and pattern-matching. It
-          is asking the compiler what things <em>are</em>. No API, no answers. The
-          same wall hits anything that drives the compiler programmatically:
+          is asking the compiler what things <em>are</em>. No API, no answers.
+          The same wall hits anything that drives the compiler programmatically:
         </p>
         <ul className="mt-3 flex flex-col gap-2">
           <Bullet>
@@ -86,8 +87,8 @@ export default function TypeScript7Content() {
             ESLint&rsquo;s own repositories, which are blocked on it
           </Bullet>
           <Bullet>
-            <code className={code}>ts-morph</code>, <code className={code}>ts-jest</code>,
-            and codemod tooling
+            <code className={code}>ts-morph</code>,{" "}
+            <code className={code}>ts-jest</code>, and codemod tooling
           </Bullet>
           <Bullet>
             Template type-checking in Vue, Angular, Svelte, Astro, and MDX
@@ -95,8 +96,8 @@ export default function TypeScript7Content() {
         </ul>
         <p className="mt-3">
           The support request filed against typescript-eslint on GA day was
-          closed as <em>not planned</em>. That reads harsh out of context and
-          is not: there is nothing to build against yet.
+          closed as <em>not planned</em>. That reads harsh out of context and is
+          not: there is nothing to build against yet.
         </p>
       </Section>
 
@@ -107,7 +108,7 @@ export default function TypeScript7Content() {
           up:
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[12px] font-mono">
-{`$ time npx tsc --noEmit
+          {`$ time npx tsc --noEmit
 real 4.05s        # 725 .ts/.tsx files`}
         </pre>
         <p className="mt-3">
@@ -128,30 +129,30 @@ real 4.05s        # 725 .ts/.tsx files`}
         <p>
           This project is on 5.9, so upgrading to 7 means stepping over 6
           entirely. TypeScript 6 is the final JavaScript-based line, and its job
-          is to carry the deprecation warnings for everything 7 removes. Skipping
-          it converts a build full of warnings you can work through into a build
-          full of errors you have to.
+          is to carry the deprecation warnings for everything 7 removes.
+          Skipping it converts a build full of warnings you can work through
+          into a build full of errors you have to.
         </p>
         <p className="mt-3">
           Worth noting what did <em>not</em> stand in the way:{" "}
           <code className={code}>next@16.1.6</code> declares no{" "}
-          <code className={code}>typescript</code> peer at all. Nothing would have
-          blocked the install. The package manager would have let this through
-          and the failure would have surfaced later, in CI, as a lint step that
-          could no longer resolve a parser.
+          <code className={code}>typescript</code> peer at all. Nothing would
+          have blocked the install. The package manager would have let this
+          through and the failure would have surfaced later, in CI, as a lint
+          step that could no longer resolve a parser.
         </p>
       </Section>
 
       <Section title="Taking the speed without the upgrade">
         <p>
           The two things are separable. The Go compiler ships independently as{" "}
-          <code className={code}>@typescript/native-preview</code>, so it can run
-          as a fast pre-commit or CI check while{" "}
+          <code className={code}>@typescript/native-preview</code>, so it can
+          run as a fast pre-commit or CI check while{" "}
           <code className={code}>typescript</code> stays where the ecosystem
           expects it:
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[12px] font-mono">
-{`pnpm add -D @typescript/native-preview
+          {`pnpm add -D @typescript/native-preview
 tsgo --noEmit     # fast check
 tsc  --noEmit     # the one eslint resolves against`}
         </pre>

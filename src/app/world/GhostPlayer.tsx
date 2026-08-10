@@ -62,7 +62,11 @@ export default function GhostPlayer({ path }: GhostPlayerProps) {
       return;
     }
     group.visible = true;
-    group.position.set(pose.x, Math.sin(clock.elapsedTime * 1.7) * 0.06 + 0.05, pose.z);
+    group.position.set(
+      pose.x,
+      Math.sin(clock.elapsedTime * 1.7) * 0.06 + 0.05,
+      pose.z,
+    );
     group.rotation.y = pose.heading;
     trailRef.current = pushTrailPoint(trailRef.current, {
       x: pose.x,
@@ -75,23 +79,42 @@ export default function GhostPlayer({ path }: GhostPlayerProps) {
     <>
       <Trail pointsRef={trailRef} color={SPECTRE} intensity={0.45} />
       <group ref={groupRef} visible={false}>
-      <mesh position={[0, 0.72, 0]} material={material}>
-        <capsuleGeometry args={[0.34, 0.42, 8, round]} />
-      </mesh>
-      <mesh position={[0, 1.32, 0]} material={material}>
-        <sphereGeometry args={[0.27, round, Math.ceil(round * 0.75)]} />
-      </mesh>
-      <mesh position={[0, 1.46, -0.01]} material={material}>
-        <sphereGeometry args={[0.275, round, Math.ceil(round * 0.6), 0, Math.PI * 2, 0, Math.PI * 0.52]} />
-      </mesh>
-      {[-1, 1].map((side) => (
-        <mesh key={side} position={[side * 0.42, 0.85, 0]} material={material}>
-          <capsuleGeometry args={[0.1, 0.3, 6, round]} />
+        <mesh position={[0, 0.72, 0]} material={material}>
+          <capsuleGeometry args={[0.34, 0.42, 8, round]} />
         </mesh>
-      ))}
-      <sprite position={[0, 2.1, 0]} scale={[labelAspect * 0.5, 0.5, 1]}>
-        <spriteMaterial map={label} transparent opacity={0.8} depthWrite={false} />
-      </sprite>
+        <mesh position={[0, 1.32, 0]} material={material}>
+          <sphereGeometry args={[0.27, round, Math.ceil(round * 0.75)]} />
+        </mesh>
+        <mesh position={[0, 1.46, -0.01]} material={material}>
+          <sphereGeometry
+            args={[
+              0.275,
+              round,
+              Math.ceil(round * 0.6),
+              0,
+              Math.PI * 2,
+              0,
+              Math.PI * 0.52,
+            ]}
+          />
+        </mesh>
+        {[-1, 1].map((side) => (
+          <mesh
+            key={side}
+            position={[side * 0.42, 0.85, 0]}
+            material={material}
+          >
+            <capsuleGeometry args={[0.1, 0.3, 6, round]} />
+          </mesh>
+        ))}
+        <sprite position={[0, 2.1, 0]} scale={[labelAspect * 0.5, 0.5, 1]}>
+          <spriteMaterial
+            map={label}
+            transparent
+            opacity={0.8}
+            depthWrite={false}
+          />
+        </sprite>
       </group>
     </>
   );

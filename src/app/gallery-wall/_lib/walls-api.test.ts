@@ -75,7 +75,10 @@ describe("buildWallFormData", () => {
 
   it("only lists ids that actually have a file to upload", () => {
     const state = stateWith(["blob:one", "blob:two"]);
-    const form = buildWallFormData({ state, filesById: { img1: file("b.png") } });
+    const form = buildWallFormData({
+      state,
+      filesById: { img1: file("b.png") },
+    });
     expect(JSON.parse(form.get("imageIds") as string)).toEqual(["img1"]);
     expect(form.getAll("photos")).toHaveLength(1);
   });
@@ -96,7 +99,11 @@ describe("walls api client", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   const ok = (body: unknown) =>
-    Promise.resolve({ ok: true, status: 200, json: async () => body } as Response);
+    Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => body,
+    } as Response);
 
   it("lists walls", async () => {
     fetchMock.mockReturnValue(ok([{ id: "w1", name: "Den", updatedAt: "t" }]));
@@ -107,7 +114,9 @@ describe("walls api client", () => {
   });
 
   it("reads one wall", async () => {
-    fetchMock.mockReturnValue(ok({ id: "w1", name: "Den", state: initialGalleryState }));
+    fetchMock.mockReturnValue(
+      ok({ id: "w1", name: "Den", state: initialGalleryState }),
+    );
     const wall = await getWall("w1");
     expect(wall.name).toBe("Den");
     expect(fetchMock).toHaveBeenCalledWith("/api/walls/w1", expect.anything());
@@ -128,8 +137,14 @@ describe("walls api client", () => {
   });
 
   it("updates a wall with PUT", async () => {
-    fetchMock.mockReturnValue(ok({ id: "w1", name: "Renamed", updatedAt: "t" }));
-    await updateWall("w1", { name: "Renamed", state: stateWith([]), filesById: {} });
+    fetchMock.mockReturnValue(
+      ok({ id: "w1", name: "Renamed", updatedAt: "t" }),
+    );
+    await updateWall("w1", {
+      name: "Renamed",
+      state: stateWith([]),
+      filesById: {},
+    });
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/walls/w1");
     expect(init.method).toBe("PUT");

@@ -50,7 +50,8 @@ function audioContext(): AudioContext | null {
   if (shared && shared.state !== "closed") return shared;
   const Ctor: AudioCtor | undefined =
     window.AudioContext ??
-    (window as unknown as { webkitAudioContext?: AudioCtor }).webkitAudioContext;
+    (window as unknown as { webkitAudioContext?: AudioCtor })
+      .webkitAudioContext;
   shared = Ctor ? new Ctor() : null;
   return shared;
 }

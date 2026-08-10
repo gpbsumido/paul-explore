@@ -28,9 +28,9 @@ describe("FeatureFlagsContent", () => {
       screen.getByRole("heading", { name: /telling the truth in the ui/i }),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/resets in/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/sign in to change flags/i).length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      screen.getAllByText(/sign in to change flags/i).length,
+    ).toBeGreaterThan(0);
   });
 
   it("documents gating a real feature behind a visitor-keyed flag", () => {

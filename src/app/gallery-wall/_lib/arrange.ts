@@ -135,7 +135,12 @@ function spanTop(skyline: Skyline[], x: number, width: number): number | null {
 }
 
 /** Lay a frame across the skyline, raising every run it covers. */
-function raise(skyline: Skyline[], x: number, width: number, top: number): Skyline[] {
+function raise(
+  skyline: Skyline[],
+  x: number,
+  width: number,
+  top: number,
+): Skyline[] {
   const next: Skyline[] = [];
   for (const run of skyline) {
     const overlaps = run.x < x + width && run.x + run.width > x;
@@ -155,7 +160,11 @@ function raise(skyline: Skyline[], x: number, width: number, top: number): Skyli
   // Fold neighbouring runs that ended up at the same height.
   return next.reduce<Skyline[]>((merged, run) => {
     const last = merged[merged.length - 1];
-    if (last && Math.abs(last.y - run.y) < 1e-9 && Math.abs(last.x + last.width - run.x) < 1e-9) {
+    if (
+      last &&
+      Math.abs(last.y - run.y) < 1e-9 &&
+      Math.abs(last.x + last.width - run.x) < 1e-9
+    ) {
       last.width += run.width;
       return merged;
     }
@@ -188,7 +197,9 @@ export function arrangeAesthetic({
     return { placements: [], contentHeight: 0, overflows: false };
   }
 
-  const sorted = [...frames].sort((a, b) => area(b) - area(a) || (a.id < b.id ? -1 : 1));
+  const sorted = [...frames].sort(
+    (a, b) => area(b) - area(a) || (a.id < b.id ? -1 : 1),
+  );
 
   // Pack into a cluster narrower than the wall, shaped like the wall itself.
   // Given the full width the pack would just make one long row; constraining it
@@ -216,7 +227,11 @@ export function arrangeAesthetic({
         if (x < 0 || x + slotWidth > clusterWidth + 1e-9) continue;
         const top = spanTop(skyline, x, slotWidth);
         if (top === null) continue;
-        if (!best || top < best.y - 1e-9 || (Math.abs(top - best.y) < 1e-9 && x < best.x)) {
+        if (
+          !best ||
+          top < best.y - 1e-9 ||
+          (Math.abs(top - best.y) < 1e-9 && x < best.x)
+        ) {
           best = { x, y: top };
         }
       }
@@ -282,8 +297,7 @@ export function arrangeMasonry({
     return { placements: [], contentHeight: 0, overflows: false };
   }
 
-  const avgWidth =
-    frames.reduce((sum, f) => sum + f.width, 0) / frames.length;
+  const avgWidth = frames.reduce((sum, f) => sum + f.width, 0) / frames.length;
   const columnCount = Math.max(
     1,
     Math.min(frames.length, Math.floor((wallWidth + gap) / (avgWidth + gap))),
@@ -413,7 +427,13 @@ export function viewportRect(
   wall: { width: number; height: number },
 ): Placement {
   if (m.scrollWidth <= 0 || m.scrollHeight <= 0) {
-    return { id: "viewport", x: 0, y: 0, width: wall.width, height: wall.height };
+    return {
+      id: "viewport",
+      x: 0,
+      y: 0,
+      width: wall.width,
+      height: wall.height,
+    };
   }
   const fw = Math.min(1, m.clientWidth / m.scrollWidth);
   const fh = Math.min(1, m.clientHeight / m.scrollHeight);
@@ -445,7 +465,8 @@ export function minimapPointToScroll(
     return { scrollLeft: 0, scrollTop: 0 };
   }
   const scrollLeft = (point.x / wall.width) * m.scrollWidth - m.clientWidth / 2;
-  const scrollTop = (point.y / wall.height) * m.scrollHeight - m.clientHeight / 2;
+  const scrollTop =
+    (point.y / wall.height) * m.scrollHeight - m.clientHeight / 2;
   return {
     scrollLeft: clampScroll(scrollLeft, m.scrollWidth - m.clientWidth),
     scrollTop: clampScroll(scrollTop, m.scrollHeight - m.clientHeight),

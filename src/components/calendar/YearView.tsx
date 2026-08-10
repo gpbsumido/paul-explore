@@ -47,7 +47,8 @@ const MiniMonth = memo(function MiniMonth({
   });
 
   return (
-    <button type="button"
+    <button
+      type="button"
       onClick={onClick}
       data-scroll-target={containsToday || undefined}
       className={[

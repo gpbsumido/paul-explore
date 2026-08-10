@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { arrangeAesthetic } from "./arrange";
 
-const frame = (id: string, width: number, height: number) => ({ id, width, height });
+const frame = (id: string, width: number, height: number) => ({
+  id,
+  width,
+  height,
+});
 
 const input = (frames: ReturnType<typeof frame>[]) => ({
   wallWidth: 100,

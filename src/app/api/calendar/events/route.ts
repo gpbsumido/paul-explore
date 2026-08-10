@@ -5,31 +5,37 @@ import { createEventBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
 
 // GET /api/calendar/events?start=<ISO>&end=<ISO>
-export const GET = withBackend("calendar events GET", async ({ token, email }, request) => {
-  const { searchParams } = new URL(request.url);
-  const params = new URLSearchParams();
-  const start = searchParams.get("start");
-  const end = searchParams.get("end");
-  const cardName = searchParams.get("cardName");
-  if (start) params.set("start", start);
-  if (end) params.set("end", end);
-  if (cardName) params.set("cardName", cardName);
+export const GET = withBackend(
+  "calendar events GET",
+  async ({ token, email }, request) => {
+    const { searchParams } = new URL(request.url);
+    const params = new URLSearchParams();
+    const start = searchParams.get("start");
+    const end = searchParams.get("end");
+    const cardName = searchParams.get("cardName");
+    if (start) params.set("start", start);
+    if (end) params.set("end", end);
+    if (cardName) params.set("cardName", cardName);
 
-  const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events?${params}`, {
-    headers: buildHeaders(token, email),
-  });
-  if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
-  const res = upstreamResult.response;
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    console.error("[calendar BFF] GET — backend error body:", body);
-    return NextResponse.json(
-      { error: "Failed to fetch events" },
-      { status: res.status },
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/events?${params}`,
+      {
+        headers: buildHeaders(token, email),
+      },
     );
-  }
-  return NextResponse.json(await res.json());
-});
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+    const res = upstreamResult.response;
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      console.error("[calendar BFF] GET — backend error body:", body);
+      return NextResponse.json(
+        { error: "Failed to fetch events" },
+        { status: res.status },
+      );
+    }
+    return NextResponse.json(await res.json());
+  },
+);
 
 // POST /api/calendar/events
 export const POST = withBackend(
@@ -38,13 +44,16 @@ export const POST = withBackend(
     const bodyResult = await parseBody(request, createEventBodySchema);
     if (!bodyResult.ok) return bodyResult.response;
 
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events`, {
-      method: "POST",
-      headers: buildHeaders(token, email, {
-        "Content-Type": "application/json",
-      }),
-      body: JSON.stringify(bodyResult.data),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/events`,
+      {
+        method: "POST",
+        headers: buildHeaders(token, email, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(bodyResult.data),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {

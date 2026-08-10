@@ -63,12 +63,27 @@ function RemotePeer({ meta, peersRef }: RemotePeerProps) {
         <meshStandardMaterial color={SKIN_TONE} roughness={0.7} />
       </mesh>
       <mesh position={[0, 1.46, -0.01]}>
-        <sphereGeometry args={[0.275, round, Math.ceil(round * 0.6), 0, Math.PI * 2, 0, Math.PI * 0.52]} />
+        <sphereGeometry
+          args={[
+            0.275,
+            round,
+            Math.ceil(round * 0.6),
+            0,
+            Math.PI * 2,
+            0,
+            Math.PI * 0.52,
+          ]}
+        />
         <meshStandardMaterial color={outfit.cap} roughness={0.75} />
       </mesh>
       <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.45, 20]} />
-        <meshBasicMaterial color="#000000" transparent opacity={0.3} depthWrite={false} />
+        <meshBasicMaterial
+          color="#000000"
+          transparent
+          opacity={0.3}
+          depthWrite={false}
+        />
       </mesh>
       <sprite position={[0, 2.05, 0]} scale={[labelAspect * 0.55, 0.55, 1]}>
         <spriteMaterial map={label} transparent depthWrite={false} />
@@ -83,7 +98,10 @@ type RemoteExplorersProps = {
 };
 
 /** Everyone else in the city right now, capped so a crowd can't melt a GPU. */
-export default function RemoteExplorers({ peers, peersRef }: RemoteExplorersProps) {
+export default function RemoteExplorers({
+  peers,
+  peersRef,
+}: RemoteExplorersProps) {
   return (
     <group>
       {peers.slice(0, MAX_RENDERED_PEERS).map((meta) => (

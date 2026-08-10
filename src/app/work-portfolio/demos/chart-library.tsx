@@ -37,7 +37,14 @@ import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
 const ACCENT = "var(--wp-accent, #38bdf8)";
-const PALETTE = ["#38bdf8", "#818cf8", "#f472b6", "#34d399", "#f59e0b", "#a3e635"];
+const PALETTE = [
+  "#38bdf8",
+  "#818cf8",
+  "#f472b6",
+  "#34d399",
+  "#f59e0b",
+  "#a3e635",
+];
 
 /** Every chart takes a seed so the whole gallery re-rolls together. */
 type ChartProps = { seed: number };
@@ -67,7 +74,9 @@ function WpTooltip({ active, payload, label }: WpTooltipProps) {
           <span
             aria-hidden
             className="h-2 w-2 shrink-0 rounded-full"
-            style={{ backgroundColor: (p.color ?? p.payload?.fill ?? ACCENT) as string }}
+            style={{
+              backgroundColor: (p.color ?? p.payload?.fill ?? ACCENT) as string,
+            }}
           />
           {p.name !== undefined && <span className="text-muted">{p.name}</span>}
           <span className="ml-auto pl-2 font-medium tabular-nums text-foreground">
@@ -87,7 +96,10 @@ function GrowthCurve({ seed }: ChartProps) {
   }));
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: -24 }}>
+      <AreaChart
+        data={data}
+        margin={{ top: 6, right: 6, bottom: 0, left: -24 }}
+      >
         <defs>
           <linearGradient id="wpArea" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={ACCENT} stopOpacity={0.5} />
@@ -97,7 +109,14 @@ function GrowthCurve({ seed }: ChartProps) {
         <XAxis dataKey="m" tick={{ fontSize: 9 }} stroke="currentColor" />
         <YAxis tick={{ fontSize: 9 }} stroke="currentColor" />
         <Tooltip content={<WpTooltip />} />
-        <Area type="monotone" dataKey="v" stroke={ACCENT} fill="url(#wpArea)" strokeWidth={2} isAnimationActive={false} />
+        <Area
+          type="monotone"
+          dataKey="v"
+          stroke={ACCENT}
+          fill="url(#wpArea)"
+          strokeWidth={2}
+          isAnimationActive={false}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -109,14 +128,24 @@ function ConversionFunnel({ seed }: ChartProps) {
   const steps = ["Visit", "Signup", "Verify", "Activate", "Pay"];
   const data = steps.map((name, i) => {
     n = roundish(n * (0.55 + rng() * 0.3));
-    return { name, value: i === 0 ? 10000 : n, fill: PALETTE[i % PALETTE.length] };
+    return {
+      name,
+      value: i === 0 ? 10000 : n,
+      fill: PALETTE[i % PALETTE.length],
+    };
   });
   return (
     <ResponsiveContainer width="100%" height="100%">
       <FunnelChart>
         <Tooltip content={<WpTooltip />} />
         <Funnel dataKey="value" data={data} isAnimationActive={false}>
-          <LabelList position="right" fill="currentColor" stroke="none" dataKey="name" fontSize={9} />
+          <LabelList
+            position="right"
+            fill="currentColor"
+            stroke="none"
+            dataKey="name"
+            fontSize={9}
+          />
         </Funnel>
       </FunnelChart>
     </ResponsiveContainer>
@@ -155,7 +184,13 @@ function RevenueDonut({ seed }: ChartProps) {
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
         <Tooltip content={<WpTooltip />} />
-        <Pie data={data} dataKey="value" innerRadius="55%" outerRadius="85%" isAnimationActive={false}>
+        <Pie
+          data={data}
+          dataKey="value"
+          innerRadius="55%"
+          outerRadius="85%"
+          isAnimationActive={false}
+        >
           {data.map((_, i) => (
             <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
           ))}
@@ -178,8 +213,20 @@ function EngagementGauge({ seed }: ChartProps) {
         startAngle={210}
         endAngle={-30}
       >
-        <RadialBar dataKey="value" background cornerRadius={6} isAnimationActive={false} />
-        <text x="50%" y="52%" textAnchor="middle" fill="currentColor" fontSize={18} fontWeight={700}>
+        <RadialBar
+          dataKey="value"
+          background
+          cornerRadius={6}
+          isAnimationActive={false}
+        />
+        <text
+          x="50%"
+          y="52%"
+          textAnchor="middle"
+          fill="currentColor"
+          fontSize={18}
+          fontWeight={700}
+        >
           {pct}%
         </text>
       </RadialBarChart>
@@ -201,7 +248,10 @@ function RankedTable({ seed }: ChartProps) {
           <span className="h-3 flex-1 overflow-hidden rounded-sm bg-black/5 dark:bg-white/10">
             <span
               className="block h-full rounded-sm"
-              style={{ width: `${(r.dau / max) * 100}%`, backgroundColor: PALETTE[i % PALETTE.length] }}
+              style={{
+                width: `${(r.dau / max) * 100}%`,
+                backgroundColor: PALETTE[i % PALETTE.length],
+              }}
             />
           </span>
           <span className="w-12 shrink-0 text-right tabular-nums text-foreground">
@@ -229,7 +279,10 @@ function CohortHeatmap({ seed }: ChartProps) {
               <span
                 key={wi}
                 className="h-4 flex-1 rounded-sm"
-                style={{ backgroundColor: ACCENT, opacity: 0.12 + (v / 100) * 0.88 }}
+                style={{
+                  backgroundColor: ACCENT,
+                  opacity: 0.12 + (v / 100) * 0.88,
+                }}
               />
             );
           })}
@@ -246,20 +299,34 @@ function ParetoChart({ seed }: ChartProps) {
     .sort((a, b) => b.count - a.count);
   const total = raw.reduce((s, d) => s + d.count, 0);
   const data = raw.map((d, i) => {
-    const cumCount = raw
-      .slice(0, i + 1)
-      .reduce((s, x) => s + x.count, 0);
+    const cumCount = raw.slice(0, i + 1).reduce((s, x) => s + x.count, 0);
     return { ...d, cum: roundish((cumCount / total) * 100) };
   });
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={data} margin={{ top: 6, right: 4, bottom: 0, left: -24 }}>
+      <ComposedChart
+        data={data}
+        margin={{ top: 6, right: 4, bottom: 0, left: -24 }}
+      >
         <XAxis dataKey="name" {...axis} />
         <YAxis yAxisId="l" {...axis} />
         <YAxis yAxisId="r" orientation="right" {...axis} />
         <Tooltip content={<WpTooltip />} />
-        <Bar yAxisId="l" dataKey="count" fill={ACCENT} radius={[3, 3, 0, 0]} isAnimationActive={false} />
-        <Line yAxisId="r" dataKey="cum" stroke={PALETTE[2]} strokeWidth={2} dot={false} isAnimationActive={false} />
+        <Bar
+          yAxisId="l"
+          dataKey="count"
+          fill={ACCENT}
+          radius={[3, 3, 0, 0]}
+          isAnimationActive={false}
+        />
+        <Line
+          yAxisId="r"
+          dataKey="cum"
+          stroke={PALETTE[2]}
+          strokeWidth={2}
+          dot={false}
+          isAnimationActive={false}
+        />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -268,8 +335,18 @@ function ParetoChart({ seed }: ChartProps) {
 function WordCloud({ seed }: ChartProps) {
   const rng = makeRng(seed);
   const words = [
-    "fun", "laggy", "addictive", "balanced", "grindy", "polished",
-    "p2w", "chill", "hard", "social", "buggy", "fresh",
+    "fun",
+    "laggy",
+    "addictive",
+    "balanced",
+    "grindy",
+    "polished",
+    "p2w",
+    "chill",
+    "hard",
+    "social",
+    "buggy",
+    "fresh",
   ];
   return (
     <div className="flex h-full flex-wrap content-center items-center justify-center gap-x-2 gap-y-0.5 overflow-hidden p-1">
@@ -306,8 +383,18 @@ function TimeSeriesKpi({ seed }: ChartProps) {
       </div>
       <div className="min-h-0 flex-1">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-            <Area dataKey="v" stroke={ACCENT} fill={ACCENT} fillOpacity={0.18} strokeWidth={2} isAnimationActive={false} />
+          <AreaChart
+            data={data}
+            margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
+          >
+            <Area
+              dataKey="v"
+              stroke={ACCENT}
+              fill={ACCENT}
+              fillOpacity={0.18}
+              strokeWidth={2}
+              isAnimationActive={false}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -324,12 +411,27 @@ function DauMauLine({ seed }: ChartProps) {
   }));
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: -24 }}>
+      <LineChart
+        data={data}
+        margin={{ top: 6, right: 6, bottom: 0, left: -24 }}
+      >
         <XAxis dataKey="m" {...axis} />
         <YAxis {...axis} />
         <Tooltip content={<WpTooltip />} />
-        <Line dataKey="dau" stroke={PALETTE[0]} dot={false} strokeWidth={2} isAnimationActive={false} />
-        <Line dataKey="mau" stroke={PALETTE[1]} dot={false} strokeWidth={2} isAnimationActive={false} />
+        <Line
+          dataKey="dau"
+          stroke={PALETTE[0]}
+          dot={false}
+          strokeWidth={2}
+          isAnimationActive={false}
+        />
+        <Line
+          dataKey="mau"
+          stroke={PALETTE[1]}
+          dot={false}
+          strokeWidth={2}
+          isAnimationActive={false}
+        />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -347,7 +449,12 @@ function SessionHistogram({ seed }: ChartProps) {
         <XAxis dataKey="b" {...axis} />
         <YAxis {...axis} />
         <Tooltip content={<WpTooltip />} />
-        <Bar dataKey="n" fill={PALETTE[3]} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+        <Bar
+          dataKey="n"
+          fill={PALETTE[3]}
+          radius={[3, 3, 0, 0]}
+          isAnimationActive={false}
+        />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -360,7 +467,11 @@ function GeoSplit({ seed }: ChartProps) {
     .sort((a, b) => b.v - a.v);
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} layout="vertical" margin={{ top: 2, right: 6, bottom: 0, left: 0 }}>
+      <BarChart
+        data={data}
+        layout="vertical"
+        margin={{ top: 2, right: 6, bottom: 0, left: 0 }}
+      >
         <XAxis type="number" {...axis} hide />
         <YAxis type="category" dataKey="name" {...axis} width={40} />
         <Tooltip content={<WpTooltip />} />
@@ -384,7 +495,10 @@ function StackedArea({ seed }: ChartProps) {
   }));
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: -24 }}>
+      <AreaChart
+        data={data}
+        margin={{ top: 6, right: 6, bottom: 0, left: -24 }}
+      >
         <XAxis dataKey="i" {...axis} />
         <YAxis {...axis} />
         <Tooltip content={<WpTooltip />} />
@@ -432,8 +546,17 @@ function RadarMetrics({ seed }: ChartProps) {
     <ResponsiveContainer width="100%" height="100%">
       <RadarChart data={data} outerRadius="70%">
         <PolarGrid />
-        <PolarAngleAxis dataKey="m" tick={{ fontSize: 8, fill: "currentColor" }} />
-        <Radar dataKey="v" stroke={ACCENT} fill={ACCENT} fillOpacity={0.4} isAnimationActive={false} />
+        <PolarAngleAxis
+          dataKey="m"
+          tick={{ fontSize: 8, fill: "currentColor" }}
+        />
+        <Radar
+          dataKey="v"
+          stroke={ACCENT}
+          fill={ACCENT}
+          fillOpacity={0.4}
+          isAnimationActive={false}
+        />
       </RadarChart>
     </ResponsiveContainer>
   );
@@ -449,7 +572,10 @@ function KpiTiles({ seed }: ChartProps) {
   return (
     <div className="grid h-full grid-cols-3 items-center gap-1.5">
       {tiles.map((t) => (
-        <div key={t.label} className="rounded-md border border-border p-1.5 text-center">
+        <div
+          key={t.label}
+          className="rounded-md border border-border p-1.5 text-center"
+        >
           <p className="text-[15px] font-bold text-foreground">{t.value}</p>
           <p className="text-[8px] text-muted">{t.label}</p>
         </div>
@@ -458,7 +584,11 @@ function KpiTiles({ seed }: ChartProps) {
   );
 }
 
-const GALLERY: { key: string; title: string; Chart: (p: ChartProps) => React.ReactNode }[] = [
+const GALLERY: {
+  key: string;
+  title: string;
+  Chart: (p: ChartProps) => React.ReactNode;
+}[] = [
   { key: "growth", title: "Growth curve", Chart: GrowthCurve },
   { key: "funnel", title: "Conversion funnel", Chart: ConversionFunnel },
   { key: "retention", title: "Retention", Chart: RetentionBars },
@@ -508,7 +638,9 @@ function ChartSettingsModal({
           onChange={(e) => setTitle(e.target.value)}
         />
         <div className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-foreground">Accent</span>
+          <span className="text-[13px] font-medium text-foreground">
+            Accent
+          </span>
           <div className="flex gap-2">
             {PALETTE.map((c) => (
               <button
@@ -517,7 +649,7 @@ function ChartSettingsModal({
                 aria-label={`Accent ${c}`}
                 aria-pressed={accent === c}
                 onClick={() => setAccent(c)}
-                className={`h-6 w-6 rounded-full transition-transform ${
+                className={`touch-target h-6 w-6 rounded-full transition-transform ${
                   accent === c ? "ring-2 ring-foreground ring-offset-1" : ""
                 }`}
                 style={{ backgroundColor: c }}
@@ -531,7 +663,9 @@ function ChartSettingsModal({
           </Button>
           <Button
             size="sm"
-            onClick={() => onSave({ title: title.trim() || defaultTitle, accent })}
+            onClick={() =>
+              onSave({ title: title.trim() || defaultTitle, accent })
+            }
           >
             Apply
           </Button>
@@ -547,7 +681,11 @@ function ChartSettingsModal({
  * recharts, all sharing one seed so the whole board re-rolls together. Each
  * chart can be renamed and re-accented through a settings modal.
  */
-export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) {
+export default function ChartLibraryDemo({
+  feature,
+}: {
+  feature: WorkFeature;
+}) {
   const [seed, setSeed] = useState(7);
   const [mode, setMode] = useState<"grid" | "focus">("grid");
   const [focusIndex, setFocusIndex] = useState(0);
@@ -565,15 +703,15 @@ export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) 
     overrides[key]?.accent
       ? ({ "--wp-accent": overrides[key]!.accent } as React.CSSProperties)
       : undefined;
-  const editing = editingKey
-    ? GALLERY.find((g) => g.key === editingKey)
-    : null;
+  const editing = editingKey ? GALLERY.find((g) => g.key === editingKey) : null;
 
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+          <p className="text-[13px] font-semibold text-foreground">
+            {feature.title}
+          </p>
           <p className="text-[11px] text-muted">
             all 17 chart types, re-rolled {rerolls} times
           </p>
@@ -587,14 +725,20 @@ export default function ChartLibraryDemo({ feature }: { feature: WorkFeature }) 
                 aria-pressed={mode === m}
                 onClick={() => setMode(m)}
                 className={`px-2.5 py-1 capitalize ${
-                  mode === m ? "bg-black/10 text-foreground dark:bg-white/15" : "text-muted"
+                  mode === m
+                    ? "bg-black/10 text-foreground dark:bg-white/15"
+                    : "text-muted"
                 }`}
               >
                 {m}
               </button>
             ))}
           </div>
-          <Button variant="outline" size="xs" onClick={() => setSeed((s) => s + 7)}>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => setSeed((s) => s + 7)}
+          >
             Reroll data
           </Button>
         </div>

@@ -104,7 +104,7 @@ export default function FleetAnalytics({
       <button
         type="button"
         onClick={toggle}
-        className="flex w-full items-center justify-between rounded-t-xl px-4 py-3 text-left transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-500"
+        className="touch-min flex w-full items-center justify-between rounded-t-xl px-4 py-3 text-left transition-colors hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-500"
         aria-expanded={!collapsed}
       >
         <span className="text-sm font-semibold">Fleet Analytics</span>

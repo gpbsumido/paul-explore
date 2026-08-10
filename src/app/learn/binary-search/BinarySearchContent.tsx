@@ -225,7 +225,8 @@ function Pill({
   children: React.ReactNode;
 }) {
   return (
-    <button type="button"
+    <button
+      type="button"
       onClick={onClick}
       className={[
         "rounded-full border px-3 py-1 font-mono text-xs transition-colors",
@@ -569,7 +570,7 @@ function CapacityDemo() {
                     {day.map((pkg, j) => (
                       <div
                         key={j}
-                        className="flex h-7 w-7 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
+                        className="touch-target flex h-7 w-7 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
                       >
                         {pkg}
                       </div>

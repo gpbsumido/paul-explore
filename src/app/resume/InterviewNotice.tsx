@@ -41,8 +41,9 @@ export default function InterviewNotice() {
       >
         <p>
           You clicked through from a write-up I keep half-locked. Rather than
-          hand you an address and hope for the best, I&rsquo;d rather you see the
-          work first. It&rsquo;s all below, and my email is right there on it.
+          hand you an address and hope for the best, I&rsquo;d rather you see
+          the work first. It&rsquo;s all below, and my email is right there on
+          it.
         </p>
         <p>
           Use it. Tell me what you&rsquo;re building and I&rsquo;ll tell you

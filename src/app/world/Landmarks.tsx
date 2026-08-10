@@ -6,9 +6,21 @@ import { useFrame } from "@react-three/fiber";
 import { LANDMARKS } from "@/lib/world/cityLayout";
 import type { SkyPreset } from "./skyPresets";
 import { useSegments } from "./detail";
-import { makeTextTexture, makeCheckerTexture, makeWindowTexture } from "./textures";
+import {
+  makeTextTexture,
+  makeCheckerTexture,
+  makeWindowTexture,
+} from "./textures";
 
-const SIGN_COLORS = ["#38bdf8", "#f472b6", "#fbbf24", "#4ade80", "#a78bfa", "#f87171", "#22d3ee"];
+const SIGN_COLORS = [
+  "#38bdf8",
+  "#f472b6",
+  "#fbbf24",
+  "#4ade80",
+  "#a78bfa",
+  "#f87171",
+  "#22d3ee",
+];
 
 function useDisposableTexture(make: () => THREE.CanvasTexture) {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- textures are created once per mount; callers pass inline factories
@@ -32,7 +44,10 @@ function WarmGlow({
   readonly size: readonly [number, number];
 }) {
   return (
-    <mesh position={[...position]} rotation={rotation ? [...rotation] : [0, 0, 0]}>
+    <mesh
+      position={[...position]}
+      rotation={rotation ? [...rotation] : [0, 0, 0]}
+    >
       <planeGeometry args={[...size]} />
       <meshBasicMaterial
         color="#ffd9a0"
@@ -114,12 +129,27 @@ function RogersCentre() {
         <meshStandardMaterial color="#5c6474" roughness={0.8} />
       </mesh>
       <mesh position={[0, 2.4, 0]} scale={[1, 0.55, 0.92]}>
-        <sphereGeometry args={[8, round, Math.ceil(round * 0.6), 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <sphereGeometry
+          args={[
+            8,
+            round,
+            Math.ceil(round * 0.6),
+            0,
+            Math.PI * 2,
+            0,
+            Math.PI / 2,
+          ]}
+        />
         <meshStandardMaterial color="#dde2ea" roughness={0.55} />
       </mesh>
       {/* the segmented roof ribs */}
       {[0.35, 0.75, 1.15].map((angle) => (
-        <mesh key={angle} position={[0, 2.4, 0]} rotation={[0, angle, 0]} scale={[1, 0.57, 1]}>
+        <mesh
+          key={angle}
+          position={[0, 2.4, 0]}
+          rotation={[0, angle, 0]}
+          scale={[1, 0.57, 1]}
+        >
           <torusGeometry args={[7.9, 0.18, 8, round * 2, Math.PI]} />
           <meshStandardMaterial color="#f0f3f7" roughness={0.5} />
         </mesh>
@@ -141,9 +171,19 @@ function ScotiabankArena({ night }: { readonly night: boolean }) {
         <meshStandardMaterial color="#3a4356" roughness={0.7} />
       </mesh>
       {/* curved silver roof over the bowl */}
-      <mesh position={[0, 5.2, 0]} rotation={[0, 0, Math.PI / 2]} scale={[0.5, 1, 1]}>
-        <cylinderGeometry args={[4.2, 4.2, 13.6, round, 1, false, 0, Math.PI]} />
-        <meshStandardMaterial color="#9aa3b0" roughness={0.45} side={THREE.DoubleSide} />
+      <mesh
+        position={[0, 5.2, 0]}
+        rotation={[0, 0, Math.PI / 2]}
+        scale={[0.5, 1, 1]}
+      >
+        <cylinderGeometry
+          args={[4.2, 4.2, 13.6, round, 1, false, 0, Math.PI]}
+        />
+        <meshStandardMaterial
+          color="#9aa3b0"
+          roughness={0.45}
+          side={THREE.DoubleSide}
+        />
       </mesh>
       <mesh position={[0, 3.4, -4.05]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[5, 1.2]} />
@@ -163,7 +203,10 @@ function UnionStation({ night }: { readonly night: boolean }) {
   );
   const round = useSegments(12);
   const { x, z } = LANDMARKS.unionStation;
-  const columns = useMemo(() => Array.from({ length: 9 }, (_, i) => -8.8 + i * 2.2), []);
+  const columns = useMemo(
+    () => Array.from({ length: 9 }, (_, i) => -8.8 + i * 2.2),
+    [],
+  );
   return (
     <group position={[x, 0, z]}>
       <mesh position={[0, 2.4, 0]}>
@@ -179,7 +222,11 @@ function UnionStation({ night }: { readonly night: boolean }) {
         <boxGeometry args={[9, 1.6, 5.8]} />
         <meshStandardMaterial color="#6a6f7c" roughness={0.75} />
       </mesh>
-      <mesh position={[0, 7.2, 0]} rotation={[0, Math.PI / 4, 0]} scale={[1.6, 1, 1]}>
+      <mesh
+        position={[0, 7.2, 0]}
+        rotation={[0, Math.PI / 4, 0]}
+        scale={[1.6, 1, 1]}
+      >
         <coneGeometry args={[3.4, 1.1, 4]} />
         <meshStandardMaterial color="#575c68" roughness={0.8} />
       </mesh>
@@ -189,7 +236,13 @@ function UnionStation({ night }: { readonly night: boolean }) {
           <meshStandardMaterial color="#8a8f9c" roughness={0.6} />
         </mesh>
       ))}
-      <WarmGlow night={night} opacity={0.5} position={[0, 2.2, -3.01]} rotation={[0, Math.PI, 0]} size={[21, 1.6]} />
+      <WarmGlow
+        night={night}
+        opacity={0.5}
+        position={[0, 2.2, -3.01]}
+        rotation={[0, Math.PI, 0]}
+        size={[21, 1.6]}
+      />
       <mesh position={[0, 4.4, -3.35]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[8.5, 1]} />
         <meshBasicMaterial map={sign} transparent />
@@ -210,21 +263,36 @@ function CityHall({ festive }: { readonly festive: boolean }) {
         Array.from({ length: 18 }, (_, i) => {
           const t = i / 17;
           return (
-            <mesh key={i} position={[-8 + t * 16, 3.4 + Math.sin(t * Math.PI) * 1.4, 5]}>
+            <mesh
+              key={i}
+              position={[-8 + t * 16, 3.4 + Math.sin(t * Math.PI) * 1.4, 5]}
+            >
               <sphereGeometry args={[0.13, 8, 8]} />
-              <meshBasicMaterial color={FESTIVE_COLORS[i % FESTIVE_COLORS.length]} />
+              <meshBasicMaterial
+                color={FESTIVE_COLORS[i % FESTIVE_COLORS.length]}
+              />
             </mesh>
           );
         })}
       {/* two curved towers facing each other over the saucer — the east one is
           taller, as in life */}
       <mesh position={[-4, 6, 0]} rotation={[0, Math.PI * 0.5, 0]}>
-        <cylinderGeometry args={[3.6, 3.6, 12, round, 1, true, 0, Math.PI * 0.9]} />
-        <meshStandardMaterial color="#c9cfd8" roughness={0.7} side={THREE.DoubleSide} />
+        <cylinderGeometry
+          args={[3.6, 3.6, 12, round, 1, true, 0, Math.PI * 0.9]}
+        />
+        <meshStandardMaterial
+          color="#c9cfd8"
+          roughness={0.7}
+          side={THREE.DoubleSide}
+        />
       </mesh>
       <mesh position={[4.2, 8.5, 0]} rotation={[0, -Math.PI * 0.5, 0]}>
         <cylinderGeometry args={[4, 4, 17, round, 1, true, 0, Math.PI * 0.9]} />
-        <meshStandardMaterial color="#c9cfd8" roughness={0.7} side={THREE.DoubleSide} />
+        <meshStandardMaterial
+          color="#c9cfd8"
+          roughness={0.7}
+          side={THREE.DoubleSide}
+        />
       </mesh>
       {/* council chamber saucer */}
       <mesh position={[0, 2.2, 0]} scale={[1, 0.45, 1]}>
@@ -241,7 +309,10 @@ function CityHall({ festive }: { readonly festive: boolean }) {
 
 function TorontoSign({ prefersReduced }: { readonly prefersReduced: boolean }) {
   const sign = useDisposableTexture(() =>
-    makeTextTexture("🍁TORONTO", { fontSize: 88, letterColors: ["#e11d48", ...SIGN_COLORS] }),
+    makeTextTexture("🍁TORONTO", {
+      fontSize: 88,
+      letterColors: ["#e11d48", ...SIGN_COLORS],
+    }),
   );
   const glowRef = useRef<THREE.MeshBasicMaterial>(null);
   const { x, z } = LANDMARKS.torontoSign;
@@ -264,7 +335,13 @@ function TorontoSign({ prefersReduced }: { readonly prefersReduced: boolean }) {
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.51, 1.6]}>
         <planeGeometry args={[11, 2.4]} />
-        <meshBasicMaterial ref={glowRef} color="#7dd3fc" transparent opacity={0.16} depthWrite={false} />
+        <meshBasicMaterial
+          ref={glowRef}
+          color="#7dd3fc"
+          transparent
+          opacity={0.16}
+          depthWrite={false}
+        />
       </mesh>
     </group>
   );
@@ -289,7 +366,9 @@ function EatonCentre() {
       </mesh>
       {/* the galleria's barrel skylight */}
       <mesh position={[0, 9, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[3, 3, 15.6, round, 1, false, -Math.PI / 2, Math.PI]} />
+        <cylinderGeometry
+          args={[3, 3, 15.6, round, 1, false, -Math.PI / 2, Math.PI]}
+        />
         <meshStandardMaterial
           color="#9fc4e8"
           emissive="#5b7ba8"
@@ -302,15 +381,31 @@ function EatonCentre() {
   );
 }
 
-function YongeDundasBillboards({ prefersReduced }: { readonly prefersReduced: boolean }) {
+function YongeDundasBillboards({
+  prefersReduced,
+}: {
+  readonly prefersReduced: boolean;
+}) {
   const adOne = useDisposableTexture(() =>
-    makeTextTexture("PAUL-EXPLORE", { fontSize: 52, color: "#0b0e14", background: "#7dd3fc" }),
+    makeTextTexture("PAUL-EXPLORE", {
+      fontSize: 52,
+      color: "#0b0e14",
+      background: "#7dd3fc",
+    }),
   );
   const adTwo = useDisposableTexture(() =>
-    makeTextTexture("EXPLORE MORE →", { fontSize: 48, color: "#ffffff", background: "#e11d48" }),
+    makeTextTexture("EXPLORE MORE →", {
+      fontSize: 48,
+      color: "#ffffff",
+      background: "#e11d48",
+    }),
   );
   const adThree = useDisposableTexture(() =>
-    makeTextTexture("VITALS: ALL GREEN", { fontSize: 44, color: "#052e16", background: "#4ade80" }),
+    makeTextTexture("VITALS: ALL GREEN", {
+      fontSize: 44,
+      color: "#052e16",
+      background: "#4ade80",
+    }),
   );
   const flickerRef = useRef<THREE.MeshBasicMaterial>(null);
   const { x, z } = LANDMARKS.ydBillboards;
@@ -318,7 +413,8 @@ function YongeDundasBillboards({ prefersReduced }: { readonly prefersReduced: bo
   useFrame(({ clock }) => {
     if (!flickerRef.current || prefersReduced) return;
     const t = clock.elapsedTime;
-    flickerRef.current.opacity = 0.92 + Math.sin(t * 9) * Math.sin(t * 2.3) * 0.08;
+    flickerRef.current.opacity =
+      0.92 + Math.sin(t * 9) * Math.sin(t * 2.3) * 0.08;
   });
 
   return (
@@ -353,7 +449,11 @@ function AGO() {
         <meshStandardMaterial color="#464d5a" roughness={0.8} />
       </mesh>
       {/* Gehry's curved glass visor, bulging north over Dundas */}
-      <mesh position={[0, 4.6, -0.8]} rotation={[0, 0, Math.PI / 2]} scale={[0.9, 1, 1]}>
+      <mesh
+        position={[0, 4.6, -0.8]}
+        rotation={[0, 0, Math.PI / 2]}
+        scale={[0.9, 1, 1]}
+      >
         <cylinderGeometry args={[2.6, 2.6, 17.6, 24, 1, true, 0, Math.PI]} />
         <meshStandardMaterial
           color="#5e8cb8"
@@ -370,13 +470,24 @@ function AGO() {
       </mesh>
       <mesh position={[0, 3.1, 2.35]}>
         <boxGeometry args={[17, 0.15, 0.15]} />
-        <meshStandardMaterial color="#94b8d8" emissive="#94b8d8" emissiveIntensity={0.8} />
+        <meshStandardMaterial
+          color="#94b8d8"
+          emissive="#94b8d8"
+          emissiveIntensity={0.8}
+        />
       </mesh>
     </group>
   );
 }
 
-const OCAD_STILT_COLORS = ["#f43f5e", "#fbbf24", "#38bdf8", "#a3e635", "#a78bfa", "#f9a8d4"];
+const OCAD_STILT_COLORS = [
+  "#f43f5e",
+  "#fbbf24",
+  "#38bdf8",
+  "#a3e635",
+  "#a78bfa",
+  "#f9a8d4",
+];
 
 function OCAD() {
   const checker = useDisposableTexture(makeCheckerTexture);
@@ -432,13 +543,27 @@ function Flatiron({ night }: { readonly night: boolean }) {
   const { x, z } = LANDMARKS.flatiron;
   return (
     <group position={[x, 0, z]}>
-      <mesh geometry={wedge} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <mesh
+        geometry={wedge}
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0, 0]}
+      >
         <meshStandardMaterial color="#8a5344" roughness={0.85} />
       </mesh>
-      <mesh geometry={wedge} rotation={[-Math.PI / 2, 0, 0]} position={[0, 5, 0]} scale={[1.06, 1.15, 0.16]}>
+      <mesh
+        geometry={wedge}
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 5, 0]}
+        scale={[1.06, 1.15, 0.16]}
+      >
         <meshStandardMaterial color="#3f5a4c" roughness={0.7} />
       </mesh>
-      <WarmGlow night={night} opacity={0.28} position={[0.4, 2.6, 2.06]} size={[4.6, 2.4]} />
+      <WarmGlow
+        night={night}
+        opacity={0.28}
+        position={[0.4, 2.6, 2.06]}
+        size={[4.6, 2.4]}
+      />
     </group>
   );
 }
@@ -453,28 +578,54 @@ function StLawrenceMarket({ night }: { readonly night: boolean }) {
         <meshStandardMaterial color="#8a5140" roughness={0.85} />
       </mesh>
       <mesh position={[0, 4.6, 0]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[3.4, 3.4, 15.6, round, 1, false, 0, Math.PI]} />
-        <meshStandardMaterial color="#4f6277" roughness={0.7} side={THREE.DoubleSide} />
+        <cylinderGeometry
+          args={[3.4, 3.4, 15.6, round, 1, false, 0, Math.PI]}
+        />
+        <meshStandardMaterial
+          color="#4f6277"
+          roughness={0.7}
+          side={THREE.DoubleSide}
+        />
       </mesh>
-      <WarmGlow night={night} opacity={0.4} position={[0, 1.9, -3.51]} rotation={[0, Math.PI, 0]} size={[13, 1.8]} />
+      <WarmGlow
+        night={night}
+        opacity={0.4}
+        position={[0, 1.9, -3.51]}
+        rotation={[0, Math.PI, 0]}
+        size={[13, 1.8]}
+      />
     </group>
   );
 }
 
 // Queen's Park: an oval park — lawn, crescent path, flower beds — with the
 // pink sandstone legislature at its north end.
-function QueensPark({ night, lawn }: { readonly night: boolean; readonly lawn: string }) {
+function QueensPark({
+  night,
+  lawn,
+}: {
+  readonly night: boolean;
+  readonly lawn: string;
+}) {
   const round = useSegments(36);
   const { x, z } = LANDMARKS.queensPark;
   return (
     <group position={[x, 0, z]}>
       {/* oval lawn, south of the legislature */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.035, 4]} scale={[14, 10, 1]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.035, 4]}
+        scale={[14, 10, 1]}
+      >
         <circleGeometry args={[1, round]} />
         <meshStandardMaterial color={lawn} roughness={1} />
       </mesh>
       {/* Queen's Park Crescent, the path looping the lawn */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.055, 4]} scale={[12, 8.4, 1]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.055, 4]}
+        scale={[12, 8.4, 1]}
+      >
         <ringGeometry args={[0.88, 1, round]} />
         <meshStandardMaterial color="#4d443a" roughness={0.95} />
       </mesh>
@@ -484,11 +635,19 @@ function QueensPark({ night, lawn }: { readonly night: boolean; readonly lawn: s
         <meshStandardMaterial color="#4d443a" roughness={0.95} />
       </mesh>
       {/* flower beds */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-5, 0.06, 8]} scale={[1.6, 1.1, 1]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[-5, 0.06, 8]}
+        scale={[1.6, 1.1, 1]}
+      >
         <circleGeometry args={[1, Math.ceil(round / 2)]} />
         <meshStandardMaterial color="#a3486e" roughness={0.9} />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[5, 0.06, 8]} scale={[1.6, 1.1, 1]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[5, 0.06, 8]}
+        scale={[1.6, 1.1, 1]}
+      >
         <circleGeometry args={[1, Math.ceil(round / 2)]} />
         <meshStandardMaterial color="#c8a23e" roughness={0.9} />
       </mesh>
@@ -515,7 +674,11 @@ function QueensPark({ night, lawn }: { readonly night: boolean; readonly lawn: s
         <meshStandardMaterial color="#c8a23e" roughness={0.4} />
       </mesh>
       {[-1, 1].map((side) => (
-        <group key={side} position={[side * 7.2, 0, 1]} rotation={[0, -side * 0.3, 0]}>
+        <group
+          key={side}
+          position={[side * 7.2, 0, 1]}
+          rotation={[0, -side * 0.3, 0]}
+        >
           <mesh position={[0, 1.9, 0]}>
             <boxGeometry args={[6, 3.8, 4]} />
             <meshStandardMaterial color="#9c6156" roughness={0.85} />
@@ -530,7 +693,12 @@ function QueensPark({ night, lawn }: { readonly night: boolean; readonly lawn: s
         <boxGeometry args={[6, 0.5, 1.6]} />
         <meshStandardMaterial color="#7d8492" roughness={0.9} />
       </mesh>
-      <WarmGlow night={night} opacity={0.35} position={[0, 2.2, 2.55]} size={[7, 2.2]} />
+      <WarmGlow
+        night={night}
+        opacity={0.35}
+        position={[0, 2.2, 2.55]}
+        size={[7, 2.2]}
+      />
     </group>
   );
 }
@@ -542,7 +710,11 @@ function Campus({ night }: { readonly night: boolean }) {
   return (
     <group>
       {/* King's College Circle */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.055, z + 1]} scale={[7, 5.5, 1]}>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[x, 0.055, z + 1]}
+        scale={[7, 5.5, 1]}
+      >
         <ringGeometry args={[0.85, 1, round]} />
         <meshStandardMaterial color="#4d443a" roughness={0.95} />
       </mesh>
@@ -568,7 +740,12 @@ function Campus({ night }: { readonly night: boolean }) {
             <coneGeometry args={[0.7, 1.2, Math.ceil(round / 3)]} />
             <meshStandardMaterial color="#42485a" roughness={0.85} />
           </mesh>
-          <WarmGlow night={night} opacity={0.3} position={[0, 1.6, hall.d / 2 + 0.05]} size={[hall.w - 2, 1.4]} />
+          <WarmGlow
+            night={night}
+            opacity={0.3}
+            position={[0, 1.6, hall.d / 2 + 0.05]}
+            size={[hall.w - 2, 1.4]}
+          />
         </group>
       ))}
     </group>
@@ -593,9 +770,18 @@ function Kensington({ night }: { readonly night: boolean }) {
           </mesh>
           <mesh position={[0, 2.1, 2.2]} rotation={[0.5, 0, 0]}>
             <planeGeometry args={[3.6, 1.2]} />
-            <meshStandardMaterial color="#f5f0e8" roughness={0.9} side={THREE.DoubleSide} />
+            <meshStandardMaterial
+              color="#f5f0e8"
+              roughness={0.9}
+              side={THREE.DoubleSide}
+            />
           </mesh>
-          <WarmGlow night={night} opacity={0.45} position={[0, 1.1, 2.02]} size={[2.2, 1.2]} />
+          <WarmGlow
+            night={night}
+            opacity={0.45}
+            position={[0, 1.1, 2.02]}
+            size={[2.2, 1.2]}
+          />
         </group>
       ))}
     </group>
@@ -611,7 +797,11 @@ type LandmarksProps = {
 };
 
 /** Every bespoke Toronto set piece, anchored to the shared city layout. */
-export default function Landmarks({ prefersReduced, preset, festive }: LandmarksProps) {
+export default function Landmarks({
+  prefersReduced,
+  preset,
+  festive,
+}: LandmarksProps) {
   const night = preset.lampsOn;
   return (
     <group>

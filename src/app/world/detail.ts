@@ -19,4 +19,3 @@ export function useSegments(base: number): number {
 export function useDetail(): number {
   return useContext(DetailContext);
 }
-

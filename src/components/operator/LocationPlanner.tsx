@@ -293,8 +293,8 @@ export default function LocationPlanner({
             </p>
             <p className="mt-1 text-warning-700 dark:text-warning-400">
               Net profit is {formatCAD(projection.netProfitMonthly)} / month
-              after fees, so the hardware never earns itself back. Raise traffic,
-              price or margin to change that.
+              after fees, so the hardware never earns itself back. Raise
+              traffic, price or margin to change that.
             </p>
           </div>
         ) : (
@@ -443,7 +443,9 @@ function Figure({ label, value, muted }: FigureProps) {
       </dt>
       <dd
         className={`tabular-nums ${
-          muted ? "text-sm text-muted" : "text-base font-semibold text-foreground"
+          muted
+            ? "text-sm text-muted"
+            : "text-base font-semibold text-foreground"
         }`}
       >
         {value}

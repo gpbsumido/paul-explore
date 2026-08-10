@@ -50,7 +50,9 @@ describe("Gallery Wall write-up", () => {
 
   it("links to the feature it documents", () => {
     render(<GalleryWallThoughtsContent />);
-    const links = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
+    const links = screen
+      .getAllByRole("link")
+      .map((a) => a.getAttribute("href"));
     expect(links).toContain("/gallery-wall");
   });
 });

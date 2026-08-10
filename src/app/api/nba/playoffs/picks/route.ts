@@ -21,9 +21,12 @@ export async function GET() {
   const season = currentSeasonYear();
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/nba/playoffs/picks/${season}`, {
-      headers: buildHeaders(token, null),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/nba/playoffs/picks/${season}`,
+      {
+        headers: buildHeaders(token, null),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
 
@@ -77,13 +80,16 @@ export async function PUT(request: NextRequest) {
   const season = currentSeasonYear();
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/nba/playoffs/picks/${season}`, {
-      method: "PUT",
-      headers: buildHeaders(token, null, {
-        "Content-Type": "application/json",
-      }),
-      body: JSON.stringify({ picks }),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/nba/playoffs/picks/${season}`,
+      {
+        method: "PUT",
+        headers: buildHeaders(token, null, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({ picks }),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
 

@@ -105,11 +105,15 @@ export default function ExplainerWindow({
           <>
             <p>{feature.explainer.did}</p>
             <p>
-              <span className="font-semibold text-foreground">Originally: </span>
+              <span className="font-semibold text-foreground">
+                Originally:{" "}
+              </span>
               {feature.explainer.stack}
             </p>
             <p>
-              <span className="font-semibold text-foreground">In this demo: </span>
+              <span className="font-semibold text-foreground">
+                In this demo:{" "}
+              </span>
               {feature.explainer.mocked}
             </p>
           </>

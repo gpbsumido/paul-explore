@@ -11,7 +11,9 @@ describe("confettiPieces", () => {
 
   it("varies drift per piece, so one burst is not a block of identical paper", () => {
     // The fall *style* is per win; the variation inside a burst comes from here.
-    const drifts = new Set(confettiPieces(60, COLORS).map((c) => Math.round(c.drift)));
+    const drifts = new Set(
+      confettiPieces(60, COLORS).map((c) => Math.round(c.drift)),
+    );
     expect(drifts.size).toBeGreaterThan(20);
   });
 

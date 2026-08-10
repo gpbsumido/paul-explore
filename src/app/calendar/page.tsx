@@ -32,7 +32,6 @@ export const metadata: Metadata = {
   },
 };
 
-
 /**
  * Fetches the current month's events server-side so the calendar grid renders
  * with real data on first paint. Falls back gracefully if auth or the backend

@@ -12,7 +12,11 @@ import { visibleFraction } from "@/lib/world/camera";
 import { EXHIBITS } from "@/lib/world/exhibits";
 import { nearestExhibit, INTERACT_RADIUS } from "@/lib/world/proximity";
 import { routeWaypoints } from "@/lib/world/routing";
-import { recordSample, type GhostPath, type GhostPoint } from "@/lib/world/ghost";
+import {
+  recordSample,
+  type GhostPath,
+  type GhostPoint,
+} from "@/lib/world/ghost";
 import { pushTrailPoint, type TrailPoint } from "@/lib/world/trail";
 import { findCollectible, markVisited } from "@/lib/world/collectibles";
 import {
@@ -67,7 +71,8 @@ const DECK_PULLBACK = 26;
 const RIDE_HEIGHT = 0.3;
 
 /** What pressing E would do from where the player is standing. */
-export type InteractionKind = "exhibit" | "board" | "alight" | "lookout" | "descend" | null;
+export type InteractionKind =
+  "exhibit" | "board" | "alight" | "lookout" | "descend" | null;
 
 export type WorldSceneProps = {
   readonly keysRef: RefObject<Set<string>>;
@@ -175,17 +180,23 @@ export default function WorldScene({
   const activeIdRef = useRef<string | null>(null);
   const walkPhaseRef = useRef(0);
   const stuckForRef = useRef(0);
-  const routeRef = useRef<{ forId: string; waypoints: readonly Vec2[]; leg: number } | null>(null);
+  const routeRef = useRef<{
+    forId: string;
+    waypoints: readonly Vec2[];
+    leg: number;
+  } | null>(null);
   const trailRef = useRef<readonly TrailPoint[]>([]);
   const camFractionRef = useRef(1);
   const ridingRef = useRef(false);
   // Riding on the roof is a separate, sillier thing from riding the board:
   // you get there by jumping, and you keep your footing wherever you landed.
-  const roofRef = useRef<{ riding: boolean; offsetX: number; offsetZ: number }>({
-    riding: false,
-    offsetX: 0,
-    offsetZ: 0,
-  });
+  const roofRef = useRef<{ riding: boolean; offsetX: number; offsetZ: number }>(
+    {
+      riding: false,
+      offsetX: 0,
+      offsetZ: 0,
+    },
+  );
   const lookoutRef = useRef(false);
   const interactionRef = useRef<InteractionKind>(null);
   const photoOrbitRef = useRef({ yaw: 0, pitch: 0.5, distance: 12 });
@@ -203,8 +214,14 @@ export default function WorldScene({
         (held.has("Space") ? 1 : 0) -
         (held.has("ShiftLeft") || held.has("ShiftRight") ? 1 : 0);
       orbit.yaw += turn * 1.4 * dt;
-      orbit.distance = Math.min(Math.max(orbit.distance + dolly * 14 * dt, 3), 60);
-      orbit.pitch = Math.min(Math.max(orbit.pitch + lift * 0.9 * dt, -0.2), 1.35);
+      orbit.distance = Math.min(
+        Math.max(orbit.distance + dolly * 14 * dt, 3),
+        60,
+      );
+      orbit.pitch = Math.min(
+        Math.max(orbit.pitch + lift * 0.9 * dt, -0.2),
+        1.35,
+      );
 
       const focus = stateRef.current.position;
       camera.position.set(
@@ -231,7 +248,11 @@ export default function WorldScene({
     const keys = directionFromKeys(keysRef.current ?? new Set());
     const joystick = joystickRef.current ?? { x: 0, z: 0 };
     const userMoving =
-      keys.x !== 0 || keys.z !== 0 || keys.jump || joystick.x !== 0 || joystick.z !== 0;
+      keys.x !== 0 ||
+      keys.z !== 0 ||
+      keys.jump ||
+      joystick.x !== 0 ||
+      joystick.z !== 0;
 
     // Fast travel from the tower lookout drops the explorer at a booth.
     const warp = teleportRef.current;
@@ -275,7 +296,8 @@ export default function WorldScene({
       } else {
         const tower = LANDMARKS.cnTower;
         const atTower =
-          Math.hypot(state.position.x - tower.x, state.position.z - tower.z) < TOWER_RADIUS;
+          Math.hypot(state.position.x - tower.x, state.position.z - tower.z) <
+          TOWER_RADIUS;
         const stop = nearestStop(state.position);
         const carIsHere = stop ? carIsAtStop(car, stop) : false;
         if (atTower) {
@@ -319,7 +341,11 @@ export default function WorldScene({
         stateRef.current = onRoof;
         const outerRoof = outerRef.current;
         if (outerRoof) {
-          outerRoof.position.set(onRoof.position.x, ROOF_HEIGHT, onRoof.position.z);
+          outerRoof.position.set(
+            onRoof.position.x,
+            ROOF_HEIGHT,
+            onRoof.position.z,
+          );
           outerRoof.rotation.y = onRoof.heading;
         }
         motionRef.current.stride = 0;
@@ -329,11 +355,18 @@ export default function WorldScene({
           playerRef.current.z = onRoof.position.z;
           playerRef.current.heading = onRoof.heading;
         }
-        const anchorRoof = { x: onRoof.position.x, y: ROOF_HEIGHT + 1.4, z: onRoof.position.z };
+        const anchorRoof = {
+          x: onRoof.position.x,
+          y: ROOF_HEIGHT + 1.4,
+          z: onRoof.position.z,
+        };
         const blendRoof = 1 - Math.exp(-CAMERA_LAG * dt);
-        camera.position.x += (anchorRoof.x + CAMERA_OFFSET.x - camera.position.x) * blendRoof;
-        camera.position.y += (CAMERA_OFFSET.y + 2 - camera.position.y) * blendRoof;
-        camera.position.z += (anchorRoof.z + CAMERA_OFFSET.z - camera.position.z) * blendRoof;
+        camera.position.x +=
+          (anchorRoof.x + CAMERA_OFFSET.x - camera.position.x) * blendRoof;
+        camera.position.y +=
+          (CAMERA_OFFSET.y + 2 - camera.position.y) * blendRoof;
+        camera.position.z +=
+          (anchorRoof.z + CAMERA_OFFSET.z - camera.position.z) * blendRoof;
         camera.lookAt(anchorRoof.x, anchorRoof.y, anchorRoof.z);
         if (interactionRef.current !== "alight") {
           interactionRef.current = "alight";
@@ -355,7 +388,11 @@ export default function WorldScene({
       stateRef.current = riding;
       const outerRiding = outerRef.current;
       if (outerRiding) {
-        outerRiding.position.set(riding.position.x, riding.y, riding.position.z);
+        outerRiding.position.set(
+          riding.position.x,
+          riding.y,
+          riding.position.z,
+        );
         outerRiding.rotation.y = riding.heading;
       }
       motionRef.current.stride = 0;
@@ -367,9 +404,11 @@ export default function WorldScene({
       }
       const anchorRide = { x: riding.position.x, y: 2.6, z: riding.position.z };
       const blendRide = 1 - Math.exp(-CAMERA_LAG * dt);
-      camera.position.x += (anchorRide.x + CAMERA_OFFSET.x - camera.position.x) * blendRide;
+      camera.position.x +=
+        (anchorRide.x + CAMERA_OFFSET.x - camera.position.x) * blendRide;
       camera.position.y += (CAMERA_OFFSET.y - camera.position.y) * blendRide;
-      camera.position.z += (anchorRide.z + CAMERA_OFFSET.z - camera.position.z) * blendRide;
+      camera.position.z +=
+        (anchorRide.z + CAMERA_OFFSET.z - camera.position.z) * blendRide;
       camera.lookAt(anchorRide.x, anchorRide.y, anchorRide.z);
       if (interactionRef.current !== "alight") {
         interactionRef.current = "alight";
@@ -384,7 +423,8 @@ export default function WorldScene({
       const blendUp = 1 - Math.exp(-1.8 * dt);
       camera.position.x += (tower.x - camera.position.x) * blendUp;
       camera.position.y += (DECK_HEIGHT - camera.position.y) * blendUp;
-      camera.position.z += (tower.z + DECK_PULLBACK - camera.position.z) * blendUp;
+      camera.position.z +=
+        (tower.z + DECK_PULLBACK - camera.position.z) * blendUp;
       camera.lookAt(0, 0, -6);
       if (interactionRef.current !== "descend") {
         interactionRef.current = "descend";
@@ -437,7 +477,8 @@ export default function WorldScene({
             route.leg += 1;
           }
           const speed = Math.hypot(state.velocity.x, state.velocity.z);
-          stuckForRef.current = speed < STUCK_SPEED ? stuckForRef.current + dt : 0;
+          stuckForRef.current =
+            speed < STUCK_SPEED ? stuckForRef.current + dt : 0;
           input = {
             x: distance > 0 ? dx / distance : 0,
             z: distance > 0 ? dz / distance : 0,
@@ -461,7 +502,10 @@ export default function WorldScene({
     stateRef.current = next;
 
     // Come down on top of a passing streetcar and you've earned the ride.
-    if (!ridingRef.current && landsOnRoof(next.position, next.y, next.vy, car)) {
+    if (
+      !ridingRef.current &&
+      landsOnRoof(next.position, next.y, next.vy, car)
+    ) {
       roofRef.current = {
         riding: true,
         offsetX: next.position.x - car.x,
@@ -484,9 +528,13 @@ export default function WorldScene({
     const bob = bobRef.current;
     if (bob) {
       const grounded = next.y <= 0.01;
-      bob.position.y = grounded ? Math.abs(Math.sin(walkPhaseRef.current)) * 0.07 * stride : 0;
+      bob.position.y = grounded
+        ? Math.abs(Math.sin(walkPhaseRef.current)) * 0.07 * stride
+        : 0;
       bob.rotation.x = 0.08 * stride;
-      bob.rotation.z = grounded ? Math.sin(walkPhaseRef.current) * 0.04 * stride : 0;
+      bob.rotation.z = grounded
+        ? Math.sin(walkPhaseRef.current) * 0.04 * stride
+        : 0;
     }
 
     if (playerRef.current) {
@@ -513,7 +561,9 @@ export default function WorldScene({
     // Soundscape: the mix follows the player, footsteps follow their stride.
     const audio = audioRef.current;
     if (audio) {
-      audio.setMix(ambienceMix({ player: next.position, carX: car.x, condition }));
+      audio.setMix(
+        ambienceMix({ player: next.position, carX: car.x, condition }),
+      );
       const grounded = next.y <= 0.01;
       const interval = grounded ? footstepInterval(speed) : null;
       if (interval === null) {
@@ -564,13 +614,17 @@ export default function WorldScene({
     const previousFraction = camFractionRef.current;
     const settleRate = clearFraction < previousFraction ? 18 : 3;
     camFractionRef.current =
-      previousFraction + (clearFraction - previousFraction) * (1 - Math.exp(-settleRate * dt));
+      previousFraction +
+      (clearFraction - previousFraction) * (1 - Math.exp(-settleRate * dt));
     const boom = camFractionRef.current;
 
     const blend = 1 - Math.exp(-CAMERA_LAG * dt);
-    camera.position.x += (anchor.x + (desired.x - anchor.x) * boom - camera.position.x) * blend;
-    camera.position.y += (anchor.y + (desired.y - anchor.y) * boom - camera.position.y) * blend;
-    camera.position.z += (anchor.z + (desired.z - anchor.z) * boom - camera.position.z) * blend;
+    camera.position.x +=
+      (anchor.x + (desired.x - anchor.x) * boom - camera.position.x) * blend;
+    camera.position.y +=
+      (anchor.y + (desired.y - anchor.y) * boom - camera.position.y) * blend;
+    camera.position.z +=
+      (anchor.z + (desired.z - anchor.z) * boom - camera.position.z) * blend;
     camera.lookAt(anchor.x, anchor.y, anchor.z);
 
     const nearest = nearestExhibit(next.position, EXHIBITS);
@@ -583,7 +637,8 @@ export default function WorldScene({
     // Tell the HUD what E would do from here.
     const tower = LANDMARKS.cnTower;
     const atTower =
-      Math.hypot(next.position.x - tower.x, next.position.z - tower.z) < TOWER_RADIUS;
+      Math.hypot(next.position.x - tower.x, next.position.z - tower.z) <
+      TOWER_RADIUS;
     const stop = nearestStop(next.position);
     const carIsHere = stop ? carIsAtStop(car, stop) : false;
     const kind: InteractionKind = atTower
@@ -609,15 +664,26 @@ export default function WorldScene({
   return (
     <>
       <hemisphereLight
-        args={[preset.hemisphere[0], preset.hemisphere[1], preset.hemisphere[2]]}
+        args={[
+          preset.hemisphere[0],
+          preset.hemisphere[1],
+          preset.hemisphere[2],
+        ]}
       />
       <directionalLight
         position={[...preset.sun.position]}
         intensity={preset.sun.intensity}
         color={preset.sun.color}
       />
-      <ambientLight intensity={preset.ambient.intensity} color={preset.ambient.color} />
-      <CityScene prefersReduced={prefersReduced} preset={preset} season={season} />
+      <ambientLight
+        intensity={preset.ambient.intensity}
+        color={preset.ambient.color}
+      />
+      <CityScene
+        prefersReduced={prefersReduced}
+        preset={preset}
+        season={season}
+      />
       <Landmarks
         prefersReduced={prefersReduced}
         preset={preset}
@@ -625,10 +691,20 @@ export default function WorldScene({
       />
       <Raccoons playerRef={playerRef} prefersReduced={prefersReduced} />
       <Weather condition={condition} prefersReduced={prefersReduced} />
-      <Exhibits playerRef={playerRef} prefersReduced={prefersReduced} activeIdRef={activeIdRef} />
-      {ghostPath && !prefersReduced && peers.length === 0 && <GhostPlayer path={ghostPath} />}
+      <Exhibits
+        playerRef={playerRef}
+        prefersReduced={prefersReduced}
+        activeIdRef={activeIdRef}
+      />
+      {ghostPath && !prefersReduced && peers.length === 0 && (
+        <GhostPlayer path={ghostPath} />
+      )}
       {!prefersReduced && <Trail pointsRef={trailRef} color={outfit.accent} />}
-      <Collectibles collected={collected} playerRef={playerRef} prefersReduced={prefersReduced} />
+      <Collectibles
+        collected={collected}
+        playerRef={playerRef}
+        prefersReduced={prefersReduced}
+      />
       <RemoteExplorers peers={peers} peersRef={peersRef} />
       <Player
         outerRef={outerRef}

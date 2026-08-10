@@ -33,9 +33,10 @@ export default function HybridRenderingContent() {
           in the server route config was <C>RenderMode.Client</C>, which tells
           the server to ship the shell and defer everything to the browser. So
           the SSR server was doing real work to render&hellip; a blank app root.
-          I only noticed how bad it was when I ran <C>curl</C> against a Thoughts
-          URL and got back markup with no essay in it. Nothing to index, nothing
-          in a link preview, nothing for anyone who reads before JavaScript runs.
+          I only noticed how bad it was when I ran <C>curl</C> against a
+          Thoughts URL and got back markup with no essay in it. Nothing to
+          index, nothing in a link preview, nothing for anyone who reads before
+          JavaScript runs.
         </p>
       </section>
 
@@ -73,8 +74,8 @@ export default function HybridRenderingContent() {
           <C>&lt;title&gt;</C>, a description, Open Graph and Twitter card tags,
           a canonical link, and structured data &mdash; all present in the
           server HTML before any script runs. I pulled that into a{" "}
-          <C>SeoService</C> that writes per-page title, description, keywords, OG
-          and Twitter meta, the canonical <C>&lt;link&gt;</C>, and a JSON-LD{" "}
+          <C>SeoService</C> that writes per-page title, description, keywords,
+          OG and Twitter meta, the canonical <C>&lt;link&gt;</C>, and a JSON-LD{" "}
           <C>BlogPosting</C> block, all through Angular&rsquo;s <C>Title</C>,{" "}
           <C>Meta</C>, and <C>DOCUMENT</C> so it renders on the server rather
           than being patched in on the client. One service, called per page,
@@ -88,15 +89,15 @@ export default function HybridRenderingContent() {
         </h2>
         <p className="text-muted">
           The moment the shell actually server-renders, latent hydration
-          problems surface. Two showed up. The clock ran a{" "}
-          <C>setInterval</C> unconditionally, which doesn&rsquo;t belong on the
-          server &mdash; I guarded it with <C>isPlatformBrowser</C> so the timer
-          only starts in the browser. And the menu bar&rsquo;s markup diverged
-          between the server pass and the first client render, so I put{" "}
-          <C>ngSkipHydration</C> on it: an honest acknowledgement that it&rsquo;s
-          a client-owned island, rather than fighting to make its server output
-          match. Both are the kind of thing you only find once real SSR is
-          switched on.
+          problems surface. Two showed up. The clock ran a <C>setInterval</C>{" "}
+          unconditionally, which doesn&rsquo;t belong on the server &mdash; I
+          guarded it with <C>isPlatformBrowser</C> so the timer only starts in
+          the browser. And the menu bar&rsquo;s markup diverged between the
+          server pass and the first client render, so I put{" "}
+          <C>ngSkipHydration</C> on it: an honest acknowledgement that
+          it&rsquo;s a client-owned island, rather than fighting to make its
+          server output match. Both are the kind of thing you only find once
+          real SSR is switched on.
         </p>
       </section>
 
@@ -106,10 +107,10 @@ export default function HybridRenderingContent() {
         </h2>
         <p className="text-muted">
           I wrote this the TDD way &mdash; 8 new specs first, failing, covering
-          the <C>SeoService</C> output, the prerender route config and its
-          param enumeration, and the component wiring &mdash; then made them
-          green. The full suite is at 266 passing and lint is clean. The
-          measurable proof is in the build itself: <C>ng build</C> reports{" "}
+          the <C>SeoService</C> output, the prerender route config and its param
+          enumeration, and the component wiring &mdash; then made them green.
+          The full suite is at 266 passing and lint is clean. The measurable
+          proof is in the build itself: <C>ng build</C> reports{" "}
           <em className="text-foreground/80">Prerendered 20 static routes</em>,
           and <C>dist/&hellip;/thoughts/signals/index.html</C> contains the
           essay body, a real <C>&lt;title&gt;</C>, the <C>og:</C> tags, the
@@ -127,9 +128,9 @@ export default function HybridRenderingContent() {
           The build emits a soft budget warning &mdash; the initial bundle is
           416.97 kB against a 400 kB warn threshold, still under the 500 kB hard
           error. The long thought bodies are the weight, and the obvious
-          follow-up is to move them into a lazily loaded data chunk so the
-          eager bundle stops carrying prose it doesn&rsquo;t need on first paint.
-          Not urgent, but it&rsquo;s the first place a real budget problem would
+          follow-up is to move them into a lazily loaded data chunk so the eager
+          bundle stops carrying prose it doesn&rsquo;t need on first paint. Not
+          urgent, but it&rsquo;s the first place a real budget problem would
           show up.
         </p>
       </section>

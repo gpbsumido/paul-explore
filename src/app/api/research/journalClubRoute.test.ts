@@ -143,7 +143,9 @@ describe("GET /api/research/journal-club?innovative=true", () => {
       ),
     );
     const body = await res.json();
-    const found = body.papers.find((p: { id: string }) => p.id.includes("PMC11"));
+    const found = body.papers.find((p: { id: string }) =>
+      p.id.includes("PMC11"),
+    );
     expect(found.innovation.signals).toContain("first-in-human");
     expect(found.innovation.signals).toContain("robotic");
   });

@@ -202,7 +202,9 @@ export default function PlanogramTab({ storeId }: PlanogramTabProps) {
                     onMoveLeft={() => rearrange(boxIndex, boxIndex - 1)}
                     onMoveRight={() => rearrange(boxIndex, boxIndex + 1)}
                     onResync={() => slot.itemId && handleResync(slot.itemId)}
-                    onDropItem={(sourceIndex) => rearrange(sourceIndex, boxIndex)}
+                    onDropItem={(sourceIndex) =>
+                      rearrange(sourceIndex, boxIndex)
+                    }
                   />
                 );
               })}

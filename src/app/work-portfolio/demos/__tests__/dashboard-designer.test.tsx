@@ -58,21 +58,25 @@ describe("dashboard designer demo", () => {
 
   it("resizes a widget to span two columns", () => {
     render(<DashboardDesignerDemo feature={feature} />);
-    const resize = screen.getByRole("button", { name: "Resize Active players" });
+    const resize = screen.getByRole("button", {
+      name: "Resize Active players",
+    });
     expect(resize).toHaveAttribute("aria-pressed", "false");
     fireEvent.click(resize);
     expect(resize).toHaveAttribute("aria-pressed", "true");
-    const widget = screen
-      .getByText("Active players")
-      .closest("[data-widget]");
+    const widget = screen.getByText("Active players").closest("[data-widget]");
     expect(widget?.className).toContain("col-span-2");
   });
 
   it("shows the empty state when all widgets are removed", () => {
     render(<DashboardDesignerDemo feature={feature} />);
-    fireEvent.click(screen.getByRole("button", { name: "Remove Active players" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove Active players" }),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Remove Sessions" }));
-    fireEvent.click(screen.getByRole("button", { name: "Remove Revenue by day" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove Revenue by day" }),
+    );
     expect(screen.getByText(/empty canvas/)).toBeInTheDocument();
   });
 });

@@ -31,8 +31,7 @@ export default function SensorOfflineCallout({
           Sensor offline since {formatDistanceToNow(date, { addSuffix: true })}
         </p>
         <p className="text-muted text-xs mt-0.5">
-          Inventory data may be inaccurate. Last reading at{" "}
-          {exactTime}.
+          Inventory data may be inaccurate. Last reading at {exactTime}.
         </p>
       </div>
     </div>

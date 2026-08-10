@@ -3,7 +3,10 @@
 import { type ComponentPropsWithRef, useId } from "react";
 import { Input as PaulInput } from "@paul-portfolio/react";
 
-interface InputProps extends Omit<ComponentPropsWithRef<"input">, "id" | "size"> {
+interface InputProps extends Omit<
+  ComponentPropsWithRef<"input">,
+  "id" | "size"
+> {
   /** Visible label text */
   label: string;
   /** Visually hide the label while keeping it accessible */
@@ -40,6 +43,7 @@ export default function Input({
           {label}
         </label>
         <PaulInput
+          className="touch-min"
           ref={ref}
           label={undefined}
           error={error}
@@ -56,6 +60,7 @@ export default function Input({
   return (
     <div className={className}>
       <PaulInput
+        className="touch-min"
         ref={ref}
         label={required ? `${label} *` : label}
         error={error}

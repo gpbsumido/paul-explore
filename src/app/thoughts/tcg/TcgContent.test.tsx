@@ -7,9 +7,7 @@ vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 describe("TcgContent", () => {
   it("renders the write-up heading", () => {
     render(<TcgContent />);
-    expect(
-      screen.getByRole("heading", { level: 1 }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
   });
 
   it("documents the serveTcg convergence and what it left alone", () => {

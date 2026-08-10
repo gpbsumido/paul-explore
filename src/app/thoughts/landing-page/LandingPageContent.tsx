@@ -13,8 +13,8 @@ export default function LandingPageContent() {
       intro={
         <>
           Scroll-driven, section-by-section, zero new dependencies — then
-              extended with a WebGL ShaderGradient hero and interactive mouse
-              parallax.
+          extended with a WebGL ShaderGradient hero and interactive mouse
+          parallax.
         </>
       }
       chat={<LandingChat />}

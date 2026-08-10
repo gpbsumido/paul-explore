@@ -225,7 +225,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
               type="button"
               key={f.value}
               onClick={() => setSeverityFilter(f.value)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
+              className={`touch-min rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
                 isActive
                   ? "bg-foreground text-background"
                   : "bg-surface-raised text-muted hover:text-foreground"
@@ -244,7 +244,9 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
             <>
               <CheckCircleIcon className="text-success-500" />
               <p className="text-sm font-medium text-foreground">All clear</p>
-              <p className="text-xs text-muted">No active alerts for this store.</p>
+              <p className="text-xs text-muted">
+                No active alerts for this store.
+              </p>
             </>
           ) : (
             <p className="text-xs text-muted">

@@ -2,12 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import {
-  m,
-  useInView,
-  useReducedMotion,
-  type Transition,
-} from "framer-motion";
+import { m, useInView, useReducedMotion, type Transition } from "framer-motion";
 import Section from "./Section";
 import {
   cardFlipIn,

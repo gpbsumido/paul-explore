@@ -12,9 +12,9 @@ export default function DesignSystemContent() {
       title="Shared Design System"
       intro={
         <>
-          Extracting tokens and components out of this app into a shared
-              design system, then wiring it back in alongside an Angular
-              consumer. Four npm packages, one source of truth.
+          Extracting tokens and components out of this app into a shared design
+          system, then wiring it back in alongside an Angular consumer. Four npm
+          packages, one source of truth.
         </>
       }
       chat={<DesignSystemChat />}

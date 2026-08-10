@@ -39,14 +39,18 @@ describe("work-portfolio tickers", () => {
     render(<WorkPortfolioContent />);
     const bottom = screen.getByLabelText("Features ticker");
     for (const feature of FEATURES) {
-      expect(within(bottom).getAllByText(feature.title).length).toBeGreaterThan(0);
+      expect(within(bottom).getAllByText(feature.title).length).toBeGreaterThan(
+        0,
+      );
     }
   });
 
   it("stage starts on the intro card", () => {
     render(<WorkPortfolioContent />);
     expect(
-      screen.getByText(`${PROJECTS.length} projects · ${FEATURES.length} feature demos`),
+      screen.getByText(
+        `${PROJECTS.length} projects · ${FEATURES.length} feature demos`,
+      ),
     ).toBeInTheDocument();
   });
 

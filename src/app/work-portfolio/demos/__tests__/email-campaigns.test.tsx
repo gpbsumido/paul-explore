@@ -24,7 +24,9 @@ describe("email campaigns demo", () => {
 
   it("imports a local image as a data url", async () => {
     render(<EmailCampaignsDemo feature={feature} />);
-    const file = new File(["banner-bytes"], "banner.png", { type: "image/png" });
+    const file = new File(["banner-bytes"], "banner.png", {
+      type: "image/png",
+    });
     fireEvent.change(screen.getByLabelText("Import image"), {
       target: { files: [file] },
     });

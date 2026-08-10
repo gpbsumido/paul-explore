@@ -47,7 +47,8 @@ export default function PricingTab({ storeId }: PricingTabProps) {
   // so "model it, then run it" is two clicks rather than re-entering it.
   const modelled = useMemo(() => {
     const entries = Object.entries(promoByItemId).filter(([, pct]) => pct > 0);
-    if (entries.length === 0) return { percent: 0, product: null as string | null };
+    if (entries.length === 0)
+      return { percent: 0, product: null as string | null };
 
     const deepest = entries.reduce((a, b) => (b[1] > a[1] ? b : a));
     const everySame =
@@ -123,7 +124,7 @@ export default function PricingTab({ storeId }: PricingTabProps) {
               type="button"
               key={step}
               onClick={() => applyToAll(step)}
-              className="rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-primary-500/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+              className="touch-min rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-primary-500/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
             >
               {step === 0 ? "Clear all" : `${step}% off`}
             </button>

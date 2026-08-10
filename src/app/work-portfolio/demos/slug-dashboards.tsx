@@ -109,7 +109,11 @@ function formatMetric(format: Metric["format"], base: number): string {
  * rendered any dashboard from slug config. Pick a slug and the whole layout
  * reshapes, from JSON alone.
  */
-export default function SlugDashboardsDemo({ feature }: { feature: WorkFeature }) {
+export default function SlugDashboardsDemo({
+  feature,
+}: {
+  feature: WorkFeature;
+}) {
   const [slug, setSlug] = useState(CONFIGS[0].slug);
   const config = CONFIGS.find((c) => c.slug === slug)!;
   const data = series(slug);
@@ -122,7 +126,9 @@ export default function SlugDashboardsDemo({ feature }: { feature: WorkFeature }
   return (
     <div className="flex h-full min-h-64 flex-col gap-3 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[13px] font-semibold text-foreground">{feature.title}</p>
+        <p className="text-[13px] font-semibold text-foreground">
+          {feature.title}
+        </p>
         <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted">
           <span>/d/</span>
           <select
@@ -142,14 +148,22 @@ export default function SlugDashboardsDemo({ feature }: { feature: WorkFeature }
 
       <div
         className="flex min-h-0 flex-1 flex-col gap-3 rounded-lg border p-3"
-        style={{ borderColor: config.accent, backgroundColor: `${config.accent}12` }}
+        style={{
+          borderColor: config.accent,
+          backgroundColor: `${config.accent}12`,
+        }}
       >
-        <p className="text-[12px] font-semibold" style={{ color: config.accent }}>
+        <p
+          className="text-[12px] font-semibold"
+          style={{ color: config.accent }}
+        >
           {config.title}
         </p>
         <div
           className="grid gap-2"
-          style={{ gridTemplateColumns: `repeat(${config.tiles.length}, minmax(0, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${config.tiles.length}, minmax(0, 1fr))`,
+          }}
         >
           {config.tiles.map((tile, i) => (
             <div
@@ -157,37 +171,83 @@ export default function SlugDashboardsDemo({ feature }: { feature: WorkFeature }
               data-testid="dashboard-tile"
               className="rounded-md border border-border bg-background/50 p-2"
             >
-              <p className="text-[9px] uppercase tracking-wider text-muted">{tile.label}</p>
+              <p className="text-[9px] uppercase tracking-wider text-muted">
+                {tile.label}
+              </p>
               <p className="text-sm font-bold text-foreground">
                 {formatMetric(tile.format, data[i % data.length].v * (i + 1))}
               </p>
             </div>
           ))}
         </div>
-        <div className="min-h-24 flex-1" data-testid="dashboard-chart" data-chart-type={config.chart}>
+        <div
+          className="min-h-24 flex-1"
+          data-testid="dashboard-chart"
+          data-chart-type={config.chart}
+        >
           <ResponsiveContainer width="100%" height="100%">
             {config.chart === "line" ? (
-              <LineChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+              <LineChart
+                data={data}
+                margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+              >
                 <XAxis dataKey="d" hide />
                 <Tooltip />
-                <Line type="monotone" dataKey="v" stroke={config.accent} strokeWidth={2} dot={false} isAnimationActive={false} />
+                <Line
+                  type="monotone"
+                  dataKey="v"
+                  stroke={config.accent}
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                />
               </LineChart>
             ) : config.chart === "bar" ? (
-              <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+              <BarChart
+                data={data}
+                margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+              >
                 <XAxis dataKey="d" hide />
                 <Tooltip />
-                <Bar dataKey="v" fill={config.accent} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                <Bar
+                  dataKey="v"
+                  fill={config.accent}
+                  radius={[2, 2, 0, 0]}
+                  isAnimationActive={false}
+                />
               </BarChart>
             ) : config.chart === "area" ? (
-              <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+              <AreaChart
+                data={data}
+                margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+              >
                 <XAxis dataKey="d" hide />
                 <Tooltip />
-                <Area type="monotone" dataKey="v" stroke={config.accent} fill={config.accent} fillOpacity={0.25} strokeWidth={2} isAnimationActive={false} />
+                <Area
+                  type="monotone"
+                  dataKey="v"
+                  stroke={config.accent}
+                  fill={config.accent}
+                  fillOpacity={0.25}
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                />
               </AreaChart>
             ) : (
-              <RadialBarChart data={radialData} innerRadius="30%" outerRadius="100%" startAngle={90} endAngle={-270}>
+              <RadialBarChart
+                data={radialData}
+                innerRadius="30%"
+                outerRadius="100%"
+                startAngle={90}
+                endAngle={-270}
+              >
                 <PolarAngleAxis type="number" domain={[0, 1000]} tick={false} />
-                <RadialBar dataKey="v" background cornerRadius={3} isAnimationActive={false} />
+                <RadialBar
+                  dataKey="v"
+                  background
+                  cornerRadius={3}
+                  isAnimationActive={false}
+                />
                 <Tooltip />
               </RadialBarChart>
             )}
@@ -197,7 +257,8 @@ export default function SlugDashboardsDemo({ feature }: { feature: WorkFeature }
 
       <details className="rounded-lg border border-border" open>
         <summary className="cursor-pointer select-none px-3 py-1.5 text-[11px] font-semibold text-muted">
-          config <span className="font-mono text-muted">/d/{config.slug}.json</span>
+          config{" "}
+          <span className="font-mono text-muted">/d/{config.slug}.json</span>
         </summary>
         <div className="px-2 pb-2">
           <JsonView value={config} />

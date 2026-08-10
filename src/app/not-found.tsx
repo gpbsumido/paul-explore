@@ -450,9 +450,10 @@ export default function NotFound() {
                 transition={{ ...spring, delay: 0.4 }}
                 className="mt-6 flex items-center justify-center gap-4"
               >
-                <button type="button"
+                <button
+                  type="button"
                   onClick={goBack}
-                  className="font-mono text-[13px] transition-colors hover:brightness-110"
+                  className="touch-min inline-flex items-center font-mono text-[13px] transition-colors hover:brightness-110"
                   style={{ color: variant.color }}
                 >
                   ← Go back
@@ -460,7 +461,7 @@ export default function NotFound() {
                 <span className="text-muted">|</span>
                 <Link
                   href="/"
-                  className="font-mono text-[13px] transition-colors hover:brightness-110"
+                  className="touch-min inline-flex items-center font-mono text-[13px] transition-colors hover:brightness-110"
                   style={{ color: variant.color }}
                 >
                   Home

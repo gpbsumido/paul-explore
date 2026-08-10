@@ -31,7 +31,8 @@ describe("slug dashboards demo", () => {
 
   it("changes chart type and tile set across slugs, not just the accent", () => {
     render(<SlugDashboardsDemo feature={feature} />);
-    const chartType = () => screen.getByTestId("dashboard-chart").getAttribute("data-chart-type");
+    const chartType = () =>
+      screen.getByTestId("dashboard-chart").getAttribute("data-chart-type");
     const tileCount = () => screen.getAllByTestId("dashboard-tile").length;
 
     const overviewChart = chartType();

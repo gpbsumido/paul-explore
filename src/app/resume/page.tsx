@@ -82,10 +82,12 @@ export default function ResumePage() {
 
       <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
         <div className="mb-5">
-          <h1 className="text-xl font-bold text-foreground sm:text-2xl">Résumé</h1>
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">
+            Résumé
+          </h1>
           <p className="mt-1 text-[13px] text-muted">
-            Experience, skills, and the projects behind this site. Prefer a file?
-            Grab a copy below.
+            Experience, skills, and the projects behind this site. Prefer a
+            file? Grab a copy below.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <DownloadLink href={PDF_HREF} label="Download PDF" />
@@ -106,7 +108,7 @@ export default function ResumePage() {
             href={PDF_HREF}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-foreground underline underline-offset-2"
+            className="touch-min inline-flex items-center font-medium text-foreground underline underline-offset-2"
           >
             Open the PDF in a new tab
           </a>

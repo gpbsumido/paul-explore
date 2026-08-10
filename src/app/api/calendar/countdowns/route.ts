@@ -67,13 +67,16 @@ export async function POST(request: NextRequest) {
   const body = bodyResult.data;
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/countdowns`, {
-      method: "POST",
-      headers: buildHeaders(token, email, {
-        "Content-Type": "application/json",
-      }),
-      body: JSON.stringify(body),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/countdowns`,
+      {
+        method: "POST",
+        headers: buildHeaders(token, email, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(body),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {

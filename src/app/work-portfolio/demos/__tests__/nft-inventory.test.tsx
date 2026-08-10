@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { useEffect } from "react";
-import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import { WagmiProvider, createConfig, http, useConnect } from "wagmi";
 import { mainnet } from "wagmi/chains";
 import { mock } from "wagmi/connectors";
@@ -61,7 +67,9 @@ describe("nft inventory demo", () => {
     renderConnected(<NftInventoryPanel feature={feature} />);
     await screen.findByLabelText("Inventory grid");
 
-    const firstCard = within(screen.getByLabelText("Inventory grid")).getAllByRole("button")[0];
+    const firstCard = within(
+      screen.getByLabelText("Inventory grid"),
+    ).getAllByRole("button")[0];
     const assetName = firstCard.textContent?.match(/Relic #\d+/)?.[0] ?? "";
     expect(assetName).not.toBe("");
 
@@ -80,7 +88,8 @@ describe("nft inventory demo", () => {
 
     const you = screen.getByRole("list", { name: "You" });
     const recipient = screen.getByRole("list", { name: "Recipient" });
-    const countIn = (list: HTMLElement) => within(list).queryAllByRole("listitem").length;
+    const countIn = (list: HTMLElement) =>
+      within(list).queryAllByRole("listitem").length;
 
     const startYou = countIn(you);
     expect(startYou).toBeGreaterThan(0);

@@ -123,7 +123,7 @@ export default function FlagsConsole() {
               <button
                 type="button"
                 aria-label="What do the environments do?"
-                className="flex h-4 w-4 items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted transition-colors hover:text-foreground"
+                className="touch-target flex h-4 w-4 items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted transition-colors hover:text-foreground"
               >
                 i
               </button>

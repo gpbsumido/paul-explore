@@ -42,9 +42,7 @@ export type PriceEstimate = {
  * Add up the print cost for a wall. Sizes with no listed price are counted in
  * `unpriced` rather than guessed at, so the total is never quietly wrong.
  */
-export function estimatePrintCost(
-  sizeIds: readonly string[],
-): PriceEstimate {
+export function estimatePrintCost(sizeIds: readonly string[]): PriceEstimate {
   return sizeIds.reduce<PriceEstimate>(
     (estimate, sizeId) => {
       const price = PRINT_PRICES_CAD[sizeId];
@@ -64,8 +62,7 @@ export function estimatePrintCost(
 }
 
 /** Format a CAD amount for display. */
-export const formatCad = (amount: number): string =>
-  `$${amount.toFixed(2)}`;
+export const formatCad = (amount: number): string => `$${amount.toFixed(2)}`;
 
 /**
  * Combined sales tax by Canadian province or territory (GST + PST/QST, or HST),
@@ -103,9 +100,11 @@ export type TaxLookup = {
 export function taxRateFor(
   location: { country?: string | null; regionName?: string | null } | null,
 ): TaxLookup {
-  if (!location?.country || !location.regionName) return { rate: null, region: null };
+  if (!location?.country || !location.regionName)
+    return { rate: null, region: null };
   const country = location.country.trim().toLowerCase();
-  if (country !== "canada" && country !== "ca") return { rate: null, region: null };
+  if (country !== "canada" && country !== "ca")
+    return { rate: null, region: null };
   const region = location.regionName.trim();
   const rate = TAX_RATES[region.toLowerCase()];
   return rate === undefined ? { rate: null, region } : { rate, region };

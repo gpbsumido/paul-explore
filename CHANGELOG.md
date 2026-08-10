@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.5
+
+- **Finished the tap-target pass across every route.** Every page now measures clean at 390px except one control, which lives in the published design system rather than here. Two utilities carry it, and which one a control gets is the actual decision: `.touch-min` grows a control that has room — a button, a text input, a filter pill — and `.touch-target` leaves the visual alone and centres an invisible 44px box on it, for things that genuinely cannot grow. A checkbox scaled to 44px looks broken, a toggle switch has a conventional size people recognise, a colour swatch has to stay a small round chip, and the world's HUD floats over the view it controls where every pixel of chrome is a pixel of city you cannot see.
+- Both are keyed on `pointer: coarse` rather than a width breakpoint, because this is about fingers rather than screen size — a touch laptop wants it and a narrow desktop window does not. Nothing moves on a mouse-driven screen.
+- Applied at the primitive level where possible: `Button`, `IconButton`, `Input` and `Select` now carry it, which closed most of the long tail in one change rather than page by page. The rest were hand-rolled controls that bypass those primitives.
+- `scripts/mobile-audit.mjs` knows about both utilities, so it stops reporting a control whose hit area is supplied by a pseudo-element the bounding box does not include.
+
 ## 2026-08-10 - version 3.16.3
 
 - **Tap targets across the app were too small on a phone.** I rendered every route at 390px and measured rather than guessing, and the biggest finding was in the shared header: breadcrumb links were 20px tall, the write-up pill and the theme trigger 28px. That is one fix that lifts every page, since every page uses it. Also fixed the Craft evidence links (31 of them at 28px), the Web Vitals version selector, and seven links on the v4 landing. The `InfoTip` trigger keeps its 14px dot — shrinking or growing it would change every layout it sits in — and gains an invisible 44px hit area on touch screens only.

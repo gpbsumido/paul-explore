@@ -14,20 +14,31 @@ export async function POST(
   try {
     ({ token, email } = await getBackendAuth());
   } catch (err) {
-    console.error("[calendars BFF] POST connect-google — getAccessToken failed:", err);
+    console.error(
+      "[calendars BFF] POST connect-google — getAccessToken failed:",
+      err,
+    );
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/calendars/${id}/connect-google`, {
-      method: "POST",
-      headers: buildHeaders(token, email),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/calendars/${id}/connect-google`,
+      {
+        method: "POST",
+        headers: buildHeaders(token, email),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: "Failed to connect Google Calendar" }));
-      console.error("[calendars BFF] POST connect-google — backend error:", err);
+      const err = await res
+        .json()
+        .catch(() => ({ error: "Failed to connect Google Calendar" }));
+      console.error(
+        "[calendars BFF] POST connect-google — backend error:",
+        err,
+      );
       return NextResponse.json(err, { status: res.status });
     }
     const data = await res.json();

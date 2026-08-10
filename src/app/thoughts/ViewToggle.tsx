@@ -7,7 +7,8 @@ interface ViewToggleProps {
 export default function ViewToggle({ view, setView }: ViewToggleProps) {
   return (
     <div className="flex items-center overflow-hidden rounded-md border border-border text-[11px] font-medium">
-      <button type="button"
+      <button
+        type="button"
         onClick={() => setView("summary")}
         className={`px-2.5 py-1 transition-colors ${
           view === "summary"
@@ -18,7 +19,8 @@ export default function ViewToggle({ view, setView }: ViewToggleProps) {
         Summary
       </button>
       <div className="h-3 w-px bg-border" />
-      <button type="button"
+      <button
+        type="button"
         onClick={() => setView("chat")}
         className={`px-2.5 py-1 transition-colors ${
           view === "chat"

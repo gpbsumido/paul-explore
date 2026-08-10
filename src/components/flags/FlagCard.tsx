@@ -224,7 +224,10 @@ function VerdictStrip({
       className={`rounded-lg border px-3 py-2 ${styles.box}`}
     >
       <p className="flex items-center gap-2 text-[13px] text-foreground">
-        <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${styles.dot}`} />
+        <span
+          aria-hidden
+          className={`h-2 w-2 shrink-0 rounded-full ${styles.dot}`}
+        />
         <span>
           <code className="text-[12px] font-medium">{who}</code> gets{" "}
           <span className="font-semibold">{label}</span>
@@ -277,7 +280,7 @@ function RolloutSlider({
       onPointerUp={commit}
       onKeyUp={commit}
       onBlur={commit}
-      className="w-full accent-primary-600 disabled:cursor-not-allowed"
+      className="touch-target w-full accent-primary-600 disabled:cursor-not-allowed"
     />
   );
 }

@@ -26,7 +26,9 @@ describe("wallet lookup demo", () => {
 
   it("a sample chip runs the lookup immediately", () => {
     render(<WalletLookupDemo feature={feature} />);
-    const chip = screen.getAllByRole("button").find((b) => b.textContent?.startsWith("0x"))!;
+    const chip = screen
+      .getAllByRole("button")
+      .find((b) => b.textContent?.startsWith("0x"))!;
     fireEvent.click(chip);
     expect(screen.getByRole("tablist")).toBeInTheDocument();
   });

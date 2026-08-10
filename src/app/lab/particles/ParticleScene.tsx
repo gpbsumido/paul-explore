@@ -208,7 +208,8 @@ export default function ParticleScene({
 
   // eslint-disable-next-line react-hooks/immutability -- R3F useFrame is an imperative render loop; mutating THREE objects here is the intended pattern
   useFrame(({ camera }) => {
-    const { particles, starPs, smallPs, lineGeo, linePosArr, lineColArr } = sceneObj;
+    const { particles, starPs, smallPs, lineGeo, linePosArr, lineColArr } =
+      sceneObj;
     const cDistSq = connectDistRef.current * connectDistRef.current;
     const spd = speedRef.current;
 
@@ -223,11 +224,11 @@ export default function ParticleScene({
     // Unproject mouse NDC onto the z=0 plane to get world-space attraction point.
     const ndc = mouseNDCRef.current;
     if (ndc) {
-      raycaster.current.setFromCamera(
-        new THREE.Vector2(ndc.x, ndc.y),
-        camera,
+      raycaster.current.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+      raycaster.current.ray.intersectPlane(
+        mousePlane.current,
+        mouseWorld.current,
       );
-      raycaster.current.ray.intersectPlane(mousePlane.current, mouseWorld.current);
     }
 
     // Particle physics tick.

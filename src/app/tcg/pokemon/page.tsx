@@ -72,13 +72,13 @@ export default function PokemonTcgPage() {
           <>
             <Link
               href="/tcg/pokemon/sets"
-              className="text-sm text-muted hover:text-foreground transition-colors"
+              className="touch-min inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
             >
               Sets
             </Link>
             <Link
               href="/tcg/pocket"
-              className="text-sm text-muted hover:text-foreground transition-colors"
+              className="touch-min inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
             >
               Pocket
             </Link>

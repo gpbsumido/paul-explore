@@ -93,7 +93,8 @@ export default function FlatGraph({ reducedMotion }: Props) {
   const { headerIds, itemGroup } = useMemo(() => {
     const headers = new Set(groups.map((g) => g.node.id));
     const item = new Map<string, string>();
-    for (const g of groups) for (const it of g.items) item.set(it.id, g.node.id);
+    for (const g of groups)
+      for (const it of g.items) item.set(it.id, g.node.id);
     return { headerIds: headers, itemGroup: item };
   }, [groups]);
 
@@ -151,8 +152,7 @@ export default function FlatGraph({ reducedMotion }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, layout, openGroup, headerIds, itemGroup, hovered, neighbors]);
 
-  const center = (id: string) =>
-    layout.positions.get(id) ?? { x: 0, y: 0 };
+  const center = (id: string) => layout.positions.get(id) ?? { x: 0, y: 0 };
 
   const colorOf = useMemo(
     () => new Map(data.nodes.map((n) => [n.id, n.color])),
@@ -265,7 +265,9 @@ export default function FlatGraph({ reducedMotion }: Props) {
                       type="button"
                       aria-expanded={open}
                       onClick={() =>
-                        setOpenGroup((cur) => (cur === g.node.id ? null : g.node.id))
+                        setOpenGroup((cur) =>
+                          cur === g.node.id ? null : g.node.id,
+                        )
                       }
                       className={headerClass}
                     >
@@ -300,98 +302,102 @@ export default function FlatGraph({ reducedMotion }: Props) {
             minHeight: "100%",
           }}
         >
-        <svg
-          className="absolute inset-0"
-          width={layout.width}
-          height={visibleHeight}
-          aria-hidden
-        >
-          {data.edges.map((edge, i) => {
-            // Progressive disclosure: only draw an edge when both ends are shown.
-            if (!isVisible(edge.source) || !isVisible(edge.target)) return null;
-            const active =
+          <svg
+            className="absolute inset-0"
+            width={layout.width}
+            height={visibleHeight}
+            aria-hidden
+          >
+            {data.edges.map((edge, i) => {
+              // Progressive disclosure: only draw an edge when both ends are shown.
+              if (!isVisible(edge.source) || !isVisible(edge.target))
+                return null;
+              const active =
+                hovered != null &&
+                (edge.source === hovered || edge.target === hovered);
+              // Only an item hover dims; a header hover just highlights its own edges.
+              const dim = hovered != null && !hoveredIsSection && !active;
+              const a = center(edge.source);
+              const b = center(edge.target);
+              const color = colorOf.get(edge.source);
+              let d: string;
+              if (edge.bridge) {
+                // Cross-column link (feature to its write-up): gentle S between
+                // the two columns.
+                const my = (a.y + b.y) / 2;
+                d = `M${a.x},${a.y} C${a.x},${my} ${b.x},${my} ${b.x},${b.y}`;
+              } else if (edge.source === "root") {
+                // Root fans out to each column header below it.
+                const my = (a.y + b.y) / 2;
+                d = `M${a.x},${a.y + halfH} C${a.x},${my} ${b.x},${my} ${b.x},${b.y - halfH}`;
+              } else {
+                // Header to a stacked child: a straight spine down the column.
+                d = `M${a.x},${a.y + halfH} L${b.x},${b.y - halfH}`;
+              }
+              return (
+                <path
+                  key={i}
+                  data-flat-edge
+                  d={d}
+                  fill="none"
+                  stroke={active || edge.bridge ? color : "currentColor"}
+                  className={active || edge.bridge ? "" : "text-foreground/15"}
+                  strokeWidth={active ? 2 : edge.bridge ? 1.5 : 1}
+                  strokeOpacity={dim ? 0.2 : edge.bridge && !active ? 0.55 : 1}
+                  strokeDasharray={edge.bridge ? "4 4" : undefined}
+                  style={{
+                    transition: "stroke-opacity 0.2s, stroke-width 0.2s",
+                  }}
+                />
+              );
+            })}
+          </svg>
+
+          {data.nodes.map((node) => {
+            const pos = layout.positions.get(node.id);
+            if (!pos || !isVisible(node.id)) return null;
+            // Headers/root are navigation and never dim; only items fade, and
+            // only when another item (not a header) is hovered.
+            const dim =
               hovered != null &&
-              (edge.source === hovered || edge.target === hovered);
-            // Only an item hover dims; a header hover just highlights its own edges.
-            const dim = hovered != null && !hoveredIsSection && !active;
-            const a = center(edge.source);
-            const b = center(edge.target);
-            const color = colorOf.get(edge.source);
-            let d: string;
-            if (edge.bridge) {
-              // Cross-column link (feature to its write-up): gentle S between
-              // the two columns.
-              const my = (a.y + b.y) / 2;
-              d = `M${a.x},${a.y} C${a.x},${my} ${b.x},${my} ${b.x},${b.y}`;
-            } else if (edge.source === "root") {
-              // Root fans out to each column header below it.
-              const my = (a.y + b.y) / 2;
-              d = `M${a.x},${a.y + halfH} C${a.x},${my} ${b.x},${my} ${b.x},${b.y - halfH}`;
-            } else {
-              // Header to a stacked child: a straight spine down the column.
-              d = `M${a.x},${a.y + halfH} L${b.x},${b.y - halfH}`;
-            }
+              !hoveredIsSection &&
+              !isSectionNode(node.id) &&
+              !neighbors.get(hovered)?.has(node.id);
             return (
-              <path
-                key={i}
-                data-flat-edge
-                d={d}
-                fill="none"
-                stroke={active || edge.bridge ? color : "currentColor"}
-                className={active || edge.bridge ? "" : "text-foreground/15"}
-                strokeWidth={active ? 2 : edge.bridge ? 1.5 : 1}
-                strokeOpacity={dim ? 0.2 : edge.bridge && !active ? 0.55 : 1}
-                strokeDasharray={edge.bridge ? "4 4" : undefined}
-                style={{ transition: "stroke-opacity 0.2s, stroke-width 0.2s" }}
+              <FlatNode
+                key={node.id}
+                node={node}
+                x={pos.x}
+                y={pos.y}
+                width={widthFor(node)}
+                dim={dim}
+                expanded={hovered === node.id}
+                onEnter={() => {
+                  // Entering a node cancels any pending release from the one we
+                  // just left, so the hover moves cleanly between nodes.
+                  if (hoverEndTimer.current) {
+                    clearTimeout(hoverEndTimer.current);
+                    hoverEndTimer.current = null;
+                  }
+                  setHovered(node.id);
+                  // Hovering a section header opens it; it stays open (even after
+                  // you leave) until you hover a different header.
+                  if (headerIds.has(node.id)) setOpenGroup(node.id);
+                }}
+                onLeave={() => {
+                  // Don't drop the hover immediately — wait out the grace period so
+                  // you can travel to the revealed connected nodes. If you land on
+                  // another node first, its onEnter cancels this.
+                  if (hoverEndTimer.current)
+                    clearTimeout(hoverEndTimer.current);
+                  hoverEndTimer.current = setTimeout(() => {
+                    hoverEndTimer.current = null;
+                    setHovered((h) => (h === node.id ? null : h));
+                  }, HOVER_GRACE_MS);
+                }}
               />
             );
           })}
-        </svg>
-
-        {data.nodes.map((node) => {
-          const pos = layout.positions.get(node.id);
-          if (!pos || !isVisible(node.id)) return null;
-          // Headers/root are navigation and never dim; only items fade, and
-          // only when another item (not a header) is hovered.
-          const dim =
-            hovered != null &&
-            !hoveredIsSection &&
-            !isSectionNode(node.id) &&
-            !neighbors.get(hovered)?.has(node.id);
-          return (
-            <FlatNode
-              key={node.id}
-              node={node}
-              x={pos.x}
-              y={pos.y}
-              width={widthFor(node)}
-              dim={dim}
-              expanded={hovered === node.id}
-              onEnter={() => {
-                // Entering a node cancels any pending release from the one we
-                // just left, so the hover moves cleanly between nodes.
-                if (hoverEndTimer.current) {
-                  clearTimeout(hoverEndTimer.current);
-                  hoverEndTimer.current = null;
-                }
-                setHovered(node.id);
-                // Hovering a section header opens it; it stays open (even after
-                // you leave) until you hover a different header.
-                if (headerIds.has(node.id)) setOpenGroup(node.id);
-              }}
-              onLeave={() => {
-                // Don't drop the hover immediately — wait out the grace period so
-                // you can travel to the revealed connected nodes. If you land on
-                // another node first, its onEnter cancels this.
-                if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
-                hoverEndTimer.current = setTimeout(() => {
-                  hoverEndTimer.current = null;
-                  setHovered((h) => (h === node.id ? null : h));
-                }, HOVER_GRACE_MS);
-              }}
-            />
-          );
-        })}
         </div>
       </div>
     </div>
@@ -403,7 +409,10 @@ function FlatRow({ node }: { node: GraphNode }) {
   const common = {
     className:
       "flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 outline-none transition-colors hover:border-foreground/20 focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-    style: { borderLeftColor: node.color, borderLeftWidth: 3 } as React.CSSProperties,
+    style: {
+      borderLeftColor: node.color,
+      borderLeftWidth: 3,
+    } as React.CSSProperties,
   };
   const content = (
     <>
@@ -450,7 +459,16 @@ type FlatNodeProps = {
   onLeave: () => void;
 };
 
-function FlatNode({ node, x, y, width, dim, expanded, onEnter, onLeave }: FlatNodeProps) {
+function FlatNode({
+  node,
+  x,
+  y,
+  width,
+  dim,
+  expanded,
+  onEnter,
+  onLeave,
+}: FlatNodeProps) {
   // Root, the Apps hub, and the category headers are the graph's main sections,
   // so they get a tinted fill, a full colour border, and a glow to stand out
   // from the leaf cards.

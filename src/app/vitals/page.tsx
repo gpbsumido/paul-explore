@@ -11,7 +11,6 @@ export const metadata: Metadata = {
     "Real-user Core Web Vitals collected from every page load, aggregated into P75 scores by metric and by page.",
 };
 
-
 /**
  * Fetches the global P75 summary and per-page breakdown from the backend.
  * Pass version + mode to filter: mode=major/minor scopes to that range,

@@ -24,7 +24,8 @@ function mockFetch(status: number, body: unknown) {
 /** Route create (POST) and stats (GET .../stats) to different fixtures. */
 function mockApi({ created, stats }: { created: unknown; stats: unknown }) {
   const fn = vi.fn().mockImplementation((url: unknown) => {
-    if (String(url).endsWith("/stats")) return Promise.resolve(jsonRes(200, stats));
+    if (String(url).endsWith("/stats"))
+      return Promise.resolve(jsonRes(200, stats));
     return Promise.resolve(jsonRes(201, created));
   });
   vi.stubGlobal("fetch", fn);
@@ -40,7 +41,9 @@ function renderWithClient(ui: ReactNode) {
       mutations: { retry: false },
     },
   });
-  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
+  );
 }
 
 const CREATED = {
@@ -59,7 +62,9 @@ describe("referral links demo", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /create link/i }));
 
-    expect(await screen.findByText(/paulsumido\.com\/r\/abc123/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/paulsumido\.com\/r\/abc123/),
+    ).toBeInTheDocument();
     const [url, init] = fetchMock.mock.calls[0];
     expect(String(url)).toMatch(/\/api\/referrals$/);
     expect(init.method).toBe("POST");
@@ -84,20 +89,30 @@ describe("referral links demo", () => {
         slug: "abc123",
         targetPath: "/work-portfolio",
         clicks: 5,
-        recent: [{ at: "2026-07-20T01:00:00.000Z" }, { at: "2026-07-20T02:00:00.000Z" }],
+        recent: [
+          { at: "2026-07-20T01:00:00.000Z" },
+          { at: "2026-07-20T02:00:00.000Z" },
+        ],
       },
     });
     renderWithClient(<ReferralLinksDemo feature={feature} />);
     fireEvent.click(screen.getByRole("button", { name: /create link/i }));
 
     const stats = await screen.findByLabelText("Referral stats");
-    expect(await within(stats).findByTestId("stats-total")).toHaveTextContent("5");
+    expect(await within(stats).findByTestId("stats-total")).toHaveTextContent(
+      "5",
+    );
   });
 
   it("shows an empty state when the link has no clicks yet", async () => {
     mockApi({
       created: CREATED,
-      stats: { slug: "abc123", targetPath: "/work-portfolio", clicks: 0, recent: [] },
+      stats: {
+        slug: "abc123",
+        targetPath: "/work-portfolio",
+        clicks: 0,
+        recent: [],
+      },
     });
     renderWithClient(<ReferralLinksDemo feature={feature} />);
     fireEvent.click(screen.getByRole("button", { name: /create link/i }));

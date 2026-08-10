@@ -17,11 +17,7 @@ export {
   POCKET_EXPANSIONS,
 } from "./featureData.data";
 // Only what the preview components below actually render.
-import {
-  PLAYOFF_ROWS,
-  TCG_CARDS,
-  POCKET_EXPANSIONS,
-} from "./featureData.data";
+import { PLAYOFF_ROWS, TCG_CARDS, POCKET_EXPANSIONS } from "./featureData.data";
 
 // ---------------------------------------------------------------------------
 // Feature & thought data
@@ -517,7 +513,12 @@ export function LearnPreview() {
 // two rows of accent-dotted chips marquee in opposite directions, mirroring the
 // real feature. Falls back to a static strip under prefers-reduced-m.
 const WP_TOP = ["Content Engine", "Analytics Suite", "Portal v2", "Gamer Hub"];
-const WP_BOTTOM = ["Wallet Lookup", "LLM Assistant", "Dashboard", "Email Studio"];
+const WP_BOTTOM = [
+  "Wallet Lookup",
+  "LLM Assistant",
+  "Dashboard",
+  "Email Studio",
+];
 
 function WpTickerRow({
   items,

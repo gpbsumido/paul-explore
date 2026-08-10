@@ -103,7 +103,7 @@ export default function InfoTip({
   return (
     <button
       type="button"
-      className="relative inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-border text-muted text-[9px] font-semibold cursor-help select-none shrink-0 hover:border-foreground hover:text-foreground transition-colors bg-transparent p-0 before:absolute before:left-1/2 before:top-1/2 before:h-11 before:w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] sm:before:hidden"
+      className="touch-target inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-border text-muted text-[9px] font-semibold cursor-help select-none shrink-0 hover:border-foreground hover:text-foreground transition-colors bg-transparent p-0"
       onMouseEnter={handleEnter}
       onMouseLeave={hide}
       onFocus={handleFocus}

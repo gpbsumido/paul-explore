@@ -12,7 +12,10 @@ describe("TestTiersContent", () => {
   it("renders the tiered testing strategy heading", () => {
     render(<TestTiersContent />);
     expect(
-      screen.getByRole("heading", { level: 1, name: /tiered testing strategy/i }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: /tiered testing strategy/i,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -26,9 +29,15 @@ describe("TestTiersContent", () => {
   it("records the four ways a suite measured the wrong thing", () => {
     render(<TestTiersContent />);
     const body = document.body.textContent ?? "";
-    expect(body).toMatch(/the same mistake keeps arriving in different clothes/);
-    expect(body).toMatch(/A partial fix and a complete one produce identical\s+test output/);
-    expect(body).toMatch(/a guard nobody has seen fail is just another\s+claim/);
+    expect(body).toMatch(
+      /the same mistake keeps arriving in different clothes/,
+    );
+    expect(body).toMatch(
+      /A partial fix and a complete one produce identical\s+test output/,
+    );
+    expect(body).toMatch(
+      /a guard nobody has seen fail is just another\s+claim/,
+    );
   });
 
   it("warns that a tier can be green for the wrong reason", () => {
@@ -62,9 +71,7 @@ describe("TestTiersContent", () => {
       /end-to-end tests/i,
       /flaky and slow tests/i,
     ]) {
-      expect(
-        screen.getByRole("heading", { name: tier }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: tier })).toBeInTheDocument();
     }
   });
 
@@ -82,9 +89,7 @@ describe("TestTiersContent", () => {
     expect(screen.getAllByText(/pnpm test:integration/).length).toBeGreaterThan(
       0,
     );
-    expect(
-      screen.getByText(/\.integration\.test\.tsx/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/\.integration\.test\.tsx/)).toBeInTheDocument();
   });
 
   it("notes keeping the fast integration tier on every PR as a deliberate deviation", () => {

@@ -46,8 +46,12 @@ describe("community mode demo", () => {
 
   it("opens per-post analytics on click", () => {
     render(<CommunityModeDemo feature={feature} />);
-    fireEvent.click(screen.getByRole("button", { name: "Analytics for novaqueen" }));
-    const dialog = screen.getByRole("dialog", { name: "Analytics for novaqueen" });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Analytics for novaqueen" }),
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: "Analytics for novaqueen",
+    });
     expect(within(dialog).getByText("Likes")).toBeInTheDocument();
     expect(within(dialog).getByText("Replies")).toBeInTheDocument();
     expect(within(dialog).getByText("Likes over time")).toBeInTheDocument();
@@ -58,10 +62,10 @@ describe("community mode demo", () => {
     render(<CommunityModeDemo feature={feature} />);
     const total = () =>
       Number(
-        screen.getByText(/total likes/).textContent!.match(/[\d,]+/)![0].replace(
-          /,/g,
-          "",
-        ),
+        screen
+          .getByText(/total likes/)
+          .textContent!.match(/[\d,]+/)![0]
+          .replace(/,/g, ""),
       );
     const before = total();
     act(() => vi.advanceTimersByTime(2100));

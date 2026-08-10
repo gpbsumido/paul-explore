@@ -194,7 +194,9 @@ function EditPostModal({
           <Button
             size="sm"
             disabled={!title.trim()}
-            onClick={() => onSave({ ...post, title: title.trim(), day, column })}
+            onClick={() =>
+              onSave({ ...post, title: title.trim(), day, column })
+            }
           >
             Save
           </Button>
@@ -300,7 +302,9 @@ export default function PostQueueDemo({ feature }: { feature: WorkFeature }) {
           post={editing}
           onClose={() => setEditingId(null)}
           onSave={(updated) => {
-            setPosts((ps) => ps.map((p) => (p.id === updated.id ? updated : p)));
+            setPosts((ps) =>
+              ps.map((p) => (p.id === updated.id ? updated : p)),
+            );
             setEditingId(null);
           }}
         />

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { chooseBestFrame, canPrintAt, frameById, MIN_PRINT_DPI } from "./frames";
+import {
+  chooseBestFrame,
+  canPrintAt,
+  frameById,
+  MIN_PRINT_DPI,
+} from "./frames";
 
 // 11x14 at 150 DPI needs 1650 x 2100 pixels.
 const bigEnough = { width: 1800, height: 2400 };
@@ -31,11 +36,15 @@ describe("chooseBestFrame default size", () => {
   });
 
   it("falls back to the smallest size for a tiny photo", () => {
-    expect(chooseBestFrame(0.8, { width: 100, height: 120 }).sizeId).toBe("4x6");
+    expect(chooseBestFrame(0.8, { width: 100, height: 120 }).sizeId).toBe(
+      "4x6",
+    );
   });
 
   it("never upsizes past the default, however big the photo", () => {
-    expect(chooseBestFrame(0.8, { width: 12000, height: 16000 }).sizeId).toBe("11x14");
+    expect(chooseBestFrame(0.8, { width: 12000, height: 16000 }).sizeId).toBe(
+      "11x14",
+    );
   });
 
   it("still takes orientation from the photo", () => {
@@ -48,8 +57,18 @@ describe("chooseBestFrame default size", () => {
 describe("canPrintAt", () => {
   it("measures against the minimum print resolution", () => {
     const size = frameById("8x10")!;
-    expect(canPrintAt(size, { width: 8 * MIN_PRINT_DPI, height: 10 * MIN_PRINT_DPI })).toBe(true);
-    expect(canPrintAt(size, { width: 8 * MIN_PRINT_DPI - 1, height: 10 * MIN_PRINT_DPI })).toBe(false);
+    expect(
+      canPrintAt(size, {
+        width: 8 * MIN_PRINT_DPI,
+        height: 10 * MIN_PRINT_DPI,
+      }),
+    ).toBe(true);
+    expect(
+      canPrintAt(size, {
+        width: 8 * MIN_PRINT_DPI - 1,
+        height: 10 * MIN_PRINT_DPI,
+      }),
+    ).toBe(false);
   });
 
   it("ignores which way round the pixels are given", () => {

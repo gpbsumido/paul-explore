@@ -21,9 +21,12 @@ export async function GET(
   }
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events/${id}/cards`, {
-      headers: buildHeaders(token, email),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/events/${id}/cards`,
+      {
+        headers: buildHeaders(token, email),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {
@@ -63,13 +66,16 @@ export async function POST(
   const body = bodyResult.data;
 
   try {
-    const upstreamResult = await fetchUpstream(`${API_URL}/api/calendar/events/${id}/cards`, {
-      method: "POST",
-      headers: buildHeaders(token, email, {
-        "Content-Type": "application/json",
-      }),
-      body: JSON.stringify(body),
-    });
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/calendar/events/${id}/cards`,
+      {
+        method: "POST",
+        headers: buildHeaders(token, email, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify(body),
+      },
+    );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
     if (!res.ok) {

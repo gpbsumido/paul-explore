@@ -13,13 +13,18 @@ interface SelectProps extends Omit<ComponentPropsWithRef<"select">, "size"> {
  * Defaults to the inline (horizontal) orientation the fantasy filter bars use,
  * so it drops straight into a FilterBar row. Replaces the old LabelledSelect.
  */
-export default function Select({ label, className, ref, ...rest }: SelectProps) {
+export default function Select({
+  label,
+  className,
+  ref,
+  ...rest
+}: SelectProps) {
   return (
     <PaulSelect
       ref={ref}
       label={label}
       orientation="horizontal"
-      className={className}
+      className={className ? `touch-min ${className}` : "touch-min"}
       {...rest}
     />
   );

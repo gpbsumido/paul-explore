@@ -39,7 +39,7 @@ export default function EnvironmentSwitcher({
             aria-checked={selected}
             onClick={() => onChange(env)}
             className={[
-              "rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
+              "rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors max-sm:min-h-11",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
               selected
                 ? "bg-primary-600 text-white"

@@ -112,7 +112,9 @@ export default function FleetSalesAnalytics() {
                     style={{
                       width: `${Math.max(
                         4,
-                        Math.round((store.totalRevenue / topStoreRevenue) * 100),
+                        Math.round(
+                          (store.totalRevenue / topStoreRevenue) * 100,
+                        ),
                       )}%`,
                     }}
                     aria-hidden="true"

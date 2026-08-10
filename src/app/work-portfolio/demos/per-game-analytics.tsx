@@ -1,13 +1,7 @@
 "use client";
 
 import { Fragment, useState, type ReactElement } from "react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  Tooltip,
-} from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from "recharts";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
@@ -99,7 +93,10 @@ function SingleDashboard({ game }: { game: GameConfig }) {
         </div>
       </div>
       <DashboardChart>
-        <AreaChart data={series} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
+        <AreaChart
+          data={series}
+          margin={{ top: 6, right: 6, bottom: 0, left: 0 }}
+        >
           <defs>
             <linearGradient id={`g-${game.id}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={game.tint} stopOpacity={0.5} />
@@ -139,10 +136,16 @@ function CompareDashboard({
       <div className="rounded-lg border border-border p-3">
         <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-3 gap-y-1.5 text-[12px]">
           <span />
-          <span className="text-right font-semibold" style={{ color: left.tint }}>
+          <span
+            className="text-right font-semibold"
+            style={{ color: left.tint }}
+          >
             {left.name}
           </span>
-          <span className="text-right font-semibold" style={{ color: right.tint }}>
+          <span
+            className="text-right font-semibold"
+            style={{ color: right.tint }}
+          >
             {right.name}
           </span>
           <span className="text-right text-muted">Δ</span>
@@ -172,7 +175,10 @@ function CompareDashboard({
         </div>
       </div>
       <DashboardChart>
-        <AreaChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
+        <AreaChart
+          data={data}
+          margin={{ top: 6, right: 6, bottom: 0, left: 0 }}
+        >
           <XAxis dataKey="d" hide />
           <Tooltip />
           <Area
@@ -257,7 +263,9 @@ export default function PerGameAnalyticsDemo({
                     ? "px-2.5 py-1 text-white"
                     : "px-2.5 py-1 text-muted"
                 }
-                style={g.id === gameId ? { backgroundColor: g.tint } : undefined}
+                style={
+                  g.id === gameId ? { backgroundColor: g.tint } : undefined
+                }
               >
                 {g.name}
               </button>

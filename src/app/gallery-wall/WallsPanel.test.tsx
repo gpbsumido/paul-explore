@@ -34,11 +34,15 @@ const seeded: GalleryState = {
 /** The per-wall actions now live behind a menu, so open it first. */
 const openMenu = async (name: string) => {
   fireEvent.click(
-    await screen.findByRole("button", { name: new RegExp(`actions for ${name}`, "i") }),
+    await screen.findByRole("button", {
+      name: new RegExp(`actions for ${name}`, "i"),
+    }),
   );
 };
 
-const renderPanel = (overrides: Partial<React.ComponentProps<typeof WallsPanel>> = {}) =>
+const renderPanel = (
+  overrides: Partial<React.ComponentProps<typeof WallsPanel>> = {},
+) =>
   render(
     <WallsPanel
       state={seeded}
@@ -62,8 +66,16 @@ beforeEach(() => {
     createdAt: "t",
     updatedAt: "t",
   });
-  vi.mocked(createWall).mockResolvedValue({ id: "w2", name: "Den", updatedAt: "t" });
-  vi.mocked(updateWall).mockResolvedValue({ id: "w1", name: "Hallway", updatedAt: "t2" });
+  vi.mocked(createWall).mockResolvedValue({
+    id: "w2",
+    name: "Den",
+    updatedAt: "t",
+  });
+  vi.mocked(updateWall).mockResolvedValue({
+    id: "w1",
+    name: "Hallway",
+    updatedAt: "t2",
+  });
   vi.mocked(deleteWall).mockResolvedValue(undefined);
 });
 
@@ -79,9 +91,15 @@ describe("WallsPanel", () => {
     renderPanel();
     await openMenu("hallway");
     expect(screen.getByRole("menu")).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /open hallway/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /rename hallway/i })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: /delete hallway/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: /open hallway/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: /rename hallway/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: /delete hallway/i }),
+    ).toBeInTheDocument();
   });
 
   it("opens a saved wall and hands its state back", async () => {
@@ -112,7 +130,9 @@ describe("WallsPanel", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: /open hallway/i }));
     await waitFor(() => expect(getWall).toHaveBeenCalled());
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-    await waitFor(() => expect(updateWall).toHaveBeenCalledWith("w1", expect.anything()));
+    await waitFor(() =>
+      expect(updateWall).toHaveBeenCalledWith("w1", expect.anything()),
+    );
     expect(createWall).not.toHaveBeenCalled();
   });
 
@@ -124,7 +144,10 @@ describe("WallsPanel", () => {
     fireEvent.change(input, { target: { value: "Stairwell" } });
     fireEvent.click(screen.getByRole("button", { name: /^confirm rename$/i }));
     await waitFor(() =>
-      expect(updateWall).toHaveBeenCalledWith("w1", expect.objectContaining({ name: "Stairwell" })),
+      expect(updateWall).toHaveBeenCalledWith(
+        "w1",
+        expect.objectContaining({ name: "Stairwell" }),
+      ),
     );
   });
 
@@ -153,9 +176,13 @@ describe("WallsPanel", () => {
     vi.mocked(createWall).mockRejectedValue(new Error("Backend unavailable"));
     renderPanel();
     await screen.findByRole("button", { name: /actions for hallway/i });
-    fireEvent.change(screen.getByLabelText(/wall name/i), { target: { value: "Den" } });
+    fireEvent.change(screen.getByLabelText(/wall name/i), {
+      target: { value: "Den" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(/backend unavailable/i);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /backend unavailable/i,
+    );
   });
 
   it("shows an empty state when nothing is saved yet", async () => {
