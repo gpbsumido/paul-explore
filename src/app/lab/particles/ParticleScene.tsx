@@ -2,6 +2,7 @@
 
 import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import * as THREE from "three";
 
 // ---------------------------------------------------------------------------
@@ -114,6 +115,17 @@ export default function ParticleScene({
 
   // Refs sync'd in an effect so useFrame always reads fresh values without
   // stale closures. Using an effect satisfies react-hooks/refs.
+  // Reduced motion freezes the drift rather than hiding the field. The point of
+  // the page is the network of points and the lines between them; the drifting
+  // is decoration, and decoration is exactly what this setting is asking me to
+  // drop. Camera parallax and pointer attraction stay, because both are the
+  // reader moving something rather than the page moving on its own.
+  const reducedMotion = usePrefersReducedMotion();
+  const reducedMotionRef = useRef(reducedMotion);
+  useEffect(() => {
+    reducedMotionRef.current = reducedMotion;
+  }, [reducedMotion]);
+
   const speedRef = useRef(speedMult);
   const connectDistRef = useRef(connectDist);
   const attractRef = useRef(mouseAttraction);
@@ -208,9 +220,10 @@ export default function ParticleScene({
 
   // eslint-disable-next-line react-hooks/immutability -- R3F useFrame is an imperative render loop; mutating THREE objects here is the intended pattern
   useFrame(({ camera }) => {
-    const { particles, starPs, smallPs, lineGeo, linePosArr, lineColArr } = sceneObj;
+    const { particles, starPs, smallPs, lineGeo, linePosArr, lineColArr } =
+      sceneObj;
     const cDistSq = connectDistRef.current * connectDistRef.current;
-    const spd = speedRef.current;
+    const spd = reducedMotionRef.current ? 0 : speedRef.current;
 
     // Camera parallax — lerp toward the mouse target.
     const ct = camTargetRef.current;
@@ -223,11 +236,11 @@ export default function ParticleScene({
     // Unproject mouse NDC onto the z=0 plane to get world-space attraction point.
     const ndc = mouseNDCRef.current;
     if (ndc) {
-      raycaster.current.setFromCamera(
-        new THREE.Vector2(ndc.x, ndc.y),
-        camera,
+      raycaster.current.setFromCamera(new THREE.Vector2(ndc.x, ndc.y), camera);
+      raycaster.current.ray.intersectPlane(
+        mousePlane.current,
+        mouseWorld.current,
       );
-      raycaster.current.ray.intersectPlane(mousePlane.current, mouseWorld.current);
     }
 
     // Particle physics tick.
