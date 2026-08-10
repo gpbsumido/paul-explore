@@ -107,7 +107,7 @@ export default function SignupFlowDemo({ feature }: { feature: WorkFeature }) {
           {feature.title}
         </p>
         <span
-          className="touch-min rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted"
+          className="paul-touch-min rounded-full border border-border px-2 py-0.5 font-mono text-[10px] text-muted"
           title="campaign attribution from the entry link"
         >
           utm: {attribution.source}

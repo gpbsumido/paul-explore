@@ -865,7 +865,7 @@ export default function WorldContent() {
                         window.localStorage.setItem(OUTFIT_KEY, option.id);
                       }}
                       aria-pressed={outfitId === option.id}
-                      className={`touch-target flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
+                      className={`paul-touch-target flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
                         locked
                           ? "cursor-not-allowed text-white/30"
                           : outfitId === option.id
@@ -898,7 +898,7 @@ export default function WorldContent() {
                     next ? "on" : "off",
                   );
                 }}
-                className="touch-min mt-2 flex w-full items-center justify-between rounded-lg border-t border-white/10 px-2 pb-0.5 pt-2 text-[11px] text-white/60 hover:text-white/85"
+                className="paul-touch-min mt-2 flex w-full items-center justify-between rounded-lg border-t border-white/10 px-2 pb-0.5 pt-2 text-[11px] text-white/60 hover:text-white/85"
               >
                 <span>👻 Ghost stroll</span>
                 <span
@@ -911,7 +911,7 @@ export default function WorldContent() {
                 type="button"
                 aria-pressed={!muted}
                 onClick={toggleMuted}
-                className="touch-min flex w-full items-center justify-between rounded-lg px-2 pb-0.5 pt-1.5 text-[11px] text-white/60 hover:text-white/85"
+                className="paul-touch-min flex w-full items-center justify-between rounded-lg px-2 pb-0.5 pt-1.5 text-[11px] text-white/60 hover:text-white/85"
               >
                 <span>{muted ? "🔇" : "🔊"} Sound</span>
                 <span className={muted ? "text-white/35" : "text-white/85"}>
@@ -945,7 +945,7 @@ export default function WorldContent() {
                   setFidelity(value);
                   window.localStorage.setItem(FIDELITY_KEY, String(value));
                 }}
-                className="touch-target h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
+                className="paul-touch-target h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
               />
             </div>
           </div>
@@ -1021,7 +1021,7 @@ export default function WorldContent() {
                         z: exhibit.position.z + 3,
                       };
                     }}
-                    className="touch-target flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-[11px] text-white/70 hover:bg-white/10 hover:text-white"
+                    className="paul-touch-target flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-[11px] text-white/70 hover:bg-white/10 hover:text-white"
                   >
                     <span
                       aria-hidden

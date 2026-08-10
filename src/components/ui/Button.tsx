@@ -28,17 +28,7 @@ export default function Button({
   ref,
   ...rest
 }: ButtonProps) {
-  // Every app button gets a finger-sized minimum on a touch screen. Done here
-  // rather than per call site because the small sizes are exactly the ones that
-  // were too short, and they are used in dozens of places.
-  const shared = {
-    ref,
-    variant,
-    size,
-    loading,
-    disabled,
-    className: className ? `touch-min ${className}` : "touch-min",
-  } as const;
+  const shared = { ref, variant, size, loading, disabled, className } as const;
 
   if (href) {
     return (

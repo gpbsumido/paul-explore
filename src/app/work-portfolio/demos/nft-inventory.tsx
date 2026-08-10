@@ -319,14 +319,14 @@ export function NftInventoryPanel({ feature }: { feature: WorkFeature }) {
                 type="button"
                 onClick={() => setTransferMode((t) => !t)}
                 aria-pressed={transferMode}
-                className="touch-min rounded-md border border-border px-2 py-1 text-[11px] font-medium text-foreground"
+                className="paul-touch-min rounded-md border border-border px-2 py-1 text-[11px] font-medium text-foreground"
               >
                 {transferMode ? "Done" : "Transfer"}
               </button>
               <button
                 type="button"
                 onClick={() => disconnect()}
-                className="touch-min rounded-md border border-border px-2 py-1 text-[11px] font-medium text-muted hover:text-foreground"
+                className="paul-touch-min rounded-md border border-border px-2 py-1 text-[11px] font-medium text-muted hover:text-foreground"
               >
                 Disconnect
               </button>

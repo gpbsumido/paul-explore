@@ -649,7 +649,7 @@ function ChartSettingsModal({
                 aria-label={`Accent ${c}`}
                 aria-pressed={accent === c}
                 onClick={() => setAccent(c)}
-                className={`touch-target h-6 w-6 rounded-full transition-transform ${
+                className={`paul-touch-target h-6 w-6 rounded-full transition-transform ${
                   accent === c ? "ring-2 ring-foreground ring-offset-1" : ""
                 }`}
                 style={{ backgroundColor: c }}

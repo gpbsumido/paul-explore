@@ -108,7 +108,7 @@ export default function ResumePage() {
             href={PDF_HREF}
             target="_blank"
             rel="noopener noreferrer"
-            className="touch-min inline-flex items-center font-medium text-foreground underline underline-offset-2"
+            className="paul-touch-min inline-flex items-center font-medium text-foreground underline underline-offset-2"
           >
             Open the PDF in a new tab
           </a>

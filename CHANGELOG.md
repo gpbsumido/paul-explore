@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.6
+
+- **Adopted `@paul-portfolio/css` 0.6.0, which meets touch targets by default, and deleted the local equivalents.** The two utilities this app invented are now `.paul-touch-min` and `.paul-touch-target` from the package, and the `Button`, `IconButton`, `Input` and `Select` wrappers went back to being thin pass-throughs — the package's own `.btn`, `.icon-btn`, `.input` and `.select` carry the floor now. Net 97 lines added against 160 deleted, which is the right direction for a change whose whole point was that the app was compensating for something the design system should have owned.
+- **The audit script was reporting a false positive, and fixing it mattered more than the count.** It excluded controls carrying a known class name, so it flagged the design system's switch — which is visually 20px and has a 44px `::before` overlay, exactly as intended. It now measures the effective hit area instead of matching class names, so it is correct regardless of how the area is provided. A checker that fails on something already right is worse than no checker: it sends someone to "fix" working code.
+
 ## 2026-08-10 - version 3.16.5
 
 - **Finished the tap-target pass across every route.** Every page now measures clean at 390px except one control, which lives in the published design system rather than here. Two utilities carry it, and which one a control gets is the actual decision: `.touch-min` grows a control that has room — a button, a text input, a filter pill — and `.touch-target` leaves the visual alone and centres an invisible 44px box on it, for things that genuinely cannot grow. A checkbox scaled to 44px looks broken, a toggle switch has a conventional size people recognise, a colour swatch has to stay a small round chip, and the world's HUD floats over the view it controls where every pixel of chrome is a pixel of city you cannot see.

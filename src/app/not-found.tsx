@@ -453,7 +453,7 @@ export default function NotFound() {
                 <button
                   type="button"
                   onClick={goBack}
-                  className="touch-min inline-flex items-center font-mono text-[13px] transition-colors hover:brightness-110"
+                  className="paul-touch-min inline-flex items-center font-mono text-[13px] transition-colors hover:brightness-110"
                   style={{ color: variant.color }}
                 >
                   ← Go back
@@ -461,7 +461,7 @@ export default function NotFound() {
                 <span className="text-muted">|</span>
                 <Link
                   href="/"
-                  className="touch-min inline-flex items-center font-mono text-[13px] transition-colors hover:brightness-110"
+                  className="paul-touch-min inline-flex items-center font-mono text-[13px] transition-colors hover:brightness-110"
                   style={{ color: variant.color }}
                 >
                   Home

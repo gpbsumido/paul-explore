@@ -225,7 +225,7 @@ export default function AlertsTab({ storeId }: AlertsTabProps) {
               type="button"
               key={f.value}
               onClick={() => setSeverityFilter(f.value)}
-              className={`touch-min rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
+              className={`paul-touch-min rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
                 isActive
                   ? "bg-foreground text-background"
                   : "bg-surface-raised text-muted hover:text-foreground"

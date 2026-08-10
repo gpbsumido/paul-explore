@@ -174,21 +174,21 @@ function ButtonPlayground() {
         </FilterBar>
 
         <div className="flex flex-wrap items-center gap-5">
-          <label className="touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
+          <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
             <input
               type="checkbox"
               checked={state.loading}
               onChange={(e) => set("loading", e.target.checked)}
-              className="touch-target h-4 w-4 accent-primary-500"
+              className="paul-touch-target h-4 w-4 accent-primary-500"
             />
             Loading
           </label>
-          <label className="touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
+          <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
             <input
               type="checkbox"
               checked={state.disabled}
               onChange={(e) => set("disabled", e.target.checked)}
-              className="touch-target h-4 w-4 accent-primary-500"
+              className="paul-touch-target h-4 w-4 accent-primary-500"
             />
             Disabled
           </label>
@@ -256,7 +256,7 @@ function ModalDemo() {
 function SwitchDemo() {
   const [on, setOn] = useState(true);
   return (
-    <label className="touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
+    <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
       <Switch
         checked={on}
         onCheckedChange={setOn}
@@ -469,7 +469,7 @@ function ComponentCard({ component }: { component: ComponentDoc }) {
                 <Link
                   key={`${component.id}-${link.href}`}
                   href={link.href}
-                  className="touch-min rounded-full border border-border px-2.5 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/40 hover:bg-surface"
+                  className="paul-touch-min rounded-full border border-border px-2.5 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/40 hover:bg-surface"
                 >
                   {link.label}
                 </Link>

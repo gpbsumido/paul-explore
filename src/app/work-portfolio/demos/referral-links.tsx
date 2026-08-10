@@ -139,7 +139,7 @@ export default function ReferralLinksDemo({
             <button
               type="button"
               onClick={recordVisit}
-              className="touch-min rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-foreground/5"
+              className="paul-touch-min rounded-md border border-border px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-foreground/5"
             >
               Open link
             </button>

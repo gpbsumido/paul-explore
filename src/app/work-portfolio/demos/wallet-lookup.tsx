@@ -130,7 +130,7 @@ export default function WalletLookupDemo({
                   setInput(s);
                   submit(s);
                 }}
-                className="touch-min rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
+                className="paul-touch-min rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-foreground hover:bg-black/5 dark:hover:bg-white/10"
               >
                 {s}
               </button>

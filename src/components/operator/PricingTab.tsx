@@ -124,7 +124,7 @@ export default function PricingTab({ storeId }: PricingTabProps) {
               type="button"
               key={step}
               onClick={() => applyToAll(step)}
-              className="touch-min rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-primary-500/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+              className="paul-touch-min rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-primary-500/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
             >
               {step === 0 ? "Clear all" : `${step}% off`}
             </button>

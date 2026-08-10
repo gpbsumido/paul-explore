@@ -78,7 +78,7 @@ function SearchHint() {
       onClick={openCommandPalette}
       aria-label="Search pages, dev notes, and actions"
       aria-haspopup="dialog"
-      className="touch-min inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-1.5 text-xs text-muted backdrop-blur transition-colors hover:text-foreground"
+      className="paul-touch-min inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-3 py-1.5 text-xs text-muted backdrop-blur transition-colors hover:text-foreground"
     >
       <svg
         width="14"
@@ -112,7 +112,7 @@ function ResumeLink() {
   return (
     <Link
       href="/resume"
-      className="touch-min inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors"
+      className="paul-touch-min inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors"
       style={{
         borderColor: `color-mix(in srgb, ${RESUME_ACCENT} 50%, transparent)`,
         backgroundColor: `color-mix(in srgb, ${RESUME_ACCENT} 15%, transparent)`,
@@ -155,7 +155,7 @@ const LEGEND: LegendItem[] = [
 /** A pill for the graph legend, OriginUI-style. */
 function LegendPill({ swatch, label, glow }: LegendItem) {
   return (
-    <span className="touch-min inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-2.5 py-1 text-[11px] text-muted backdrop-blur">
+    <span className="paul-touch-min inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-2.5 py-1 text-[11px] text-muted backdrop-blur">
       <span
         className="h-2 w-2 rounded-full"
         style={{
@@ -282,7 +282,7 @@ export default function GraphShell({
             <h1 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
               paul-explore
             </h1>
-            <span className="touch-min rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted backdrop-blur">
+            <span className="paul-touch-min rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted backdrop-blur">
               v3
             </span>
           </div>
@@ -316,7 +316,7 @@ export default function GraphShell({
         {LEGEND.map((item) => (
           <LegendPill key={item.label} {...item} />
         ))}
-        <span className="touch-min inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-2.5 py-1 text-[11px] text-muted backdrop-blur">
+        <span className="paul-touch-min inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/70 px-2.5 py-1 text-[11px] text-muted backdrop-blur">
           <svg width="16" height="6" aria-hidden>
             <line
               x1="0"
@@ -342,7 +342,7 @@ export default function GraphShell({
           aria-hidden
           className="pointer-events-none absolute inset-x-0 bottom-16 z-30 hidden justify-center sm:flex min-[1400px]:bottom-5"
         >
-          <span className="touch-min rounded-full border border-border bg-surface/70 px-3 py-1 text-xs text-muted backdrop-blur">
+          <span className="paul-touch-min rounded-full border border-border bg-surface/70 px-3 py-1 text-xs text-muted backdrop-blur">
             Scroll to explore · click a card to open it
           </span>
         </div>
