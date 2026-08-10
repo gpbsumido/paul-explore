@@ -159,7 +159,7 @@ export default function PageHeader({
                       <Link
                         href={item.href}
                         onClick={item.onClick}
-                        className="flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
+                        className="flex min-h-11 shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground sm:min-h-0"
                       >
                         <BackChevron />
                         {item.label}
@@ -168,7 +168,7 @@ export default function PageHeader({
                       <Link
                         href={item.href}
                         onClick={item.onClick}
-                        className="shrink-0 text-sm text-muted transition-colors hover:text-foreground max-w-[120px] truncate"
+                        className="flex min-h-11 shrink-0 items-center truncate text-sm text-muted transition-colors hover:text-foreground max-w-[120px] sm:min-h-0"
                       >
                         {item.label}
                       </Link>

@@ -49,9 +49,10 @@ function groupVersions(versions: string[]) {
   return {
     currentMajor,
     currentMinorKey,
-    recentMinors: recentKeys.map(
-      (key): MinorGroup => ({ minor: key, versions: groups.get(key)! }),
-    ),
+    recentMinors: recentKeys.map((key): MinorGroup => ({
+      minor: key,
+      versions: groups.get(key)!,
+    })),
     olderMinors: olderKeys,
   };
 }
@@ -89,7 +90,7 @@ export default function VersionSelector({
       onChange={handleChange}
       disabled={isPending}
       aria-label="Filter by version"
-      className="rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-muted focus:outline-none disabled:opacity-50"
+      className="min-h-11 rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-muted focus:outline-none disabled:opacity-50 sm:min-h-0"
     >
       <option value={`major:${grouped.currentMajor}`}>
         Current Major (v{grouped.currentMajor}.x)

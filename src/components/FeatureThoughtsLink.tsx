@@ -26,7 +26,7 @@ export default function FeatureThoughtsLink() {
           ? `Read the write-up on ${counterpart.title}`
           : `Open the ${counterpart.title} app`
       }
-      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[12px] font-medium text-muted transition-colors hover:border-foreground/30 hover:text-foreground"
+      className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[12px] font-medium text-muted transition-colors hover:border-foreground/30 hover:text-foreground sm:min-h-0"
     >
       <svg
         width="13"
