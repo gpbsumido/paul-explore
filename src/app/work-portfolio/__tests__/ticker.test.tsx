@@ -124,3 +124,32 @@ describe("ticker selection", () => {
     expect(top.querySelector("[data-paused]")).not.toBeNull();
   });
 });
+
+describe("every ticker chip stays clickable", () => {
+  // The strip duplicates its chips so the ambient loop looks seamless, and the
+  // loop wraps at half the scroll width — so roughly half of what is on screen
+  // at any moment is the duplicate. When the shared Ticker marked that copy
+  // `inert`, those chips silently did nothing when clicked, which reads as the
+  // page being broken at random.
+  //
+  // Asserted on the attribute rather than by clicking, because jsdom does not
+  // implement `inert`: a click on the duplicate passes here whether or not the
+  // bug is present. This guards the consumer side, so a future version of
+  // @paul-portfolio/react cannot bring it back without failing our build.
+  it("never renders a duplicate that is inert to the pointer", () => {
+    stubReducedMotion(false);
+    const { container } = render(<WorkPortfolioContent />);
+    const inertGroups = container.querySelectorAll("[inert]");
+    expect(inertGroups).toHaveLength(0);
+  });
+
+  it("keeps the duplicate out of the accessibility tree without hiding it from the pointer", () => {
+    stubReducedMotion(false);
+    const { container } = render(<WorkPortfolioContent />);
+    const hidden = [...container.querySelectorAll('[aria-hidden="true"]')];
+    // There is a duplicate, and it is hidden from assistive tech ...
+    expect(hidden.length).toBeGreaterThan(0);
+    // ... but nothing on the page is inert, so every chip remains clickable.
+    hidden.forEach((el) => expect(el.hasAttribute("inert")).toBe(false));
+  });
+});
