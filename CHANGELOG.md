@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.3
+
+- **Tap targets across the app were too small on a phone.** I rendered every route at 390px and measured rather than guessing, and the biggest finding was in the shared header: breadcrumb links were 20px tall, the write-up pill and the theme trigger 28px. That is one fix that lifts every page, since every page uses it. Also fixed the Craft evidence links (31 of them at 28px), the Web Vitals version selector, and seven links on the v4 landing. The `InfoTip` trigger keeps its 14px dot — shrinking or growing it would change every layout it sits in — and gains an invisible 44px hit area on touch screens only.
+- No page scrolls sideways at 390px, which was the first thing I checked and the one that would have been worst.
+- `scripts/mobile-audit.mjs` is kept as a tool: run it against a dev server and it reports, per route, sideways scroll, elements escaping the viewport without a scrollable parent, and undersized targets. It is deliberately not a unit test — jsdom has no layout, so none of this is measurable there, and the honest way to check a phone layout is to render it at phone size and look.
+
 ## 2026-08-08 - version 3.16.0
 
 - **Journal club can filter to papers doing something new, and shows why.** An "only papers doing something new" toggle, plus innovation-first ordering by default. Detection is two kinds of signal — claims of novelty (first-in-human, proof of concept, initial experience) and named emerging technologies (machine learning, robotic, 3D printing, gene and cell therapy) — and the matched signals are shown as badges on the paper rather than folded into a hidden score, because "this is innovative, trust me" is not useful to someone deciding what to spend an hour on. Negations are handled: "no novel complications were observed" is the opposite claim and doesn't count.

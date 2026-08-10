@@ -99,7 +99,7 @@ function TraitCard({
               <li key={ev.href}>
                 <Link
                   href={ev.href}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[12px] text-muted transition-colors hover:border-foreground/20 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[12px] sm:min-h-0 text-muted transition-colors hover:border-foreground/20 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
                 >
                   <span
                     aria-hidden
@@ -160,9 +160,9 @@ export default function CraftContent() {
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-muted">
             {CRAFT_TRAITS.length} traits, each one backed by something already
-            shipped in this project. Open a trait to see what owning it means and
-            where it shows up. This whole site is the portfolio; this page is the
-            index into it.
+            shipped in this project. Open a trait to see what owning it means
+            and where it shows up. This whole site is the portfolio; this page
+            is the index into it.
           </p>
         </header>
 
