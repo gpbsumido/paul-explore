@@ -91,13 +91,13 @@ export default async function PocketPage() {
           <>
             <Link
               href="/tcg/pokemon"
-              className="touch-min inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
+              className="paul-touch-min inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
             >
               Browse
             </Link>
             <Link
               href="/tcg/pokemon/sets"
-              className="touch-min inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
+              className="paul-touch-min inline-flex items-center text-sm text-muted hover:text-foreground transition-colors"
             >
               Sets
             </Link>

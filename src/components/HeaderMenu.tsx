@@ -314,7 +314,7 @@ export default function HeaderMenu({
                     <button
                       type="button"
                       onClick={() => setEffectOpen((v) => !v)}
-                      className="touch-min flex w-full items-center justify-between rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12px] text-foreground transition-colors hover:bg-surface-raised"
+                      className="paul-touch-min flex w-full items-center justify-between rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12px] text-foreground transition-colors hover:bg-surface-raised"
                     >
                       <span className="flex items-center gap-1.5">
                         <span>

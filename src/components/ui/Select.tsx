@@ -24,7 +24,7 @@ export default function Select({
       ref={ref}
       label={label}
       orientation="horizontal"
-      className={className ? `touch-min ${className}` : "touch-min"}
+      className={className}
       {...rest}
     />
   );

@@ -351,7 +351,7 @@ export default function LlmAssistantDemo({
             type="button"
             onClick={() => send(s)}
             disabled={streaming}
-            className="touch-min rounded-full border border-border px-2.5 py-1 text-[11px] text-muted hover:text-foreground disabled:opacity-50"
+            className="paul-touch-min rounded-full border border-border px-2.5 py-1 text-[11px] text-muted hover:text-foreground disabled:opacity-50"
           >
             {s}
           </button>
@@ -378,7 +378,7 @@ export default function LlmAssistantDemo({
           <button
             type="button"
             onClick={stop}
-            className="touch-min rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground"
+            className="paul-touch-min rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-foreground"
           >
             Stop
           </button>

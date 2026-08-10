@@ -49,7 +49,7 @@ export default function Chip({
     <button
       type="button"
       onClick={onRemove}
-      className="touch-target ml-1 inline-flex items-center opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+      className="paul-touch-target ml-1 inline-flex items-center opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
       aria-label={`Remove ${label}`}
     >
       <svg

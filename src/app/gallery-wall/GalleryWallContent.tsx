@@ -472,7 +472,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                           commitZoom();
                         }
                       }}
-                      className="touch-min w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right tabular-nums text-foreground"
+                      className="paul-touch-min w-14 rounded-md border border-border bg-surface px-1.5 py-0.5 text-right tabular-nums text-foreground"
                     />
                     <span aria-hidden>%</span>
                   </label>
@@ -481,7 +481,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                     aria-label="Zoom out"
                     disabled={zoom <= ZOOM_MIN}
                     onClick={() => setZoomTo(zoom - ZOOM_STEP)}
-                    className="touch-target h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="paul-touch-target h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <span aria-hidden>&minus;</span>
                   </button>
@@ -490,7 +490,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                     aria-label="Zoom in"
                     disabled={zoom >= ZOOM_MAX}
                     onClick={() => setZoomTo(zoom + ZOOM_STEP)}
-                    className="touch-target h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="paul-touch-target h-7 w-7 rounded-md border border-border text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <span aria-hidden>+</span>
                   </button>
@@ -502,7 +502,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                     aria-hidden={zoom === 1}
                     tabIndex={zoom === 1 ? -1 : 0}
                     disabled={zoom === 1}
-                    className={`touch-min rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30 ${
+                    className={`paul-touch-min rounded-md border border-border px-2 py-1 text-[12px] text-foreground transition-colors hover:border-foreground/30 ${
                       zoom === 1 ? "invisible" : ""
                     }`}
                   >
@@ -519,7 +519,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                     aria-expanded={showHelp}
                     onClick={() => setShowHelp((v) => !v)}
                     onBlur={() => setShowHelp(false)}
-                    className="touch-target flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background/85 text-[12px] font-bold text-muted shadow-sm backdrop-blur transition-colors hover:text-foreground"
+                    className="paul-touch-target flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background/85 text-[12px] font-bold text-muted shadow-sm backdrop-blur transition-colors hover:text-foreground"
                   >
                     <span aria-hidden>i</span>
                   </button>
@@ -630,7 +630,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="touch-min rounded-md border border-border px-3 py-1 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                    className="paul-touch-min rounded-md border border-border px-3 py-1 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
                   >
                     Print
                   </button>
@@ -699,7 +699,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                   type="button"
                   onClick={() => setFloating(false)}
                   aria-pressed
-                  className="touch-min rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                  className="paul-touch-min rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30"
                 >
                   Dock panel
                 </button>
@@ -728,7 +728,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                           ? undefined
                           : "Needs a wider window to float the panel"
                       }
-                      className="touch-min rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="paul-touch-min rounded-md border border-border px-2.5 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       Float panel
                     </button>
@@ -848,7 +848,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                       <button
                         type="button"
                         onClick={() => dispatch({ type: "auto-arrange" })}
-                        className="touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                        className="paul-touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
                       >
                         Auto-arrange
                       </button>
@@ -862,7 +862,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                             layout: "aesthetic",
                           })
                         }
-                        className="touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                        className="paul-touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
                       >
                         Aesthetic arrange
                       </button>
@@ -870,7 +870,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                         type="button"
                         onClick={() => setShowHangSheet((v) => !v)}
                         aria-pressed={showHangSheet}
-                        className="touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
+                        className="paul-touch-min rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-foreground/30"
                       >
                         Hang sheet
                       </button>

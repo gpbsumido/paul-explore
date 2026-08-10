@@ -20,7 +20,7 @@ export default function FlagsInfoStrip({
 }: FlagsInfoStripProps) {
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-surface-raised/60 px-3 py-2 text-[13px] text-muted">
-      <span className="touch-min inline-flex items-center gap-1.5 rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-medium text-success-700 dark:bg-success-950/50 dark:text-success-400">
+      <span className="paul-touch-min inline-flex items-center gap-1.5 rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-medium text-success-700 dark:bg-success-950/50 dark:text-success-400">
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success-500" />
         Backed by a live API
       </span>

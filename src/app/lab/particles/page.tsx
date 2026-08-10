@@ -96,7 +96,7 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="touch-target h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
+        className="paul-touch-target h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-white"
       />
     </div>
   );
@@ -200,7 +200,7 @@ export default function ParticlesPage() {
                   key={i}
                   onClick={() => setPaletteIndex(i)}
                   title={PALETTE_LABELS[i]}
-                  className="touch-target h-6 w-6 rounded-full transition-transform hover:scale-110"
+                  className="paul-touch-target h-6 w-6 rounded-full transition-transform hover:scale-110"
                   style={{
                     backgroundColor: dot,
                     outline:
@@ -226,7 +226,7 @@ export default function ParticlesPage() {
               type="button"
               aria-label="Mouse Attraction"
               onClick={() => setMouseAttraction((v) => !v)}
-              className="touch-target flex h-5 w-9 items-center rounded-full transition-colors"
+              className="paul-touch-target flex h-5 w-9 items-center rounded-full transition-colors"
               style={{
                 background: mouseAttraction
                   ? "rgba(255,255,255,0.25)"

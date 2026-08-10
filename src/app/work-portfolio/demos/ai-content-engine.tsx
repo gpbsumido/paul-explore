@@ -174,7 +174,7 @@ export default function AiContentEngineDemo({
           <button
             type="button"
             onClick={() => setPosting(true)}
-            className="touch-min rounded-md border border-border px-3 py-1 text-[12px] text-foreground transition-colors hover:bg-foreground/5"
+            className="paul-touch-min rounded-md border border-border px-3 py-1 text-[12px] text-foreground transition-colors hover:bg-foreground/5"
           >
             Post to social
           </button>

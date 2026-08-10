@@ -280,7 +280,7 @@ function RolloutSlider({
       onPointerUp={commit}
       onKeyUp={commit}
       onBlur={commit}
-      className="touch-target w-full accent-primary-600 disabled:cursor-not-allowed"
+      className="paul-touch-target w-full accent-primary-600 disabled:cursor-not-allowed"
     />
   );
 }

@@ -47,7 +47,7 @@ export default function CraftThoughtsContent() {
           A résumé says &ldquo;strong performance skills.&rdquo; Anyone can. The{" "}
           <Link
             href="/craft"
-            className="touch-min inline-flex items-center font-medium text-foreground underline underline-offset-2"
+            className="paul-touch-min inline-flex items-center font-medium text-foreground underline underline-offset-2"
           >
             Craft page
           </Link>{" "}

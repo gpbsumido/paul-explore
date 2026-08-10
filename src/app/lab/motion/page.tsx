@@ -90,7 +90,7 @@ function ControlSlider({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="touch-target h-1 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-white"
+        className="paul-touch-target h-1 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-white"
       />
     </div>
   );

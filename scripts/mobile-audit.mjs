@@ -55,16 +55,24 @@ for (const route of ROUTES) {
           text: (el.textContent ?? "").trim().slice(0, 28),
         }));
 
-      // Interactive targets smaller than the 44px comfortable minimum.
+      // Interactive targets smaller than the comfortable minimum.
+      //
+      // Measures the effective hit area rather than the element box, because a
+      // control can be given one by a ::before overlay while staying visually
+      // small — which is what the design system does for switches and icon
+      // buttons. Keying on a class name instead reported those as failures and
+      // would have sent someone to "fix" something already correct.
       const small = [...document.querySelectorAll("a,button,[role=button],input,select")]
         .filter((el) => {
+          const cls = el.className?.toString?.() ?? "";
+          // sr-only is 1x1 until focused, which is correct.
+          if (cls.includes("sr-only")) return false;
           const r = el.getBoundingClientRect();
-          // The skip link is 1x1 until focused, which is correct.
-        const cls = el.className?.toString?.() ?? "";
-        // sr-only is 1x1 until focused, and .touch-target supplies a 44px
-        // pseudo-element the bounding box does not include.
-        if (cls.includes("sr-only") || cls.includes("touch-target")) return false;
-        return r.width > 0 && r.height > 0 && r.height < 32;
+          if (r.width === 0 || r.height === 0) return false;
+          const overlay = getComputedStyle(el, "::before");
+          const overlayH = parseFloat(overlay.height) || 0;
+          const effective = Math.max(r.height, overlayH);
+          return effective < 32;
         })
         .slice(0, 4)
         .map((el) => ({

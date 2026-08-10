@@ -126,7 +126,7 @@ export default function TestUserBar({
             type="button"
             onClick={() => commit(preset.draft)}
             title={preset.hint}
-            className="touch-min rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 max-sm:min-h-11"
+            className="paul-touch-min rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-foreground transition-colors hover:border-primary-400 hover:text-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 max-sm:min-h-11"
           >
             {preset.label}
           </button>
@@ -195,7 +195,7 @@ export default function TestUserBar({
             type="checkbox"
             checked={draft.beta}
             onChange={(e) => commit({ ...draft, beta: e.target.checked })}
-            className="touch-target h-4 w-4 accent-primary-600"
+            className="paul-touch-target h-4 w-4 accent-primary-600"
           />
           <label htmlFor={betaId} className="text-[13px] text-foreground">
             Beta opt-in

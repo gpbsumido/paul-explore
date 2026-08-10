@@ -43,7 +43,6 @@ export default function Input({
           {label}
         </label>
         <PaulInput
-          className="touch-min"
           ref={ref}
           label={undefined}
           error={error}
@@ -60,7 +59,6 @@ export default function Input({
   return (
     <div className={className}>
       <PaulInput
-        className="touch-min"
         ref={ref}
         label={required ? `${label} *` : label}
         error={error}

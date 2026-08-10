@@ -118,7 +118,7 @@ function AppCard({ app, index }: { app: PokemonApp; index: number }) {
           {app.thoughtsHref ? (
             <Link
               href={app.thoughtsHref}
-              className="touch-min inline-flex items-center text-[13px] text-muted transition-colors hover:text-foreground"
+              className="paul-touch-min inline-flex items-center text-[13px] text-muted transition-colors hover:text-foreground"
             >
               About
             </Link>
@@ -127,7 +127,7 @@ function AppCard({ app, index }: { app: PokemonApp; index: number }) {
           )}
           <Link
             href={app.href}
-            className="touch-min inline-flex items-center text-[13px] font-semibold transition-opacity hover:opacity-75"
+            className="paul-touch-min inline-flex items-center text-[13px] font-semibold transition-opacity hover:opacity-75"
             style={{ color: app.color }}
           >
             Open →

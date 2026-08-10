@@ -1033,7 +1033,7 @@ export default function SlotMachine({
             <h1 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
               paul-explore
             </h1>
-            <span className="touch-min rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted backdrop-blur">
+            <span className="paul-touch-min rounded-full border border-border bg-surface/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted backdrop-blur">
               v4
             </span>
           </div>

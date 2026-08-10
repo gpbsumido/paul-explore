@@ -570,7 +570,7 @@ function CapacityDemo() {
                     {day.map((pkg, j) => (
                       <div
                         key={j}
-                        className="touch-target flex h-7 w-7 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
+                        className="paul-touch-target flex h-7 w-7 items-center justify-center rounded-sm border border-foreground/10 font-mono text-[10px]"
                       >
                         {pkg}
                       </div>
