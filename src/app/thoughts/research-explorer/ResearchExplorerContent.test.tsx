@@ -49,7 +49,9 @@ describe("ResearchExplorerContent updates", () => {
 
   it("keeps a note about the graph view I still want to build", () => {
     render(<ResearchExplorerContent />);
-    expect(screen.getByText(/node graph/i)).toBeInTheDocument();
+    // Mentioned in the body and again in the closing block, which is fine —
+    // the contract is that the page still records it, not where.
+    expect(screen.getAllByText(/node graph/i).length).toBeGreaterThan(0);
   });
 
   it("records that the badge thresholds are a snapshot that will drift", () => {

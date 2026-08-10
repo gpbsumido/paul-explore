@@ -1,6 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { Sent, Received, Timestamp } from "@/lib/threads";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 
@@ -127,6 +128,18 @@ export default function KetsupContent() {
           </a>
         </div>
       </section>
+      <WhatsNext
+        nowShipped={[
+          "A separate app at its own domain rather than a route in this one, because it has its own auth, data model and deploy cadence and folding it in would have coupled two things that only look similar.",
+        ]}
+        couldImprove={[
+          "The two projects share no code, so primitives that could come from the same design system are implemented twice.",
+          "Nothing here surfaces whether that app is healthy — it is linked from the hub and otherwise invisible to this project.",
+        ]}
+        upcoming={[
+          "Nothing scheduled in this repo. The work happens in that project, and it would be dishonest to list its roadmap here as though it were mine to ship from this codebase.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }
