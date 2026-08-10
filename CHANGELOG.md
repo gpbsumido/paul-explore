@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.7
+
+- **The particle lab ignored `prefers-reduced-motion` entirely.** The landing sections get the preference from framer-motion, but a 3D scene animates in a render loop that never touches a motion component, so it had no way of hearing the setting. `usePrefersReducedMotion` is a small hook on `useSyncExternalStore` — read during render, false on the server — and works in both worlds without adding a dependency to a bundle where three.js is already the expensive part. The drift speed becomes zero rather than the field being hidden: the point of the page is the network of points and the lines between them, and the drifting is decoration, which is what the setting is asking to drop. Camera parallax and pointer attraction stay, because both are the reader moving something rather than the page moving on its own.
+- Worth recording that I had assumed the world was the other offender and audited before fixing: it already gates every ambient animation, and the components that do not — the player, the trail that follows them, other explorers — are movement someone caused rather than the page animating itself. The assumption was wrong, which is the sort that sends a fix at the wrong page.
+
 ## 2026-08-08 - version 3.16.0
 
 - **Journal club can filter to papers doing something new, and shows why.** An "only papers doing something new" toggle, plus innovation-first ordering by default. Detection is two kinds of signal — claims of novelty (first-in-human, proof of concept, initial experience) and named emerging technologies (machine learning, robotic, 3D printing, gene and cell therapy) — and the matched signals are shown as badges on the paper rather than folded into a hidden score, because "this is innovative, trust me" is not useful to someone deciding what to spend an hour on. Negations are handled: "no novel complications were observed" is the opposite claim and doesn't count.
