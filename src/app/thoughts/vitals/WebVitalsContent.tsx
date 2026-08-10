@@ -1,6 +1,11 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -558,6 +563,17 @@ const selectedVersion = urlVersion ?? versions[0];`}
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-10-public",
+            date: "Aug 10, 2026",
+            title:
+              "Making the numbers public, and the default that disagreed with itself",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">
           Why custom over Vercel Speed Insights
@@ -839,6 +855,46 @@ const selectedVersion = urlVersion ?? versions[0];`}
           halves.
         </p>
       </section>
+      <Update
+        id="update-2026-08-10-public"
+        date="August 10, 2026"
+        title="Making the numbers public, and the default that disagreed with itself"
+      >
+        <p>
+          The page and its BFF routes used to require a login. That was the
+          wrong call and I reversed it: these are real-user Core Web Vitals for
+          a public site, collected from public page loads. There is nothing
+          private in a P75 LCP, and putting it behind auth mostly meant nobody
+          ever looked at it &mdash; including me. It is public now, and the
+          wording says so everywhere it is mentioned, because a page that says
+          &quot;sign in&quot; anywhere teaches people not to try.
+        </p>
+        <p>
+          <strong>The first paint disagreed with its own selector.</strong> The
+          version selector defaulted to the current major while the initial
+          fetch asked for something else, so the numbers on screen were not the
+          numbers the control claimed to be showing. Nobody would notice unless
+          they were checking a specific release &mdash; exactly when it matters
+          most. Two sources of truth for &quot;which version am I looking
+          at&quot; was the real defect; making them one fixed it.
+        </p>
+      </Update>
+      <WhatsNext
+        nowShipped={[
+          "Real user measurements rather than lab numbers, aggregated to P75 by metric and by page, which is the only version of this worth having.",
+          "Public, with no login — the data is not sensitive and gating it meant nobody looked.",
+          "One source of truth for the selected version, so the first paint shows what the control says it shows.",
+        ]}
+        couldImprove={[
+          "It reports and does not alert. A regression is visible only if someone opens the page, which is the wrong way round for a metric that matters.",
+          "There is no per-route budget, so a page getting slower is a number to interpret rather than a threshold that has been crossed.",
+          "Nothing correlates a regression with a release, so finding the cause means reasoning back from the date by hand.",
+        ]}
+        upcoming={[
+          "Per-route budgets, so a regression is a breach rather than a chart someone has to read.",
+          "Annotate the timeline with releases, which the changelog already has the dates for.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

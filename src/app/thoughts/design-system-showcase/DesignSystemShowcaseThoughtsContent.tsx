@@ -1,6 +1,11 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground";
@@ -21,6 +26,16 @@ export default function DesignSystemShowcaseThoughtsContent() {
         </>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-10-published",
+            date: "Aug 10, 2026",
+            title: "Following the published package rather than describing it",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">Why a live showcase</h2>
         <p className="text-muted">
@@ -161,6 +176,41 @@ export default function DesignSystemShowcaseThoughtsContent() {
           primitive.
         </p>
       </section>
+      <Update
+        id="update-2026-08-10-published"
+        date="August 10, 2026"
+        title="Following the published package rather than describing it"
+      >
+        <p>
+          A showcase has one failure mode that matters: drifting from the thing
+          it documents. A gallery showing how a button looked two releases ago
+          is worse than no gallery, because people trust it.
+        </p>
+        <p>
+          So the page renders components straight out of the published{" "}
+          <code>@paul-portfolio</code> packages rather than reimplementing them
+          for display. Adopting 0.5.0 was then a version bump plus documenting
+          what it added, rather than a hunt for every place the showcase kept a
+          private copy of a primitive. That is the whole argument for consuming
+          your own published artefact instead of importing from source: the
+          upgrade tells you what broke.
+        </p>
+      </Update>
+      <WhatsNext
+        nowShipped={[
+          "The gallery renders the published package rather than a local reimplementation, so it cannot drift from what actually ships.",
+          "A props playground per primitive, since the question is usually what a component does under a prop rather than how it looks at rest.",
+          "Design tokens shown alongside the components that consume them.",
+        ]}
+        couldImprove={[
+          "Nothing catches visual regressions. The showcase is the obvious place to snapshot, and it does not.",
+          "No accessibility check runs per primitive here, even though this is the one place every component is rendered in isolation — the cheapest possible place to run axe.",
+          "It documents what exists but not when to use which, so two similar primitives give no guidance on choosing.",
+        ]}
+        upcoming={[
+          "Run axe against every primitive in the gallery. Everything is already rendered in isolation, so it is close to free and would catch regressions at the source rather than once per feature.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

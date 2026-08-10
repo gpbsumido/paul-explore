@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -56,6 +61,17 @@ export default function GalleryWallThoughtsContent() {
         </>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-10-saved-walls",
+            date: "Aug 10, 2026",
+            title:
+              "Walls you can come back to, and the sizing default I had backwards",
+          },
+        ]}
+      />
+
       <Section title="A pure core, then a thin component">
         <p>
           The parts worth getting right — which frame suits a photo, where every
@@ -368,6 +384,64 @@ gallery-walls/{userSegment}/{wallId}/images/{id}.webp`}
           will never resolve, and the honest repair is to re-save them.
         </p>
       </Section>
+      <Update
+        id="update-2026-08-10-saved-walls"
+        date="August 10, 2026"
+        title="Walls you can come back to, and the sizing default I had backwards"
+      >
+        <p>
+          Everything above describes arranging a wall. It all assumed you would
+          do it in one sitting, which is not how anyone hangs pictures.
+        </p>
+        <p>
+          <strong>Walls are saved now</strong> &mdash; named, stored in S3, with
+          open, rename and delete. That turned this from a toy into something
+          you can put down and pick up, and it is the single change that most
+          altered what the page is for.
+        </p>
+        <p>
+          <strong>The sizing default was backwards.</strong> Photos were framed
+          by picking a size the resolution comfortably supported, which sounds
+          responsible and produced walls of small prints. People hanging a
+          gallery wall want the biggest print the photo can carry. It now
+          defaults to 11x14 and steps <em>down</em> only when the resolution
+          genuinely cannot hold it. Same information, opposite default, much
+          better result &mdash; a good reminder that a safe default and a useful
+          one are not the same thing.
+        </p>
+        <p>
+          <strong>The pairing bug is the one I learned most from.</strong>{" "}
+          Uploaded photos were being matched to their images by identity in a
+          way that broke when uploads resolved out of order, so you would
+          arrange a wall and find the wrong picture in the frame. Pairing by
+          position fixed it. It took real debugging to see, because every
+          individual piece looked correct and only the combination was wrong.
+        </p>
+        <p>
+          Alongside those: print costs so the wall has a price attached, an
+          aesthetic arrange option, pan with a draggable minimap for walls
+          bigger than the viewport, and a fix for the floating settings panel
+          refusing to dock again once undocked.
+        </p>
+      </Update>
+
+      <WhatsNext
+        nowShipped={[
+          "A pure core with a thin component over it, which is why the layout maths could be tested without rendering anything and is the decision I would make first again.",
+          "Named walls saved to S3 with open, rename and delete, so arranging is not a single-sitting activity.",
+          "Print sizes default to the largest the photo can carry and step down only when resolution forces it, rather than the cautious default that quietly produced small prints.",
+          "Photos paired to images by position, which is what fixed wrong-picture-in-frame when uploads resolved out of order.",
+        ]}
+        couldImprove={[
+          "There is no undo. On a page whose whole purpose is rearranging things, that is the most obvious missing affordance and the one I would most want as a user.",
+          "Saving is all-or-nothing on a named wall; there are no versions, so an experiment overwrites the arrangement you liked.",
+          "The overlap rule is a hard stop, which is right for hanging and occasionally frustrating while exploring. A warn-and-allow mode would fit how people actually work.",
+        ]}
+        upcoming={[
+          "Undo and redo across arrange operations — the layout core is already pure, so the state is straightforward to snapshot, which is the payoff for that structure.",
+          "Loading and error states for the route, which it has just been given along with the rest of the app.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

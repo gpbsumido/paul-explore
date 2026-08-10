@@ -1,6 +1,11 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function FeatureFlagsContent() {
@@ -159,6 +164,16 @@ export default function FeatureFlagsContent() {
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-10-test-user",
+            date: "Aug 10, 2026",
+            title: "Rebuilt around the test user, and the honesty strip",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">Engine first</h2>
         <p className="text-muted">
@@ -489,6 +504,51 @@ export default function FeatureFlagsContent() {
           whole reason to trust a rollout at all.
         </p>
       </section>
+      <Update
+        id="update-2026-08-10-test-user"
+        date="August 10, 2026"
+        title="Rebuilt around the test user, and the honesty strip"
+      >
+        <p>
+          The console started as a list of flags with their config. That reads
+          like the data model rather than the question anyone actually has,
+          which is always <em>what does this specific person see?</em> It was
+          reworked around a live test-user bar: describe a user, and every flag
+          card shows what they get and why, updating as you change them.
+        </p>
+        <p>
+          Structuring it that way turned explainability from a feature into a
+          property. The engine already returned a reason with each decision, so
+          showing the reason beside the value cost nothing &mdash; but only once
+          the interface was organised around the evaluation rather than around
+          the flag.
+        </p>
+        <p>
+          <strong>
+            The transparency strip is the part I would defend hardest.
+          </strong>{" "}
+          Most of these flags are demo data with a deterministic engine behind
+          them; one is real and changing it needs a sign-in. A console that
+          looked identical either way would be quietly dishonest, so it says
+          which is which on the page rather than in a footnote.
+        </p>
+      </Update>
+      <WhatsNext
+        nowShipped={[
+          "A deterministic evaluation engine as the core, with FNV-1a bucketing so a percentage rollout is sticky per user rather than re-rolled per request.",
+          "The console organised around a test user rather than a flag list, because what a specific person sees is the only question anyone brings to it.",
+          "Every decision shown with its reason, which the engine already returned and the old layout had nowhere to put.",
+          "A transparency strip naming which flags are demo and which is real, instead of letting them look identical.",
+        ]}
+        couldImprove={[
+          "The audit log records what changed but not what it did — nothing links a rollout to any metric, so the console cannot answer whether a flag helped.",
+          "Targeting rules are edited as structured fields, which is precise and slow.",
+          "Nothing prevents flag rot. Flags accumulate and nothing surfaces the ones sitting at 100% for months that should be deleted.",
+        ]}
+        upcoming={[
+          "Surface stale flags — anything fully rolled out and untouched for a long time is a cleanup candidate, and the audit log can already answer that query.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }
