@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -56,6 +61,16 @@ export default function WorldThoughtsContent() {
         </>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-10-usable",
+            date: "Aug 10, 2026",
+            title: "Making it usable: a way out, a still rail, and a phone HUD",
+          },
+        ]}
+      />
+
       <Section title="The game is a pure function; the scene is a shell">
         <p>
           Nothing in the render loop makes decisions. All of it lives in{" "}
@@ -304,6 +319,70 @@ export default function WorldThoughtsContent() {
           the keyboard legend.
         </p>
       </Section>
+      <Update
+        id="update-2026-08-10-usable"
+        date="August 10, 2026"
+        title="Making it usable: a way out, a still rail, and a phone HUD"
+      >
+        <p>
+          Everything above is about building the world. This is about the part I
+          got wrong, which was assuming that a thing which is fun to build is
+          therefore usable.
+        </p>
+        <p>
+          <strong>There was no way out.</strong> The world takes over the
+          screen, and the only exit was the browser back button &mdash; fine if
+          you arrived by link, useless if you did not. It has its own exit now,
+          and leaving asks first, because losing a walk you were enjoying to a
+          stray keypress is a bad trade.
+        </p>
+        <p>
+          <strong>The right rail would not sit still.</strong> Panels were laid
+          out in normal flow, so any panel changing size moved every panel below
+          it, and the whole rail resized as content came and went. Laying it out
+          as a grid with one fixed width, and letting only the list scroll,
+          fixed it. This is the same failure as the calendar jumping while you
+          scroll: content changing size above other content, with nothing
+          holding position. Different feature, same root cause, and I did not
+          recognise it as the same thing until I had fixed both.
+        </p>
+        <p>
+          <strong>
+            The phone got its own HUD rather than a squeezed desktop one.
+          </strong>{" "}
+          Every control visible at once works on a monitor and is unusable on a
+          phone, where the controls would cover the thing they control. One
+          toggle and three bands, because the honest answer on a small screen is
+          fewer controls rather than smaller ones.
+        </p>
+        <p>
+          <strong>The sound needed the browser&apos;s permission.</strong> The
+          soundscape is synthesised in the browser with nothing to download, and
+          it was silent for most people: audio contexts start suspended until a
+          real user gesture resumes them. Resuming on first interaction and
+          lifting the levels turned a feature that technically worked into one
+          that audibly did.
+        </p>
+      </Update>
+
+      <WhatsNext
+        nowShipped={[
+          "The movement core is still pure functions with the R3F scene as a shell over it, which is the decision that made everything else testable and the one I would repeat first.",
+          "A visible way out, and a confirm before leaving, because a full-screen experience owes the reader an exit.",
+          "The right rail is a grid at one fixed width with only the list scrolling, so panels stop shoving each other as content loads.",
+          "A separate phone HUD — one toggle, three bands — rather than the desktop controls scaled down onto a screen they would cover.",
+          "Audio resumed on a real gesture, since a synthesised soundscape that browsers keep suspended is silent no matter how good it is.",
+        ]}
+        couldImprove={[
+          "Nothing here respects prefers-reduced-motion. A walkable city is the strongest possible case for that setting, and ignoring it is the one accessibility gap I would not defend.",
+          "The skyline is seeded and procedural, but the seed is not surfaced, so a layout someone likes cannot be shared or returned to.",
+          "Performance is held by hand rather than measured. There is no frame-budget check in CI, so a regression would only be caught by someone noticing.",
+        ]}
+        upcoming={[
+          "prefers-reduced-motion, as a correctness fix rather than a nice-to-have.",
+          "Surface the seed so a city can be linked to, which costs almost nothing now that generation is already deterministic.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

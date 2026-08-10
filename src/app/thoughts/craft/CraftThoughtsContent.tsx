@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { CRAFT_TRAITS } from "@/lib/craft";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -143,6 +144,19 @@ export default function CraftThoughtsContent() {
           it impossible to leave a broken citation behind.
         </p>
       </Section>
+      <WhatsNext
+        nowShipped={[
+          "Every trait is backed by a link to the work in this repo that demonstrates it, because a list of adjectives about yourself is worth nothing.",
+          "A test that fails when a trait points at something that no longer exists, so the page cannot rot into claims with dead evidence behind them.",
+        ]}
+        couldImprove={[
+          "The evidence is hand-picked and hand-maintained. It proves the trait on the day it was written and nothing keeps it current as better examples land.",
+          "Traits are prose in a component rather than data, so adding one means editing a React file.",
+        ]}
+        upcoming={[
+          "Nothing scheduled. This page has barely changed since it was written, and saying so is more honest than manufacturing a roadmap for it.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }

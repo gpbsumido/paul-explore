@@ -1,6 +1,11 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
@@ -123,6 +128,17 @@ export default function WorkPortfolioThoughtsContent() {
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-10-tickers",
+            date: "Aug 10, 2026",
+            title:
+              "The tickers stopped being bespoke, and three bugs I had been ignoring",
+          },
+        ]}
+      />
+
       <Section title="The problem with a work portfolio">
         <p className="mb-3 text-muted">
           Past work rots. The apps have dead backends, retired auth, paid
@@ -247,6 +263,68 @@ export default function WorkPortfolioThoughtsContent() {
           </Bullet>
         </ul>
       </Section>
+      <Update
+        id="update-2026-08-10-tickers"
+        date="August 10, 2026"
+        title="The tickers stopped being bespoke, and three bugs I had been ignoring"
+      >
+        <p>
+          The dual tickers above were written for this page and stayed that way
+          for a while. Two things forced the issue. First, they could not
+          actually reach every chip &mdash; the loop scrolled but there was no
+          way to get to items past the fold, so some of the portfolio was
+          unreachable by anything except waiting. That got fixed by pinning the
+          tickers, scrolling the demo area beneath them, and driving the loop
+          from <code>scrollLeft</code> rather than a transform, which makes the
+          same element both the animation and the scroll container instead of
+          fighting between the two.
+        </p>
+        <p>
+          Once they scrolled properly they were close enough to the ticker on
+          the landing page that keeping two implementations was indefensible, so
+          they moved onto the shared component. That is the sequence I would
+          repeat: make the bespoke thing correct first, then unify. Unifying
+          around a broken shape just spreads the bug.
+        </p>
+        <p>
+          <strong>The drag bugs were the same bug twice.</strong> Dragging an
+          NFT between panes and dragging a post between queue columns both
+          failed the same way, because a dragged item rendered inside its source
+          container is clipped by that container the moment it leaves. The fix
+          in both cases is a drag overlay &mdash; render the thing being dragged
+          in a layer above the layout rather than in the tree it came from.
+          Worth knowing once, because it is the answer every time.
+        </p>
+        <p>
+          <strong>And a class of bug I keep finding.</strong> Side effects had
+          crept into state updater functions here, exactly as they had in the
+          Learn steppers. An updater must be a pure function of previous state;
+          React is allowed to call it twice, and anything with a consequence
+          does not belong in it. Two features, two independent authors of the
+          same mistake, which tells me it is a shape worth watching for rather
+          than a one-off. The referral click tracking moved to the mutation
+          where it belongs, and the Escape handling on the explainer dialog
+          stopped depending on render timing.
+        </p>
+      </Update>
+
+      <WhatsNext
+        nowShipped={[
+          "The tickers are the shared component rather than a bespoke copy — but only after they were made correct, since unifying around a broken shape spreads the bug rather than fixing it.",
+          "Both drag bugs solved with a drag overlay: a dragged item rendered inside its source container gets clipped the moment it leaves, so it belongs in a layer above the layout.",
+          "Side effects moved out of state updaters and into the mutation and event handlers where they belong.",
+          "Still no new dependencies for the reconstructions themselves, which was the original rule and the one I would keep.",
+        ]}
+        couldImprove={[
+          "The explainers are prose in components. As content grew, editing a description means editing a React file, which is the wrong shape for something that is really copy.",
+          "Each reconstruction is hand-built, so there is no shared notion of what a demo is — adding one is a new bespoke component every time.",
+          "Nothing proves the anonymisation holds. It is a rule I follow rather than something a test enforces, and a lint rule for the obvious tells would cost little.",
+        ]}
+        upcoming={[
+          "Stabilise the ticker E2E tests. They failed once on a release and passed on re-run, which is exactly how a real signal gets trained into noise — the fix is to make the assertion wait on the demo being ready rather than a fixed timeout.",
+          "Pull the explainer copy out of the components so adding a reconstruction is a data edit.",
+        ]}
+      />
     </ThoughtLayout>
   );
 }
