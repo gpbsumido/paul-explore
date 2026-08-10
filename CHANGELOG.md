@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.2
+
+- **Fixed the calendar jumping while you scroll it.** The infinite scroller compensated for exactly one kind of change: prepending a period at the top, where it captured `scrollHeight` before the insert and corrected `scrollTop` after. Right idea, applied too narrowly. Period content also changes height when event data arrives, when a refetch lands, and when countdowns load — `renderPeriod` depends on all three — and any of those growing above the viewport shoves what you're reading down the screen. That was the jump. Rather than add a second special case, the scroller now anchors on what you're actually looking at: it remembers which period sits at the top of the container and where, and puts it back after any render. One mechanism covers prepends, data arrival, and whatever gets added later. The anchor is seeded on mount too, since the top sentinel can fire before you've scrolled at all and that first prepend used to go uncompensated. Sub-pixel drift is ignored so layout rounding doesn't cause its own jitter, and a deliberate jump — the header's month nav — clears the anchor rather than fighting it.
+
 ## 2026-08-08 - version 3.16.0
 
 - **Journal club can filter to papers doing something new, and shows why.** An "only papers doing something new" toggle, plus innovation-first ordering by default. Detection is two kinds of signal — claims of novelty (first-in-human, proof of concept, initial experience) and named emerging technologies (machine learning, robotic, 3D printing, gene and cell therapy) — and the matched signals are shown as badges on the paper rather than folded into a hidden score, because "this is innovative, trust me" is not useful to someone deciding what to spend an hour on. Negations are handled: "no novel complications were observed" is the opposite claim and doesn't count.
