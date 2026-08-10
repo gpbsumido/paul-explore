@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-10 - version 3.16.1
+
+- **Twelve of the fourteen feature routes had no error boundary.** Any render error escaped to the global boundary, which throws away the page shell and leaves a reload as the only way back — on the operator dashboard, the world, the flags console, gallery wall, the NBA hub and seven others. They all have one now, using the same `RouteError` the calendar and research pages already used, so a failure keeps the header and offers a retry in place. Five routes were also missing a loading state (learn, craft, gallery wall, the NBA hub, the Pokémon hub) and now have skeletons shaped like the page that follows rather than a spinner.
+- A test walks the feature registry and fails if any route is missing either file, so the next feature added gets the same treatment instead of quietly shipping without them.
+
 ## 2026-08-08 - version 3.16.0
 
 - **Journal club can filter to papers doing something new, and shows why.** An "only papers doing something new" toggle, plus innovation-first ordering by default. Detection is two kinds of signal — claims of novelty (first-in-human, proof of concept, initial experience) and named emerging technologies (machine learning, robotic, 3D printing, gene and cell therapy) — and the matched signals are shown as badges on the paper rather than folded into a hidden score, because "this is innovative, trust me" is not useful to someone deciding what to spend an hour on. Negations are handled: "no novel complications were observed" is the opposite claim and doesn't count.
