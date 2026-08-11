@@ -41,11 +41,14 @@ import {
  *    whether a session exists.
  *
  * 3. CSP headers — applied on every pass-through response so every page load
- *    carries the policy. 'unsafe-inline' in script-src is required for Next.js
- *    App Router RSC payload scripts (self.__next_f.push(...)) that are inlined
- *    into the HTML at build time with no nonce attribute. 'wasm-unsafe-eval'
+ *    carries the policy. 'unsafe-inline' in script-src is a deliberate trade,
+ *    not a limitation: App Router does support nonces on its RSC payload
+ *    scripts, but reading headers() in the root layout opts every route out of
+ *    static generation, and a build confirmed every page flipping from static
+ *    to dynamic. Taken knowing the XSS surface is one static inline script,
+ *    no eval, and nothing user-supplied reaching markup. 'wasm-unsafe-eval'
  *    is required for the Draco WASM decoder used by the landing 3D models.
- *    See README for the full reasoning.
+ *    See /thoughts/security for the full reasoning.
  */
 
 // Built in src/lib/csp.ts so the one environment-dependent part -- the origin
