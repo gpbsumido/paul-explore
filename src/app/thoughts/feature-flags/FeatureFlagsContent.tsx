@@ -587,6 +587,10 @@ export default function FeatureFlagsContent() {
           "Three access rungs instead of a signed-in/signed-out split, because the console is a playground and a live kill switch at once and one rule across both makes either the playground useless or the switch reckless.",
           "The rungs stated on the page — grouped, badged, and with a line on each locked card saying why — so nobody learns the rule by clicking a dead switch.",
           "The rung keyed on the flag key rather than the flag record, after the API turned out to serve a different flag set with no access field: the console was inferring open while the route enforced from seed data.",
+          "A signed-in visitor's own token used at every rung, including the open one. Preferring the server's credential over a real one would have attributed the change to the server in the audit log rather than to the person who made it.",
+          "The service token sent in its own header rather than as a bearer. It is not a JWT, so presenting it as one meant the user-auth middleware tried to verify it and refused — and the write never landed.",
+          "A PATCH response parsed as the API actually sends it. Insisting on a wrapper the API does not use made every write throw after it had already succeeded, which the BFF then mistook for the API being down.",
+          "The seed-store fallback narrowed to genuine connection failures. It used to swallow a parse error too, answering 200 with stale in-memory data for a write that may never have landed — which is how the shape mismatch above stayed invisible.",
           "The write token resolved from the session instead of read off the request, which fixed toggles silently reverting in production and made the audit actor a fact rather than a suggestion.",
         ]}
         couldImprove={[
@@ -595,6 +599,7 @@ export default function FeatureFlagsContent() {
           "The site-owner group is empty in production. The two flags that belong in it — the /tcg/pocket gate and world live presence — are not served by the flag API, so they still resolve from a value committed in the repo and cannot be flipped from the console at all. The group renders anyway and says so, because hiding it would show two rungs while the page promises three.",
           "The rung map is a literal in the BFF. The API should carry the field itself, and until it does a new flag defaults to the loosest rung — safe for a demo, wrong if a live one ever lands without being added.",
           "The open rung leans on a service token the server holds. That is the operator demo's pattern and it works, but it means the server can write those flags without anyone asking it to.",
+          "Every one of the write bugs above passed the route tests, because those mock the API client — they proved the decision was right while the transport was wrong. Nothing exercises the two services against each other.",
           "Targeting rules are edited as structured fields, which is precise and slow.",
           "Nothing prevents flag rot. Flags accumulate and nothing surfaces the ones sitting at 100% for months that should be deleted.",
         ]}
