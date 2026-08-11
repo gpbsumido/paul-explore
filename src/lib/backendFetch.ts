@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { API_URL } from "@/lib/apiUrl";
+import { InvalidSegmentError } from "@/lib/safeSegment";
 
 /** The auth context handed to a wrapped BFF handler. */
 export type BackendContext = { token: string; email: string | null };
@@ -35,6 +36,12 @@ export function withBackend<Ctx = unknown>(
     try {
       return await handler(backend, request, routeCtx);
     } catch (err) {
+      // A rejected path segment is the caller sending something malformed, not
+      // the backend being down. 502 would be a lie and would page on someone
+      // else's bad request.
+      if (err instanceof InvalidSegmentError) {
+        return NextResponse.json({ error: "Invalid identifier" }, { status: 400 });
+      }
       console.error(`[${label}] backend unavailable:`, err);
       return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
     }

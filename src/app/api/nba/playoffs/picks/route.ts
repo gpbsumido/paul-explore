@@ -1,6 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 
 function currentSeasonYear(): number {
   const now = new Date();
@@ -22,7 +23,7 @@ export async function GET() {
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/nba/playoffs/picks/${season}`,
+      `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}`,
       {
         headers: buildHeaders(token, null),
       },
@@ -81,7 +82,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/nba/playoffs/picks/${season}`,
+      `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}`,
       {
         method: "PUT",
         headers: buildHeaders(token, null, {

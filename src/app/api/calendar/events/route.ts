@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { createEventBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
+import { safeSegment } from "@/lib/safeSegment";
 
 // GET /api/calendar/events?start=<ISO>&end=<ISO>
 export const GET = withBackend(
