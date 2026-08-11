@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, act } from "@testing-library/react";
 import WorkflowEditorDemo, {
   moveNode,
   addEdge,
@@ -51,6 +51,39 @@ describe("workflow editor demo", () => {
     expect(screen.getByLabelText("Node config")).toHaveValue(
       'grant(item = "vip_crate")',
     );
+  });
+
+  it("survives a whole drag arriving in one batch", () => {
+    // The crash, as reported on /work-portfolio?feature=workflow-editor.
+    // onPointerMove read drag.current from inside the setNodes updater, which
+    // React runs at flush time rather than at event time. When the moves and
+    // the pointerup land in a single task -- which is what a real fast drag
+    // does -- endDrag has already nulled the ref by the time those queued
+    // updaters run, so drag.current!.id dereferences null and the demo drops
+    // to its error boundary. Dispatching through act in one batch is what
+    // reproduces it; fireEvent flushes between events and hides it.
+    render(<WorkflowEditorDemo feature={feature} />);
+    const graph = screen.getByLabelText("Workflow graph");
+    const node = within(graph).getByText("On purchase").closest("g")!;
+
+    const pointer = (x: number, y: number) => ({
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+      pointerId: 1,
+    });
+
+    expect(() =>
+      act(() => {
+        node.dispatchEvent(new PointerEvent("pointerdown", pointer(100, 100)));
+        graph.dispatchEvent(new PointerEvent("pointermove", pointer(160, 130)));
+        graph.dispatchEvent(new PointerEvent("pointermove", pointer(240, 170)));
+        graph.dispatchEvent(new PointerEvent("pointerup", pointer(240, 170)));
+      }),
+    ).not.toThrow();
+
+    expect(screen.getByLabelText("Workflow graph")).toBeInTheDocument();
   });
 
   it("edits the selected node's config in place", () => {
