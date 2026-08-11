@@ -122,15 +122,19 @@ export default function WorkflowEditorDemo({
 
   const onPointerMove = (e: ReactPointerEvent) => {
     if (!drag.current || !svgRef.current) return;
+    // Read everything off the ref here, at event time. The updater below runs
+    // when React flushes, and a fast drag delivers its moves and its pointerup
+    // in one task -- so by then endDrag has already nulled the ref, and
+    // reaching through it there threw on null and took the demo down to its
+    // error boundary. The id is a value now, not a lookup done later.
+    const { id, origX, origY, startX, startY } = drag.current;
     const scaleX = VIEW_W / svgRef.current.clientWidth;
     const scaleY = VIEW_H / svgRef.current.clientHeight;
-    const nextX =
-      drag.current.origX + (e.clientX - drag.current.startX) * scaleX;
-    const nextY =
-      drag.current.origY + (e.clientY - drag.current.startY) * scaleY;
+    const nextX = origX + (e.clientX - startX) * scaleX;
+    const nextY = origY + (e.clientY - startY) * scaleY;
     const clampedX = Math.max(0, Math.min(VIEW_W - NODE_W, nextX));
     const clampedY = Math.max(0, Math.min(VIEW_H - NODE_H, nextY));
-    setNodes((ns) => moveNode(ns, drag.current!.id, clampedX, clampedY));
+    setNodes((ns) => moveNode(ns, id, clampedX, clampedY));
   };
 
   const endDrag = () => {

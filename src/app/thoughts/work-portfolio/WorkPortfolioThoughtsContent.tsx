@@ -313,6 +313,7 @@ export default function WorkPortfolioThoughtsContent() {
           "The tickers are the shared component rather than a bespoke copy — but only after they were made correct, since unifying around a broken shape spreads the bug rather than fixing it.",
           "Both drag bugs solved with a drag overlay: a dragged item rendered inside its source container gets clipped the moment it leaves, so it belongs in a layer above the layout.",
           "Side effects moved out of state updaters and into the mutation and event handlers where they belong.",
+          "The same lesson one layer down, in the workflow editor: the drag handler reached through a ref from inside a setState updater, and since React runs those at flush time rather than event time, a fast drag whose moves and pointerup arrived in one task found the ref already cleared and crashed the demo. Reading the id at event time fixed it — a non-null assertion was the only reason the compiler stayed quiet.",
           "Still no new dependencies for the reconstructions themselves, which was the original rule and the one I would keep.",
         ]}
         couldImprove={[
