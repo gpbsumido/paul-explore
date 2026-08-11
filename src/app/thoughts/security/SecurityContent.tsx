@@ -457,6 +457,27 @@ export default function SecurityContent() {
           And the set is asserted in a test now, so dropping one fails a run
           instead of going unnoticed.
         </p>
+        <p className="mt-3 text-muted">
+          One thing the policy now varies by environment. React&apos;s
+          development build calls{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            eval()
+          </code>{" "}
+          to rebuild callstacks that crossed the server/client boundary, so on a
+          strict policy the dev overlay throws about eval instead of showing the
+          error you opened it to read. React never calls it in production, so{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            &apos;unsafe-eval&apos;
+          </code>{" "}
+          is added in development only and the shipped policy is unchanged. The
+          flag defaults to off, because the version of this that goes wrong is
+          the one where a missing environment check quietly opens eval in prod.
+          That is separate from{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            &apos;wasm-unsafe-eval&apos;
+          </code>
+          , which stays in both — it is the Draco decoder for the 3D models.
+        </p>
       </section>
       <WhatsNext
         nowShipped={[
