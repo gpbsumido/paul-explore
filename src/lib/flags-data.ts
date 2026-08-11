@@ -48,6 +48,7 @@ function seedFlags(): Flag[] {
       description:
         "Gates the /tcg/pocket page for real visitors, evaluated server-side on a sticky per-visitor key. Seeded fully on. Flip the kill switch or dial the rollout down and real people lose access, stuck to their bucket.",
       real: true,
+      access: "admin" as const,
       kind: "boolean",
       tags: ["tcg", "release"],
       variations: [...BOOLEAN],
@@ -73,6 +74,7 @@ function seedFlags(): Flag[] {
       description:
         "Kill switch for live multiplayer presence on /world — other explorers rendered from realtime snapshots. A real flag: off means visitors walk the city alone and the ghost stroll takes back over.",
       real: true,
+      access: "admin" as const,
       kind: "boolean",
       tags: ["world", "release"],
       variations: [...BOOLEAN],
@@ -98,6 +100,7 @@ function seedFlags(): Flag[] {
       description:
         "Rebuilt checkout with saved cards and express pay. Rolling out gradually to watch conversion. A demo flag — it doesn't gate anything live.",
       real: false,
+      access: "authed" as const,
       kind: "boolean",
       tags: ["checkout", "revenue"],
       variations: [...BOOLEAN],
@@ -136,6 +139,7 @@ function seedFlags(): Flag[] {
       description:
         "Fully launched. Kept as a flag so it can be killed instantly if a regression appears. A demo flag — it doesn't gate anything live.",
       real: false,
+      access: "open" as const,
       kind: "boolean",
       tags: ["ui"],
       variations: [...BOOLEAN],
