@@ -16,6 +16,7 @@ import PlanogramTab from "./PlanogramTab";
 import SalesTab from "./SalesTab";
 import PricingTab from "./PricingTab";
 import TaxTab from "./TaxTab";
+import RestockHistoryTab from "./RestockHistoryTab";
 
 interface StoreTabsProps {
   storeId: string;
@@ -123,6 +124,9 @@ function TabContent({ tab, storeId }: { tab: TabId; storeId: string }) {
   }
   if (tab === "tax") {
     return <TaxTab storeId={storeId} />;
+  }
+  if (tab === "restock-history") {
+    return <RestockHistoryTab storeId={storeId} />;
   }
 
   return null;

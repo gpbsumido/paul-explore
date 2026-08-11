@@ -22,6 +22,7 @@ describe("parseTab", () => {
     expect(parseTab("sales")).toBe("sales");
     expect(parseTab("pricing")).toBe("pricing");
     expect(parseTab("tax")).toBe("tax");
+    expect(parseTab("restock-history")).toBe("restock-history");
   });
 
   it("falls back to 'inventory' for an unknown param", () => {
@@ -39,6 +40,7 @@ describe("parseTab", () => {
       "sales",
       "pricing",
       "tax",
+      "restock-history",
     ]);
   });
 

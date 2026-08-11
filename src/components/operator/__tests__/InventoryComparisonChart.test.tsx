@@ -30,4 +30,18 @@ describe("axisLabel", () => {
   it("leaves a name with no suffix alone", () => {
     expect(axisLabel("Lobby Fridge")).toBe("Lobby Fridge");
   });
+
+  it("ignores the extra arguments a chart library hands its tick formatter", () => {
+    // Recharts calls tickFormatter(value, index). Wiring axisLabel straight in
+    // meant the row index arrived as the width budget, so the second row got a
+    // budget of 1 and rendered as a bare ellipsis, the third as "G…", and so on
+    // down the axis. Every label but the first was destroyed by its position.
+    const formatter = axisLabel as (...args: unknown[]) => string;
+
+    expect(formatter("Gym Vending - Rec Center", 2)).toBe("Gym Vending");
+    expect(formatter("Lobby Fridge", 3)).toBe("Lobby Fridge");
+    expect(formatter("Reception Snacks - Main Lobby", 5)).toBe(
+      "Reception Snacks",
+    );
+  });
 });

@@ -7,7 +7,11 @@ import { useOperatorStores } from "@/hooks/useOperatorStores";
 import { queryKeys } from "@/lib/queryKeys";
 import { fleetSummaryResponseSchema } from "@/lib/operator-schemas";
 import DataLoadError from "@/components/operator/DataLoadError";
-import { sortStores, filterStores } from "@/lib/operator-utils";
+import {
+  sortStores,
+  filterStores,
+  type StoreFilterStatus,
+} from "@/lib/operator-utils";
 import type {
   AlertSeverity,
   AlertTrendBucket,
@@ -39,7 +43,8 @@ export default function OperatorDashboard() {
     error: storesError,
   } = useOperatorStores();
 
-  const [statusFilter, setStatusFilter] = useState<StoreStatus | "all">("all");
+  const [statusFilter, setStatusFilter] =
+    useState<StoreFilterStatus>("all");
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState<AlertSeverity | null>(
     null,
@@ -248,7 +253,11 @@ export default function OperatorDashboard() {
           onRetry={() => void refetchSummary()}
         />
       ) : (
-        <FleetStatsBar stats={fleetStats} isLoading={summaryPending} />
+        <FleetStatsBar
+          stats={fleetStats}
+          isLoading={summaryPending}
+          onFilterNeedsAttention={() => setStatusFilter("needs-attention")}
+        />
       )}
 
       {/* Fleet analytics (collapsible charts) */}

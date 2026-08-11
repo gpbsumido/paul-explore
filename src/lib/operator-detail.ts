@@ -24,7 +24,8 @@ export type TabId =
   | "planogram"
   | "sales"
   | "pricing"
-  | "tax";
+  | "tax"
+  | "restock-history";
 
 export type ConnectionQuality = "strong" | "weak" | "poor" | "offline";
 
@@ -74,6 +75,7 @@ export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "sales", label: "Sales" },
   { id: "pricing", label: "Pricing" },
   { id: "tax", label: "Tax" },
+  { id: "restock-history", label: "Restock History" },
 ] as const;
 
 const VALID_TAB_IDS = new Set<string>(TABS.map((t) => t.id));

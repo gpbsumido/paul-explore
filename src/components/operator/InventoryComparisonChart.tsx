@@ -33,11 +33,21 @@ interface InventoryComparisonChartProps {
  * chart, so the building name earns less than the fixture name does. The full
  * name is still in the tooltip and in the chart's aria-label, so nothing is
  * actually unavailable.
+ *
+ * The width budget is deliberately NOT a second parameter. Recharts calls a
+ * tickFormatter as (value, index), so when this was `axisLabel(name, max)`
+ * wired straight in, the row index arrived as the budget: row 1 got a budget of
+ * 1 and rendered as a bare ellipsis, row 2 as "G\u2026", and so on down the axis.
+ * With one parameter that mistake cannot be made again.
  */
-export function axisLabel(name: string, max: number = 17): string {
+const AXIS_LABEL_MAX = 17;
+
+export function axisLabel(name: string): string {
   const [head] = name.split(" - ");
   const label = head.trim() || name;
-  return label.length > max ? `${label.slice(0, max - 1)}\u2026` : label;
+  return label.length > AXIS_LABEL_MAX
+    ? `${label.slice(0, AXIS_LABEL_MAX - 1)}\u2026`
+    : label;
 }
 
 /**
