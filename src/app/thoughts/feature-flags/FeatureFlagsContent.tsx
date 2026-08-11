@@ -412,16 +412,36 @@ export default function FeatureFlagsContent() {
           the reset cron runs on — so it is unit-tested without a clock.
         </p>
         <p className="mt-3 text-muted">
-          The sign-in gate is scoped to what actually matters. The demo flags
+          The write gate is scoped to what actually matters. The demo flags
           change nothing real, so they are open to everyone — anyone can flip a
           kill switch or drag a rollout and watch the engine re-decide. Only the
-          one real flag, the one that gates a live page, needs a sign-in to
-          change. The server enforces exactly that: a write to the real flag
-          with no session gets an honest 401, while a demo write never even
-          checks. On the real flag&apos;s card, signed-out visitors see the
-          controls locked with a &quot;Sign in to change flags&quot; link rather
-          than hitting a silent failure; viewing, the verdict strips, and the
-          playground all stay fully usable.
+          one real flag, the one that gates a live page, is gated. On the real
+          flag&apos;s card, signed-out visitors see the controls locked with a
+          &quot;Sign in to change flags&quot; link rather than hitting a silent
+          failure; viewing, the verdict strips, and the playground all stay
+          fully usable.
+        </p>
+        <p className="mt-3 text-muted">
+          Being signed in turned out to be the wrong bar, though. Flipping the
+          real flag changes what every visitor sees, and &quot;has an
+          account&quot; is not a reason to trust someone with that. So the gate
+          is now the same verified-email allowlist the research ask box uses:
+          the address has to be one I named in config, and the provider has to
+          have verified it — an unverified claim is just something typed at
+          signup. Unset means nobody rather than everybody, because only one of
+          those two failure modes is loud enough to notice.
+        </p>
+        <p className="mt-3 text-muted">
+          The other half was subtler and had been quietly broken in production.
+          The route forwarded whatever bearer token arrived in the request&apos;s
+          own <code>Authorization</code> header — but the console never sends
+          one, so the write reached the API with no credential and came back
+          401. React Query dutifully rolled the optimistic update back, which on
+          screen looked like the toggle flipping itself straight back to
+          enabled. The token is now resolved server-side from the session, which
+          fixes the bug and closes the hole underneath it: a token read off the
+          request is whatever the caller decided to put there, which made the
+          audit log&apos;s actor a suggestion rather than a fact.
         </p>
       </section>
 
@@ -539,9 +559,12 @@ export default function FeatureFlagsContent() {
           "The console organised around a test user rather than a flag list, because what a specific person sees is the only question anyone brings to it.",
           "Every decision shown with its reason, which the engine already returned and the old layout had nowhere to put.",
           "A transparency strip naming which flags are demo and which is real, instead of letting them look identical.",
+          "Real-flag writes gated on a verified-email allowlist rather than on merely being signed in, since the flag changes what every visitor sees.",
+          "The write token resolved from the session instead of read off the request, which fixed toggles silently reverting in production and made the audit actor a fact rather than a suggestion.",
         ]}
         couldImprove={[
           "The audit log records what changed but not what it did — nothing links a rollout to any metric, so the console cannot answer whether a flag helped.",
+          "The admin list is an env var, so adding someone is a deploy. Fine for one person, wrong the moment it is two.",
           "Targeting rules are edited as structured fields, which is precise and slow.",
           "Nothing prevents flag rot. Flags accumulate and nothing surfaces the ones sitting at 100% for months that should be deleted.",
         ]}
