@@ -2,6 +2,8 @@ import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
+import { parseBody } from "@/lib/parseBody";
+import { playoffPicksBodySchema } from "@/lib/schemas";
 
 function currentSeasonYear(): number {
   const now = new Date();
@@ -63,20 +65,9 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  let picks: unknown;
-  try {
-    const body = await request.json();
-    picks = body?.picks;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
-  if (picks === null || typeof picks !== "object" || Array.isArray(picks)) {
-    return NextResponse.json(
-      { error: "picks must be a plain object" },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseBody(request, playoffPicksBodySchema);
+  if (!parsed.ok) return parsed.response;
+  const { picks } = parsed.data;
 
   const season = currentSeasonYear();
 
