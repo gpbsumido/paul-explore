@@ -119,3 +119,23 @@ describe("copy", () => {
     expect(lockReason("admin", { isLoggedIn: true, isAdmin: true })).toBeNull();
   });
 });
+
+describe("accessOf fallback direction", () => {
+  it("treats a flag the seed has never heard of as admin, not open", () => {
+    // getFlag only searches the local seed while the API serves a wider set,
+    // so an upstream-only key arrives with neither `access` nor `real` set.
+    expect(accessOf({ key: "some-upstream-flag" })).toBe("admin");
+  });
+
+  it("treats a flag with no key at all as admin", () => {
+    expect(accessOf({})).toBe("admin");
+  });
+
+  it("still opens a flag positively known to be a demo", () => {
+    expect(accessOf({ key: "some-upstream-flag", real: false })).toBe("open");
+  });
+
+  it("keeps honouring an explicit access from the API", () => {
+    expect(accessOf({ key: "some-upstream-flag", access: "authed" })).toBe("authed");
+  });
+});
