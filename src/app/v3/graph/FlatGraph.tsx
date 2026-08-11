@@ -2,13 +2,13 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { gsap } from "gsap";
 import {
   buildGraphData,
   buildLayeredLayout,
   FLAT_NODE_H,
   type GraphNode,
 } from "./graphData";
+import { POWER2_OUT, type FadeOptions } from "./easing";
 
 type Props = { reducedMotion: boolean };
 
@@ -166,30 +166,44 @@ export default function FlatGraph({ reducedMotion }: Props) {
     if (!canvas) return;
     const boxes = canvas.querySelectorAll("[data-flat-node]");
     const paths = canvas.querySelectorAll("[data-flat-edge]");
-    gsap.fromTo(
-      boxes,
-      { opacity: 0 },
-      {
-        opacity: 1,
-        duration: 0.5,
-        ease: "power2.out",
-        stagger: { each: 0.015, from: "start" },
-        // Clear only opacity, not transform: the intro leaves an inline
-        // opacity:1 that would override the hover-dim class, so we drop it — but
-        // clearing transform would also strip each card's translate(-50%,-50%)
-        // centering and shove headers half a box off their column.
-        clearProps: "opacity",
-      },
-    );
-    gsap.fromTo(
-      paths,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.6, delay: 0.15, stagger: 0.006 },
-    );
-    return () => {
-      gsap.killTweensOf(boxes);
-      gsap.killTweensOf(paths);
-    };
+
+    // Nothing here needs a tweening engine: these are opacity fades on DOM
+    // nodes, which is what the Web Animations API is for. Not filling forwards
+    // is the equivalent of gsap's clearProps:"opacity" -- the element keeps its
+    // stylesheet opacity when the animation ends, so the hover-dim class still
+    // wins. Filling would pin opacity:1 inline and override it.
+    const fade = (
+      els: NodeListOf<Element>,
+      { duration, delay, each, easing }: FadeOptions,
+    ): Animation[] =>
+      Array.from(els).map((el, i) =>
+        el.animate(
+          { opacity: [0, 1] },
+          {
+            duration,
+            delay: delay + i * each,
+            easing,
+            fill: "none",
+          },
+        ),
+      );
+
+    const animations = [
+      ...fade(boxes, {
+        duration: 500,
+        delay: 0,
+        each: 15,
+        easing: POWER2_OUT,
+      }),
+      ...fade(paths, {
+        duration: 600,
+        delay: 150,
+        each: 6,
+        easing: "linear",
+      }),
+    ];
+
+    return () => animations.forEach((a) => a.cancel());
   }, [reducedMotion]);
 
   const halfH = FLAT_NODE_H / 2;
