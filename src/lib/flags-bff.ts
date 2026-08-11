@@ -8,6 +8,7 @@ import {
   fetchAuditFromApi,
   patchFlagOnApi,
   FlagsApiError,
+  FlagsContractError,
   type FlagWriteAuth,
 } from "@/lib/flags-client";
 import {
@@ -84,6 +85,16 @@ export async function applyFlagPatch(
     return { status: 200, flag };
   } catch (err) {
     if (err instanceof FlagsApiError) return { status: err.status };
+    // The API answered with something unreadable. That is a real problem, and
+    // answering it from the seed store would report success for a write that
+    // may never have landed -- which is exactly how a response-shape mismatch
+    // went unnoticed while every write quietly stopped reaching the API.
+    if (err instanceof FlagsContractError) {
+      console.error("[flags] unreadable response patching flag", flagKey, err);
+      return { status: 502 };
+    }
+    // Anything left is the API not answering at all, which the seed store can
+    // stand in for so the demo keeps working.
     return patchSeedStore(flagKey, body);
   }
 }
