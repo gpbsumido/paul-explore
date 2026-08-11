@@ -8,7 +8,7 @@ import {
   spring,
   instantTransition,
 } from "@/lib/animations";
-import { THOUGHTS } from "@/app/_shared/featureData";
+import { THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts } from "@/app/_shared/thoughtCategories";
 
 export default function ThoughtsPreview() {

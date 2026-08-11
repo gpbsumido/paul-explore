@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import nextDynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Fraunces } from "next/font/google";
 import { m, useReducedMotion } from "framer-motion";
@@ -19,7 +20,14 @@ import {
 // body stay in Geist so the serif reads as the machine's voice, not a theme.
 import { isWinningPull } from "./win";
 import WinCelebration, { WIN_MS, type FallStyle } from "./WinCelebration";
-import ChalkBackdrop from "./ChalkBackdrop";
+// Split out of the first-paint bundle. The chalk font ships its glyph outlines
+// as JSON inlined into JavaScript -- around 200KB of it, plus the tegaki engine
+// on top -- and none of that is needed to draw the machine. It is decorative,
+// it already renders empty on the first pass, and it is skipped entirely under
+// reduced motion, so there is nothing to lose by letting it arrive after paint.
+const ChalkBackdrop = nextDynamic(() => import("./ChalkBackdrop"), {
+  ssr: false,
+});
 import {
   playWinSound,
   soundEnabled,
