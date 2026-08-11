@@ -45,9 +45,17 @@ export function sortStores(
 // ---------------------------------------------------------------------------
 
 interface StoreFilterCriteria {
-  status: StoreStatus | "all";
+  status: StoreFilterStatus;
   search: string;
 }
+
+/**
+ * What the store list can be narrowed to: a single status, everything, or the
+ * "needs attention" grouping the fleet KPI counts — degraded and offline
+ * together, since that tile is one number over two statuses and clicking it
+ * should narrow to exactly what it counted.
+ */
+export type StoreFilterStatus = StoreStatus | "all" | "needs-attention";
 
 /**
  * Filters stores by status and name search. Both filters are AND-combined:
@@ -59,7 +67,12 @@ export function filterStores(
 ): Store[] {
   const needle = search.toLowerCase();
   return stores.filter((store) => {
-    if (status !== "all" && store.status !== status) return false;
+    if (status === "needs-attention") {
+      if (store.status !== "degraded" && store.status !== "offline")
+        return false;
+    } else if (status !== "all" && store.status !== status) {
+      return false;
+    }
     if (needle && !store.name.toLowerCase().includes(needle)) return false;
     return true;
   });

@@ -34,3 +34,19 @@ export function toCsv<T>(
   );
   return [header, ...lines].join("\r\n");
 }
+
+/**
+ * Triggers a client-side download of a CSV string.
+ *
+ * Lives here next to `toCsv` because every caller of one wants the other, and a
+ * second copy of the object-URL dance is a second place to forget the revoke.
+ */
+export function downloadCsv(filename: string, content: string): void {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
