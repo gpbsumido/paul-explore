@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { loginRedirectAdditions, LOGIN_PROMPT_COOKIE } from "@/lib/loginReturnTo";
+import {
+  loginRedirectAdditions,
+  LOGIN_PROMPT_COOKIE,
+  SESSION_TIMEOUT_PROMPT,
+} from "@/lib/loginReturnTo";
 import {
   SESSION_MARKER_COOKIE,
   SESSION_ABSOLUTE_SECONDS,
@@ -111,8 +115,7 @@ function markSessionActive(res: NextResponse): NextResponse {
 
 /**
  * Sends a timed-out user to the landing page with a toast flag, clears the
- * marker so we only say it once, and arms the next login to re-show the
- * permission screen. We land them on a real page rather than bouncing straight
+ * marker so we only say it once, and arms the next login to re-authenticate. We land them on a real page rather than bouncing straight
  * to Auth0 so the "session timed out" toast actually gets a chance to render.
  */
 function sessionTimeoutRedirect(request: NextRequest): NextResponse {
@@ -120,7 +123,7 @@ function sessionTimeoutRedirect(request: NextRequest): NextResponse {
   url.searchParams.set("authError", "timeout");
   const res = NextResponse.redirect(url);
   res.cookies.delete(SESSION_MARKER_COOKIE);
-  res.cookies.set(LOGIN_PROMPT_COOKIE, "consent", {
+  res.cookies.set(LOGIN_PROMPT_COOKIE, SESSION_TIMEOUT_PROMPT, {
     path: "/",
     maxAge: 600,
     httpOnly: true,
