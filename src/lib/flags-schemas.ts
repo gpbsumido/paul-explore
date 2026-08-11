@@ -83,6 +83,10 @@ export const flagSchema = z.object({
   // that don't control anything live are false. Defaults false so flags from
   // an external backend don't have to know about this field.
   real: z.boolean().default(false),
+  // Which of the three access tiers this flag sits in (see lib/flags-access).
+  // Optional so a backend that predates it keeps working; accessOf() infers a
+  // safe tier from `real` when it is missing.
+  access: z.enum(["open", "authed", "admin"]).optional(),
   kind: flagKindSchema,
   tags: z.array(z.string()),
   variations: z.array(variationSchema).min(2),

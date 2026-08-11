@@ -1,4 +1,5 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
+import { LIST_QUERY, LIST_BY_TYPE_QUERY } from "@/lib/graphql";
 /**
  * Proxy that forwards GraphQL requests to the PokeAPI Hasura endpoint.
  *
@@ -6,10 +7,25 @@ import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
  * - The connect-src CSP stays locked to same-origin (no direct beta.pokeapi.co calls)
  * - The endpoint URL stays out of client bundles
  *
- * This route is intentionally unauthenticated — PokeAPI is public data.
+ * This route is intentionally unauthenticated — PokeAPI is public data. What it
+ * is not is a general-purpose relay: it forwards the two queries this app
+ * actually sends and nothing else. Without that, anyone who found the path
+ * could point arbitrary nested queries at a free public API from my origin,
+ * which makes my server the thing that gets rate-limited for it.
  */
 
 const POKEAPI_GRAPHQL = "https://beta.pokeapi.co/graphql/v1beta";
+
+/**
+ * Collapses runs of whitespace so a query still matches after a formatter or a
+ * template literal changes its indentation. Everything else must match exactly:
+ * this is an allowlist of known documents, not a parser.
+ */
+const normalize = (query: string): string => query.trim().replace(/\s+/g, " ");
+
+const ALLOWED_QUERIES = new Set(
+  [LIST_QUERY, LIST_BY_TYPE_QUERY].map(normalize),
+);
 
 // Results vary by query body so they're user-specific at the browser level.
 // private keeps CDNs out of it; max-age=60 lets the browser reuse the same
@@ -31,6 +47,14 @@ export async function POST(request: Request) {
 
   if (new TextEncoder().encode(JSON.stringify(body)).length > 65_536) {
     return Response.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  // Only the documents this app sends get forwarded. Checking the whole query
+  // string sidesteps having to reason about depth limits and cost analysis for
+  // a proxy that has exactly two callers.
+  const query = (body as { query?: unknown } | null)?.query;
+  if (typeof query !== "string" || !ALLOWED_QUERIES.has(normalize(query))) {
+    return Response.json({ error: "Query not allowed" }, { status: 403 });
   }
 
   // PokeAPI is a third party, so it gets a deadline like everything else. An

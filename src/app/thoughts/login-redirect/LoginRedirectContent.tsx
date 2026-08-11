@@ -253,17 +253,42 @@ export default function LoginRedirectContent() {
           denied-consent case, just a different prompt.
         </p>
       </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          The third bug at the same choke point
+        </h2>
+        <p className="text-muted">
+          Logging out told you your session had timed out. The marker cookie
+          that makes the timeout toast possible outlives the session cookie on
+          purpose — once the session is gone there is otherwise no way to tell
+          someone who timed out from someone who was never signed in. But
+          nothing cleared it on the way out, so choosing to leave left exactly
+          the same evidence expiring does, and the next page load read it that
+          way.
+        </p>
+        <p className="mt-3 text-muted">
+          It is cleared on{" "}
+          <code className={code}>/auth/logout</code> now, in the same{" "}
+          <code className={code}>/auth/*</code> branch the other two fixes live
+          in. Matched exactly rather than by prefix, so a route that merely
+          starts with it is not swept up. Three bugs at this choke point now,
+          which is either a good argument for centralising auth or a warning
+          about how much one branch is carrying.
+        </p>
+      </section>
       <WhatsNext
         nowShipped={[
           "The fix made at the choke point rather than at each call site, which is why two separate bugs closed with one change.",
+          "A deliberate logout no longer claims the session timed out — the marker that outlives the session cookie is cleared on the way out, so leaving and expiring stop looking identical.",
           "A callback that fails softly, because an auth redirect that throws leaves someone stranded with no way to describe what happened.",
         ]}
         couldImprove={[
           "The return path is not covered by an end-to-end test, so the regression it fixes would be caught by noticing.",
           "Deep links into authenticated routes still land on the destination rather than the thing that was being attempted, which is a subtler version of the same problem.",
+          "Three separate bugs have now been found in this one branch, and none of them were caught by a test — each was noticed by using the site.",
         ]}
         upcoming={[
-          "Nothing scheduled. This documents a fix that has held, and I would rather say so than invent follow-on work.",
+          "An end-to-end test that signs in, signs out, and asserts the toast does not appear — the one class of bug here that keeps recurring is the one nothing watches.",
         ]}
       />
     </ThoughtLayout>

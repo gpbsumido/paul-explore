@@ -3,19 +3,24 @@
 interface FlagsInfoStripProps {
   /** Whether the visitor is signed in and may change flags. */
   isLoggedIn: boolean;
+  /** Whether they are on the server's flag-admin allowlist. */
+  isFlagAdmin: boolean;
   /** How long until the next reset, e.g. "2h 14m", from formatResetCountdown. */
   resetLabel: string;
 }
 
 /**
  * The honest status line above the console: the flags are stored in a live API
- * and evaluated by a deterministic engine, the demo flags are open to everyone
- * while the one real flag needs a sign-in, and the demo resets on a fixed
- * cadence. It replaces the old "demo data" framing now that the store is really
- * persisted in portfolio_api.
+ * and evaluated by a deterministic engine, and the demo resets on a fixed
+ * cadence.
+ *
+ * It states the three access rungs up front rather than leaving someone to
+ * discover them by clicking a switch that does not move. Who the viewer is
+ * decides which sentence follows.
  */
 export default function FlagsInfoStrip({
   isLoggedIn,
+  isFlagAdmin,
   resetLabel,
 }: FlagsInfoStripProps) {
   return (
@@ -28,16 +33,27 @@ export default function FlagsInfoStrip({
         Flags are stored in a live API (<code>portfolio_api</code>) and
         evaluated by a deterministic engine. Resets in {resetLabel}.
       </span>
-      {!isLoggedIn && (
+      <span>
+        Flags sit in three groups by who may change them: open to everyone,
+        signed-in visitors, and site owner only.
+      </span>
+      {!isLoggedIn ? (
         <span>
-          Demo flags are open to everyone —{" "}
+          You can change the open ones right now —{" "}
           <a
             href="/auth/login"
             className="font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-400"
           >
-            sign in to change the real flag
-          </a>
-          .
+            sign in
+          </a>{" "}
+          for the rest.
+        </span>
+      ) : isFlagAdmin ? (
+        <span>You&rsquo;re an admin here, so every group is yours to change.</span>
+      ) : (
+        <span>
+          You&rsquo;re signed in, so the first two groups are yours to change.
+          The last one gates live features.
         </span>
       )}
     </div>
