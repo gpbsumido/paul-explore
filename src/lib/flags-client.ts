@@ -62,21 +62,45 @@ export async function fetchAuditFromApi(): Promise<
   return auditPayloadSchema.parse(await res.json());
 }
 
+/** Header the API reads the BFF's shared secret from. Not a bearer: it is not
+ * a JWT and presenting it as one gets it rejected by the user-auth middleware. */
+export const FLAGS_TOKEN_HEADER = "x-flags-token";
+
 /**
- * Updates a flag's per-environment config. The optional bearer token is
- * forwarded from the signed-in visitor so the API can authorize the write and
- * attribute the audit entry to them.
+ * How a write authenticates itself to the API.
+ *
+ * A visitor's own bearer, or the server's shared secret for the open tier
+ * where there is no visitor to borrow one from. They travel in different
+ * headers because they are different kinds of credential — the secret is not a
+ * JWT, and sending it as a bearer means the user-auth middleware tries to
+ * verify it and refuses.
+ */
+export type FlagWriteAuth =
+  | { bearer: string }
+  | { serviceToken: string }
+  | undefined;
+
+function authHeaders(auth: FlagWriteAuth): Record<string, string> {
+  if (!auth) return {};
+  if ("bearer" in auth) return { authorization: `Bearer ${auth.bearer}` };
+  return { [FLAGS_TOKEN_HEADER]: auth.serviceToken };
+}
+
+/**
+ * Updates a flag's per-environment config, authenticating with whichever
+ * credential the caller has, so the API can authorize the write and attribute
+ * the audit entry.
  */
 export async function patchFlagOnApi(
   flagKey: string,
   body: UpdateFlagBody,
-  token?: string,
+  auth?: FlagWriteAuth,
 ): Promise<{ flag: Flag }> {
   const res = await fetch(`${BASE}/${flagKey}`, {
     method: "PATCH",
     headers: {
       "content-type": "application/json",
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...authHeaders(auth),
     },
     body: JSON.stringify(updateFlagBodySchema.parse(body)),
   });

@@ -137,7 +137,7 @@ describe("PATCH /api/flags/:flagKey", () => {
     expect(patchFlagOnApi).toHaveBeenCalledWith(
       "new-checkout",
       { environment: "production", enabled: false },
-      "server-token",
+      { bearer: "server-token" },
     );
   });
 
@@ -264,7 +264,7 @@ describe("PATCH /api/flags/:flagKey", () => {
     expect(patchFlagOnApi).toHaveBeenCalledWith(
       "pocket-tcg",
       expect.anything(),
-      "server-token",
+      { bearer: "server-token" },
     );
   });
 
@@ -340,7 +340,7 @@ describe("PATCH /api/flags/:flagKey", () => {
     expect(patchFlagOnApi).toHaveBeenCalledWith(
       "dark-mode",
       expect.anything(),
-      "user-token",
+      { bearer: "user-token" },
     );
   });
 
@@ -363,7 +363,7 @@ describe("PATCH /api/flags/:flagKey", () => {
     expect(patchFlagOnApi).toHaveBeenCalledWith(
       "dark-mode",
       { environment: "production", enabled: false },
-      "svc-token",
+      { serviceToken: "svc-token" },
     );
     // Never the visitor's session -- there isn't one.
     expect(auth0.getAccessToken).not.toHaveBeenCalled();
@@ -406,7 +406,7 @@ describe("PATCH /api/flags/:flagKey", () => {
     expect(patchFlagOnApi).toHaveBeenCalledWith(
       "pocket-tcg",
       expect.anything(),
-      "user-token",
+      { bearer: "user-token" },
     );
   });
 

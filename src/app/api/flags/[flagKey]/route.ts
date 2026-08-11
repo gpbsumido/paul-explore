@@ -91,10 +91,12 @@ export async function PATCH(
     // the write depend on a credential the API may not accept when a perfectly
     // good user token was already in hand.
     const { token } = await auth0.getAccessToken();
-    outcome = await applyFlagPatch(flagKey, bodyResult.data, token);
+    outcome = await applyFlagPatch(flagKey, bodyResult.data, { bearer: token });
   } else if (access === "open") {
     if (serviceToken) {
-      outcome = await applyFlagPatch(flagKey, bodyResult.data, serviceToken);
+      outcome = await applyFlagPatch(flagKey, bodyResult.data, {
+        serviceToken,
+      });
     } else if (getFlag(flagKey)) {
       // No service token, but the flag exists locally, so the in-memory store
       // can answer. Fine for local dev and CI.

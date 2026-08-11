@@ -8,6 +8,7 @@ import {
   fetchAuditFromApi,
   patchFlagOnApi,
   FlagsApiError,
+  type FlagWriteAuth,
 } from "@/lib/flags-client";
 import {
   getFlag,
@@ -76,10 +77,10 @@ export type PatchOutcome = {
 export async function applyFlagPatch(
   flagKey: string,
   body: UpdateFlagBody,
-  token?: string,
+  auth?: FlagWriteAuth,
 ): Promise<PatchOutcome> {
   try {
-    const { flag } = await patchFlagOnApi(flagKey, body, token);
+    const { flag } = await patchFlagOnApi(flagKey, body, auth);
     return { status: 200, flag };
   } catch (err) {
     if (err instanceof FlagsApiError) return { status: err.status };
