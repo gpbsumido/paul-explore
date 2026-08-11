@@ -317,6 +317,33 @@ describe("PATCH /api/flags/:flagKey", () => {
     expect(patchFlagOnApi).not.toHaveBeenCalled();
   });
 
+  it("uses the signed-in user's own token on an open flag, not the service token", async () => {
+    // The service token exists for visitors who have no session to borrow
+    // from. Preferring it over a real one would attribute the change to the
+    // server in the audit log, and needlessly depend on the API accepting a
+    // credential when a perfectly good user token was already in hand.
+    vi.stubEnv("FLAGS_SERVICE_TOKEN", "svc-token");
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({
+      token: "user-token",
+      expiresAt: Date.now() / 1000 + 3600,
+      scope: "openid profile email",
+    });
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new Error("ECONNREFUSED"));
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("dark-mode"),
+    );
+
+    expect(patchFlagOnApi).toHaveBeenCalledWith(
+      "dark-mode",
+      expect.anything(),
+      "user-token",
+    );
+  });
+
   it("writes an open flag with the service token, so an anonymous change persists", async () => {
     // The API authorizes every write on a token, so without one an anonymous
     // change reaches only the in-memory store and springs back on the next

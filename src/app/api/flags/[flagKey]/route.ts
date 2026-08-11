@@ -84,7 +84,15 @@ export async function PATCH(
   const serviceToken = process.env.FLAGS_SERVICE_TOKEN;
 
   let outcome;
-  if (access === "open") {
+  if (isLoggedIn) {
+    // A real session beats the service token at every rung, including the open
+    // one. Using the server's credential when the visitor has their own would
+    // attribute their change to the server in the audit log, and would make
+    // the write depend on a credential the API may not accept when a perfectly
+    // good user token was already in hand.
+    const { token } = await auth0.getAccessToken();
+    outcome = await applyFlagPatch(flagKey, bodyResult.data, token);
+  } else if (access === "open") {
     if (serviceToken) {
       outcome = await applyFlagPatch(flagKey, bodyResult.data, serviceToken);
     } else if (getFlag(flagKey)) {
@@ -104,8 +112,9 @@ export async function PATCH(
       );
     }
   } else {
-    const { token } = await auth0.getAccessToken();
-    outcome = await applyFlagPatch(flagKey, bodyResult.data, token);
+    // Unreachable: the gate above already refused every signed-out caller
+    // outside the open rung.
+    return NextResponse.json({ error: ERRORS[401] }, { status: 401 });
   }
 
   if (outcome.status !== 200 || !outcome.flag) {
