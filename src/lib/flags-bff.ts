@@ -8,6 +8,8 @@ import {
   fetchAuditFromApi,
   patchFlagOnApi,
   FlagsApiError,
+  FlagsContractError,
+  type FlagWriteAuth,
 } from "@/lib/flags-client";
 import {
   getFlag,
@@ -76,19 +78,38 @@ export type PatchOutcome = {
 export async function applyFlagPatch(
   flagKey: string,
   body: UpdateFlagBody,
-  token?: string,
+  auth?: FlagWriteAuth,
 ): Promise<PatchOutcome> {
   try {
-    const { flag } = await patchFlagOnApi(flagKey, body, token);
+    const { flag } = await patchFlagOnApi(flagKey, body, auth);
     return { status: 200, flag };
   } catch (err) {
     if (err instanceof FlagsApiError) return { status: err.status };
+    // The API answered with something unreadable. That is a real problem, and
+    // answering it from the seed store would report success for a write that
+    // may never have landed -- which is exactly how a response-shape mismatch
+    // went unnoticed while every write quietly stopped reaching the API.
+    if (err instanceof FlagsContractError) {
+      console.error("[flags] unreadable response patching flag", flagKey, err);
+      return { status: 502 };
+    }
+    // Anything left is the API not answering at all, which the seed store can
+    // stand in for so the demo keeps working.
     return patchSeedStore(flagKey, body);
   }
 }
 
-/** Mirrors the API's PATCH semantics against the in-memory seed store. */
-function patchSeedStore(flagKey: string, body: UpdateFlagBody): PatchOutcome {
+/**
+ * Mirrors the API's PATCH semantics against the in-memory seed store.
+ *
+ * Exported because the open tier writes here and nowhere else: the API
+ * authorizes every write on a bearer token, so a flag anyone may change
+ * without signing in has no way to reach it. Keeping those in the seed store
+ * is what makes "open to everyone" true rather than aspirational, and it
+ * matches what that tier already promises — ephemeral, resets on a cadence,
+ * gates nothing real.
+ */
+export function patchSeedStore(flagKey: string, body: UpdateFlagBody): PatchOutcome {
   if (!getFlag(flagKey)) return { status: 404 };
 
   const { environment, enabled, fallthrough } = body;

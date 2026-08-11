@@ -35,6 +35,8 @@ interface FlagCardProps {
    * Defaults to true.
    */
   canEdit?: boolean;
+  /** Why the controls are locked, shown on the card itself. Null when editable. */
+  lockedReason?: string | null;
 }
 
 const TONE_CLASSES: Record<StatusTone, string> = {
@@ -75,6 +77,7 @@ export default function FlagCard({
   contextKey,
   result,
   canEdit = true,
+  lockedReason = null,
 }: FlagCardProps) {
   const config = flag.environments[environment];
   const sliderId = useId();
@@ -111,6 +114,17 @@ export default function FlagCard({
       <p className="text-[13px] leading-relaxed text-muted">
         {flag.description}
       </p>
+
+      {/* Say why the switch above is dead, on the card, rather than leaving
+          someone to click it and guess. */}
+      {!canEdit && lockedReason && (
+        <p className="flex items-start gap-1.5 text-[12px] text-muted">
+          <span aria-hidden className="mt-px shrink-0">
+            🔒
+          </span>
+          <span>{lockedReason}</span>
+        </p>
+      )}
 
       {/* What the tested user gets, and why */}
       {result && (
