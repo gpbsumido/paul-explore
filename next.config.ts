@@ -1,6 +1,7 @@
 import path from "path";
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
+import { securityHeaders } from "./src/lib/securityHeaders";
 
 // Pass ANALYZE=true on the CLI to open the treemap reports after the build.
 // The --webpack flag is required because the analyzer does not work with Turbopack.
@@ -42,6 +43,12 @@ const nextConfig: NextConfig = {
             value: "public, max-age=31536000, immutable",
           },
         ],
+      },
+      // Static security headers on every route. The dynamic CSP is set per
+      // response in src/proxy.ts; these are the ones CSP does not cover.
+      {
+        source: "/:path*",
+        headers: securityHeaders(),
       },
     ];
   },

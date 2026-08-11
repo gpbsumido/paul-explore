@@ -50,14 +50,25 @@ export function mediaOrigin(raw: string | undefined): string | null {
  * (`NEXT_PUBLIC_MEDIA_ORIGIN`); when it's absent the policy is unchanged, which
  * means saved gallery walls will not render their photos.
  */
-export function buildCsp(media?: string): string {
+export function buildCsp(
+  media?: string,
+  { dev = false }: { dev?: boolean } = {},
+): string {
   const origin = mediaOrigin(media);
   const img = [...IMG_ORIGINS, ...(origin ? [origin] : [])];
   const connect = [...CONNECT_ORIGINS, ...(origin ? [origin] : [])];
 
+  // React's development build calls eval() to rebuild callstacks that crossed
+  // the server/client boundary, so without this the dev overlay throws instead
+  // of showing the error you were trying to read. React never calls eval() in
+  // production, so this stays off there rather than being a permanent hole.
+  // 'wasm-unsafe-eval' is separate and needed in both: it is the Draco decoder
+  // for the landing page's 3D models.
+  const evalSource = dev ? ` 'unsafe-eval'` : "";
+
   return [
     `default-src 'self'`,
-    `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://vercel.live https://va.vercel-scripts.com`,
+    `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${evalSource} https://vercel.live https://va.vercel-scripts.com`,
     `style-src 'self' 'unsafe-inline'`,
     `img-src 'self' blob: data: ${img.join(" ")}`,
     `font-src 'self'`,

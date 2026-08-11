@@ -45,7 +45,9 @@ import {
 // Built in src/lib/csp.ts so the one environment-dependent part -- the origin
 // serving user-uploaded photos -- is testable and configurable. Without it,
 // saved gallery walls render blank because the browser blocks every photo.
-const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN);
+const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
+  dev: process.env.NODE_ENV === "development",
+});
 
 /**
  * Rate limit config for API routes.
