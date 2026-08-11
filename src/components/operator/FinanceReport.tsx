@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { financeResponseSchema } from "@/lib/operator-finance";
 import { formatCAD } from "@/lib/operator-sales";
+import { toCsv, downloadCsv } from "@/lib/csv";
 import DataLoadError from "./DataLoadError";
 import Bone from "./Bone";
 
@@ -47,6 +48,18 @@ export default function FinanceReport() {
   }
 
   const { totals, weeks, fees } = data;
+
+  const exportCsv = () => {
+    const csv = toCsv(weeks, [
+      { header: "Week of", value: (w) => weekLabel(w.weekStart) },
+      { header: "Gross revenue", value: (w) => w.grossRevenue },
+      { header: "Transactions", value: (w) => w.transactionCount },
+      { header: "Transaction fees", value: (w) => w.transactionFees },
+      { header: "Platform fees", value: (w) => w.platformFees },
+      { header: "Net payout", value: (w) => w.netPayout },
+    ]);
+    downloadCsv("fleet-finance-weekly.csv", csv);
+  };
 
   // A payout is only good news when it's positive; a loss shown in green is the
   // kind of dishonest state the rest of this dashboard avoids.
@@ -105,6 +118,20 @@ export default function FinanceReport() {
       </p>
 
       {/* Weekly payout history, newest first */}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-foreground">
+          Weekly payouts
+        </h2>
+        {/* No server action exists for a payout, so the honest next step is
+            getting the numbers somewhere they can be reconciled. */}
+        <button
+          type="button"
+          onClick={exportCsv}
+          className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:bg-surface-hover"
+        >
+          Download CSV
+        </button>
+      </div>
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <table className="w-full text-left text-sm">
           <caption className="sr-only">

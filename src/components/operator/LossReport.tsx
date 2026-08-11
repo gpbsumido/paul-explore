@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import {
   fleetShrinkResponseSchema,
   type ShrinkSummary,
@@ -72,10 +73,20 @@ export default function LossReport() {
 
   if (totals.countedLines === 0) {
     return (
-      <p className="rounded-xl border border-border bg-surface px-4 py-8 text-center text-sm text-muted">
-        No completed restock counts yet, so there is nothing to reconcile.
-        Shrink shows up once a restocker confirms physical counts.
-      </p>
+      <div className="rounded-xl border border-border bg-surface px-4 py-8 text-center">
+        <p className="text-sm text-muted">
+          No completed restock counts yet, so there is nothing to reconcile.
+          Shrink shows up once a restocker confirms physical counts.
+        </p>
+        {/* An empty state that only explains itself leaves you nowhere. The
+            fix for "no counts" is going and starting one. */}
+        <Link
+          href="/operator"
+          className="mt-4 inline-block rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+        >
+          Pick a store to count
+        </Link>
+      </div>
     );
   }
 
@@ -159,7 +170,14 @@ export default function LossReport() {
                   scope="row"
                   className="px-4 py-2.5 font-medium text-foreground"
                 >
-                  {store.storeName}
+                  {/* The whole point of ranking these is chasing the worst one,
+                      so the name is the way into the counts behind the number. */}
+                  <Link
+                    href={`/operator/stores/${store.storeId}?tab=restock-history`}
+                    className="text-primary-600 hover:underline dark:text-primary-400"
+                  >
+                    {store.storeName}
+                  </Link>
                 </th>
                 <td className="px-4 py-2.5 text-right tabular-nums">
                   <span
