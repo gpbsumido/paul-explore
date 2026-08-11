@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
+import { clientIp } from "@/lib/clientIp";
 import {
   loginRedirectAdditions,
   LOGIN_PROMPT_COOKIE,
@@ -89,14 +90,6 @@ const RATE_LIMITS: Array<{
 
 const RATE_WINDOW_MS = 60_000;
 
-function getIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
 /**
  * Stamps the long-lived marker on an authenticated response. It outlives the
  * session cookie, so once the session has expired its lingering presence is how
@@ -138,7 +131,7 @@ export async function proxy(request: NextRequest) {
 
   // Rate limiting — checked before auth so we reject at the edge without
   // doing any session work. First matching rule wins.
-  const ip = getIp(request);
+  const ip = clientIp(request);
   for (const rule of RATE_LIMITS) {
     if (!rule.match(pathname, request.method)) continue;
     const { allowed, resetAt } = checkRateLimit(

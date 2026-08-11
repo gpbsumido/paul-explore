@@ -1,13 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { API_URL } from "@/lib/apiUrl";
-
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
+import { clientIp } from "@/lib/clientIp";
 
 /**
  * GET /api/geo
@@ -28,20 +21,18 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json(
-      { error: `geo fetch failed: ${msg}` },
-      { status: 502 },
-    );
+    // A node fetch failure carries the internal host and port. This route is
+    // unauthenticated, so anyone can trigger it while the backend is down and
+    // read the topology out of the error body. Log it, return a fixed string,
+    // same as every other route here.
+    console.error("[geo] upstream fetch failed:", err);
+    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
   }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     console.error(`[geo] upstream ${res.status}:`, body);
-    return NextResponse.json(
-      { error: `geo upstream error (${res.status})` },
-      { status: 502 },
-    );
+    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
   }
 
   const data: unknown = await res.json();

@@ -34,5 +34,13 @@ export function securityHeaders(): HttpHeader[] {
       key: "Permissions-Policy",
       value: "camera=(), microphone=(), geolocation=()",
     },
+    // Vercel sets this for custom domains, so today this is belt and braces.
+    // Nothing in the repo asserts it though, and a deploy anywhere else would
+    // lose it silently -- which is the kind of protection you only notice is
+    // missing after it mattered.
+    {
+      key: "Strict-Transport-Security",
+      value: "max-age=63072000; includeSubDomains; preload",
+    },
   ];
 }
