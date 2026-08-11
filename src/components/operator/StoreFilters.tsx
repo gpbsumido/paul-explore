@@ -1,17 +1,20 @@
 "use client";
 
 import Input from "@/components/ui/Input";
-import type { StoreStatus } from "@/types/operator";
+import type { StoreFilterStatus } from "@/lib/operator-utils";
 
 interface StoreFiltersProps {
-  status: StoreStatus | "all";
-  onStatusChange: (status: StoreStatus | "all") => void;
+  status: StoreFilterStatus;
+  onStatusChange: (status: StoreFilterStatus) => void;
   search: string;
   onSearchChange: (search: string) => void;
 }
 
-const STATUS_OPTIONS: { value: StoreStatus | "all"; label: string }[] = [
+const STATUS_OPTIONS: { value: StoreFilterStatus; label: string }[] = [
   { value: "all", label: "All" },
+  // Mirrors the "Needs Attention" fleet tile, so clicking that number lands on
+  // a filter the user can also see and clear here.
+  { value: "needs-attention", label: "Needs attention" },
   { value: "online", label: "Online" },
   { value: "degraded", label: "Degraded" },
   { value: "offline", label: "Offline" },

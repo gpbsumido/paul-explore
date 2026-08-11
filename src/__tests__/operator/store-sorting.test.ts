@@ -111,6 +111,15 @@ describe("filterStores", () => {
     expect(result).toHaveLength(4);
   });
 
+  it("treats 'needs-attention' as degraded or offline, which is what the KPI counts", () => {
+    const result = filterStores(stores, {
+      status: "needs-attention",
+      search: "",
+    });
+
+    expect(result.map((s) => s.id)).toEqual(["s-2", "s-3"]);
+  });
+
   it("filters by status", () => {
     const result = filterStores(stores, { status: "online", search: "" });
     expect(result).toHaveLength(2);

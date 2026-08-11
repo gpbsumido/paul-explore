@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useFleetSalesAnalytics } from "@/hooks/useFleetSalesAnalytics";
 import { formatCAD, type SalesGranularity } from "@/lib/operator-sales";
 import { browserTimeZone } from "@/lib/operator-timezone";
@@ -104,9 +105,14 @@ export default function FleetSalesAnalytics() {
             <ul className="space-y-1.5">
               {byStore.slice(0, MAX_RANKED_STORES).map((store) => (
                 <li key={store.storeId} className="flex items-center gap-3">
-                  <span className="w-40 shrink-0 truncate text-xs text-foreground">
+                  {/* A leaderboard you cannot click through is a dead end —
+                      the next question is always "what is that store doing". */}
+                  <Link
+                    href={`/operator/stores/${store.storeId}?tab=sales`}
+                    className="w-40 shrink-0 truncate text-xs text-primary-600 hover:underline dark:text-primary-400"
+                  >
                     {store.storeName}
-                  </span>
+                  </Link>
                   <span
                     className="h-2 rounded-full bg-primary-500/60"
                     style={{

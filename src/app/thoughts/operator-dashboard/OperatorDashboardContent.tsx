@@ -33,11 +33,15 @@ export default function OperatorDashboardContent() {
           "Five near-identical read hooks factored through one useOperatorResource factory, with each adapter keeping its own return shape so no consuming component had to change.",
           "Loading, empty and error told apart everywhere, after a bug where an unreachable API rendered as a legitimately empty fleet.",
           "This write-up split into focused sections once it passed five thousand lines, because a document nobody scrolls to the end of is not documentation.",
+          "Restock history given a tab. The endpoint had always returned it and nothing rendered it, so the counts the shrink report is built on could not be reviewed after the fact.",
+          "Every ranked row made a way in: shrink and revenue leaderboards link to the store, and the Needs Attention tile filters the grid to the stores it counted.",
+          "Copy that no longer promises what the UI cannot do — the sensor button says it reloaded readings rather than claiming it reached the hardware.",
         ]}
         couldImprove={[
           "Polling rather than streaming. For a dashboard claiming to be live, server-sent events would be both cheaper and more honest than re-asking every fifteen seconds.",
           "No virtualisation on the store list, which is fine at this fleet size and would not be at ten times it.",
           "The charts are lazy-loaded but still heavy, and nothing budgets what the dashboard is allowed to cost on first paint.",
+          "Product Performance still names the SKUs to cut without offering a way to cut them; the promotion endpoint is per-store, so a fleet-level action needs a store picker first.",
         ]}
         upcoming={[
           "Give the route the error boundary the rest of the app just got — it was one of the twelve without one.",
