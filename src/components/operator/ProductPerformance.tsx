@@ -9,20 +9,9 @@ import {
   type ProductPerformanceRow,
 } from "@/lib/operator-product-performance";
 import { formatCAD } from "@/lib/operator-sales";
-import { toCsv } from "@/lib/csv";
+import { toCsv, downloadCsv } from "@/lib/csv";
 import DataLoadError from "./DataLoadError";
 import Bone from "./Bone";
-
-/** Triggers a client-side download of a CSV string. */
-function downloadCsv(filename: string, content: string): void {
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
 
 /** A relative-performance verdict, as text and colour (never colour alone). */
 function verdict(row: ProductPerformanceRow): {

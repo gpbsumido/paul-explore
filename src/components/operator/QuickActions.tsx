@@ -59,15 +59,19 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
     addToast({ message: `Dismissed ${count} alert${count !== 1 ? "s" : ""}` });
   }, [storeId, dismissableAlerts, dismissAlert, addToast]);
 
-  const handleSensorRefresh = useCallback(() => {
+  // Re-pulls this store's readings. It does not reach the hardware — there is
+  // no endpoint that does — so it neither says it did nor stalls two seconds
+  // pretending to. It waits on the actual refetch and reports that.
+  const handleSensorRefresh = useCallback(async () => {
     setIsSensorRefreshing(true);
-    setTimeout(() => {
-      queryClient.invalidateQueries({
+    try {
+      await queryClient.invalidateQueries({
         queryKey: queryKeys.operator.store(storeId),
       });
+      addToast({ message: "Latest readings loaded", variant: "info" });
+    } finally {
       setIsSensorRefreshing(false);
-      addToast({ message: "Sensor refresh complete", variant: "info" });
-    }, 2000);
+    }
   }, [storeId, queryClient, addToast]);
 
   const confirmConfig =
@@ -109,12 +113,12 @@ export default function QuickActions({ storeId }: QuickActionsProps) {
           label={acknowledgeAllLabel(alerts)}
         />
         <ActionButton
-          onClick={handleSensorRefresh}
+          onClick={() => void handleSensorRefresh()}
           disabled={isSensorRefreshing}
           icon={
             <RefreshIcon className={isSensorRefreshing ? "animate-spin" : ""} />
           }
-          label={isSensorRefreshing ? "Refreshing..." : "Force Sensor Refresh"}
+          label={isSensorRefreshing ? "Refreshing..." : "Refresh Readings"}
         />
       </div>
 

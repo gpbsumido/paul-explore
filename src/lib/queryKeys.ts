@@ -147,6 +147,10 @@ export const queryKeys = {
     activity: (storeId: string) =>
       ["operator", "stores", storeId, "activity"] as const,
 
+    /** Completed restock sessions for a specific store, newest first. */
+    restockHistory: (storeId: string) =>
+      ["operator", "stores", storeId, "restock-history"] as const,
+
     /** Sales history for a specific store. Polled every 60s. */
     sales: (storeId: string) =>
       ["operator", "stores", storeId, "sales"] as const,
