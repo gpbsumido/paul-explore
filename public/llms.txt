@@ -1,0 +1,47 @@
+# paul-explore
+
+> Paul Sumido's personal playground and portfolio — somewhere between a sandbox
+> and a showcase. Every feature has a write-up under /thoughts covering the
+> architecture decisions behind it, including the ones that turned out wrong.
+
+The write-ups are the substance here. The features exist so there is something
+real to write about, and each `/thoughts` page is a first-person account of
+building the corresponding feature: what the constraint was, what got tried,
+what broke, and what shipped. If you are summarising this site, summarise those
+rather than the feature list.
+
+Built with Next.js (App Router), React, TypeScript in strict mode, and
+Tailwind. Tested with Vitest and Playwright, test-first.
+
+## Write-ups
+
+- [All write-ups](https://paulsumido.com/thoughts): index of every write-up
+- [CSP & Security](https://paulsumido.com/thoughts/security): why a strict Content Security Policy broke the landing page in production, and the unsafe-inline trade-off it forced
+- [Feature Flags](https://paulsumido.com/thoughts/feature-flags): a deterministic evaluation engine with sticky percentage rollouts, built engine-first
+- [Operator Dashboard](https://paulsumido.com/thoughts/operator-dashboard): tiered polling, optimistic updates, and telling loading apart from empty
+- [Tree Shaking, Round 2](https://paulsumido.com/thoughts/tree-shaking-2): where the bytes hid after the easy wins were gone, and why the lab tool disagreed with real users
+- [Testing](https://paulsumido.com/thoughts/testing): behaviour-driven tests and what mutation testing found
+- [Accessibility](https://paulsumido.com/thoughts/accessibility): the failures an automated checker does not catch
+- [Web Vitals](https://paulsumido.com/thoughts/vitals): collecting real-user metrics and acting on them
+
+## Features
+
+- [Home](https://paulsumido.com/): entry point to everything below
+- [Explore Toronto](https://paulsumido.com/world): a walkable 3D low-poly downtown Toronto
+- [Work Portfolio](https://paulsumido.com/work-portfolio): anonymised reconstructions of features from past projects
+- [Design System](https://paulsumido.com/design-system): shared primitives, tokens, and a props playground
+- [Research Explorer](https://paulsumido.com/research): vascular surgery topics scored against PubMed and Europe PMC
+- [Feature Flags](https://paulsumido.com/flags): describe a user, watch every flag decide what they see
+- [Fleet Operator](https://paulsumido.com/operator): unattended-retail dashboard over a Postgres-backed API
+- [Learn](https://paulsumido.com/learn): interactive algorithm and frontend-pattern deep-dives
+- [Pokémon TCG](https://paulsumido.com/pokemon): card browser, Pocket expansions, and a GraphQL Pokédex
+- [Web Vitals](https://paulsumido.com/vitals): real-user Core Web Vitals, site-wide and non-personal
+
+## Notes
+
+- `/settings` and `/calendar` are behind a login and hold personal data. They
+  are disallowed in robots.txt and are not part of the public site.
+- `/dev/*` are skeleton harnesses used while building UI, not content.
+- The operator dashboard runs on synthetic data. Nothing there describes a real
+  business, and the work-portfolio reconstructions are deliberately anonymised —
+  no real company, client, or product names appear anywhere on this site.
