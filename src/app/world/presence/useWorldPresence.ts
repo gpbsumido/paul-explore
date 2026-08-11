@@ -131,10 +131,7 @@ export function useWorldPresence({
 
     void (async () => {
       if (!(await presenceAllowed(peerId)) || cancelled) return;
-      const apiKey = process.env.NEXT_PUBLIC_ABLY_KEY;
-      transport = apiKey
-        ? await createAblyTransport(apiKey, peerId, handleMessage)
-        : null;
+      transport = await createAblyTransport(peerId, handleMessage);
       transport ??= createLocalTransport(peerId, handleMessage);
       if (cancelled || !transport) {
         transport?.close();
