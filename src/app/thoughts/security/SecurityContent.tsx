@@ -424,19 +424,54 @@ export default function SecurityContent() {
           GitHub raw for Pokémon sprites.
         </p>
       </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          The headers CSP doesn&apos;t cover
+        </h2>
+        <p className="text-muted">
+          A CSP is one header doing a lot, but it isn&apos;t everything. Three
+          smaller headers cover the gaps, and they live in{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            next.config.ts
+          </code>{" "}
+          rather than the proxy — they never change, so there&apos;s no reason to
+          recompute them per request the way the media-origin-dependent CSP has
+          to be.{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            X-Content-Type-Options: nosniff
+          </code>{" "}
+          stops a browser second-guessing a response&apos;s declared type, which
+          is how a served file gets coerced into running as script.{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            Referrer-Policy: strict-origin-when-cross-origin
+          </code>{" "}
+          keeps the full path on my own origin but sends only the bare origin
+          outward, so an outbound link never leaks the page you were on.{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            Permissions-Policy
+          </code>{" "}
+          denies camera, microphone, and geolocation outright, because nothing
+          here touches those APIs and the safe default for an unused capability
+          is off. HSTS isn&apos;t in the list on purpose: Vercel already sends it.
+          And the set is asserted in a test now, so dropping one fails a run
+          instead of going unnoticed.
+        </p>
+      </section>
       <WhatsNext
         nowShipped={[
           "A content security policy that is actually restrictive, rather than one broad enough to be decorative.",
           "The unsafe-inline problem confronted instead of worked around, which is the difference between having a CSP and appearing to.",
           "Middleware kept cheap, since a header on every request is the one place overhead compounds.",
+          "The three headers a CSP doesn't cover — nosniff, Referrer-Policy, Permissions-Policy — set statically in next.config.ts.",
+          "The header set is asserted in a test, so removing one fails a run rather than being noticed later.",
         ]}
         couldImprove={[
           "Nothing reports violations, so a policy blocking something legitimate is discovered by a broken page rather than a report.",
-          "The policy is not tested — no check fails if a header stops being sent.",
           "It predates the ask route, which added a first outbound call to a third party and deserves a look against the connect-src rule.",
         ]}
         upcoming={[
-          "Assert the security headers in a test, so removing one fails a build rather than being noticed later.",
+          "A CSP report-uri endpoint, so a blocked-but-legitimate request surfaces as a report instead of a broken page.",
         ]}
       />
     </ThoughtLayout>
