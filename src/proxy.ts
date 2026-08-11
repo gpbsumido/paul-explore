@@ -5,6 +5,7 @@ import {
   SESSION_MARKER_COOKIE,
   SESSION_ABSOLUTE_SECONDS,
   isSessionTimeout,
+  isLogoutPath,
 } from "@/lib/authSession";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
@@ -186,7 +187,14 @@ export async function proxy(request: NextRequest) {
       }
     }
     try {
-      return await auth0.middleware(request);
+      const res = await auth0.middleware(request);
+      // Clear the marker on the way out. It deliberately outlives the session
+      // cookie so an expired session can be told apart from never having been
+      // signed in -- but that makes a deliberate logout look identical to a
+      // timeout, and the next page load told the user their session had
+      // expired when they had just chosen to leave.
+      if (isLogoutPath(pathname)) res.cookies.delete(SESSION_MARKER_COOKIE);
+      return res;
     } catch (err) {
       console.error("[proxy] auth0.middleware() failed on", pathname, err);
       // Auth0 is misconfigured (e.g. missing env vars in CI). Fall through so

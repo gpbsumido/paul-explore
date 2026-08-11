@@ -27,6 +27,23 @@ export const sessionConfig = {
  */
 export const SESSION_MARKER_COOKIE = "auth_active";
 
+/**
+ * The SDK's logout route. Matched exactly rather than by prefix so a path that
+ * merely starts with it -- /auth/logout-everywhere -- is not mistaken for it.
+ */
+const LOGOUT_PATH = "/auth/logout";
+
+/**
+ * Whether this request is a deliberate logout.
+ *
+ * It matters because the marker outlives the session cookie on purpose, and
+ * after a logout that is indistinguishable from a session that expired. Left
+ * alone, choosing to sign out told you your session had timed out.
+ */
+export function isLogoutPath(pathname: string): boolean {
+  return pathname === LOGOUT_PATH;
+}
+
 /** True when the session is gone but the marker says there recently was one. */
 export function isSessionTimeout(
   hasSession: boolean,
