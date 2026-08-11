@@ -592,6 +592,7 @@ export default function FeatureFlagsContent() {
         couldImprove={[
           "The audit log records what changed but not what it did — nothing links a rollout to any metric, so the console cannot answer whether a flag helped.",
           "The admin list is an env var, so adding someone is a deploy. Fine for one person, wrong the moment it is two.",
+          "The site-owner group is empty in production. The two flags that belong in it — the /tcg/pocket gate and world live presence — are not served by the flag API, so they still resolve from a value committed in the repo and cannot be flipped from the console at all. The group renders anyway and says so, because hiding it would show two rungs while the page promises three.",
           "The rung map is a literal in the BFF. The API should carry the field itself, and until it does a new flag defaults to the loosest rung — safe for a demo, wrong if a live one ever lands without being added.",
           "The open rung leans on a service token the server holds. That is the operator demo's pattern and it works, but it means the server can write those flags without anyone asking it to.",
           "Targeting rules are edited as structured fields, which is precise and slow.",

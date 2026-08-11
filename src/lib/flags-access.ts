@@ -81,6 +81,24 @@ export function accessOf(flag: {
   return flag.real ? "admin" : "open";
 }
 
+/**
+ * What to say when a rung has no flags in it.
+ *
+ * The rung still renders. Hiding an empty group would mean the page silently
+ * shows two rungs while claiming three, and the one most likely to be empty is
+ * the one people most need explained.
+ */
+export function emptyTierNote(access: FlagAccess): string {
+  switch (access) {
+    case "open":
+      return "Nothing in this group right now.";
+    case "authed":
+      return "Nothing in this group right now.";
+    case "admin":
+      return "Nothing here yet. The kill switches for /tcg/pocket and /world live presence belong in this group, but the flag API does not serve them yet — they still resolve from a value committed in the repo, so they cannot be flipped from this console.";
+  }
+}
+
 /** Whether this viewer may change a flag at this tier. */
 export function canChangeFlag({
   access,

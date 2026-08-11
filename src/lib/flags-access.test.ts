@@ -6,6 +6,7 @@ import {
   ACCESS_LABEL,
   whoCanChange,
   lockReason,
+  emptyTierNote,
 } from "./flags-access";
 
 const flag = (over: { key?: string; real?: boolean; access?: string } = {}) =>
@@ -98,6 +99,19 @@ describe("copy", () => {
     expect(signedOut).toMatch(/sign in/i);
     expect(notAdmin).not.toMatch(/sign in/i);
     expect(notAdmin).toMatch(/owner|admin/i);
+  });
+
+  it("explains an empty admin group instead of letting it vanish", () => {
+    // A hidden group means the page shows two rungs while the strip promises
+    // three, and this is the rung most in need of explaining.
+    expect(emptyTierNote("admin")).toMatch(/tcg\/pocket|world/i);
+    expect(emptyTierNote("admin").length).toBeGreaterThan(40);
+  });
+
+  it("has a note for every tier", () => {
+    for (const tier of ACCESS_TIERS) {
+      expect(emptyTierNote(tier).length).toBeGreaterThan(0);
+    }
   });
 
   it("gives no lock reason when the flag is changeable", () => {

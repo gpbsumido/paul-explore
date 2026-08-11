@@ -25,6 +25,7 @@ import {
   canChangeFlag,
   lockReason,
   whoCanChange,
+  emptyTierNote,
   type FlagAccess,
 } from "@/lib/flags-access";
 import TestUserBar from "@/components/flags/TestUserBar";
@@ -223,7 +224,6 @@ function FlagSection({
   updateFlag,
   isAdmin,
 }: FlagSectionProps) {
-  if (flags.length === 0) return null;
 
   const canEdit = canChangeFlag({ access, isLoggedIn, isAdmin });
   const locked = lockReason(access, { isLoggedIn, isAdmin });
@@ -257,6 +257,11 @@ function FlagSection({
             still update.
           </span>
         </div>
+      )}
+      {flags.length === 0 && (
+        <p className="rounded-lg border border-dashed border-border px-3 py-3 text-[13px] text-muted">
+          {emptyTierNote(access)}
+        </p>
       )}
       <div className="grid gap-4 lg:grid-cols-2">
         {flags.map((flag) => (
