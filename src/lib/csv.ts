@@ -10,9 +10,42 @@ export type CsvColumn<T> = {
   value: (row: T) => string | number;
 };
 
-/** Quotes a field when it contains a comma, quote or newline; doubles quotes. */
+/**
+ * Characters that make a spreadsheet treat a cell as code rather than text.
+ * Tab and carriage return are in here because Excel skips leading whitespace
+ * and then reads what follows, so "\t=1+1" runs just as "=1+1" does.
+ */
+const FORMULA_LEAD = /^[=+\-@\t\r]/;
+
+/**
+ * Neutralises a cell that a spreadsheet would execute.
+ *
+ * A field opening with = + - @ is run as a formula by Excel and Sheets, so an
+ * export of text somebody else typed becomes a way to run something on the
+ * machine of whoever opens it. RFC 4180 quoting is not a defence: the quotes
+ * are stripped at parse time and the formula runs anyway.
+ *
+ * A leading apostrophe is the standard fix -- it forces the cell to text, and
+ * spreadsheets do not display it. Only strings are considered: a negative
+ * number is data, and prefixing it would corrupt every negative figure in a
+ * finance export, which is worse than the problem being solved.
+ *
+ * No library is used here on purpose. The popular CSV writers do not escape
+ * these characters by default either, so adding one would grow the bundle
+ * without addressing this.
+ */
+function defuseFormula(value: string | number): string {
+  if (typeof value === "number") return String(value);
+  return FORMULA_LEAD.test(value) ? `'${value}` : value;
+}
+
+/**
+ * Quotes a field when it contains a comma, quote or newline; doubles quotes.
+ * Runs after the formula guard, so a field needing both gets the apostrophe
+ * inside the quotes where a parser will keep it.
+ */
 function escapeField(value: string | number): string {
-  const text = String(value);
+  const text = defuseFormula(value);
   if (/[",\n\r]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`;
   }

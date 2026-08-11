@@ -479,8 +479,39 @@ export default function SecurityContent() {
           , which stays in both — it is the Draco decoder for the 3D models.
         </p>
       </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          The vulnerability that is not in the browser
+        </h2>
+        <p className="text-muted">
+          Everything above is about what a page is allowed to do. The operator
+          dashboard exports CSVs, and a CSV has its own version of the same
+          question — except the thing executing it is Excel, not a browser, and
+          no header reaches it.
+        </p>
+        <p className="mt-3 text-muted">
+          A cell beginning with{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            = + - @
+          </code>{" "}
+          is run as a formula when the file is opened. The exports carry product
+          and store names, so exporting text somebody else typed is a way to run
+          something on the machine of whoever opens it. RFC 4180 quoting was
+          already correct and is not the defence: the quotes come off at parse
+          time and the formula runs anyway.
+        </p>
+        <p className="mt-3 text-muted">
+          A leading apostrophe pins the cell to text and is not displayed. Only
+          strings get it — a negative number is data, and prefixing it would
+          corrupt every negative figure in the finance export, which is a worse
+          bug than the one being fixed. No library for this on purpose: the
+          popular CSV writers do not escape these characters by default either,
+          so adding one would grow the bundle without addressing it.
+        </p>
+      </section>
       <WhatsNext
         nowShipped={[
+          "CSV exports that cannot carry an executable cell, which is the one injection path here that no HTTP header can reach.",
           "A content security policy that is actually restrictive, rather than one broad enough to be decorative.",
           "The unsafe-inline problem confronted instead of worked around, which is the difference between having a CSP and appearing to.",
           "Middleware kept cheap, since a header on every request is the one place overhead compounds.",
@@ -493,6 +524,7 @@ export default function SecurityContent() {
         ]}
         upcoming={[
           "A CSP report-uri endpoint, so a blocked-but-legitimate request surfaces as a report instead of a broken page.",
+          "A look at the other places text leaves this app for somewhere that executes it — the CSV case was found by asking the question, not by anything flagging it.",
         ]}
       />
     </ThoughtLayout>
