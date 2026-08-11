@@ -20,6 +20,13 @@ import {
 // body stay in Geist so the serif reads as the machine's voice, not a theme.
 import { isWinningPull } from "./win";
 import WinCelebration, { WIN_MS, type FallStyle } from "./WinCelebration";
+import {
+  playWinSound,
+  soundEnabled,
+  setSoundEnabled,
+  unlockWinAudio,
+} from "./winSound";
+
 // Split out of the first-paint bundle. The chalk font ships its glyph outlines
 // as JSON inlined into JavaScript -- around 200KB of it, plus the tegaki engine
 // on top -- and none of that is needed to draw the machine. It is decorative,
@@ -28,12 +35,6 @@ import WinCelebration, { WIN_MS, type FallStyle } from "./WinCelebration";
 const ChalkBackdrop = nextDynamic(() => import("./ChalkBackdrop"), {
   ssr: false,
 });
-import {
-  playWinSound,
-  soundEnabled,
-  setSoundEnabled,
-  unlockWinAudio,
-} from "./winSound";
 
 const fraunces = Fraunces({ subsets: ["latin"], display: "swap" });
 
