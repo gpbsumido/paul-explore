@@ -5,6 +5,7 @@ import {
   SESSION_MARKER_COOKIE,
   SESSION_ABSOLUTE_SECONDS,
   isSessionTimeout,
+  isLogoutPath,
 } from "@/lib/authSession";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
@@ -45,7 +46,9 @@ import {
 // Built in src/lib/csp.ts so the one environment-dependent part -- the origin
 // serving user-uploaded photos -- is testable and configurable. Without it,
 // saved gallery walls render blank because the browser blocks every photo.
-const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN);
+const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
+  dev: process.env.NODE_ENV === "development",
+});
 
 /**
  * Rate limit config for API routes.
@@ -186,7 +189,14 @@ export async function proxy(request: NextRequest) {
       }
     }
     try {
-      return await auth0.middleware(request);
+      const res = await auth0.middleware(request);
+      // Clear the marker on the way out. It deliberately outlives the session
+      // cookie so an expired session can be told apart from never having been
+      // signed in -- but that makes a deliberate logout look identical to a
+      // timeout, and the next page load told the user their session had
+      // expired when they had just chosen to leave.
+      if (isLogoutPath(pathname)) res.cookies.delete(SESSION_MARKER_COOKIE);
+      return res;
     } catch (err) {
       console.error("[proxy] auth0.middleware() failed on", pathname, err);
       // Auth0 is misconfigured (e.g. missing env vars in CI). Fall through so

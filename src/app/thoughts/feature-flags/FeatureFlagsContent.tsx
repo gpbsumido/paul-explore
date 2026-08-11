@@ -412,16 +412,61 @@ export default function FeatureFlagsContent() {
           the reset cron runs on — so it is unit-tested without a clock.
         </p>
         <p className="mt-3 text-muted">
-          The sign-in gate is scoped to what actually matters. The demo flags
-          change nothing real, so they are open to everyone — anyone can flip a
-          kill switch or drag a rollout and watch the engine re-decide. Only the
-          one real flag, the one that gates a live page, needs a sign-in to
-          change. The server enforces exactly that: a write to the real flag
-          with no session gets an honest 401, while a demo write never even
-          checks. On the real flag&apos;s card, signed-out visitors see the
-          controls locked with a &quot;Sign in to change flags&quot; link rather
-          than hitting a silent failure; viewing, the verdict strips, and the
-          playground all stay fully usable.
+          Signed in or not turned out to be the wrong question. This console is
+          doing two jobs at once: most of it is a playground meant to be
+          touched by whoever wanders in, and one part of it is a live kill
+          switch. One rule across both makes either the playground useless or
+          the kill switch reckless. So there are three rungs —{" "}
+          <strong className="text-foreground">open to everyone</strong>,{" "}
+          <strong className="text-foreground">signed-in visitors</strong>, and{" "}
+          <strong className="text-foreground">site owner only</strong> — and the
+          page is grouped by them, with a badge saying which rung you can reach
+          and a line on each locked card saying why. Nobody should have to click
+          a dead switch to discover the rule.
+        </p>
+        <p className="mt-3 text-muted">
+          The top rung is the same verified-email allowlist the research ask box
+          uses: the address has to be one I named in config, and the provider
+          has to have verified it, since an unverified claim is just something
+          typed at signup. Unset means nobody rather than everybody, because
+          only one of those two failure modes is loud enough to notice. The
+          server distinguishes the two refusals too — 401 when you are signed
+          out, 403 when you are signed in and it still is not yours. Collapsing
+          them sends someone to a login screen that cannot help them.
+        </p>
+        <p className="mt-3 text-muted">
+          Deciding the rung was harder than it looks, because the API serves a
+          different set of flags than the local seed does and carries no access
+          field of its own. Deriving the rung from the flag record gave two
+          different answers on the two sides: the console inferred every API
+          flag as open while the route enforced from seed data. Keying the map
+          on the flag key — the one thing both sides always have — is what makes
+          the page and the server agree, and one module now answers the question
+          for both.
+        </p>
+        <p className="mt-3 text-muted">
+          The open rung then hit a wall worth recording. The API authorizes
+          every write on a token, so an anonymous change could only ever reach
+          the in-memory store — and since reads come from the API, it sprang
+          straight back on the next fetch. A tier that silently reverts is the
+          exact bug I had just finished fixing, so it does not ship that way:
+          the server carries a token of its own for that rung, the way the
+          public operator demo already writes without a user. It is deliberately
+          not reused above that rung. Attributing an admin&apos;s kill switch to
+          the server would make the allowlist pointless and the audit log a
+          fiction.
+        </p>
+        <p className="mt-3 text-muted">
+          The other half was subtler and had been quietly broken in production.
+          The route forwarded whatever bearer token arrived in the request&apos;s
+          own <code>Authorization</code> header — but the console never sends
+          one, so the write reached the API with no credential and came back
+          401. React Query dutifully rolled the optimistic update back, which on
+          screen looked like the toggle flipping itself straight back to
+          enabled. The token is now resolved server-side from the session, which
+          fixes the bug and closes the hole underneath it: a token read off the
+          request is whatever the caller decided to put there, which made the
+          audit log&apos;s actor a suggestion rather than a fact.
         </p>
       </section>
 
@@ -539,9 +584,22 @@ export default function FeatureFlagsContent() {
           "The console organised around a test user rather than a flag list, because what a specific person sees is the only question anyone brings to it.",
           "Every decision shown with its reason, which the engine already returned and the old layout had nowhere to put.",
           "A transparency strip naming which flags are demo and which is real, instead of letting them look identical.",
+          "Three access rungs instead of a signed-in/signed-out split, because the console is a playground and a live kill switch at once and one rule across both makes either the playground useless or the switch reckless.",
+          "The rungs stated on the page — grouped, badged, and with a line on each locked card saying why — so nobody learns the rule by clicking a dead switch.",
+          "The rung keyed on the flag key rather than the flag record, after the API turned out to serve a different flag set with no access field: the console was inferring open while the route enforced from seed data.",
+          "A signed-in visitor's own token used at every rung, including the open one. Preferring the server's credential over a real one would have attributed the change to the server in the audit log rather than to the person who made it.",
+          "The service token sent in its own header rather than as a bearer. It is not a JWT, so presenting it as one meant the user-auth middleware tried to verify it and refused — and the write never landed.",
+          "A PATCH response parsed as the API actually sends it. Insisting on a wrapper the API does not use made every write throw after it had already succeeded, which the BFF then mistook for the API being down.",
+          "The seed-store fallback narrowed to genuine connection failures. It used to swallow a parse error too, answering 200 with stale in-memory data for a write that may never have landed — which is how the shape mismatch above stayed invisible.",
+          "The write token resolved from the session instead of read off the request, which fixed toggles silently reverting in production and made the audit actor a fact rather than a suggestion.",
         ]}
         couldImprove={[
           "The audit log records what changed but not what it did — nothing links a rollout to any metric, so the console cannot answer whether a flag helped.",
+          "The admin list is an env var, so adding someone is a deploy. Fine for one person, wrong the moment it is two.",
+          "The site-owner group is empty in production. The two flags that belong in it — the /tcg/pocket gate and world live presence — are not served by the flag API, so they still resolve from a value committed in the repo and cannot be flipped from the console at all. The group renders anyway and says so, because hiding it would show two rungs while the page promises three.",
+          "The rung map is a literal in the BFF. The API should carry the field itself, and until it does a new flag defaults to the loosest rung — safe for a demo, wrong if a live one ever lands without being added.",
+          "The open rung leans on a service token the server holds. That is the operator demo's pattern and it works, but it means the server can write those flags without anyone asking it to.",
+          "Every one of the write bugs above passed the route tests, because those mock the API client — they proved the decision was right while the transport was wrong. Nothing exercises the two services against each other.",
           "Targeting rules are edited as structured fields, which is precise and slow.",
           "Nothing prevents flag rot. Flags accumulate and nothing surfaces the ones sitting at 100% for months that should be deleted.",
         ]}
