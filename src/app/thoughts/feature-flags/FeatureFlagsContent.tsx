@@ -412,24 +412,49 @@ export default function FeatureFlagsContent() {
           the reset cron runs on — so it is unit-tested without a clock.
         </p>
         <p className="mt-3 text-muted">
-          The write gate is scoped to what actually matters. The demo flags
-          change nothing real, so they are open to everyone — anyone can flip a
-          kill switch or drag a rollout and watch the engine re-decide. Only the
-          one real flag, the one that gates a live page, is gated. On the real
-          flag&apos;s card, signed-out visitors see the controls locked with a
-          &quot;Sign in to change flags&quot; link rather than hitting a silent
-          failure; viewing, the verdict strips, and the playground all stay
-          fully usable.
+          Signed in or not turned out to be the wrong question. This console is
+          doing two jobs at once: most of it is a playground meant to be
+          touched by whoever wanders in, and one part of it is a live kill
+          switch. One rule across both makes either the playground useless or
+          the kill switch reckless. So there are three rungs —{" "}
+          <strong className="text-foreground">open to everyone</strong>,{" "}
+          <strong className="text-foreground">signed-in visitors</strong>, and{" "}
+          <strong className="text-foreground">site owner only</strong> — and the
+          page is grouped by them, with a badge saying which rung you can reach
+          and a line on each locked card saying why. Nobody should have to click
+          a dead switch to discover the rule.
         </p>
         <p className="mt-3 text-muted">
-          Being signed in turned out to be the wrong bar, though. Flipping the
-          real flag changes what every visitor sees, and &quot;has an
-          account&quot; is not a reason to trust someone with that. So the gate
-          is now the same verified-email allowlist the research ask box uses:
-          the address has to be one I named in config, and the provider has to
-          have verified it — an unverified claim is just something typed at
-          signup. Unset means nobody rather than everybody, because only one of
-          those two failure modes is loud enough to notice.
+          The top rung is the same verified-email allowlist the research ask box
+          uses: the address has to be one I named in config, and the provider
+          has to have verified it, since an unverified claim is just something
+          typed at signup. Unset means nobody rather than everybody, because
+          only one of those two failure modes is loud enough to notice. The
+          server distinguishes the two refusals too — 401 when you are signed
+          out, 403 when you are signed in and it still is not yours. Collapsing
+          them sends someone to a login screen that cannot help them.
+        </p>
+        <p className="mt-3 text-muted">
+          Deciding the rung was harder than it looks, because the API serves a
+          different set of flags than the local seed does and carries no access
+          field of its own. Deriving the rung from the flag record gave two
+          different answers on the two sides: the console inferred every API
+          flag as open while the route enforced from seed data. Keying the map
+          on the flag key — the one thing both sides always have — is what makes
+          the page and the server agree, and one module now answers the question
+          for both.
+        </p>
+        <p className="mt-3 text-muted">
+          The open rung then hit a wall worth recording. The API authorizes
+          every write on a token, so an anonymous change could only ever reach
+          the in-memory store — and since reads come from the API, it sprang
+          straight back on the next fetch. A tier that silently reverts is the
+          exact bug I had just finished fixing, so it does not ship that way:
+          the server carries a token of its own for that rung, the way the
+          public operator demo already writes without a user. It is deliberately
+          not reused above that rung. Attributing an admin&apos;s kill switch to
+          the server would make the allowlist pointless and the audit log a
+          fiction.
         </p>
         <p className="mt-3 text-muted">
           The other half was subtler and had been quietly broken in production.
@@ -559,12 +584,16 @@ export default function FeatureFlagsContent() {
           "The console organised around a test user rather than a flag list, because what a specific person sees is the only question anyone brings to it.",
           "Every decision shown with its reason, which the engine already returned and the old layout had nowhere to put.",
           "A transparency strip naming which flags are demo and which is real, instead of letting them look identical.",
-          "Real-flag writes gated on a verified-email allowlist rather than on merely being signed in, since the flag changes what every visitor sees.",
+          "Three access rungs instead of a signed-in/signed-out split, because the console is a playground and a live kill switch at once and one rule across both makes either the playground useless or the switch reckless.",
+          "The rungs stated on the page — grouped, badged, and with a line on each locked card saying why — so nobody learns the rule by clicking a dead switch.",
+          "The rung keyed on the flag key rather than the flag record, after the API turned out to serve a different flag set with no access field: the console was inferring open while the route enforced from seed data.",
           "The write token resolved from the session instead of read off the request, which fixed toggles silently reverting in production and made the audit actor a fact rather than a suggestion.",
         ]}
         couldImprove={[
           "The audit log records what changed but not what it did — nothing links a rollout to any metric, so the console cannot answer whether a flag helped.",
           "The admin list is an env var, so adding someone is a deploy. Fine for one person, wrong the moment it is two.",
+          "The rung map is a literal in the BFF. The API should carry the field itself, and until it does a new flag defaults to the loosest rung — safe for a demo, wrong if a live one ever lands without being added.",
+          "The open rung leans on a service token the server holds. That is the operator demo's pattern and it works, but it means the server can write those flags without anyone asking it to.",
           "Targeting rules are edited as structured fields, which is precise and slow.",
           "Nothing prevents flag rot. Flags accumulate and nothing surfaces the ones sitting at 100% for months that should be deleted.",
         ]}

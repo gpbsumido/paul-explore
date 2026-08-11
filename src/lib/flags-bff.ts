@@ -87,8 +87,17 @@ export async function applyFlagPatch(
   }
 }
 
-/** Mirrors the API's PATCH semantics against the in-memory seed store. */
-function patchSeedStore(flagKey: string, body: UpdateFlagBody): PatchOutcome {
+/**
+ * Mirrors the API's PATCH semantics against the in-memory seed store.
+ *
+ * Exported because the open tier writes here and nowhere else: the API
+ * authorizes every write on a bearer token, so a flag anyone may change
+ * without signing in has no way to reach it. Keeping those in the seed store
+ * is what makes "open to everyone" true rather than aspirational, and it
+ * matches what that tier already promises — ephemeral, resets on a cadence,
+ * gates nothing real.
+ */
+export function patchSeedStore(flagKey: string, body: UpdateFlagBody): PatchOutcome {
   if (!getFlag(flagKey)) return { status: 404 };
 
   const { environment, enabled, fallthrough } = body;
