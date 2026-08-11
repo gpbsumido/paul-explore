@@ -114,26 +114,6 @@ describe("POST /api/flags/evaluate", () => {
 });
 
 describe("PATCH /api/flags/:flagKey", () => {
-  it("propagates a signed-out 401 from the API with a sign-in message", async () => {
-    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
-    vi.mocked(auth0.getAccessToken).mockResolvedValue({
-      token: "server-token",
-      expiresAt: Date.now() / 1000 + 3600,
-      scope: "openid profile email",
-    });
-    vi.mocked(patchFlagOnApi).mockRejectedValue(new FlagsApiError(401));
-    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
-
-    const res = await PATCH(
-      patchRequest({ environment: "production", enabled: false }),
-      params("new-checkout"),
-    );
-    const body = await res.json();
-
-    expect(res.status).toBe(401);
-    expect(body.error).toMatch(/sign in/i);
-  });
-
   it("ignores a caller-supplied bearer token on a demo flag", async () => {
     vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
     vi.mocked(auth0.getAccessToken).mockResolvedValue({
@@ -401,6 +381,46 @@ describe("PATCH /api/flags/:flagKey", () => {
       expect.anything(),
       "user-token",
     );
+  });
+
+  it("keys the tier on the flag key even when the flag is not in the local seed", async () => {
+    // getFlag() only knows the seeded flags and the API serves a larger set.
+    // Dropping the key here sent every API-only flag down the wrong tier --
+    // priority-support is an authed flag, so a signed-out write must be
+    // refused rather than treated as open.
+    vi.mocked(auth0.getSession).mockResolvedValue(null);
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("priority-support"),
+    );
+
+    expect(res.status).toBe(401);
+    expect(patchFlagOnApi).not.toHaveBeenCalled();
+  });
+
+  it("reports an upstream rejection as a gateway error, not as 'sign in'", async () => {
+    // The gate already let this caller through, so repeating "sign in" would
+    // send them somewhere that cannot help.
+    vi.mocked(auth0.getSession).mockResolvedValue(nonAdmin);
+    vi.mocked(auth0.getAccessToken).mockResolvedValue({
+      token: "user-token",
+      expiresAt: Date.now() / 1000 + 3600,
+      scope: "openid profile email",
+    });
+    vi.mocked(patchFlagOnApi).mockRejectedValue(new FlagsApiError(401));
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("new-checkout"),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(502);
+    expect(body.error).not.toMatch(/sign in/i);
+    expect(body.error).toMatch(/not accepted|rejected/i);
   });
 
   it("tells a signed-in non-admin they lack permission rather than sending them to a login", async () => {
