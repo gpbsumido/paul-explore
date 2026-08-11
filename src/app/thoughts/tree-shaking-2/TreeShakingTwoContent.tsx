@@ -537,10 +537,14 @@ export default function TreeShakingTwoContent() {
         nowShipped={[
           "A second pass that started from green rather than assuming the first had held, which is the only honest way to run one.",
           "The distinction between bundle size and what was actually gating the paint — the two are related and not the same, and only one of them was the problem.",
+          "Two of the barrels on that optimize list deleted rather than optimized. @unovis drew five sparklines on /vitals and charged a D3 constellation plus leaflet, supercluster and topojson for it; recharts already drew eighteen other charts here, so porting cost no new library and took the whole tree out of the lockfile.",
+          "gsap went the same way, for two components. What it was doing — opacity and transform tweens on DOM nodes — is what the Web Animations API is for, so the replacement is native and weighs nothing. back.out(1.7) is a cubic-bezier, a centre-out stagger is arithmetic on the index, and clearProps is just declining to fill forwards.",
+          "The honest version of the trade: the /vitals chunk did not shrink, because recharts is the heavier of the two per chart. The install shed the whole dependency, and there is one charting paradigm to maintain instead of two.",
         ]}
         couldImprove={[
           "Still no budget in CI, so a third pass will be needed for the same reason as the second.",
           "The soft spot the web-vitals check surfaced is documented rather than resolved.",
+          "Nothing stops the next second-library-for-one-component. A rule that a new dependency has to earn more than one consumer would have caught both of these at the point they were added.",
         ]}
         upcoming={[
           "A size budget, which both of these write-ups have now independently concluded is the missing piece.",
