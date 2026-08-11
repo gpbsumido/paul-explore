@@ -531,6 +531,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#38bdf8",
   },
   {
+    title: "Crawlers",
+    href: "/thoughts/crawlers",
+    preview:
+      "The five files a site is supposed to serve and this one didn't: what to leave out of robots.txt, why the sitemap carries no lastModified, and the test that stops it going stale",
+    color: "#34d399",
+  },
+  {
     title: "Visual Plans",
     href: "/thoughts/harness-visual-plan",
     preview:

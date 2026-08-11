@@ -1,0 +1,11 @@
+# Reporting a security issue with paulsumido.com — see RFC 9116.
+#
+# Contact is a GitHub private advisory rather than an email address on purpose:
+# this repository is public, and an address committed here is published to every
+# scraper that walks GitHub, permanently, since removing it later leaves it in
+# the history. The advisory form reaches me privately and does not.
+
+Contact: https://github.com/gpbsumido/paul-explore/security/advisories/new
+Expires: 2027-08-11T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://paulsumido.com/.well-known/security.txt
