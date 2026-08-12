@@ -72,6 +72,15 @@ describe("HarnessVisualPlanContent", () => {
     );
   });
 
+  it("says how a plan folder points back at its PR", () => {
+    // Untracked plans used to leave nothing tying a plan to the change it
+    // became. The folder carries the PR number now, and the write-up says so.
+    const client = makeClient();
+    client.setQueryData(queryKeys.me(), { email: "psumido@gmail.com" });
+    const { container } = renderWith(client);
+    expect(container.textContent).toMatch(/pr-<n>-<slug>/);
+  });
+
   it("drops the haze once the owner can read the real thing", () => {
     const client = makeClient();
     client.setQueryData(queryKeys.me(), { email: "psumido@gmail.com" });
