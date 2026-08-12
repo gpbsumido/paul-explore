@@ -47,7 +47,10 @@ describe("LoginRedirectContent", () => {
     const body = document.body.textContent ?? "";
     expect(body).toMatch(/six-hour/i);
     expect(body).toMatch(/authError=timeout/);
-    expect(body).toMatch(/prompt=consent/);
+    // The timeout arms prompt=login: consent re-asks for scope, not identity,
+    // so it never re-authenticated.
+    expect(body).toMatch(/prompt=login/);
+    expect(body).toMatch(/does not re-authenticate/);
   });
 });
 
