@@ -20,7 +20,7 @@ const item = (over: Partial<Todo> = {}): Todo => ({
   ...over,
 });
 
-function renderWith(todos: Todo[]) {
+function renderWith() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
@@ -51,7 +51,7 @@ describe("ticking a to-do", () => {
   it("does not toggle when the title or detail is clicked", async () => {
     const user = userEvent.setup();
     mockList([item()]);
-    renderWith([item()]);
+    renderWith();
 
     const box = await screen.findByRole("checkbox", { name: "Merge the thing" });
     expect(box).not.toBeChecked();
@@ -71,7 +71,7 @@ describe("ticking a to-do", () => {
   it("toggles when the checkbox itself is clicked", async () => {
     const user = userEvent.setup();
     mockList([item()]);
-    renderWith([item()]);
+    renderWith();
 
     const box = await screen.findByRole("checkbox", { name: "Merge the thing" });
     await user.click(box);
