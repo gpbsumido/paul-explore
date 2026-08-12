@@ -201,7 +201,7 @@ export default function TodoContent() {
                   className="rounded border border-border p-3"
                   data-done={todo.done}
                 >
-                  <label className="flex items-start gap-3">
+                  <div className="flex items-start gap-3">
                     <input
                       type="checkbox"
                       checked={todo.done}
@@ -239,7 +239,7 @@ export default function TodoContent() {
                         </code>
                       ) : null}
                     </span>
-                  </label>
+                  </div>
                 </li>
               ))}
           </ul>
