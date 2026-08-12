@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import { Chip } from "@/components/ui";
 import TodoSkeleton from "./TodoSkeleton";
+import {
+  filterTodos,
+  TODO_FILTERS,
+  TODO_FILTER_LABEL,
+  type TodoFilter,
+} from "@/lib/todoFilter";
 
 export type Todo = {
   id: string;
@@ -49,6 +55,7 @@ async function fetchTodos(): Promise<Todo[]> {
 
 export default function TodoContent() {
   const queryClient = useQueryClient();
+  const [filter, setFilter] = useState<TodoFilter>("all");
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.todos(),
@@ -85,19 +92,25 @@ export default function TodoContent() {
   });
 
   const phases = useMemo(() => {
-    const open = (data ?? []).filter((t) => !t.done);
+    const all = data ?? [];
+    const openCount = all.filter((t) => !t.done).length;
+
+    // Counts come from the full set, not the filtered one, so the chips keep
+    // telling the truth about what is left while a filter is applied.
+    const visible = filterTodos(all, filter);
     const byPhase = new Map<number, Todo[]>();
-    for (const todo of data ?? []) {
+    for (const todo of visible) {
       const list = byPhase.get(todo.phase) ?? [];
       list.push(todo);
       byPhase.set(todo.phase, list);
     }
     return {
       groups: [...byPhase.entries()].sort(([a], [b]) => a - b),
-      openCount: open.length,
-      doneCount: (data ?? []).length - open.length,
+      openCount,
+      doneCount: all.length - openCount,
+      hasAny: all.length > 0,
     };
-  }, [data]);
+  }, [data, filter]);
 
   if (isPending) return <TodoSkeleton />;
 
@@ -120,7 +133,9 @@ export default function TodoContent() {
     );
   }
 
-  if (phases.groups.length === 0) {
+  // Only when the list is genuinely empty. Bailing out on an empty *filter*
+  // would hide the filter buttons and leave no way back.
+  if (!phases.hasAny) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-12">
         <h1 className="text-2xl font-bold">To-do</h1>
@@ -138,6 +153,36 @@ export default function TodoContent() {
         <Chip label={`${phases.openCount} left`} />
         <Chip label={`${phases.doneCount} done`} />
       </p>
+
+      <div
+        role="group"
+        aria-label="Filter to-do items"
+        className="mt-4 flex gap-2"
+      >
+        {TODO_FILTERS.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => setFilter(option)}
+            aria-pressed={filter === option}
+            className={`rounded border px-3 py-1 text-sm ${
+              filter === option
+                ? "border-foreground font-medium"
+                : "border-border text-muted"
+            }`}
+          >
+            {TODO_FILTER_LABEL[option]}
+          </button>
+        ))}
+      </div>
+
+      {phases.groups.length === 0 ? (
+        <p className="mt-8 text-muted">
+          {filter === "done"
+            ? "Nothing finished yet."
+            : "Nothing left — everything here is done."}
+        </p>
+      ) : null}
 
       {phases.groups.map(([phase, items]) => (
         <section key={phase} className="mt-8">
