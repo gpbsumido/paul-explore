@@ -248,9 +248,26 @@ export default function LoginRedirectContent() {
           landing page with a <code className={code}>?authError=timeout</code>{" "}
           flag so the toast can render, clears the marker so it only says it
           once, and arms the next login with{" "}
-          <code className={code}>prompt=consent</code> so Auth0 re-shows the
-          permission screen. Same one-shot cookie mechanism as the
-          denied-consent case, just a different prompt.
+          <code className={code}>prompt=login</code> so Auth0 asks who is
+          signing in. Same one-shot cookie mechanism as the denied-consent
+          case.
+        </p>
+        <p className="mt-3 text-muted">
+          It armed <code className={code}>prompt=consent</code> at first, which
+          did nothing. Per OIDC Core, <code className={code}>consent</code>{" "}
+          re-asks for scope approval and explicitly does not re-authenticate,
+          and for a first-party client Auth0 skips that screen anyway. So the
+          timeout bounced you to the landing page, showed the toast, sent you
+          to Auth0 — which still had its own tenant SSO cookie, on a lifetime
+          set in the dashboard and entirely independent of this app&rsquo;s six
+          hours — and signed you straight back in as whoever you already were.
+          The toast was telling the truth and the redirect was quietly undoing
+          it.
+        </p>
+        <p className="mt-3 text-muted">
+          Two sessions, not one, is the thing worth remembering. Expiring the
+          local cookie tells Auth0 nothing. If you want a timeout to mean
+          anything, the next login has to say so out loud.
         </p>
       </section>
       <section>
