@@ -1,6 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 
 // DELETE /api/calendar/calendars/:id/google
 // Stops the Google Calendar watch channel and unlinks the Google Calendar from
@@ -25,7 +26,7 @@ export async function DELETE(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/calendars/${id}/google`,
+      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/google`,
       {
         method: "DELETE",
         headers: buildHeaders(token, email),

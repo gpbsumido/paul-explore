@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { inviteMemberBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
+import { safeSegment } from "@/lib/safeSegment";
 
 /** GET /api/calendar/calendars/:id/members — returns { members: [...] } */
 export async function GET(
@@ -22,7 +23,7 @@ export async function GET(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/calendars/${id}/members`,
+      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members`,
       {
         headers: buildHeaders(token, email),
       },
@@ -64,7 +65,7 @@ export async function POST(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/calendars/${id}/members`,
+      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members`,
       {
         method: "POST",
         headers: buildHeaders(token, email, {

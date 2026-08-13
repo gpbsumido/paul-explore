@@ -78,7 +78,12 @@ export function accessOf(flag: {
   if (declared) return declared;
   const mapped = flag.key ? ACCESS_BY_KEY[flag.key] : undefined;
   if (mapped) return mapped;
-  return flag.real ? "admin" : "open";
+  // Only a flag positively known to be a demo opens up. `real` being absent is
+  // not the same as it being false: getFlag searches the local seed, the API
+  // serves a wider set, so an upstream-only key arrives with `real` undefined
+  // and would otherwise land on the loosest rung -- the exact flags this map
+  // has never heard of being the ones it protects least.
+  return flag.real === false ? "open" : "admin";
 }
 
 /**

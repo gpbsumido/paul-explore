@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { updateCardBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
+import { safeSegment } from "@/lib/safeSegment";
 
 // PUT /api/calendar/events/:id/cards/:entryId
 export async function PUT(
@@ -26,7 +27,7 @@ export async function PUT(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/events/${id}/cards/${entryId}`,
+      `${API_URL}/api/calendar/events/${safeSegment(id)}/cards/${safeSegment(entryId)}`,
       {
         method: "PUT",
         headers: buildHeaders(token, email, {
@@ -70,7 +71,7 @@ export async function DELETE(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/events/${id}/cards/${entryId}`,
+      `${API_URL}/api/calendar/events/${safeSegment(id)}/cards/${safeSegment(entryId)}`,
       {
         method: "DELETE",
         headers: buildHeaders(token, email),

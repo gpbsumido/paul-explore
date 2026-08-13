@@ -2,6 +2,7 @@ import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse } from "next/server";
 import { API_URL } from "@/lib/backendFetch";
 import type { LeaderboardEntry } from "@/types/nba";
+import { safeSegment } from "@/lib/safeSegment";
 
 // Leaderboard is public — no auth required.
 // 5-minute CDN cache keeps it reasonably fresh without hammering the backend.
@@ -58,7 +59,7 @@ export async function GET() {
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/nba/playoffs/leaderboard/${season}`,
+      `${API_URL}/api/nba/playoffs/leaderboard/${safeSegment(season)}`,
       { next: { revalidate: 300 } },
     );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);

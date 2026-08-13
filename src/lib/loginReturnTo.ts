@@ -37,11 +37,22 @@ export function loginReturnToFromReferer(
 /**
  * One-shot cookie that tells the proxy to force a specific OIDC prompt on the
  * very next /auth/login, then it's cleared. Its value is the prompt to force:
- * "login" after a denied consent (re-ask who's logging in), "consent" after a
- * session timeout (re-enter permissions). Without it Auth0 reuses the still-live
- * session and skips straight past those screens.
+ * "login" after a denied consent and after a session timeout, so Auth0 re-asks
+ * who is signing in rather than reusing its still-live SSO session.
  */
 export const LOGIN_PROMPT_COOKIE = "auth_login_prompt";
+
+/**
+ * The prompt to force after a local session times out.
+ *
+ * `consent` re-asks for scope approval and, per OIDC Core, explicitly does not
+ * re-authenticate: Auth0 sees its own tenant SSO cookie -- which has a lifetime
+ * set in the dashboard, entirely independent of this app's session -- and
+ * silently reissues for the same user. For a first-party client it skips the
+ * screen altogether, so the visitor sees a redirect and nothing else. `login`
+ * forces credentials to be entered again, which is what a timeout is for.
+ */
+export const SESSION_TIMEOUT_PROMPT = "login";
 
 /** OIDC prompt values we're willing to force, so a stray cookie can't inject. */
 const ALLOWED_PROMPTS = new Set(["login", "consent", "select_account"]);
