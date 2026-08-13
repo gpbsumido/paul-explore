@@ -463,6 +463,25 @@ export default function ImprovementsContent() {
           in-memory handles perfectly.
         </p>
         <p className="mt-3 text-muted">
+          That last sentence was leaning on something I had never checked. The
+          API&apos;s limiter was in-memory too, on a host that scales to zero, so
+          every cold start wiped every counter — the backstop this paragraph
+          points at was thinner than the thing it was excusing. It is a shared
+          store now, so the claim is finally true, and two more bugs turned up on
+          the way there: a config option silently dropped by a major version, and
+          one store instance shared across every limiter so hitting one endpoint
+          spent another&apos;s budget.
+        </p>
+        <p className="mt-3 text-muted">
+          Both are the same shape as most of what a later security audit found —
+          a protection that looks configured and is not. That audit, and the
+          seven shapes it turned up, is written up at{" "}
+          <a href="/thoughts/security-audit" className="underline">
+            Auditing for Absences
+          </a>
+          .
+        </p>
+        <p className="mt-3 text-muted">
           Swapping the store for Vercel KV or Upstash Redis would give
           cross-instance coordination if traffic ever justifies it. The
           interface is simple enough that the swap is a one-file change.

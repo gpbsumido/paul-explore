@@ -334,16 +334,20 @@ jobs:
 
       - name: Apply migrations and seed the operator tables
         working-directory: api
-        env:
-          # Migration 020 encrypts the stored Google OAuth tokens and refuses to
-          # run without a key, which is right in production and broke CI. This
-          # database is created empty and thrown away, so the value only has to
-          # be a valid 32-byte hex string. Deliberately a literal rather than a
-          # secret: it protects nothing, and an obviously-fake value cannot be
-          # mistaken for the real one.
-          TOKEN_ENCRYPTION_KEY: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+        # The environment the migrations need is declared in the API's own
+        # ci/migration-env.json and applied by its scripts/ci-migrate.sh. This
+        # file used to hardcode TOKEN_ENCRYPTION_KEY, which meant a migration
+        # gaining a requirement was discovered here — a red build on every
+        # frontend branch, caused by a change in a repo nobody was looking at.
+        # Now that requirement fails in portfolio_api, where the migration was
+        # written, and this side picks up whatever the contract declares.
         run: |
-          npx --yes "$API_PNPM" migrate
+          if [ ! -f scripts/ci-migrate.sh ]; then
+            echo "portfolio_api on main has no scripts/ci-migrate.sh yet." >&2
+            echo "Merge its migration-env contract to main before this change." >&2
+            exit 1
+          fi
+          MIGRATE_CMD="npx --yes $API_PNPM migrate" bash scripts/ci-migrate.sh
           npx --yes "$API_PNPM" seed:operator
 
       - name: Build and start portfolio_api

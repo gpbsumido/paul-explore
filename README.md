@@ -26,13 +26,23 @@ Public (no login). Listed most-to-least prominent, matching the apps order acros
 - [Pokémon](https://paulsumido.com/pokemon) — one hub for the [TCG browser](https://paulsumido.com/tcg/pokemon), [TCG Pocket](https://paulsumido.com/tcg/pocket) expansions, and the [GraphQL Pokédex](https://paulsumido.com/graphql)
 - Fantasy NBA — [playoffs bracket](https://paulsumido.com/fantasy/nba/playoffs) (public leaderboard), [player stats](https://paulsumido.com/fantasy/nba/player/stats), [league history](https://paulsumido.com/fantasy/nba/league-history), [court vision](https://paulsumido.com/fantasy/nba/court-vision), [matchups](https://paulsumido.com/fantasy/nba/matchups)
 - [Particle Lab](https://paulsumido.com/lab/particles) · [Motion Lab](https://paulsumido.com/lab/motion) — R3F and Framer Motion experiments
+- [Gallery Wall](https://paulsumido.com/gallery-wall) — arrange framed prints on a wall to scale, save the layout, and get the hanging measurements out
+- [Résumé](https://paulsumido.com/resume) — the CV, as a page rather than a PDF download
 - [Thoughts](https://paulsumido.com/thoughts) — write-ups on design decisions
 - [Web Vitals](https://paulsumido.com/vitals) — real-user Core Web Vitals dashboard; site-wide, non-personal aggregate data, public (no login)
 
-Requires login (redirected to Auth0 by the middleware):
+Requires login (redirected to Auth0 by `src/proxy.ts`):
 
 - [Calendar](https://paulsumido.com/calendar) — personal calendar (per-user) with Google Calendar sync; includes events and countdowns
 - [Settings](https://paulsumido.com/settings)
+
+Requires login **and** being on the admin allowlist:
+
+- `/to-do` — what is still outstanding across both repos, with quick add and a
+  soft delete. Not linked from anywhere and it 404s rather than 403s for anyone
+  else, because a 403 confirms a page exists. The rows live in the database
+  rather than in either repo on purpose: both are public, and a list of what has
+  not been fixed yet is not something to publish.
 
 ---
 
@@ -48,7 +58,7 @@ Requires login (redirected to Auth0 by the middleware):
 | Animation     | Framer Motion (`framer-motion`)                     |
 | 3D / WebGL    | Three.js + React Three Fiber (`@react-three/fiber`) |
 | Data fetching | TanStack Query v5                                   |
-| Charts        | unovis (`@unovis/react`)                            |
+| Charts        | Recharts (`recharts`)                               |
 | Monitoring    | Vercel Speed Insights                               |
 | Linting       | ESLint (Next.js config)                             |
 | Bundle        | `@next/bundle-analyzer` (`pnpm analyze`)            |
@@ -75,6 +85,13 @@ cp .env.example .env.local
 
 **3. Fill in `.env.local`**
 
+`.env.example` is the complete annotated list, and it is the source of truth —
+every variable there carries a comment explaining what breaks without it. This
+section deliberately does not repeat all sixteen, because two lists is how one
+of them ends up wrong.
+
+The minimum to boot and log in:
+
 ```env
 AUTH0_SECRET=            # openssl rand -hex 32
 AUTH0_DOMAIN=your-tenant.us.auth0.com
@@ -83,16 +100,27 @@ AUTH0_CLIENT_SECRET=     # from Auth0 application settings
 AUTH0_AUDIENCE=https://portfolio-api
 APP_BASE_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:3001
-
-# Operator dashboard writes. Must match OPERATOR_SERVICE_TOKEN in portfolio_api.
-# Server-side only, deliberately not NEXT_PUBLIC_ -- the browser never sees it,
-# because the BFF calls the API on the visitor's behalf. Generate with:
-#   openssl rand -hex 32
-# Unset on both sides is fine locally. Set on one side only and every restock
-# 401s while reads carry on, which looks like a partial outage rather than a
-# config mistake, so set both or neither.
-OPERATOR_SERVICE_TOKEN=
 ```
+
+Everything else is optional, and each one turns a feature off rather than
+breaking the app:
+
+| Unset | What goes dark |
+| ----- | -------------- |
+| `OPERATOR_SERVICE_TOKEN` | Operator reads still work; every write 401s. Must match the API's — set on one side only and it looks like a partial outage rather than a config mistake |
+| `FLAGS_SERVICE_TOKEN` | Open-tier flag writes reach only the in-memory store and spring back on the next read |
+| `FLAG_ADMIN_ALLOWED_EMAILS` | Nobody can write admin-tier flags, and `/to-do` 404s for everyone |
+| `RESEARCH_ASK_ALLOWED_EMAILS` | The ask box on `/research` is closed to everyone. Unset means nobody, not everybody |
+| `OPENAI_API_KEY`, `OPENAI_MODEL` | The ask box has nothing to ask |
+| `ABLY_KEY` | `/world` presence falls back to a same-browser local transport |
+| `NEXT_PUBLIC_MEDIA_ORIGIN` | Saved gallery walls render blank — the origin is on the CSP `img-src`, so the photos are blocked |
+| `NEXT_PUBLIC_SITE_URL` | OG image URLs fall back to the production domain |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Wallet connection is unavailable |
+
+**The admin allowlist has two different names.** It is
+`FLAG_ADMIN_ALLOWED_EMAILS` here and `ADMIN_ALLOWED_EMAILS` in `portfolio_api`,
+and both need the same addresses. Set one and not the other and `/to-do` renders
+for you while every tick 403s at the API, which reads like a bug in the page.
 
 **4. Start the dev server**
 
@@ -116,14 +144,33 @@ the person goes into it, and signing in is optional.
 
 ## Deployment
 
-| Layer       | Platform                | URL                |
-| ----------- | ----------------------- | ------------------ |
-| Frontend    | Vercel + Cloudflare CDN | paulsumido.com     |
-| Backend API | Railway                 | api.paulsumido.com |
-| Auth        | Auth0                   | (managed)          |
-| Database    | PostgreSQL on Railway   | (internal)         |
+| Layer       | Platform                | URL                        |
+| ----------- | ----------------------- | -------------------------- |
+| Frontend    | Vercel + Cloudflare CDN | paulsumido.com             |
+| Frontend    | Vercel (`develop`)      | develop.paulsumido.com     |
+| Backend API | Railway                 | api.paulsumido.com         |
+| Auth        | Auth0                   | (managed)                  |
+| Database    | PostgreSQL on Railway   | (internal)                 |
 
-CI runs on GitHub Actions — lint, typecheck, and full test suite on every push to `main`/`develop` and on PRs. A failing check blocks the Vercel deploy.
+`main` deploys to `paulsumido.com`, `develop` to `develop.paulsumido.com`.
+
+**Both point at the same production API.** There is no staging API, so anything
+exercised on `develop.paulsumido.com` is acting on live data. That is fine for
+reads and for a single-owner to-do list, and worth remembering before testing
+anything destructive there.
+
+CI runs on GitHub Actions as five jobs, each on the cadence its cost justifies,
+not all of them on every push:
+
+| Job | When |
+| --- | ---- |
+| Lint, Typecheck & Test | every push and PR |
+| Integration tests | every push and PR, plus nightly |
+| E2E smoke (public) | every push and PR |
+| E2E & Accessibility full | nightly, or on demand before a release |
+| Operator E2E against a real backend | builds `portfolio_api` from source, migrates it, and drives the operator flow against it |
+
+A failing check blocks the Vercel deploy.
 
 ---
 
@@ -131,20 +178,42 @@ CI runs on GitHub Actions — lint, typecheck, and full test suite on every push
 
 ```
 src/
+├── proxy.ts             # The edge entry point. Next 16's renamed middleware:
+│                        # Auth0 /auth/* delegation, session enforcement on
+│                        # protected routes, per-route rate limiting, the
+│                        # visitor cookie, and CSP headers on every response
 ├── app/
-│   ├── api/             # BFF proxy routes (calendar, nba, tcg, vitals, flags)
+│   ├── api/             # BFF routes, 14 areas: ably, calendar, flags, geo,
+│   │                    # google, graphql, me, nba, operator, research, tcg,
+│   │                    # todos, vitals, walls
+│   ├── _shared/         # Feature and thoughts registries shared by the hubs
 │   ├── calendar/        # Calendar page, events list + detail, countdowns
-│   ├── fantasy/nba/     # League history, player stats, playoffs bracket
-│   ├── flags/           # Feature-flag console (test a user, live per-flag verdicts)
+│   ├── craft/           # Lead front-end traits, each linked to real work here
+│   ├── design-system/   # Live gallery of the shared primitives and tokens
+│   ├── dev/             # Skeleton previews, not linked from the site
+│   ├── fantasy/         # NBA league history, player stats, playoffs bracket
+│   ├── flags/           # Feature-flag console
+│   ├── gallery-wall/    # Frame layout planner with hanging measurements
+│   ├── graphql/         # GraphQL Pokédex
 │   ├── lab/             # Interactive experiments (particles, motion)
+│   ├── landing/         # Landing implementations behind ?version=
 │   ├── learn/           # Algorithm & frontend-pattern deep-dives
-│   ├── operator/        # Operator dashboard (fleet overview + store detail tabs)
-│   ├── tcg/             # Pokémon TCG browser
+│   ├── operator/        # Operator dashboard (fleet, finance, loss, planner…)
+│   ├── pokemon/         # Hub over the TCG browser, Pocket, and the Pokédex
+│   ├── research/        # Research Explorer
+│   ├── resume/          # The CV as a page
+│   ├── settings/        # Account settings (auth required)
+│   ├── tcg/             # Pokémon TCG browser and Pocket expansions
+│   ├── thoughts/        # Write-ups on design decisions (58 of them)
+│   ├── to-do/           # Admin-only outstanding-work list
+│   ├── v2/ v3/ v4/      # Earlier site designs, kept reachable
+│   ├── vitals/          # Real-user Core Web Vitals dashboard
 │   ├── work-portfolio/  # Anonymized feature reconstructions
-│   └── thoughts/        # Write-ups on design decisions
-├── components/          # Shared UI primitives + calendar components
-├── hooks/               # useCalendarEvents, useCalendars, useCountdowns, useDebounce, …
-├── lib/                 # Shared utilities (calendar/TCG helpers, auth0 client, backendFetch)
+│   └── world/           # Walkable 3D Toronto
+├── components/          # Shared UI primitives + feature components
+├── contexts/            # React contexts
+├── hooks/               # useCalendarEvents, useCalendars, useDebounce, …
+├── lib/                 # Shared utilities (auth0 client, backendFetch, schemas)
 ├── styles/              # Design tokens
 └── types/               # TypeScript types
 ```

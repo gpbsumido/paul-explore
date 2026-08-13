@@ -15,6 +15,17 @@ export const metadata: Metadata = {
 };
 
 /**
+ * Never statically rendered, stated rather than inferred.
+ *
+ * getSession() reaches cookies() inside the Auth0 library, and Next has to see
+ * through that indirection to mark the route dynamic. It does today. It did not
+ * for the root page once, and the result was a cached signed-in view served to
+ * someone who had never logged in. Of every page here, this is the one where a
+ * cache holding the wrong person's view matters most.
+ */
+export const dynamic = "force-dynamic";
+
+/**
  * Admin-only. The proxy already sends a signed-out visitor to login, so the
  * check here is specifically "signed in, but not me".
  *

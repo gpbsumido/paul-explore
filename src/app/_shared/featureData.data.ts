@@ -286,6 +286,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#f97316",
   },
   {
+    title: "The To-Do List",
+    href: "/thoughts/to-do",
+    preview:
+      "Soft delete so a mis-click survives, positions assigned server-side so two adds cannot claim the same slot, and an optimistic insert that rolls back the row it added rather than the last one",
+    color: "#14b8a6",
+  },
+  {
     title: "Login Redirect",
     href: "/thoughts/login-redirect",
     preview:
@@ -377,11 +384,25 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#14b8a6",
   },
   {
+    title: "Taking the Database Off the Public Internet",
+    href: "/thoughts/database-networking",
+    preview:
+      "A front-end engineer working through the backend half: a Postgres reachable from anywhere, a TLS rabbit hole worth abandoning, migrations nothing ran, and four minutes of downtime from a rotation whose failure arrives late",
+    color: "#0ea5e9",
+  },
+  {
     title: "AI Security & Bare Repo Attacks",
     href: "/thoughts/ai-security",
     preview:
       "Prompt injection via CLAUDE.md, hardened least-privilege configs, deny lists, and sandboxed environments for untrusted code",
     color: "#dc2626",
+  },
+  {
+    title: "Auditing for Absences",
+    href: "/thoughts/security-audit",
+    preview:
+      "AI-written code passes security tests 56% of the time and fails worst on what is missing. A cross-repo audit, and the seven shapes of absence it actually found",
+    color: "#b91c1c",
   },
   {
     title: "AI Agent Patterns",

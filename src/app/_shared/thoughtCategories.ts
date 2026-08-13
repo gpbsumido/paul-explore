@@ -14,6 +14,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "world",
       "gallery-wall",
       "feature-flags",
+      "to-do",
       "search-bar",
       "tcg",
       "calendar",
@@ -62,6 +63,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "hybrid-rendering",
       "improvements",
       "api-backend-overhaul",
+      "database-networking",
       "login-redirect",
       "messenger-auth",
     ],
@@ -80,7 +82,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Security",
-    slugs: ["security", "ai-security"],
+    slugs: ["security", "ai-security", "security-audit"],
   },
   {
     name: "Build & Tooling",

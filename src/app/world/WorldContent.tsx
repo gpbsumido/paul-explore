@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import type { RefObject } from "react";
-import { FEATURES } from "@/app/_shared/featureData";
+import { FEATURES } from "@/app/_shared/featureData.data";
 import { EXHIBITS } from "@/lib/world/exhibits";
 import { ROADS, LAKE_EDGE_Z, SPAWN } from "@/lib/world/cityLayout";
 import { WORLD_BOUNDS } from "@/lib/world/movement";

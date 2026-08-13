@@ -17,6 +17,11 @@ interface ChipProps {
   onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   /** When provided, renders a remove button with an accessible name. */
   onRemove?: () => void;
+  /**
+   * When provided the chip renders as a link. An absolute URL opens in a new
+   * tab, because following one is leaving the app rather than moving inside it.
+   */
+  href?: string;
   className?: string;
   title?: string;
 }
@@ -28,6 +33,7 @@ export default function Chip({
   fullWidth = false,
   onClick,
   onRemove,
+  href,
   className,
   title,
 }: ChipProps) {
@@ -62,6 +68,28 @@ export default function Chip({
       </svg>
     </button>
   ) : null;
+
+  if (href) {
+    const external = /^https?:\/\//.test(href);
+    return (
+      <span
+        className={onRemove ? "inline-flex items-center" : undefined}
+        style={style}
+        title={title ?? label}
+      >
+        <a
+          href={href}
+          className={`${classes} underline underline-offset-2`}
+          {...(external
+            ? { target: "_blank", rel: "noreferrer noopener" }
+            : {})}
+        >
+          {label}
+        </a>
+        {removeButton}
+      </span>
+    );
+  }
 
   if (onClick) {
     return (

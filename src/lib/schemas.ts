@@ -253,3 +253,17 @@ export const playoffPicksBodySchema = z.object({
 export const updateTodoBodySchema = z.object({
   done: z.boolean(),
 });
+
+/**
+ * POST /api/todos body. Quick add: a title and a project.
+ *
+ * position is absent because the API assigns it, and done is absent because
+ * adding an item is not a way to declare it already finished. The API validates
+ * this again — the BFF checking first just keeps obvious rubbish off the wire.
+ */
+export const createTodoBodySchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  project: z.string().trim().min(1).max(60),
+  phase: z.number().int().min(1).max(4).optional(),
+  detail: z.string().trim().max(2000).optional(),
+});

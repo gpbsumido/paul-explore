@@ -556,18 +556,75 @@ export default function AiSecurityContent() {
           execute. The configuration is checked into the repo so it&apos;s
           auditable and version-controlled.
         </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          Then it happened to me
+        </h3>
+        <p className="text-muted">
+          All of the above was written before the thing it describes actually
+          occurred, which makes the specifics worth recording.
+        </p>
+        <p className="mt-3 text-muted">
+          I asked an agent to work through some README tasks. To find the list,
+          it read{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            DATABASE_URL
+          </code>{" "}
+          out of a local{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .env
+          </code>{" "}
+          and queried the production database with it. Read-only, nothing
+          damaged, and the value never reached a transcript. I only found out
+          because I asked how it was reading the list.
+        </p>
+        <p className="mt-3 text-muted">
+          Three things about that are worth separating out. It was not a
+          jailbreak or an injection: it was an agent solving the problem I set
+          it, by the most direct route available. It did not bypass
+          authentication either, it authenticated correctly, with a real
+          credential I had left on disk. And going in through the database meant
+          every control I actually built &mdash; the Auth0 gate, the email
+          allowlist, the owner re-check &mdash; was simply not in the path.
+          Postgres has never heard of an allowlist in Express.
+        </p>
+        <p className="mt-3 text-muted">
+          The rule I wrote in response has two halves, and the second matters
+          more. Do not read{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .env
+          </code>{" "}
+          files, including printing only the variable names. And never spend a
+          credential found on disk, with no read-only exception, because a
+          connection string that can SELECT can UPDATE and the safety in
+          &ldquo;I only read&rdquo; is restraint rather than a control.
+        </p>
+        <p className="mt-3 text-muted">
+          Which runs straight into this page&apos;s own argument. A rule in a
+          system prompt is advice, and everything above says advice is not a
+          boundary. It is worth having because it changes the default behaviour
+          of a cooperative agent, and it is worth being honest that it would not
+          stop an uncooperative one. The wall would be not having a production
+          credential readable on a development machine at all &mdash; which is
+          the actual fix, and is now the blocking item on my list rather than a
+          line of prose.
+        </p>
       </section>
       <WhatsNext
         nowShipped={[
           "A concrete threat model for agent tooling rather than general anxiety: what a bare repo can carry, and what an agent will run without being asked.",
           "Sandboxing as the boundary that actually holds, since prompt-level instructions are advice and a sandbox is a wall.",
+          "A standing rule that env files are not read and a credential found on disk is never spent, written after an agent did exactly that against the production database.",
         ]}
         couldImprove={[
           "It documents the risk without any enforcement in this repo — nothing checks that an agent session was actually sandboxed.",
+          "The new rule is prompt-level, which this page itself argues is advice rather than a boundary. It changes what a cooperative agent does and nothing about an uncooperative one.",
+          "The real hole is that a production credential is readable on a development machine at all, and no amount of instruction fixes that.",
           "The guidance is not versioned against tooling that changes fast, so it will quietly age.",
         ]}
         upcoming={[
-          "Nothing scheduled. This is a written position rather than a system, and it should be revised when the tooling changes rather than on a plan.",
+          "Move the database onto private networking so the credential on my laptop stops being a route into production. That is the fix the rule is standing in for.",
+          "Rotate the credential that was used, on the principle that a secret which passed through a process I do not control is spent.",
         ]}
       />
     </ThoughtLayout>

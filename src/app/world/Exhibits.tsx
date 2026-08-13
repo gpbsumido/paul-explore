@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import type { RefObject } from "react";
 import { EXHIBITS } from "@/lib/world/exhibits";
-import { FEATURES } from "@/app/_shared/featureData";
+import { FEATURES } from "@/app/_shared/featureData.data";
 import type { WorldExhibit } from "@/types/world";
 import type { PlayerSnapshot } from "./refs";
 import { useSegments } from "./detail";

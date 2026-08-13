@@ -204,7 +204,7 @@ export default function TestTiersContent() {
         <h2 className="mb-3 text-lg font-bold">What this repo does today</h2>
         <p className="text-muted">
           The split lives in{" "}
-          <code className={code}>.github/workflows/ci.yml</code>, as four jobs,
+          <code className={code}>.github/workflows/ci.yml</code>, as five jobs,
           each running as often as its cost is worth paying.
         </p>
         <p className="mt-3 text-muted">
@@ -252,6 +252,62 @@ export default function TestTiersContent() {
           with <code className={code}>--grep-invert @flaky</code> and re-run in
           a separate <code className={code}>continue-on-error</code> step, so a
           flaky test gets exercised nightly but can never fail a build.
+        </p>
+        <p className="mt-3 text-muted">
+          The fifth is{" "}
+          <code className={code}>e2e-operator-live</code>, and it is the odd one
+          out because it is not really a tier of this repo at all. It stands up
+          Postgres, checks out{" "}
+          <code className={code}>portfolio_api</code> at{" "}
+          <code className={code}>main</code>, applies its migrations, seeds it,
+          starts it, and drives the operator flow against a real backend rather
+          than a mocked one. It prefers an API branch of the same name when one
+          exists, so a paired change can be tested as a pair.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          The tier that failed in the wrong repository
+        </h3>
+        <p className="text-muted">
+          That job was also where a whole class of breakage surfaced, and the
+          reason is worth more than the fix. Because it applies the API&apos;s
+          migrations, it is the only thing anywhere that ran them. The API repo
+          itself never did. So when a migration gained a requirement, this
+          workflow was the thing that noticed.
+        </p>
+        <p className="mt-3 text-muted">
+          Concretely: a migration started encrypting stored OAuth tokens and
+          refuses to run without{" "}
+          <code className={code}>TOKEN_ENCRYPTION_KEY</code>. It was green in
+          the API repo, because nothing there ran migrations, and it turned
+          every branch of <em>this</em> repo red. The person reviewing that
+          migration never saw a failure. The people who saw the failure were
+          working on something unrelated in a different codebase.
+        </p>
+        <p className="mt-3 text-muted">
+          What makes that hard to catch is that it is invisible to inspection.
+          There is no{" "}
+          <code className={code}>process.env</code> anywhere in the migration
+          files. The requirement arrives transitively, through an import, so
+          grepping for it comes back clean and the only thing that finds it is
+          running them.
+        </p>
+        <p className="mt-3 text-muted">
+          So the requirement is now declared rather than discovered.{" "}
+          <code className={code}>ci/migration-env.json</code> in the API lists
+          what the migrations are allowed to need, and a shared script runs them
+          with exactly that and nothing else. Both repos call the same script
+          against the same file, which is the part that makes it a contract
+          instead of two lists that drift: a migration that gains a requirement
+          now fails in the repo that added it, and declaring it fixes both sides
+          at once.
+        </p>
+        <p className="mt-3 text-muted">
+          The general shape, which I suspect is common in any multi-repo setup:
+          if repo A depends on something in repo B, and only A&apos;s CI
+          exercises it, then B&apos;s CI is not testing B. It is testing the
+          part of B that nobody is going to break. The interesting failures were
+          always going to land somewhere else.
         </p>
       </section>
 

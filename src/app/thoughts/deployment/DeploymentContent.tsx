@@ -333,6 +333,15 @@ export default function DeploymentContent() {
 
       <section>
         <h2 className="mb-3 text-lg font-bold">The concrete setup here</h2>
+        <p className="mb-3 text-muted">
+          This section is the front end. The backend half — Railway, a Postgres
+          that used to be reachable from the open internet, and what it took to
+          move it onto a private network — is its own write-up at{" "}
+          <a href="/thoughts/database-networking" className="underline">
+            Taking the database off the public internet
+          </a>
+          .
+        </p>
         <p className="text-muted">
           This portfolio is Next.js on <strong>Vercel</strong>, region{" "}
           <C>iad1</C>, fronted by <strong>Cloudflare</strong> for DNS and CDN,
@@ -348,6 +357,65 @@ export default function DeploymentContent() {
           the pipeline identical everywhere.
         </p>
       </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Confirming a deploy actually landed
+        </h2>
+        <p className="text-muted">
+          I spent an evening this week shipping security fixes across the API
+          and this site, and the same mistake caught me three separate times. It
+          is always the same shape: check something next to the claim, see
+          green, treat the claim as proven. The thing next to the claim is
+          always faster to check. That is exactly why it gets checked.
+        </p>
+        <p className="mt-3 text-muted">
+          The expensive one: I encrypted the stored Google OAuth tokens in the
+          production database, having confirmed the pull request was{" "}
+          <em>merged</em>. Merged is not deployed. The running build was five
+          releases old and had no decryption code, so for a while the database
+          held credentials the application could not read. Nothing user-facing
+          broke, because that integration had been dormant for months — which is
+          luck, not process.
+        </p>
+        <p className="mt-3 text-muted">
+          Then, checking whether the fix had gone out, I read{" "}
+          <C>/api/health</C> and saw <C>version: 2.3.2</C> against a{" "}
+          <C>package.json</C> on 4.6.x. I assumed a failed deploy and went
+          looking for a fault that did not exist. The version was a string
+          literal someone had typed in and never touched again. It had been
+          wrong for five releases, and it is the first field anyone reads to
+          answer &ldquo;did this ship&rdquo; — so it reported failure on every
+          deploy that succeeded. A field that lies is worse than no field.
+        </p>
+        <p className="mt-3 text-muted">
+          What actually answered the question was behaviour. That release
+          removed two endpoints and added one, so three <C>curl</C>s settled it:
+          the removed routes returning <C>404</C> and the new one returning{" "}
+          <C>401</C> can only happen if the new code is running. No amount of
+          reading dashboards proves that; one request does.
+        </p>
+        <p className="mt-3 text-muted">
+          The rule I wrote down afterwards, because I clearly needed it in
+          writing: <strong>confirm what is live before writing to it</strong>. A
+          migration, a backfill, an encryption pass — any of them against an
+          environment whose running version is unconfirmed is how a correct
+          change becomes an outage. And more generally, before saying something
+          works, name the signal you actually looked at and ask what it would
+          miss. If the answer is &ldquo;the thing I am claiming&rdquo;, it is the
+          wrong signal.
+        </p>
+        <p className="mt-3 text-muted">
+          Two smaller versions of the same trap, from the same evening. A test
+          summary reading <C>PASS FAIL(0)</C> while the process exited{" "}
+          <C>1</C> — the exit code is the run, the summary is a tool&rsquo;s
+          parse of the run, and when they disagree the exit code wins. And a
+          change that resolved a file path relative to <C>__dirname</C>, which
+          passed every test against the sources and would have broken in the
+          build, because <C>src</C> and <C>dist</C> are not the same place. I
+          only caught that one by building it and running the compiled output.
+        </p>
+      </section>
+
       <WhatsNext
         nowShipped={[
           "A written record of the concrete setup rather than a general description of deployment, which is what makes it useful when something breaks at an awkward time.",
@@ -356,9 +424,11 @@ export default function DeploymentContent() {
         couldImprove={[
           "There is no documented rollback procedure, which is the thing you want written down precisely when you have least patience for reading.",
           "Environment variables are documented in an example file and nothing verifies a deploy actually has them — a missing key surfaces as a broken feature rather than a failed deploy.",
+          "Nothing automated answers \"is the running build the one I just merged\". I confirm it by hand with a couple of curls against routes the release added or removed, which works and does not scale past remembering to do it.",
         ]}
         upcoming={[
           "A startup check for required environment variables, so a misconfigured deploy fails loudly instead of shipping a dark feature — the ask box needing two new keys is exactly this case.",
+          "A deploy check worth trusting: /api/health now reports the real version from package.json rather than a literal that had been wrong for five releases, so the obvious question can finally be answered by the obvious endpoint.",
         ]}
       />
     </ThoughtLayout>
