@@ -301,14 +301,51 @@ export default function MessengerAuthContent() {
           header feels incomplete.
         </p>
       </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">Why it got past me</h2>
+        <p className="text-muted">
+          Nothing here was written wrong. The root page read the session and
+          rendered accordingly, which is correct; it simply never said out loud
+          that it must not be cached. Being dynamic was a property it was given
+          by the framework rather than one it asked for, and properties you were
+          given quietly stop being true.
+        </p>
+        <p className="mt-3 text-muted">
+          The detection has to see through{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            auth0.getSession()
+          </code>{" "}
+          into a{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            cookies()
+          </code>{" "}
+          call inside a library. When it does, everything works and there is
+          nothing to notice. When it does not, the page is cached, and a cache
+          has no idea whose view it is holding.
+        </p>
+        <p className="mt-3 text-muted">
+          What catches the class rather than the instance is a test that reads
+          every page which touches the session and fails unless it declares{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            force-dynamic
+          </code>
+          . Writing it immediately found a second page relying on the same
+          detection: <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">/to-do</code>,
+          the admin list. The build marked it dynamic, so nothing was broken —
+          but it was one refactor away from the same bug on the page whose whole
+          point is that other people do not see it.
+        </p>
+      </section>
+
       <WhatsNext
         nowShipped={[
           "The user-visible symptom traced back to an auth boundary rather than treated as a UI glitch, which is where it actually lived.",
           "The UX side fixed alongside the cause, because a correct auth flow that still confuses people is only half done.",
+          "A regression test for the class, not the instance: every page that reads the session must declare force-dynamic rather than trust the framework to notice for it.",
         ]}
         couldImprove={[
-          "No regression test covers the flow, so the same class of failure would be caught by someone hitting it.",
           "The write-up documents one bug rather than the auth model around it, which is the thing a reader would need to avoid the next one.",
+          "The test reads source rather than build output. It catches a missing declaration, not a future framework change that makes the declaration insufficient.",
         ]}
         upcoming={["Nothing scheduled. It documents a fix that has held."]}
       />
