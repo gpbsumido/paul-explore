@@ -49,6 +49,7 @@ export default function TodoAddForm() {
         position: Number.MAX_SAFE_INTEGER,
         title,
         detail: null,
+        reason: null,
         blocking: false,
         command: null,
         pr_repo: null,

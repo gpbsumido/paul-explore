@@ -266,4 +266,16 @@ export const createTodoBodySchema = z.object({
   project: z.string().trim().min(1).max(60),
   phase: z.number().int().min(1).max(4).optional(),
   detail: z.string().trim().max(2000).optional(),
+  /** Why the item exists, as opposed to detail, which is what to do about it. */
+  reason: z.string().trim().max(2000).optional(),
+});
+
+/** POST /api/todos/:id/revert body. Which revision to restore. */
+export const revertTodoBodySchema = z.object({
+  revision: z.number().int().positive(),
+});
+
+/** Body for creating and editing a comment. */
+export const todoCommentBodySchema = z.object({
+  body: z.string().trim().min(1).max(4000),
 });

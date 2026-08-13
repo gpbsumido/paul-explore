@@ -15,6 +15,14 @@ export const queryKeys = {
   /** Admin to-do list from /api/todos. */
   todos: () => ["todos"] as const,
 
+  /**
+   * One item's timeline and notes. Keyed under the same root as the list so
+   * invalidating "todos" after a revert clears the panel too — a revert that
+   * left a stale timeline on screen would be showing the thing it just changed.
+   */
+  todoRevisions: (id: string) => ["todos", id, "revisions"] as const,
+  todoComments: (id: string) => ["todos", id, "comments"] as const,
+
   calendar: {
     /**
      * Calendar events for a specific date window. Keyed by start and end

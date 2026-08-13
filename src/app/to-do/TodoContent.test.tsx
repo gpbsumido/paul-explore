@@ -11,6 +11,7 @@ const item = (over: Partial<Todo> = {}): Todo => ({
   position: 1,
   title: "Merge the thing",
   detail: "Some long explanatory detail that is easy to click while reading.",
+  reason: null,
   blocking: false,
   command: null,
   pr_repo: null,

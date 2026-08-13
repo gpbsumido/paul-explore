@@ -7,6 +7,7 @@ import { Chip } from "@/components/ui";
 import { pullRequestUrl } from "@/lib/prUrl";
 import TodoSkeleton from "./TodoSkeleton";
 import TodoAddForm from "./TodoAddForm";
+import TodoDetail from "./TodoDetail";
 import {
   filterTodos,
   TODO_FILTERS,
@@ -21,6 +22,8 @@ export type Todo = {
   position: number;
   title: string;
   detail: string | null;
+  /** Why the item exists, as opposed to detail, which is what to do about it. */
+  reason: string | null;
   blocking: boolean;
   command: string | null;
   pr_repo: string | null;
@@ -59,6 +62,7 @@ export default function TodoContent() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<TodoFilter>("all");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.todos(),
@@ -272,6 +276,12 @@ export default function TodoContent() {
                           {todo.detail}
                         </span>
                       ) : null}
+                      {todo.reason ? (
+                        <span className="mt-2 block text-sm text-muted">
+                          <span className="font-medium">Why: </span>
+                          {todo.reason}
+                        </span>
+                      ) : null}
                       {todo.command ? (
                         <code className="mt-2 block overflow-x-auto rounded bg-surface px-2 py-1 text-xs">
                           {todo.command}
@@ -302,14 +312,32 @@ export default function TodoContent() {
                           </button>
                         </span>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => setConfirmingId(todo.id)}
-                          className="mt-2 block text-xs text-muted underline"
-                        >
-                          Remove &ldquo;{todo.title}&rdquo;
-                        </button>
+                        <span className="mt-2 flex flex-wrap gap-3 text-xs">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOpenId(openId === todo.id ? null : todo.id)
+                            }
+                            aria-expanded={openId === todo.id}
+                            className="text-muted underline"
+                          >
+                            {openId === todo.id
+                              ? "Hide history"
+                              : `History and notes for “${todo.title}”`}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingId(todo.id)}
+                            className="text-muted underline"
+                          >
+                            Remove &ldquo;{todo.title}&rdquo;
+                          </button>
+                        </span>
                       )}
+
+                      {/* Mounted only when open, so an unopened list costs no
+                          extra requests — there are tens of rows. */}
+                      {openId === todo.id ? <TodoDetail todo={todo} /> : null}
                     </span>
                   </div>
                 </li>
