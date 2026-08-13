@@ -122,31 +122,77 @@ export function OperatorUpdatesLate() {
           <strong className="text-foreground">
             A migration that fails halfway.
           </strong>{" "}
-          Half answered. The entrypoint runs under{" "}
+          Answered, and it turned out I had been worrying about something that
+          could not happen. Postgres has transactional DDL and knex wraps the
+          whole batch in one transaction, so a migration that dies after its
+          third statement leaves nothing behind. I checked rather than assumed:
+          a migration that creates a table and then throws leaves no table, no
+          row in{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            knex_migrations
+          </code>
+          , and on a database that was already migrated, all thirteen earlier
+          migrations still applied. Add{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             set -e
-          </code>
-          , so a failed migration stops the server coming up and the previous
-          deploy keeps serving, which is recoverable in a way that a live
-          process talking to a half-migrated schema is not. That makes the
-          failure visible and safe to sit in. It does not make a partially
-          applied migration disappear.
+          </code>{" "}
+          in the entrypoint and the whole failure mode is a failed deploy with
+          the previous release still serving.
+        </p>
+        <p className="mt-3 text-muted">
+          The honest footnote is that this was true before I automated anything.
+          I had listed it as a cost of automating without checking whether it
+          was a real property of the tool I was already using. There is now a
+          test failing on{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            CREATE INDEX CONCURRENTLY
+          </code>{" "}
+          and on anything disabling transactions, because that is the one way to
+          lose it, and losing it quietly is worse than never having had it.
         </p>
         <p className="mt-3 text-muted">
           <strong className="text-foreground">
             A destructive migration going out before I have read it.
           </strong>{" "}
-          This objection stands, unchanged. Automating the running of migrations
-          does nothing about what is in them. What actually protects that is the
-          expand-first discipline in the paragraph above, which was the real
-          safety mechanism the whole time. I had attributed it to the manual
-          step, and it never belonged to the manual step at all.
+          This one is real and automation cannot touch it, so it is gated
+          instead. A test reads the{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            up()
+          </code>{" "}
+          of every migration, looks for drops, renames, truncations and column
+          tightening, and fails unless the file writes down why:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// DESTRUCTIVE: drops todos.detail, unused since 4.9.0 and
+// confirmed empty in production before this shipped.`}
+        </pre>
+        <p className="mt-3 text-muted">
+          An acknowledgement rather than a ban, because dropping a column is
+          sometimes exactly right and the problem was never the drop, it was
+          doing it without thinking about the code currently running against
+          that schema. Writing the reason costs nothing when you have thought
+          about it and is impossible to produce when you have not, and it lands
+          as a line in the diff, which is the only place it does any good.
         </p>
         <p className="mt-3 text-muted">
-          That last one is the bit I would want to have known earlier. I kept a
-          manual gate because it felt like control, and the control I actually
-          had came from a convention about how migrations are written. Keeping
-          the gate did not add safety. It only added something to forget.
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            down()
+          </code>{" "}
+          is deliberately not scanned. A down that drops the column its up added
+          is exactly correct, and a check that flagged all of them would just
+          teach me to ignore it. The usual right response to the test failing is
+          not to write the comment at all, it is to expand first: add the new
+          thing, ship the code that stops using the old thing, drop it a release
+          later.
+        </p>
+        <p className="mt-3 text-muted">
+          What I would want to have known earlier is underneath all three. I
+          kept a manual gate because it felt like control. Two of the three
+          things I thought it was protecting were properties of Postgres and
+          knex that I already had and had never checked for, and the third was
+          the expand-first convention, which belongs to how migrations are
+          written rather than to who types the command. The gate added no
+          safety. It added something to forget, and I duly forgot it.
         </p>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
