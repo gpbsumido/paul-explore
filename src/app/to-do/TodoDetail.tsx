@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import { Chip } from "@/components/ui";
 import type { Todo } from "./TodoContent";
+import TodoEditForm from "./TodoEditForm";
 
 export type TodoRevision = {
   id: string;
@@ -56,7 +57,7 @@ async function getJson<T>(url: string, what: string): Promise<T> {
  */
 export default function TodoDetail({ todo }: { todo: Todo }) {
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<"history" | "comments">("history");
+  const [tab, setTab] = useState<"history" | "comments" | "edit">("history");
   const [confirming, setConfirming] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
@@ -143,7 +144,7 @@ export default function TodoDetail({ todo }: { todo: Todo }) {
     onSuccess: refreshAll,
   });
 
-  const tabButton = (value: "history" | "comments", label: string) => (
+  const tabButton = (value: "history" | "comments" | "edit", label: string) => (
     <button
       type="button"
       onClick={() => setTab(value)}
@@ -163,7 +164,12 @@ export default function TodoDetail({ todo }: { todo: Todo }) {
       <div role="group" aria-label="Item detail" className="flex gap-2">
         {tabButton("history", "History")}
         {tabButton("comments", "Comments")}
+        {tabButton("edit", "Edit")}
       </div>
+
+      {tab === "edit" ? (
+        <TodoEditForm todo={todo} onDone={() => setTab("history")} />
+      ) : null}
 
       {tab === "history" ? (
         <div className="mt-3">
@@ -257,7 +263,9 @@ export default function TodoDetail({ todo }: { todo: Todo }) {
             </ul>
           )}
         </div>
-      ) : (
+      ) : null}
+
+      {tab === "comments" ? (
         <div className="mt-3">
           {comments.isPending ? (
             <p className="text-xs text-muted">Loading the comments…</p>
@@ -381,7 +389,7 @@ export default function TodoDetail({ todo }: { todo: Todo }) {
             ) : null}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

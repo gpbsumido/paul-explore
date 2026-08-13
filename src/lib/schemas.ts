@@ -249,10 +249,34 @@ export const playoffPicksBodySchema = z.object({
   ),
 });
 
-/** PATCH /api/todos/:id body. Only the tick is changeable. */
-export const updateTodoBodySchema = z.object({
-  done: z.boolean(),
-});
+/**
+ * PATCH /api/todos/:id body.
+ *
+ * This was the tick alone. Editing exists now, so it mirrors what the API will
+ * accept — and, more to the point, what it will not: `position` is assigned by
+ * the server, `done_at` is derived from `done`, and removal has its own route.
+ * The API rejects those regardless; matching it here means a mistake fails at
+ * the edge with a useful message instead of as an opaque 400 from upstream.
+ *
+ * At least one field, because an empty patch would ask the API to record a
+ * revision saying nothing changed.
+ */
+export const updateTodoBodySchema = z
+  .object({
+    title: z.string().trim().min(1).max(200).optional(),
+    project: z.string().trim().min(1).max(60).optional(),
+    phase: z.number().int().min(1).max(4).optional(),
+    detail: z.string().trim().max(2000).nullish(),
+    reason: z.string().trim().max(2000).nullish(),
+    blocking: z.boolean().optional(),
+    command: z.string().trim().max(500).nullish(),
+    pr_repo: z.string().trim().max(60).nullish(),
+    pr_number: z.number().int().positive().nullish(),
+    done: z.boolean().optional(),
+  })
+  .refine((patch) => Object.keys(patch).length > 0, {
+    message: "Nothing to change",
+  });
 
 /**
  * POST /api/todos body. Quick add: a title and a project.
