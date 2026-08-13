@@ -85,6 +85,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/command-palette",
   "/thoughts/craft",
   "/thoughts/crawlers",
+  "/thoughts/database-networking",
   "/thoughts/deployment",
   "/thoughts/design-system",
   "/thoughts/design-system-charts",

@@ -384,6 +384,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#14b8a6",
   },
   {
+    title: "Taking the Database Off the Public Internet",
+    href: "/thoughts/database-networking",
+    preview:
+      "A front-end engineer working through the backend half: a Postgres reachable from anywhere, a TLS rabbit hole worth abandoning, migrations nothing ran, and four minutes of downtime from a rotation whose failure arrives late",
+    color: "#0ea5e9",
+  },
+  {
     title: "AI Security & Bare Repo Attacks",
     href: "/thoughts/ai-security",
     preview:
