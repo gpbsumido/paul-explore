@@ -12,6 +12,9 @@ export const queryKeys = {
   /** Current logged-in user's name and email from /api/me. */
   me: () => ["me"] as const,
 
+  /** Admin to-do list from /api/todos. */
+  todos: () => ["todos"] as const,
+
   calendar: {
     /**
      * Calendar events for a specific date window. Keyed by start and end

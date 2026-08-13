@@ -248,3 +248,8 @@ export const playoffPicksBodySchema = z.object({
     z.string().min(1).max(64),
   ),
 });
+
+/** PATCH /api/todos/:id body. Only the tick is changeable. */
+export const updateTodoBodySchema = z.object({
+  done: z.boolean(),
+});
