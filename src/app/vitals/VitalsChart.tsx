@@ -2,13 +2,12 @@
 
 import { useSyncExternalStore } from "react";
 import {
-  VisXYContainer,
-  VisLine,
-  VisAxis,
-  VisCrosshair,
-  VisTooltip,
-} from "@unovis/react";
-import { CurveType } from "@unovis/ts";
+  LineChart,
+  Line,
+  XAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import {
   METRIC_ORDER,
   METRIC_CONFIGS,
@@ -17,12 +16,11 @@ import {
 } from "@/lib/vitals";
 import type { MetricName, VersionMetrics } from "@/types/vitals";
 
-type DataPoint = { index: number; p75: number; version: string };
+type DataPoint = { p75: number; version: string };
 
-// The VisAxis type="x" renders version tick labels *below* the VisXYContainer
-// boundary, adding roughly 20px on top of the 80px plot area. Both the skeleton
-// and the real chart use this height so they stay in sync and nothing shifts on
-// hydration.
+// The version tick labels sit below the plot area, so the container is the plot
+// height plus room for the axis. Both the skeleton and the real chart use this
+// height so they stay in sync and nothing shifts on hydration.
 const CHART_AREA_HEIGHT = 80;
 const CHART_CONTAINER_HEIGHT = CHART_AREA_HEIGHT + 20;
 
@@ -37,8 +35,7 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
 
   const data: DataPoint[] = byVersion
     .filter((v) => v.metrics[metric] !== undefined)
-    .map((v, i) => ({
-      index: i,
+    .map((v) => ({
       p75: v.metrics[metric]!.p75,
       version: v.version,
     }));
@@ -48,15 +45,6 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
     latestP75 !== undefined
       ? getRatingColor(latestP75, config.good, config.poor)
       : "#6b7280";
-
-  const x = (_d: DataPoint, i: number) => i;
-  const y = (d: DataPoint) => d.p75;
-
-  const tooltipTemplate = (d: DataPoint) =>
-    `<div style="padding:4px 8px;font-size:11px;line-height:1.5">` +
-    `<span style="opacity:0.6">v${d.version}</span><br/>` +
-    `<strong>${formatValue(d.p75, config.unit)}</strong>` +
-    `</div>`;
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
@@ -72,23 +60,45 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
         </p>
       ) : (
         <div className="mt-2" style={{ height: CHART_CONTAINER_HEIGHT }}>
-          <VisXYContainer data={data} height={CHART_AREA_HEIGHT}>
-            <VisLine
-              x={x}
-              y={y}
-              color={color}
-              curveType={CurveType.MonotoneX}
-            />
-            <VisAxis
-              type="x"
-              tickValues={data.map((_, i) => i)}
-              tickFormat={(v: number | Date) =>
-                `v${data[Math.round(v as number)]?.version ?? ""}`
-              }
-            />
-            <VisCrosshair template={tooltipTemplate} />
-            <VisTooltip />
-          </VisXYContainer>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={data}
+              margin={{ top: 4, right: 4, bottom: 0, left: 4 }}
+            >
+              <XAxis
+                dataKey="version"
+                tick={{ fontSize: 9, fill: "var(--color-muted)" }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(version: string) => `v${version}`}
+                interval={0}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--color-surface-raised)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: 8,
+                  fontSize: 11,
+                  padding: "4px 8px",
+                }}
+                labelStyle={{ color: "var(--color-muted)" }}
+                itemStyle={{ color: "var(--color-foreground)" }}
+                labelFormatter={(version: React.ReactNode) => `v${version}`}
+                formatter={(value) => [
+                  formatValue(value as number, config.unit),
+                  "P75",
+                ]}
+              />
+              <Line
+                type="monotone"
+                dataKey="p75"
+                stroke={color}
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
     </div>
@@ -96,12 +106,12 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
 }
 
 // useSyncExternalStore returns false on the server and true on the client,
-// which lets us skip the unovis render during SSR without the lint warning
+// which lets us skip the chart render during SSR without the lint warning
 // that comes from calling setState inside an effect.
 const emptySubscribe = () => () => {};
 
-// Placeholder shown on the server (and briefly during hydration) while unovis
-// bootstraps. Matches MetricTrendChart's card structure exactly -- same grid,
+// Placeholder shown on the server (and briefly during hydration) while the
+// chart measures. Matches MetricTrendChart's card structure exactly -- same grid,
 // same padding, same CHART_CONTAINER_HEIGHT -- so nothing shifts when it swaps out.
 function ChartSkeleton() {
   return (
@@ -144,8 +154,8 @@ export default function VitalsChart({
 
   if (byVersion.length < 2) return null;
 
-  // unovis needs the DOM -- render a matching skeleton on the server so the
-  // space is already occupied when the chart swaps in after hydration
+  // The chart sizes itself from the DOM -- render a matching skeleton on the
+  // server so the space is already occupied when it swaps in after hydration
   if (!isClient) return <ChartSkeleton />;
 
   return (

@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { loginRedirectAdditions, LOGIN_PROMPT_COOKIE } from "@/lib/loginReturnTo";
+import { clientIp } from "@/lib/clientIp";
+import {
+  loginRedirectAdditions,
+  LOGIN_PROMPT_COOKIE,
+  SESSION_TIMEOUT_PROMPT,
+} from "@/lib/loginReturnTo";
 import {
   SESSION_MARKER_COOKIE,
   SESSION_ABSOLUTE_SECONDS,
   isSessionTimeout,
+  isLogoutPath,
 } from "@/lib/authSession";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
@@ -35,17 +41,22 @@ import {
  *    whether a session exists.
  *
  * 3. CSP headers — applied on every pass-through response so every page load
- *    carries the policy. 'unsafe-inline' in script-src is required for Next.js
- *    App Router RSC payload scripts (self.__next_f.push(...)) that are inlined
- *    into the HTML at build time with no nonce attribute. 'wasm-unsafe-eval'
+ *    carries the policy. 'unsafe-inline' in script-src is a deliberate trade,
+ *    not a limitation: App Router does support nonces on its RSC payload
+ *    scripts, but reading headers() in the root layout opts every route out of
+ *    static generation, and a build confirmed every page flipping from static
+ *    to dynamic. Taken knowing the XSS surface is one static inline script,
+ *    no eval, and nothing user-supplied reaching markup. 'wasm-unsafe-eval'
  *    is required for the Draco WASM decoder used by the landing 3D models.
- *    See README for the full reasoning.
+ *    See /thoughts/security for the full reasoning.
  */
 
 // Built in src/lib/csp.ts so the one environment-dependent part -- the origin
 // serving user-uploaded photos -- is testable and configurable. Without it,
 // saved gallery walls render blank because the browser blocks every photo.
-const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN);
+const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
+  dev: process.env.NODE_ENV === "development",
+});
 
 /**
  * Rate limit config for API routes.
@@ -82,14 +93,6 @@ const RATE_LIMITS: Array<{
 
 const RATE_WINDOW_MS = 60_000;
 
-function getIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
 /**
  * Stamps the long-lived marker on an authenticated response. It outlives the
  * session cookie, so once the session has expired its lingering presence is how
@@ -108,8 +111,7 @@ function markSessionActive(res: NextResponse): NextResponse {
 
 /**
  * Sends a timed-out user to the landing page with a toast flag, clears the
- * marker so we only say it once, and arms the next login to re-show the
- * permission screen. We land them on a real page rather than bouncing straight
+ * marker so we only say it once, and arms the next login to re-authenticate. We land them on a real page rather than bouncing straight
  * to Auth0 so the "session timed out" toast actually gets a chance to render.
  */
 function sessionTimeoutRedirect(request: NextRequest): NextResponse {
@@ -117,7 +119,7 @@ function sessionTimeoutRedirect(request: NextRequest): NextResponse {
   url.searchParams.set("authError", "timeout");
   const res = NextResponse.redirect(url);
   res.cookies.delete(SESSION_MARKER_COOKIE);
-  res.cookies.set(LOGIN_PROMPT_COOKIE, "consent", {
+  res.cookies.set(LOGIN_PROMPT_COOKIE, SESSION_TIMEOUT_PROMPT, {
     path: "/",
     maxAge: 600,
     httpOnly: true,
@@ -132,7 +134,7 @@ export async function proxy(request: NextRequest) {
 
   // Rate limiting — checked before auth so we reject at the edge without
   // doing any session work. First matching rule wins.
-  const ip = getIp(request);
+  const ip = clientIp(request);
   for (const rule of RATE_LIMITS) {
     if (!rule.match(pathname, request.method)) continue;
     const { allowed, resetAt } = checkRateLimit(
@@ -186,7 +188,14 @@ export async function proxy(request: NextRequest) {
       }
     }
     try {
-      return await auth0.middleware(request);
+      const res = await auth0.middleware(request);
+      // Clear the marker on the way out. It deliberately outlives the session
+      // cookie so an expired session can be told apart from never having been
+      // signed in -- but that makes a deliberate logout look identical to a
+      // timeout, and the next page load told the user their session had
+      // expired when they had just chosen to leave.
+      if (isLogoutPath(pathname)) res.cookies.delete(SESSION_MARKER_COOKIE);
+      return res;
     } catch (err) {
       console.error("[proxy] auth0.middleware() failed on", pathname, err);
       // Auth0 is misconfigured (e.g. missing env vars in CI). Fall through so

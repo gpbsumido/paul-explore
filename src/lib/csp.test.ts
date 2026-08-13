@@ -53,4 +53,30 @@ describe("buildCsp", () => {
     const csp = buildCsp("https://evil.example.com");
     expect(directive(csp, "script-src")).not.toContain("evil.example.com");
   });
+
+  it("allows eval in development, which React's dev build needs to build callstacks", () => {
+    const csp = buildCsp(undefined, { dev: true });
+    expect(directive(csp, "script-src")).toContain("'unsafe-eval'");
+  });
+
+  it("never allows eval in production, where React does not use it", () => {
+    const csp = buildCsp(undefined, { dev: false });
+    expect(directive(csp, "script-src")).not.toContain("'unsafe-eval'");
+  });
+
+  it("defaults to the locked-down production policy when nothing is passed", () => {
+    // The safe default matters: a missing flag must not silently open eval.
+    expect(directive(buildCsp(undefined), "script-src")).not.toContain(
+      "'unsafe-eval'",
+    );
+  });
+
+  it("keeps wasm-unsafe-eval in both modes, since the Draco decoder needs it", () => {
+    expect(directive(buildCsp(undefined, { dev: true }), "script-src")).toContain(
+      "'wasm-unsafe-eval'",
+    );
+    expect(
+      directive(buildCsp(undefined, { dev: false }), "script-src"),
+    ).toContain("'wasm-unsafe-eval'");
+  });
 });

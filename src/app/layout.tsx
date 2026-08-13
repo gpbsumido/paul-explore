@@ -23,6 +23,10 @@ const geistMono = Geist_Mono({
 // Fallback metadata for any page that doesn't define its own.
 // Individual pages override title/description via their own metadata exports.
 export const metadata: Metadata = {
+  // Without this, Next resolves every relative metadata URL against localhost
+  // and warns at build. It is also what makes the canonical below absolute.
+  metadataBase: new URL(SITE_URL),
+  alternates: { canonical: "/" },
   title: "Paul Sumido",
   description:
     "Personal playground and portfolio — NBA stats, fantasy league history, Pokémon TCG browser, and write-ups on how it was built.",

@@ -1,6 +1,7 @@
 import path from "path";
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
+import { securityHeaders } from "./src/lib/securityHeaders";
 
 // Pass ANALYZE=true on the CLI to open the treemap reports after the build.
 // The --webpack flag is required because the analyzer does not work with Turbopack.
@@ -23,11 +24,11 @@ const nextConfig: NextConfig = {
     // we only name the barrels it does NOT cover: our own design-system
     // package, the two big charting/3D barrels, and framer-motion. Everything
     // here was confirmed as a real barrel (single entry, many members) before
-    // adding it. See /thoughts/tree-shaking-2.
+    // adding it. See /thoughts/tree-shaking-2. (@unovis/react was on this list
+    // until the vitals sparklines moved to recharts and the package left.)
     optimizePackageImports: [
       "@paul-portfolio/react",
       "@react-three/drei",
-      "@unovis/react",
       "framer-motion",
     ],
   },
@@ -42,6 +43,12 @@ const nextConfig: NextConfig = {
             value: "public, max-age=31536000, immutable",
           },
         ],
+      },
+      // Static security headers on every route. The dynamic CSP is set per
+      // response in src/proxy.ts; these are the ones CSP does not cover.
+      {
+        source: "/:path*",
+        headers: securityHeaders(),
       },
     ];
   },

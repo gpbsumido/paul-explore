@@ -1,6 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 
 // POST /api/calendar/calendars/:id/connect-google
 export async function POST(
@@ -23,7 +24,7 @@ export async function POST(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/calendars/${id}/connect-google`,
+      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/connect-google`,
       {
         method: "POST",
         headers: buildHeaders(token, email),

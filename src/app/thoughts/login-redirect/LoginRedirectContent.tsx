@@ -248,22 +248,64 @@ export default function LoginRedirectContent() {
           landing page with a <code className={code}>?authError=timeout</code>{" "}
           flag so the toast can render, clears the marker so it only says it
           once, and arms the next login with{" "}
-          <code className={code}>prompt=consent</code> so Auth0 re-shows the
-          permission screen. Same one-shot cookie mechanism as the
-          denied-consent case, just a different prompt.
+          <code className={code}>prompt=login</code> so Auth0 asks who is
+          signing in. Same one-shot cookie mechanism as the denied-consent
+          case.
+        </p>
+        <p className="mt-3 text-muted">
+          It armed <code className={code}>prompt=consent</code> at first, which
+          did nothing. Per OIDC Core, <code className={code}>consent</code>{" "}
+          re-asks for scope approval and explicitly does not re-authenticate,
+          and for a first-party client Auth0 skips that screen anyway. So the
+          timeout bounced you to the landing page, showed the toast, sent you
+          to Auth0 — which still had its own tenant SSO cookie, on a lifetime
+          set in the dashboard and entirely independent of this app&rsquo;s six
+          hours — and signed you straight back in as whoever you already were.
+          The toast was telling the truth and the redirect was quietly undoing
+          it.
+        </p>
+        <p className="mt-3 text-muted">
+          Two sessions, not one, is the thing worth remembering. Expiring the
+          local cookie tells Auth0 nothing. If you want a timeout to mean
+          anything, the next login has to say so out loud.
+        </p>
+      </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          The third bug at the same choke point
+        </h2>
+        <p className="text-muted">
+          Logging out told you your session had timed out. The marker cookie
+          that makes the timeout toast possible outlives the session cookie on
+          purpose — once the session is gone there is otherwise no way to tell
+          someone who timed out from someone who was never signed in. But
+          nothing cleared it on the way out, so choosing to leave left exactly
+          the same evidence expiring does, and the next page load read it that
+          way.
+        </p>
+        <p className="mt-3 text-muted">
+          It is cleared on{" "}
+          <code className={code}>/auth/logout</code> now, in the same{" "}
+          <code className={code}>/auth/*</code> branch the other two fixes live
+          in. Matched exactly rather than by prefix, so a route that merely
+          starts with it is not swept up. Three bugs at this choke point now,
+          which is either a good argument for centralising auth or a warning
+          about how much one branch is carrying.
         </p>
       </section>
       <WhatsNext
         nowShipped={[
           "The fix made at the choke point rather than at each call site, which is why two separate bugs closed with one change.",
+          "A deliberate logout no longer claims the session timed out — the marker that outlives the session cookie is cleared on the way out, so leaving and expiring stop looking identical.",
           "A callback that fails softly, because an auth redirect that throws leaves someone stranded with no way to describe what happened.",
         ]}
         couldImprove={[
           "The return path is not covered by an end-to-end test, so the regression it fixes would be caught by noticing.",
           "Deep links into authenticated routes still land on the destination rather than the thing that was being attempted, which is a subtler version of the same problem.",
+          "Three separate bugs have now been found in this one branch, and none of them were caught by a test — each was noticed by using the site.",
         ]}
         upcoming={[
-          "Nothing scheduled. This documents a fix that has held, and I would rather say so than invent follow-on work.",
+          "An end-to-end test that signs in, signs out, and asserts the toast does not appear — the one class of bug here that keeps recurring is the one nothing watches.",
         ]}
       />
     </ThoughtLayout>

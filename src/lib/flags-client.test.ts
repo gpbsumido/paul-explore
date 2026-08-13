@@ -92,3 +92,70 @@ describe("flags-client", () => {
     ).rejects.toThrow();
   });
 });
+
+describe("patchFlagOnApi response shape", () => {
+  const env = {
+    enabled: true,
+    offVariation: "off",
+    rules: [],
+    fallthrough: [{ variation: "on", weight: 100 }],
+  };
+  const flag = {
+    key: "dark-mode",
+    name: "Dark mode",
+    description: "d",
+    kind: "boolean" as const,
+    tags: [],
+    variations: [
+      { key: "on", name: "Enabled", value: true },
+      { key: "off", name: "Disabled", value: false },
+    ],
+    createdAt: "2026-01-01T00:00:00.000Z",
+    environments: {
+      development: env,
+      staging: env,
+      production: env,
+    },
+  };
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  function stubJson(body: unknown) {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => body,
+      }),
+    );
+  }
+
+  it("accepts the flag returned bare at the top level", async () => {
+    // The API answers a PATCH with the flag itself. Expecting only the wrapped
+    // shape made every write throw a parse error, which the BFF then mistook
+    // for the API being unreachable and quietly answered from memory instead.
+    stubJson(flag);
+    const result = await patchFlagOnApi("dark-mode", {
+      environment: "production",
+      enabled: false,
+    });
+    expect(result.flag.key).toBe("dark-mode");
+  });
+
+  it("still accepts the wrapped shape", async () => {
+    stubJson({ flag });
+    const result = await patchFlagOnApi("dark-mode", {
+      environment: "production",
+      enabled: false,
+    });
+    expect(result.flag.key).toBe("dark-mode");
+  });
+
+  it("throws on a body that is neither", async () => {
+    stubJson({ nonsense: true });
+    await expect(
+      patchFlagOnApi("dark-mode", { environment: "production", enabled: false }),
+    ).rejects.toThrow();
+  });
+});

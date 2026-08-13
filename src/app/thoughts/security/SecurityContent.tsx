@@ -144,6 +144,14 @@ export default function SecurityContent() {
             for now the threat model doesn&apos;t warrant it, and the
             performance cost is real
           </Sent>
+          <Sent pos="last">
+            and I went and checked rather than assuming: one inline script in
+            the whole app, a static anti-FOUC constant in the root layout. no{" "}
+            <code>eval</code>, no <code>new Function</code>, nothing user
+            supplied reaching markup. that&apos;s the part that makes the trade
+            defensible — not that nonces are slow, but that there&apos;s no
+            obvious way in for the thing they&apos;d block
+          </Sent>
 
           <Timestamp>10:22 AM</Timestamp>
 
@@ -180,8 +188,8 @@ export default function SecurityContent() {
           <Sent pos="middle">
             the remaining directives do meaningful work:{" "}
             <code>default-src &apos;self&apos;</code> blocks loading resources
-            from unknown domains, <code>frame-ancestors &apos;none&apos;</code>{" "}
-            blocks clickjacking, <code>object-src &apos;none&apos;</code> blocks
+            from unknown domains, <code>frame-ancestors &apos;self&apos;</code>{" "}
+            stops anyone else framing the site, <code>object-src &apos;none&apos;</code> blocks
             Flash and plugins, <code>base-uri &apos;self&apos;</code> blocks
             base tag injection
           </Sent>
@@ -405,9 +413,9 @@ export default function SecurityContent() {
           </code>{" "}
           blocks loading resources from unknown domains,{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-            frame-ancestors &apos;none&apos;
+            frame-ancestors &apos;self&apos;
           </code>{" "}
-          blocks clickjacking,{" "}
+          stops anyone else framing the site,{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             object-src &apos;none&apos;
           </code>{" "}
@@ -424,19 +432,107 @@ export default function SecurityContent() {
           GitHub raw for Pokémon sprites.
         </p>
       </section>
+
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          The headers CSP doesn&apos;t cover
+        </h2>
+        <p className="text-muted">
+          A CSP is one header doing a lot, but it isn&apos;t everything. Three
+          smaller headers cover the gaps, and they live in{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            next.config.ts
+          </code>{" "}
+          rather than the proxy — they never change, so there&apos;s no reason to
+          recompute them per request the way the media-origin-dependent CSP has
+          to be.{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            X-Content-Type-Options: nosniff
+          </code>{" "}
+          stops a browser second-guessing a response&apos;s declared type, which
+          is how a served file gets coerced into running as script.{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            Referrer-Policy: strict-origin-when-cross-origin
+          </code>{" "}
+          keeps the full path on my own origin but sends only the bare origin
+          outward, so an outbound link never leaks the page you were on.{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            Permissions-Policy
+          </code>{" "}
+          denies camera, microphone, and geolocation outright, because nothing
+          here touches those APIs and the safe default for an unused capability
+          is off. HSTS isn&apos;t in the list on purpose: Vercel already sends it.
+          And the set is asserted in a test now, so dropping one fails a run
+          instead of going unnoticed.
+        </p>
+        <p className="mt-3 text-muted">
+          One thing the policy now varies by environment. React&apos;s
+          development build calls{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            eval()
+          </code>{" "}
+          to rebuild callstacks that crossed the server/client boundary, so on a
+          strict policy the dev overlay throws about eval instead of showing the
+          error you opened it to read. React never calls it in production, so{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            &apos;unsafe-eval&apos;
+          </code>{" "}
+          is added in development only and the shipped policy is unchanged. The
+          flag defaults to off, because the version of this that goes wrong is
+          the one where a missing environment check quietly opens eval in prod.
+          That is separate from{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            &apos;wasm-unsafe-eval&apos;
+          </code>
+          , which stays in both — it is the Draco decoder for the 3D models.
+        </p>
+      </section>
+      <section>
+        <h2 className="mb-3 text-lg font-bold">
+          The vulnerability that is not in the browser
+        </h2>
+        <p className="text-muted">
+          Everything above is about what a page is allowed to do. The operator
+          dashboard exports CSVs, and a CSV has its own version of the same
+          question — except the thing executing it is Excel, not a browser, and
+          no header reaches it.
+        </p>
+        <p className="mt-3 text-muted">
+          A cell beginning with{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            = + - @
+          </code>{" "}
+          is run as a formula when the file is opened. The exports carry product
+          and store names, so exporting text somebody else typed is a way to run
+          something on the machine of whoever opens it. RFC 4180 quoting was
+          already correct and is not the defence: the quotes come off at parse
+          time and the formula runs anyway.
+        </p>
+        <p className="mt-3 text-muted">
+          A leading apostrophe pins the cell to text and is not displayed. Only
+          strings get it — a negative number is data, and prefixing it would
+          corrupt every negative figure in the finance export, which is a worse
+          bug than the one being fixed. No library for this on purpose: the
+          popular CSV writers do not escape these characters by default either,
+          so adding one would grow the bundle without addressing it.
+        </p>
+      </section>
       <WhatsNext
         nowShipped={[
+          "CSV exports that cannot carry an executable cell, which is the one injection path here that no HTTP header can reach.",
           "A content security policy that is actually restrictive, rather than one broad enough to be decorative.",
           "The unsafe-inline problem confronted instead of worked around, which is the difference between having a CSP and appearing to.",
           "Middleware kept cheap, since a header on every request is the one place overhead compounds.",
+          "The three headers a CSP doesn't cover — nosniff, Referrer-Policy, Permissions-Policy — set statically in next.config.ts.",
+          "The header set is asserted in a test, so removing one fails a run rather than being noticed later.",
         ]}
         couldImprove={[
           "Nothing reports violations, so a policy blocking something legitimate is discovered by a broken page rather than a report.",
-          "The policy is not tested — no check fails if a header stops being sent.",
           "It predates the ask route, which added a first outbound call to a third party and deserves a look against the connect-src rule.",
         ]}
         upcoming={[
-          "Assert the security headers in a test, so removing one fails a build rather than being noticed later.",
+          "A CSP report-uri endpoint, so a blocked-but-legitimate request surfaces as a report instead of a broken page.",
+          "A look at the other places text leaves this app for somewhere that executes it — the CSV case was found by asking the question, not by anything flagging it.",
         ]}
       />
     </ThoughtLayout>

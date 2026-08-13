@@ -18,6 +18,16 @@ import Tooltip from "@/components/ui/Tooltip";
 import EnvironmentSwitcher from "@/components/flags/EnvironmentSwitcher";
 import FlagCard from "@/components/flags/FlagCard";
 import FlagsInfoStrip from "@/components/flags/FlagsInfoStrip";
+import {
+  ACCESS_TIERS,
+  ACCESS_LABEL,
+  accessOf,
+  canChangeFlag,
+  lockReason,
+  whoCanChange,
+  emptyTierNote,
+  type FlagAccess,
+} from "@/lib/flags-access";
 import TestUserBar from "@/components/flags/TestUserBar";
 import AuditLog from "@/components/flags/AuditLog";
 
@@ -46,7 +56,7 @@ export default function FlagsConsole() {
   // the header does, so the controls lock with a clear sign-in affordance.
   const meQuery = useQuery({
     queryKey: queryKeys.me(),
-    queryFn: (): Promise<{ sub: string | null }> =>
+    queryFn: (): Promise<{ sub: string | null; isFlagAdmin?: boolean }> =>
       fetch("/api/me").then((r) => {
         if (!r.ok) throw new Error("Failed to load user");
         return r.json();
@@ -54,6 +64,10 @@ export default function FlagsConsole() {
     staleTime: 5 * 60_000,
   });
   const isLoggedIn = meQuery.data?.sub != null;
+  // A hint for rendering only. The API re-derives this from the session on
+  // every write, so a tampered response changes what the page draws and
+  // nothing about what it is allowed to do.
+  const isAdmin = meQuery.data?.isFlagAdmin === true;
 
   // A live "resets in ~2h 14m" hint. Computed on the client only (the boundary
   // depends on the current time) and refreshed each minute.
@@ -84,8 +98,16 @@ export default function FlagsConsole() {
 
   // Real flags gate live features; demo flags just illustrate the mechanics.
   // Show the real ones first so the thing that actually ships leads the page.
-  const realFlags = useMemo(() => flags.filter((f) => f.real), [flags]);
-  const demoFlags = useMemo(() => flags.filter((f) => !f.real), [flags]);
+  // Grouped by who may change them, loosest first, so the page reads as three
+  // rungs rather than one list with some cards mysteriously locked.
+  const byAccess = useMemo(
+    () =>
+      ACCESS_TIERS.map((tier) => ({
+        tier,
+        flags: flags.filter((f) => accessOf(f) === tier),
+      })),
+    [flags],
+  );
 
   if (error) {
     return (
@@ -108,6 +130,7 @@ export default function FlagsConsole() {
 
       <FlagsInfoStrip
         isLoggedIn={isLoggedIn}
+        isFlagAdmin={isAdmin}
         resetLabel={resetLabel || "a few hours"}
       />
 
@@ -146,29 +169,20 @@ export default function FlagsConsole() {
         <FlagGridSkeleton />
       ) : (
         <div className="space-y-8">
-          <FlagSection
-            title="Gating a real feature"
-            subtitle="These control a live page. Flip them and real visitors feel it."
-            flags={realFlags}
-            environment={environment}
-            pendingKey={pendingKey}
-            isLoggedIn={isLoggedIn}
-            contextKey={context.key}
-            resultByKey={resultByKey}
-            updateFlag={updateFlag}
-            requiresSignIn
-          />
-          <FlagSection
-            title="Demo flags"
-            subtitle="Illustrations of the mechanics. They don't gate anything live."
-            flags={demoFlags}
-            environment={environment}
-            pendingKey={pendingKey}
-            isLoggedIn={isLoggedIn}
-            contextKey={context.key}
-            resultByKey={resultByKey}
-            updateFlag={updateFlag}
-          />
+          {byAccess.map(({ tier, flags: tierFlags }) => (
+            <FlagSection
+              key={tier}
+              access={tier}
+              flags={tierFlags}
+              environment={environment}
+              pendingKey={pendingKey}
+              isLoggedIn={isLoggedIn}
+              isAdmin={isAdmin}
+              contextKey={context.key}
+              resultByKey={resultByKey}
+              updateFlag={updateFlag}
+            />
+          ))}
         </div>
       )}
 
@@ -185,8 +199,6 @@ type UpdateFlagInput = {
 };
 
 type FlagSectionProps = {
-  title: string;
-  subtitle: string;
   flags: readonly Flag[];
   environment: Environment;
   pendingKey: string | null;
@@ -194,14 +206,15 @@ type FlagSectionProps = {
   contextKey: string;
   resultByKey: Map<string, EvaluationResult>;
   updateFlag: (input: UpdateFlagInput) => Promise<Flag>;
-  /** When true, a signed-out visitor sees a sign-in notice right in the header. */
-  requiresSignIn?: boolean;
+  /** Which rung this group is, which decides its heading and its lock copy. */
+  access: FlagAccess;
+  /** Whether the viewer is on the server's flag-admin allowlist. */
+  isAdmin: boolean;
 };
 
 /** One titled group of flag cards. Skips itself entirely when empty. */
 function FlagSection({
-  title,
-  subtitle,
+  access,
   flags,
   environment,
   pendingKey,
@@ -209,33 +222,46 @@ function FlagSection({
   contextKey,
   resultByKey,
   updateFlag,
-  requiresSignIn = false,
+  isAdmin,
 }: FlagSectionProps) {
-  if (flags.length === 0) return null;
+
+  const canEdit = canChangeFlag({ access, isLoggedIn, isAdmin });
+  const locked = lockReason(access, { isLoggedIn, isAdmin });
 
   return (
     <section className="space-y-3">
-      <div>
-        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-        <p className="text-[13px] text-muted">{subtitle}</p>
+      <div className="flex flex-wrap items-baseline gap-x-2">
+        <h2 className="text-sm font-semibold text-foreground">
+          {ACCESS_LABEL[access]}
+        </h2>
+        <AccessBadge access={access} canEdit={canEdit} />
       </div>
-      {requiresSignIn && !isLoggedIn && (
+      <p className="text-[13px] text-muted">{whoCanChange(access)}</p>
+      {locked && (
         <div className="flex items-start gap-2 rounded-lg border border-warning-300 bg-warning-100 px-3 py-2 text-[13px] text-warning-700 dark:border-warning-900 dark:bg-warning-950/40 dark:text-warning-400">
           <span aria-hidden className="mt-0.5 shrink-0">
             🔒
           </span>
           <span>
-            This one gates a live page, so changing it needs a sign-in.{" "}
-            <a
-              href="/auth/login"
-              className="font-semibold underline underline-offset-2"
-            >
-              Sign in to change it
-            </a>
-            . Everything else here stays open — view it, evaluate it, watch the
-            verdict update.
+            {locked}{" "}
+            {!isLoggedIn && (
+              <a
+                href="/auth/login"
+                className="font-semibold underline underline-offset-2"
+              >
+                Sign in
+              </a>
+            )}
+            {!isLoggedIn && ". "}
+            Viewing and evaluating stay open either way — the verdicts below
+            still update.
           </span>
         </div>
+      )}
+      {flags.length === 0 && (
+        <p className="rounded-lg border border-dashed border-border px-3 py-3 text-[13px] text-muted">
+          {emptyTierNote(access)}
+        </p>
       )}
       <div className="grid gap-4 lg:grid-cols-2">
         {flags.map((flag) => (
@@ -244,7 +270,8 @@ function FlagSection({
             flag={flag}
             environment={environment}
             pending={pendingKey === flag.key}
-            canEdit={!flag.real || isLoggedIn}
+            canEdit={canEdit}
+            lockedReason={locked}
             contextKey={contextKey}
             result={resultByKey.get(flag.key)}
             onToggle={(enabled) =>
@@ -270,5 +297,38 @@ function FlagGridSkeleton() {
         />
       ))}
     </div>
+  );
+}
+
+/**
+ * The little pill next to a group heading. It says who the rung is for and,
+ * when the viewer is not that person, that it is read-only for them — so the
+ * state is legible before anyone clicks a disabled switch to find out.
+ */
+function AccessBadge({
+  access,
+  canEdit,
+}: {
+  access: FlagAccess;
+  canEdit: boolean;
+}) {
+  const tone = canEdit
+    ? "bg-success-100 text-success-700 dark:bg-success-950/50 dark:text-success-400"
+    : "bg-surface-raised text-muted";
+  const label =
+    access === "open"
+      ? "No sign-in needed"
+      : access === "authed"
+        ? "Sign-in required"
+        : "Allowlisted admins";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${tone}`}
+    >
+      <span aria-hidden>{canEdit ? "✓" : "🔒"}</span>
+      {label}
+      {!canEdit && <span className="sr-only"> — read-only for you</span>}
+    </span>
   );
 }

@@ -233,3 +233,23 @@ export const pokemonListResultSchema = z.object({
 });
 
 export const pokemonGraphQLResponseSchema = graphqlResponseSchema(pokemonListResultSchema);
+
+/**
+ * PUT /api/nba/playoffs/picks body.
+ *
+ * The picks map was forwarded to the backend as whatever the caller sent, with
+ * only a top-level "is it an object" check and no size cap. Bound the keys and
+ * values so an authenticated user can't push an arbitrarily large nested
+ * structure into storage.
+ */
+export const playoffPicksBodySchema = z.object({
+  picks: z.record(
+    z.string().min(1).max(64),
+    z.string().min(1).max(64),
+  ),
+});
+
+/** PATCH /api/todos/:id body. Only the tick is changeable. */
+export const updateTodoBodySchema = z.object({
+  done: z.boolean(),
+});

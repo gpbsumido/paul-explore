@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { updateMemberRoleBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
+import { safeSegment } from "@/lib/safeSegment";
 
 /** PUT /api/calendar/calendars/:id/members/:memberSub — body: { role } → { member } */
 export async function PUT(
@@ -27,7 +28,7 @@ export async function PUT(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/calendars/${id}/members/${encodeURIComponent(memberSub)}`,
+      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members/${encodeURIComponent(memberSub)}`,
       {
         method: "PUT",
         headers: buildHeaders(token, email, {
@@ -73,7 +74,7 @@ export async function DELETE(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/calendars/${id}/members/${encodeURIComponent(memberSub)}`,
+      `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members/${encodeURIComponent(memberSub)}`,
       {
         method: "DELETE",
         headers: buildHeaders(token, email),

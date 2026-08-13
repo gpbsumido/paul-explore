@@ -87,7 +87,7 @@ describe("applyFlagPatch", () => {
     const result = await applyFlagPatch(
       "new-checkout",
       { environment: "production", enabled: false },
-      "token-123",
+      { bearer: "token-123" },
     );
 
     expect(result.status).toBe(200);
@@ -95,7 +95,7 @@ describe("applyFlagPatch", () => {
     expect(patchFlagOnApi).toHaveBeenCalledWith(
       "new-checkout",
       { environment: "production", enabled: false },
-      "token-123",
+      { bearer: "token-123" },
     );
   });
 

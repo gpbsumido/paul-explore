@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { gsap } from "gsap";
 import { buildGraphData, type GraphNode } from "./graphData";
+import { BACK_OUT, POWER2_OUT, centerStagger } from "./easing";
 import {
   createSimState,
   stepSimulation,
@@ -42,6 +42,9 @@ export default function NodeGraph({ reducedMotion }: Props) {
   const edgeEls = useRef<(SVGLineElement | null)[]>([]);
   const simRef = useRef<SimState | null>(null);
   const frameRef = useRef<number | null>(null);
+  // Intro animations, held so the effect cleanup can cancel them if the graph
+  // unmounts or re-runs mid-reveal.
+  const introAnims = useRef<Animation[]>([]);
   const runningRef = useRef(false);
   // The hover popover's DOM node, and whether it's currently up: while it is,
   // the sim keeps running and pushes nodes out from under it.
@@ -309,16 +312,18 @@ export default function NodeGraph({ reducedMotion }: Props) {
     const sim = createSimState(data);
     simRef.current = sim;
 
-    // Capture the ref arrays so cleanup uses a stable variable, not ref.current.
+    // Capture the ref array so cleanup uses a stable variable, not ref.current.
     const innerArr = innerEls.current;
-    const edgeArr = edgeEls.current;
 
     const inners = innerArr.filter(Boolean) as HTMLElement[];
     if (reducedMotion) {
       radialLayout(sim, data);
       paint();
-      gsap.set(inners, { opacity: 1 });
-      gsap.set(edgeEls.current.filter(Boolean), { opacity: 1 });
+      // Reduced motion: no animation at all, just make everything visible.
+      inners.forEach((el) => (el.style.opacity = "1"));
+      (edgeEls.current.filter(Boolean) as SVGLineElement[]).forEach(
+        (el) => (el.style.opacity = "1"),
+      );
     } else {
       // Warm up so the graph opens already spread out, then animate. Recompute
       // the fit (DOM-free) each step so collision's screen-scale stays accurate.
@@ -330,24 +335,33 @@ export default function NodeGraph({ reducedMotion }: Props) {
       sim.alpha = 0.32;
       paint();
       const lines = edgeEls.current.filter(Boolean) as SVGLineElement[];
-      gsap.fromTo(
-        inners,
-        { opacity: 0, scale: 0.2 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.7,
-          ease: "back.out(1.7)",
-          stagger: { each: 0.012, from: "center" },
-          // Drop the inline transform so CSS hover-scale can take over afterward.
-          clearProps: "transform",
-        },
-      );
-      gsap.fromTo(
-        lines,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.9, delay: 0.2, stagger: 0.004 },
-      );
+      // fill:"none" is the equivalent of gsap's clearProps:"transform" -- once
+      // the intro finishes the element keeps no inline transform, so the CSS
+      // hover-scale takes over instead of being overridden by a pinned value.
+      inners.forEach((el, i) => {
+        introAnims.current.push(
+          el.animate(
+            {
+              opacity: [0, 1],
+              transform: ["scale(0.2)", "scale(1)"],
+            },
+            {
+              duration: 700,
+              delay: centerStagger(i, inners.length, 12),
+              easing: BACK_OUT,
+              fill: "none",
+            },
+          ),
+        );
+      });
+      lines.forEach((el, i) => {
+        introAnims.current.push(
+          el.animate(
+            { opacity: [0, 1] },
+            { duration: 900, delay: 200 + i * 4, fill: "none" },
+          ),
+        );
+      });
       ensureRunning();
     }
 
@@ -407,8 +421,8 @@ export default function NodeGraph({ reducedMotion }: Props) {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
       if (focusTimer.current) clearTimeout(focusTimer.current);
       if (hoverEndTimer.current) clearTimeout(hoverEndTimer.current);
-      gsap.killTweensOf(innerArr.filter(Boolean));
-      gsap.killTweensOf(edgeArr.filter(Boolean));
+      introAnims.current.forEach((a) => a.cancel());
+      introAnims.current = [];
       runningRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -512,15 +526,19 @@ export default function NodeGraph({ reducedMotion }: Props) {
       dot.style.top = `${y}px`;
       layer.appendChild(dot);
       const angle = (k / 8) * Math.PI * 2;
-      gsap.to(dot, {
-        x: Math.cos(angle) * 34,
-        y: Math.sin(angle) * 34,
-        opacity: 0,
-        scale: 0.3,
-        duration: 0.5,
-        ease: "power2.out",
-        onComplete: () => dot.remove(),
-      });
+      const anim = dot.animate(
+        {
+          transform: [
+            "translate(0px, 0px) scale(1)",
+            `translate(${Math.cos(angle) * 34}px, ${Math.sin(angle) * 34}px) scale(0.3)`,
+          ],
+          opacity: [1, 0],
+        },
+        { duration: 500, easing: POWER2_OUT, fill: "forwards" },
+      );
+      // The dot is a throwaway element, so it removes itself rather than
+      // needing a tracked handle to clean up later.
+      anim.finished.then(() => dot.remove()).catch(() => dot.remove());
     }
   };
 

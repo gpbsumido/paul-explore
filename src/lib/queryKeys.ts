@@ -12,6 +12,9 @@ export const queryKeys = {
   /** Current logged-in user's name and email from /api/me. */
   me: () => ["me"] as const,
 
+  /** Admin to-do list from /api/todos. */
+  todos: () => ["todos"] as const,
+
   calendar: {
     /**
      * Calendar events for a specific date window. Keyed by start and end
@@ -146,6 +149,10 @@ export const queryKeys = {
     /** Activity events for a specific store. */
     activity: (storeId: string) =>
       ["operator", "stores", storeId, "activity"] as const,
+
+    /** Completed restock sessions for a specific store, newest first. */
+    restockHistory: (storeId: string) =>
+      ["operator", "stores", storeId, "restock-history"] as const,
 
     /** Sales history for a specific store. Polled every 60s. */
     sales: (storeId: string) =>
