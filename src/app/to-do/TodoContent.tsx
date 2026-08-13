@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import { Chip } from "@/components/ui";
 import TodoSkeleton from "./TodoSkeleton";
+import TodoAddForm from "./TodoAddForm";
 import {
   filterTodos,
   TODO_FILTERS,
@@ -56,6 +57,7 @@ async function fetchTodos(): Promise<Todo[]> {
 export default function TodoContent() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<TodoFilter>("all");
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.todos(),
@@ -82,6 +84,31 @@ export default function TodoContent() {
       return { previous };
     },
     onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.todos(), context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.todos() });
+    },
+  });
+
+  // Soft delete upstream, so this hides an item rather than destroying it. The
+  // confirm step is what stops a mis-click next to the checkbox doing it.
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/todos/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Could not remove that");
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.todos() });
+      const previous = queryClient.getQueryData<Todo[]>(queryKeys.todos());
+      queryClient.setQueryData<Todo[]>(queryKeys.todos(), (old) =>
+        (old ?? []).filter((t) => t.id !== id),
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.todos(), context.previous);
       }
@@ -142,6 +169,9 @@ export default function TodoContent() {
         <p className="mt-4 text-muted">
           Nothing outstanding. This list is meant to reach here.
         </p>
+        {/* Still here on an empty list, or there would be no way to add the
+            first thing back. */}
+        <TodoAddForm />
       </main>
     );
   }
@@ -175,6 +205,8 @@ export default function TodoContent() {
           </button>
         ))}
       </div>
+
+      <TodoAddForm />
 
       {phases.groups.length === 0 ? (
         <p className="mt-8 text-muted">
@@ -238,6 +270,39 @@ export default function TodoContent() {
                           {todo.command}
                         </code>
                       ) : null}
+
+                      {confirmingId === todo.id ? (
+                        <span className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="text-muted">
+                            Remove this? It stays recoverable.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setConfirmingId(null);
+                              remove.mutate(todo.id);
+                            }}
+                            className="rounded border border-foreground px-2 py-0.5 font-medium"
+                          >
+                            Remove
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingId(null)}
+                            className="rounded border border-border px-2 py-0.5 text-muted"
+                          >
+                            Cancel
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingId(todo.id)}
+                          className="mt-2 block text-xs text-muted underline"
+                        >
+                          Remove &ldquo;{todo.title}&rdquo;
+                        </button>
+                      )}
                     </span>
                   </div>
                 </li>
