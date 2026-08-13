@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { updateEventBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
+import { safeSegment } from "@/lib/safeSegment";
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
@@ -12,7 +13,7 @@ export const GET = withBackend<RouteCtx>(
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/events/${id}`,
+      `${API_URL}/api/calendar/events/${safeSegment(id)}`,
       {
         headers: buildHeaders(token, email),
       },
@@ -40,7 +41,7 @@ export const PUT = withBackend<RouteCtx>(
     if (!bodyResult.ok) return bodyResult.response;
 
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/events/${id}`,
+      `${API_URL}/api/calendar/events/${safeSegment(id)}`,
       {
         method: "PUT",
         headers: buildHeaders(token, email, {
@@ -68,7 +69,7 @@ export const DELETE = withBackend<RouteCtx>(
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/events/${id}`,
+      `${API_URL}/api/calendar/events/${safeSegment(id)}`,
       {
         method: "DELETE",
         headers: buildHeaders(token, email),

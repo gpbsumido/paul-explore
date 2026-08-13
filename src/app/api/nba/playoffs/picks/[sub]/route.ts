@@ -1,6 +1,7 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 import { NextResponse, type NextRequest } from "next/server";
 import { API_URL } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 
 function currentSeasonYear(): number {
   const now = new Date();
@@ -27,7 +28,7 @@ export async function GET(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/nba/playoffs/picks/${season}/public?${param}`,
+      `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}/public?${param}`,
       { next: { revalidate: 60 } },
     );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);

@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
 import { updateCountdownBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
+import { safeSegment } from "@/lib/safeSegment";
 
 // GET /api/calendar/countdowns/:id
 export async function GET(
@@ -22,7 +23,7 @@ export async function GET(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/countdowns/${id}`,
+      `${API_URL}/api/calendar/countdowns/${safeSegment(id)}`,
       {
         headers: buildHeaders(token, email),
       },
@@ -68,7 +69,7 @@ export async function PUT(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/countdowns/${id}`,
+      `${API_URL}/api/calendar/countdowns/${safeSegment(id)}`,
       {
         method: "PUT",
         headers: buildHeaders(token, email, {
@@ -112,7 +113,7 @@ export async function DELETE(
 
   try {
     const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/calendar/countdowns/${id}`,
+      `${API_URL}/api/calendar/countdowns/${safeSegment(id)}`,
       {
         method: "DELETE",
         headers: buildHeaders(token, email),

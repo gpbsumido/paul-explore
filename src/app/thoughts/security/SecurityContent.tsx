@@ -144,6 +144,14 @@ export default function SecurityContent() {
             for now the threat model doesn&apos;t warrant it, and the
             performance cost is real
           </Sent>
+          <Sent pos="last">
+            and I went and checked rather than assuming: one inline script in
+            the whole app, a static anti-FOUC constant in the root layout. no{" "}
+            <code>eval</code>, no <code>new Function</code>, nothing user
+            supplied reaching markup. that&apos;s the part that makes the trade
+            defensible — not that nonces are slow, but that there&apos;s no
+            obvious way in for the thing they&apos;d block
+          </Sent>
 
           <Timestamp>10:22 AM</Timestamp>
 
@@ -180,8 +188,8 @@ export default function SecurityContent() {
           <Sent pos="middle">
             the remaining directives do meaningful work:{" "}
             <code>default-src &apos;self&apos;</code> blocks loading resources
-            from unknown domains, <code>frame-ancestors &apos;none&apos;</code>{" "}
-            blocks clickjacking, <code>object-src &apos;none&apos;</code> blocks
+            from unknown domains, <code>frame-ancestors &apos;self&apos;</code>{" "}
+            stops anyone else framing the site, <code>object-src &apos;none&apos;</code> blocks
             Flash and plugins, <code>base-uri &apos;self&apos;</code> blocks
             base tag injection
           </Sent>
@@ -405,9 +413,9 @@ export default function SecurityContent() {
           </code>{" "}
           blocks loading resources from unknown domains,{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-            frame-ancestors &apos;none&apos;
+            frame-ancestors &apos;self&apos;
           </code>{" "}
-          blocks clickjacking,{" "}
+          stops anyone else framing the site,{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             object-src &apos;none&apos;
           </code>{" "}
