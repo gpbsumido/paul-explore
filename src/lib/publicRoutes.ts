@@ -76,6 +76,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/accessibility",
   "/thoughts/ai-agent-patterns",
   "/thoughts/ai-security",
+  "/thoughts/security-audit",
   "/thoughts/api-backend-overhaul",
   "/thoughts/bundle",
   "/thoughts/bundlers",

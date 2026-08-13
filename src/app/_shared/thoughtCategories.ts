@@ -81,7 +81,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
   },
   {
     name: "Security",
-    slugs: ["security", "ai-security"],
+    slugs: ["security", "ai-security", "security-audit"],
   },
   {
     name: "Build & Tooling",

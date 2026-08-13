@@ -391,6 +391,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#dc2626",
   },
   {
+    title: "Auditing for Absences",
+    href: "/thoughts/security-audit",
+    preview:
+      "AI-written code passes security tests 56% of the time and fails worst on what is missing. A cross-repo audit, and the seven shapes of absence it actually found",
+    color: "#b91c1c",
+  },
+  {
     title: "AI Agent Patterns",
     href: "/thoughts/ai-agent-patterns",
     preview:
