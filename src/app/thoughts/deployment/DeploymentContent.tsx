@@ -333,6 +333,15 @@ export default function DeploymentContent() {
 
       <section>
         <h2 className="mb-3 text-lg font-bold">The concrete setup here</h2>
+        <p className="mb-3 text-muted">
+          This section is the front end. The backend half — Railway, a Postgres
+          that used to be reachable from the open internet, and what it took to
+          move it onto a private network — is its own write-up at{" "}
+          <a href="/thoughts/database-networking" className="underline">
+            Taking the database off the public internet
+          </a>
+          .
+        </p>
         <p className="text-muted">
           This portfolio is Next.js on <strong>Vercel</strong>, region{" "}
           <C>iad1</C>, fronted by <strong>Cloudflare</strong> for DNS and CDN,
