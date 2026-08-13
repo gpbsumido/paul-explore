@@ -247,16 +247,17 @@ export default function CrawlersContent() {
         nowShipped={[
           "The five files a site is supposed to serve, after a scan found none of them present — and a proxy matcher that had been excluding /robots.txt for a file that was never written.",
           "A sitemap of 102 URLs, 56 of them write-ups, which is the ratio that makes having one worth the trouble.",
-          "A test that walks src/app and fails when the sitemap list and the pages on disk disagree, checked by deleting a route and watching it go red — a guard nobody has seen fail is not a guard.",
+          "A test that walks src/app and fails when the sitemap list and the pages on disk disagree, checked by deleting a route and watching it go red — a guard nobody has seen fail is not a guard. It compares the two sets for equality, so it catches a page missing from the list and a listed route that no longer exists, in one assertion.",
+          "The same treatment for the other two files: security.txt fails thirty days before its Expires date lapses, and llms.txt fails when it names a write-up that has been renamed or removed. Both verified the same way, by breaking them on purpose and watching them go red.",
           "metadataBase, which Next had been warning about: without it every relative metadata URL resolves against localhost.",
         ]}
         couldImprove={[
-          "security.txt carries a hard-coded Expires date. RFC 9116 requires one, and the failure mode is silent — it lapses and nothing says so.",
-          "llms.txt is hand-written prose that names specific write-ups, so it drifts the moment one is renamed. The sitemap has a test for exactly this and this file does not.",
-          "Nothing verifies the sitemap URLs actually resolve. A route deleted without updating the list would publish a page of 404s and no test would notice.",
+          "The route list is checked against the pages on disk, but nothing proves a page actually renders. A route that exists and throws is listed in the sitemap exactly like a healthy one.",
+          "llms.txt is still hand-written prose. The test catches a path that no longer resolves; it cannot tell that the description beside it has quietly stopped being true.",
+          "security.txt now fails the build thirty days before it lapses, which turns a silent expiry into a loud one — but somebody still has to move the date.",
         ]}
         upcoming={[
-          "A check that every sitemap URL returns 200, which the e2e suite is already positioned to do.",
+          "A check that every sitemap URL returns 200, which the e2e suite is already positioned to do. That is the one thing here still resting on inspection rather than execution.",
         ]}
       />
     </ThoughtLayout>
