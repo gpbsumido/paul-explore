@@ -153,13 +153,14 @@ export default function LearnContent() {
 
       <WhatsNext
         nowShipped={[
+          "A test that no learn demo implements arrow-key stepping itself, so the thirteen cannot quietly disagree about what the arrow keys do. Verified by adding a rogue handler and watching it go red.",
           "One useStepPlayer hook behind all thirteen demos, so play, pause, step and keyboard control behave identically everywhere and get fixed in one place.",
           "Characterisation tests written before the refactor, not after — they caught a step-past-the-end overrun that had been live.",
           "Autoplay stops from the callback rather than the state updater, so the updater stays a pure function of previous state.",
         ]}
         couldImprove={[
           "The demos share a player but not a shape: each still hand-rolls its own layout and controls markup, so a visual change is thirteen edits. A shared DemoLayout would be the same argument one level up.",
-          "There is no test that the demos agree on keyboard behaviour — the hook is covered, but nothing stops a page wiring it up differently.",
+          "The keyboard guard checks that no demo hand-rolls arrow stepping. It cannot check that a demo which should be stepped actually is one — a page with previous and next buttons and no hook would pass.",
           "Content is hard-coded per route. Steps as data rather than JSX would make a demo a file of steps instead of a component.",
         ]}
         upcoming={[
