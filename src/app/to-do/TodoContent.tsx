@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
 import { Chip } from "@/components/ui";
+import { pullRequestUrl } from "@/lib/prUrl";
 import TodoSkeleton from "./TodoSkeleton";
 import TodoAddForm from "./TodoAddForm";
 import {
@@ -257,7 +258,13 @@ export default function TodoContent() {
                           <Chip label="blocks the next step" />
                         ) : null}
                         {todo.pr_number ? (
-                          <Chip label={`${todo.pr_repo}#${todo.pr_number}`} />
+                          <Chip
+                            label={`${todo.pr_repo}#${todo.pr_number}`}
+                            href={
+                              pullRequestUrl(todo.pr_repo, todo.pr_number) ??
+                              undefined
+                            }
+                          />
                         ) : null}
                       </span>
                       {todo.detail ? (
