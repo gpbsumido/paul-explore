@@ -13,8 +13,6 @@ import VersionBanner from "./v2/VersionBanner";
 // Use next/dynamic for retired versions to keep their deps out of the
 // default bundle.
 
-import LandingContentV3 from "./v3/LandingContentV3";
-import FeatureHubV3 from "./v3/FeatureHubV3";
 import LandingContentV4 from "./v4/LandingContentV4";
 import FeatureHubV4 from "./v4/FeatureHubV4";
 
@@ -32,8 +30,8 @@ const VERSIONS = {
     Hub: nextDynamic(() => import("./v2/FeatureHubV2")),
   },
   v3: {
-    Landing: LandingContentV3,
-    Hub: FeatureHubV3,
+    Landing: nextDynamic(() => import("./v3/LandingContentV3")),
+    Hub: nextDynamic(() => import("./v3/FeatureHubV3")),
   },
   v4: {
     Landing: LandingContentV4,

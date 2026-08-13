@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
-import { domMax, LazyMotion, useReducedMotion } from "framer-motion";
+import { LazyMotion, useReducedMotion } from "framer-motion";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
@@ -60,8 +60,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {/* LazyMotion lets components use the lighter `m` components instead of
             `motion`. domMax (not domAnimation) because the app uses layout and
             drag animations. Non-strict during the migration so files still on
-            `motion` keep working. See /thoughts/react-doctor. */}
-        <LazyMotion features={domMax}>{children}</LazyMotion>
+            `motion` keep working. See /thoughts/react-doctor.
+
+            Passed as a loader, not a static import. domMax is the largest
+            feature bundle framer-motion ships -- drag, layout projection and
+            every gesture -- and importing it here put all of it in the root
+            layout's synchronous chunk on every route, which is the one thing
+            LazyMotion exists to avoid. */}
+        <LazyMotion features={() => import("framer-motion").then((m) => m.domMax)}>
+          {children}
+        </LazyMotion>
       </ReducedMotionProvider>
       {process.env.NODE_ENV === "development" && (
         <ReactQueryDevtools initialIsOpen={false} />

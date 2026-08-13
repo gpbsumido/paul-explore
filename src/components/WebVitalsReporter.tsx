@@ -58,10 +58,18 @@ function sendVital(metric: MetricType, page: string) {
  * one to /api/vitals when it fires. Lives in the root layout so every page
  * is covered without any per-page setup.
  *
- * The pathname ref keeps the reported page accurate across SPA navigations
- * without re-registering the observers on every route change. Observers are
- * registered once; when LCP/CLS/INP/etc. eventually fire, they read the ref
- * to get whatever pathname is current at that moment.
+ * The five metrics split into two groups, and they need different answers to
+ * "which page was this?".
+ *
+ * FCP, LCP and TTFB describe the initial document load, so they belong to
+ * whatever page was loading when the observers were registered. That matters
+ * most for LCP: web-vitals only flushes it on first interaction, and on this
+ * site the first interaction is usually a click on a nav link. Reading the
+ * pathname at that point credits the load to the page the user just navigated
+ * to, which is how a static prose page ended up reporting a 22 second LCP.
+ *
+ * INP and CLS are genuinely scoped to the view the user is on now, so those
+ * keep reading the ref and follow client-side navigations.
  */
 export default function WebVitalsReporter() {
   const pathname = usePathname();
@@ -76,14 +84,19 @@ export default function WebVitalsReporter() {
     const host = window.location.hostname;
     if (host === "localhost" || host === "127.0.0.1") return;
 
-    const report = (metric: MetricType) =>
+    // captured once, at registration — the page this document load is for
+    const loadPage = pathnameRef.current;
+
+    const reportLoad = (metric: MetricType) => sendVital(metric, loadPage);
+    const reportInteraction = (metric: MetricType) =>
       sendVital(metric, pathnameRef.current);
 
-    onCLS(report);
-    onFCP(report);
-    onINP(report);
-    onLCP(report);
-    onTTFB(report);
+    onFCP(reportLoad);
+    onLCP(reportLoad);
+    onTTFB(reportLoad);
+
+    onCLS(reportInteraction);
+    onINP(reportInteraction);
   }, []); // register once per mount — the ref handles pathname updates
 
   return null;

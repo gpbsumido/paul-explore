@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
-import { THOUGHTS } from "@/app/_shared/featureData";
+import { THOUGHTS } from "@/app/_shared/featureData.data";
 import { groupThoughts, categoryAnchor } from "@/app/_shared/thoughtCategories";
 import type { ThoughtItem } from "@/types/hub";
 
