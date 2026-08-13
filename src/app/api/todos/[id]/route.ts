@@ -38,3 +38,35 @@ export const PATCH = withBackend<RouteCtx>(
     return NextResponse.json(await res.json());
   },
 );
+
+/**
+ * DELETE /api/todos/:id — take one item off the list.
+ *
+ * Soft delete upstream, so this hides an item rather than destroying it. A
+ * second delete answers 404 rather than quietly succeeding.
+ */
+export const DELETE = withBackend<RouteCtx>(
+  "todos DELETE",
+  async ({ token, email }, _request, { params }) => {
+    const { id } = await params;
+
+    const upstreamResult = await fetchUpstream(
+      `${API_URL}/api/todos/${safeSegment(id)}`,
+      {
+        method: "DELETE",
+        headers: buildHeaders(token, email),
+      },
+    );
+    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+
+    const res = upstreamResult.response;
+    if (!res.ok) {
+      console.error("[todos BFF] DELETE — backend status:", res.status);
+      return NextResponse.json(
+        { error: "Failed to remove todo" },
+        { status: res.status },
+      );
+    }
+    return NextResponse.json(await res.json());
+  },
+);

@@ -10,6 +10,17 @@ export default function TodoSkeleton() {
         <div className="h-5 w-16 animate-pulse rounded bg-surface" />
         <div className="h-5 w-16 animate-pulse rounded bg-surface" />
       </div>
+      {/* The quick-add form, which is always there once the data lands. */}
+      <div className="mt-6 rounded border border-border p-3">
+        <div className="h-4 w-24 animate-pulse rounded bg-surface" />
+        <div className="mt-2 h-8 w-full animate-pulse rounded bg-surface" />
+        <div className="mt-3 flex gap-2">
+          <div className="h-6 w-24 animate-pulse rounded bg-surface" />
+          <div className="h-6 w-24 animate-pulse rounded bg-surface" />
+          <div className="h-6 w-10 animate-pulse rounded bg-surface" />
+        </div>
+        <div className="mt-3 h-8 w-32 animate-pulse rounded bg-surface" />
+      </div>
       {[0, 1].map((section) => (
         <section key={section} className="mt-8">
           <div className="h-6 w-48 animate-pulse rounded bg-surface" />
