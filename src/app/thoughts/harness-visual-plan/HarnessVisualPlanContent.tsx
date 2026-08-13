@@ -118,7 +118,12 @@ export default function HarnessVisualPlanContent() {
           Both files stay on my machine — <C>plans/</C> is gitignored in this
           repo — so what travels with the change is the work itself, not the
           paperwork. The documents are for me, and for anyone I walk through
-          them.
+          them. Staying out of git did cost me something, though: a folder full
+          of slugs with nothing tying any of them to the change it became. So
+          the folder carries the PR number now —{" "}
+          <C>plans/pr-&lt;n&gt;-&lt;slug&gt;/</C>, renamed the moment the PR
+          opens, since the plan is written before there is a PR to name it
+          after.
         </p>
         <p className="mt-3">
           The whole point is the gap between those two documents. A plan nobody
@@ -247,7 +252,9 @@ export default function HarnessVisualPlanContent() {
                 <span className="font-medium">Open the draft PR</span> before
                 writing implementation code — the earliest a change of direction
                 is cheap. The plan stays on disk; the PR is where the work
-                becomes visible.
+                becomes visible. The number it comes back with renames the plan
+                folder, so months later I can still tell which plan became which
+                change.
               </li>
               <li>
                 <span className="font-medium">
@@ -288,7 +295,7 @@ export default function HarnessVisualPlanContent() {
         ]}
         couldImprove={[
           "Nothing enforces that a plan was written. It is a practice I follow, and a skipped plan leaves no trace.",
-          "Plans are untracked, so the reasoning behind a change is not in the repository with the change — deliberate, and it does mean the history is thinner than it could be.",
+          "Plans are untracked, so the reasoning behind a change is not in the repository with the change — deliberate, and it does mean the history is thinner than it could be. Naming each folder after its PR closes some of that gap, but the plan still lives only on the machine that wrote it.",
         ]}
         upcoming={[
           "Nothing scheduled. This documents a working practice rather than a system, and it changes when the practice does.",
