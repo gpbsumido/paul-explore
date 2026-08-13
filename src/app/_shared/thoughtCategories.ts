@@ -14,6 +14,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "world",
       "gallery-wall",
       "feature-flags",
+      "to-do",
       "search-bar",
       "tcg",
       "calendar",

@@ -286,6 +286,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#f97316",
   },
   {
+    title: "The To-Do List",
+    href: "/thoughts/to-do",
+    preview:
+      "Soft delete so a mis-click survives, positions assigned server-side so two adds cannot claim the same slot, and an optimistic insert that rolls back the row it added rather than the last one",
+    color: "#14b8a6",
+  },
+  {
     title: "Login Redirect",
     href: "/thoughts/login-redirect",
     preview:

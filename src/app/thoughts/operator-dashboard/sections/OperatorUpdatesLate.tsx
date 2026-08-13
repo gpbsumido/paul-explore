@@ -33,10 +33,11 @@ export function OperatorUpdatesLate() {
           no problem.
         </p>
         <p className="mt-3 text-muted">
-          Except migrations in this project are manual. Nothing in CI, the
-          Dockerfile or the start script runs them. So the gap between merging
-          and migrating is real, and I wanted to know exactly how bad it was
-          rather than assume. I generated the SQL Drizzle actually emits:
+          Except migrations in this project were manual at the time. Nothing in
+          CI, the Dockerfile or the start script ran them, which is no longer
+          true and is its own story further down. So the gap between merging and
+          migrating was real, and I wanted to know exactly how bad it was rather
+          than assume. I generated the SQL Drizzle actually emits:
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
           {`select "id", "name", "location", "province", "timezone",
@@ -83,6 +84,69 @@ export function OperatorUpdatesLate() {
           Do that and the ordering stops being dangerous, because the schema
           being ahead is always fine and the code being ahead never happens.
           Users notice none of it, which is the point.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I changed my mind, and here is what it cost to find out
+        </h3>
+        <p className="text-muted">
+          Everything above is what I thought at the time, and I am leaving it
+          there rather than quietly editing it, because the way I got it wrong
+          is the useful part. Migrations now run automatically on deploy. The
+          container entrypoint runs them and then starts the app.
+        </p>
+        <p className="mt-3 text-muted">
+          What changed my mind was watching the cost land. I added a migration
+          for the to-do list, shipped it, and only noticed while writing the
+          release notes that nothing anywhere would apply it. Not CI, not the
+          Dockerfile, not the start command. &ldquo;One command&rdquo; is only
+          one command if you remember it, and the thing about a step that lives
+          in your head is that it has no failure mode, it just has you.
+        </p>
+        <p className="mt-3 text-muted">
+          So it is worth taking the three objections I raised seriously rather
+          than pretending I had them wrong:
+        </p>
+        <p className="mt-3 text-muted">
+          <strong className="text-foreground">
+            Two deploys racing each other.
+          </strong>{" "}
+          This one was answerable. Knex takes a lock before it migrates, so the
+          second one waits rather than corrupting anything. The real version of
+          the problem was the cron containers, which share the image and would
+          have raced the web container for that lock, and a cron job that dies
+          on a lock is a worse outcome than a migration landing a moment later.
+          They skip it now.
+        </p>
+        <p className="mt-3 text-muted">
+          <strong className="text-foreground">
+            A migration that fails halfway.
+          </strong>{" "}
+          Half answered. The entrypoint runs under{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            set -e
+          </code>
+          , so a failed migration stops the server coming up and the previous
+          deploy keeps serving, which is recoverable in a way that a live
+          process talking to a half-migrated schema is not. That makes the
+          failure visible and safe to sit in. It does not make a partially
+          applied migration disappear.
+        </p>
+        <p className="mt-3 text-muted">
+          <strong className="text-foreground">
+            A destructive migration going out before I have read it.
+          </strong>{" "}
+          This objection stands, unchanged. Automating the running of migrations
+          does nothing about what is in them. What actually protects that is the
+          expand-first discipline in the paragraph above, which was the real
+          safety mechanism the whole time. I had attributed it to the manual
+          step, and it never belonged to the manual step at all.
+        </p>
+        <p className="mt-3 text-muted">
+          That last one is the bit I would want to have known earlier. I kept a
+          manual gate because it felt like control, and the control I actually
+          had came from a convention about how migrations are written. Keeping
+          the gate did not add safety. It only added something to forget.
         </p>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
@@ -662,10 +726,13 @@ export function OperatorUpdatesLate() {
           key is now the raw instant rather than a sliced ISO string.
         </p>
         <p className="mt-3 text-muted">
-          <strong>Migrations run by hand.</strong> Nothing in CI, the Dockerfile
-          or the start script runs the migration. Deploying code that selects a
-          column which doesn&apos;t exist yet would 500 the entire stores
-          endpoint. So the column is nullable, the API resolves{" "}
+          <strong>Migrations ran by hand, at the time.</strong> Nothing in CI,
+          the Dockerfile or the start script ran them, so deploying code that
+          selects a column which doesn&apos;t exist yet would 500 the entire
+          stores endpoint. The entrypoint migrates on deploy now, which removes
+          the forgetting but not the ordering: a deploy still brings code and
+          schema at the same instant, so the code must tolerate the schema it
+          replaces. That is why the column is nullable, why the API resolves{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             store.timezone ?? timezoneForProvince(store.province)
           </code>

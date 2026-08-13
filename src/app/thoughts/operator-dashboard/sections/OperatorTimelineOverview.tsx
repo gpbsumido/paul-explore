@@ -1111,6 +1111,34 @@ export function OperatorTimelineOverview() {
           is a test suite that can destroy.
         </p>
         <p className="mt-3 text-muted">
+          That sentence turned out to be describing my own machine. The API
+          repo&apos;s{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            DATABASE_URL
+          </code>{" "}
+          pointed at the production proxy host, so{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            pnpm dev
+          </code>{" "}
+          read and wrote live data and{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            pnpm migrate
+          </code>{" "}
+          migrated production. Writing SELECT-only tests was the right instinct
+          aimed at the wrong target: I was hardening the tests against the
+          hazard instead of removing it.
+        </p>
+        <p className="mt-3 text-muted">
+          The actual cause was smaller and more stupid than it sounds. The
+          compose file had a Postgres service but published no host port, so
+          nothing running outside the compose network could reach it. There was
+          no local database to point at, which made production the path of least
+          resistance. One line of YAML, and the alternative exists. Redis had
+          been set up correctly this whole time and the README even documented
+          the pattern, which is the part I find worth writing down: the fix was
+          already in the same file, applied to a different service.
+        </p>
+        <p className="mt-3 text-muted">
           <strong>The server would not boot.</strong> Two files claiming the
           same Next convention is a startup fatal, and every route 404&apos;d.
           Unit, integration, typecheck, lint and the dead-export check all

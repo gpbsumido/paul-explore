@@ -99,6 +99,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/landing-page",
   "/thoughts/learn",
   "/thoughts/login-redirect",
+  "/thoughts/to-do",
   "/thoughts/mac-menu-bar",
   "/thoughts/messenger-auth",
   "/thoughts/motion-components",

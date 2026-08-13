@@ -441,6 +441,18 @@ export default function ApiBackendOverhaulContent() {
           from <C>init.sql</C>. From here, schema changes are migrations, not
           manual edits.
         </p>
+        <p className="mt-3 text-muted">
+          Two things landed here later, both because writing the migration
+          turned out to be the easy half. The container entrypoint now runs{" "}
+          <C>pnpm migrate</C> before starting the app, so a deploy brings its
+          own schema instead of relying on me remembering; a failed migration
+          stops the server coming up and the previous release keeps serving.
+          And a fifth CI job runs the migrations against a throwaway Postgres
+          with only the environment declared in <C>ci/migration-env.json</C>,
+          because until then nothing in this repo ran them at all and a
+          migration that gained a requirement failed in the frontend repo
+          instead.
+        </p>
         <Why>
           Migrations are{" "}
           <strong className="text-foreground">
