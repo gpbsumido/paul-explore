@@ -33,10 +33,11 @@ export function OperatorUpdatesLate() {
           no problem.
         </p>
         <p className="mt-3 text-muted">
-          Except migrations in this project are manual. Nothing in CI, the
-          Dockerfile or the start script runs them. So the gap between merging
-          and migrating is real, and I wanted to know exactly how bad it was
-          rather than assume. I generated the SQL Drizzle actually emits:
+          Except migrations in this project were manual at the time. Nothing in
+          CI, the Dockerfile or the start script ran them, which is no longer
+          true and is its own story further down. So the gap between merging and
+          migrating was real, and I wanted to know exactly how bad it was rather
+          than assume. I generated the SQL Drizzle actually emits:
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
           {`select "id", "name", "location", "province", "timezone",
@@ -83,6 +84,115 @@ export function OperatorUpdatesLate() {
           Do that and the ordering stops being dangerous, because the schema
           being ahead is always fine and the code being ahead never happens.
           Users notice none of it, which is the point.
+        </p>
+
+        <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
+          I changed my mind, and here is what it cost to find out
+        </h3>
+        <p className="text-muted">
+          Everything above is what I thought at the time, and I am leaving it
+          there rather than quietly editing it, because the way I got it wrong
+          is the useful part. Migrations now run automatically on deploy. The
+          container entrypoint runs them and then starts the app.
+        </p>
+        <p className="mt-3 text-muted">
+          What changed my mind was watching the cost land. I added a migration
+          for the to-do list, shipped it, and only noticed while writing the
+          release notes that nothing anywhere would apply it. Not CI, not the
+          Dockerfile, not the start command. &ldquo;One command&rdquo; is only
+          one command if you remember it, and the thing about a step that lives
+          in your head is that it has no failure mode, it just has you.
+        </p>
+        <p className="mt-3 text-muted">
+          So it is worth taking the three objections I raised seriously rather
+          than pretending I had them wrong:
+        </p>
+        <p className="mt-3 text-muted">
+          <strong className="text-foreground">
+            Two deploys racing each other.
+          </strong>{" "}
+          This one was answerable. Knex takes a lock before it migrates, so the
+          second one waits rather than corrupting anything. The real version of
+          the problem was the cron containers, which share the image and would
+          have raced the web container for that lock, and a cron job that dies
+          on a lock is a worse outcome than a migration landing a moment later.
+          They skip it now.
+        </p>
+        <p className="mt-3 text-muted">
+          <strong className="text-foreground">
+            A migration that fails halfway.
+          </strong>{" "}
+          Answered, and it turned out I had been worrying about something that
+          could not happen. Postgres has transactional DDL and knex wraps the
+          whole batch in one transaction, so a migration that dies after its
+          third statement leaves nothing behind. I checked rather than assumed:
+          a migration that creates a table and then throws leaves no table, no
+          row in{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            knex_migrations
+          </code>
+          , and on a database that was already migrated, all thirteen earlier
+          migrations still applied. Add{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            set -e
+          </code>{" "}
+          in the entrypoint and the whole failure mode is a failed deploy with
+          the previous release still serving.
+        </p>
+        <p className="mt-3 text-muted">
+          The honest footnote is that this was true before I automated anything.
+          I had listed it as a cost of automating without checking whether it
+          was a real property of the tool I was already using. There is now a
+          test failing on{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            CREATE INDEX CONCURRENTLY
+          </code>{" "}
+          and on anything disabling transactions, because that is the one way to
+          lose it, and losing it quietly is worse than never having had it.
+        </p>
+        <p className="mt-3 text-muted">
+          <strong className="text-foreground">
+            A destructive migration going out before I have read it.
+          </strong>{" "}
+          This one is real and automation cannot touch it, so it is gated
+          instead. A test reads the{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            up()
+          </code>{" "}
+          of every migration, looks for drops, renames, truncations and column
+          tightening, and fails unless the file writes down why:
+        </p>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-surface p-3 text-[13px] font-mono text-foreground">
+          {`// DESTRUCTIVE: drops todos.detail, unused since 4.9.0 and
+// confirmed empty in production before this shipped.`}
+        </pre>
+        <p className="mt-3 text-muted">
+          An acknowledgement rather than a ban, because dropping a column is
+          sometimes exactly right and the problem was never the drop, it was
+          doing it without thinking about the code currently running against
+          that schema. Writing the reason costs nothing when you have thought
+          about it and is impossible to produce when you have not, and it lands
+          as a line in the diff, which is the only place it does any good.
+        </p>
+        <p className="mt-3 text-muted">
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            down()
+          </code>{" "}
+          is deliberately not scanned. A down that drops the column its up added
+          is exactly correct, and a check that flagged all of them would just
+          teach me to ignore it. The usual right response to the test failing is
+          not to write the comment at all, it is to expand first: add the new
+          thing, ship the code that stops using the old thing, drop it a release
+          later.
+        </p>
+        <p className="mt-3 text-muted">
+          What I would want to have known earlier is underneath all three. I
+          kept a manual gate because it felt like control. Two of the three
+          things I thought it was protecting were properties of Postgres and
+          knex that I already had and had never checked for, and the third was
+          the expand-first convention, which belongs to how migrations are
+          written rather than to who types the command. The gate added no
+          safety. It added something to forget, and I duly forgot it.
         </p>
 
         <h3 className="mt-5 mb-2 text-[15px] font-semibold text-foreground">
@@ -662,10 +772,13 @@ export function OperatorUpdatesLate() {
           key is now the raw instant rather than a sliced ISO string.
         </p>
         <p className="mt-3 text-muted">
-          <strong>Migrations run by hand.</strong> Nothing in CI, the Dockerfile
-          or the start script runs the migration. Deploying code that selects a
-          column which doesn&apos;t exist yet would 500 the entire stores
-          endpoint. So the column is nullable, the API resolves{" "}
+          <strong>Migrations ran by hand, at the time.</strong> Nothing in CI,
+          the Dockerfile or the start script ran them, so deploying code that
+          selects a column which doesn&apos;t exist yet would 500 the entire
+          stores endpoint. The entrypoint migrates on deploy now, which removes
+          the forgetting but not the ordering: a deploy still brings code and
+          schema at the same instant, so the code must tolerate the schema it
+          replaces. That is why the column is nullable, why the API resolves{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             store.timezone ?? timezoneForProvince(store.province)
           </code>
