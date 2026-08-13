@@ -45,17 +45,27 @@ export function createLocalTransport(
 
 /**
  * Cross-user presence over an Ably channel. The SDK loads lazily so it never
- * touches the bundle when no key is configured; any setup failure returns
+ * touches the bundle unless presence is actually used; any setup failure --
+ * including the token route reporting that no key is configured -- returns
  * null and the caller falls back to the local transport.
  */
 export async function createAblyTransport(
-  apiKey: string,
   peerId: string,
   onMessage: MessageHandler,
 ): Promise<PresenceTransport | null> {
   try {
     const { Realtime } = await import("ably");
-    const client = new Realtime({ key: apiKey, clientId: peerId });
+    // authUrl, never a key. new Realtime({ key }) is basic auth from the
+    // browser, and the key would have to reach the browser to get here --
+    // which means shipping appId.keyId:keySecret in the bundle. The route
+    // mints a token scoped to this one channel, for an hour.
+    const client = new Realtime({
+      authUrl: "/api/ably/token",
+      authMethod: "POST",
+      authHeaders: { "Content-Type": "application/json" },
+      authParams: { clientId: peerId },
+      clientId: peerId,
+    });
     const channel = client.channels.get(CHANNEL_NAME);
     await channel.subscribe("s", (message) => {
       const parsed = presenceMessageSchema.safeParse({

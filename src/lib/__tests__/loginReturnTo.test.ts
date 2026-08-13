@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   loginReturnToFromReferer,
   loginRedirectAdditions,
+  SESSION_TIMEOUT_PROMPT,
 } from "@/lib/loginReturnTo";
 
 const ORIGIN = "https://paulsumido.com";
@@ -100,5 +101,26 @@ describe("loginRedirectAdditions", () => {
         promptCookie: "login",
       }),
     ).toEqual({});
+  });
+});
+
+describe("session timeout prompt", () => {
+  it("forces a prompt that re-authenticates rather than one that re-consents", () => {
+    // prompt=consent re-asks for scope approval; per OIDC Core it explicitly
+    // does not re-authenticate. Auth0 sees its own still-valid SSO cookie,
+    // silently reissues for the same user, and for a first-party client skips
+    // the screen entirely -- so a timed-out session lands straight back in as
+    // whoever it already was.
+    expect(SESSION_TIMEOUT_PROMPT).toBe("login");
+  });
+
+  it("is a prompt the proxy is willing to forward", () => {
+    const additions = loginRedirectAdditions({
+      searchParams: new URLSearchParams(),
+      referer: null,
+      origin: ORIGIN,
+      promptCookie: SESSION_TIMEOUT_PROMPT,
+    });
+    expect(additions.prompt).toBe(SESSION_TIMEOUT_PROMPT);
   });
 });

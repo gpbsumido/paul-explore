@@ -467,6 +467,29 @@ export default function ImprovementsContent() {
           cross-instance coordination if traffic ever justifies it. The
           interface is simple enough that the swap is a one-file change.
         </p>
+        <p className="mt-3 text-muted">
+          One line above deserved more scrutiny than it got:{" "}
+          <em>the real defense there is the backend</em>. That was leaning on
+          something I had not checked. The API&rsquo;s limiter was in-memory
+          too, and it runs on Fly with{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">min_machines_running = 0</code>, so every cold
+          start wiped every counter — pacing requests around scale-to-zero got
+          you an effectively unlimited quota. The backstop this page pointed at
+          was thinner than the thing it was excusing.
+        </p>
+        <p className="mt-3 text-muted">
+          It is a shared Redis store now, so the sentence is finally true.
+          Two things fell out of doing it. The version bump revealed that{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">express-rate-limit</code> renamed{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">max</code> to <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">limit</code>{" "}
+          in v7 and dropped the alias in v8 — every limiter had been silently
+          falling back to the library default of five rather than its configured
+          ceiling. And I gave every limiter one shared store instance, which the
+          library rejects outright: keys come from the caller rather than the
+          route, so a shared backend counts one visitor into one bucket and
+          hitting one endpoint spends another&rsquo;s budget. Both were the same
+          shape of mistake — a limit that looks configured and is not.
+        </p>
       </section>
 
       <section>

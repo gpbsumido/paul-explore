@@ -28,6 +28,11 @@ const CONNECT_ORIGINS = [
   "https://explorer-api.walletconnect.com",
   "https://api.web3modal.org",
   "https://pulse.walletconnect.org",
+  // World presence. Without these the Ably socket is blocked by our own CSP,
+  // which would have meant shipping the credential and getting none of the
+  // feature -- the failure would have looked like presence simply not working.
+  "wss://realtime.ably.io",
+  "https://rest.ably.io",
 ];
 
 /**
