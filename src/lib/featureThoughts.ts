@@ -17,6 +17,27 @@ export type Counterpart = {
   direction: "to-thoughts" | "to-feature";
 };
 
+/**
+ * Pages with a write-up that are not public hub features.
+ *
+ * FEATURES is the hub list, so `thoughtsHref` only exists for things the hub
+ * shows. An admin page or a sub-page of a hub entry has nowhere to hang one, and
+ * silently gets no link in either direction — which is how /thoughts/to-do
+ * shipped without a way back to /to-do.
+ *
+ * Pairing them here rather than adding hub entries is deliberate: /to-do is
+ * unlisted and 404s for everyone else, so putting it in FEATURES would publish
+ * an admin route to the feature hub to fix a navigation link.
+ */
+const EXTRA_PAIRINGS: ReadonlyArray<{
+  href: string;
+  thoughtsHref: string;
+  title: string;
+}> = [
+  { href: "/to-do", thoughtsHref: "/thoughts/to-do", title: "The To-Do List" },
+  { href: "/graphql", thoughtsHref: "/thoughts/graphql", title: "GraphQL Pokédex" },
+];
+
 /** Trim a trailing slash so "/craft/" and "/craft" match the same feature. */
 const normalize = (pathname: string): string =>
   pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
@@ -43,5 +64,19 @@ export function counterpartFor(pathname: string | null): Counterpart | null {
       return { href: feature.href, title: feature.title, direction: "to-feature" };
     }
   }
+
+  for (const pair of EXTRA_PAIRINGS) {
+    if (path === pair.href) {
+      return {
+        href: pair.thoughtsHref,
+        title: pair.title,
+        direction: "to-thoughts",
+      };
+    }
+    if (path === pair.thoughtsHref) {
+      return { href: pair.href, title: pair.title, direction: "to-feature" };
+    }
+  }
+
   return null;
 }
