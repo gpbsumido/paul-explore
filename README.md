@@ -38,11 +38,14 @@ Requires login (redirected to Auth0 by `src/proxy.ts`):
 
 Requires login **and** being on the admin allowlist:
 
-- `/to-do` — what is still outstanding across both repos, with quick add and a
-  soft delete. Not linked from anywhere and it 404s rather than 403s for anyone
-  else, because a 403 confirms a page exists. The rows live in the database
-  rather than in either repo on purpose: both are public, and a list of what has
-  not been fixed yet is not something to publish.
+- `/to-do` — what is still outstanding across both repos, with quick add, soft
+  delete, and a per-item panel holding its revision history and comments.
+  Reverting restores an earlier revision as a *new* one rather than discarding
+  what came after, so the history only ever grows. Not linked from anywhere and
+  it 404s rather than 403s for anyone else, because a 403 confirms a page
+  exists. The rows live in the database rather than in either repo on purpose:
+  both are public, and a list of what has not been fixed yet is not something to
+  publish.
 
 ---
 
@@ -204,7 +207,7 @@ src/
 │   ├── resume/          # The CV as a page
 │   ├── settings/        # Account settings (auth required)
 │   ├── tcg/             # Pokémon TCG browser and Pocket expansions
-│   ├── thoughts/        # Write-ups on design decisions (58 of them)
+│   ├── thoughts/        # Write-ups on design decisions
 │   ├── to-do/           # Admin-only outstanding-work list
 │   ├── v2/ v3/ v4/      # Earlier site designs, kept reachable
 │   ├── vitals/          # Real-user Core Web Vitals dashboard
