@@ -110,6 +110,29 @@ describe("ticking a to-do", () => {
   });
 });
 
+describe("the PR chip", () => {
+  it("links to the pull request it names", async () => {
+    mockList([item({ pr_repo: "portfolio_api", pr_number: 137 })]);
+    renderWith();
+
+    const link = await screen.findByRole("link", { name: "portfolio_api#137" });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://github.com/gpbsumido/portfolio_api/pull/137",
+    );
+    // Following it leaves the app, so it should not take the tab with it.
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("stays plain text when there is no PR", async () => {
+    mockList([item()]);
+    renderWith();
+
+    await screen.findByRole("checkbox", { name: "Merge the thing" });
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+});
+
 describe("adding a to-do", () => {
   it("sends the title and the chosen project", async () => {
     const user = userEvent.setup();
