@@ -334,6 +334,14 @@ jobs:
 
       - name: Apply migrations and seed the operator tables
         working-directory: api
+        env:
+          # Migration 020 encrypts the stored Google OAuth tokens and refuses to
+          # run without a key, which is right in production and broke CI. This
+          # database is created empty and thrown away, so the value only has to
+          # be a valid 32-byte hex string. Deliberately a literal rather than a
+          # secret: it protects nothing, and an obviously-fake value cannot be
+          # mistaken for the real one.
+          TOKEN_ENCRYPTION_KEY: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
         run: |
           npx --yes "$API_PNPM" migrate
           npx --yes "$API_PNPM" seed:operator
