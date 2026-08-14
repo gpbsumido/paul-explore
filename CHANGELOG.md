@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-14 - version 4.6.0
+
+- **The landing page museum moved to /discover.** `/` was doing two jobs: the page a first-time visitor lands on, and a registry of every landing page I have shipped, switched by a `?version=` param most of them will never type. The registry, the retired-version banner and the param reader all move one URL over, and `/` renders v4 and nothing else. Nothing about how v1 through v4 draw themselves changed, which is the point: the next redesign can swap the landing without touching the history.
+- **An old `/?version=v2` link still opens v2.** The proxy 308s it to `/discover` with the param intact, before it does any session work, so a bookmark resolves the same whether or not I am signed in. The rule is unit-tested and the wiring is smoke-tested, because a redirect that is only proven as a rule is a redirect nobody has watched work.
+- Discover is a feature now, so it picked up the whole apron: a hub card, a palette command, a sitemap entry, an `llms.txt` line, and a named exclusion in the world exhibits guard. It also leaves itself out of the slot machine's own reels, since landing on it mid-spin offers to open the page you are already looking at.
+
 ## 2026-08-14 - version 4.5.9
 
 - **/thoughts/security-audit** picks up what happened when its own admitted gap got closed. That page said the audit was a one-off pass by hand with nothing to repeat it; the counts, changelog, exhibits and crawler-file checks are that repeat. The part worth reading is that two of the checks already there were holding mistakes in place — one asserted `/seven tabs/` against a sentence and kept the wrong number green when an eighth tab landed, and my own duplicate-heading check could never fail because `Set.add()` returns the Set rather than a boolean.

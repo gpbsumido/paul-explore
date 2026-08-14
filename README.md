@@ -14,7 +14,8 @@ Every feature has a `/thoughts` write-up covering the architecture decisions beh
 
 Public (no login). Listed most-to-least prominent, matching the apps order across the site:
 
-- [Landing](https://paulsumido.com/) — a three-reel slot machine over every feature and write-up (the v3 node-graph is still at `/?version=v3`)
+- [Landing](https://paulsumido.com/) — a three-reel slot machine over every feature and write-up
+- [Discover](https://paulsumido.com/discover) — the same slot machine, plus every landing page this site has had: the v3 node-graph is still live at `/discover?version=v3`, and v1 and v2 alongside it
 - [Explore Toronto](https://paulsumido.com/world) — a walkable 3D low-poly downtown Toronto at night; WASD past the CN Tower and City Hall to exhibits that open the rest of the site
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
 - [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground
@@ -194,6 +195,7 @@ src/
 │   ├── craft/           # Lead front-end traits, each linked to real work here
 │   ├── design-system/   # Live gallery of the shared primitives and tokens
 │   ├── dev/             # Skeleton previews, not linked from the site
+│   ├── discover/        # The landing history, every version behind ?version=
 │   ├── fantasy/         # NBA league history, player stats, playoffs bracket
 │   ├── flags/           # Feature-flag console
 │   ├── gallery-wall/    # Frame layout planner with hanging measurements
