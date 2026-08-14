@@ -1,6 +1,11 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
+import {
+  TEST_COUNT,
+  UNIT_TEST_COUNT,
+  E2E_TEST_COUNT,
+} from "@/app/_shared/testCount.generated";
 import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
@@ -12,8 +17,9 @@ export default function TestingContent() {
       title="Testing"
       intro={
         <>
-          640+ tests (623 unit + 17 e2e) — Vitest, Testing Library, MSW, and
-          Playwright. Pure functions first, then hooks with fetch mocking, with
+          {TEST_COUNT}+ tests ({UNIT_TEST_COUNT} unit + {E2E_TEST_COUNT} e2e) —
+          Vitest, Testing Library, MSW, and Playwright. Pure functions first,
+          then hooks with fetch mocking, with
           a specific technique for proving that optimistic updates actually fire
           before the server responds.
         </>

@@ -63,7 +63,7 @@ export default function LearnSection() {
           animate={inView ? "visible" : "hidden"}
           transition={transition ?? { ...spring.smooth, delay: 0.1 }}
         >
-          Interactive deep-dives into algorithms and frontend patterns. 13
+          Interactive deep-dives into algorithms and frontend patterns. 14
           topics, each with demos you can step through, visualizations that
           build intuition, and code that comes last.
         </m.p>
@@ -94,7 +94,7 @@ export default function LearnSection() {
             </span>
             <div className="ml-auto flex items-center gap-2">
               <span className="text-[9px] tabular-nums text-foreground/30">
-                13 deep-dives
+                14 deep-dives
               </span>
             </div>
           </div>

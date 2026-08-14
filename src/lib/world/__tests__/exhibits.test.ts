@@ -18,6 +18,39 @@ describe("world exhibits", () => {
     expect(EXHIBITS.some((e) => e.featureId === "world")).toBe(false);
   });
 
+  /**
+   * The other direction, which is the one that could actually fail.
+   *
+   * Five places say the world holds an exhibit for every feature. Nothing
+   * checked it, so Research Explorer -- a headline feature with its own hub
+   * card -- shipped with no exhibit and the claim quietly became untrue.
+   *
+   * Exclusions are named rather than counted, so adding a feature fails here
+   * until someone either builds it a landmark or says why not. The blurbs and
+   * collider placements are hand-made, so this cannot generate the exhibit --
+   * only insist that the decision gets made.
+   */
+  it("exhibits every feature, or names why not", () => {
+    const NO_EXHIBIT_ON_PURPOSE = new Set([
+      // The world is the thing doing the exhibiting.
+      "world",
+      // A tiny toy, and the city is already dense around that block.
+      "ketsup",
+      // No landmark built for it yet. An exhibit is a model, a collider and a
+      // placard placed by hand, so this is real work rather than an oversight
+      // to sweep up -- it sits here so the debt is written down instead of
+      // being implied by a count that happens to be short.
+      "research",
+    ]);
+
+    const exhibited = new Set(EXHIBITS.map((e) => e.featureId));
+    const missing = FEATURES.filter(
+      (f) => !exhibited.has(f.id) && !NO_EXHIBIT_ON_PURPOSE.has(f.id),
+    );
+
+    expect(missing.map((f) => f.id)).toEqual([]);
+  });
+
   it("has at most one exhibit per feature", () => {
     const ids = EXHIBITS.map((e) => e.featureId);
     expect(new Set(ids).size).toBe(ids.length);
