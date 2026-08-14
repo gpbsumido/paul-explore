@@ -92,6 +92,15 @@ describe("V5Content", () => {
     ).toBeInTheDocument();
   });
 
+  it("gives evidence chips a thumb-sized touch target by default", () => {
+    // Mobile-first: the chips are the most important links on the page and
+    // 26px tall is stingy under a thumb. Desktop tightens back up at sm.
+    renderPage();
+    const chip = screen.getAllByRole("link", { name: "Web Vitals" })[0];
+    expect(chip.className).toContain("py-2");
+    expect(chip.className).toContain("sm:py-1");
+  });
+
   it("keeps every craft evidence link, because the proof is the argument", () => {
     renderPage();
     const rendered = hrefs();

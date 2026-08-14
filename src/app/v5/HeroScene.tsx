@@ -78,7 +78,7 @@ export default function HeroScene() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none relative aspect-square w-full max-w-md lg:max-w-none"
+      className="pointer-events-none relative mx-auto aspect-square w-full max-w-[260px] sm:max-w-md lg:mx-0 lg:max-w-none"
     >
       {showCanvas ? (
         <ModelLazyMount className="absolute inset-0">

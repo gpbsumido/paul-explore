@@ -12,6 +12,8 @@
 - **All eight motion primitives render in production now.** They shipped in 4.7.0 documented on `/design-system` with nothing using them; the showcase says which page they ship on rather than which page they are planned for.
 - `/discover` holds four generations and none of them is current, so the retired-version banner is a caption on all four rather than a warning on three. v4 moves behind `next/dynamic` with the rest, and the decision lives in a small pure module because the page itself is an async server component behind a session lookup.
 - `/` joins the both-theme axe sweep. It was covered only by the smoke scan, in whichever theme happened to be default, and it is now the page carrying the most new colour on the site.
+- **The sixty write-up accents joined the palette.** The 4.7.0 swap retuned the feature colours and left the THOUGHTS hexes on stock Tailwind pastels, visible on the `/discover` reels and the v3 graph. Every one now keeps its hue and takes the same muted tone as the features, and a test pins every registry colour into that tone band so a stock pastel cannot land again.
+- **Mobile got the first-class pass, not the leftover one.** The hero's fallback blob no longer swallows a phone viewport, the blob wash lost the hard left edge that showed as a seam at narrow widths, and the craft evidence chips grew to a thumb-sized target on touch layouts while staying dense from `sm` up. Verified at 390px: sticky header holds at depth, no horizontal overflow, and the hero ships the static SVG there by design.
 
 ## 2026-08-14 - version 4.7.0
 

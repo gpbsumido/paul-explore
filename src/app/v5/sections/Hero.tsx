@@ -45,7 +45,7 @@ export default function Hero({ taglineIndex = 0 }: { taglineIndex?: number }) {
         seeds={[3, 7]}
         colors={["var(--color-primary-400)", "var(--color-secondary-400)"]}
         parallax={60}
-        className="-z-10 left-[35%] opacity-35"
+        className="-z-10 left-[35%] opacity-35 [mask-image:linear-gradient(90deg,transparent,black_22%)]"
       />
 
       <div className={`${SHELL} grid items-center gap-12 lg:grid-cols-12`}>

@@ -44,7 +44,7 @@ function TraitRow({ trait, index }: { trait: CraftTrait; index: number }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="inline-flex rounded-full border border-border bg-surface/60 px-3 py-1 text-xs transition-colors hover:border-[color-mix(in_srgb,var(--trait)_45%,var(--color-border))] hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+                  className="inline-flex rounded-full border border-border bg-surface/60 px-3.5 py-2 text-xs transition-colors hover:border-[color-mix(in_srgb,var(--trait)_45%,var(--color-border))] hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none sm:px-3 sm:py-1"
                 >
                   {item.label}
                 </Link>
