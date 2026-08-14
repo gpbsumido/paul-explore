@@ -190,34 +190,44 @@ export default function V5RedesignContent() {
           and each with the pages in this project that prove it. The obvious
           landing-page move is to cut ten down to three and call it a feature
           row. I kept all ten because the evidence links are the entire
-          argument, and because ten cards in two offset columns against a sticky
-          rail is a layout you cannot mistake for a template. Every claim on
-          that section is a link you can open and check.
+          argument. The first cut was ten glass cards with a cursor glow, and
+          using the page told me what a screenshot had not: the glow sat under
+          the text at exactly the moment someone leaned in to read it. It is
+          now a numbered ledger against the sticky rail, one row per trait,
+          and the count in the rail copy is derived from the array rather than
+          typed, so the sentence cannot rot when an eleventh trait lands.
         </p>
         <p className="mt-3 text-muted">
-          Colour is where that section could have gone wrong. Each trait carries
-          its own accent, and ten accents on one page is how a design falls
-          apart. They only ever reach{" "}
-          <code className={code}>SpotlightCard</code>&rsquo;s accent prop, where
-          they tint the glass by five percent, mix a third into the border, and
-          drive the glow that follows the cursor. None of them touches text. The
-          page has exactly one accent for anything a reader acts on, and the ten
-          trait colours behave like a legend rather than a second palette.
+          Colour is where that section could have gone wrong. Each trait
+          carries its own accent, and ten accents on one page is how a design
+          falls apart. In the ledger they only ever touch things that are not
+          text: the oversized index numeral, a rule that slides in along the
+          left edge on hover, and a wash held to seven percent on its own
+          layer under the copy. The page has exactly one accent for anything a
+          reader acts on, and the ten trait colours behave like a legend
+          rather than a second palette.
         </p>
       </section>
 
       <section>
         <h2 className="mb-3 text-lg font-bold">The 3D object is garnish</h2>
         <p className="text-muted">
-          There is a wireframe torus knot inside a geodesic cage beside the
-          headline, leaning toward the pointer. It is React Three Fiber, it is
-          built in code with no model file, and three separate conditions send
-          it to a static SVG instead: reduced motion, no WebGL context, and a
-          screen at or under 640px. The WebGL check asks a canvas for a context
-          rather than feature-detecting the constructor, which is the only
-          honest version of that test and has the useful side effect that jsdom
-          answers null, so the unit tests exercise the fallback without staging
-          anything.
+          There is a wireframe object inside a geodesic cage beside the
+          headline, leaning toward the pointer, and every three seconds it
+          melts into another one: a torus knot for the codebase, a low-poly
+          globe for the Toronto world, a ball for the NBA console, a card for
+          the TCG browser, an octahedron for the old node-graph landing, a
+          fat torus for the slot machine reel. The cycle is a crossfade
+          between two mesh slots inside the cage, the next shape drawn at
+          random but never the one already showing, and its clock lives in
+          useFrame, so scrolling the hero away pauses the whole show. It is
+          React Three Fiber, built in code with no model file, and three
+          separate conditions send it to a static SVG instead: reduced motion,
+          no WebGL context, and a screen at or under 640px. The WebGL check
+          asks a canvas for a context rather than feature-detecting the
+          constructor, which is the only honest version of that test and has
+          the useful side effect that jsdom answers null, so the unit tests
+          exercise the fallback without staging anything.
         </p>
         <p className="mt-3 text-muted">
           It also mounts after first paint, behind{" "}
