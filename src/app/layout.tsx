@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import CommandPaletteRoot from "@/components/CommandPalette/CommandPaletteRoot";
@@ -18,6 +18,20 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// The display face, for page-level headings only. Geist is a good interface
+// font and a slightly anonymous headline one, which is most of why every page
+// here read as generated. Bricolage has real character in the counters and the
+// tighter widths, and being variable means the whole optical-size and weight
+// range costs one file. Body and UI stay Geist; nothing else changes.
+// The CSS variable is --font-display-face, not --font-display: @theme defines
+// --font-display to build the `font-display` utility, and a next/font variable
+// of the same name would be a circular reference.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-display-face",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 // Fallback metadata for any page that doesn't define its own.
@@ -56,7 +70,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }} />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable}`}
+      >
         {/* Skip link — visually hidden until focused. Keyboard users Tab to it
             and activate it to jump past repeated navigation to the page content. */}
         <a

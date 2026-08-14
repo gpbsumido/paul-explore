@@ -123,7 +123,7 @@ function Reveal({
 
 function SectionHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
       {children}
     </h2>
   );
