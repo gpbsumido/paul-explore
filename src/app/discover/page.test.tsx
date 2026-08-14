@@ -84,20 +84,30 @@ describe("/discover", () => {
     expect(await screen.findByText(/Hey Paul/)).toBeInTheDocument();
   });
 
-  it("opens a retired version behind a banner when asked for one", async () => {
+  it("opens a retired version behind its archive caption when asked for one", async () => {
     await renderDiscover({ version: "v2" });
 
     expect(await screen.findByText(/v2 landing/)).toBeInTheDocument();
-    expect(screen.getByText(/You're viewing v2/)).toBeInTheDocument();
+    expect(screen.getByText(/Landing-page history: v2/)).toBeInTheDocument();
   });
 
-  it("falls back to the current version when the param is junk", async () => {
+  it("captions the newest generation too, since none of them is current now", async () => {
+    // v5 owns / , so v4 stopped being the exception that rendered bare.
+    await renderDiscover({ version: "v4" });
+
+    expect(
+      await screen.findByText(/Spin through everything I've built/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Landing-page history: v4/)).toBeInTheDocument();
+  });
+
+  it("falls back to the newest retired version when the param is junk", async () => {
     await renderDiscover({ version: "../../etc/passwd" });
 
     expect(
       await screen.findByText(/Spin through everything I've built/),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/You're viewing/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Landing-page history: v4/)).toBeInTheDocument();
   });
 
   it("has no axe violations", async () => {

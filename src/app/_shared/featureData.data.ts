@@ -159,10 +159,10 @@ export const FEATURES: FeatureItem[] = [
     id: "discover",
     title: "Discover",
     description:
-      "The slot machine that spins through every app and write-up here, plus every landing page this site has had: four generations still live at their own URLs, banner and all.",
+      "The slot machine that spins through every app and write-up here, plus every landing page this site has had: each generation still live at its own URL, banner and all. The current one lives at the root.",
     href: "/discover",
     color: "#7f6dd1",
-    thoughtsHref: "/thoughts/v4-redesign",
+    thoughtsHref: "/thoughts/v5-redesign",
   },
 ];
 
@@ -377,6 +377,13 @@ export const THOUGHTS: ThoughtItem[] = [
     preview:
       "The whole site as a node graph — a hand-rolled force sim, fit-to-viewport rendering, the drag/hover bugs, and an a11y audit",
     color: "#8b5cf6",
+  },
+  {
+    title: "V5 Redesign",
+    href: "/thoughts/v5-redesign",
+    preview:
+      "Retiring the slot machine from the root: a warm editorial palette measured against WCAG before it was written down, eight in-house motion primitives held to a no-opacity-zero-above-the-fold rule, and a landing page briefed against my own defaults",
+    color: "#219b84",
   },
   {
     title: "V4 Redesign",

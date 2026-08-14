@@ -131,6 +131,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/v2-redesign",
   "/thoughts/v3-redesign",
   "/thoughts/v4-redesign",
+  "/thoughts/v5-redesign",
   "/thoughts/vitals",
   "/thoughts/work-portfolio",
   "/thoughts/world",
