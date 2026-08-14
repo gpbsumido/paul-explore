@@ -36,11 +36,6 @@ describe("world exhibits", () => {
       "world",
       // A tiny toy, and the city is already dense around that block.
       "ketsup",
-      // No landmark built for it yet. An exhibit is a model, a collider and a
-      // placard placed by hand, so this is real work rather than an oversight
-      // to sweep up -- it sits here so the debt is written down instead of
-      // being implied by a count that happens to be short.
-      "research",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-14 - version 4.5.8
+
+- **Research Explorer has an exhibit in the world.** It was the one feature with a hub card and no landmark, while five places claimed the city held an exhibit for every feature. It sits at the MaRS Discovery District on University Avenue, which is where Toronto actually does medical research, a block from the hospitals the tool is about.
+- The exclusion that recorded this as debt comes out of the exhibits test, so `research` is now covered by the same check as everything else.
+
 ## 2026-08-14 - version 4.5.7
 
 - **Backfilled twenty undocumented versions**, 3.20.1 through 4.5.6. The log stopped at 4.0.0 while the app shipped 4.5.6, and the README went on calling it "a running log of changes/additions" the whole time. Each entry is written from the PR that shipped it rather than from the commit subjects, so it says why rather than what.
