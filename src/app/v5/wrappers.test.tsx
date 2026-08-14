@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import LandingContentV5 from "./LandingContentV5";
 import FeatureHubV5 from "./FeatureHubV5";
+import { HERO_TAGLINES } from "./taglines";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
@@ -26,8 +27,8 @@ const hrefs = () =>
 
 /**
  * The two wrappers exist for the same reason the v4 pair does: one page, two
- * greetings. Everything below the greeting is the same component, so these
- * tests only pin the split.
+ * header states. Everything below the header is the same component, so these
+ * tests only pin the split and the pass-through.
  */
 describe("the v5 landing wrappers", () => {
   it("offers a guest the log in call to action", () => {
@@ -38,18 +39,9 @@ describe("the v5 landing wrappers", () => {
     );
   });
 
-  it("shows a guest no personal quick links", () => {
+  it("shows a guest no personal routes outside the menu", () => {
     withProviders(<LandingContentV5 />);
     expect(hrefs()).not.toContain("/to-do");
-  });
-
-  it("greets a signed-in visitor by first name", () => {
-    withProviders(
-      <FeatureHubV5
-        initialMe={{ name: "Paul Sumido", email: "psumido@gmail.com" }}
-      />,
-    );
-    expect(screen.getByText(/Back again, Paul/)).toBeInTheDocument();
   });
 
   it("offers a signed-in visitor the log out call to action", () => {
@@ -60,21 +52,24 @@ describe("the v5 landing wrappers", () => {
     );
   });
 
-  it("greets a session with no name without printing an empty gap", () => {
-    withProviders(<FeatureHubV5 initialMe={{ name: null, email: null }} />);
-    expect(screen.getByText(/Back again\b/)).toBeInTheDocument();
-    expect(screen.queryByText(/Back again, \./)).not.toBeInTheDocument();
-  });
-
-  it("gives a signed-in visitor their own routes", () => {
+  it("adds no second bar for a signed-in visitor", () => {
     withProviders(
       <FeatureHubV5
         initialMe={{ name: "Paul Sumido", email: "psumido@gmail.com" }}
       />,
     );
-    const rendered = hrefs();
-    for (const href of ["/settings", "/calendar", "/to-do"]) {
-      expect(rendered).toContain(href);
-    }
+    expect(screen.queryByText(/Back again/)).not.toBeInTheDocument();
+  });
+
+  it("passes the tagline choice through to the hero", () => {
+    withProviders(<LandingContentV5 taglineIndex={1} />);
+    expect(screen.getByText(HERO_TAGLINES[1])).toBeInTheDocument();
+  });
+
+  it("passes the tagline choice through for the signed-in page too", () => {
+    withProviders(
+      <FeatureHubV5 initialMe={{ name: null, email: null }} taglineIndex={3} />,
+    );
+    expect(screen.getByText(HERO_TAGLINES[3])).toBeInTheDocument();
   });
 });

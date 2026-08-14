@@ -9,6 +9,8 @@ import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 import V5Content from "./V5Content";
 import Proof from "./sections/Proof";
+import { HERO_TAGLINES } from "./taglines";
+import { WRITING_POOL } from "./featured";
 
 // HeaderMenu re-checks auth on route change via usePathname; the landing never
 // navigates in these tests, so a fixed path is enough.
@@ -17,14 +19,16 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-const renderPage = (me?: { name: string | null; email: string | null }) => {
+const renderPage = (
+  props: Parameters<typeof V5Content>[0] = {},
+) => {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={client}>
       <ThemeProvider>
-        <V5Content me={me} />
+        <V5Content {...props} />
       </ThemeProvider>
     </QueryClientProvider>,
   );
@@ -51,14 +55,41 @@ describe("V5Content", () => {
     expect(screen.getByRole("main")).toBeInTheDocument();
   });
 
+  it("pins the header to the top of the viewport with its own surface", () => {
+    // The settings, theme and auth controls live in this bar, and the ask is
+    // that they stay reachable mid-page. Sticky needs a backdrop or the bar
+    // collides with the proof figures the moment the page scrolls.
+    renderPage();
+    const banner = screen.getByRole("banner");
+    expect(banner.className).toContain("sticky");
+    expect(banner.className).toContain("top-0");
+    expect(banner.className).toContain("backdrop-blur");
+  });
+
+  it("shows the first tagline by default and the indexed one when told", () => {
+    const { unmount } = renderPage();
+    expect(screen.getByText(HERO_TAGLINES[0])).toBeInTheDocument();
+    unmount();
+
+    renderPage({ taglineIndex: 2 });
+    expect(screen.getByText(HERO_TAGLINES[2])).toBeInTheDocument();
+  });
+
   it("argues the whole craft matrix, not a curated subset of it", () => {
     renderPage();
     for (const trait of CRAFT_TRAITS) {
       expect(
-        screen.getByRole("heading", { name: trait.title }),
+        screen.getByRole("heading", { name: new RegExp(trait.title) }),
       ).toBeInTheDocument();
       expect(screen.getByText(trait.principle)).toBeInTheDocument();
     }
+  });
+
+  it("counts the traits in copy instead of hardcoding the word ten", () => {
+    renderPage();
+    expect(
+      screen.getByText(new RegExp(`${CRAFT_TRAITS.length} traits`)),
+    ).toBeInTheDocument();
   });
 
   it("keeps every craft evidence link, because the proof is the argument", () => {
@@ -110,33 +141,49 @@ describe("V5Content", () => {
     }
   });
 
-  it("features the six curated apps by their real routes", () => {
+  it("features the six curated apps in order of what they prove", () => {
+    // The order is the argument: professional work first, then the number that
+    // keeps it honest, then the system, the console, the release tooling, and
+    // the showpiece to close. Learn is a fine feature and a weak pitch.
     renderPage();
-    const rendered = hrefs();
-    for (const id of [
-      "world",
+    const work = document.getElementById("work");
+    expect(work).not.toBeNull();
+    const titles = within(work as HTMLElement)
+      .getAllByRole("heading", { level: 3 })
+      .map((h) => h.textContent);
+    const expected = [
       "work-portfolio",
-      "operator",
-      "learn",
-      "design-system",
       "vitals",
-    ]) {
-      const feature = FEATURES.find((f) => f.id === id);
-      expect(feature).toBeDefined();
-      expect(rendered).toContain(feature?.href);
-    }
+      "design-system",
+      "operator",
+      "flags",
+      "world",
+    ].map((id) => FEATURES.find((f) => f.id === id)?.title);
+    expect(titles).toEqual(expected);
   });
 
-  it("teases three write-ups that exist in the registry", () => {
+  it("renders exactly the write-ups it is handed, all from the pool", () => {
+    const picks = WRITING_POOL.slice(2, 6).map((p) => p.href);
+    renderPage({ writingPicks: picks });
+    const writing = document.getElementById("writing");
+    const rendered = within(writing as HTMLElement)
+      .getAllByRole("link")
+      .map((a) => a.getAttribute("href"))
+      .filter((href) => href?.startsWith("/thoughts/"));
+    expect(rendered).toEqual(picks);
+  });
+
+  it("teases five pool write-ups when nobody picked, never a broken slug", () => {
     renderPage();
-    const rendered = hrefs();
-    for (const href of [
-      "/thoughts/craft",
-      "/thoughts/test-tiers",
-      "/thoughts/render-perf",
-    ]) {
+    const writing = document.getElementById("writing");
+    const rendered = within(writing as HTMLElement)
+      .getAllByRole("link")
+      .map((a) => a.getAttribute("href"))
+      .filter((href) => href?.startsWith("/thoughts/"));
+    expect(rendered).toHaveLength(5);
+    for (const href of rendered) {
       expect(THOUGHTS.some((t) => t.href === href)).toBe(true);
-      expect(rendered).toContain(href);
+      expect(WRITING_POOL.some((p) => p.href === href)).toBe(true);
     }
   });
 
@@ -156,18 +203,17 @@ describe("V5Content", () => {
     ).toBe(false);
   });
 
-  it("greets a signed-in visitor by first name and shows their quick links", () => {
-    renderPage({ name: "Paul Sumido", email: "psumido@gmail.com" });
-    expect(screen.getByText(/Back again, Paul/)).toBeInTheDocument();
-    const rendered = hrefs();
-    for (const href of ["/settings", "/calendar", "/to-do"]) {
-      expect(rendered).toContain(href);
-    }
-  });
-
-  it("shows no signed-in quick links to a guest", () => {
-    renderPage();
+  it("keeps the signed-in state to the header instead of a second bar", () => {
+    // The account strip under the hero duplicated the header menu and pushed
+    // the pitch down. Signed-in now only changes the header CTA; the personal
+    // routes live in the menu where they already were.
+    renderPage({ me: { name: "Paul Sumido", email: "psumido@gmail.com" } });
+    expect(screen.queryByText(/Back again/)).not.toBeInTheDocument();
     expect(hrefs()).not.toContain("/to-do");
+    expect(screen.getByRole("link", { name: /log out/i })).toHaveAttribute(
+      "href",
+      "/auth/logout",
+    );
   });
 
   it("has no axe violations as a guest", async () => {
@@ -178,8 +224,7 @@ describe("V5Content", () => {
 
   it("has no axe violations signed in", async () => {
     const { container } = renderPage({
-      name: "Paul Sumido",
-      email: "psumido@gmail.com",
+      me: { name: "Paul Sumido", email: "psumido@gmail.com" },
     });
     const results = await axe(container);
     expect(results).toHaveNoViolations();
