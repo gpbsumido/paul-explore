@@ -61,13 +61,14 @@ expect(results).toHaveNoViolations();`}
         </h2>
         <p className="text-muted">
           The approach is to start at the bottom of the component tree and work
-          up. The app has eight primitive components in{" "}
+          up. The audit covered the eight primitive components that existed in{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             src/components/ui/
-          </code>
-          : Button, IconButton, Input, Textarea, Modal, Tooltip, InfoTip, and
-          Chip. Every feature page is built from these, so fixing them fixes a
-          large surface area.
+          </code>{" "}
+          at the time: Button, IconButton, Input, Textarea, Modal, Tooltip,
+          InfoTip, and Chip. Every feature page is built from these, so fixing
+          them fixes a large surface area. FilterBar and Select arrived
+          afterwards, built on the conventions this set.
         </p>
         <p className="mt-3 text-muted">
           Each component gets its own audit pass. The pattern is the same every

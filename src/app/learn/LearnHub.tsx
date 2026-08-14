@@ -14,7 +14,7 @@ import {
 import { useHubReducedMotion } from "@/app/providers";
 
 // ---------------------------------------------------------------------------
-// Topic data — matches the plan's 13 topics across 2 categories
+// Topic data — the 14 topics across 2 categories
 // ---------------------------------------------------------------------------
 
 type Topic = {

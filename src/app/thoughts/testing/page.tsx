@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { buildArticleMetadata } from "@/lib/site";
+import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 import TestingContent from "./TestingContent";
 
 const TITLE = "Testing | Thoughts";
-const DESCRIPTION =
-  "How 640+ tests (unit + e2e) got added to a codebase with zero — the setup, what got tested and why, and the MSW delay() trick for proving optimistic updates actually work.";
+const DESCRIPTION = `How ${TEST_COUNT}+ tests (unit + e2e) got added to a codebase with zero — the setup, what got tested and why, and the MSW delay() trick for proving optimistic updates actually work.`;
 
 export const metadata: Metadata = buildArticleMetadata({
   title: TITLE,

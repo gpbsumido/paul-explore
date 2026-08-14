@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { TABS } from "@/lib/operator-detail";
 import OperatorDashboardContent from "./OperatorDashboardContent";
 import { THOUGHTS } from "@/app/_shared/featureData";
 import { groupThoughts } from "@/app/_shared/thoughtCategories";
@@ -76,11 +77,29 @@ describe("OperatorDashboardContent", () => {
     const handoff = body.indexOf("Everything below is how it got here");
     const section = body.slice(overview, handoff);
 
-    expect(section).toMatch(/seven tabs/);
     expect(section).toMatch(/Restocking is a session, not a button/);
     expect(section).toMatch(/Promotions run and then report back/);
     expect(section).toMatch(/timezone/i);
     expect(section).toMatch(/no account/);
+  });
+
+  /**
+   * This used to assert /seven tabs/. A tab was added, the prose was not
+   * updated, and the test went on guaranteeing the wrong number -- the check
+   * was pinned to the sentence rather than to the thing the sentence is about.
+   *
+   * Naming every tab in TABS is the claim worth making, and it fails the day
+   * a tab is added instead of freezing the count that was true when written.
+   */
+  it("names every store detail tab the app actually has", () => {
+    render(<OperatorDashboardContent />);
+    const body = document.body.textContent ?? "";
+    const overview = body.indexOf("How it works today");
+    const handoff = body.indexOf("Everything below is how it got here");
+    const section = body.slice(overview, handoff);
+
+    const missing = TABS.filter((tab) => !section.includes(tab.label));
+    expect(missing.map((tab) => tab.label)).toEqual([]);
   });
 
   it("carries a dated continuation section for today's update", () => {

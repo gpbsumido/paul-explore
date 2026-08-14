@@ -872,14 +872,16 @@ export function OperatorTimelineOverview() {
           sales with a day, week, month or year range.
         </p>
         <p className="mt-3 text-muted">
-          Clicking a store opens the detail page, which is seven tabs. Inventory
+          Clicking a store opens the detail page, which is eight tabs. Inventory
           has per-slot stock and starts a restock. Alerts has active and
           resolved views with a severity filter and a seven-day trend. Activity
           is the audit feed. Planogram is a drag-and-drop shelf layout with
           per-slot sensor re-sync. Sales is headline totals, a revenue trend,
           top sellers and recent transactions. Pricing is a discount and profit
           calculator plus scheduled promotions. Tax derives GST, HST, PST and
-          QST from the store&apos;s province and shows what is owed.
+          QST from the store&apos;s province and shows what is owed. Restock
+          History is every completed session for the store, with what was
+          counted against what was expected.
         </p>
         <p className="mt-3 text-muted">
           Off the fleet page there are now five fleet-wide tools, each its own
