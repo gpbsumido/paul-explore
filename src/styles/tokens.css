@@ -19,44 +19,64 @@
    Sourced from @paul-portfolio/tokens
    ======================================== */
 :root {
-  /* Primary (blue) — from @paul-portfolio/tokens */
-  --color-primary-50: var(--paul-color-primary-50);
-  --color-primary-100: var(--paul-color-primary-100);
-  --color-primary-200: var(--paul-color-primary-200);
-  --color-primary-300: var(--paul-color-primary-300);
-  --color-primary-400: var(--paul-color-primary-400);
-  --color-primary-500: var(--paul-color-primary-500);
-  --color-primary-600: var(--paul-color-primary-600);
-  --color-primary-700: var(--paul-color-primary-700);
-  --color-primary-800: var(--paul-color-primary-800);
-  --color-primary-900: var(--paul-color-primary-900);
-  --color-primary-950: var(--paul-color-primary-950);
+  /* ========================================
+     VERDIGRIS & EMBER
+     The identity ramps are literal values, not aliases of
+     @paul-portfolio/tokens. The shared package still ships the stock
+     blue/violet/gray it always did and other apps still use it; this app
+     overrides the three identity ramps locally so the package stays
+     untouched. Error/success/warning below are still aliased, because a
+     semantic signal is not part of the brand.
 
-  /* Secondary (violet) — from @paul-portfolio/tokens */
-  --color-secondary-50: var(--paul-color-secondary-50);
-  --color-secondary-100: var(--paul-color-secondary-100);
-  --color-secondary-200: var(--paul-color-secondary-200);
-  --color-secondary-300: var(--paul-color-secondary-300);
-  --color-secondary-400: var(--paul-color-secondary-400);
-  --color-secondary-500: var(--paul-color-secondary-500);
-  --color-secondary-600: var(--paul-color-secondary-600);
-  --color-secondary-700: var(--paul-color-secondary-700);
-  --color-secondary-800: var(--paul-color-secondary-800);
-  --color-secondary-900: var(--paul-color-secondary-900);
-  --color-secondary-950: var(--paul-color-secondary-950);
+     Every value here was checked against WCAG relative luminance before it
+     was written down. The notes on the load-bearing steps are the measured
+     ratios, so a future edit can see what it would be breaking.
+     ======================================== */
 
-  /* Neutral (gray) — from @paul-portfolio/tokens */
-  --color-neutral-50: var(--paul-color-neutral-50);
-  --color-neutral-100: var(--paul-color-neutral-100);
-  --color-neutral-200: var(--paul-color-neutral-200);
-  --color-neutral-300: var(--paul-color-neutral-300);
-  --color-neutral-400: var(--paul-color-neutral-400);
-  --color-neutral-500: var(--paul-color-neutral-500);
-  --color-neutral-600: var(--paul-color-neutral-600);
-  --color-neutral-700: var(--paul-color-neutral-700);
-  --color-neutral-800: var(--paul-color-neutral-800);
-  --color-neutral-900: var(--paul-color-neutral-900);
-  --color-neutral-950: var(--paul-color-neutral-950);
+  /* Primary — verdigris. 600 is the text/fill step: 4.87:1 on light paper,
+     and white on it is 5.09:1, so a filled button and its label both clear
+     AA. 500 is the focus ring: 3.31:1 light and 5.46:1 dark, both over the
+     3:1 bar for non-text UI. */
+  --color-primary-50: #eefaf6;
+  --color-primary-100: #d6f3ea;
+  --color-primary-200: #aee6d7;
+  --color-primary-300: #79d2bd;
+  --color-primary-400: #43b69e;
+  --color-primary-500: #219b84;
+  --color-primary-600: #157c6b;
+  --color-primary-700: #136357;
+  --color-primary-800: #124f47;
+  --color-primary-900: #11413b;
+  --color-primary-950: #062520;
+
+  /* Secondary — ember. 600 sits at #b25c12 rather than a lighter apricot
+     because the obvious #bd6314 only reached 4.06:1 on paper and 4.24:1 for
+     white-on-fill. This one gives 4.54 and 4.74. */
+  --color-secondary-50: #fdf7ef;
+  --color-secondary-100: #faecd7;
+  --color-secondary-200: #f5d6ab;
+  --color-secondary-300: #eeba74;
+  --color-secondary-400: #e69a42;
+  --color-secondary-500: #d97e1f;
+  --color-secondary-600: #b25c12;
+  --color-secondary-700: #9d4b13;
+  --color-secondary-800: #7f3b16;
+  --color-secondary-900: #683114;
+  --color-secondary-950: #391807;
+
+  /* Neutral — ink on paper. Warm, so it sits with the two ramps above
+     instead of fighting them. One neutral family for the whole app. */
+  --color-neutral-50: #faf9f7;
+  --color-neutral-100: #f1efeb;
+  --color-neutral-200: #e3e0d9;
+  --color-neutral-300: #cfcac0;
+  --color-neutral-400: #a49d90;
+  --color-neutral-500: #7f7869;
+  --color-neutral-600: #635d50;
+  --color-neutral-700: #4f4a40;
+  --color-neutral-800: #35312a;
+  --color-neutral-900: #24211c;
+  --color-neutral-950: #151310;
 
   /* Semantic: Error (red) — from @paul-portfolio/tokens */
   --color-error-50: var(--paul-color-error-50);
@@ -97,43 +117,54 @@
   --color-warning-900: var(--paul-color-warning-900);
   --color-warning-950: var(--paul-color-warning-950);
 
-  /* Semantic aliases (surface/text) — from @paul-portfolio/tokens */
-  --color-background: var(--paul-color-background);
-  --color-foreground: var(--paul-color-foreground);
-  --color-surface: var(--paul-color-surface);
+  /* Semantic aliases (surface/text) — warm paper, not white.
+     foreground 16.62:1 on background, muted 5.38:1 on background and
+     5.02:1 on the raised surface. */
+  --color-background: #fbfaf7;
+  --color-foreground: #1d1a15;
+  --color-surface: #f4f2ed;
   --color-surface-raised: #ffffff;
-  --color-border: var(--paul-color-border);
-  --color-muted: var(--paul-color-muted);
+  --color-border: #e3e0d9;
+  --color-muted: #6d675b;
 
   /* Backward compat aliases */
   --background: var(--color-background);
   --foreground: var(--color-foreground);
 
   /* ========================================
-     FEATURE PASTEL ACCENTS
-     One pastel per feature, used for card tints,
-     section glows, glass border accents, and chips.
-     All are Tailwind-200-level — readable on black,
-     distinct from each other.
+     FEATURE ACCENTS — light half of the pair
+     One accent per feature, used for card tints, section glows, glass
+     border accents, and chips.
+
+     These used to be a single set of pastels tuned for a dark page, which
+     meant that in light mode every one of them sat on near-white and
+     vanished. The token names are unchanged and the dark values are still
+     those pastels, moved into the [data-theme="dark"] block below — so
+     every color-mix() consumer flips theme with no component change.
+
+     Each value clears 4.5:1 against both the page background and the raised
+     surface. Six of them (nba, particles, motion, learn, flags, world) are
+     a touch darker than the obvious choice for exactly that reason: they
+     passed on the page and failed on a card.
      ======================================== */
-  --color-feature-calendar: #a7f3d0;
-  --color-feature-tcg: #fecdd3;
-  --color-feature-nba: #fde68a;
-  --color-feature-vitals: #ddd6fe;
-  --color-feature-graphql: #bfdbfe;
-  --color-feature-auth: #fca5a5;
-  --color-feature-particles: #a5f3fc;
-  --color-feature-motion: #d9f99d;
-  --color-feature-sync: #bae6fd;
-  --color-feature-ketsup: #f9a8d4;
-  --color-feature-operator: #c4b5fd;
-  --color-feature-learn: #6ee7b7;
-  --color-feature-work-portfolio: #bfdbfe;
-  --color-feature-flags: #fdba74;
-  --color-feature-design-system: #5eead4;
-  --color-feature-craft: #f5d0fe;
-  --color-feature-gallery-wall: #fbcfe8;
-  --color-feature-world: #7dd3fc;
+  --color-feature-calendar: #0f7a58;
+  --color-feature-tcg: #b04351;
+  --color-feature-nba: #8a670e;
+  --color-feature-vitals: #6a55c8;
+  --color-feature-graphql: #33639e;
+  --color-feature-auth: #b13d31;
+  --color-feature-particles: #0d7686;
+  --color-feature-motion: #587511;
+  --color-feature-sync: #1573a4;
+  --color-feature-ketsup: #b0396f;
+  --color-feature-operator: #6250bd;
+  --color-feature-learn: #137a51;
+  --color-feature-work-portfolio: #2f6cae;
+  --color-feature-flags: #a45713;
+  --color-feature-design-system: #12756a;
+  --color-feature-craft: #94459e;
+  --color-feature-gallery-wall: #ab4380;
+  --color-feature-world: #286f9e;
 
   /* ========================================
      GLASS SYSTEM
@@ -310,13 +341,35 @@
    Palette shades stay the same.
    ======================================== */
 [data-theme="dark"] {
-  /* Semantic aliases — from @paul-portfolio/tokens dark overrides */
-  --color-background: var(--paul-color-background);
-  --color-foreground: var(--paul-color-foreground);
-  --color-surface: var(--paul-color-surface);
-  --color-surface-raised: #262626;
-  --color-border: var(--paul-color-border);
-  --color-muted: var(--paul-color-muted);
+  /* Semantic aliases — warm near-black rather than a blue-grey.
+     foreground 15.42:1 on background, muted 7.00:1. */
+  --color-background: #131110;
+  --color-foreground: #ece8e1;
+  --color-surface: #1b1815;
+  --color-surface-raised: #211e1a;
+  --color-border: #322e28;
+  --color-muted: #a49d90;
+
+  /* Feature accents — dark half of the pair. These are the pastels the app
+     shipped before, unchanged; they only stopped applying in light mode. */
+  --color-feature-calendar: #9fe8c9;
+  --color-feature-tcg: #f7c3c6;
+  --color-feature-nba: #f2d38b;
+  --color-feature-vitals: #d3cbf5;
+  --color-feature-graphql: #b9d2ee;
+  --color-feature-auth: #f4b3ac;
+  --color-feature-particles: #a3e6ef;
+  --color-feature-motion: #d4ef9d;
+  --color-feature-sync: #aadcf2;
+  --color-feature-ketsup: #f5b2cf;
+  --color-feature-operator: #c9bdf2;
+  --color-feature-learn: #93e3bb;
+  --color-feature-work-portfolio: #b5d4f3;
+  --color-feature-flags: #f4c294;
+  --color-feature-design-system: #8fe0cf;
+  --color-feature-craft: #ecc2f0;
+  --color-feature-gallery-wall: #f3bedd;
+  --color-feature-world: #a6d6f0;
 
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.2);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
