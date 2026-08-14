@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-14 - version 4.5.8
+
+- **Research Explorer has an exhibit in the world.** It was the one feature with a hub card and no landmark, while five places claimed the city held an exhibit for every feature. It sits at the MaRS Discovery District on University Avenue, which is where Toronto actually does medical research, a block from the hospitals the tool is about.
+- The exclusion that recorded this as debt comes out of the exhibits test, so `research` is now covered by the same check as everything else.
+
 ## 2026-08-11 - version 4.0.0
 
 - **The Web Vitals dashboard was crediting the landing page's load metrics to whatever page you clicked into.** `WebVitalsReporter` registers all five observers once and reported the pathname read at the moment each one fired. That is right for INP and CLS, which describe the view you are on. It is wrong for FCP, LCP and TTFB, which describe the initial document load — and LCP in particular only flushes on first interaction, which on this site is usually a click on a nav link. By then the ref has moved to the destination, so the number lands on the wrong row. Load metrics now use the pathname captured when the observers are registered; the interaction metrics keep following the navigation.

@@ -77,4 +77,10 @@ export const EXHIBITS: readonly WorldExhibit[] = [
     blurb: "Lecture hall optional: interactive deep-dives into algorithms and patterns.",
     position: { x: -46, z: -68 },
   },
+  {
+    featureId: "research",
+    landmark: "MaRS Discovery District",
+    blurb: "Hospital row's research block: surgery topics scored against what the literature actually published.",
+    position: { x: -34, z: -52 },
+  },
 ];
