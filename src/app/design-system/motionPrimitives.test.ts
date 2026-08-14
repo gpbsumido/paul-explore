@@ -44,9 +44,11 @@ describe("MOTION_PRIMITIVES", () => {
     }
   });
 
-  it("marks every primitive as planned for the landing page", () => {
+  it("marks every primitive as shipping on the landing page", () => {
+    // They were documented as planned for / while nothing rendered them. The v5
+    // landing composes all eight, so the field states where they ship.
     for (const primitive of MOTION_PRIMITIVES) {
-      expect(primitive.plannedFor).toBe("/");
+      expect(primitive.usedOn).toBe("/");
     }
   });
 });
