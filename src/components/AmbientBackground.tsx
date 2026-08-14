@@ -20,8 +20,10 @@ type Props = {
  * own accent (e.g. its feature token) while keeping the same treatment.
  */
 export default function AmbientBackground({
-  colorA = "#8b5cf6",
-  colorB = "#38bdf8",
+  // Verdigris and ember rather than the violet-and-sky aurora every generated
+  // landing page has. Callers still override per page.
+  colorA = "#219b84",
+  colorB = "#d97e1f",
 }: Props) {
   const reduced = useReducedMotion() ?? false;
 
