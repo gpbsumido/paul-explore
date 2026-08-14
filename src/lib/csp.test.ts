@@ -1,21 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { buildCsp, mediaOrigin } from "./csp";
+import { buildCsp, toOrigin } from "./csp";
 
 const directive = (csp: string, name: string): string =>
   csp.split("; ").find((d) => d.startsWith(`${name} `)) ?? "";
 
-describe("mediaOrigin", () => {
+describe("toOrigin", () => {
   it("reduces a media URL to a bare origin", () => {
-    expect(mediaOrigin("https://d123.cloudfront.net/")).toBe("https://d123.cloudfront.net");
-    expect(mediaOrigin("https://bucket.s3.ca-central-1.amazonaws.com/gallery-walls")).toBe(
+    expect(toOrigin("https://d123.cloudfront.net/")).toBe("https://d123.cloudfront.net");
+    expect(toOrigin("https://bucket.s3.ca-central-1.amazonaws.com/gallery-walls")).toBe(
       "https://bucket.s3.ca-central-1.amazonaws.com",
     );
   });
 
   it("treats unset, blank, or malformed values as absent", () => {
-    expect(mediaOrigin(undefined)).toBeNull();
-    expect(mediaOrigin("   ")).toBeNull();
-    expect(mediaOrigin("not a url")).toBeNull();
+    expect(toOrigin(undefined)).toBeNull();
+    expect(toOrigin("   ")).toBeNull();
+    expect(toOrigin("not a url")).toBeNull();
   });
 });
 
@@ -51,6 +51,54 @@ describe("buildCsp", () => {
 
   it("does not let a media origin widen script-src", () => {
     const csp = buildCsp("https://evil.example.com");
+    expect(directive(csp, "script-src")).not.toContain("evil.example.com");
+  });
+
+  /**
+   * The browser talks to portfolio_api directly for the referral-links demo,
+   * so the API origin has to be in connect-src. It used to be the production
+   * hostname, hardcoded, which meant the demo was blocked by our own CSP on
+   * every local checkout -- the README tells you to point at localhost:3001.
+   *
+   * Following API_URL rather than naming a host keeps the policy honest: it
+   * allows wherever the app actually calls, and nowhere else.
+   */
+  it("allows the API origin the app is configured to call", () => {
+    const connect = directive(buildCsp(undefined, { apiUrl: "http://localhost:3001" }), "connect-src");
+    expect(connect).toContain("http://localhost:3001");
+  });
+
+  it("allows the production API when that is what is configured", () => {
+    const connect = directive(
+      buildCsp(undefined, { apiUrl: "https://api.paulsumido.com" }),
+      "connect-src",
+    );
+    expect(connect).toContain("https://api.paulsumido.com");
+  });
+
+  it("does not smuggle in a hardcoded API host", () => {
+    const connect = directive(buildCsp(undefined, { apiUrl: "http://localhost:3001" }), "connect-src");
+    expect(connect).not.toContain("api.paulsumido.com");
+  });
+
+  it("reduces an API URL with a path to a bare origin", () => {
+    const connect = directive(
+      buildCsp(undefined, { apiUrl: "https://api.paulsumido.com/api/" }),
+      "connect-src",
+    );
+    expect(connect).toContain("https://api.paulsumido.com");
+    expect(connect).not.toContain("/api/");
+  });
+
+  it("keeps the other connect origins when an API origin is added", () => {
+    const connect = directive(buildCsp(undefined, { apiUrl: "http://localhost:3001" }), "connect-src");
+    expect(connect).toContain("'self'");
+    expect(connect).toContain("https://vitals.vercel-insights.com");
+    expect(connect).toContain("wss://realtime.ably.io");
+  });
+
+  it("does not let the API origin widen script-src", () => {
+    const csp = buildCsp(undefined, { apiUrl: "https://evil.example.com" });
     expect(directive(csp, "script-src")).not.toContain("evil.example.com");
   });
 

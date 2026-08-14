@@ -454,8 +454,8 @@ export function LandingSummaryTwo() {
           frameloop=&quot;demand&quot; + IntersectionObserver — the full picture
         </h2>
         <p className="text-muted">
-          The landing page now has eight WebGL contexts: one hero globe, one
-          GraphQL cluster, one vitals speedometer, and five section canvases
+          The landing page now has seven WebGL contexts: one hero globe, one
+          GraphQL cluster, one vitals speedometer, and four section canvases
           (NBA, auth, calendar, TCG, and vitals again). Without lifecycle
           management this would be expensive. The actual cost per idle canvas is
           zero because of two compounding guards.
@@ -474,7 +474,7 @@ export function LandingSummaryTwo() {
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             frameloop=&quot;demand&quot;
           </code>{" "}
-          on the five section canvases. R3F only renders a frame when{" "}
+          on the four section canvases. R3F only renders a frame when{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             invalidate()
           </code>{" "}
@@ -487,7 +487,7 @@ export function LandingSummaryTwo() {
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             PauseWhenOffscreen
           </code>{" "}
-          on all eight canvases. When the user scrolls past a section, the
+          on all seven canvases. When the user scrolls past a section, the
           observer fires, frameloop switches to{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             &quot;never&quot;

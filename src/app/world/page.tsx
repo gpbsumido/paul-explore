@@ -5,7 +5,7 @@ import WorldContent from "./WorldContent";
 export const metadata: Metadata = {
   title: "Explore Toronto | paul-explore",
   description:
-    "Walk a low-poly downtown Toronto at night — WASD through real streets, past the CN Tower and Nathan Phillips Square, and visit exhibits that open every feature on this site.",
+    "Walk a low-poly downtown Toronto at night — WASD through real streets, past the CN Tower and Nathan Phillips Square, and visit exhibits that open the rest of the site.",
   openGraph: {
     title: "Explore Toronto — a 3D world of this site",
     description:

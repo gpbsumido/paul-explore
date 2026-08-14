@@ -15,7 +15,7 @@ Every feature has a `/thoughts` write-up covering the architecture decisions beh
 Public (no login). Listed most-to-least prominent, matching the apps order across the site:
 
 - [Landing](https://paulsumido.com/) — a three-reel slot machine over every feature and write-up (the v3 node-graph is still at `/?version=v3`)
-- [Explore Toronto](https://paulsumido.com/world) — a walkable 3D low-poly downtown Toronto at night; WASD past the CN Tower and City Hall to exhibits that open every feature on this site
+- [Explore Toronto](https://paulsumido.com/world) — a walkable 3D low-poly downtown Toronto at night; WASD past the CN Tower and City Hall to exhibits that open the rest of the site
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
 - [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground
 - [Research Explorer](https://paulsumido.com/research) — a tool for picking a vascular surgery research project: curated topics scored live against PubMed and Europe PMC, recent papers with links, demographic filters that show which populations the literature actually enrolled, and topics auto-derived from what the field is publishing now
@@ -90,7 +90,7 @@ cp .env.example .env.local
 
 `.env.example` is the complete annotated list, and it is the source of truth —
 every variable there carries a comment explaining what breaks without it. This
-section deliberately does not repeat all sixteen, because two lists is how one
+section deliberately does not repeat them, because two lists is how one
 of them ends up wrong.
 
 The minimum to boot and log in:

@@ -182,6 +182,23 @@ export function RenderPerfSummary2() {
           on first load and cached. Leaving this as a documented decision rather
           than a fix.
         </p>
+        <p className="mt-3 text-muted">
+          <span className="font-semibold text-foreground">
+            Since reversed, and the measurement is the point.
+          </span>{" "}
+          The sweep did land later, during the{" "}
+          <a
+            href="/thoughts/react-doctor"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            React Doctor pass
+          </a>
+          . It moved total client JS by about 2.8&nbsp;KB gzipped, roughly 0.1%
+          &mdash; so the call above was right about the size of the prize and
+          wrong only about whether it was worth doing anyway. Worth leaving both
+          halves here: the reasoning for skipping it was sound, and the number
+          that came out the other side is the thing that settles it.
+        </p>
       </section>
 
       <section>

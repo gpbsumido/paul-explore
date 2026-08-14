@@ -386,11 +386,16 @@ export default function ImprovementsContent() {
             src/proxy.ts
           </code>{" "}
           and are checked before any auth or session work — so a rejection never
-          pays Auth0 latency. Three tiers:{" "}
+          pays Auth0 latency. Four tiers:{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             /api/vitals POST
           </code>{" "}
           capped at 20 per minute (open ingestion, tightest limit),{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            /api/geo GET
+          </code>{" "}
+          at 30 (also unauthenticated, and cached server-side for the same
+          window anyway),{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             /api/graphql POST
           </code>{" "}

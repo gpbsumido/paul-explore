@@ -1,7 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 const code =
@@ -336,21 +336,92 @@ export default function SecurityAuditContent() {
         </p>
       </section>
 
+      <Update
+        id="update-2026-08-14-guards"
+        date="August 14, 2026"
+        title="The one-off pass became something that repeats — and one of the checks was lying"
+      >
+        <p>
+          The gap this page admitted to was that the audit was done by hand
+          once, so the next absence would wait for the next time I went
+          looking. Closing it meant turning the findings into checks that run
+          on every push. What I did not expect was that the checks already
+          there were part of the problem.
+        </p>
+        <p>
+          The operator write-up said the store detail page has{" "}
+          <strong className="text-foreground">seven tabs</strong>. It has
+          eight; Restock History was added and the prose was not touched. A
+          test asserted <code className="font-mono text-foreground/70">
+            /seven tabs/
+          </code>{" "}
+          against that sentence — so when the eighth tab landed, the test went
+          on <em>guaranteeing</em> the wrong number. It was pinned to the
+          sentence rather than to the thing the sentence is about.
+        </p>
+        <p>
+          That is a different failure from the ones above. Every finding in the
+          original audit was a control that was missing. This was a control
+          that was present, green, and holding the mistake in place. Nobody
+          reviews a passing test.
+        </p>
+        <p>
+          The world exhibits had the same shape from the other side: a test
+          checked that every exhibit maps to a real feature, which is the
+          direction that <em>cannot</em> fail. Nothing checked that every
+          feature has an exhibit, so Research Explorer shipped without one
+          while five places claimed the city held an exhibit for every feature.
+          The <code className="font-mono text-foreground/70">llms.txt</code>{" "}
+          checks were identical — everything named exists, nothing about what
+          was left out, which is the only way that file ever goes wrong.
+        </p>
+        <p>
+          The counts that had drifted were the cheap part to fix. The site was
+          quoting <strong className="text-foreground">640 tests</strong> in two
+          places while a third rendered the generated count of{" "}
+          <strong className="text-foreground">2,525</strong>, a click apart.
+          The changelog had stopped twenty versions back while the README
+          called it a running log. Both now derive or fail.
+        </p>
+        <p>
+          The part worth keeping: I wrote a check for duplicate changelog
+          headings that{" "}
+          <strong className="text-foreground">could never fail</strong>.{" "}
+          <code className="font-mono text-foreground/70">Set.add()</code>{" "}
+          returns the Set, not a boolean, so my{" "}
+          <code className="font-mono text-foreground/70">!seen.add(v)</code>{" "}
+          filter matched nothing and the test passed against a file I had
+          deliberately corrupted. I only caught it because I had started
+          corrupting files on purpose after the seven-tabs business. Rewritten,
+          it immediately found a duplicate my own grep had missed.
+        </p>
+        <p>
+          So the rule I came away with is narrower than &ldquo;write more
+          tests&rdquo;. Point the assertion at the data, not at the prose about
+          the data. Check the direction that can actually fail. And watch the
+          thing go red once before believing it — a guard nobody has seen fail
+          is not yet a guard, and I now have two examples of my own to prove it.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Seven classes of missing control closed across both repos, each with a test that fails without the fix rather than one that passes with it.",
           "Duplicated security logic consolidated — one constant-time compare, one visibility rule, one rate-limit store, one TLS config.",
           "Four write-ups on this site corrected where they asserted protections that were not on.",
+          "The hand pass became repeating checks: counts derive from the arrays they describe, the changelog fails when the shipped version has no entry, and the exhibit and crawler files are checked for what they omit rather than only for what they name.",
+          "The database moved onto Railway private networking, public access is off, and the password is rotated — the real fix for the credential story above rather than a rule asking nicely.",
+          "History, comments and editing on the to-do list all shipped. Reverting writes a NEW revision rather than discarding later ones, so it reverts rather than resets.",
         ]}
         couldImprove={[
-          "The audit was a one-off pass by hand. Nothing repeats it, so the next absence waits for the next time I go looking.",
           "There is still no check that a new route carries an authorization decision at all — the thing that would have caught /tables on the day it was written.",
           "Two Postgres connection pools remain. #137 made them agree about TLS; merging them properly is still outstanding, and duplication is exactly where the audit kept finding things.",
+          "The new guards each carry a hand-maintained exception list. That is deliberate — a named exclusion is a decision someone made, where a short count is just a number — but nothing makes me revisit an exclusion once it is written, and 'research has no exhibit yet' sat there as accepted debt until I went back for it.",
+          "Nothing checks a guard's own direction. The seven-tabs test and the exhibits test were both green and both incapable of failing, and it took reading them to notice; a passing test still gets no review.",
         ]}
         upcoming={[
-          "History and comments on the to-do list, designed and deliberately unbuilt. Restoring writes a NEW revision rather than discarding later ones, so it reverts rather than resets — the same instinct as soft delete, applied to edits. Comments sit outside revertable state, because reverting a change should never delete the note explaining why it was made.",
-          "It is parked rather than abandoned: the page went from a read-only list to filters and optimistic writes in one afternoon, and adding a revision model on top of a thing that new is how you end up maintaining the wrong abstraction. The interesting decision is revert-versus-reset, and that decision keeps whether or not it ships this month.",
-          "Moving the database onto private networking, which is the real fix for the credential story above rather than a rule asking nicely.",
+          "Splitting Auth0 into a dev tenant, so testing against auth stops meaning testing against the tenant real logins go through. There is also no staging API — develop and production point at the same backend — and the two are the same job.",
+          "The CSP still ships 'unsafe-inline' on script-src. Nonces are the fix and the reason they are not done is recorded rather than hidden: reading headers() in the root layout opts every route out of static generation, and a build confirmed it.",
         ]}
       />
     </ThoughtLayout>

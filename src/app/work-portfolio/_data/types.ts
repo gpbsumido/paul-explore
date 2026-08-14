@@ -13,7 +13,7 @@ export type AccentTheme = {
   font: "sans" | "mono";
 };
 
-/** One of the 11 past projects. Names are public-safe, never the real ones. */
+/** One of the past projects. Names are public-safe, never the real ones. */
 export type WorkProject = {
   id: string;
   /** anonymized public name shown in the top ticker */
@@ -27,7 +27,7 @@ export type WorkProject = {
   cutFeatures: string[];
 };
 
-/** One of the 24 demoable features shown in the bottom ticker. */
+/** One of the demoable features shown in the bottom ticker. */
 export type WorkFeature = {
   /** url-safe id, used for ?feature= deep links */
   slug: string;

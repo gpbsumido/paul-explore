@@ -75,7 +75,7 @@ export function LandingSummaryOne() {
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             LandingContent
           </code>{" "}
-          is a thin orchestrator. Each of the six sections is its own component
+          is a thin orchestrator. Each section is its own component
           under{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
             src/app/landing/

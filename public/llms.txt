@@ -34,6 +34,10 @@ Tailwind. Tested with Vitest and Playwright, test-first.
 - [Feature Flags](https://paulsumido.com/flags): describe a user, watch every flag decide what they see
 - [Fleet Operator](https://paulsumido.com/operator): unattended-retail dashboard over a Postgres-backed API
 - [Learn](https://paulsumido.com/learn): interactive algorithm and frontend-pattern deep-dives
+- [Craft](https://paulsumido.com/craft): lead front-end traits, each opened up to the work here that shows it
+- [Gallery Wall](https://paulsumido.com/gallery-wall): arrange framed prints to scale and get the hanging measurements
+- [Fantasy NBA](https://paulsumido.com/fantasy/nba): playoff bracket, player stats, matchups, shot charts, league history
+- [Particle Lab](https://paulsumido.com/lab/particles): an R3F particle network with live controls
 - [Pokémon TCG](https://paulsumido.com/pokemon): card browser, Pocket expansions, and a GraphQL Pokédex
 - [Web Vitals](https://paulsumido.com/vitals): real-user Core Web Vitals, site-wide and non-personal
 
