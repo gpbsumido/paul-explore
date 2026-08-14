@@ -14,6 +14,7 @@ import {
 } from "@/lib/authSession";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
+import { API_URL } from "@/lib/apiUrl";
 import { isSessionProtectedPath } from "@/lib/protectedPaths";
 import {
   VISITOR_COOKIE,
@@ -54,8 +55,12 @@ import {
 // Built in src/lib/csp.ts so the one environment-dependent part -- the origin
 // serving user-uploaded photos -- is testable and configurable. Without it,
 // saved gallery walls render blank because the browser blocks every photo.
+// API_URL rather than the raw env var: it carries the localhost fallback, so
+// connect-src allows wherever the app will actually fetch from even when
+// NEXT_PUBLIC_API_URL is unset.
 const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
   dev: process.env.NODE_ENV === "development",
+  apiUrl: API_URL,
 });
 
 /**

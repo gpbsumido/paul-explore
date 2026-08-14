@@ -16,11 +16,14 @@ const IMG_ORIGINS = [
   "https://explorer-api.walletconnect.com",
 ];
 
+/**
+ * Third-party origins the browser talks to. portfolio_api is deliberately not
+ * in here: it moves with NEXT_PUBLIC_API_URL, so it is passed in instead.
+ */
 const CONNECT_ORIGINS = [
   "https://vitals.vercel-insights.com",
   "https://vercel.live",
   "https://api.open-meteo.com",
-  "https://api.paulsumido.com",
   "https://ethereum-rpc.publicnode.com",
   "https://ethereum-sepolia-rpc.publicnode.com",
   "wss://relay.walletconnect.org",
@@ -36,10 +39,10 @@ const CONNECT_ORIGINS = [
 ];
 
 /**
- * Normalise a media origin to a bare scheme + host, dropping any path or
- * trailing slash, since CSP wants an origin. Returns null for junk or unset.
+ * Normalise a URL to a bare scheme + host, dropping any path or trailing
+ * slash, since CSP wants an origin. Returns null for junk or unset.
  */
-export function mediaOrigin(raw: string | undefined): string | null {
+export function toOrigin(raw: string | undefined): string | null {
   if (!raw) return null;
   const trimmed = raw.trim();
   if (!trimmed) return null;
@@ -51,17 +54,31 @@ export function mediaOrigin(raw: string | undefined): string | null {
 }
 
 /**
- * Build the CSP header. `media` is the origin serving user-uploaded photos
+ * Build the CSP header.
+ *
+ * `media` is the origin serving user-uploaded photos
  * (`NEXT_PUBLIC_MEDIA_ORIGIN`); when it's absent the policy is unchanged, which
  * means saved gallery walls will not render their photos.
+ *
+ * `apiUrl` is where portfolio_api lives (`NEXT_PUBLIC_API_URL`). The browser
+ * calls it directly for the referral-links demo, so it has to be in
+ * connect-src. It used to be the production hostname written in here, which
+ * meant that demo was blocked by our own CSP on every local checkout, since
+ * the README points you at localhost:3001. Following the same variable the app
+ * fetches from keeps the policy allowing exactly where the app actually goes.
  */
 export function buildCsp(
   media?: string,
-  { dev = false }: { dev?: boolean } = {},
+  { dev = false, apiUrl }: { dev?: boolean; apiUrl?: string } = {},
 ): string {
-  const origin = mediaOrigin(media);
+  const origin = toOrigin(media);
+  const api = toOrigin(apiUrl);
   const img = [...IMG_ORIGINS, ...(origin ? [origin] : [])];
-  const connect = [...CONNECT_ORIGINS, ...(origin ? [origin] : [])];
+  const connect = [
+    ...CONNECT_ORIGINS,
+    ...(origin ? [origin] : []),
+    ...(api ? [api] : []),
+  ];
 
   // React's development build calls eval() to rebuild callstacks that crossed
   // the server/client boundary, so without this the dev overlay throws instead
