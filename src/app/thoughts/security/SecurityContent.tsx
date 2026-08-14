@@ -1,7 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
 export default function SecurityContent() {
@@ -517,9 +517,74 @@ export default function SecurityContent() {
           so adding one would grow the bundle without addressing it.
         </p>
       </section>
+      <Update
+        id="update-2026-08-14-connect-src"
+        date="August 14, 2026"
+        title="connect-src named a hostname, and blocked the app on every local checkout"
+      >
+        <p>
+          The policy listed{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            https://api.paulsumido.com
+          </code>{" "}
+          in{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            connect-src
+          </code>
+          . The browser calls the API directly for one demo, so in production
+          that was right and in every local checkout it was wrong — the README
+          and{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            .env.example
+          </code>{" "}
+          both tell you to point at{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            localhost:3001
+          </code>
+          , and a different port is a different origin.
+        </p>
+        <p>
+          Nothing rescued it. The dev flag the policy builder already takes only
+          widens{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            script-src
+          </code>{" "}
+          for React&apos;s dev build, and the header goes on every response
+          regardless of environment. The existing test only asserted on{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            img-src
+          </code>
+          .
+        </p>
+        <p>
+          This is the gap named below arriving on schedule: nothing reports
+          violations, so a policy blocking something legitimate is found by a
+          broken page. It just happened to be a page only I would load, which is
+          why it sat there.
+        </p>
+        <p>
+          The fix is that{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            connect-src
+          </code>{" "}
+          follows the same constant the fetch uses, so the policy allows exactly
+          where the app goes and nowhere else — and stops being a thing to
+          remember when the API moves. The media origin was already parameterised
+          for precisely this reason; the API origin was the one that got typed in.
+        </p>
+        <p>
+          Verified on the artifact rather than the sources, because a security
+          header is not a thing to take on trust: built against localhost, the
+          production hostname appears nowhere in the output; built against the
+          production URL, it is back in 53 chunks. Removal and substitution, in
+          that order, since the second is what would have broken the live site.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "CSV exports that cannot carry an executable cell, which is the one injection path here that no HTTP header can reach.",
+          "connect-src derived from the configured API URL rather than naming a host, so the policy matches wherever the app actually calls.",
           "A content security policy that is actually restrictive, rather than one broad enough to be decorative.",
           "The unsafe-inline problem confronted instead of worked around, which is the difference between having a CSP and appearing to.",
           "Middleware kept cheap, since a header on every request is the one place overhead compounds.",
@@ -529,6 +594,7 @@ export default function SecurityContent() {
         couldImprove={[
           "Nothing reports violations, so a policy blocking something legitimate is discovered by a broken page rather than a report.",
           "It predates the ask route, which added a first outbound call to a third party and deserves a look against the connect-src rule.",
+          "The connect-src fix means the policy tracks one environment variable, so pointing that variable somewhere careless now widens the policy along with it. That is the right trade — the alternative was a hostname that was wrong half the time — but it is a trade rather than a free win.",
         ]}
         upcoming={[
           "A CSP report-uri endpoint, so a blocked-but-legitimate request surfaces as a report instead of a broken page.",

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-14 - version 4.5.9
+
+- **/thoughts/security-audit** picks up what happened when its own admitted gap got closed. That page said the audit was a one-off pass by hand with nothing to repeat it; the counts, changelog, exhibits and crawler-file checks are that repeat. The part worth reading is that two of the checks already there were holding mistakes in place — one asserted `/seven tabs/` against a sentence and kept the wrong number green when an eighth tab landed, and my own duplicate-heading check could never fail because `Set.add()` returns the Set rather than a boolean.
+- **/thoughts/security** records the `connect-src` fix. The policy named a hostname, so the referral-links demo was blocked by our own CSP on every local checkout. That page had already written down the gap that let it hide: nothing reports violations, so a policy blocking something legitimate is found by a broken page.
+- Both closing blocks brought current. The security-audit page still listed private networking and to-do history as upcoming; both shipped days ago.
+
 ## 2026-08-14 - version 4.5.7
 
 - **Backfilled twenty undocumented versions**, 3.20.1 through 4.5.6. The log stopped at 4.0.0 while the app shipped 4.5.6, and the README went on calling it "a running log of changes/additions" the whole time. Each entry is written from the PR that shipped it rather than from the commit subjects, so it says why rather than what.
