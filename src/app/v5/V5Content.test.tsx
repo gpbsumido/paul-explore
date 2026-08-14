@@ -79,7 +79,7 @@ describe("V5Content", () => {
     renderPage();
     for (const trait of CRAFT_TRAITS) {
       expect(
-        screen.getByRole("heading", { name: new RegExp(trait.title) }),
+        screen.getByRole("heading", { name: trait.title }),
       ).toBeInTheDocument();
       expect(screen.getByText(trait.principle)).toBeInTheDocument();
     }
