@@ -41,14 +41,26 @@ function Section({
   );
 }
 
-export default function WorkPortfolioThoughtsContent() {
+/**
+ * Counts arrive as props from the server page, which reads them off the
+ * catalog. Importing the catalog here would put all 21KB of it in this route's
+ * client bundle to render two integers.
+ */
+export default function WorkPortfolioThoughtsContent({
+  featureCount,
+  projectCount,
+}: {
+  featureCount: number;
+  projectCount: number;
+}) {
   return (
     <ThoughtLayout
       breadcrumb="Work Portfolio"
       title="Work Portfolio"
       intro={
         <>
-          How I turned 10 old jobs into a single interactive page, and the
+          How I turned {projectCount} old jobs into a single interactive page,
+          and the
           handful of decisions that made it buildable without turning into a
           museum of dead apps.
         </>
@@ -156,7 +168,8 @@ export default function WorkPortfolioThoughtsContent() {
             the feature did, in this site&apos;s design system.
           </Bullet>
           <Bullet>
-            22 feature demos drawn from 10 projects, because the interesting
+            {featureCount} feature demos drawn from {projectCount} projects,
+            because the interesting
             projects had more than one idea worth showing. It launched with 24
             across 11: Economy &amp; Financial Health overlapped the other
             analytics demos without adding an angle, and Streaming Ops went out
@@ -204,7 +217,7 @@ export default function WorkPortfolioThoughtsContent() {
               Every demo is its own lazy chunk.
             </strong>{" "}
             They load through <C>next/dynamic</C>, so the page ships only the
-            demo on screen, never all 22 at once.
+            demo on screen, never all {featureCount} at once.
           </Bullet>
         </ul>
       </Section>

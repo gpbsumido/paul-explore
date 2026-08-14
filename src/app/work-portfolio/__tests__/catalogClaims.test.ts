@@ -8,12 +8,19 @@ import { PROJECTS, FEATURES } from "../_data/catalog";
  *
  * Two demos came out after this shipped, Streaming Ops and Economy & Financial
  * Health, taking it from 24 features across 11 projects down to 22 across 10.
- * catalog.test.ts was updated both times, so nothing failed. The five places
- * that write the number out in words were not, and the write-up went on
- * advertising two demos that are not there.
+ * catalog.test.ts was updated both times, so nothing failed. The places that
+ * write the number out in words were not, and the write-up went on advertising
+ * two demos that are not there.
  *
- * A reader can check this one by counting the chips in the ticker, which is
- * exactly the kind of claim that should not be maintained by hand.
+ * The page and the write-up now derive their counts -- the server component
+ * reads the catalog and hands the numbers down -- so most of this is belt and
+ * braces against someone typing a literal back in.
+ *
+ * featureData.data.ts is the one that genuinely cannot derive them. It feeds
+ * the command palette registry, which sits in the root layout, so importing
+ * the catalog there would put 21KB of it in every route in the app. That is
+ * the mistake featureDataImports.test.ts already exists to prevent. Its string
+ * stays a literal, and this is what checks it.
  */
 
 const ROOT = process.cwd();
