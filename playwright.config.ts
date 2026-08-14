@@ -57,10 +57,31 @@ export default defineConfig({
       testMatch: /authenticated\/.+\.spec\.ts/,
     },
   ],
+  /**
+   * CI drives a production build; locally it drives the dev server.
+   *
+   * Two reasons, and the second is the one that matters.
+   *
+   * The dev server compiles with Turbopack, which panicked mid-run on a release
+   * PR and took the whole job down with `Process from config.webServer was not
+   * able to start`. No test failed. Re-running the same commit passed. A
+   * pre-release gate that fails for reasons unrelated to the code is worse than
+   * no gate, because the next red one gets waved through.
+   *
+   * More importantly, a dev build is not the artifact that ships. Different
+   * compiler, different bundling, no production minification or tree shaking —
+   * so anything that only breaks once compiled for production passed this tier
+   * happily. Testing what actually deploys is the point of an end-to-end tier.
+   *
+   * Locally it stays on the dev server, because waiting for a build to check
+   * one spec is how a suite stops being run.
+   */
   webServer: {
-    command: "npm run dev",
+    command: process.env.CI ? "pnpm build && pnpm start" : "pnpm dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    // A build is minutes, not seconds. The old 120s was sized for `next dev`
+    // booting, and would time out here for no reason worth debugging.
+    timeout: process.env.CI ? 600_000 : 120_000,
   },
 });

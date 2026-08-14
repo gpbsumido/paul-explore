@@ -30,5 +30,13 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  // "api" is portfolio_api, which CI clones into this repo so the operator
+  // end-to-end tier can run the frontend against a real backend. Its sources
+  // are a separate project with separate dependencies, so type-checking them
+  // from here fails on every import it cannot resolve.
+  //
+  // This was invisible while the e2e tier ran `next dev`, which does not type
+  // check. Building for CI made it fatal — the build is what finds this class
+  // of thing, which is the reason for building.
+  "exclude": ["node_modules", "api"]
 }
