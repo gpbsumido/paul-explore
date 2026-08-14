@@ -25,8 +25,8 @@ describe("the /discover archive", () => {
     }
   });
 
-  it("says where the current one lives, since that is the useful next click", () => {
-    expect(archiveLabel("v4")).toMatch(/current version lives at \//i);
+  it("captions rather than warns, since none of these is a wrong turn", () => {
+    expect(archiveLabel("v4")).not.toMatch(/you're viewing|older version/i);
   });
 
   it("carries no em-dash, the tell this whole redesign is removing", () => {

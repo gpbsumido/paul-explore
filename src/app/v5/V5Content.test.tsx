@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { axe } from "@/test/a11y";
@@ -7,6 +8,7 @@ import { CRAFT_TRAITS } from "@/lib/craft";
 import { FEATURES, THOUGHTS } from "@/app/_shared/featureData.data";
 import { TEST_COUNT } from "@/app/_shared/testCount.generated";
 import V5Content from "./V5Content";
+import Proof from "./sections/Proof";
 
 // HeaderMenu re-checks auth on route change via usePathname; the landing never
 // navigates in these tests, so a fixed path is enough.
@@ -69,19 +71,19 @@ describe("V5Content", () => {
   });
 
   it("reads the test count from the generated module rather than a literal", () => {
-    renderPage();
-    // Asserting against the import is what makes a stale hardcoded figure fail:
-    // the number changes on every prebuild, the assertion follows it.
-    expect(
-      screen.getByText(TEST_COUNT.toLocaleString("en-US")),
-    ).toBeInTheDocument();
+    // The server HTML is the signal that matters here. AnimatedNumber counts up
+    // from zero once the strip scrolls into view, so a client render mid-count
+    // says nothing; what a crawler and a reader without JS get is the figure in
+    // the markup. Asserting against the import is what makes a stale hardcoded
+    // number fail, since the generated count moves on every build.
+    const html = renderToStaticMarkup(<Proof />);
+    expect(html).toContain(TEST_COUNT.toLocaleString("en-US"));
   });
 
-  it("counts the features it has rather than a number typed by hand", () => {
-    renderPage();
-    expect(screen.getAllByText(String(FEATURES.length)).length).toBeGreaterThan(
-      0,
-    );
+  it("counts the features and write-ups it has rather than typing a number", () => {
+    const html = renderToStaticMarkup(<Proof />);
+    expect(html).toContain(`>${FEATURES.length}<`);
+    expect(html).toContain(`>${THOUGHTS.length}<`);
   });
 
   it("offers the resume and a route into the work from the hero", () => {

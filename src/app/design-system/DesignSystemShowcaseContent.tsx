@@ -225,9 +225,9 @@ function MotionPrimitiveCard({
         </div>
       </dl>
       <p className="text-xs text-muted">
-        Planned for{" "}
-        <span className="font-mono text-foreground">{primitive.plannedFor}</span>
-        . Nothing renders it in production yet.
+        Ships on{" "}
+        <span className="font-mono text-foreground">{primitive.usedOn}</span>,
+        the landing page these were built for.
       </p>
     </div>
   );
