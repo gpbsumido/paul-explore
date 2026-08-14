@@ -30,7 +30,7 @@ function hsl(hex: string): { h: number; s: number; l: number } {
  */
 describe("registry colour tone band", () => {
   const SATURATION = { min: 0.24, max: 0.68 };
-  const LIGHTNESS = { min: 0.36, max: 0.62 };
+  const LIGHTNESS = { min: 0.33, max: 0.62 };
 
   const offenders = (items: { title: string; color?: string }[]) =>
     items

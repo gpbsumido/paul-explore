@@ -161,7 +161,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "The slot machine that spins through every app and write-up here, plus every landing page this site has had: each generation still live at its own URL, banner and all. The current one lives at the root.",
     href: "/discover",
-    color: "#7f6dd1",
+    color: "#6451ba",
     thoughtsHref: "/thoughts/v5-redesign",
   },
 ];
@@ -172,421 +172,421 @@ export const THOUGHTS: ThoughtItem[] = [
     href: "/thoughts/learn",
     preview:
       "Thirteen demos that each rebuilt the same stepper, one useStepPlayer hook, and the overrun the characterisation tests caught",
-    color: "#22d3ee",
+    color: "#3daebf",
   },
   {
     title: "Particle Lab",
     href: "/thoughts/particles",
     preview:
       "Two point clouds instead of an object per particle, and why the connection-distance slider is really the performance dial",
-    color: "#a5f3fc",
+    color: "#53becb",
   },
   {
     title: "Research Explorer",
     href: "/thoughts/research-explorer",
     preview:
       "Finding a research topic by measuring the literature: PubMed counts as evidence levels, a curated query layer, and demographic coverage as the gap finder",
-    color: "#14b8a6",
+    color: "#3aaea1",
   },
   {
     title: "TypeScript 7",
     href: "/thoughts/typescript-7",
     preview:
       "Why the Go-native compiler is a no for now: the lint stack peer-caps below it, and a 4-second type-check makes the 10x moot",
-    color: "#3178c6",
+    color: "#4378b2",
   },
   {
     title: "React Doctor",
     href: "/thoughts/react-doctor",
     preview:
       "Working a static-analysis pass: real fixes, the fix that fought back, false positives, and why severity isn't priority",
-    color: "#f43f5e",
+    color: "#c44359",
   },
   {
     title: "Styling Decisions",
     href: "/thoughts/styling",
     preview: "CSS Modules vs Tailwind v4 and design tokens",
-    color: "#007aff",
+    color: "#3879c0",
   },
   {
     title: "Landing Page",
     href: "/thoughts/landing-page",
     preview: "Section layout and functionality preview",
-    color: "#FF7373",
+    color: "#cc4e4e",
   },
   {
     title: "Search Bar",
     href: "/thoughts/search-bar",
     preview: "Server/client split, filtering, and trade-offs",
-    color: "#5856d6",
+    color: "#4c4abb",
     deprecated: true,
   },
   {
     title: "TCG Pages",
     href: "/thoughts/tcg",
     preview: "API proxy, server/client split, pagination patterns",
-    color: "#10b981",
+    color: "#39af87",
   },
   {
     title: "Calendar",
     href: "/thoughts/calendar",
     preview: "Views, timezone handling, BFF auth pattern",
-    color: "#f59e0b",
+    color: "#bd8d3a",
   },
   {
     title: "NBA Playoffs Bracket",
     href: "/thoughts/playoffs",
     preview:
       "TDD with MSW, derived state, TBD resolution, submit vs. auto-save design, and leaderboard before results",
-    color: "#f43f5e",
+    color: "#c44359",
   },
   {
     title: "GraphQL",
     href: "/thoughts/graphql",
     preview: "Why GraphQL, why plain fetch over Apollo",
-    color: "#6366f1",
+    color: "#4c4fc5",
   },
   {
     title: "Bundle Analysis",
     href: "/thoughts/bundle",
     preview:
       "How the analyzer found Auth0Provider shipping jose to the browser for no reason",
-    color: "#f97316",
+    color: "#c2723a",
   },
   {
     title: "CSP & Security",
     href: "/thoughts/security",
     preview:
       "Why 'unsafe-inline' is the right call for Next.js static pages, and what actually prevents XSS",
-    color: "#ec4899",
+    color: "#c24683",
   },
   {
     title: "UI Redesign",
     href: "/thoughts/ui-redesign",
     preview:
       "Why CSS keyframes gave way to Framer Motion, where Three.js went, and what's actually measurably better",
-    color: "#a7f3d0",
+    color: "#58c693",
   },
   {
     title: "Route Restructure",
     href: "/thoughts/routing",
     preview:
       "Why / replaced /protected, the force-static trade-off, and how auth is still enforced",
-    color: "#64748b",
+    color: "#5072a3",
   },
   {
     title: "Ketsup",
     href: "/thoughts/ketsup",
     preview:
       "A social app for image and text posts, built and shipped at its own domain",
-    color: "#f9a8d4",
+    color: "#c95594",
   },
   {
     title: "API Hardening",
     href: "/thoughts/improvements",
     preview:
       "Zod validation, fixed-window rate limiting, and body size limits across every API route",
-    color: "#34d399",
+    color: "#43b68c",
   },
   {
     title: "Testing",
     href: "/thoughts/testing",
     preview: `${TEST_COUNT}+ tests (${UNIT_TEST_COUNT} unit + ${E2E_TEST_COUNT} e2e), Vitest + MSW + Playwright, and the delay() trick for proving optimistic updates fire before the server responds`,
-    color: "#818cf8",
+    color: "#535ec9",
   },
   {
     title: "Performance Improvements",
     href: "/thoughts/perf",
     preview:
       "Eliminating the dark-mode flash, ISR on static pages, lazy-loading below-fold sections, and caching public API routes",
-    color: "#f97316",
+    color: "#c2723a",
   },
   {
     title: "The To-Do List",
     href: "/thoughts/to-do",
     preview:
       "Soft delete so a mis-click survives, positions assigned server-side so two adds cannot claim the same slot, and an optimistic insert that rolls back the row it added rather than the last one",
-    color: "#14b8a6",
+    color: "#3aaea1",
   },
   {
     title: "Login Redirect",
     href: "/thoughts/login-redirect",
     preview:
       "Landing back on the route you logged in from, and turning a denied consent screen from a bare 500 into a toast, both fixed at the Auth0 choke point",
-    color: "#eb5424",
+    color: "#be5d3e",
   },
   {
     title: "Messenger Auth Bug",
     href: "/thoughts/messenger-auth",
     preview:
       "Why links opened in Facebook Messenger showed a logged-in hub for unauthenticated users, and the two-line fix",
-    color: "#3b82f6",
+    color: "#4273c5",
     deprecated: true,
   },
   {
     title: "Web Vitals",
     href: "/thoughts/vitals",
     preview: "Real-user metrics, sendBeacon, P75, and the collection pipeline",
-    color: "#22c55e",
+    color: "#3fb169",
   },
   {
     title: "CI E2E Reliability",
     href: "/thoughts/ci-e2e",
     preview:
       "Auth0 crashing all middleware from a module-level throw, and a search test that needed page.route to stop depending on an external API",
-    color: "#06b6d4",
+    color: "#37a3b5",
   },
   {
     title: "PR Screenshots From an Unattended Agent",
     href: "/thoughts/pr-screenshots",
     preview:
       "Embedding before/after screenshots inline in PR descriptions with only the gh CLI — why user-attachments, gists, and release assets all failed, and why we don't prune the PNGs",
-    color: "#fb923c",
+    color: "#c67d42",
   },
   {
     title: "Tiered Testing Strategy",
     href: "/thoughts/test-tiers",
     preview:
       "Why you shouldn't run every test on every commit: split by cost — fast unit tests per push, integration on merge, e2e nightly, flaky ones quarantined",
-    color: "#818cf8",
+    color: "#535ec9",
   },
   {
     title: "Operator Dashboard",
     href: "/thoughts/operator-dashboard",
     preview:
       "Fleet management with tiered polling, optimistic updates, data freshness, and a globalThis singleton for in-memory state",
-    color: "#8b5cf6",
+    color: "#704ac6",
   },
   {
     title: "Render Performance",
     href: "/thoughts/render-perf",
     preview:
       "Runtime rendering costs: context instability, resize allocation, backdrop-filter GPU pressure, and unbounded DOM growth",
-    color: "#14b8a6",
+    color: "#3aaea1",
   },
   {
     title: "V2 Redesign",
     href: "/thoughts/v2-redesign",
     preview:
       "URL-based version routing with next/dynamic bundle splitting — Three.js out of the default path, v2 ships a clean slate",
-    color: "#e879f9",
+    color: "#b951c9",
   },
   {
     title: "V3 Redesign",
     href: "/thoughts/v3-redesign",
     preview:
       "The whole site as a node graph — a hand-rolled force sim, fit-to-viewport rendering, the drag/hover bugs, and an a11y audit",
-    color: "#8b5cf6",
+    color: "#704ac6",
   },
   {
     title: "V5 Redesign",
     href: "/thoughts/v5-redesign",
     preview:
       "Retiring the slot machine from the root: a warm editorial palette measured against WCAG before it was written down, eight in-house motion primitives held to a no-opacity-zero-above-the-fold rule, and a landing page briefed against my own defaults",
-    color: "#219b84",
+    color: "#3da692",
   },
   {
     title: "V4 Redesign",
     href: "/thoughts/v4-redesign",
     preview:
       "The landing and hub as a slot machine: three dependent reels (category, option, write-up) derived from the same data as the graph, dependent-reel selection, a decelerating spin, and a listbox-based a11y model",
-    color: "#f472b6",
+    color: "#c7508e",
   },
   {
     title: "Project Review",
     href: "/thoughts/project-review",
     preview:
       "An evidence-backed review of the whole codebase — engineering, system design, architecture overfit, and per-feature UX gains",
-    color: "#64748b",
+    color: "#5072a3",
   },
   {
     title: "Refactor Pass",
     href: "/thoughts/refactor-pass",
     preview:
       "The maintainability roadmap after the review — deduping against existing abstractions, the overfits I avoid, and the order I ship in",
-    color: "#14b8a6",
+    color: "#3aaea1",
   },
   {
     title: "Taking the Database Off the Public Internet",
     href: "/thoughts/database-networking",
     preview:
       "A front-end engineer working through the backend half: a Postgres reachable from anywhere, a TLS rabbit hole worth abandoning, migrations nothing ran, and four minutes of downtime from a rotation whose failure arrives late",
-    color: "#0ea5e9",
+    color: "#3b93ba",
   },
   {
     title: "AI Security & Bare Repo Attacks",
     href: "/thoughts/ai-security",
     preview:
       "Prompt injection via CLAUDE.md, hardened least-privilege configs, deny lists, and sandboxed environments for untrusted code",
-    color: "#dc2626",
+    color: "#b84040",
   },
   {
     title: "Auditing for Absences",
     href: "/thoughts/security-audit",
     preview:
       "AI-written code passes security tests 56% of the time and fails worst on what is missing. A cross-repo audit, and the seven shapes of absence it actually found",
-    color: "#b91c1c",
+    color: "#ae3d3d",
   },
   {
     title: "AI Agent Patterns",
     href: "/thoughts/ai-agent-patterns",
     preview:
       "SSE streaming, state machines, tool call UI, approval gates, and streaming markdown — the patterns behind modern agent interfaces",
-    color: "#6366f1",
+    color: "#4c4fc5",
   },
   {
     title: "macOS Menu Bar",
     href: "/thoughts/mac-menu-bar",
     preview:
       "Turning a desktop clone's dead top-bar labels into a signal-driven macOS menu system — menus derived from window and dock state, real actions, and full keyboard a11y",
-    color: "#0a84ff",
+    color: "#387dc2",
   },
   {
     title: "Hybrid Rendering",
     href: "/thoughts/hybrid-rendering",
     preview:
       "Giving each Angular route the render mode it needs — the Thoughts pages prerender to static HTML at build time via per-route RenderMode, a SeoService writes the head and JSON-LD on the server, and the interactive shell stays client-rendered",
-    color: "#dd0031",
+    color: "#b83552",
   },
   {
     title: "Shared Design System",
     href: "/thoughts/design-system",
     preview:
       "Extracting tokens and components into @paul-portfolio npm packages — CSS custom properties, thin framework wrappers, and token aliasing across React and Angular apps",
-    color: "#06b6d4",
+    color: "#37a3b5",
   },
   {
     title: "Framework-Agnostic Charts",
     href: "/thoughts/design-system-charts",
     preview:
       "Rebuilding recharts and unovis charts as pure SVG from one dependency-free geometry core — Sparkline, BarChart, DonutChart rendering identically in React and Angular, with a token palette and role=img a11y",
-    color: "#8b5cf6",
+    color: "#704ac6",
   },
   {
     title: "Accessibility",
     href: "/thoughts/accessibility",
     preview:
       "WCAG 2.1 AA compliance — vitest-axe for unit-level scans, systematic primitive audits, and where automated tooling helps vs. where it doesn't",
-    color: "#f59e0b",
+    color: "#bd8d3a",
   },
   {
     title: "E2E Testing",
     href: "/thoughts/e2e",
     preview:
       "Auth0 Universal Login, global setup/teardown, the Google OAuth button hijack, and what broke when we actually ran them",
-    color: "#f43f5e",
+    color: "#c44359",
   },
   {
     title: "npm to pnpm",
     href: "/thoughts/npm-to-pnpm",
     preview:
       "Strict dependency resolution, version range surprises, and what a package manager migration actually involves",
-    color: "#f59e0b",
+    color: "#bd8d3a",
   },
   {
     title: "API Backend Overhaul",
     href: "/thoughts/api-backend-overhaul",
     preview:
       "Rebuilding portfolio_api into a typed, layered TypeScript backend across twelve phases, without breaking a single contract paul-explore depends on",
-    color: "#0ea5e9",
+    color: "#3b93ba",
   },
   {
     title: "Deployment",
     href: "/thoughts/deployment",
     preview:
       "Deployment as five separate jobs, choosing a platform from the app's runtime shape, when to decide, the trade-offs that bite, and the Vercel + Cloudflare setup behind this site",
-    color: "#0ea5e9",
+    color: "#3b93ba",
   },
   {
     title: "Bundlers",
     href: "/thoughts/bundlers",
     preview:
       "Which bundler this project runs and why, whether it's the right one, and the real situations where a lead reaches for a different bundler — the deliverable and the dominant constraint pick it, not taste",
-    color: "#a855f7",
+    color: "#8948c6",
   },
   {
     title: "Tree Shaking",
     href: "/thoughts/tree-shaking",
     preview:
       "The three kinds of dead weight, why removing an unused export isn't a bundle win, the judgment calls a depcheck report can't make, and wiring it all into CI as a blocking check",
-    color: "#22c55e",
+    color: "#3fb169",
   },
   {
     title: "Tree Shaking, Round 2",
     href: "/thoughts/tree-shaking-2",
     preview:
       "A second pass from green dead-code checks: tree-shaking the barrels Next doesn't optimize by default for a measured 148KB, then a real LCP fix — moving the entrance reveal off the JS bundle and lazy-loading the operator charts",
-    color: "#16a34a",
+    color: "#3aa963",
   },
   {
     title: "Work Portfolio",
     href: "/thoughts/work-portfolio",
     preview:
       "Rebuilding 22 features from 10 old jobs as self-contained demos: reconstruction over emulation, anonymizing client work, the no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs",
-    color: "#60a5fa",
+    color: "#4a83c8",
   },
   {
     title: "Motion Components",
     href: "/thoughts/motion-components",
     preview:
       "TiltCard, GradientBackground, and Spotlight for the shared design system — pointer-driven motion built static-first, with reduced motion as the default and one shared usePrefersReducedMotion hook",
-    color: "#a78bfa",
+    color: "#7153ca",
   },
   {
     title: "Design System Showcase",
     href: "/thoughts/design-system-showcase",
     preview:
       "Building a live, in-app gallery for the shared design system: dogfooding the primitives, a data-driven catalog with an integrity test, an interactive props playground, and an axe-checked accessibility contract",
-    color: "#06b6d4",
+    color: "#37a3b5",
   },
   {
     title: "Craft",
     href: "/thoughts/craft",
     preview:
       "A page that reframes the whole site as evidence: ten lead front-end traits, each expandable to the real work that proves it, with a data-integrity test that fails on a dead evidence link",
-    color: "#c084fc",
+    color: "#8f52cb",
   },
   {
     title: "Command Palette",
     href: "/thoughts/command-palette",
     preview:
       "The site-wide ⌘K palette: one globally mounted instance opened from a hotkey or a window event, a registry reused from the hub's FEATURES and THOUGHTS, a hand-rolled fuzzy matcher, and an honest ARIA combobox",
-    color: "#818cf8",
+    color: "#535ec9",
   },
   {
     title: "Feature Flags",
     href: "/thoughts/feature-flags",
     preview:
       "A flag console built engine-first: deterministic FNV-1a bucketing with an avalanche step, sticky and monotonic rollouts, first-match targeting, an explainable evaluation reason, and why the pure core is the whole design",
-    color: "#fb923c",
+    color: "#c67d42",
   },
   {
     title: "Gallery Wall",
     href: "/thoughts/gallery-wall",
     preview:
       "An arranger built pure-core-first: standard frame sizes, an aspect-matching auto-framer with a medium tie-break, a centered shelf-packing layout with overflow detection, and an inches-internal model with a cm toggle at the input edge",
-    color: "#e879f9",
+    color: "#b951c9",
   },
   {
     title: "Explore Toronto",
     href: "/thoughts/world",
     preview:
       "A walkable 3D Toronto built from primitives: a TDD'd pure movement core, an R3F shell around it, a seeded procedural skyline over a real street grid, and exhibits that deep-link back into the site",
-    color: "#38bdf8",
+    color: "#419cc5",
   },
   {
     title: "Crawlers",
     href: "/thoughts/crawlers",
     preview:
       "The five files a site is supposed to serve and this one didn't: what to leave out of robots.txt, why the sitemap carries no lastModified, and the test that stops it going stale",
-    color: "#34d399",
+    color: "#43b68c",
   },
   {
     title: "Visual Plans",
     href: "/thoughts/harness-visual-plan",
     preview:
       "Why I bracket every change with a visual plan before code and a recap after: structured wireframes over prose, the RED list as the plan, and an honest record of where reality drifted",
-    color: "#818cf8",
+    color: "#535ec9",
   },
 ].reverse();
 
