@@ -35,10 +35,14 @@ export default function V5Content({ me }: { me?: MeData }) {
   const firstName = me?.name ? me.name.split(" ")[0] : null;
 
   return (
-    <>
+    <div className="relative">
       <ScrollProgress height={2} />
 
-      <header className="fixed inset-x-0 top-0 z-[var(--z-sticky)] h-16">
+      {/* Absolute, not fixed. A pinned bar with no backdrop collides with the
+          proof figures the moment the page scrolls, and giving it a surface
+          means a scroll listener and a permanent strip over the composition.
+          It belongs to the hero, so it leaves with the hero. */}
+      <header className="absolute inset-x-0 top-0 z-[var(--z-sticky)] h-16">
         <div className={`${SHELL} flex h-16 items-center justify-between`}>
           <Link
             href="/"
@@ -87,6 +91,6 @@ export default function V5Content({ me }: { me?: MeData }) {
         <Archive />
         <Contact />
       </main>
-    </>
+    </div>
   );
 }

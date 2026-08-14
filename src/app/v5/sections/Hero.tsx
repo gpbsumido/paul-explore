@@ -33,14 +33,15 @@ export default function Hero() {
       aria-labelledby="hero-title"
       className="relative flex min-h-[100dvh] items-center overflow-hidden pt-24 pb-16"
     >
+      {/* Held to a third of its natural strength and pushed off the left edge.
+          At full opacity across the whole viewport it stops being a texture and
+          becomes a centred gradient wash, which is the single most recognisable
+          generated-hero background there is. */}
       <BlobBackground
         seeds={[3, 7]}
-        colors={[
-          "var(--color-primary-400)",
-          "var(--color-secondary-400)",
-        ]}
+        colors={["var(--color-primary-400)", "var(--color-secondary-400)"]}
         parallax={60}
-        className="-z-10"
+        className="-z-10 left-[35%] opacity-35"
       />
 
       <div className={`${SHELL} grid items-center gap-12 lg:grid-cols-12`}>

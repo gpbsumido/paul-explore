@@ -10,17 +10,19 @@ import { SHELL, BAND } from "../shell";
 
 const SPAN: Record<number, string> = {
   2: "md:col-span-2",
+  3: "md:col-span-3",
   4: "md:col-span-4",
-  6: "md:col-span-6",
 };
 
 /**
- * Six items, six cells, three different widths.
+ * Six items, six cells, and no two rows built the same way: four and two, then
+ * three and three, then two and four.
  *
- * A grid of identical thirds is the single most recognisable generated-page
- * layout there is, so the two widest cells carry an accent wash and the four
- * narrow ones stay plain. That is also what keeps the section from being six
- * text boxes on one surface.
+ * The first shape this took had a middle row of three equal cells, which is the
+ * single most recognisable generated-page layout there is. Widths that shift
+ * row to row are what stop a grid reading as a template, and the two widest
+ * cells carry an accent wash so the section is not six text boxes on one
+ * surface.
  */
 export default function FeaturedWork() {
   const reducedMotion = useHubReducedMotion();
@@ -41,7 +43,7 @@ export default function FeaturedWork() {
 
         <div className="mt-10 grid gap-4 md:grid-cols-6">
           {picks.map(({ feature, pitch, span }, index) => {
-            const wide = span > 2;
+            const wide = span >= 4;
             return (
               <m.article
                 key={feature.id}

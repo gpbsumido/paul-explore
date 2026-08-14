@@ -28,18 +28,29 @@ function Knot() {
   });
 
   return (
+    // Four radial segments, not forty. `wireframe` draws every triangle edge,
+    // so a tube smooth enough to look round comes out as a scribble at this
+    // size. A square cross-section gives large flat facets whose edges you can
+    // actually follow, which is the same low-poly language the Toronto world
+    // is built in. The cage is a bare icosahedron: it frames the knot without
+    // competing with it for the same lines.
     <group ref={group}>
       <mesh>
-        <torusKnotGeometry args={[1, 0.32, 160, 24, 2, 3]} />
-        <meshBasicMaterial color="#219b84" wireframe transparent opacity={0.7} />
-      </mesh>
-      <mesh scale={1.28}>
-        <torusKnotGeometry args={[1, 0.28, 90, 12, 2, 3]} />
+        <torusKnotGeometry args={[0.95, 0.22, 32, 4, 2, 3]} />
         <meshBasicMaterial
-          color="#e69a42"
+          color="#219b84"
           wireframe
           transparent
-          opacity={0.16}
+          opacity={0.85}
+        />
+      </mesh>
+      <mesh>
+        <icosahedronGeometry args={[2.05, 1]} />
+        <meshBasicMaterial
+          color="#d97e1f"
+          wireframe
+          transparent
+          opacity={0.22}
         />
       </mesh>
     </group>
@@ -59,7 +70,7 @@ export default function HeroKnotCanvas() {
     <Canvas
       frameloop="always"
       dpr={[1, 1.5]}
-      camera={{ position: [0, 0, 4.2], fov: 45 }}
+      camera={{ position: [0, 0, 5.4], fov: 45 }}
       gl={{ antialias: true, alpha: true }}
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
     >

@@ -29,7 +29,7 @@ export default function Archive() {
       <div className={`${SHELL} max-w-3xl`}>
         <TextScramble
           as="h2"
-          text={`${ARCHIVED_VERSIONS.length} landing pages came before this one`}
+          text={`Before this one, there were ${ARCHIVED_VERSIONS.length} landing pages`}
           trigger="inView"
           speedMs={22}
           className="font-display block text-3xl font-semibold tracking-tight sm:text-4xl"

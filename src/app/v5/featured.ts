@@ -14,7 +14,7 @@ export type FeaturedPick = {
   /** One clause. No second sentence, no dash. */
   pitch: string;
   /** Bento column span at md and up, out of six. */
-  span: 2 | 4 | 6;
+  span: 2 | 3 | 4;
 };
 
 export const FEATURED: FeaturedPick[] = [
@@ -32,12 +32,12 @@ export const FEATURED: FeaturedPick[] = [
   {
     id: "operator",
     pitch: "A retail fleet console: live alerts, inventory health, drill-down.",
-    span: 2,
+    span: 3,
   },
   {
     id: "learn",
     pitch: "Algorithms and frontend patterns you step through, not read about.",
-    span: 2,
+    span: 3,
   },
   {
     id: "design-system",
@@ -48,7 +48,7 @@ export const FEATURED: FeaturedPick[] = [
     id: "vitals",
     pitch:
       "Core Web Vitals collected from real page loads on this domain and aggregated to P75, which is the only performance number that settles an argument.",
-    span: 6,
+    span: 4,
   },
 ];
 

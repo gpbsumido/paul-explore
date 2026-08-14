@@ -55,9 +55,15 @@ const EDGE_FADE =
 /** Warm accent shared with the résumé slot category so the two read as one thing. */
 const RESUME_ACCENT = "#fb923c";
 
-// Retired landing designs, newest first, for the footer picker. v4 is current
-// (see CURRENT_VERSION in page.tsx) so it stays out of the list.
-const OLDER_VERSIONS = ["v3", "v2", "v1"] as const;
+// The footer picker. v5 owns / now, so this generation is history too: the
+// current landing goes first with its own label, then the retired ones newest
+// first. v4 stays out of the list because it is the page you are looking at.
+const VERSION_LINKS = [
+  { label: "v5 (current)", href: "/" },
+  { label: "v3", href: "/discover?version=v3" },
+  { label: "v2", href: "/discover?version=v2" },
+  { label: "v1", href: "/discover?version=v1" },
+] as const;
 
 /** Standout résumé call-to-action, same treatment as the v3 header chrome. */
 function ResumeLink() {
@@ -1372,13 +1378,13 @@ export default function SlotMachine({
             Versions ↗
           </summary>
           <div className="absolute bottom-full right-0 mb-2 flex min-w-[7rem] flex-col rounded-lg border border-border bg-surface/90 p-1 text-right backdrop-blur">
-            {OLDER_VERSIONS.map((v) => (
+            {VERSION_LINKS.map((v) => (
               <Link
-                key={v}
-                href={`/discover?version=${v}`}
+                key={v.href}
+                href={v.href}
                 className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 px-2 py-1 whitespace-nowrap transition-colors hover:bg-foreground/5 hover:text-foreground"
               >
-                {v} ↗
+                {v.label} ↗
               </Link>
             ))}
           </div>
