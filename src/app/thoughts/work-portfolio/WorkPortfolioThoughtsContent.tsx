@@ -41,14 +41,26 @@ function Section({
   );
 }
 
-export default function WorkPortfolioThoughtsContent() {
+/**
+ * Counts arrive as props from the server page, which reads them off the
+ * catalog. Importing the catalog here would put all 21KB of it in this route's
+ * client bundle to render two integers.
+ */
+export default function WorkPortfolioThoughtsContent({
+  featureCount,
+  projectCount,
+}: {
+  featureCount: number;
+  projectCount: number;
+}) {
   return (
     <ThoughtLayout
       breadcrumb="Work Portfolio"
       title="Work Portfolio"
       intro={
         <>
-          How I turned 11 old jobs into a single interactive page, and the
+          How I turned {projectCount} old jobs into a single interactive page,
+          and the
           handful of decisions that made it buildable without turning into a
           museum of dead apps.
         </>
@@ -122,8 +134,8 @@ export default function WorkPortfolioThoughtsContent() {
             in any order once the base is in
           </Sent>
           <Sent pos="last">
-            turns one scary 24-demo feature into a dozen small reviewable ones.
-            that&apos;s the whole trick really
+            turns one scary all-at-once feature into a dozen small reviewable
+            ones. that&apos;s the whole trick really
           </Sent>
         </ChatThread>
       }
@@ -156,8 +168,12 @@ export default function WorkPortfolioThoughtsContent() {
             the feature did, in this site&apos;s design system.
           </Bullet>
           <Bullet>
-            24 feature demos drawn from 11 projects, because the interesting
-            projects had more than one idea worth showing.
+            {featureCount} feature demos drawn from {projectCount} projects,
+            because the interesting
+            projects had more than one idea worth showing. It launched with 24
+            across 11: Economy &amp; Financial Health overlapped the other
+            analytics demos without adding an angle, and Streaming Ops went out
+            along with the Ops Console project it was the only demo for.
           </Bullet>
         </ul>
       </Section>
@@ -201,7 +217,7 @@ export default function WorkPortfolioThoughtsContent() {
               Every demo is its own lazy chunk.
             </strong>{" "}
             They load through <C>next/dynamic</C>, so the page ships only the
-            demo on screen, never all 24 at once.
+            demo on screen, never all {featureCount} at once.
           </Bullet>
         </ul>
       </Section>
@@ -233,8 +249,8 @@ export default function WorkPortfolioThoughtsContent() {
       <Section title="Shipping it: merge-order-independent PRs">
         <ul className="mt-2 space-y-2 text-muted">
           <Bullet>
-            One base PR ships the whole machinery plus a catalog where all 24
-            features point at a <C>ComingSoonDemo</C> placeholder.
+            One base PR ships the whole machinery plus a catalog where every
+            feature points at a <C>ComingSoonDemo</C> placeholder.
           </Bullet>
           <Bullet>
             Then each demo batch is its own PR that only adds its demo files and
