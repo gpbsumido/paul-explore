@@ -112,7 +112,13 @@
   --color-warning-400: var(--paul-color-warning-400);
   --color-warning-500: var(--paul-color-warning-500);
   --color-warning-600: var(--paul-color-warning-600);
-  --color-warning-700: var(--paul-color-warning-700);
+  /* One local override in an otherwise aliased ramp. The package ships #b45309,
+     which cleared AA on the old white surface at 5.02:1 and lands at 4.49:1 on
+     the warm paper this release introduces -- under the bar by a hundredth,
+     which the operator dashboard's "49%" stock figure fails on. Same amber, two
+     steps darker, 4.79:1 on a raised card. Caught by the light-theme axe run,
+     which is new here; the dark-only scan could never have seen it. */
+  --color-warning-700: #ae4f08;
   --color-warning-800: var(--paul-color-warning-800);
   --color-warning-900: var(--paul-color-warning-900);
   --color-warning-950: var(--paul-color-warning-950);

@@ -105,7 +105,8 @@
   --color-warning-400: var(--paul-color-warning-400);
   --color-warning-500: var(--paul-color-warning-500);
   --color-warning-600: var(--paul-color-warning-600);
-  --color-warning-700: var(--paul-color-warning-700);
+  /* Kept in step with tokens.css -- see the note there. */
+  --color-warning-700: #ae4f08;
   --color-warning-800: var(--paul-color-warning-800);
   --color-warning-900: var(--paul-color-warning-900);
   --color-warning-950: var(--paul-color-warning-950);

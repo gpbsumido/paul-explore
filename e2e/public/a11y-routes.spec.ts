@@ -24,22 +24,33 @@ const ROUTES = [
   "/fantasy/nba/playoffs",
 ];
 
-test.describe("Public route accessibility", () => {
-  // Pin the theme before anything renders. Every colour on the site comes from
-  // a custom property, and which set is live depends on a preference read at
-  // runtime -- so an unpinned scan races the theme system and intermittently
-  // measures muted text against the other theme's surface. That produced
-  // contrast failures on whichever route happened to lose the race, which is
-  // the worst kind of red: real-looking, unreproducible, and not a bug.
-  // Same mechanism the PR-screenshot workflow already uses.
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem("theme-preference", "dark");
-    });
-  });
+/**
+ * Both themes, because they are two different palettes rather than one palette
+ * with the lightness flipped. The feature accents in particular are a
+ * light/dark pair per token, so a dark-only scan measures exactly half of the
+ * colour in the app -- and the light half is the half that sits on near-white,
+ * where contrast is hardest to hold.
+ */
+const THEMES = ["dark", "light"] as const;
 
-  for (const route of ROUTES) {
-    test(`${route} has no axe violations`, async ({ page }) => {
+test.describe("Public route accessibility", () => {
+  for (const theme of THEMES) {
+    test.describe(theme, () => {
+      // Pin the theme before anything renders. Every colour on the site comes
+      // from a custom property, and which set is live depends on a preference
+      // read at runtime -- so an unpinned scan races the theme system and
+      // intermittently measures muted text against the other theme's surface.
+      // That produced contrast failures on whichever route happened to lose the
+      // race, which is the worst kind of red: real-looking, unreproducible, and
+      // not a bug. Same mechanism the PR-screenshot workflow already uses.
+      test.beforeEach(async ({ page }) => {
+        await page.addInitScript((preference) => {
+          window.localStorage.setItem("theme-preference", preference);
+        }, theme);
+      });
+
+      for (const route of ROUTES) {
+        test(`${route} has no axe violations`, async ({ page }) => {
       await page.goto(route);
       // Deliberately not networkidle. These pages poll and fetch from a third
       // party, so "no requests for 500ms" is a promise about someone else's
@@ -86,7 +97,9 @@ test.describe("Public route accessibility", () => {
           // decorative, so carry on rather than fail a scan on a loop that is
           // never going to stop.
         });
-      await checkA11y(page, route);
+          await checkA11y(page, `${route} (${theme})`);
+        });
+      }
     });
   }
 });
