@@ -1,5 +1,138 @@
 # Changelog
 
+## 2026-08-14 - version 4.5.7
+
+- **Backfilled twenty undocumented versions**, 3.20.1 through 4.5.6. The log stopped at 4.0.0 while the app shipped 4.5.6, and the README went on calling it "a running log of changes/additions" the whole time. Each entry is written from the PR that shipped it rather than from the commit subjects, so it says why rather than what.
+- A test now asserts that whatever version `package.json` is on has a changelog entry with at least one bullet under it. Nothing read the file before, which is exactly why it fell twenty versions behind without anything going red.
+- It is deliberately the weakest useful check: it cannot tell whether an entry is any good, only that the version bump and the note about it happen together instead of the note being left for later, which is where it was always lost.
+
+## 2026-08-14 - version 4.5.6
+
+- **The site was quoting two different test counts for the same thing.** Two places said "640+ tests (623 unit + 17 e2e)" while the v2 stats strip rendered `TEST_COUNT` from the file `scripts/count-tests.mjs` regenerates on every build — so one page said 640 and another said 2,525, a click apart. Both now import the constant the strip already used.
+- Counts that had moved while the prose stayed put: learn is 14 topics not 13 (the landing panel said it twice), `src/components/ui/` holds ten primitives not eight, the store detail page has eight tabs not seven, and there are four rate-limit tiers not three — `/api/geo` GET is capped at 30, so "all other API routes at 300 as a backstop" was plainly false on a public page.
+- **A green test was pinning a wrong number.** `OperatorDashboardContent.test.tsx` asserted `/seven tabs/`. A tab was added, the prose wasn't updated, and the test kept guaranteeing the stale count — it was pinned to the sentence rather than to what the sentence is about. It now checks the prose names every entry in `TABS`.
+- The world exhibits and `llms.txt` had the same shape: every check ran the direction that cannot fail (everything named exists) when the real failure mode is omission. Research Explorer had no exhibit while five places claimed one for "every feature", and `llms.txt` was missing four public features. Both now check the other direction, with exclusions named rather than counted.
+- Historical figures are left alone deliberately. "108 tests across 7 files" in a dated chat was true then, and the guard carries it as frozen history. `/thoughts/project-review` gets an "as of July 2026" line instead of six edits, because refreshing a census in place turns a snapshot into a claim that rots again next week.
+
+## 2026-08-14 - version 4.5.5
+
+- **The CSP named `https://api.paulsumido.com` in `connect-src`.** The browser fetches portfolio_api directly for the referral-links demo, so on any local checkout — where `.env.example` and the README both say to use `localhost:3001` — that demo was blocked by our own policy. A different port is a different origin, and `connect-src 'self'` does not cover it.
+- Nothing rescued it: the `dev` flag `buildCsp` takes only widens `script-src`, and `src/proxy.ts` sets the policy on every response regardless of `NODE_ENV`. The existing test only asserted on `img-src`.
+- `connect-src` now follows `API_URL`, the same constant the fetch uses, so the policy allows exactly where the app goes and stops being a thing to remember when the API moves. `API_URL` rather than the raw env var, because it carries the localhost fallback.
+- Verified on production builds both ways: built with localhost the production hostname appears nowhere in `.next`; built with the production URL it is back in 53 chunks.
+
+## 2026-08-14 - version 4.5.4
+
+- **The work-portfolio was advertising two demos that are not there.** It launched with 24 features across 11 projects; Economy & Financial Health and Streaming Ops came out afterwards, taking it to 22 across 10. `catalog.test.ts` was updated both times so nothing failed, but the nine places that write the number out in prose were not.
+- The counts derive from the catalog now. The server page reads `PROJECTS` and `FEATURES` and hands the numbers to the write-up as props — the write-up is `"use client"`, so importing the catalog there would put 21KB of it in that route's bundle to render two integers.
+- One place has to stay a literal: `featureData.data.ts` feeds the command palette registry, which sits in the root layout, so importing the catalog there would put it in every route in the app. A test checks that string against the real array lengths instead.
+
+## 2026-08-14 - version 4.5.3
+
+- **The frontend's type check was type-checking the API.** The operator E2E tier clones `portfolio_api` into `api/`, and the frontend `tsconfig` included `**/*.ts` while excluding only `node_modules` — so the API's sources were always in scope, resolved against the frontend's dependencies. Nothing surfaced because that tier ran `next dev`, which does not type check. Building for CI made it fatal. The build change did not break this; it found it.
+
+## 2026-08-14 - version 4.5.2
+
+- **The pre-release E2E gate was testing a dev build.** Playwright started `next dev`, so the tier meant to catch what ships was exercising a different compiler, different bundling, and no production minification. Anything that only breaks once compiled passed it happily.
+- Turbopack also panicked mid-run on release #369 and took the whole job down with no test failing. A gate that fails for reasons unrelated to the code is worse than no gate, because the next red one gets waved through.
+- CI now drives `pnpm build && pnpm start`. Locally it stays on the dev server, because waiting for a build to check one spec is how a suite stops being run.
+
+## 2026-08-13 - version 4.5.1
+
+- Third tranche of the four-things audit, closing what `/thoughts/learn` admitted about itself: the step-player hook was covered, but nothing stopped a page wiring the keyboard up differently. There is a test across the demos now.
+
+## 2026-08-13 - version 4.5.0
+
+- **Editing an existing to-do from the page it appears on.** Quick add deliberately takes a title and a project, so everything else had to be fillable later — and "later" meant running a script against the database. `reason` had shipped as a column and a display with no way to set it.
+- It lives in the panel that already holds history and comments, because the three are the same thought: what this item is, what it has been, and what I said about it. Only changed fields are sent, so the revision it writes says what actually moved.
+
+## 2026-08-13 - version 4.4.0
+
+- **History and comments on the to-do page.** An expandable panel per row with History and Comments tabs, keeping the ordered list rather than navigating away from it.
+- Reverting restores an earlier revision as a *new* one rather than discarding what came after, so the history only ever grows. It reads destructive and is not.
+- The panel mounts only when a row is opened, and the comments query does not fire until its tab is selected — there are tens of rows, and loading a timeline for each on the chance someone looks means paying for the feature on every render.
+
+## 2026-08-13 - version 4.3.0
+
+- Wrote up the database work as one piece rather than leaving it scattered across commit messages: `DATABASE_URL` pointed at a public proxy host, and the only control on that path was the password. Every control I had built — Auth0, the email allowlist, the owner checks — lives in Express, which Postgres has never heard of.
+- README brought current with the to-do history work. It also claimed 58 write-ups when there were 60; that number had gone wrong twice in a day without anyone noticing.
+
+## 2026-08-13 - version 4.2.2
+
+- Two tranches of the four-things audit. The write-ups said what broke and what changed but not why it got past me or what catches the class, so each page's own `couldImprove` became a test instead of more prose.
+- `/thoughts/messenger-auth` listed its own missing regression test. The original bug was not wrong code — the root page read the session and rendered correctly, it just never said it must not be cached. Being dynamic was a property the framework granted it, not one it asked for. The test found a second page relying on the same detection: `/to-do`, the admin list.
+
+## 2026-08-13 - version 4.2.1
+
+- Guards for the two crawler files whose failure modes are silent. `security.txt` requires an `Expires` field, and a lapsed one is worse than none: the file still serves, still looks maintained, and researchers are told to disregard it. Nothing announced the date passing, so a test now fails thirty days early.
+- Also fixed a page that contradicted itself.
+
+## 2026-08-13 - version 4.2.0
+
+- The security write-up, held back until the fix was live. Publishing a detailed account of what was wrong while it is still wrong is disclosure in a different costume.
+- Two navigation gaps on the to-do page, plus a test so the first cannot come back: `/thoughts/to-do` shipped with no link to `/to-do`.
+
+## 2026-08-13 - version 4.1.1
+
+- The frontend README audited against the code rather than against itself. The tech stack listed unovis; there is no unovis dependency.
+
+## 2026-08-13 - version 4.1.0
+
+- **`/to-do` became writable.** Until now the list was only editable by scripts run against the database, which made it a list I tick rather than one I keep. Adding and removing items now happens on the page.
+- Write-ups brought up to date for everything landed that week. I checked for an existing home before adding anything, and four of the five turned out to be updates — including two pages that had gone actively wrong rather than merely stale.
+
+## 2026-08-12 - version 3.27.1
+
+- A section on `/thoughts/deployment` about telling whether a deploy actually landed. Three times in one evening of security work I checked something adjacent to the claim, saw green, and treated the claim as proven — the adjacent thing is always faster to check, which is why it gets checked.
+- The worst of them: I encrypted the stored Google OAuth tokens in production having confirmed the PR was *merged*. The running build was five releases old with no decryption code, so the database briefly held credentials the app could not read. Nothing user-facing broke because that integration had been dormant for months. Luck, not process.
+
+## 2026-08-12 - version 3.27.0
+
+- **An admin-only `/to-do` page**, listing what is still outstanding across both repos, ordered by phase, tickable and filterable. It records what has *not* been fixed yet and both repos are public, so the rows live in a backend table rather than in either one.
+- It 404s rather than 403s for anyone not on the allowlist, because a 403 confirms a page exists.
+- CI was red on every branch: the operator E2E job runs `pnpm migrate` against an ephemeral Postgres, and migration 020 refuses to run without `TOKEN_ENCRYPTION_KEY`.
+
+## 2026-08-11 - version 3.26.0
+
+- Hardened the BFF. An unclassified feature flag now defaults to the admin rung rather than the open one — `getFlag` only searched the local seed while the API served a wider set, so upstream-only keys were landing on the rung that needs no session.
+- Every dynamic route param interpolated into an upstream URL goes through a shared `safeSegment` guard; a rejected segment answers 400.
+
+## 2026-08-11 - version 3.25.1
+
+- The chalk backdrop and the retired v3 landing came off first paint. The tegaki font ships its glyph outlines as JSON inlined into JavaScript — about 200KB plus the engine, for a decorative background that already renders empty on its first pass and is skipped entirely under reduced motion. v3 was statically imported into `/` even though v1 and v2 were already lazy and v3 is only reachable with `?version=v3`.
+
+## 2026-08-11 - version 3.25.0
+
+- The crawler and AI files, none of which existed. The tell was already in the codebase: `src/proxy.ts` had been excluding `/robots.txt` from its matcher for as long as it has existed, pointing at a file nobody ever wrote.
+- Plus `metadataBase`, which Next had been warning about — without it every relative metadata URL resolves against localhost.
+- robots.txt is a hint, not a fence. Disallowing `/settings` does advertise that it exists, and that is fine: the session check protects it, and a crawler ignoring the file meets the same check. Treating robots.txt as the protection would be the actual mistake.
+
+## 2026-08-11 - version 3.24.0
+
+- **CSV exports were a way to run code on someone else's machine.** A cell opening with `=`, `+`, `-` or `@` is executed as a formula by Excel and Sheets, and the operator exports carry product and store names. RFC 4180 quoting was already correct and is not the defence — the quotes come off at parse time and the formula runs anyway.
+- Only strings get the leading apostrophe. A negative number is data, and prefixing it would corrupt every negative figure in the finance export, which is a worse bug than the one being fixed. There is a test pinning that.
+- Two dependencies removed without adding anything in their place.
+
+## 2026-08-11 - version 3.23.0
+
+- The usability pass over the operator feature. Store detail already met the bar — every displayed thing had an action wired to a real endpoint — but the fleet-level reports ranked the worst store, named the SKU to cut, counted the stores needing attention, and then stopped.
+- Restock history was the clearest case: the completed counts that the entire shrink report is built on could not be reviewed after the fact.
+
+## 2026-08-11 - version 3.22.0
+
+- **Flag writes gated by tier rather than by "signed in or not".** That was the wrong question: the console is a playground meant to be touched by whoever wanders in *and* a live kill switch, at the same time, and one rule across both makes either the playground useless or the switch reckless.
+- Every locked card says why, because nobody should learn the rule by clicking a switch that does not move. 401 and 403 stay distinct — sending a signed-in person to a login screen does not help them.
+- Each bug here was found by driving the running app, and every one passed the route tests first. Those mock the API client, so they proved the decision was right while the transport was wrong.
+
+## 2026-08-11 - version 3.21.0
+
+- `pnpm audit` was reporting 41 vulnerabilities, 17 of them high. Nearly all the highs were Next.js itself, including several middleware/proxy bypass advisories. That class matters more here than it would elsewhere: session enforcement and the CSP both live in `src/proxy.ts`, so a proxy bypass is a bypass of the only thing guarding `/settings` and `/calendar`.
+- `next` to 16.3.0 and `@auth0/nextjs-auth0` to 4.26.0, plus the response headers a CSP does not cover.
+
+## 2026-08-11 - version 3.20.1
+
+- Dragging a node in the workflow-editor demo dropped the whole thing to its error boundary. `onPointerMove` reached through the drag ref from inside the `setNodes` updater, which React may call more than once.
+
 ## 2026-08-11 - version 4.0.0
 
 - **The Web Vitals dashboard was crediting the landing page's load metrics to whatever page you clicked into.** `WebVitalsReporter` registers all five observers once and reported the pathname read at the moment each one fired. That is right for INP and CLS, which describe the view you are on. It is wrong for FCP, LCP and TTFB, which describe the initial document load — and LCP in particular only flushes on first interaction, which on this site is usually a click on a nav link. By then the ref has moved to the destination, so the number lands on the wrong row. Load metrics now use the pathname captured when the observers are registered; the interaction metrics keep following the navigation.
