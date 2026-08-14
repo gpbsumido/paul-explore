@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Suspense } from "react";
 import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { axe } from "@/test/a11y";
 import DiscoverPage from "./page";
 import { auth0 } from "@/lib/auth0";
@@ -10,6 +12,7 @@ vi.mock("@/lib/auth0", () => ({ auth0: { getSession: vi.fn() } }));
 // The v4 pair renders for real so the axe scan has something to scan. These two
 // mocks are the same ones SlotMachine's own test needs to run under jsdom.
 vi.mock("next/navigation", () => ({
+  usePathname: () => "/discover",
   useRouter: () => ({ push: vi.fn() }),
 }));
 
@@ -32,12 +35,25 @@ vi.mock("../v3/LandingContentV3", () => ({
 
 const getSession = vi.mocked(auth0.getSession);
 
-/** Awaits the async server component and renders it inside a Suspense boundary. */
+/**
+ * Awaits the async server component, then renders what it returned under the
+ * providers the root layout supplies in the app. The Suspense boundary is what
+ * lets a retired version resolve its next/dynamic import mid-test.
+ */
 const renderDiscover = async (
   params: Record<string, string | string[] | undefined> = {},
 ) => {
   const element = await DiscoverPage({ searchParams: Promise.resolve(params) });
-  return render(<Suspense fallback={null}>{element}</Suspense>);
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <ThemeProvider>
+        <Suspense fallback={null}>{element}</Suspense>
+      </ThemeProvider>
+    </QueryClientProvider>,
+  );
 };
 
 /** A session shaped the way the page reads it, with only the fields it uses. */
