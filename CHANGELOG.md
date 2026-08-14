@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-14 - version 4.5.9
+
+- **/thoughts/security-audit** picks up what happened when its own admitted gap got closed. That page said the audit was a one-off pass by hand with nothing to repeat it; the counts, changelog, exhibits and crawler-file checks are that repeat. The part worth reading is that two of the checks already there were holding mistakes in place — one asserted `/seven tabs/` against a sentence and kept the wrong number green when an eighth tab landed, and my own duplicate-heading check could never fail because `Set.add()` returns the Set rather than a boolean.
+- **/thoughts/security** records the `connect-src` fix. The policy named a hostname, so the referral-links demo was blocked by our own CSP on every local checkout. That page had already written down the gap that let it hide: nothing reports violations, so a policy blocking something legitimate is found by a broken page.
+- Both closing blocks brought current. The security-audit page still listed private networking and to-do history as upcoming; both shipped days ago.
+
 ## 2026-08-14 - version 4.5.8
 
 - **Research Explorer has an exhibit in the world.** It was the one feature with a hub card and no landmark, while five places claimed the city held an exhibit for every feature. It sits at the MaRS Discovery District on University Avenue, which is where Toronto actually does medical research, a block from the hospitals the tool is about.
