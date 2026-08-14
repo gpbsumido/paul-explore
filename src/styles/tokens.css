@@ -133,6 +133,60 @@
   --color-border: #e3e0d9;
   --color-muted: #6d675b;
 
+
+  /* ========================================
+     FEED THE PALETTE BACK TO THE PACKAGE
+     @paul-portfolio/css/components.css styles .btn, .badge and friends from
+     --paul-* directly, not from the --color-* aliases above. Without this the
+     shared primitives keep rendering the package's stock blue while the rest
+     of the app is verdigris, which is exactly what /design-system looked like
+     until it was opened rather than reasoned about.
+
+     This overrides custom properties from our own stylesheet. The package is
+     not modified, and it still ships its own palette to every other app that
+     consumes it -- these declarations simply come later in the cascade.
+     ======================================== */
+  --paul-color-primary-50: var(--color-primary-50);
+  --paul-color-primary-100: var(--color-primary-100);
+  --paul-color-primary-200: var(--color-primary-200);
+  --paul-color-primary-300: var(--color-primary-300);
+  --paul-color-primary-400: var(--color-primary-400);
+  --paul-color-primary-500: var(--color-primary-500);
+  --paul-color-primary-600: var(--color-primary-600);
+  --paul-color-primary-700: var(--color-primary-700);
+  --paul-color-primary-800: var(--color-primary-800);
+  --paul-color-primary-900: var(--color-primary-900);
+  --paul-color-primary-950: var(--color-primary-950);
+  --paul-color-secondary-50: var(--color-secondary-50);
+  --paul-color-secondary-100: var(--color-secondary-100);
+  --paul-color-secondary-200: var(--color-secondary-200);
+  --paul-color-secondary-300: var(--color-secondary-300);
+  --paul-color-secondary-400: var(--color-secondary-400);
+  --paul-color-secondary-500: var(--color-secondary-500);
+  --paul-color-secondary-600: var(--color-secondary-600);
+  --paul-color-secondary-700: var(--color-secondary-700);
+  --paul-color-secondary-800: var(--color-secondary-800);
+  --paul-color-secondary-900: var(--color-secondary-900);
+  --paul-color-secondary-950: var(--color-secondary-950);
+  --paul-color-neutral-50: var(--color-neutral-50);
+  --paul-color-neutral-100: var(--color-neutral-100);
+  --paul-color-neutral-200: var(--color-neutral-200);
+  --paul-color-neutral-300: var(--color-neutral-300);
+  --paul-color-neutral-400: var(--color-neutral-400);
+  --paul-color-neutral-500: var(--color-neutral-500);
+  --paul-color-neutral-600: var(--color-neutral-600);
+  --paul-color-neutral-700: var(--color-neutral-700);
+  --paul-color-neutral-800: var(--color-neutral-800);
+  --paul-color-neutral-900: var(--color-neutral-900);
+  --paul-color-neutral-950: var(--color-neutral-950);
+  --paul-color-warning-700: var(--color-warning-700);
+  --paul-color-background: var(--color-background);
+  --paul-color-foreground: var(--color-foreground);
+  --paul-color-surface: var(--color-surface);
+  --paul-color-border: var(--color-border);
+  --paul-color-muted: var(--color-muted);
+  --paul-color-muted-foreground: var(--color-muted);
+
   /* Backward compat aliases */
   --background: var(--color-background);
   --foreground: var(--color-foreground);
@@ -376,6 +430,17 @@
   --color-feature-craft: #ecc2f0;
   --color-feature-gallery-wall: #f3bedd;
   --color-feature-world: #a6d6f0;
+
+
+  /* The package's own variables again, for the dark half. Same reasoning as
+     the :root block: without these the shared primitives read the package's
+     dark palette while everything around them reads ours. */
+  --paul-color-background: var(--color-background);
+  --paul-color-foreground: var(--color-foreground);
+  --paul-color-surface: var(--color-surface);
+  --paul-color-border: var(--color-border);
+  --paul-color-muted: var(--color-muted);
+  --paul-color-muted-foreground: var(--color-muted);
 
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.2);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
