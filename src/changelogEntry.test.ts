@@ -41,6 +41,24 @@ describe("changelog", () => {
       .toBeGreaterThan(0);
   });
 
+  /**
+   * Five versions had two headings each, with different notes under each half.
+   * Nothing was wrong with the content -- it was just split, so reading the log
+   * for what a release contained gave you half of it and no hint there was more.
+   * They are merged now, and this stops the split happening again.
+   */
+  it("gives each version exactly one heading", () => {
+    const counts = new Map<string, number>();
+    for (const v of documented(changelog())) {
+      counts.set(v, (counts.get(v) ?? 0) + 1);
+    }
+    const repeated = [...counts]
+      .filter(([, n]) => n > 1)
+      .map(([version]) => version);
+
+    expect(repeated).toEqual([]);
+  });
+
   it("actually reads versions out, so a rotted regex fails rather than passes", () => {
     expect(documented("## 2026-08-14 - version 4.5.6\n\n- a note\n")).toEqual([
       "4.5.6",

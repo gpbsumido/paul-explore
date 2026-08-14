@@ -165,6 +165,7 @@
 
 - **Some work-portfolio ticker chips did nothing when clicked.** The cause was upstream: the shared `Ticker` duplicates its chips so the ambient loop looks seamless, and the clone carried `inert` — which removes a subtree from the accessibility tree *and* from the pointer. The loop wraps at half the scroll width, so roughly half of what is on screen at any moment was the clone, and clicking those chips silently did nothing. It came back because unifying the bespoke tickers onto the shared component adopted a copy that had `inert` added for a real reason: tabbable controls inside an `aria-hidden` container is a serious axe violation. Right instinct, aimed one notch too broadly. Fixed in `@paul-portfolio/react` 0.5.1 — the clone stays `aria-hidden` with its focusables dropped from the tab order in a layout effect, which runs before paint and closes the same window `inert` was closing, without touching the pointer.
 - A guard test on this side asserts nothing on the page renders with `inert`, so a future version of the package cannot quietly bring it back. It is written as an attribute assertion rather than a click, because jsdom does not implement `inert` — a click test passes whether or not the bug is present, which is very likely how it shipped the first time. The same shape of test exists upstream.
+
 ## 2026-08-10 - version 3.16.3
 
 - **Tap targets across the app were too small on a phone.** I rendered every route at 390px and measured rather than guessing, and the biggest finding was in the shared header: breadcrumb links were 20px tall, the write-up pill and the theme trigger 28px. That is one fix that lifts every page, since every page uses it. Also fixed the Craft evidence links (31 of them at 28px), the Web Vitals version selector, and seven links on the v4 landing. The `InfoTip` trigger keeps its 14px dot — shrinking or growing it would change every layout it sits in — and gains an invisible 44px hit area on touch screens only.
@@ -179,6 +180,7 @@
 
 - **Twelve of the fourteen feature routes had no error boundary.** Any render error escaped to the global boundary, which throws away the page shell and leaves a reload as the only way back — on the operator dashboard, the world, the flags console, gallery wall, the NBA hub and seven others. They all have one now, using the same `RouteError` the calendar and research pages already used, so a failure keeps the header and offers a retry in place. Five routes were also missing a loading state (learn, craft, gallery wall, the NBA hub, the Pokémon hub) and now have skeletons shaped like the page that follows rather than a spinner.
 - A test walks the feature registry and fails if any route is missing either file, so the next feature added gets the same treatment instead of quietly shipping without them.
+
 ## 2026-08-10 - version 3.20.0
 
 - **All 56 write-ups now close by saying where they stand** — what the current shape is and why, where it falls short, and what is genuinely queued. The sweep is finished. The real problem it was solving was not missing prose: a page written once and never revisited looked identical to one that was current, and the closing block forces the question of which it is.
@@ -375,11 +377,13 @@
 - **Stopped the page describing shipped work as deferred.** It was written before the follow-up landed and still said the Angular package had no TestBed infrastructure — which had been true, and no longer was. The original paragraph stays as written rather than being edited into looking prescient; a new section records what landed and what the deferred tests had been hiding: the Angular package was built with plain `tsc`, so it published raw decorators with no compiled component definitions and every consumer binding a signal input got nothing back, silently, for as long as the package had existed.
 
 ## 2026-08-03 - version 3.2.0
+
 - **The design system write-up now covers the charts, and the three bugs that were older than the charts.** Adding eleven chart forms to `@paul-portfolio` meant writing the Angular package's first render tests, and the first probe failed: the template rendered and `setInput` did nothing. The package was built with plain `tsc`, so what it published was raw decorators with no compiled component definitions, and every component in it uses signal `input()`, which needs the compiler. Any consumer binding an input got nothing back, silently, for as long as the package had existed. Nothing caught it because every test imported source files and nothing consumed the build. The page records that, plus the two others the work turned up: a chart palette whose first two series were 1.3 apart under deuteranopia (12 for normal vision, against a floor of 15), and a CSS package with 21 test files, a vitest config, and no `test` script, so 139 assertions had never run once.
 - **Also written down: the encoding decisions that needed an argument rather than an API.** The pareto chart has one y axis, because two scales have an arbitrary alignment and invent a relationship the data does not contain. Funnel stages and heatmap cells use a sequential ramp, because identity colours on ordered data spend the only free channel on information the chart already shows. The word cloud ships with its own objection in its doc comment, since glyph area is not a comparable encoding. And reduced motion means removing the rotation, not slowing it: the spinner had been answering `prefers-reduced-motion` by going from 0.6s to 1.5s, which is the same motion for longer.
 - **Eight new takeaways on the page**, the load-bearing one being: test the artifact you publish, not the source you wrote. A green suite that imports source files says nothing about what consumers install.
 
 ## 2026-08-03 - version 3.1.1
+
 - **Fixed the operator timeline's dates, which had drifted off their entries.** Each new update was inserted into the previous row's list item, so every title sat against the wrong date and the newest entry was stamped with a day that had not happened yet. Two tests now pin it: every row's date must match the date encoded in the anchor it links to, and the list must stay newest-first. The kind of thing worth a test precisely because it is invisible until someone reads it and quietly stops trusting the rest of the page.
 - **Said what the page's two halves are, before they start.** The write-up runs original build notes first and dated updates after, newest first, but the handoff line claimed "newest first" about content that opens with the oldest thing on the page. There is now a short intro immediately above it saying which part is which.
 
@@ -710,12 +714,20 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - fixed the reel keyboard model: Left/Right now hop focus between the three columns (skipping greyed-out reels), Up/Down still step within a reel, and Enter on the category reel opens the landed destination so the leftmost column is never a dead end.
 - brought the command palette back. Mounted `CommandPaletteRoot` in the root layout so ⌘/Ctrl+K works on every route again, and since the floating trigger hides itself on the landing, the v4 header gets an inline Search affordance in its place.
 
+- reworked the `/flags` console so it's actually easy to understand at a glance. The old version read like an insider tool — "fallthrough rollout", "kill switch", "bucket 42.3" — and its evaluation playground was a separate island, so you couldn't see what any flag did to a real user. Now "Test a user" is the spine of the page: describe someone (or click a preset — Enterprise user / Beta tester / Anonymous visitor) and every flag card lights up with a plain-English verdict — "`user-42` gets ON, matched the rule 'Enterprise accounts get it first'" or "this user's dice roll landed at 43 of 100, so they get Disabled". Verdicts re-evaluate live through the real deterministic engine whenever you change the user, flip a switch, drag a rollout, or switch environment. Removed the standalone `EvaluationPlayground` (its explainability now lives on the cards) and de-jargoned the copy throughout.
+- paginated the audit log (6 entries per page, Prev/Next) so a long change history no longer stretches the page.
+- added the feature-flags feature to the architecture map and README (routes, API endpoints, components, hooks, lib, types).
+
 ## 2026-07-27 - version 1.2.0
+
+- Two releases went out under 1.2.0, on 2026-07-25 and 2026-07-27 — a version collision between parallel branches. Both sets of notes are kept here rather than renumbering the history after the fact.
 
 - rebuilt the landing page and hub as v4: a full-screen slot machine of three dependent reels (category, option, write-up) over the same ambient backdrop. Everything on the reels is derived by `buildSlots()` from the same `FEATURES`/`THOUGHTS` data the v3 graph reads, including the feature-to-write-up bridge rule, so the machine and the graph can never drift apart. Pulling the Spin key settles the columns one at a time, left to right, through a quick decelerating step (reduced-motion jumps straight to the target); reels 2 and 3 lock their contents to the landed target while reel 1 is still turning, so they no longer thrash through every category the first reel passes.
 - categories with no app, just write-ups (Build & Tooling, Deprecated, and the rest of the /thoughts index) show a greyed-out, disabled "Write-up only" marker in the middle reel and stack their write-ups in reel 3, so the result bar offers a single Read link rather than a redundant Open. Apps keep a real middle reel and a Read link to each feature's own notes; options with no write-up show a friendly reel-3 empty state linking to /thoughts. Deprecated notes get an amber tag wherever they surface.
 - gave it an editorial, frameless look to suit the new layout: no cabinet windows, reels that fade out at their edges with a hairline payline glowing in the landed accent, the landed row set in a Fraunces serif, and a Spin key tinted to whatever category is up. Short reels render each item once instead of repeating a label to fill the wheel.
 - under the chrome each reel is a proper listbox: focusable, `aria-activedescendant`, arrow/Home/End/Enter keyboard support, and a polite live region announcing each landed combo. v4 is now the default version (v3 keeps working at `/?version=v3` and picks up the older-version banner), with a `/thoughts/v4-redesign` write-up covering the design, a dev-only `/dev/v4` hub preview, and tests over the slot data model.
+
+- added a site-wide command palette (⌘K / Ctrl+K, or a bare "/" when not typing). It fuzzy-searches pages, dev notes, and actions built from the same FEATURES + THOUGHTS data the hub renders, with an ARIA combobox (arrow/enter/escape nav via aria-activedescendant) and grouped results. On most pages a floating shortcut pill in the corner is the discoverable trigger; the visible hint is platform-aware (⌘K on Apple devices, Ctrl K on Windows/Linux), resolved after mount so it stays hydration-safe (the shortcut itself already worked on every platform). The graph landing and hub fill every corner with their own chrome, so there the floating pill is hidden and a "Search" affordance sits in the header instead; it opens the same palette through a shared `commandpalette:open` window event. Fixed the two jsx-a11y lint errors on the option rows (false positives for this combobox pattern, where keyboard nav lives on the input, not the individual options), and bumped the shortcut-hint text to a readable colour so it clears WCAG AA contrast.
 
 ## 2026-07-27 - version 1.9.0
 
@@ -745,12 +757,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 
 - repointed the `/flags` BFF at a real backend. The four `/api/flags` routes now prefer portfolio_api's `feature-flags` service and only fall back to the in-memory seed when it is unreachable, so the console reads and writes live, shared data once the service is deployed and still works (looking identical) when it is not. Added a typed `flags-client` that validates every payload against the same Zod schemas the console uses, so a drifting API surfaces as a clear error instead of bad UI. Writes forward the signed-in visitor's bearer token and propagate a genuine 401/404 from the API rather than masking it, laying the groundwork for the "sign in to change flags" and audit-actor work still to come. The deterministic evaluation engine stays in the BFF, unchanged.
 
-## 2026-07-27 - version 1.3.0
-
-- reworked the `/flags` console so it's actually easy to understand at a glance. The old version read like an insider tool — "fallthrough rollout", "kill switch", "bucket 42.3" — and its evaluation playground was a separate island, so you couldn't see what any flag did to a real user. Now "Test a user" is the spine of the page: describe someone (or click a preset — Enterprise user / Beta tester / Anonymous visitor) and every flag card lights up with a plain-English verdict — "`user-42` gets ON, matched the rule 'Enterprise accounts get it first'" or "this user's dice roll landed at 43 of 100, so they get Disabled". Verdicts re-evaluate live through the real deterministic engine whenever you change the user, flip a switch, drag a rollout, or switch environment. Removed the standalone `EvaluationPlayground` (its explainability now lives on the cards) and de-jargoned the copy throughout.
-- paginated the audit log (6 entries per page, Prev/Next) so a long change history no longer stretches the page.
-- added the feature-flags feature to the architecture map and README (routes, API endpoints, components, hooks, lib, types).
-
 ## 2026-07-26 - version 1.2.5
 
 - brought the `/design-system` showcase back in line with what actually ships on npm. The gallery had drifted: it documented only the 10 primitives this app wraps locally, while `@paul-portfolio/react` had grown to 19 components. Added the missing nine — `Ticker`, `Card`, `Badge`, `Avatar`, `Switch`, `Spinner`, `Skeleton`, `Divider`, and `VisuallyHidden` — each with a live preview rendered straight from `@paul-portfolio/react` (the source of truth the showcase exists to reflect), a usage note, and its accessibility guarantees. Re-anchored the integrity test from this app's thin `@/components/ui` barrel to the package's own exports (minus the `cx` helper), so the next time the package adds a component and the catalog forgets it, CI goes red instead of the gallery quietly falling behind. Only `Ticker` is adopted in this app today (Work portfolio); the rest ship in the shared package and are used by the sibling Angular app and Ketsup, so their cards show an honest "Availability" note rather than a fabricated in-app link, and a new test requires every component to carry provenance (a real route or that note).
@@ -773,10 +779,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 ## 2026-07-26 - version 1.2.1
 
 - added a dev-notes write-up at `/thoughts/test-tiers` on tiered testing strategy: why you shouldn't run every test on every commit, and how to split tests by cost into fast unit (every push/PR), integration (on merge or scheduled), end-to-end (nightly or pre-release), and quarantined flaky tiers. Grounded in this repo's `ci.yml` quality/e2e job split, and mirrors the existing `ci-e2e` write-up's structure (summary sections + iMessage-style chat) via `ThoughtLayout`. Registered in `featureData.tsx` (THOUGHTS) and the "Testing & Quality" category, with a test asserting the heading, each tier section, and the category registration.
-
-## 2026-07-25 - version 1.2.0
-
-- added a site-wide command palette (⌘K / Ctrl+K, or a bare "/" when not typing). It fuzzy-searches pages, dev notes, and actions built from the same FEATURES + THOUGHTS data the hub renders, with an ARIA combobox (arrow/enter/escape nav via aria-activedescendant) and grouped results. On most pages a floating shortcut pill in the corner is the discoverable trigger; the visible hint is platform-aware (⌘K on Apple devices, Ctrl K on Windows/Linux), resolved after mount so it stays hydration-safe (the shortcut itself already worked on every platform). The graph landing and hub fill every corner with their own chrome, so there the floating pill is hidden and a "Search" affordance sits in the header instead; it opens the same palette through a shared `commandpalette:open` window event. Fixed the two jsx-a11y lint errors on the option rows (false positives for this combobox pattern, where keyboard nav lives on the input, not the individual options), and bumped the shortcut-hint text to a readable colour so it clears WCAG AA contrast.
 
 ## 2026-07-25 - version 1.1.2
 
@@ -1473,8 +1475,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 ## 2026-07-16 - version 0.16.0
 
 - linting with pnpm
-
-## 2026-07-16 - version 0.16.0
 
 - migrated package manager from npm to pnpm — content-addressable store, strict dependency resolution, faster installs
 - added `packageManager` and `engines` fields to `package.json` for pnpm/node version enforcement
@@ -2681,8 +2681,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - fetches api helpers now use Zod response schemas
 - invalid requests return more detailed error details, with backend responses validated at runtime
 
-## 2026-03-24 - version 0.6.5
-
 - added CTAs to all public landing page sections linking to their respective routes (NBA Stats, Pokémon TCG, GraphQL Pokédex, Ketsup); auth-required sections (Calendar, Web Vitals) show "Log in to view →" instead
 - `FeaturesSection` cards are now clickable links for all public features; auth-required cards redirect to `/calendar` or `/auth/login` and the middleware handles the bounce
 - `/calendar` added to protected routes in `src/proxy.ts` — unauthenticated requests redirect to `/auth/login?returnTo=/calendar`
@@ -3607,8 +3605,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - protected page header and footer are now sticky — changed `min-height: 100dvh` to `height: 100dvh` on `main` and added `overflow-y: auto; min-height: 0` to `.threadList` so only the thread list scrolls
 - both pages fall back gracefully when the upstream is unavailable at server time — the client components handle it the same way they always did
 
-## 2026-02-25 - version 0.1.12
-
 - added GraphQL Pokédex at `/graphql` — search and filter
 - `/api/graphql` proxy route forwards POST bodies to the upstream endpoint, keeping the URL server-side and `connect-src` locked to same-origin
 - `src/types/graphql.ts` — PokeAPI response shapes (`Pokemon`, `PokemonListResult`, `GraphQLResponse`), `POKEMON_TYPES` const, `PAGE_SIZE`
@@ -3654,8 +3650,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - added a calendar about page at `/calendar/about` — same iMessage write-up format as the other thoughts pages, covers why date-fns over moment, the BFF auth pattern, junction table vs JSON column, timezone handling, what I'd still improve
 - "About" link added to the calendar header next to Events
 - persist read threads and display according to if read or not
-
-## 2026-02-23 - version 0.1.9
 
 - added an events list page at `/calendar/events` — searchable and filterable
 - event detail page at `/calendar/events/[id]` — shows event info and a card grid
@@ -3783,4 +3777,3 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - main layout.tsx to use Auth0Provider and page.tsx and show login/logout depending on if you're signed in
 - added route protection in proxy.ts so you get redirected to login if you try to hit any page besides the homepage without being logged in
 - created some reusable components for main page and protected page
-
