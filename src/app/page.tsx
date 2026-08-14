@@ -3,6 +3,8 @@ import { SITE_URL, OG_IMAGE } from "@/lib/site";
 import { auth0 } from "@/lib/auth0";
 import LandingContentV5 from "./v5/LandingContentV5";
 import FeatureHubV5 from "./v5/FeatureHubV5";
+import { pickTaglineIndex } from "./v5/taglines";
+import { pickWriting } from "./v5/featured";
 
 // Force dynamic rendering so Next.js never caches this page at the edge.
 // Without this, a logged-in user's FeatureHub HTML could be served to
@@ -38,7 +40,20 @@ export const metadata: Metadata = {
 export default async function Home() {
   const session = await auth0.getSession();
 
-  if (!session) return <LandingContentV5 />;
+  // Drawn here, once per request, because this is the last server point that
+  // renders for every visitor. The page is already force-dynamic, so each
+  // visit gets its own tagline and shortlist and hydration sees one choice.
+  const taglineIndex = pickTaglineIndex(Math.random);
+  const writingPicks = pickWriting(Math.random);
+
+  if (!session) {
+    return (
+      <LandingContentV5
+        taglineIndex={taglineIndex}
+        writingPicks={writingPicks}
+      />
+    );
+  }
 
   return (
     <FeatureHubV5
@@ -46,6 +61,8 @@ export default async function Home() {
         name: session.user.name ?? null,
         email: session.user.email ?? null,
       }}
+      taglineIndex={taglineIndex}
+      writingPicks={writingPicks}
     />
   );
 }

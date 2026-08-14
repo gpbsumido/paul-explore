@@ -17,17 +17,27 @@ export type FeaturedPick = {
   span: 2 | 3 | 4;
 };
 
+/**
+ * Ordered by what each one proves, strongest claim first: professional work,
+ * then the number that keeps the whole site honest, then the system, the
+ * console, the release tooling, and the showpiece to close.
+ */
 export const FEATURED: FeaturedPick[] = [
   {
-    id: "world",
+    id: "work-portfolio",
     pitch:
-      "A low-poly Toronto you walk through with WASD, built in React Three Fiber and streamed in only when the canvas is near the viewport.",
+      "Twenty-two reconstructions of features I shipped on products with real users, rebuilt here so you can click through them instead of taking a bullet point's word for it.",
     span: 4,
   },
   {
-    id: "work-portfolio",
-    pitch: "Reconstructions of features I shipped on products that had users.",
+    id: "vitals",
+    pitch: "Real Core Web Vitals from this domain, aggregated to P75.",
     span: 2,
+  },
+  {
+    id: "design-system",
+    pitch: "The tokens and primitives this site and an Angular app both use.",
+    span: 3,
   },
   {
     id: "operator",
@@ -35,25 +45,30 @@ export const FEATURED: FeaturedPick[] = [
     span: 3,
   },
   {
-    id: "learn",
-    pitch: "Algorithms and frontend patterns you step through, not read about.",
-    span: 3,
-  },
-  {
-    id: "design-system",
-    pitch: "The tokens and primitives this site and an Angular app both use.",
+    id: "flags",
+    pitch: "Targeting rules, sticky rollouts and a kill switch, with an audit log.",
     span: 2,
   },
   {
-    id: "vitals",
+    id: "world",
     pitch:
-      "Core Web Vitals collected from real page loads on this domain and aggregated to P75, which is the only performance number that settles an argument.",
+      "A low-poly Toronto you walk through with WASD, built in React Three Fiber and streamed in only when the canvas is near the viewport.",
     span: 4,
   },
 ];
 
-/** The three write-ups the landing puts forward, with the reason each is there. */
-export const FEATURED_WRITING: { href: string; pitch: string }[] = [
+/** One write-up the landing may put forward, with the reason it earns the slot. */
+export type WritingPick = {
+  href: string;
+  pitch: string;
+};
+
+/**
+ * The pool the shortlist is drawn from. Curation happens here, not in the
+ * draw: everything in this list sells the same argument, so randomizing the
+ * selection changes the read without ever weakening it.
+ */
+export const WRITING_POOL: WritingPick[] = [
   {
     href: "/thoughts/craft",
     pitch:
@@ -69,4 +84,46 @@ export const FEATURED_WRITING: { href: string; pitch: string }[] = [
     pitch:
       "Chasing a render regression to its source instead of scattering memo calls and hoping.",
   },
+  {
+    href: "/thoughts/tree-shaking-2",
+    pitch:
+      "A second pass at the bundle, because the first one left kilobytes on the table and said so.",
+  },
+  {
+    href: "/thoughts/security-audit",
+    pitch:
+      "Auditing my own site the way an attacker would read it, and fixing what that turned up.",
+  },
+  {
+    href: "/thoughts/accessibility",
+    pitch:
+      "Making axe part of the definition of done instead of a checkbox at the end.",
+  },
+  {
+    href: "/thoughts/api-backend-overhaul",
+    pitch:
+      "Rebuilding the API layer under a live site without anyone noticing from the outside.",
+  },
+  {
+    href: "/thoughts/bundle",
+    pitch:
+      "Reading the bundle analyzer like a bill and deciding which dependencies earn their weight.",
+  },
 ];
+
+/** How many write-ups the landing shows at once. */
+export const WRITING_SHOWN = 5;
+
+/**
+ * Draws the shortlist from the pool: a Fisher-Yates shuffle with the
+ * randomness injected, trimmed to the shown count.
+ * @param random A function returning a number in [0, 1), called per swap.
+ */
+export function pickWriting(random: () => number): string[] {
+  const deck = WRITING_POOL.map((pick) => pick.href);
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1)) % (i + 1);
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck.slice(0, WRITING_SHOWN);
+}

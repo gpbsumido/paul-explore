@@ -4,6 +4,7 @@ import Link from "next/link";
 import BlobBackground from "@/components/motion/BlobBackground";
 import MagneticButton from "@/components/motion/MagneticButton";
 import HeroScene from "../HeroScene";
+import { HERO_TAGLINES } from "../taglines";
 import { SHELL } from "../shell";
 
 /**
@@ -26,12 +27,15 @@ const rise = (ms: number) => ({ animationDelay: `${ms}ms` });
  * every generated portfolio arrives at, and this page's whole argument is that
  * I do not arrive at the default.
  */
-export default function Hero() {
+export default function Hero({ taglineIndex = 0 }: { taglineIndex?: number }) {
+  const tagline =
+    HERO_TAGLINES[taglineIndex] ?? HERO_TAGLINES[0];
+
   return (
     <section
       id="hero"
       aria-labelledby="hero-title"
-      className="relative flex min-h-[100dvh] items-center overflow-hidden pt-24 pb-16"
+      className="relative flex min-h-[calc(100dvh-4rem)] items-center overflow-hidden pt-16 pb-16"
     >
       {/* Held to a third of its natural strength and pushed off the left edge.
           At full opacity across the whole viewport it stops being a texture and
@@ -62,11 +66,10 @@ export default function Hero() {
           </p>
 
           <p
-            className="reveal-up mt-6 max-w-[34ch] text-lg leading-relaxed text-muted sm:text-xl"
+            className="reveal-up mt-6 max-w-[38ch] text-lg leading-relaxed text-muted sm:text-xl"
             style={rise(180)}
           >
-            Ten minutes is all most people give a portfolio. This one argues
-            from shipped work and the write-ups behind it.
+            {tagline}
           </p>
 
           <div

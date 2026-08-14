@@ -3,20 +3,24 @@
 import Link from "next/link";
 import TextReveal from "@/components/motion/TextReveal";
 import { THOUGHTS } from "@/app/_shared/featureData.data";
-import { FEATURED_WRITING } from "../featured";
+import { WRITING_POOL, WRITING_SHOWN } from "../featured";
 import { SHELL, BAND } from "../shell";
 
 /**
- * Three write-ups, as full-width rows rather than cards.
+ * The shortlist of write-ups, as full-width rows rather than cards.
  *
  * The bento above already used a grid, and a page that reaches for the same
  * layout twice reads as a template. Titles come from the THOUGHTS registry so
- * a rename upstream cannot leave a stale one here.
+ * a rename upstream cannot leave a stale one here. Which five show is drawn
+ * per request in page.tsx from a pool that is all strong picks, so the page
+ * reads fresh on a return visit without ever leading with a weak one.
  */
-export default function Writing() {
-  const rows = FEATURED_WRITING.flatMap((pick) => {
-    const thought = THOUGHTS.find((t) => t.href === pick.href);
-    return thought ? [{ ...pick, title: thought.title }] : [];
+export default function Writing({ picks }: { picks?: string[] }) {
+  const chosen = picks ?? WRITING_POOL.slice(0, WRITING_SHOWN).map((p) => p.href);
+  const rows = chosen.flatMap((href) => {
+    const pick = WRITING_POOL.find((p) => p.href === href);
+    const thought = THOUGHTS.find((t) => t.href === href);
+    return pick && thought ? [{ ...pick, title: thought.title }] : [];
   });
 
   return (
