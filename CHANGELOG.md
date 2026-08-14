@@ -1,5 +1,138 @@
 # Changelog
 
+## 2026-08-14 - version 4.5.7
+
+- **Backfilled twenty undocumented versions**, 3.20.1 through 4.5.6. The log stopped at 4.0.0 while the app shipped 4.5.6, and the README went on calling it "a running log of changes/additions" the whole time. Each entry is written from the PR that shipped it rather than from the commit subjects, so it says why rather than what.
+- A test now asserts that whatever version `package.json` is on has a changelog entry with at least one bullet under it. Nothing read the file before, which is exactly why it fell twenty versions behind without anything going red.
+- It is deliberately the weakest useful check: it cannot tell whether an entry is any good, only that the version bump and the note about it happen together instead of the note being left for later, which is where it was always lost.
+
+## 2026-08-14 - version 4.5.6
+
+- **The site was quoting two different test counts for the same thing.** Two places said "640+ tests (623 unit + 17 e2e)" while the v2 stats strip rendered `TEST_COUNT` from the file `scripts/count-tests.mjs` regenerates on every build — so one page said 640 and another said 2,525, a click apart. Both now import the constant the strip already used.
+- Counts that had moved while the prose stayed put: learn is 14 topics not 13 (the landing panel said it twice), `src/components/ui/` holds ten primitives not eight, the store detail page has eight tabs not seven, and there are four rate-limit tiers not three — `/api/geo` GET is capped at 30, so "all other API routes at 300 as a backstop" was plainly false on a public page.
+- **A green test was pinning a wrong number.** `OperatorDashboardContent.test.tsx` asserted `/seven tabs/`. A tab was added, the prose wasn't updated, and the test kept guaranteeing the stale count — it was pinned to the sentence rather than to what the sentence is about. It now checks the prose names every entry in `TABS`.
+- The world exhibits and `llms.txt` had the same shape: every check ran the direction that cannot fail (everything named exists) when the real failure mode is omission. Research Explorer had no exhibit while five places claimed one for "every feature", and `llms.txt` was missing four public features. Both now check the other direction, with exclusions named rather than counted.
+- Historical figures are left alone deliberately. "108 tests across 7 files" in a dated chat was true then, and the guard carries it as frozen history. `/thoughts/project-review` gets an "as of July 2026" line instead of six edits, because refreshing a census in place turns a snapshot into a claim that rots again next week.
+
+## 2026-08-14 - version 4.5.5
+
+- **The CSP named `https://api.paulsumido.com` in `connect-src`.** The browser fetches portfolio_api directly for the referral-links demo, so on any local checkout — where `.env.example` and the README both say to use `localhost:3001` — that demo was blocked by our own policy. A different port is a different origin, and `connect-src 'self'` does not cover it.
+- Nothing rescued it: the `dev` flag `buildCsp` takes only widens `script-src`, and `src/proxy.ts` sets the policy on every response regardless of `NODE_ENV`. The existing test only asserted on `img-src`.
+- `connect-src` now follows `API_URL`, the same constant the fetch uses, so the policy allows exactly where the app goes and stops being a thing to remember when the API moves. `API_URL` rather than the raw env var, because it carries the localhost fallback.
+- Verified on production builds both ways: built with localhost the production hostname appears nowhere in `.next`; built with the production URL it is back in 53 chunks.
+
+## 2026-08-14 - version 4.5.4
+
+- **The work-portfolio was advertising two demos that are not there.** It launched with 24 features across 11 projects; Economy & Financial Health and Streaming Ops came out afterwards, taking it to 22 across 10. `catalog.test.ts` was updated both times so nothing failed, but the nine places that write the number out in prose were not.
+- The counts derive from the catalog now. The server page reads `PROJECTS` and `FEATURES` and hands the numbers to the write-up as props — the write-up is `"use client"`, so importing the catalog there would put 21KB of it in that route's bundle to render two integers.
+- One place has to stay a literal: `featureData.data.ts` feeds the command palette registry, which sits in the root layout, so importing the catalog there would put it in every route in the app. A test checks that string against the real array lengths instead.
+
+## 2026-08-14 - version 4.5.3
+
+- **The frontend's type check was type-checking the API.** The operator E2E tier clones `portfolio_api` into `api/`, and the frontend `tsconfig` included `**/*.ts` while excluding only `node_modules` — so the API's sources were always in scope, resolved against the frontend's dependencies. Nothing surfaced because that tier ran `next dev`, which does not type check. Building for CI made it fatal. The build change did not break this; it found it.
+
+## 2026-08-14 - version 4.5.2
+
+- **The pre-release E2E gate was testing a dev build.** Playwright started `next dev`, so the tier meant to catch what ships was exercising a different compiler, different bundling, and no production minification. Anything that only breaks once compiled passed it happily.
+- Turbopack also panicked mid-run on release #369 and took the whole job down with no test failing. A gate that fails for reasons unrelated to the code is worse than no gate, because the next red one gets waved through.
+- CI now drives `pnpm build && pnpm start`. Locally it stays on the dev server, because waiting for a build to check one spec is how a suite stops being run.
+
+## 2026-08-13 - version 4.5.1
+
+- Third tranche of the four-things audit, closing what `/thoughts/learn` admitted about itself: the step-player hook was covered, but nothing stopped a page wiring the keyboard up differently. There is a test across the demos now.
+
+## 2026-08-13 - version 4.5.0
+
+- **Editing an existing to-do from the page it appears on.** Quick add deliberately takes a title and a project, so everything else had to be fillable later — and "later" meant running a script against the database. `reason` had shipped as a column and a display with no way to set it.
+- It lives in the panel that already holds history and comments, because the three are the same thought: what this item is, what it has been, and what I said about it. Only changed fields are sent, so the revision it writes says what actually moved.
+
+## 2026-08-13 - version 4.4.0
+
+- **History and comments on the to-do page.** An expandable panel per row with History and Comments tabs, keeping the ordered list rather than navigating away from it.
+- Reverting restores an earlier revision as a *new* one rather than discarding what came after, so the history only ever grows. It reads destructive and is not.
+- The panel mounts only when a row is opened, and the comments query does not fire until its tab is selected — there are tens of rows, and loading a timeline for each on the chance someone looks means paying for the feature on every render.
+
+## 2026-08-13 - version 4.3.0
+
+- Wrote up the database work as one piece rather than leaving it scattered across commit messages: `DATABASE_URL` pointed at a public proxy host, and the only control on that path was the password. Every control I had built — Auth0, the email allowlist, the owner checks — lives in Express, which Postgres has never heard of.
+- README brought current with the to-do history work. It also claimed 58 write-ups when there were 60; that number had gone wrong twice in a day without anyone noticing.
+
+## 2026-08-13 - version 4.2.2
+
+- Two tranches of the four-things audit. The write-ups said what broke and what changed but not why it got past me or what catches the class, so each page's own `couldImprove` became a test instead of more prose.
+- `/thoughts/messenger-auth` listed its own missing regression test. The original bug was not wrong code — the root page read the session and rendered correctly, it just never said it must not be cached. Being dynamic was a property the framework granted it, not one it asked for. The test found a second page relying on the same detection: `/to-do`, the admin list.
+
+## 2026-08-13 - version 4.2.1
+
+- Guards for the two crawler files whose failure modes are silent. `security.txt` requires an `Expires` field, and a lapsed one is worse than none: the file still serves, still looks maintained, and researchers are told to disregard it. Nothing announced the date passing, so a test now fails thirty days early.
+- Also fixed a page that contradicted itself.
+
+## 2026-08-13 - version 4.2.0
+
+- The security write-up, held back until the fix was live. Publishing a detailed account of what was wrong while it is still wrong is disclosure in a different costume.
+- Two navigation gaps on the to-do page, plus a test so the first cannot come back: `/thoughts/to-do` shipped with no link to `/to-do`.
+
+## 2026-08-13 - version 4.1.1
+
+- The frontend README audited against the code rather than against itself. The tech stack listed unovis; there is no unovis dependency.
+
+## 2026-08-13 - version 4.1.0
+
+- **`/to-do` became writable.** Until now the list was only editable by scripts run against the database, which made it a list I tick rather than one I keep. Adding and removing items now happens on the page.
+- Write-ups brought up to date for everything landed that week. I checked for an existing home before adding anything, and four of the five turned out to be updates — including two pages that had gone actively wrong rather than merely stale.
+
+## 2026-08-12 - version 3.27.1
+
+- A section on `/thoughts/deployment` about telling whether a deploy actually landed. Three times in one evening of security work I checked something adjacent to the claim, saw green, and treated the claim as proven — the adjacent thing is always faster to check, which is why it gets checked.
+- The worst of them: I encrypted the stored Google OAuth tokens in production having confirmed the PR was *merged*. The running build was five releases old with no decryption code, so the database briefly held credentials the app could not read. Nothing user-facing broke because that integration had been dormant for months. Luck, not process.
+
+## 2026-08-12 - version 3.27.0
+
+- **An admin-only `/to-do` page**, listing what is still outstanding across both repos, ordered by phase, tickable and filterable. It records what has *not* been fixed yet and both repos are public, so the rows live in a backend table rather than in either one.
+- It 404s rather than 403s for anyone not on the allowlist, because a 403 confirms a page exists.
+- CI was red on every branch: the operator E2E job runs `pnpm migrate` against an ephemeral Postgres, and migration 020 refuses to run without `TOKEN_ENCRYPTION_KEY`.
+
+## 2026-08-11 - version 3.26.0
+
+- Hardened the BFF. An unclassified feature flag now defaults to the admin rung rather than the open one — `getFlag` only searched the local seed while the API served a wider set, so upstream-only keys were landing on the rung that needs no session.
+- Every dynamic route param interpolated into an upstream URL goes through a shared `safeSegment` guard; a rejected segment answers 400.
+
+## 2026-08-11 - version 3.25.1
+
+- The chalk backdrop and the retired v3 landing came off first paint. The tegaki font ships its glyph outlines as JSON inlined into JavaScript — about 200KB plus the engine, for a decorative background that already renders empty on its first pass and is skipped entirely under reduced motion. v3 was statically imported into `/` even though v1 and v2 were already lazy and v3 is only reachable with `?version=v3`.
+
+## 2026-08-11 - version 3.25.0
+
+- The crawler and AI files, none of which existed. The tell was already in the codebase: `src/proxy.ts` had been excluding `/robots.txt` from its matcher for as long as it has existed, pointing at a file nobody ever wrote.
+- Plus `metadataBase`, which Next had been warning about — without it every relative metadata URL resolves against localhost.
+- robots.txt is a hint, not a fence. Disallowing `/settings` does advertise that it exists, and that is fine: the session check protects it, and a crawler ignoring the file meets the same check. Treating robots.txt as the protection would be the actual mistake.
+
+## 2026-08-11 - version 3.24.0
+
+- **CSV exports were a way to run code on someone else's machine.** A cell opening with `=`, `+`, `-` or `@` is executed as a formula by Excel and Sheets, and the operator exports carry product and store names. RFC 4180 quoting was already correct and is not the defence — the quotes come off at parse time and the formula runs anyway.
+- Only strings get the leading apostrophe. A negative number is data, and prefixing it would corrupt every negative figure in the finance export, which is a worse bug than the one being fixed. There is a test pinning that.
+- Two dependencies removed without adding anything in their place.
+
+## 2026-08-11 - version 3.23.0
+
+- The usability pass over the operator feature. Store detail already met the bar — every displayed thing had an action wired to a real endpoint — but the fleet-level reports ranked the worst store, named the SKU to cut, counted the stores needing attention, and then stopped.
+- Restock history was the clearest case: the completed counts that the entire shrink report is built on could not be reviewed after the fact.
+
+## 2026-08-11 - version 3.22.0
+
+- **Flag writes gated by tier rather than by "signed in or not".** That was the wrong question: the console is a playground meant to be touched by whoever wanders in *and* a live kill switch, at the same time, and one rule across both makes either the playground useless or the switch reckless.
+- Every locked card says why, because nobody should learn the rule by clicking a switch that does not move. 401 and 403 stay distinct — sending a signed-in person to a login screen does not help them.
+- Each bug here was found by driving the running app, and every one passed the route tests first. Those mock the API client, so they proved the decision was right while the transport was wrong.
+
+## 2026-08-11 - version 3.21.0
+
+- `pnpm audit` was reporting 41 vulnerabilities, 17 of them high. Nearly all the highs were Next.js itself, including several middleware/proxy bypass advisories. That class matters more here than it would elsewhere: session enforcement and the CSP both live in `src/proxy.ts`, so a proxy bypass is a bypass of the only thing guarding `/settings` and `/calendar`.
+- `next` to 16.3.0 and `@auth0/nextjs-auth0` to 4.26.0, plus the response headers a CSP does not cover.
+
+## 2026-08-11 - version 3.20.1
+
+- Dragging a node in the workflow-editor demo dropped the whole thing to its error boundary. `onPointerMove` reached through the drag ref from inside the `setNodes` updater, which React may call more than once.
+
 ## 2026-08-11 - version 4.0.0
 
 - **The Web Vitals dashboard was crediting the landing page's load metrics to whatever page you clicked into.** `WebVitalsReporter` registers all five observers once and reported the pathname read at the moment each one fired. That is right for INP and CLS, which describe the view you are on. It is wrong for FCP, LCP and TTFB, which describe the initial document load — and LCP in particular only flushes on first interaction, which on this site is usually a click on a nav link. By then the ref has moved to the destination, so the number lands on the wrong row. Load metrics now use the pathname captured when the observers are registered; the interaction metrics keep following the navigation.
@@ -32,6 +165,7 @@
 
 - **Some work-portfolio ticker chips did nothing when clicked.** The cause was upstream: the shared `Ticker` duplicates its chips so the ambient loop looks seamless, and the clone carried `inert` — which removes a subtree from the accessibility tree *and* from the pointer. The loop wraps at half the scroll width, so roughly half of what is on screen at any moment was the clone, and clicking those chips silently did nothing. It came back because unifying the bespoke tickers onto the shared component adopted a copy that had `inert` added for a real reason: tabbable controls inside an `aria-hidden` container is a serious axe violation. Right instinct, aimed one notch too broadly. Fixed in `@paul-portfolio/react` 0.5.1 — the clone stays `aria-hidden` with its focusables dropped from the tab order in a layout effect, which runs before paint and closes the same window `inert` was closing, without touching the pointer.
 - A guard test on this side asserts nothing on the page renders with `inert`, so a future version of the package cannot quietly bring it back. It is written as an attribute assertion rather than a click, because jsdom does not implement `inert` — a click test passes whether or not the bug is present, which is very likely how it shipped the first time. The same shape of test exists upstream.
+
 ## 2026-08-10 - version 3.16.3
 
 - **Tap targets across the app were too small on a phone.** I rendered every route at 390px and measured rather than guessing, and the biggest finding was in the shared header: breadcrumb links were 20px tall, the write-up pill and the theme trigger 28px. That is one fix that lifts every page, since every page uses it. Also fixed the Craft evidence links (31 of them at 28px), the Web Vitals version selector, and seven links on the v4 landing. The `InfoTip` trigger keeps its 14px dot — shrinking or growing it would change every layout it sits in — and gains an invisible 44px hit area on touch screens only.
@@ -46,6 +180,7 @@
 
 - **Twelve of the fourteen feature routes had no error boundary.** Any render error escaped to the global boundary, which throws away the page shell and leaves a reload as the only way back — on the operator dashboard, the world, the flags console, gallery wall, the NBA hub and seven others. They all have one now, using the same `RouteError` the calendar and research pages already used, so a failure keeps the header and offers a retry in place. Five routes were also missing a loading state (learn, craft, gallery wall, the NBA hub, the Pokémon hub) and now have skeletons shaped like the page that follows rather than a spinner.
 - A test walks the feature registry and fails if any route is missing either file, so the next feature added gets the same treatment instead of quietly shipping without them.
+
 ## 2026-08-10 - version 3.20.0
 
 - **All 56 write-ups now close by saying where they stand** — what the current shape is and why, where it falls short, and what is genuinely queued. The sweep is finished. The real problem it was solving was not missing prose: a page written once and never revisited looked identical to one that was current, and the closing block forces the question of which it is.
@@ -242,11 +377,13 @@
 - **Stopped the page describing shipped work as deferred.** It was written before the follow-up landed and still said the Angular package had no TestBed infrastructure — which had been true, and no longer was. The original paragraph stays as written rather than being edited into looking prescient; a new section records what landed and what the deferred tests had been hiding: the Angular package was built with plain `tsc`, so it published raw decorators with no compiled component definitions and every consumer binding a signal input got nothing back, silently, for as long as the package had existed.
 
 ## 2026-08-03 - version 3.2.0
+
 - **The design system write-up now covers the charts, and the three bugs that were older than the charts.** Adding eleven chart forms to `@paul-portfolio` meant writing the Angular package's first render tests, and the first probe failed: the template rendered and `setInput` did nothing. The package was built with plain `tsc`, so what it published was raw decorators with no compiled component definitions, and every component in it uses signal `input()`, which needs the compiler. Any consumer binding an input got nothing back, silently, for as long as the package had existed. Nothing caught it because every test imported source files and nothing consumed the build. The page records that, plus the two others the work turned up: a chart palette whose first two series were 1.3 apart under deuteranopia (12 for normal vision, against a floor of 15), and a CSS package with 21 test files, a vitest config, and no `test` script, so 139 assertions had never run once.
 - **Also written down: the encoding decisions that needed an argument rather than an API.** The pareto chart has one y axis, because two scales have an arbitrary alignment and invent a relationship the data does not contain. Funnel stages and heatmap cells use a sequential ramp, because identity colours on ordered data spend the only free channel on information the chart already shows. The word cloud ships with its own objection in its doc comment, since glyph area is not a comparable encoding. And reduced motion means removing the rotation, not slowing it: the spinner had been answering `prefers-reduced-motion` by going from 0.6s to 1.5s, which is the same motion for longer.
 - **Eight new takeaways on the page**, the load-bearing one being: test the artifact you publish, not the source you wrote. A green suite that imports source files says nothing about what consumers install.
 
 ## 2026-08-03 - version 3.1.1
+
 - **Fixed the operator timeline's dates, which had drifted off their entries.** Each new update was inserted into the previous row's list item, so every title sat against the wrong date and the newest entry was stamped with a day that had not happened yet. Two tests now pin it: every row's date must match the date encoded in the anchor it links to, and the list must stay newest-first. The kind of thing worth a test precisely because it is invisible until someone reads it and quietly stops trusting the rest of the page.
 - **Said what the page's two halves are, before they start.** The write-up runs original build notes first and dated updates after, newest first, but the handoff line claimed "newest first" about content that opens with the oldest thing on the page. There is now a short intro immediately above it saying which part is which.
 
@@ -577,12 +714,20 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - fixed the reel keyboard model: Left/Right now hop focus between the three columns (skipping greyed-out reels), Up/Down still step within a reel, and Enter on the category reel opens the landed destination so the leftmost column is never a dead end.
 - brought the command palette back. Mounted `CommandPaletteRoot` in the root layout so ⌘/Ctrl+K works on every route again, and since the floating trigger hides itself on the landing, the v4 header gets an inline Search affordance in its place.
 
+- reworked the `/flags` console so it's actually easy to understand at a glance. The old version read like an insider tool — "fallthrough rollout", "kill switch", "bucket 42.3" — and its evaluation playground was a separate island, so you couldn't see what any flag did to a real user. Now "Test a user" is the spine of the page: describe someone (or click a preset — Enterprise user / Beta tester / Anonymous visitor) and every flag card lights up with a plain-English verdict — "`user-42` gets ON, matched the rule 'Enterprise accounts get it first'" or "this user's dice roll landed at 43 of 100, so they get Disabled". Verdicts re-evaluate live through the real deterministic engine whenever you change the user, flip a switch, drag a rollout, or switch environment. Removed the standalone `EvaluationPlayground` (its explainability now lives on the cards) and de-jargoned the copy throughout.
+- paginated the audit log (6 entries per page, Prev/Next) so a long change history no longer stretches the page.
+- added the feature-flags feature to the architecture map and README (routes, API endpoints, components, hooks, lib, types).
+
 ## 2026-07-27 - version 1.2.0
+
+- Two releases went out under 1.2.0, on 2026-07-25 and 2026-07-27 — a version collision between parallel branches. Both sets of notes are kept here rather than renumbering the history after the fact.
 
 - rebuilt the landing page and hub as v4: a full-screen slot machine of three dependent reels (category, option, write-up) over the same ambient backdrop. Everything on the reels is derived by `buildSlots()` from the same `FEATURES`/`THOUGHTS` data the v3 graph reads, including the feature-to-write-up bridge rule, so the machine and the graph can never drift apart. Pulling the Spin key settles the columns one at a time, left to right, through a quick decelerating step (reduced-motion jumps straight to the target); reels 2 and 3 lock their contents to the landed target while reel 1 is still turning, so they no longer thrash through every category the first reel passes.
 - categories with no app, just write-ups (Build & Tooling, Deprecated, and the rest of the /thoughts index) show a greyed-out, disabled "Write-up only" marker in the middle reel and stack their write-ups in reel 3, so the result bar offers a single Read link rather than a redundant Open. Apps keep a real middle reel and a Read link to each feature's own notes; options with no write-up show a friendly reel-3 empty state linking to /thoughts. Deprecated notes get an amber tag wherever they surface.
 - gave it an editorial, frameless look to suit the new layout: no cabinet windows, reels that fade out at their edges with a hairline payline glowing in the landed accent, the landed row set in a Fraunces serif, and a Spin key tinted to whatever category is up. Short reels render each item once instead of repeating a label to fill the wheel.
 - under the chrome each reel is a proper listbox: focusable, `aria-activedescendant`, arrow/Home/End/Enter keyboard support, and a polite live region announcing each landed combo. v4 is now the default version (v3 keeps working at `/?version=v3` and picks up the older-version banner), with a `/thoughts/v4-redesign` write-up covering the design, a dev-only `/dev/v4` hub preview, and tests over the slot data model.
+
+- added a site-wide command palette (⌘K / Ctrl+K, or a bare "/" when not typing). It fuzzy-searches pages, dev notes, and actions built from the same FEATURES + THOUGHTS data the hub renders, with an ARIA combobox (arrow/enter/escape nav via aria-activedescendant) and grouped results. On most pages a floating shortcut pill in the corner is the discoverable trigger; the visible hint is platform-aware (⌘K on Apple devices, Ctrl K on Windows/Linux), resolved after mount so it stays hydration-safe (the shortcut itself already worked on every platform). The graph landing and hub fill every corner with their own chrome, so there the floating pill is hidden and a "Search" affordance sits in the header instead; it opens the same palette through a shared `commandpalette:open` window event. Fixed the two jsx-a11y lint errors on the option rows (false positives for this combobox pattern, where keyboard nav lives on the input, not the individual options), and bumped the shortcut-hint text to a readable colour so it clears WCAG AA contrast.
 
 ## 2026-07-27 - version 1.9.0
 
@@ -612,12 +757,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 
 - repointed the `/flags` BFF at a real backend. The four `/api/flags` routes now prefer portfolio_api's `feature-flags` service and only fall back to the in-memory seed when it is unreachable, so the console reads and writes live, shared data once the service is deployed and still works (looking identical) when it is not. Added a typed `flags-client` that validates every payload against the same Zod schemas the console uses, so a drifting API surfaces as a clear error instead of bad UI. Writes forward the signed-in visitor's bearer token and propagate a genuine 401/404 from the API rather than masking it, laying the groundwork for the "sign in to change flags" and audit-actor work still to come. The deterministic evaluation engine stays in the BFF, unchanged.
 
-## 2026-07-27 - version 1.3.0
-
-- reworked the `/flags` console so it's actually easy to understand at a glance. The old version read like an insider tool — "fallthrough rollout", "kill switch", "bucket 42.3" — and its evaluation playground was a separate island, so you couldn't see what any flag did to a real user. Now "Test a user" is the spine of the page: describe someone (or click a preset — Enterprise user / Beta tester / Anonymous visitor) and every flag card lights up with a plain-English verdict — "`user-42` gets ON, matched the rule 'Enterprise accounts get it first'" or "this user's dice roll landed at 43 of 100, so they get Disabled". Verdicts re-evaluate live through the real deterministic engine whenever you change the user, flip a switch, drag a rollout, or switch environment. Removed the standalone `EvaluationPlayground` (its explainability now lives on the cards) and de-jargoned the copy throughout.
-- paginated the audit log (6 entries per page, Prev/Next) so a long change history no longer stretches the page.
-- added the feature-flags feature to the architecture map and README (routes, API endpoints, components, hooks, lib, types).
-
 ## 2026-07-26 - version 1.2.5
 
 - brought the `/design-system` showcase back in line with what actually ships on npm. The gallery had drifted: it documented only the 10 primitives this app wraps locally, while `@paul-portfolio/react` had grown to 19 components. Added the missing nine — `Ticker`, `Card`, `Badge`, `Avatar`, `Switch`, `Spinner`, `Skeleton`, `Divider`, and `VisuallyHidden` — each with a live preview rendered straight from `@paul-portfolio/react` (the source of truth the showcase exists to reflect), a usage note, and its accessibility guarantees. Re-anchored the integrity test from this app's thin `@/components/ui` barrel to the package's own exports (minus the `cx` helper), so the next time the package adds a component and the catalog forgets it, CI goes red instead of the gallery quietly falling behind. Only `Ticker` is adopted in this app today (Work portfolio); the rest ship in the shared package and are used by the sibling Angular app and Ketsup, so their cards show an honest "Availability" note rather than a fabricated in-app link, and a new test requires every component to carry provenance (a real route or that note).
@@ -640,10 +779,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 ## 2026-07-26 - version 1.2.1
 
 - added a dev-notes write-up at `/thoughts/test-tiers` on tiered testing strategy: why you shouldn't run every test on every commit, and how to split tests by cost into fast unit (every push/PR), integration (on merge or scheduled), end-to-end (nightly or pre-release), and quarantined flaky tiers. Grounded in this repo's `ci.yml` quality/e2e job split, and mirrors the existing `ci-e2e` write-up's structure (summary sections + iMessage-style chat) via `ThoughtLayout`. Registered in `featureData.tsx` (THOUGHTS) and the "Testing & Quality" category, with a test asserting the heading, each tier section, and the category registration.
-
-## 2026-07-25 - version 1.2.0
-
-- added a site-wide command palette (⌘K / Ctrl+K, or a bare "/" when not typing). It fuzzy-searches pages, dev notes, and actions built from the same FEATURES + THOUGHTS data the hub renders, with an ARIA combobox (arrow/enter/escape nav via aria-activedescendant) and grouped results. On most pages a floating shortcut pill in the corner is the discoverable trigger; the visible hint is platform-aware (⌘K on Apple devices, Ctrl K on Windows/Linux), resolved after mount so it stays hydration-safe (the shortcut itself already worked on every platform). The graph landing and hub fill every corner with their own chrome, so there the floating pill is hidden and a "Search" affordance sits in the header instead; it opens the same palette through a shared `commandpalette:open` window event. Fixed the two jsx-a11y lint errors on the option rows (false positives for this combobox pattern, where keyboard nav lives on the input, not the individual options), and bumped the shortcut-hint text to a readable colour so it clears WCAG AA contrast.
 
 ## 2026-07-25 - version 1.1.2
 
@@ -1340,8 +1475,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 ## 2026-07-16 - version 0.16.0
 
 - linting with pnpm
-
-## 2026-07-16 - version 0.16.0
 
 - migrated package manager from npm to pnpm — content-addressable store, strict dependency resolution, faster installs
 - added `packageManager` and `engines` fields to `package.json` for pnpm/node version enforcement
@@ -2548,8 +2681,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - fetches api helpers now use Zod response schemas
 - invalid requests return more detailed error details, with backend responses validated at runtime
 
-## 2026-03-24 - version 0.6.5
-
 - added CTAs to all public landing page sections linking to their respective routes (NBA Stats, Pokémon TCG, GraphQL Pokédex, Ketsup); auth-required sections (Calendar, Web Vitals) show "Log in to view →" instead
 - `FeaturesSection` cards are now clickable links for all public features; auth-required cards redirect to `/calendar` or `/auth/login` and the middleware handles the bounce
 - `/calendar` added to protected routes in `src/proxy.ts` — unauthenticated requests redirect to `/auth/login?returnTo=/calendar`
@@ -3474,8 +3605,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - protected page header and footer are now sticky — changed `min-height: 100dvh` to `height: 100dvh` on `main` and added `overflow-y: auto; min-height: 0` to `.threadList` so only the thread list scrolls
 - both pages fall back gracefully when the upstream is unavailable at server time — the client components handle it the same way they always did
 
-## 2026-02-25 - version 0.1.12
-
 - added GraphQL Pokédex at `/graphql` — search and filter
 - `/api/graphql` proxy route forwards POST bodies to the upstream endpoint, keeping the URL server-side and `connect-src` locked to same-origin
 - `src/types/graphql.ts` — PokeAPI response shapes (`Pokemon`, `PokemonListResult`, `GraphQLResponse`), `POKEMON_TYPES` const, `PAGE_SIZE`
@@ -3521,8 +3650,6 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - added a calendar about page at `/calendar/about` — same iMessage write-up format as the other thoughts pages, covers why date-fns over moment, the BFF auth pattern, junction table vs JSON column, timezone handling, what I'd still improve
 - "About" link added to the calendar header next to Events
 - persist read threads and display according to if read or not
-
-## 2026-02-23 - version 0.1.9
 
 - added an events list page at `/calendar/events` — searchable and filterable
 - event detail page at `/calendar/events/[id]` — shows event info and a card grid
@@ -3650,4 +3777,3 @@ Release to production. Rolls up everything since 1.11.3, headlined by the Galler
 - main layout.tsx to use Auth0Provider and page.tsx and show login/logout depending on if you're signed in
 - added route protection in proxy.ts so you get redirected to login if you try to hit any page besides the homepage without being logged in
 - created some reusable components for main page and protected page
-
