@@ -1,55 +1,84 @@
 "use client";
 
 import Link from "next/link";
-import SpotlightCard from "@/components/motion/SpotlightCard";
+import { m } from "framer-motion";
 import TextReveal from "@/components/motion/TextReveal";
 import { CRAFT_TRAITS, type CraftTrait } from "@/lib/craft";
+import { useHubReducedMotion } from "@/app/providers";
 import { SHELL, BAND } from "../shell";
 
 /**
- * One trait, argued the way the /craft page argues it: the principle in plain
- * words, then the pages that prove it.
+ * One trait as a ledger row: an oversized index, the title, the principle,
+ * then the pages that prove it.
  *
- * The trait's colour reaches the accent prop and nothing else. It tints the
- * glass by five percent and drives the cursor glow, so ten accents across ten
- * cards still read as one page. Putting any of them on text would break both
- * the single-accent rule and, at these values, contrast.
+ * The first cut of this section was ten glass cards with a cursor glow, and
+ * the glow washed the text out at exactly the moment someone leaned in. Here
+ * the trait colour only ever touches things that are not text: the index
+ * numeral, a rule that slides in along the left edge, and a wash held to
+ * seven percent. Foreground copy stays on the semantic tokens in both themes,
+ * so hovering changes the temperature of the row and never its legibility.
  */
-function TraitCard({ trait }: { trait: CraftTrait }) {
+function TraitRow({ trait, index }: { trait: CraftTrait; index: number }) {
   return (
-    <SpotlightCard accent={trait.color} className="p-6">
-      <h3 className="text-lg font-semibold">{trait.title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted">
-        {trait.principle}
-      </p>
-      <ul className="mt-4 flex flex-wrap gap-2">
-        {trait.evidence.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              className="inline-flex rounded-full border border-border px-3 py-1 text-xs transition-colors hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </SpotlightCard>
+    <>
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-3 left-0 w-0.5 origin-top scale-y-0 rounded-full bg-[var(--trait)] transition-transform duration-300 group-hover:scale-y-100"
+      />
+      <div className="grid gap-x-6 gap-y-3 rounded-r-2xl px-5 py-6 sm:grid-cols-[3.5rem_1fr] sm:px-7">
+        <span
+          aria-hidden="true"
+          className="font-display text-2xl font-semibold tabular-nums text-[color-mix(in_srgb,var(--trait)_55%,var(--color-muted))] sm:text-3xl"
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <div>
+          <h3 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">
+            {trait.title}
+          </h3>
+          <p className="mt-2 max-w-[62ch] leading-relaxed text-muted">
+            {trait.principle}
+          </p>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {trait.evidence.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="inline-flex rounded-full border border-border bg-surface/60 px-3 py-1 text-xs transition-colors hover:border-[color-mix(in_srgb,var(--trait)_45%,var(--color-border))] hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      {/* The wash lives on its own layer so it can sit under the text without
+          ever mixing into it. Seven percent of the trait colour is a tint the
+          copy survives in both themes. */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 rounded-r-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background:
+            "linear-gradient(90deg, color-mix(in srgb, var(--trait) 7%, transparent), transparent 70%)",
+        }}
+      />
+    </>
   );
 }
 
 /**
- * The spine of the page: what a lead is measured on, all ten of them.
+ * The spine of the page: what a lead is measured on, all of them.
  *
- * A sticky rail holds the argument still on the left while the evidence scrolls
- * past on the right, and the second column starts lower than the first so the
- * stack never lines up into a grid. Ten traits is more than a landing page
- * usually carries, and cutting to three would have made the section look like
- * every other feature row on the internet.
+ * A sticky rail holds the argument still on the left while the evidence
+ * scrolls past as a single ledger on the right. Rows, not cards: ten glass
+ * tiles in a grid read as a pricing page, and the numbering does the work the
+ * grid was failing to do, which is to say this is a complete list and you are
+ * somewhere inside it.
  */
 export default function CraftSpine() {
-  const left = CRAFT_TRAITS.filter((_, i) => i % 2 === 0);
-  const right = CRAFT_TRAITS.filter((_, i) => i % 2 === 1);
+  const reducedMotion = useHubReducedMotion();
 
   return (
     <section id="craft" className={BAND}>
@@ -62,8 +91,9 @@ export default function CraftSpine() {
             What a lead is actually measured on
           </TextReveal>
           <p className="mt-5 max-w-[38ch] leading-relaxed text-muted">
-            Ten traits, and for each one a page in this project you can open and
-            check. Adjectives are cheap. These are not.
+            {CRAFT_TRAITS.length} traits, and for each one a page in this
+            project you can open and check. Adjectives are cheap. These are
+            not.
           </p>
           <Link
             href="/craft"
@@ -74,18 +104,21 @@ export default function CraftSpine() {
           </Link>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:col-span-8">
-          <div className="flex flex-col gap-5">
-            {left.map((trait) => (
-              <TraitCard key={trait.id} trait={trait} />
-            ))}
-          </div>
-          <div className="flex flex-col gap-5 sm:mt-16">
-            {right.map((trait) => (
-              <TraitCard key={trait.id} trait={trait} />
-            ))}
-          </div>
-        </div>
+        <ul className="divide-y divide-border border-y border-border lg:col-span-8">
+          {CRAFT_TRAITS.map((trait, index) => (
+            <m.li
+              key={trait.id}
+              className="group relative"
+              style={{ ["--trait" as string]: trait.color }}
+              initial={reducedMotion ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <TraitRow trait={trait} index={index} />
+            </m.li>
+          ))}
+        </ul>
       </div>
     </section>
   );

@@ -15,34 +15,36 @@ import { SHELL } from "./shell";
 /** The signed-in session, as much of it as this page needs. */
 export type MeData = { name: string | null; email: string | null };
 
-/** The routes that only mean something once you are signed in. */
-const QUICK_LINKS = [
-  { label: "Settings", href: "/settings" },
-  { label: "Calendar", href: "/calendar" },
-  { label: "To-do", href: "/to-do" },
-];
+export type V5ContentProps = {
+  me?: MeData;
+  /** Index into HERO_TAGLINES, drawn on the server once per request. */
+  taglineIndex?: number;
+  /** Write-up hrefs for the shortlist, drawn on the server once per request. */
+  writingPicks?: string[];
+};
 
 /**
  * The v5 landing, both auth states.
  *
  * Guest and signed-in see the same argument in the same order, because the page
  * is aimed at someone deciding whether to interview me and that does not change
- * when I happen to be logged in on my own laptop. The session only adds a strip
- * under the hero: a greeting and the three routes that need an account. Same
- * split the v4 pair uses, one layer lower.
+ * when I happen to be logged in on my own laptop. The session only changes the
+ * header: the auth call to action flips, and the menu already carries the
+ * signed-in routes. No second bar under the hero.
  */
-export default function V5Content({ me }: { me?: MeData }) {
-  const firstName = me?.name ? me.name.split(" ")[0] : null;
-
+export default function V5Content({
+  me,
+  taglineIndex,
+  writingPicks,
+}: V5ContentProps) {
   return (
     <div className="relative">
       <ScrollProgress height={2} />
 
-      {/* Absolute, not fixed. A pinned bar with no backdrop collides with the
-          proof figures the moment the page scrolls, and giving it a surface
-          means a scroll listener and a permanent strip over the composition.
-          It belongs to the hero, so it leaves with the hero. */}
-      <header className="absolute inset-x-0 top-0 z-[var(--z-sticky)] h-16">
+      {/* Sticky, with its own surface. The theme, settings and auth controls
+          live here, and they should stay reachable at any scroll depth. The
+          backdrop is what keeps the bar readable over the proof figures. */}
+      <header className="sticky top-0 z-[var(--z-sticky)] h-16 border-b border-border/60 bg-background/75 backdrop-blur-md">
         <div className={`${SHELL} flex h-16 items-center justify-between`}>
           <Link
             href="/"
@@ -55,39 +57,11 @@ export default function V5Content({ me }: { me?: MeData }) {
       </header>
 
       <main>
-        <Hero />
-
-        {me ? (
-          <section
-            aria-label="Your account"
-            className="border-t border-border bg-surface/50"
-          >
-            <div
-              className={`${SHELL} flex flex-wrap items-center gap-x-6 gap-y-3 py-5`}
-            >
-              <p className="text-sm text-muted">
-                Back again{firstName ? `, ${firstName}` : ""}.
-              </p>
-              <ul className="flex flex-wrap gap-2">
-                {QUICK_LINKS.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="inline-flex h-8 items-center rounded-full border border-border bg-surface-raised px-4 text-sm transition-colors hover:bg-surface focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        ) : null}
-
+        <Hero taglineIndex={taglineIndex} />
         <Proof />
         <CraftSpine />
         <FeaturedWork />
-        <Writing />
+        <Writing picks={writingPicks} />
         <Archive />
         <Contact />
       </main>
