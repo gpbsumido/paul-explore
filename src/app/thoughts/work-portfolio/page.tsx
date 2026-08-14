@@ -4,7 +4,7 @@ import WorkPortfolioThoughtsContent from "./WorkPortfolioThoughtsContent";
 
 const TITLE = "Work Portfolio | Thoughts";
 const DESCRIPTION =
-  "Rebuilding 24 features from 11 old jobs as self-contained demos: reconstruction over emulation, anonymizing client work, a no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs.";
+  "Rebuilding 22 features from 10 old jobs as self-contained demos: reconstruction over emulation, anonymizing client work, a no-new-deps rule, the dual-ticker UX, and shipping it as merge-order-independent PRs.";
 
 export const metadata: Metadata = buildArticleMetadata({
   title: TITLE,
