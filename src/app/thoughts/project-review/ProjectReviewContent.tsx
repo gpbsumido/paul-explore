@@ -80,6 +80,17 @@ export default function ProjectReviewContent() {
           . That&rsquo;s a big surface for a solo playground, and the
           distribution is the story.
         </p>
+        <p className="mt-3 text-sm text-muted">
+          <span className="font-semibold text-foreground">
+            Every number on this page is a census taken in July 2026
+          </span>{" "}
+          and is left at what it read then. The site has kept growing &mdash;
+          page routes and test files are both well past these figures now
+          &mdash; so re-running the counts would produce a different page,
+          which is rather the point of a review being dated. Refreshing the
+          numbers in place would quietly turn a snapshot into a claim about
+          today that goes stale again the following week.
+        </p>
       </section>
 
       {/* WHAT'S GOOD */}

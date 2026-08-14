@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { FEATURES } from "@/app/_shared/featureData.data";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -79,5 +80,30 @@ describe("llms.txt", () => {
       .map((p) => p.replace("/thoughts/", ""));
     const missing = named.filter((slug) => !thoughts.includes(slug));
     expect(missing).toEqual([]);
+  });
+
+  /**
+   * The checks above all run the same direction: everything named exists.
+   * That direction cannot catch this file's actual failure mode, which is
+   * omission -- a feature ships, nobody thinks about the crawler file, and it
+   * quietly describes a smaller site than the one that is up.
+   *
+   * The blurbs are deliberately rewritten for a crawler rather than reused
+   * from FEATURES, and the ordering is editorial, so this cannot generate the
+   * entry. It only insists one gets written.
+   */
+  it("names every public feature, or says why not", () => {
+    const NOT_LISTED_ON_PURPOSE = new Set([
+      // Login-gated and personal. The Notes section explains the omission.
+      "/calendar",
+      // Lives at its own domain, so it is not this site's to advertise here.
+      "https://ketsup.paulsumido.com",
+    ]);
+
+    const missing = FEATURES.filter(
+      (f) => !NOT_LISTED_ON_PURPOSE.has(f.href) && !paths.includes(f.href),
+    );
+
+    expect(missing.map((f) => f.href)).toEqual([]);
   });
 });
