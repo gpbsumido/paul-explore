@@ -1,6 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { scrambleFrame, useTextScramble } from "./useTextScramble";
+
+// Reduced motion comes from a context provider, so the honest way to flip it in
+// a hook test is to stub the provider module. vi.hoisted keeps the flag
+// reachable from the hoisted factory without resetting the module registry,
+// which would pull in a second React copy and break every hook call.
+const mocks = vi.hoisted(() => ({ reduced: false }));
+vi.mock("@/app/providers", () => ({
+  useHubReducedMotion: () => mocks.reduced,
+}));
+
+beforeEach(() => {
+  mocks.reduced = false;
+});
 
 const CHARSET = "ABC";
 
@@ -91,18 +104,15 @@ describe("useTextScramble", () => {
     await waitFor(() => expect(result.current.display).toBe("ember"));
   });
 
-  it("returns the final text immediately under reduced motion", async () => {
-    vi.resetModules();
-    vi.doMock("@/app/providers", () => ({ useHubReducedMotion: () => true }));
-    const mod = await import("./useTextScramble");
+  it("returns the final text immediately under reduced motion", () => {
+    mocks.reduced = true;
 
     const { result } = renderHook(() =>
-      mod.useTextScramble({ text: "ember", trigger: "mount", speedMs: 1000 }),
+      useTextScramble({ text: "ember", trigger: "mount", speedMs: 1000 }),
     );
 
     expect(result.current.display).toBe("ember");
     expect(result.current.isScrambling).toBe(false);
-    vi.doUnmock("@/app/providers");
   });
 
   it("does not start on its own when the trigger is inView", () => {

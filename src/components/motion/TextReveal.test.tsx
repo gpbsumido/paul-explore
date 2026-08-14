@@ -36,8 +36,13 @@ describe("TextReveal", () => {
     const html = renderToStaticMarkup(
       <TextReveal as="h1">Above the fold</TextReveal>,
     );
-    expect(html).toContain("Above the fold");
+    // The words are split across spans, so the markup never holds the phrase
+    // contiguously. What matters is that the text is all there and that nothing
+    // ships hidden waiting on hydration.
+    const text = html.replace(/<[^>]+>/g, "");
+    expect(text).toBe("Above the fold");
     expect(html).not.toMatch(/opacity:\s*0/);
+    expect(html).not.toMatch(/data-revealed/);
   });
 
   it("has no axe violations", async () => {

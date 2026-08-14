@@ -271,6 +271,80 @@
   }
 }
 
+/* TextReveal — the same bargain .reveal-up makes, one word at a time. The text
+   is in the server HTML at full opacity and this only switches on once the
+   element reports itself in view, so nothing above the fold is ever shipped as
+   opacity:0 waiting on hydration. Each part carries its own inline
+   animation-delay, which is what makes the stagger. */
+@keyframes motion-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.motion-reveal-part {
+  display: inline-block;
+}
+
+[data-revealed="true"] .motion-reveal-part {
+  animation: motion-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* GradientMesh — three blooms drifting around each other. Pure CSS on purpose:
+   no rAF loop, no hydration cost, and the reduced-motion rule below is the
+   whole of its accessibility story. */
+.motion-gradient-mesh {
+  background-image:
+    radial-gradient(
+      42% 52% at 22% 28%,
+      color-mix(in srgb, var(--mesh-a) 42%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      38% 48% at 78% 30%,
+      color-mix(in srgb, var(--mesh-b) 38%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      46% 44% at 50% 82%,
+      color-mix(in srgb, var(--mesh-c) 34%, transparent),
+      transparent 70%
+    );
+  background-size: 160% 160%;
+  animation: motion-mesh-drift var(--mesh-duration, 18000ms) ease-in-out infinite;
+}
+
+@keyframes motion-mesh-drift {
+  0%,
+  100% {
+    background-position:
+      0% 0%,
+      100% 0%,
+      50% 100%;
+  }
+  50% {
+    background-position:
+      30% 20%,
+      70% 30%,
+      40% 70%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-revealed="true"] .motion-reveal-part {
+    animation: none;
+  }
+
+  .motion-gradient-mesh {
+    animation: none;
+  }
+}
+
 /* Glass card — the v3 landing's frosted, tinted surface. Semi-transparent so an
    AmbientBackground behind it shows through, blurred. Tint it toward an accent
    by setting --glass-accent (e.g. a feature token); defaults to a neutral tint.
