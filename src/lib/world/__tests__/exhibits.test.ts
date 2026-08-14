@@ -36,6 +36,10 @@ describe("world exhibits", () => {
       "world",
       // A tiny toy, and the city is already dense around that block.
       "ketsup",
+      // The way into the site rather than a place in it. An exhibit for it
+      // would send someone out of the world to a page whose whole job is
+      // sending them back into it.
+      "discover",
     ]);
 
     const exhibited = new Set(EXHIBITS.map((e) => e.featureId));

@@ -54,6 +54,12 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const APPS_COLOR = "#38bdf8";
+/**
+ * The feature whose page these reels are. It stays a hub card, but landing on
+ * it mid-spin offers to open the page you are already looking at, so it is left
+ * out of the Apps reel.
+ */
+const SELF = "discover";
 /** Warm accent shared with the resume page entry points elsewhere on the site. */
 const RESUME_COLOR = "#fb923c";
 const RESUME_BLURB = "Experience, skills, and the projects behind this site.";
@@ -84,7 +90,7 @@ export function buildSlots(): SlotCategory[] {
     label: "Apps",
     color: APPS_COLOR,
     blurb: "Things you can actually use.",
-    options: FEATURES.map((feature) => {
+    options: FEATURES.filter((feature) => feature.id !== SELF).map((feature) => {
       const note = feature.thoughtsHref
         ? activeByHref.get(feature.thoughtsHref)
         : undefined;
