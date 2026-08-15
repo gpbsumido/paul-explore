@@ -68,7 +68,7 @@ const APPS_COLOR = "#3388b4";
  */
 const SELF = "discover";
 /** Warm accent shared with the resume page entry points elsewhere on the site. */
-const RESUME_COLOR = "#b46c2d";
+export const RESUME_COLOR = "#b46c2d";
 const RESUME_BLURB = "Experience, skills, and the projects behind this site.";
 
 const toSlotThought = (thought: ThoughtItem): SlotThought => ({
