@@ -95,14 +95,31 @@ function liveSourceFiles(): string[] {
 }
 
 /**
- * Every hex the design tokens themselves define — the three identity ramps, the
- * semantic surfaces and the feature accents. Read from the stylesheet rather
- * than copied, so adding a token never means updating this test.
+ * Every hex the design tokens define, read from both places that now hold one.
+ *
+ * The identity ramps and semantic surfaces live in @paul-portfolio/tokens
+ * again, so the app's own stylesheet is mostly aliases; what it still owns are
+ * the feature accents, the glass and modal tints and `surface-raised`. Reading
+ * only the local file used to be enough, and the day the ramps moved upstream
+ * this allowlist silently emptied out and flagged colours that came from the
+ * palette itself. Both files, or the check measures the wrong thing.
  */
 function tokenHexes(): Set<string> {
-  const css = readFileSync(join(SRC, "styles/tokens.css"), "utf8");
+  const sources = [
+    readFileSync(join(SRC, "styles/tokens.css"), "utf8"),
+    readFileSync(
+      join(
+        process.cwd(),
+        "node_modules/@paul-portfolio/tokens/build/tokens.css",
+      ),
+      "utf8",
+    ),
+  ];
   return new Set(
-    (css.match(/#[0-9a-fA-F]{6}\b/g) ?? []).map((hex) => hex.toLowerCase()),
+    sources.flatMap(
+      (css) =>
+        (css.match(/#[0-9a-fA-F]{6}\b/g) ?? []).map((hex) => hex.toLowerCase()),
+    ),
   );
 }
 
