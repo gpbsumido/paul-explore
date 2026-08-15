@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { render } from "@testing-library/react";
+import { render as rtlRender } from "@testing-library/react";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { axe } from "@/test/a11y";
 
 const prefersReducedMotion = vi.hoisted(() => ({ value: false }));
@@ -9,6 +10,10 @@ vi.mock("@/hooks/usePrefersReducedMotion", () => ({
 }));
 
 import HeroScene from "./HeroScene";
+
+/** The scene reads the theme now, so it needs the provider around it. */
+const render = (ui: React.ReactElement) =>
+  rtlRender(<ThemeProvider>{ui}</ThemeProvider>);
 
 /**
  * jsdom's canvas has no WebGL context, which is the same signal a real browser

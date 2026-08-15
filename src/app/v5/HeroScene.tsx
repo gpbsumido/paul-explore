@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import nextDynamic from "next/dynamic";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { useTheme } from "@/components/ThemeProvider";
 import { blobPath } from "@/components/motion/blobPath";
 import ModelLazyMount from "@/app/landing/models/ModelLazyMount";
 import type { HeroInteraction } from "./HeroKnotCanvas";
@@ -49,6 +50,7 @@ function hasWebGL(): boolean {
  */
 export default function HeroScene() {
   const reducedMotion = usePrefersReducedMotion();
+  const { theme } = useTheme();
   const [canRun, setCanRun] = useState(false);
 
   // Shared with the canvas by mutation, never by state: pointer moves happen
@@ -99,7 +101,7 @@ export default function HeroScene() {
     >
       {showCanvas ? (
         <ModelLazyMount className="absolute inset-0">
-          <HeroKnotCanvas interaction={interaction} />
+          <HeroKnotCanvas interaction={interaction} dark={theme === "dark"} />
         </ModelLazyMount>
       ) : (
         <svg

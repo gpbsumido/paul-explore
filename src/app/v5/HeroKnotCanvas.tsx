@@ -47,10 +47,22 @@ const POINTER_PLANE = Math.tan((45 / 2) * (Math.PI / 180)) * 5.4;
  * attribute and all progress lives in refs; React state is never touched, and
  * the clock accumulates in useFrame so the show pauses offscreen.
  */
+/**
+ * Scene colours per theme. WebGL cannot read CSS light-dark(), so the theme
+ * arrives as a prop: the pale pair that glows on near-black washes out on
+ * paper, where the same hues need to run darker, denser and a touch larger.
+ */
+const SCENE_COLORS = {
+  dark: { sand: "#219b84", sandOpacity: 0.9, sandSize: 0.035, cage: "#d97e1f", cageOpacity: 0.22 },
+  light: { sand: "#136357", sandOpacity: 0.95, sandSize: 0.042, cage: "#9d4b13", cageOpacity: 0.34 },
+} as const;
+
 function SandShapes({
   interaction,
+  dark,
 }: {
   interaction: RefObject<HeroInteraction>;
+  dark: boolean;
 }) {
   const group = useRef<Group>(null);
   const attribute = useRef<BufferAttribute>(null);
@@ -84,6 +96,7 @@ function SandShapes({
   const held = useRef(0);
   const morphT = useRef(1);
   const repelActive = useRef(false);
+  const palette = dark ? SCENE_COLORS.dark : SCENE_COLORS.light;
 
   useFrame((_, delta) => {
     const pointer = interaction.current;
@@ -194,21 +207,21 @@ function SandShapes({
           />
         </bufferGeometry>
         <pointsMaterial
-          color="#219b84"
-          size={0.035}
+          color={palette.sand}
+          size={palette.sandSize}
           sizeAttenuation
           transparent
-          opacity={0.9}
+          opacity={palette.sandOpacity}
           depthWrite={false}
         />
       </points>
       <mesh>
         <icosahedronGeometry args={[2.05, 1]} />
         <meshBasicMaterial
-          color="#d97e1f"
+          color={palette.cage}
           wireframe
           transparent
-          opacity={0.22}
+          opacity={palette.cageOpacity}
         />
       </mesh>
     </group>
@@ -227,8 +240,10 @@ function SandShapes({
  */
 export default function HeroKnotCanvas({
   interaction,
+  dark,
 }: {
   interaction: RefObject<HeroInteraction>;
+  dark: boolean;
 }) {
   return (
     <Canvas
@@ -239,7 +254,7 @@ export default function HeroKnotCanvas({
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
     >
       <PauseWhenOffscreen activeFrameloop="always" />
-      <SandShapes interaction={interaction} />
+      <SandShapes interaction={interaction} dark={dark} />
     </Canvas>
   );
 }
