@@ -41,11 +41,17 @@ export default function Hero({ taglineIndex = 0 }: { taglineIndex?: number }) {
           At full opacity across the whole viewport it stops being a texture and
           becomes a centred gradient wash, which is the single most recognisable
           generated-hero background there is. */}
+      {/* light-dark(): paper needs deeper hues at more presence or the haze
+          reads as a stain; near-black wants the lighter pair held back. The
+          browser picks per theme because color-scheme is already set. */}
       <BlobBackground
         seeds={[3, 7]}
-        colors={["var(--color-primary-400)", "var(--color-secondary-400)"]}
+        colors={[
+          "light-dark(var(--color-primary-600), var(--color-primary-400))",
+          "light-dark(var(--color-secondary-600), var(--color-secondary-400))",
+        ]}
         parallax={60}
-        className="-z-10 left-[35%] opacity-35 [mask-image:linear-gradient(90deg,transparent,black_22%)]"
+        className="-z-10 left-[35%] opacity-50 dark:opacity-35 [mask-image:linear-gradient(90deg,transparent,black_22%)]"
       />
 
       <div className={`${SHELL} grid items-center gap-12 lg:grid-cols-12`}>
