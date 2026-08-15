@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-15 - version 4.5.13
+
+- **Every deployed tab has been showing Vercel's logo, not mine.** `icon.tsx` renders the "P" and Next links it, so local tabs looked right and I never questioned it. Browsers request `/favicon.ico` on their own regardless, and that route is served by `src/app/favicon.ico` — still create-next-app's black triangle, committed at initialization and never opened since. The generated icon sat unused beside it on every deploy.
+- The file now carries the same mark at 16 and 32, built from what `/icon` actually renders rather than drawn a second time, so the two cannot disagree. It also drops from 25KB to about 1KB, which is the part that gets requested on every cold visit.
+- A test hashes the framework's default and fails if it ever comes back, and checks the container is a real ICO with both sizes in it. Size alone would not have caught this: the wrong icon can be any size, and the whole failure was that nobody thought to open the file.
+
 ## 2026-08-15 - version 4.5.11
 
 - **The palette now arrives from the package.** `@paul-portfolio/tokens` moves to 0.3.0 and `@paul-portfolio/css` to 0.7.0, which is where Verdigris & Ember lives at source. This app never carried the palette as its own values on this branch, so the whole change is the pin: `src/styles/tokens.css` was already a pure alias layer, and bumping what it aliases repaints the app. `--color-primary-500` goes from `#3b82f6` to `#219b84`, backgrounds warm off pure white and pure black (`#ffffff` to `#fbfaf7`, `#0a0a0a` to `#131110`), and `--paul-font-family-display` shows up for the first time, led by Bricolage Grotesque.
