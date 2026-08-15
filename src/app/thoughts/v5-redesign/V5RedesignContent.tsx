@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  Update,
+  UpdateTimeline,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 
 const code =
   "rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground";
@@ -32,6 +36,16 @@ export default function V5RedesignContent() {
         </>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-15-everywhere",
+            date: "Aug 15, 2026",
+            title: "The palette stopped being a landing-page feature",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">
           The root page was doing the wrong job
@@ -270,6 +284,41 @@ export default function V5RedesignContent() {
           through.
         </p>
       </section>
+
+      <Update
+        id="update-2026-08-15-everywhere"
+        date="August 15, 2026"
+        title="The palette stopped being a landing-page feature"
+      >
+        <p>
+          The redesign shipped with the new language on the landing, the shared
+          chrome and the registries, and stock Tailwind everywhere else &mdash;
+          which is the state most redesigns quietly stay in. The follow-up
+          swept every live surface: the wash behind all sixty write-ups, the
+          per-page ambient accents, the slot machine&apos;s chrome, the
+          calendar&apos;s colour picker, the work-portfolio demos down to
+          their JSON syntax colours.
+        </p>
+        <p>
+          Two guard tests now read the actual source and fail on any stock
+          colour utility or any hex outside the palette&apos;s tone band, so
+          the sweep cannot quietly regress. The exclusions are named in the
+          test with their reasons: the archived landing generations keep their
+          stock look because that look is the exhibit, and identity colour
+          &mdash; NBA team colours, Pok&eacute;mon types, Web Vitals
+          thresholds &mdash; stays, because a Lakers purple means something a
+          token does not. The conversion itself needed judgment a formula
+          alone gets wrong: greys map onto the warm neutral steps rather than
+          picking up a hue, and a night-sky illustration stays a night sky,
+          just in warm ink.
+        </p>
+        <p>
+          The packages adopted the palette upstream in the same round, so the
+          local overrides that bootstrapped all of this are now living on
+          borrowed time &mdash; the design-system write-up has that half of
+          the story.
+        </p>
+      </Update>
 
       <WhatsNext
         nowShipped={[
