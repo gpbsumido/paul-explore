@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-15 - version 4.5.10
+
+- **/vitals stops reporting an outage as good news.** The versions call swallowed every failure and returned an empty list, which resolved the default scope to version "0" — one that has never existed — and sent the summary, by-page and by-version calls after it with `?v=0&mode=major`. Nothing answered those either, so the page rendered "No data yet". I lost an afternoon to it locally, looking for a data bug in an API that was simply down.
+- That call is now the health probe, since it already ran first and alone. A transport failure or a 5xx says so on the page and skips the other three requests entirely, so there is no invented scope left to leak. Everything the backend actually said is unchanged: a 404 still means the endpoint isn't deployed on that environment and the selector just hides, and a genuinely empty dataset still gets "No data yet", because that one is true.
+- It goes through `fetchUpstream` now, which also hands these calls the 8s deadline they never had — a hanging API was the other half of this, and the page would have waited for it and then drawn the same empty dashboard. `upstream.ts` was written for this failure and says so in its own notes; /vitals was the page that never got the fix.
+
 ## 2026-08-14 - version 4.5.9
 
 - **/thoughts/security-audit** picks up what happened when its own admitted gap got closed. That page said the audit was a one-off pass by hand with nothing to repeat it; the counts, changelog, exhibits and crawler-file checks are that repeat. The part worth reading is that two of the checks already there were holding mistakes in place — one asserted `/seven tabs/` against a sentence and kept the wrong number green when an eighth tab landed, and my own duplicate-heading check could never fail because `Set.add()` returns the Set rather than a boolean.
