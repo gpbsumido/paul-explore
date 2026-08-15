@@ -98,7 +98,7 @@ export default function ReferralLinksDemo({
       </Button>
 
       {create.isError && (
-        <p role="alert" className="text-[12px] text-red-500">
+        <p role="alert" className="text-[12px] text-error-500">
           {create.error.message}
         </p>
       )}

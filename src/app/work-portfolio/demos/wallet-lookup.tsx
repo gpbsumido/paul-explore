@@ -239,7 +239,7 @@ export default function WalletLookupDemo({
                     <span
                       className={
                         tx.kind === "Receive"
-                          ? "text-emerald-500"
+                          ? "text-success-500"
                           : "text-foreground"
                       }
                     >

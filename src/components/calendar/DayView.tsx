@@ -81,13 +81,13 @@ function DayView({
       <div
         className={[
           "px-4 pt-5 pb-4 border-b border-border",
-          today ? "bg-red-500/5 dark:bg-red-950/10" : "",
+          today ? "bg-primary-500/5 dark:bg-primary-950/10" : "",
         ].join(" ")}
       >
         <div
           className={[
             "text-[10px] font-bold uppercase tracking-[0.18em] mb-1",
-            today ? "text-red-500" : "text-muted",
+            today ? "text-primary-500" : "text-muted",
           ].join(" ")}
         >
           {format(currentDate, "EEEE")}
@@ -96,7 +96,7 @@ function DayView({
           <span
             className={[
               "text-2xl sm:text-3xl font-bold tabular-nums leading-none",
-              today ? "text-red-500" : "text-foreground",
+              today ? "text-primary-500" : "text-foreground",
             ].join(" ")}
           >
             {format(currentDate, "MMMM d")}
@@ -173,7 +173,7 @@ function DayView({
               style={{ height: DAY_ROW_HEIGHT }}
               className={[
                 "border-b border-border last:border-b-0 cursor-pointer transition-colors",
-                today ? "hover:bg-red-500/5" : "hover:bg-surface-raised/50",
+                today ? "hover:bg-primary-500/5" : "hover:bg-surface-raised/50",
               ].join(" ")}
             />
           ))}
@@ -201,8 +201,8 @@ function DayView({
             className="absolute z-20 pointer-events-none flex items-center"
             style={{ top: currentTimeTop, left: GUTTER_WIDTH, right: 0 }}
           >
-            <div className="h-2.5 w-2.5 rounded-full bg-red-500 -ml-1.5 shrink-0 animate-pulse" />
-            <div className="flex-1 h-px bg-red-500" />
+            <div className="h-2.5 w-2.5 rounded-full bg-primary-500 -ml-1.5 shrink-0 animate-pulse" />
+            <div className="flex-1 h-px bg-primary-500" />
           </div>
         )}
       </div>

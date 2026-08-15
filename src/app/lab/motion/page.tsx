@@ -124,7 +124,7 @@ function SpringPlayground() {
           dragElastic={0.3}
           transition={{ type: "spring", stiffness, damping, mass }}
           whileDrag={{ scale: 1.2 }}
-          className="flex h-12 w-12 cursor-grab items-center justify-center rounded-full bg-indigo-500 shadow-lg shadow-indigo-900/50 active:cursor-grabbing"
+          className="flex h-12 w-12 cursor-grab items-center justify-center rounded-full bg-primary-500 shadow-lg shadow-primary-900/50 active:cursor-grabbing"
         >
           <span className="pointer-events-none select-none text-[9px] font-bold text-white/70">
             drag
@@ -328,7 +328,7 @@ function ScrollParallax() {
             style={{ y: yBack, opacity }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="h-32 w-44 rounded-2xl bg-indigo-950/80 border border-indigo-800/40" />
+            <div className="h-32 w-44 rounded-2xl bg-primary-950/80 border border-primary-800/40" />
           </m.div>
 
           {/* Mid — faster drift + scales up */}
@@ -336,7 +336,7 @@ function ScrollParallax() {
             style={{ y: yMid, scale }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <div className="h-20 w-28 rounded-xl bg-violet-700/70" />
+            <div className="h-20 w-28 rounded-xl bg-primary-700/70" />
           </m.div>
 
           {/* Front — rotates */}

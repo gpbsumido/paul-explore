@@ -108,7 +108,7 @@ export default function SetCardsGrid({ setId }: { setId: string }) {
             <Link
               key={card.id}
               href={`/tcg/pokemon/card/${card.id}`}
-              className="group rounded-lg overflow-hidden border border-border hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-[border-color,box-shadow]"
+              className="group rounded-lg overflow-hidden border border-border hover:border-secondary-400/50 hover:shadow-lg hover:shadow-secondary-500/10 transition-[border-color,box-shadow]"
             >
               {card.image ? (
                 // eslint-disable-next-line @next/next/no-img-element

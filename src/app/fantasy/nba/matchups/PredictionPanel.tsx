@@ -341,10 +341,10 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 // ---- Status badge colors ----
 
 const STATUS_COLORS: Record<string, string> = {
-  OUT: "bg-red-500/20 text-red-400",
-  DAY_TO_DAY: "bg-yellow-500/20 text-yellow-400",
-  QUESTIONABLE: "bg-amber-500/20 text-amber-400",
-  DOUBTFUL: "bg-orange-500/20 text-orange-400",
+  OUT: "bg-error-500/20 text-error-400",
+  DAY_TO_DAY: "bg-warning-500/10 text-warning-300",
+  QUESTIONABLE: "bg-warning-500/20 text-warning-400",
+  DOUBTFUL: "bg-error-500/10 text-error-300",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -552,8 +552,8 @@ export default function PredictionPanel({
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                             p.start
-                              ? "bg-green-500/20 text-green-400"
-                              : "bg-amber-500/20 text-amber-400"
+                              ? "bg-success-500/20 text-success-400"
+                              : "bg-warning-500/20 text-warning-400"
                           }`}
                         >
                           {p.start ? "START" : "SIT"}
@@ -593,7 +593,7 @@ export default function PredictionPanel({
                           avg/g
                         </span>
                       </div>
-                      <span className="inline-flex items-center rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-semibold text-green-400 uppercase tracking-wide">
+                      <span className="inline-flex items-center rounded-full bg-success-500/15 px-2 py-0.5 text-[10px] font-semibold text-success-400 uppercase tracking-wide">
                         FA
                       </span>
                     </div>

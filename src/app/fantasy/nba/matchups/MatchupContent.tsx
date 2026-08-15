@@ -484,7 +484,7 @@ export default function MatchupContent() {
               {(playoffRound > 0 || allZero) && (
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                   {playoffRound > 0 && (
-                    <span className="inline-flex items-center rounded-full bg-orange-500/15 px-3 py-1 text-[12px] font-semibold text-orange-800 dark:text-orange-400">
+                    <span className="inline-flex items-center rounded-full bg-secondary-500/15 px-3 py-1 text-[12px] font-semibold text-secondary-800 dark:text-secondary-400">
                       Playoff Round {playoffRound}
                     </span>
                   )}

@@ -73,9 +73,9 @@ function EntryRow({
         "border-b border-border/50 last:border-b-0 transition-colors",
         viewHref ? "cursor-pointer group" : "cursor-default opacity-60",
         isCurrentUser
-          ? "bg-orange-500/10 hover:bg-orange-500/15"
+          ? "bg-secondary-500/10 hover:bg-secondary-500/15"
           : isViewedUser
-            ? "bg-blue-500/8 hover:bg-blue-500/12"
+            ? "bg-primary-500/8 hover:bg-primary-500/12"
             : viewHref
               ? "hover:bg-surface-raised/50"
               : "",
@@ -94,9 +94,9 @@ function EntryRow({
           className={[
             "text-[13px] font-medium",
             isCurrentUser
-              ? "text-orange-700 dark:text-orange-400"
+              ? "text-secondary-700 dark:text-secondary-400"
               : isViewedUser
-                ? "text-blue-600 dark:text-blue-400"
+                ? "text-primary-600 dark:text-primary-400"
                 : "text-foreground",
           ].join(" ")}
         >
@@ -112,7 +112,7 @@ function EntryRow({
           </span>
           <div className="h-1 w-20 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
             <m.div
-              className="h-full rounded-full bg-orange-500/60"
+              className="h-full rounded-full bg-secondary-500/60"
               initial={{ width: 0 }}
               animate={{ width: `${scorePct}%` }}
               transition={{

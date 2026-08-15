@@ -109,10 +109,10 @@ export default async function PocketPage() {
         <h1 className="sr-only">Pokémon Pocket</h1>
 
         {/* Hero */}
-        <div className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-indigo-950/60 to-background">
+        <div className="relative overflow-hidden bg-gradient-to-b from-primary-950 via-primary-950/60 to-background">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-1/4 top-0 w-96 h-96 rounded-full bg-indigo-500/10 blur-3xl" />
-            <div className="absolute right-1/4 top-8 w-64 h-64 rounded-full bg-violet-500/10 blur-3xl" />
+            <div className="absolute left-1/4 top-0 w-96 h-96 rounded-full bg-primary-500/10 blur-3xl" />
+            <div className="absolute right-1/4 top-8 w-64 h-64 rounded-full bg-secondary-500/10 blur-3xl" />
           </div>
           <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 py-14 flex flex-col items-start gap-6">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -121,15 +121,15 @@ export default async function PocketPage() {
               alt="Pokémon TCG Pocket"
               className="h-12 object-contain"
             />
-            <p className="text-sm text-indigo-300/80 max-w-md leading-relaxed">
+            <p className="text-sm text-primary-300/80 max-w-md leading-relaxed">
               The mobile card game — 20-card decks, immersive battles, and cards
               that come to life.
             </p>
             <div className="flex gap-8">
               <Stat value={sets.length} label="Sets" />
-              <div className="w-px bg-indigo-500/20" />
+              <div className="w-px bg-primary-500/20" />
               <Stat value={totalOfficial.toLocaleString()} label="Cards" />
-              <div className="w-px bg-indigo-500/20" />
+              <div className="w-px bg-primary-500/20" />
               <Stat value={groups.length} label="Expansions" />
             </div>
           </div>
@@ -150,9 +150,9 @@ export default async function PocketPage() {
                   {/* Primary set */}
                   <Link
                     href={`/tcg/pokemon/sets/${primary.id}`}
-                    className="group col-span-1 rounded-xl overflow-hidden border border-border bg-surface hover:border-red-400/50 hover:shadow-xl hover:shadow-red-500/10 transition-[border-color,box-shadow]"
+                    className="group col-span-1 rounded-xl overflow-hidden border border-border bg-surface hover:border-secondary-400/50 hover:shadow-xl hover:shadow-secondary-500/10 transition-[border-color,box-shadow]"
                   >
-                    <div className="bg-gradient-to-br from-indigo-950/80 to-indigo-900/30 px-5 py-6 flex items-center gap-4">
+                    <div className="bg-gradient-to-br from-primary-950/80 to-primary-900/30 px-5 py-6 flex items-center gap-4">
                       {primary.logo ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -183,7 +183,7 @@ export default async function PocketPage() {
                         height="14"
                         viewBox="0 0 8 14"
                         fill="none"
-                        className="text-muted group-hover:text-red-400 transition-colors shrink-0"
+                        className="text-muted group-hover:text-secondary-400 transition-colors shrink-0"
                       >
                         <path
                           d="M1 1l6 6-6 6"
@@ -201,7 +201,7 @@ export default async function PocketPage() {
                     <Link
                       key={set.id}
                       href={`/tcg/pokemon/sets/${set.id}`}
-                      className="group rounded-xl border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-[border-color,box-shadow] p-4 flex flex-col gap-3"
+                      className="group rounded-xl border border-border bg-surface hover:border-secondary-400/50 hover:shadow-lg hover:shadow-secondary-500/10 transition-[border-color,box-shadow] p-4 flex flex-col gap-3"
                     >
                       {set.logo ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -285,7 +285,7 @@ function Stat({ value, label }: { value: string | number; label: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-2xl font-black text-white">{value}</span>
-      <span className="text-[10px] text-indigo-300/70 uppercase tracking-widest">
+      <span className="text-[10px] text-primary-300/70 uppercase tracking-widest">
         {label}
       </span>
     </div>

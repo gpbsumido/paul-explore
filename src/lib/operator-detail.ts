@@ -250,7 +250,7 @@ export const ACTIVITY_TYPE_CONFIGS: Record<ActivityType, ActivityTypeConfig> = {
   maintenance: { label: "Maintenance", color: "text-primary-500" },
   "alert-acknowledged": { label: "Alert Dismissed", color: "text-warning-500" },
   "status-change": { label: "Status Change", color: "text-muted" },
-  "price-update": { label: "Price Update", color: "text-violet-500" },
+  "price-update": { label: "Price Update", color: "text-secondary-500" },
 };
 
 /**

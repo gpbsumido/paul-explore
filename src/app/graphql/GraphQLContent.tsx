@@ -267,7 +267,7 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
             ))}
           </div>
         ) : isError ? (
-          <p className="text-center text-red-500 py-16 text-sm">
+          <p className="text-center text-error-500 py-16 text-sm">
             {queryError?.message ??
               "Couldn't load Pokémon — check your connection and try again."}
           </p>

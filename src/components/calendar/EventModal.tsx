@@ -362,7 +362,7 @@ export default function EventModal({
 
           {/* end-before-start warning — derived, no extra state */}
           {endBeforeStart && (
-            <p className="-mt-1 text-xs text-amber-600 dark:text-amber-400">
+            <p className="-mt-1 text-xs text-warning-600 dark:text-warning-400">
               End is before start — check your dates
             </p>
           )}
@@ -450,7 +450,7 @@ export default function EventModal({
       </div>
 
       {saveError && (
-        <p className="mt-3 text-xs text-red-600 dark:text-red-400">
+        <p className="mt-3 text-xs text-error-600 dark:text-error-400">
           {saveError}
         </p>
       )}

@@ -606,16 +606,16 @@ export const PLAYOFF_ROWS = [
 ];
 
 export const TCG_CARDS = [
-  { name: "Charizard", gradient: "from-orange-500 to-red-600" },
-  { name: "Pikachu", gradient: "from-yellow-400 to-amber-500" },
-  { name: "Mewtwo", gradient: "from-purple-500 to-violet-700" },
-  { name: "Blastoise", gradient: "from-blue-500 to-cyan-600" },
-  { name: "Gengar", gradient: "from-purple-700 to-indigo-800" },
-  { name: "Eevee", gradient: "from-amber-400 to-orange-400" },
+  { name: "Charizard", gradient: "from-secondary-500 to-error-600" },
+  { name: "Pikachu", gradient: "from-secondary-400 to-secondary-500" },
+  { name: "Mewtwo", gradient: "from-primary-500 to-primary-700" },
+  { name: "Blastoise", gradient: "from-primary-500 to-primary-600" },
+  { name: "Gengar", gradient: "from-primary-700 to-primary-800" },
+  { name: "Eevee", gradient: "from-secondary-300 to-secondary-400" },
 ];
 
 export const POCKET_EXPANSIONS = [
-  { name: "Genetic Apex", gradient: "from-indigo-500 to-violet-700" },
-  { name: "Mythical Island", gradient: "from-teal-500 to-cyan-700" },
-  { name: "Space-Time Smackdown", gradient: "from-blue-600 to-indigo-700" },
+  { name: "Genetic Apex", gradient: "from-primary-500 to-primary-700" },
+  { name: "Mythical Island", gradient: "from-primary-400 to-primary-600" },
+  { name: "Space-Time Smackdown", gradient: "from-primary-600 to-primary-700" },
 ];

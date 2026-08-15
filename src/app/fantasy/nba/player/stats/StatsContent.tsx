@@ -274,15 +274,15 @@ export default function StatsContent() {
                     {row.error ? (
                       <>
                         <td
-                          className={`${tdBase} sticky left-0 z-[1] min-w-[130px] bg-red-500/10`}
+                          className={`${tdBase} sticky left-0 z-[1] min-w-[130px] bg-error-500/10`}
                         >
                           <span className="font-medium">{row.name}</span>
                         </td>
                         <td
                           colSpan={COLUMNS.length - 1}
-                          className={`${tdBase} bg-red-500/10`}
+                          className={`${tdBase} bg-error-500/10`}
                         >
-                          <span className="text-red-500 dark:text-red-400 text-xs italic">
+                          <span className="text-error-500 dark:text-error-400 text-xs italic">
                             Failed to load stats
                           </span>
                         </td>

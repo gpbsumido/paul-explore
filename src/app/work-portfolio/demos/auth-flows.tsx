@@ -148,7 +148,7 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
                     }}
                   />
                   {error && (
-                    <p className="mt-0.5 text-[10px] text-red-500">{error}</p>
+                    <p className="mt-0.5 text-[10px] text-error-500">{error}</p>
                   )}
                 </div>
               );

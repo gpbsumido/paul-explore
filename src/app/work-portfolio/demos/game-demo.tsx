@@ -80,7 +80,7 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
           {feature.title}
         </p>
         {phase === "playing" && !over && (
-          <span className="font-mono text-[12px] text-cyan-300">
+          <span className="font-mono text-[12px] text-primary-300">
             Score: {score} · {timeLeft}s
           </span>
         )}
@@ -95,7 +95,7 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
       >
         {phase === "idle" && (
           <div className="flex h-full flex-col items-center justify-center gap-3">
-            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-cyan-300/80">
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary-300/80">
               Booth Build v0.9
             </p>
             <button
@@ -111,7 +111,7 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
 
         {phase === "loading" && (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-8">
-            <p className="font-mono text-[11px] text-cyan-200">
+            <p className="font-mono text-[11px] text-primary-200">
               compiling booth build… {Math.round(progress)}%
             </p>
             <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
@@ -125,7 +125,7 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
 
         {phase === "playing" && !over && (
           <div className="h-full w-full">
-            <p className="absolute left-2 top-2 font-mono text-[10px] text-cyan-300/70">
+            <p className="absolute left-2 top-2 font-mono text-[10px] text-primary-300/70">
               tap the targets
             </p>
             {target && (
@@ -147,10 +147,10 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
 
         {over && (
           <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-cyan-300/80">
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary-300/80">
               Time!
             </p>
-            <p className="text-[15px] font-bold text-cyan-100">
+            <p className="text-[15px] font-bold text-primary-100">
               Score {score} · Best {best}
             </p>
             <button

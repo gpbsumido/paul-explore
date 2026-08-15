@@ -815,7 +815,7 @@ export default function WorldContent() {
                           <span className="block text-[12px] font-semibold leading-tight text-white/85">
                             {feature.title}
                             {exhibit.featured && (
-                              <span className="ml-1 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                              <span className="ml-1 text-[9px] font-bold uppercase tracking-wider text-secondary-300">
                                 ★ main
                               </span>
                             )}
@@ -1240,7 +1240,7 @@ export default function WorldContent() {
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
                 {activeExhibit.featured ? (
                   <>
-                    <span className="text-amber-300">★ Main exhibition</span> ·{" "}
+                    <span className="text-secondary-300">★ Main exhibition</span> ·{" "}
                     {activeExhibit.landmark}
                   </>
                 ) : (

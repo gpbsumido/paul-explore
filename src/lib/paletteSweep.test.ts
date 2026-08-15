@@ -65,8 +65,17 @@ const PROSE = [
 
 const EXCLUDED = [...ARCHIVE, ...IDENTITY, ...SCENE_ART, ...PROSE];
 
+/**
+ * Every stock Tailwind colour family. `neutral` is deliberately absent: the app
+ * overrides that name in its own `@theme`, so `neutral-500` is the warm grey
+ * from tokens.css, not Tailwind's.
+ *
+ * The first cut of this list missed red, green, yellow and orange, which left
+ * blocks half-converted -- a token success bar next to a stock red one is worse
+ * than either on its own.
+ */
 const STOCK_UTILITY =
-  /-(blue|violet|indigo|sky|purple|slate|rose|amber|emerald|cyan|teal|fuchsia|pink|lime)-\d{2,3}\b/;
+  /-(blue|violet|indigo|sky|purple|slate|rose|amber|emerald|cyan|teal|fuchsia|pink|lime|red|green|yellow|orange|gray|zinc|stone)-\d{2,3}\b/;
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {

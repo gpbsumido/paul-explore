@@ -175,7 +175,7 @@ export function CalendarPreview() {
               className={[
                 "inline-flex h-[14px] w-[14px] items-center justify-center rounded-full text-[8px]",
                 day.today
-                  ? "bg-red-500 font-semibold text-white"
+                  ? "bg-primary-500 font-semibold text-white"
                   : day.faded
                     ? "text-black/20 dark:text-white/20"
                     : "text-black/60 dark:text-white/60",
@@ -200,17 +200,17 @@ export const GRAPHQL_POKEMON = [
   {
     name: "Pikachu",
     types: ["Electric"],
-    gradient: "from-yellow-400 to-amber-500",
+    gradient: "from-secondary-400 to-secondary-500",
   },
   {
     name: "Charizard",
     types: ["Fire", "Flying"],
-    gradient: "from-orange-500 to-red-600",
+    gradient: "from-secondary-500 to-error-600",
   },
   {
     name: "Mewtwo",
     types: ["Psychic"],
-    gradient: "from-purple-500 to-violet-700",
+    gradient: "from-primary-500 to-primary-700",
   },
 ];
 
@@ -351,14 +351,14 @@ export const KETSUP_FEED = [
     user: "paulsum",
     avatar: "#f9a8d4",
     hasImage: true,
-    gradient: "from-orange-400 to-pink-500",
+    gradient: "from-secondary-400 to-secondary-500",
   },
   { user: "janedoe", avatar: "#a5f3fc", hasImage: false, gradient: "" },
   {
     user: "markr",
     avatar: "#d9f99d",
     hasImage: true,
-    gradient: "from-green-400 to-teal-500",
+    gradient: "from-primary-400 to-primary-500",
   },
 ];
 
@@ -675,7 +675,7 @@ export function GalleryWallPreview() {
           className="rounded-[2px] border border-black/20 bg-white p-[2px] dark:border-white/20 dark:bg-white/90"
           style={{ width: f.w, height: f.h }}
         >
-          <div className="h-full w-full rounded-[1px] bg-gradient-to-br from-fuchsia-300/70 to-violet-400/70" />
+          <div className="h-full w-full rounded-[1px] bg-gradient-to-br from-primary-300/70 to-primary-400/70" />
         </div>
       ))}
     </div>
