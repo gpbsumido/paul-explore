@@ -155,6 +155,15 @@ export const FEATURES: FeatureItem[] = [
     color: "#f9a8d4",
     thoughtsHref: "/thoughts/ketsup",
   },
+  {
+    id: "discover",
+    title: "Discover",
+    description:
+      "The slot machine that spins through every app and write-up here, plus every landing page this site has had: four generations still live at their own URLs, banner and all.",
+    href: "/discover",
+    color: "#818cf8",
+    thoughtsHref: "/thoughts/v4-redesign",
+  },
 ];
 
 export const THOUGHTS: ThoughtItem[] = [

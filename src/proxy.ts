@@ -37,9 +37,9 @@ import {
  *    auth0.getSession(request) reads the encrypted cookie locally (no network
  *    call) so enforcement adds no measurable TTFB. Authenticated requests go
  *    through auth0.middleware() for rolling session refresh.
- *    The root / route is now a server component that calls auth0.getSession()
- *    itself and renders either the landing page or the hub depending on
- *    whether a session exists.
+ *    The / and /discover routes are server components that call
+ *    auth0.getSession() themselves and render either the landing page or the
+ *    hub depending on whether a session exists.
  *
  * 3. CSP headers — applied on every pass-through response so every page load
  *    carries the policy. 'unsafe-inline' in script-src is a deliberate trade,
@@ -230,12 +230,23 @@ export async function proxy(request: NextRequest) {
     return markSessionActive(res);
   }
 
-  // Root route — run auth0.middleware() when a session cookie is present so
-  // that expired/invalid tokens are refreshed or cleared before page.tsx reads
-  // the session. Without this, getSession() trusts the cookie without hitting
-  // Auth0, so a stale session renders FeatureHub even though the user's actual
-  // token is expired (looks logged-in but isn't).
-  if (pathname === "/") {
+  // The two pages that read the session themselves — run auth0.middleware()
+  // when a session cookie is present so that expired/invalid tokens are
+  // refreshed or cleared before page.tsx reads the session. Without this,
+  // getSession() trusts the cookie without hitting Auth0, so a stale session
+  // renders FeatureHub even though the user's actual token is expired (looks
+  // logged-in but isn't).
+  if (pathname === "/" && request.nextUrl.searchParams.has("version")) {
+    // The version switcher used to live on the landing page, so bookmarks and
+    // old links carry ?version= against "/". Send them where the registry went
+    // and keep the param, rather than silently showing them the current
+    // version. Permanent, because this one is not moving back.
+    const url = new URL("/discover", request.url);
+    url.search = request.nextUrl.search;
+    return NextResponse.redirect(url, 308);
+  }
+
+  if (pathname === "/" || pathname === "/discover") {
     const session = await auth0.getSession(request);
     if (session) {
       const res = await auth0.middleware(request);

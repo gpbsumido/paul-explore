@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-14 - version 4.6.0
+
+- **The landing page museum moved to /discover.** `/` was doing two jobs: the page a first-time visitor lands on, and a registry of every landing page I have shipped, switched by a `?version=` param most of them will never type. The registry, the retired-version banner and the param reader all move one URL over, and `/` renders v4 and nothing else. Nothing about how v1 through v4 draw themselves changed, which is the point: the next redesign can swap the landing without touching the history.
+- **An old `/?version=v2` link still opens v2.** The proxy 308s it to `/discover` with the param intact, before it does any session work, so a bookmark resolves the same whether or not I am signed in. The rule is unit-tested and the wiring is smoke-tested, because a redirect that is only proven as a rule is a redirect nobody has watched work.
+- Discover is a feature now, so it picked up the whole apron: a hub card, a palette command, a sitemap entry, an `llms.txt` line, and a named exclusion in the world exhibits guard. It also leaves itself out of the slot machine's own reels, since landing on it mid-spin offers to open the page you are already looking at.
 ## 2026-08-15 - version 4.5.11
 
 - **The palette now arrives from the package.** `@paul-portfolio/tokens` moves to 0.3.0 and `@paul-portfolio/css` to 0.7.0, which is where Verdigris & Ember lives at source. This app never carried the palette as its own values on this branch, so the whole change is the pin: `src/styles/tokens.css` was already a pure alias layer, and bumping what it aliases repaints the app. `--color-primary-500` goes from `#3b82f6` to `#219b84`, backgrounds warm off pure white and pure black (`#ffffff` to `#fbfaf7`, `#0a0a0a` to `#131110`), and `--paul-font-family-display` shows up for the first time, led by Bricolage Grotesque.

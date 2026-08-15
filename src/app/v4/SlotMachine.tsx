@@ -1375,7 +1375,7 @@ export default function SlotMachine({
             {OLDER_VERSIONS.map((v) => (
               <Link
                 key={v}
-                href={`/?version=${v}`}
+                href={`/discover?version=${v}`}
                 className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 px-2 py-1 whitespace-nowrap transition-colors hover:bg-foreground/5 hover:text-foreground"
               >
                 {v} ↗

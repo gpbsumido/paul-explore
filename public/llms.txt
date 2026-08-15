@@ -27,6 +27,7 @@ Tailwind. Tested with Vitest and Playwright, test-first.
 ## Features
 
 - [Home](https://paulsumido.com/): entry point to everything below
+- [Discover](https://paulsumido.com/discover): a slot machine over every app and write-up, and every landing page this site has had
 - [Explore Toronto](https://paulsumido.com/world): a walkable 3D low-poly downtown Toronto
 - [Work Portfolio](https://paulsumido.com/work-portfolio): anonymised reconstructions of features from past projects
 - [Design System](https://paulsumido.com/design-system): shared primitives, tokens, and a props playground
