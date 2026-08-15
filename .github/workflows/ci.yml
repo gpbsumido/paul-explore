@@ -128,6 +128,18 @@ jobs:
         # quarantined tests off the blocking path.
         run: pnpm exec playwright test --project=public --grep @smoke --grep-invert @flaky
 
+      # Rides this job's build rather than paying for its own. A budget check
+      # needs a production build, and `quality` deliberately doesn't do one, so
+      # putting it there would add minutes to every PR. This job already ran
+      # `pnpm build && pnpm start` through Playwright's webServer, so `.next` is
+      # sitting right there and the check costs seconds.
+      #
+      # The tradeoff, stated rather than hidden: a red smoke run means no size
+      # report on that push, because this step never gets reached. Worth it to
+      # avoid building the app twice.
+      - name: Bundle-size budget
+        run: pnpm size
+
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
