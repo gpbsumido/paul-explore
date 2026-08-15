@@ -1,11 +1,16 @@
 # Changelog
 
-## 2026-08-15 - version 4.5.10
+## 2026-08-15 - version 4.5.12
 
 - **/vitals stops reporting an outage as good news.** The versions call swallowed every failure and returned an empty list, which resolved the default scope to version "0" — one that has never existed — and sent the summary, by-page and by-version calls after it with `?v=0&mode=major`. Nothing answered those either, so the page rendered "No data yet". I lost an afternoon to it locally, looking for a data bug in an API that was simply down.
 - That call is now the health probe, since it already ran first and alone. A transport failure or a 5xx says so on the page and skips the other three requests entirely, so there is no invented scope left to leak. Everything the backend actually said is unchanged: a 404 still means the endpoint isn't deployed on that environment and the selector just hides, and a genuinely empty dataset still gets "No data yet", because that one is true.
 - It goes through `fetchUpstream` now, which also hands these calls the 8s deadline they never had — a hanging API was the other half of this, and the page would have waited for it and then drawn the same empty dashboard. `upstream.ts` was written for this failure and says so in its own notes; /vitals was the page that never got the fix.
 - **A healthy backend with an empty history gets no version filter at all.** The outage fix left one last place the phantom major could appear: a fresh database legitimately answers with zero versions, and the default scope still resolved to "0". The dev logs read like an error while every response was a correct 200. An empty history now means all-time queries with no `v` at all, and the version selector, which already renders nothing without versions, stays out of the way.
+## 2026-08-15 - version 4.5.11
+
+- **The palette now arrives from the package.** `@paul-portfolio/tokens` moves to 0.3.0 and `@paul-portfolio/css` to 0.7.0, which is where Verdigris & Ember lives at source. This app never carried the palette as its own values on this branch, so the whole change is the pin: `src/styles/tokens.css` was already a pure alias layer, and bumping what it aliases repaints the app. `--color-primary-500` goes from `#3b82f6` to `#219b84`, backgrounds warm off pure white and pure black (`#ffffff` to `#fbfaf7`, `#0a0a0a` to `#131110`), and `--paul-font-family-display` shows up for the first time, led by Bricolage Grotesque.
+- The seam that made this a one-line change is now tested. Every `var(--paul-*)` the app reads has to be a name the installed package actually declares -- all 139 of them resolve today, and a rename upstream would have failed silently rather than loudly, because an alias pointing at a missing custom property is invalid at computed-value time and falls back to inherited instead of erroring. The same test holds the owned ramps to aliases only, so a hex copied back in is caught rather than working on the day and drifting later.
+- Nothing else moved. `@paul-portfolio/react` stays on 0.5.1, and the app-specific tokens this repo genuinely owns -- feature pastels, the glass and modal systems, `--color-surface-raised`, the extended spacing and weight steps -- are untouched, because the package does not ship them.
 
 ## 2026-08-14 - version 4.5.9
 
