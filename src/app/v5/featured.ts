@@ -115,6 +115,15 @@ export const WRITING_POOL: WritingPick[] = [
 export const WRITING_SHOWN = 5;
 
 /**
+ * Public path of a featured card's hover preview, one screenshot per theme.
+ * A guard test checks the files exist so a rename cannot 404 under a hover
+ * state nobody re-checks.
+ */
+export function previewSrc(id: string, theme: "light" | "dark"): string {
+  return `/landing/featured/${id}-${theme}.jpg`;
+}
+
+/**
  * Draws the shortlist from the pool: a Fisher-Yates shuffle with the
  * randomness injected, trimmed to the shown count.
  * @param random A function returning a number in [0, 1), called per swap.

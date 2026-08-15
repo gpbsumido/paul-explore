@@ -5,8 +5,38 @@ import { m } from "framer-motion";
 import TextReveal from "@/components/motion/TextReveal";
 import { FEATURES } from "@/app/_shared/featureData.data";
 import { useHubReducedMotion } from "@/app/providers";
-import { FEATURED } from "../featured";
+import { FEATURED, previewSrc } from "../featured";
 import { SHELL, BAND } from "../shell";
+
+/**
+ * The hover preview: the card's page, screenshotted per theme, fading up in
+ * the bottom-right corner. Divs with background-image rather than img tags,
+ * because a browser never downloads the background of a display:none element,
+ * so each visitor fetches only their theme's set and only when the section
+ * renders. Masked toward the corner so it reads as a peek, not a poster, and
+ * held under the text layer so copy never sits on the screenshot.
+ */
+function CornerPreview({ id }: { id: string }) {
+  const layer =
+    "absolute inset-0 rounded-2xl bg-[length:72%_auto] bg-right-bottom bg-no-repeat";
+  const mask =
+    "[mask-image:radial-gradient(120%_120%_at_100%_100%,black,transparent_65%)]";
+  return (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-30 group-focus-within:opacity-30"
+    >
+      <span
+        className={`${layer} ${mask} dark:hidden`}
+        style={{ backgroundImage: `url(${previewSrc(id, "light")})` }}
+      />
+      <span
+        className={`${layer} ${mask} hidden dark:block`}
+        style={{ backgroundImage: `url(${previewSrc(id, "dark")})` }}
+      />
+    </span>
+  );
+}
 
 const SPAN: Record<number, string> = {
   2: "md:col-span-2",
@@ -59,7 +89,7 @@ export default function FeaturedWork() {
               >
                 <Link
                   href={feature.href}
-                  className="group flex h-full flex-col justify-between rounded-2xl border p-6 transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+                  className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border p-6 transition-colors focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
                   style={{
                     borderColor: `color-mix(in srgb, ${feature.color} 30%, var(--color-border))`,
                     background: wide
@@ -67,7 +97,8 @@ export default function FeaturedWork() {
                       : undefined,
                   }}
                 >
-                  <div>
+                  <CornerPreview id={feature.id} />
+                  <div className="relative">
                     <h3
                       className={`font-display font-semibold tracking-tight ${wide ? "text-2xl sm:text-3xl" : "text-xl"}`}
                     >
@@ -81,7 +112,7 @@ export default function FeaturedWork() {
                   </div>
                   <span
                     aria-hidden="true"
-                    className="mt-6 inline-block text-sm transition-transform group-hover:translate-x-1"
+                    className="relative mt-6 inline-block text-sm transition-transform group-hover:translate-x-1"
                     style={{ color: `color-mix(in srgb, ${feature.color} 70%, var(--color-foreground))` }}
                   >
                     Open &rarr;

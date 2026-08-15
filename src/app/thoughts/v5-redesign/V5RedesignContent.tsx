@@ -221,9 +221,11 @@ export default function V5RedesignContent() {
           between two mesh slots inside the cage, the next shape drawn at
           random but never the one already showing, and its clock lives in
           useFrame, so scrolling the hero away pauses the whole show. It is
-          React Three Fiber, built in code with no model file, and three
-          separate conditions send it to a static SVG instead: reduced motion,
-          no WebGL context, and a screen at or under 640px. The WebGL check
+          React Three Fiber, built in code with no model file, and two
+          conditions send it to a static SVG instead: reduced motion, and no
+          WebGL context. Phones run the real thing, because wireframe basic
+          materials at a capped DPR, mounted after first paint and paused
+          offscreen, are a budget a phone GPU shrugs at. The WebGL check
           asks a canvas for a context rather than feature-detecting the
           constructor, which is the only honest version of that test and has
           the useful side effect that jsdom answers null, so the unit tests

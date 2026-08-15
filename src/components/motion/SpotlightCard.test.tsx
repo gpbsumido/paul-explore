@@ -25,6 +25,23 @@ describe("SpotlightCard", () => {
     );
   });
 
+  it("caps the glow alpha so an accent can never bury the copy above it", () => {
+    // The DS glow gradient expects a low-alpha colour (its default ships at
+    // 25%). Handing it a raw token painted a full-strength wash under muted
+    // text on the contact card, unreadable at the exact moment of hover, and
+    // no axe pass can see it: jsdom computes no contrast, and the e2e sweep
+    // scans the resting state where the glow is transparent. The cap lives in
+    // this wrapper so every card is copy-safe by construction.
+    const { container } = render(
+      <SpotlightCard accent="var(--color-secondary-500)">
+        <p>copy</p>
+      </SpotlightCard>,
+    );
+    const style = container.firstElementChild?.getAttribute("style") ?? "";
+    expect(style).toContain("--paul-spotlight-color");
+    expect(style).toMatch(/color-mix\(in srgb, var\(--color-secondary-500\) 2\d%, transparent\)/);
+  });
+
   it("tints from the accent it is given", () => {
     const { container } = render(
       <SpotlightCard accent="var(--color-feature-craft)">

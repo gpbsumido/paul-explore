@@ -79,6 +79,15 @@ export default function BlobBackground({
             </radialGradient>
           </defs>
           <path
+            className={reducedMotion ? undefined : "blob-drift"}
+            style={
+              reducedMotion
+                ? undefined
+                : {
+                    animationDuration: `${22 + index * 7}s`,
+                    animationDelay: `${-9 * index}s`,
+                  }
+            }
             d={blobPath({
               seed,
               points: 8 + index * 2,

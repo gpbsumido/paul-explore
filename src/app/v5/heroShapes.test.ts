@@ -20,9 +20,9 @@ describe("hero shapes", () => {
     }
   });
 
-  it("holds each shape for a beat measured in seconds, near the asked-for three", () => {
-    expect(MORPH_HOLD_S).toBeGreaterThanOrEqual(2.5);
-    expect(MORPH_HOLD_S).toBeLessThanOrEqual(4);
+  it("holds each shape long enough to actually look at it", () => {
+    expect(MORPH_HOLD_S).toBeGreaterThanOrEqual(5);
+    expect(MORPH_HOLD_S).toBeLessThanOrEqual(9);
   });
 
   it("never repeats the current shape back to back", () => {

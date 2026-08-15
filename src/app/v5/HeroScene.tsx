@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import nextDynamic from "next/dynamic";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { blobPath } from "@/components/motion/blobPath";
 import ModelLazyMount from "@/app/landing/models/ModelLazyMount";
+import type { HeroInteraction } from "./HeroKnotCanvas";
 
 /** Three.js is the largest thing this page could pull in, so it arrives late and separately. */
 const HeroKnotCanvas = nextDynamic(() => import("./HeroKnotCanvas"), {
@@ -35,33 +36,37 @@ function hasWebGL(): boolean {
 }
 
 /**
- * The phone cut-off. useIsMobile is 767px, one breakpoint too wide: a small
- * tablet has the pixels and the GPU for this, a phone has neither to spare.
- */
-const SMALL_SCREEN = "(max-width: 640px)";
-
-/**
- * The object beside the hero headline: a wireframe torus knot in the identity
+ * The object beside the hero headline: a wireframe shape cycle in the identity
  * ramp, leaning toward the pointer.
  *
  * It is garnish and it is built to be droppable. The hero composes the same way
- * whether the canvas ever mounts, and three separate conditions send it to a
- * static shape instead: reduced motion, no WebGL, and a phone-sized screen.
- * The fallback is the same seeded generator BlobBackground draws with, so the
- * two agree visually rather than looking like a placeholder.
+ * whether the canvas ever mounts, and two conditions send it to a static shape
+ * instead: reduced motion, and no WebGL context. Phones run the real thing;
+ * the scene is wireframe basic materials at a capped DPR, mounted after first
+ * paint and paused offscreen, which is a budget a phone GPU shrugs at. The
+ * fallback is the same seeded generator BlobBackground draws with, so the two
+ * agree visually rather than looking like a placeholder.
  */
 export default function HeroScene() {
   const reducedMotion = usePrefersReducedMotion();
   const [canRun, setCanRun] = useState(false);
 
+  // Shared with the canvas by mutation, never by state: pointer moves happen
+  // per frame and a React render per mousemove would be absurd. The canvas is
+  // pointer-events none so the page scrolls through it; this wrapper is what
+  // actually hears the pointer, which is also why the lean works at all.
+  const interaction = useRef<HeroInteraction>({
+    hovering: false,
+    x: 0,
+    y: 0,
+    morphRequests: 0,
+  });
+
   useEffect(() => {
     // After first paint on purpose. The largest text on the page should not
     // wait behind a WebGL probe, let alone behind three.js parsing.
     const decide = () => {
-      const small =
-        typeof window !== "undefined" &&
-        window.matchMedia(SMALL_SCREEN).matches;
-      setCanRun(!small && hasWebGL());
+      setCanRun(hasWebGL());
     };
 
     const idle = window.requestIdleCallback?.bind(window);
@@ -78,11 +83,25 @@ export default function HeroScene() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none relative mx-auto aspect-square w-full max-w-[260px] sm:max-w-md lg:mx-0 lg:max-w-none"
+      className="relative mx-auto aspect-square w-full max-w-[260px] sm:max-w-md lg:mx-0 lg:max-w-none"
+      onPointerEnter={() => {
+        interaction.current.hovering = true;
+        interaction.current.morphRequests += 1;
+      }}
+      onPointerLeave={() => {
+        interaction.current.hovering = false;
+      }}
+      onPointerMove={(event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        interaction.current.x =
+          ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        interaction.current.y =
+          -(((event.clientY - rect.top) / rect.height) * 2 - 1);
+      }}
     >
       {showCanvas ? (
         <ModelLazyMount className="absolute inset-0">
-          <HeroKnotCanvas />
+          <HeroKnotCanvas interaction={interaction} />
         </ModelLazyMount>
       ) : (
         <svg

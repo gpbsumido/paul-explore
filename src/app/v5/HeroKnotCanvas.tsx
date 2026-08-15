@@ -1,146 +1,190 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import type { Group, MeshBasicMaterial } from "three";
+import { useMemo, useRef } from "react";
+import type { RefObject } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Matrix4, Vector3 } from "three";
+import type { Group, BufferAttribute } from "three";
 import { PauseWhenOffscreen } from "@/app/landing/models/PauseWhenOffscreen";
+import { HERO_SHAPES, pickNextShape, MORPH_HOLD_S } from "./heroShapes";
 import {
-  HERO_SHAPES,
-  pickNextShape,
-  MORPH_HOLD_S,
-  MORPH_FADE_S,
-} from "./heroShapes";
+  PARTICLE_COUNT,
+  buildShapePoints,
+  particleProgress,
+} from "./heroParticles";
 
-/** How far the object leans toward the pointer, in radians at the edge of the viewport. */
+/** What the wrapper div reports about the pointer, mutated per event. */
+export type HeroInteraction = {
+  hovering: boolean;
+  /** Pointer position across the wrapper, both axes in [-1, 1]. */
+  x: number;
+  y: number;
+  /** Bumped on every pointer enter; the scene consumes them as morph triggers. */
+  morphRequests: number;
+};
+
+/** How far the cloud leans toward the pointer, in radians at the edge. */
 const LEAN = 0.28;
 /** Fraction of the remaining distance covered each frame. A cheap critically-damped feel. */
 const DAMPING = 0.06;
-/** Peak wireframe opacity for the shape that currently holds the stage. */
-const PEAK = 0.85;
+/** Seconds the sand takes to rearrange into the next shape. */
+const MORPH_S = 1.4;
+/** How far a particle bows away from its straight line mid-flight. */
+const SWIRL = 0.55;
+/** Radius of the pointer's push, in scene units. */
+const REPEL_RADIUS = 1.0;
+/** How hard the pointer pushes a particle sitting right on it. */
+const REPEL_STRENGTH = 0.7;
+/** Where the pointer sits in world space: the z=0 plane under a 45deg camera at 5.4. */
+const POINTER_PLANE = Math.tan((45 / 2) * (Math.PI / 180)) * 5.4;
 
 /**
- * The geometry for one entry in HERO_SHAPES. Each is a wireframe stand-in for
- * a piece of the site: the knot for the codebase, a low-poly globe for the
- * Toronto world, a sphere for the NBA console, a thin box for the TCG card,
- * an octahedron for the v3 node graph, and a fat torus for the v4 reel.
- */
-function ShapeGeometry({ id }: { id: string }) {
-  switch (id) {
-    case "globe":
-      return <icosahedronGeometry args={[1.35, 1]} />;
-    case "ball":
-      return <sphereGeometry args={[1.15, 12, 8]} />;
-    case "card":
-      return <boxGeometry args={[1.6, 2.2, 0.08]} />;
-    case "graph":
-      return <octahedronGeometry args={[1.35, 0]} />;
-    case "reel":
-      return <torusGeometry args={[1.15, 0.42, 8, 18]} />;
-    default:
-      return <torusKnotGeometry args={[0.95, 0.22, 32, 4, 2, 3]} />;
-  }
-}
-
-/** Hermite ease for the crossfade, so the swap never reads as a hard cut. */
-const smoothstep = (t: number) => t * t * (3 - 2 * t);
-
-/**
- * Two mesh slots crossfading inside one constant cage.
+ * The hero object as sand: one cloud of particles sampled along each shape's
+ * wireframe edges, rearranging into the next shape every few seconds.
  *
- * Every MORPH_HOLD_S the idle slot takes the next shape and the two trade
- * opacity and scale over MORPH_FADE_S, so one object appears to melt into the
- * next instead of blinking. The clock accumulates inside useFrame, which means
- * PauseWhenOffscreen freezes the cycle along with everything else, and the
- * cage never fades, which is what carries the eye across the swap. Rotation
- * and opacity live on the object3D and the material, never in React state;
- * state only changes twice per cycle, when a slot takes its next shape.
+ * Each particle owns a stagger offset and a random swirl vector, both fixed at
+ * mount. During a morph, particle i flies from its slot on the old shape to
+ * slot i on the new one along a bowed path, leaving in waves and landing
+ * together, which is what reads as sand rather than a crossfade. Hover does
+ * two things: entering asks for the next shape early, and the pointer itself
+ * pushes nearby particles aside like a magnet over iron filings, each one
+ * springing back as the cursor moves off. Positions live in the buffer
+ * attribute and all progress lives in refs; React state is never touched, and
+ * the clock accumulates in useFrame so the show pauses offscreen.
  */
-function MorphingShapes() {
+function SandShapes({
+  interaction,
+}: {
+  interaction: RefObject<HeroInteraction>;
+}) {
   const group = useRef<Group>(null);
-  const matA = useRef<MeshBasicMaterial>(null);
-  const matB = useRef<MeshBasicMaterial>(null);
-  const scaleA = useRef<Group>(null);
-  const scaleB = useRef<Group>(null);
-  const { pointer } = useThree();
+  const attribute = useRef<BufferAttribute>(null);
 
-  const [slots, setSlots] = useState({ a: 0, b: 1, activeA: true });
+  const clouds = useMemo(
+    () => HERO_SHAPES.map((shape) => buildShapePoints(shape.id)),
+    [],
+  );
+  const stagger = useMemo(
+    () => Float32Array.from({ length: PARTICLE_COUNT }, () => Math.random()),
+    [],
+  );
+  const swirl = useMemo(() => {
+    const out = new Float32Array(PARTICLE_COUNT * 3);
+    for (let i = 0; i < out.length; i++) {
+      out[i] = (Math.random() * 2 - 1) * SWIRL;
+    }
+    return out;
+  }, []);
+  const repel = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []);
+  const initial = useMemo(() => clouds[0].slice(), [clouds]);
+  const pointerLocal = useMemo(() => new Vector3(), []);
+  const groupInverse = useMemo(() => new Matrix4(), []);
+
+  const from = useRef(0);
+  const to = useRef(0);
   const held = useRef(0);
-  const fading = useRef(false);
-  const progress = useRef(0);
+  const morphT = useRef(1);
+  const consumed = useRef(0);
 
   useFrame((_, delta) => {
+    const pointer = interaction.current;
     const g = group.current;
     if (g) {
       g.rotation.y += delta * 0.22;
-      g.rotation.x += (pointer.y * LEAN - g.rotation.x) * DAMPING;
-      g.rotation.z += (pointer.x * LEAN - g.rotation.z) * DAMPING;
+      const leanX = pointer.hovering ? pointer.y * LEAN : 0;
+      const leanZ = pointer.hovering ? pointer.x * LEAN : 0;
+      g.rotation.x += (leanX - g.rotation.x) * DAMPING;
+      g.rotation.z += (leanZ - g.rotation.z) * DAMPING;
     }
 
-    const on = slots.activeA
-      ? { mat: matA.current, scale: scaleA.current }
-      : { mat: matB.current, scale: scaleB.current };
-    const off = slots.activeA
-      ? { mat: matB.current, scale: scaleB.current }
-      : { mat: matA.current, scale: scaleA.current };
-    if (!on.mat || !off.mat || !on.scale || !off.scale) return;
+    const attr = attribute.current;
+    if (!attr || !g) return;
 
-    if (!fading.current) {
+    const resting = morphT.current >= 1;
+    if (resting) {
       held.current += delta;
-      on.mat.opacity = PEAK;
-      off.mat.opacity = 0;
-      on.scale.scale.setScalar(1);
-      if (held.current >= MORPH_HOLD_S) {
-        const current = slots.activeA ? slots.a : slots.b;
-        const next = pickNextShape(current, Math.random);
-        setSlots((prev) =>
-          prev.activeA ? { ...prev, b: next } : { ...prev, a: next },
-        );
-        fading.current = true;
-        progress.current = 0;
+      const asked = pointer.morphRequests > consumed.current;
+      consumed.current = pointer.morphRequests;
+      if (held.current >= MORPH_HOLD_S || asked) {
+        held.current = 0;
+        from.current = to.current;
+        to.current = pickNextShape(from.current, Math.random);
+        morphT.current = 0;
       }
-      return;
     }
 
-    progress.current += delta / MORPH_FADE_S;
-    const t = smoothstep(Math.min(progress.current, 1));
-    on.mat.opacity = PEAK * (1 - t);
-    off.mat.opacity = PEAK * t;
-    on.scale.scale.setScalar(1 - 0.3 * t);
-    off.scale.scale.setScalar(0.7 + 0.3 * t);
-
-    if (progress.current >= 1) {
-      fading.current = false;
-      held.current = 0;
-      setSlots((prev) => ({ ...prev, activeA: !prev.activeA }));
+    if (morphT.current < 1) {
+      morphT.current = Math.min(morphT.current + delta / MORPH_S, 1);
     }
+
+    // The pointer lives on the z=0 world plane; the cloud lives in a rotating
+    // group. One transform per frame moves the pointer into cloud space so
+    // the per-particle distance check is a plain subtraction.
+    pointerLocal
+      .set(pointer.x * POINTER_PLANE, pointer.y * POINTER_PLANE, 0)
+      .applyMatrix4(groupInverse.copy(g.matrixWorld).invert());
+
+    const t = morphT.current;
+    const a = clouds[from.current];
+    const b = clouds[to.current];
+    const positions = attr.array as Float32Array;
+    const settle = resting ? 0.1 : 0.16;
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const p = particleProgress(t, stagger[i]);
+      const arc = Math.sin(Math.PI * p);
+      const j = i * 3;
+
+      const bx = a[j] + (b[j] - a[j]) * p + swirl[j] * arc;
+      const by = a[j + 1] + (b[j + 1] - a[j + 1]) * p + swirl[j + 1] * arc;
+      const bz = a[j + 2] + (b[j + 2] - a[j + 2]) * p + swirl[j + 2] * arc;
+
+      let tx = 0;
+      let ty = 0;
+      let tz = 0;
+      if (pointer.hovering) {
+        const dx = bx - pointerLocal.x;
+        const dy = by - pointerLocal.y;
+        const dz = bz - pointerLocal.z;
+        const dist = Math.hypot(dx, dy, dz);
+        if (dist < REPEL_RADIUS && dist > 1e-4) {
+          const push =
+            ((1 - dist / REPEL_RADIUS) ** 2 * REPEL_STRENGTH) / dist;
+          tx = dx * push;
+          ty = dy * push;
+          tz = dz * push;
+        }
+      }
+      repel[j] += (tx - repel[j]) * settle;
+      repel[j + 1] += (ty - repel[j + 1]) * settle;
+      repel[j + 2] += (tz - repel[j + 2]) * settle;
+
+      positions[j] = bx + repel[j];
+      positions[j + 1] = by + repel[j + 1];
+      positions[j + 2] = bz + repel[j + 2];
+    }
+    attr.needsUpdate = true;
   });
 
   return (
     <group ref={group}>
-      <group ref={scaleA}>
-        <mesh>
-          <ShapeGeometry id={HERO_SHAPES[slots.a].id} />
-          <meshBasicMaterial
-            ref={matA}
-            color="#219b84"
-            wireframe
-            transparent
-            opacity={PEAK}
+      <points>
+        <bufferGeometry>
+          <bufferAttribute
+            ref={attribute}
+            attach="attributes-position"
+            args={[initial, 3]}
           />
-        </mesh>
-      </group>
-      <group ref={scaleB}>
-        <mesh>
-          <ShapeGeometry id={HERO_SHAPES[slots.b].id} />
-          <meshBasicMaterial
-            ref={matB}
-            color="#219b84"
-            wireframe
-            transparent
-            opacity={0}
-          />
-        </mesh>
-      </group>
+        </bufferGeometry>
+        <pointsMaterial
+          color="#219b84"
+          size={0.035}
+          sizeAttenuation
+          transparent
+          opacity={0.9}
+          depthWrite={false}
+        />
+      </points>
       <mesh>
         <icosahedronGeometry args={[2.05, 1]} />
         <meshBasicMaterial
@@ -158,12 +202,17 @@ function MorphingShapes() {
  * Ambient canvas for the hero object.
  *
  * alpha so the page background and the blob layers behind it show through, and
- * meshBasicMaterial so there is nothing to light: wireframes at low opacity
- * read as one object without a light rig or a shadow pass. PauseWhenOffscreen
- * stops the frame loop the moment the hero scrolls away, which also pauses the
- * shape cycle since its clock lives in useFrame.
+ * unlit point/basic materials so there is nothing to light. Pointer state
+ * arrives from the wrapper div by ref, because this canvas is pointer-events
+ * none so the page underneath keeps scrolling. PauseWhenOffscreen stops the
+ * frame loop the moment the hero scrolls away, which also pauses the sand
+ * cycle since its clock lives in useFrame.
  */
-export default function HeroKnotCanvas() {
+export default function HeroKnotCanvas({
+  interaction,
+}: {
+  interaction: RefObject<HeroInteraction>;
+}) {
   return (
     <Canvas
       frameloop="always"
@@ -173,7 +222,7 @@ export default function HeroKnotCanvas() {
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
     >
       <PauseWhenOffscreen activeFrameloop="always" />
-      <MorphingShapes />
+      <SandShapes interaction={interaction} />
     </Canvas>
   );
 }

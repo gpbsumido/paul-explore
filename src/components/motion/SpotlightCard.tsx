@@ -27,10 +27,19 @@ export default function SpotlightCard({
   size = 340,
   className,
 }: SpotlightCardProps) {
+  // The glow gradient expects a low-alpha colour: the package default ships
+  // at 25% and a raw token here paints a full-strength wash under whatever
+  // copy sits on the card. Mixing the accent down in the wrapper makes every
+  // card copy-safe by construction, since no caller can hand the glow more
+  // alpha than this.
+  const glow = accent
+    ? `color-mix(in srgb, ${accent} 22%, transparent)`
+    : undefined;
+
   return (
     <Spotlight
       size={size}
-      color={accent}
+      color={glow}
       className={`glass-card rounded-2xl ${className ?? ""}`}
       style={accent ? { ["--glass-accent" as string]: accent } : undefined}
     >
