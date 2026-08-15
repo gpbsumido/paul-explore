@@ -19,6 +19,7 @@ import type {
   Countdown,
   CountdownPage,
 } from "@/types/calendar";
+import { ACCENT_BAND } from "@/lib/accentBand";
 import {
   eventResponseSchema,
   cardResponseSchema,
@@ -56,15 +57,25 @@ export function formatHour(hour: number): string {
   return format(new Date(2000, 0, 1, hour), "h aaa");
 }
 
+/**
+ * The colours offered when picking an event, calendar or countdown.
+ *
+ * This is a palette of options and a default, not a lookup table. The modals
+ * put the chosen hex straight onto the event and every render site reads that
+ * stored value back, so retuning this list changes new picks and the default
+ * and leaves everything already saved exactly as it was.
+ *
+ * Same eight hues as before, moved into the shared accent band.
+ */
 export const EVENT_COLORS = [
-  "#3b82f6", // blue
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#14b8a6", // teal
-  "#f97316", // orange
+  ACCENT_BAND.blue,
+  ACCENT_BAND.sea,
+  ACCENT_BAND.gold,
+  ACCENT_BAND.red,
+  ACCENT_BAND.violet,
+  ACCENT_BAND.magenta,
+  ACCENT_BAND.verdigris,
+  ACCENT_BAND.ember,
 ] as const;
 
 /**
