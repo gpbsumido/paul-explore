@@ -26,7 +26,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Interactive reconstructions of features shipped on past products: dashboards, marketing tooling, onboarding flows, and more, browsable through dual tickers.",
     href: "/work-portfolio",
-    color: "#60a5fa",
+    color: "#4a81bc",
     thoughtsHref: "/thoughts/work-portfolio",
   },
   {
@@ -35,7 +35,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "A 3D low-poly downtown Toronto you walk through like an RPG \u2014 steer an explorer with WASD past the CN Tower and City Hall to glowing exhibits that open the rest of the site.",
     href: "/world",
-    color: "#38bdf8",
+    color: "#3388b4",
     thoughtsHref: "/thoughts/world",
   },
   {
@@ -44,7 +44,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "A live, Storybook-style gallery of the shared @paul-portfolio design system — every primitive rendered interactively, a props playground, design tokens, and links to where each ships.",
     href: "/design-system",
-    color: "#06b6d4",
+    color: "#2b8a7e",
     thoughtsHref: "/thoughts/design-system-showcase",
   },
   {
@@ -53,7 +53,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "A tool for picking a vascular surgery research project: curated topics scored live against PubMed, recent papers with links, journal browsing, and the demographic gaps in who the existing studies actually enrolled.",
     href: "/research",
-    color: "#14b8a6",
+    color: "#4f7aaf",
     thoughtsHref: "/thoughts/research-explorer",
   },
   {
@@ -62,7 +62,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "A flag-management console — per-environment targeting rules, sticky percentage rollouts, a kill switch, an audit log, and a live evaluation playground on a deterministic engine.",
     href: "/flags",
-    color: "#fb923c",
+    color: "#b46c2d",
     thoughtsHref: "/thoughts/feature-flags",
   },
   {
@@ -71,7 +71,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Manage a smart-store retail fleet — live status, alerts, inventory health, analytics charts, and per-store drill-down.",
     href: "/operator",
-    color: "#8b5cf6",
+    color: "#7b6aca",
     thoughtsHref: "/thoughts/operator-dashboard",
   },
   {
@@ -80,7 +80,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
     href: "/vitals",
-    color: "#22c55e",
+    color: "#2d8f66",
     thoughtsHref: "/thoughts/vitals",
   },
   {
@@ -89,7 +89,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Interactive deep-dives into algorithms and frontend patterns. Build real intuition, not memorized templates.",
     href: "/learn",
-    color: "#34d399",
+    color: "#718d2d",
     thoughtsHref: "/thoughts/learn",
   },
   {
@@ -98,7 +98,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "The traits of a lead front-end developer — performance, system design, working with libraries, accessibility, testing, and more — each one expandable to the real work in this project that proves it.",
     href: "/craft",
-    color: "#c084fc",
+    color: "#a65eae",
     thoughtsHref: "/thoughts/craft",
   },
   {
@@ -107,7 +107,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Upload your photos and arrange a picture gallery wall. Each photo is auto-framed with the best size and orientation, every frame is yours to change, and the whole wall renders to scale against a wall size you enter.",
     href: "/gallery-wall",
-    color: "#e879f9",
+    color: "#b95c93",
     thoughtsHref: "/thoughts/gallery-wall",
   },
   {
@@ -116,7 +116,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Everything NBA in one place: a playoff bracket picker with a public leaderboard, live player stats, head-to-head matchups with predictions, an SVG shot chart, and ESPN league history.",
     href: "/fantasy/nba",
-    color: "#f43f5e",
+    color: "#be5d68",
     thoughtsHref: "/thoughts/playoffs",
   },
   {
@@ -125,7 +125,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Three Pokémon apps behind one door: the TCG card browser, the TCG Pocket expansions, and a GraphQL Pokédex on the PokeAPI endpoint.",
     href: "/pokemon",
-    color: "#ef4444",
+    color: "#c0584d",
     thoughtsHref: "/thoughts/tcg",
   },
   {
@@ -134,7 +134,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Four-view personal calendar backed by Postgres. Multi-day events, overlap layout engine, and Pokémon card attachments.",
     href: "/calendar",
-    color: "#f59e0b",
+    color: "#9f7d27",
     thoughtsHref: "/thoughts/calendar",
   },
   {
@@ -143,7 +143,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "Interactive R3F particle network with real-time controls: speed, connection distance, 5 pastel color themes, mouse attraction toggle.",
     href: "/lab/particles",
-    color: "#a5f3fc",
+    color: "#2b8c9b",
     thoughtsHref: "/thoughts/particles",
   },
   {
@@ -152,7 +152,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "A social app for image and text posts — think Instagram but simpler. Built and deployed at its own domain.",
     href: "https://ketsup.paulsumido.com",
-    color: "#f9a8d4",
+    color: "#be5283",
     thoughtsHref: "/thoughts/ketsup",
   },
   {
@@ -161,7 +161,7 @@ export const FEATURES: FeatureItem[] = [
     description:
       "The slot machine that spins through every app and write-up here, plus every landing page this site has had: four generations still live at their own URLs, banner and all.",
     href: "/discover",
-    color: "#818cf8",
+    color: "#7f6dd1",
     thoughtsHref: "/thoughts/v4-redesign",
   },
 ];

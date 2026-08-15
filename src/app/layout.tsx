@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Bricolage_Grotesque } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import CommandPaletteRoot from "@/components/CommandPalette/CommandPaletteRoot";
@@ -18,6 +18,20 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// The display face, for page-level headings only. Geist is a good interface
+// font and a slightly anonymous headline one, which is most of why every page
+// here read as generated. Bricolage has real character in the counters and the
+// tighter widths, and being variable means the whole optical-size and weight
+// range costs one file. Body and UI stay Geist; nothing else changes.
+// The CSS variable is --font-display-face, not --font-display: @theme defines
+// --font-display to build the `font-display` utility, and a next/font variable
+// of the same name would be a circular reference.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-display-face",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 // Fallback metadata for any page that doesn't define its own.
@@ -52,11 +66,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    // The font variables go on <html>, not <body>. next/font's className is
+    // usually put on the body, but then the variables only exist from <body>
+    // down -- and @theme composes --font-display from --font-display-face at
+    // :root, where it would be empty. The utility silently resolves to nothing
+    // and the heading quietly stays on the body font, which is exactly what it
+    // did until the rendered page was checked rather than the markup.
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable}`}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: ANTI_FOUC_SCRIPT }} />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body>
         {/* Skip link — visually hidden until focused. Keyboard users Tab to it
             and activate it to jump past repeated navigation to the page content. */}
         <a

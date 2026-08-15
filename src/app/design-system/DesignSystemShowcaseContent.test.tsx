@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "@/test/a11y";
 import DesignSystemShowcaseContent from "./DesignSystemShowcaseContent";
 import { COMPONENTS } from "./catalog";
+import { MOTION_PRIMITIVES } from "./motionPrimitives";
 
 // PageHeader pulls in HeaderMenu which fetches /api/me; the showcase itself is
 // what we're testing, so stub the shared header the way the thoughts index test
@@ -73,6 +74,31 @@ describe("DesignSystemShowcaseContent", () => {
 
       await user.keyboard("{Escape}");
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Motion primitives section", () => {
+    it("gives the app-local primitives their own section", () => {
+      render(<DesignSystemShowcaseContent />);
+      expect(
+        screen.getByRole("heading", { level: 2, name: /motion primitives/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("names every motion primitive", () => {
+      render(<DesignSystemShowcaseContent />);
+      for (const primitive of MOTION_PRIMITIVES) {
+        expect(
+          screen.getByRole("heading", { level: 3, name: primitive.name }),
+        ).toBeInTheDocument();
+      }
+    });
+
+    it("says where each primitive is headed, since none ship on a page yet", () => {
+      render(<DesignSystemShowcaseContent />);
+      expect(
+        screen.getAllByText(/planned for/i).length,
+      ).toBeGreaterThanOrEqual(MOTION_PRIMITIVES.length);
     });
   });
 
