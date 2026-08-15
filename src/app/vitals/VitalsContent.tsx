@@ -177,7 +177,7 @@ export default function VitalsContent({
   const hasData = byPage.length > 0;
 
   return (
-    <PageShell colorA="#22c55e" colorB="#14b8a6">
+    <PageShell colorA="var(--color-feature-vitals)" colorB="var(--color-secondary-500)">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },

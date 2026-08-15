@@ -38,7 +38,7 @@ export default async function PlannerPage({ searchParams }: PlannerPageProps) {
   const { inputs, hasQuery } = plannerInputsFromParams(await searchParams);
 
   return (
-    <PageShell colorA="#8b5cf6" colorB="#38bdf8" className="font-sans">
+    <PageShell colorA="var(--color-feature-operator)" colorB="var(--color-secondary-500)" className="font-sans">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },

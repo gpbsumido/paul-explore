@@ -147,7 +147,7 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
   );
 
   return (
-    <PageShell colorA="#14b8a6" colorB="#38bdf8" className="font-sans">
+    <PageShell colorA="var(--color-feature-graphql)" colorB="var(--color-secondary-500)" className="font-sans">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },

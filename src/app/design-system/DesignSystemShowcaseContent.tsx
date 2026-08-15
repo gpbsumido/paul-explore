@@ -51,8 +51,9 @@ import AnimatedNumber from "@/components/motion/AnimatedNumber";
 import BlobBackground from "@/components/motion/BlobBackground";
 import SpotlightCard from "@/components/motion/SpotlightCard";
 import GradientMesh from "@/components/motion/GradientMesh";
+import { ACCENT_BAND } from "@/lib/accentBand";
 
-const ACCENT = "#06b6d4";
+const ACCENT = ACCENT_BAND.verdigris;
 
 /** The pitch — why a shared design system is worth adopting. */
 const BENEFITS: { title: string; body: string }[] = [
@@ -704,7 +705,7 @@ function TokenGallery() {
 
 export default function DesignSystemShowcaseContent() {
   return (
-    <PageShell colorA={ACCENT} colorB="#818cf8">
+    <PageShell colorA={ACCENT} colorB="var(--color-secondary-500)">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Design System" }]}
       />

@@ -56,7 +56,7 @@ const APPS: PokemonApp[] = [
  */
 export default function PokemonHub() {
   return (
-    <PageShell colorA="#ef4444" colorB="#6366f1" className="font-sans">
+    <PageShell colorA="var(--color-feature-tcg)" colorB="var(--color-primary-500)" className="font-sans">
       <PageHeader
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Pokémon" }]}
       />

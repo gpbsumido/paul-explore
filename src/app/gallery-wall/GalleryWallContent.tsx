@@ -11,6 +11,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import WallStage from "./WallStage";
+import { ACCENT_BAND } from "@/lib/accentBand";
 import WallsPanel from "./WallsPanel";
 import {
   viewportRect,
@@ -36,7 +37,7 @@ import {
   type UploadedImage,
 } from "./_lib/state";
 
-const ACCENT = "#e879f9";
+const ACCENT = ACCENT_BAND.magenta;
 const CM_PER_INCH = 2.54;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 4;
@@ -371,7 +372,7 @@ export default function GalleryWallContent({ initialState }: Props) {
   const tax = taxRateFor(place);
 
   return (
-    <PageShell colorA={ACCENT} colorB="#818cf8">
+    <PageShell colorA={ACCENT} colorB="var(--color-primary-500)">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Gallery Wall" }]}
         maxWidth="max-w-5xl"

@@ -47,7 +47,7 @@ const PAGES = [
 /** Landing hub for the fantasy NBA section: one entry point to all its pages. */
 export default function FantasyHubContent() {
   return (
-    <PageShell colorA="#f43f5e" colorB="#8b5cf6" className="font-sans">
+    <PageShell colorA="var(--color-feature-nba)" colorB="var(--color-primary-500)" className="font-sans">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },

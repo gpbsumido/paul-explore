@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function FlagsPage() {
   return (
-    <PageShell colorA="#fb923c" colorB="#38bdf8" className="font-sans">
+    <PageShell colorA="var(--color-feature-flags)" colorB="var(--color-primary-500)" className="font-sans">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
