@@ -212,24 +212,33 @@ export default function V5RedesignContent() {
       <section>
         <h2 className="mb-3 text-lg font-bold">The 3D object is garnish</h2>
         <p className="text-muted">
-          There is a wireframe object inside a geodesic cage beside the
-          headline, leaning toward the pointer, and every three seconds it
-          melts into another one: a torus knot for the codebase, a low-poly
-          globe for the Toronto world, a ball for the NBA console, a card for
-          the TCG browser, an octahedron for the old node-graph landing, a
-          fat torus for the slot machine reel. The cycle is a crossfade
-          between two mesh slots inside the cage, the next shape drawn at
-          random but never the one already showing, and its clock lives in
-          useFrame, so scrolling the hero away pauses the whole show. It is
-          React Three Fiber, built in code with no model file, and two
-          conditions send it to a static SVG instead: reduced motion, and no
-          WebGL context. Phones run the real thing, because wireframe basic
-          materials at a capped DPR, mounted after first paint and paused
-          offscreen, are a budget a phone GPU shrugs at. The WebGL check
-          asks a canvas for a context rather than feature-detecting the
-          constructor, which is the only honest version of that test and has
-          the useful side effect that jsdom answers null, so the unit tests
-          exercise the fallback without staging anything.
+          There is sand inside a geodesic cage beside the headline. Fifteen
+          hundred particles, sampled uniformly along each shape&rsquo;s
+          wireframe edges, and every seven seconds they swarm into the next
+          stand-in for something built here: a torus knot for the codebase, a
+          low-poly globe for the Toronto world, a ball for the NBA console, a
+          card for the TCG browser, an octahedron for the old node-graph
+          landing, a fat torus for the slot machine reel. Each particle owns
+          a stagger offset and a swirl vector fixed at mount, leaves in its
+          own wave, and flies a bowed path to slot i on the next shape, which
+          is what reads as sand rearranging rather than a crossfade. The
+          pointer is a magnet over iron filings, pushing nearby particles
+          aside to spring back after it passes, and that is the only thing
+          hover does. The clock lives in useFrame, so scrolling the hero away
+          pauses the whole show, and when nothing is morphing and no filings
+          are displaced the per-frame pass skips entirely, which is what took
+          the header menu&rsquo;s click from 240ms to 72ms. It is React Three
+          Fiber, built in code with no model file, and two conditions send it
+          to a static SVG instead: reduced motion, and no WebGL context.
+          Phones run the real thing, because points at a capped DPR, mounted
+          after first paint and paused offscreen, are a budget a phone GPU
+          shrugs at. The WebGL check asks a canvas for a context rather than
+          feature-detecting the constructor, which is the only honest version
+          of that test and has the useful side effect that jsdom answers
+          null, so the unit tests exercise the fallback without staging
+          anything. The sampling and the stagger maths are pure modules with
+          their own tests, because three&rsquo;s geometry classes are plain
+          maths that run fine where WebGL cannot.
         </p>
         <p className="mt-3 text-muted">
           It also mounts after first paint, behind{" "}
