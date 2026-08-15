@@ -94,11 +94,11 @@ describe("DesignSystemShowcaseContent", () => {
       }
     });
 
-    it("says where each primitive is headed, since none ship on a page yet", () => {
+    it("says which page each primitive ships on", () => {
       render(<DesignSystemShowcaseContent />);
-      expect(
-        screen.getAllByText(/planned for/i).length,
-      ).toBeGreaterThanOrEqual(MOTION_PRIMITIVES.length);
+      expect(screen.getAllByText(/ships on/i).length).toBeGreaterThanOrEqual(
+        MOTION_PRIMITIVES.length,
+      );
     });
   });
 

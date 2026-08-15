@@ -54,7 +54,11 @@ export default function AnimatedNumber({
   const isServerRender = useIsServerRender();
   const counted = useCountUp(value, durationMs, inView);
 
-  const display = isServerRender || reducedMotion ? value : counted;
+  // Rounded before formatting: the count-up interpolates, and a float run
+  // through toLocaleString sprays decimals across the figure mid-count.
+  const display = Math.round(
+    isServerRender || reducedMotion ? value : counted,
+  );
 
   return (
     <span ref={ref} className={className}>

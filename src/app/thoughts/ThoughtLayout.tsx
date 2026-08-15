@@ -42,7 +42,7 @@ export default function ThoughtLayout({
   const hasChat = Boolean(chat);
 
   return (
-    <PageShell colorA="#818cf8" colorB="#38bdf8">
+    <PageShell>
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: breadcrumb }]}
         right={

@@ -41,6 +41,6 @@ test(
   async ({ page }) => {
     await page.goto("/?version=v2");
     await expect(page).toHaveURL(/\/discover\?version=v2$/);
-    await expect(page.getByText(/You're viewing v2/)).toBeVisible();
+    await expect(page.getByText(/Landing-page history: v2/)).toBeVisible();
   },
 );

@@ -16,8 +16,8 @@ type Metric = { key: string; label: string; format: (n: number) => string };
 
 // One config drives every title's dashboard; adding a game is a single entry.
 const GAMES: GameConfig[] = [
-  { id: "a", name: "Game A", genre: "RPG", tint: "#818cf8", seed: 131 },
-  { id: "b", name: "Game B", genre: "Racing", tint: "#f472b6", seed: 197 },
+  { id: "a", name: "Game A", genre: "RPG", tint: "#535ec9", seed: 131 },
+  { id: "b", name: "Game B", genre: "Racing", tint: "#c7508e", seed: 197 },
   { id: "c", name: "Game C", genre: "Strategy", tint: "#34d399", seed: 233 },
 ];
 
@@ -165,7 +165,7 @@ function CompareDashboard({
                 </span>
                 <span
                   className="text-right font-medium tabular-nums"
-                  style={{ color: up ? "#34d399" : "#f87171" }}
+                  style={{ color: up ? "#34d399" : "#c84f4f" }}
                 >
                   {up ? "▲" : "▼"} {Math.abs(delta).toFixed(0)}%
                 </span>

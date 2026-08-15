@@ -12,7 +12,7 @@ export const PROJECTS: WorkProject[] = [
       "A content creation and scheduling app for game communities: campaigns, post queues, and community analytics in one place.",
     stack: "Next.js 15, MUI, Redux Toolkit",
     accent: {
-      accent: "#e879f9",
+      accent: "#b951c9",
       surface: "rgba(232,121,249,0.08)",
       font: "sans",
     },
@@ -25,7 +25,7 @@ export const PROJECTS: WorkProject[] = [
       "The analytics frontend for a gaming data platform, with a large reusable chart library and embedded BI dashboards.",
     stack: "Next.js 15, ECharts, BI embeds, Redux",
     accent: {
-      accent: "#38bdf8",
+      accent: "#419cc5",
       surface: "rgba(56,189,248,0.08)",
       font: "mono",
     },
@@ -51,7 +51,7 @@ export const PROJECTS: WorkProject[] = [
       "First generation of a web3 game analytics portal: per-title dashboards for studios plus economy and financial views.",
     stack: "Next.js 13 (pages router), MUI 5, ECharts",
     accent: {
-      accent: "#818cf8",
+      accent: "#535ec9",
       surface: "rgba(129,140,248,0.08)",
       font: "mono",
     },
@@ -64,7 +64,7 @@ export const PROJECTS: WorkProject[] = [
       "The platform shell around the analytics products: org administration, API keys, user management, and an AI content module.",
     stack: "Next.js 15, MUI 7, Redux",
     accent: {
-      accent: "#f472b6",
+      accent: "#c7508e",
       surface: "rgba(244,114,182,0.08)",
       font: "sans",
     },
@@ -77,7 +77,7 @@ export const PROJECTS: WorkProject[] = [
       "A small game built in a game engine for a conference booth, later embedded in the analytics portal as a web demo.",
     stack: "Unity, WebGL embed wrapper",
     accent: {
-      accent: "#22d3ee",
+      accent: "#3daebf",
       surface: "rgba(34,211,238,0.08)",
       font: "mono",
     },
@@ -90,7 +90,7 @@ export const PROJECTS: WorkProject[] = [
       "Publicly shareable game dashboards driven entirely by slug config, one catch-all route rendering many dashboards.",
     stack: "Next.js 13, MUI 5, Redux",
     accent: {
-      accent: "#a3e635",
+      accent: "#8fbf41",
       surface: "rgba(163,230,53,0.08)",
       font: "sans",
     },
@@ -103,7 +103,7 @@ export const PROJECTS: WorkProject[] = [
       "A gamer-facing app for a web3 gaming ecosystem: wallet login, on-chain asset inventory, and player profiles.",
     stack: "CRA, ethers.js, wallet connect, GraphQL, Tailwind",
     accent: {
-      accent: "#c084fc",
+      accent: "#8f52cb",
       surface: "rgba(192,132,252,0.08)",
       font: "sans",
     },
@@ -116,7 +116,7 @@ export const PROJECTS: WorkProject[] = [
       "User-acquisition tooling: referral campaigns, affiliate links, public landing pages, and identity-provider auth flows.",
     stack: "CRA, MUI, ECharts + chart.js, ethers.js, hosted-identity auth",
     accent: {
-      accent: "#fb7185",
+      accent: "#ca4e60",
       surface: "rgba(251,113,133,0.08)",
       font: "sans",
     },
@@ -134,7 +134,7 @@ export const PROJECTS: WorkProject[] = [
     stack:
       "React, MUI + data-grid pro, TanStack Query, ECharts, node-graph editor, code editor",
     accent: {
-      accent: "#60a5fa",
+      accent: "#4a83c8",
       surface: "rgba(96,165,250,0.08)",
       font: "sans",
     },

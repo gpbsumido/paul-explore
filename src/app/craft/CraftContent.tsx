@@ -144,7 +144,7 @@ export default function CraftContent() {
     setOpenIds(allOpen ? new Set() : new Set(CRAFT_TRAITS.map((t) => t.id)));
 
   return (
-    <PageShell colorA="#c084fc" colorB="#38bdf8">
+    <PageShell colorA="var(--color-feature-craft)" colorB="var(--color-secondary-500)">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Craft" }]}
         maxWidth="max-w-3xl"

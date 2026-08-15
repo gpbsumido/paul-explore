@@ -14,9 +14,9 @@ const C = ({ children }: { children: React.ReactNode }) => (
 /** A small colored label for a trade-off line. */
 function Tag({ kind }: { kind: "keep" | "cut" | "gain" }) {
   const map = {
-    keep: "text-amber-700 dark:text-amber-400",
-    cut: "text-rose-700 dark:text-rose-400",
-    gain: "text-emerald-700 dark:text-emerald-400",
+    keep: "text-warning-700 dark:text-warning-400",
+    cut: "text-error-700 dark:text-error-400",
+    gain: "text-success-700 dark:text-success-400",
   };
   const label = { keep: "Guardrail", cut: "Problem", gain: "Gain" };
   return <span className={`font-semibold ${map[kind]}`}>{label[kind]}:</span>;
@@ -35,10 +35,10 @@ function Step({
   children: React.ReactNode;
 }) {
   const badge = {
-    shipped: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    next: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
-    later: "bg-slate-500/10 text-slate-600 dark:text-slate-400",
-    no: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+    shipped: "bg-success-500/10 text-success-600 dark:text-success-400",
+    next: "bg-primary-500/10 text-primary-600 dark:text-primary-400",
+    later: "bg-warning-500/10 text-warning-600 dark:text-warning-400",
+    no: "bg-error-500/10 text-error-600 dark:text-error-400",
   };
   const badgeLabel = {
     shipped: "Shipped",

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #60a5fa)";
+const ACCENT = "var(--wp-accent, #4a83c8)";
 
 type Block =
   | { id: number; kind: "heading"; text: string }
@@ -38,8 +38,8 @@ const CAMPAIGNS = [
 
 const STATUS_TINT: Record<string, string> = {
   Sent: "#34d399",
-  Draft: "#94a3b8",
-  Scheduled: "#f59e0b",
+  Draft: "#a49d90",
+  Scheduled: "#bd8d3a",
 };
 
 /** One editable email block: text blocks type in place, image blocks import a local file. */
@@ -102,7 +102,7 @@ function EditableBlock({
             <div
               className="h-16 rounded-md"
               style={{
-                background: `linear-gradient(120deg, ${"var(--wp-accent,#60a5fa)"}, transparent)`,
+                background: `linear-gradient(120deg, ${"var(--wp-accent,#4a83c8)"}, transparent)`,
               }}
             />
           )}

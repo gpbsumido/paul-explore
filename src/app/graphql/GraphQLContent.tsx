@@ -147,7 +147,7 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
   );
 
   return (
-    <PageShell colorA="#14b8a6" colorB="#38bdf8" className="font-sans">
+    <PageShell colorA="var(--color-feature-graphql)" colorB="var(--color-secondary-500)" className="font-sans">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },
@@ -267,7 +267,7 @@ export default function GraphQLContent({ initialData }: GraphQLContentProps) {
             ))}
           </div>
         ) : isError ? (
-          <p className="text-center text-red-500 py-16 text-sm">
+          <p className="text-center text-error-500 py-16 text-sm">
             {queryError?.message ??
               "Couldn't load Pokémon — check your connection and try again."}
           </p>

@@ -23,7 +23,7 @@ function StatusIndicator({ status }: { status: ToolCallStep["status"] }) {
       return (
         <span
           data-testid="status-done"
-          className="inline-flex items-center justify-center h-4 w-4 text-green-600"
+          className="inline-flex items-center justify-center h-4 w-4 text-success-600"
           aria-label="Completed"
         >
           <svg
@@ -42,7 +42,7 @@ function StatusIndicator({ status }: { status: ToolCallStep["status"] }) {
       return (
         <span
           data-testid="status-error"
-          className="inline-flex items-center justify-center h-4 w-4 text-red-600"
+          className="inline-flex items-center justify-center h-4 w-4 text-error-600"
           aria-label="Error"
         >
           <svg
@@ -103,7 +103,7 @@ export function ToolCallCard({
               )}
 
               {step.status === "error" && step.error && (
-                <p data-error="" className="text-red-600">
+                <p data-error="" className="text-error-600">
                   {step.error}
                 </p>
               )}

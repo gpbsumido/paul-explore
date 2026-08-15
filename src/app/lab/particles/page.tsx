@@ -3,6 +3,7 @@
 import { useState, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import * as THREE from "three";
+import { ACCENT_BAND } from "@/lib/accentBand";
 import type { ParticleSceneProps } from "./ParticleScene";
 
 // Canvas loaded client-only — WebGL requires the browser.
@@ -12,50 +13,58 @@ const ParticlesCanvas = dynamic(() => import("./ParticlesCanvas"), {
 });
 
 // ---------------------------------------------------------------------------
-// Color palettes — 5 pastel presets, created once outside the component so
+// Color palettes — 5 accent-band presets, created once outside the component so
 // useMemo in ParticleScene gets a stable reference when the index doesn't change.
+// THREE.Color needs a real hex, so these read values off ACCENT_BAND rather than
+// a CSS var.
 // ---------------------------------------------------------------------------
 
 const PALETTES: THREE.Color[][] = [
-  // Cosmic — the original blue/indigo/violet/cyan
+  // Cosmic — blue/indigo/violet/teal
   [
-    new THREE.Color("#3b82f6"),
-    new THREE.Color("#6366f1"),
-    new THREE.Color("#8b5cf6"),
-    new THREE.Color("#06b6d4"),
+    new THREE.Color(ACCENT_BAND.blue),
+    new THREE.Color(ACCENT_BAND.indigo),
+    new THREE.Color(ACCENT_BAND.violet),
+    new THREE.Color(ACCENT_BAND.teal),
   ],
-  // Ember — rose/orange/amber/red
+  // Ember — coral/ember/gold/red
   [
-    new THREE.Color("#f43f5e"),
-    new THREE.Color("#fb923c"),
-    new THREE.Color("#fbbf24"),
-    new THREE.Color("#ef4444"),
+    new THREE.Color(ACCENT_BAND.coral),
+    new THREE.Color(ACCENT_BAND.ember),
+    new THREE.Color(ACCENT_BAND.gold),
+    new THREE.Color(ACCENT_BAND.red),
   ],
-  // Forest — emerald/green/teal/lime
+  // Forest — verdigris/sea/teal/olive
   [
-    new THREE.Color("#10b981"),
-    new THREE.Color("#22c55e"),
-    new THREE.Color("#14b8a6"),
-    new THREE.Color("#84cc16"),
+    new THREE.Color(ACCENT_BAND.verdigris),
+    new THREE.Color(ACCENT_BAND.sea),
+    new THREE.Color(ACCENT_BAND.teal),
+    new THREE.Color(ACCENT_BAND.olive),
   ],
-  // Twilight — purple/pink/violet/fuchsia
+  // Twilight — orchid/magenta/violet/rose
   [
-    new THREE.Color("#a855f7"),
-    new THREE.Color("#ec4899"),
-    new THREE.Color("#8b5cf6"),
-    new THREE.Color("#d946ef"),
+    new THREE.Color(ACCENT_BAND.orchid),
+    new THREE.Color(ACCENT_BAND.magenta),
+    new THREE.Color(ACCENT_BAND.violet),
+    new THREE.Color(ACCENT_BAND.rose),
   ],
-  // Arctic — sky/ice/slate/white
+  // Arctic — the cool end of the band: azure/teal/blue/verdigris
   [
-    new THREE.Color("#38bdf8"),
-    new THREE.Color("#bae6fd"),
-    new THREE.Color("#94a3b8"),
-    new THREE.Color("#e0f2fe"),
+    new THREE.Color(ACCENT_BAND.azure),
+    new THREE.Color(ACCENT_BAND.teal),
+    new THREE.Color(ACCENT_BAND.blue),
+    new THREE.Color(ACCENT_BAND.verdigris),
   ],
 ];
 
 const PALETTE_LABELS = ["Cosmic", "Ember", "Forest", "Twilight", "Arctic"];
-const PALETTE_DOTS = ["#6366f1", "#f43f5e", "#10b981", "#a855f7", "#38bdf8"];
+const PALETTE_DOTS = [
+  ACCENT_BAND.indigo,
+  ACCENT_BAND.coral,
+  ACCENT_BAND.verdigris,
+  ACCENT_BAND.orchid,
+  ACCENT_BAND.azure,
+];
 
 const PARTICLE_COUNT = 160;
 

@@ -51,8 +51,9 @@ import AnimatedNumber from "@/components/motion/AnimatedNumber";
 import BlobBackground from "@/components/motion/BlobBackground";
 import SpotlightCard from "@/components/motion/SpotlightCard";
 import GradientMesh from "@/components/motion/GradientMesh";
+import { ACCENT_BAND } from "@/lib/accentBand";
 
-const ACCENT = "#06b6d4";
+const ACCENT = ACCENT_BAND.verdigris;
 
 /** The pitch — why a shared design system is worth adopting. */
 const BENEFITS: { title: string; body: string }[] = [
@@ -176,7 +177,9 @@ function MotionPrimitiveDemo({ id }: { id: string }) {
   }
   if (id === "blob-background") {
     return (
-      <div className="relative h-24 overflow-hidden rounded-xl">
+      // w-full matters: the preview frame is a flex row, and a flex item whose
+      // only content is absolutely positioned collapses to zero width.
+      <div className="relative h-24 w-full overflow-hidden rounded-xl">
         <BlobBackground seeds={[12, 34]} />
       </div>
     );
@@ -190,7 +193,7 @@ function MotionPrimitiveDemo({ id }: { id: string }) {
   }
   if (id === "gradient-mesh") {
     return (
-      <div className="relative h-24 overflow-hidden rounded-xl">
+      <div className="relative h-24 w-full overflow-hidden rounded-xl">
         <GradientMesh />
       </div>
     );
@@ -225,9 +228,9 @@ function MotionPrimitiveCard({
         </div>
       </dl>
       <p className="text-xs text-muted">
-        Planned for{" "}
-        <span className="font-mono text-foreground">{primitive.plannedFor}</span>
-        . Nothing renders it in production yet.
+        Ships on{" "}
+        <span className="font-mono text-foreground">{primitive.usedOn}</span>,
+        the landing page these were built for.
       </p>
     </div>
   );
@@ -252,7 +255,7 @@ function ButtonPlayground() {
   ) => setState((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <div className="space-y-4">
         <FilterBar
           label="Button playground controls"
@@ -634,7 +637,7 @@ function TokenGallery() {
         </div>
       </div>
 
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
         <div>
           <h3 className="mb-3 text-sm font-semibold text-foreground">Radius</h3>
           <div className="flex flex-wrap gap-4">
@@ -702,7 +705,7 @@ function TokenGallery() {
 
 export default function DesignSystemShowcaseContent() {
   return (
-    <PageShell colorA={ACCENT} colorB="#818cf8">
+    <PageShell colorA={ACCENT} colorB="var(--color-secondary-500)">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Design System" }]}
       />
@@ -796,7 +799,7 @@ export default function DesignSystemShowcaseContent() {
             Hover the ⓘ for how to use each one, hover the preview for a quick
             hint, and follow a chip to see it in production.
           </p>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {COMPONENTS.map((component) => (
               <ComponentCard key={component.id} component={component} />
             ))}
@@ -814,7 +817,7 @@ export default function DesignSystemShowcaseContent() {
             sit outside the catalog above. Each one respects reduced motion and
             renders its content visible in the server HTML.
           </p>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {MOTION_PRIMITIVES.map((primitive) => (
               <MotionPrimitiveCard key={primitive.id} primitive={primitive} />
             ))}

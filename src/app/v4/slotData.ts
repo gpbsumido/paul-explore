@@ -49,7 +49,7 @@ export type SlotCategory = {
  * graph node rather than the 4.5:1 a piece of text would need.
  */
 const CATEGORY_COLORS: Record<string, string> = {
-  Features: "#7f6dd1",
+  Features: "#6451ba",
   "Design & UI": "#be5283",
   Performance: "#2d8f66",
   "Architecture & Backend": "#7b6aca",
@@ -68,7 +68,7 @@ const APPS_COLOR = "#3388b4";
  */
 const SELF = "discover";
 /** Warm accent shared with the resume page entry points elsewhere on the site. */
-const RESUME_COLOR = "#b46c2d";
+export const RESUME_COLOR = "#b46c2d";
 const RESUME_BLURB = "Experience, skills, and the projects behind this site.";
 
 const toSlotThought = (thought: ThoughtItem): SlotThought => ({

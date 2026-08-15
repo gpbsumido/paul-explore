@@ -3,9 +3,14 @@
 import { m, useReducedMotion } from "framer-motion";
 
 type Props = {
-  /** Primary aurora colour. Defaults to the landing page's violet. */
+  /**
+   * Primary aurora colour. Defaults to verdigris. This lands inside a
+   * `color-mix()`, so a CSS var is a legal value: a page that belongs to one
+   * feature passes its `--color-feature-*` token and gets the dense light
+   * value and the pastel dark one with no change here.
+   */
   colorA?: string;
-  /** Secondary aurora colour. Defaults to the landing page's sky blue. */
+  /** Secondary aurora colour. Defaults to ember. */
   colorB?: string;
 };
 

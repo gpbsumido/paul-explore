@@ -53,7 +53,7 @@ function StepRenderer({
       return (
         <div
           data-error-banner=""
-          className="bg-red-500/5 border border-red-500/20 rounded-lg p-3 text-red-500 text-sm"
+          className="bg-error-500/5 border border-error-500/20 rounded-lg p-3 text-error-500 text-sm"
         >
           {step.message}
         </div>

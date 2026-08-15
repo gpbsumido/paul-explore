@@ -62,7 +62,7 @@ async function BrowseWithData() {
 
 export default function PokemonTcgPage() {
   return (
-    <PageShell colorA="#ef4444" colorB="#f59e0b" className="font-sans">
+    <PageShell colorA="var(--color-feature-tcg)" colorB="var(--color-primary-500)" className="font-sans">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },

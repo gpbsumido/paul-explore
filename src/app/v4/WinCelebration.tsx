@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { CONFETTI_COUNT, confettiPieces } from "./winPieces";
+import { ACCENT_BAND } from "@/lib/accentBand";
 
 /**
  * How long the celebration stays mounted.
@@ -19,14 +20,14 @@ export const WIN_MS = 6200;
  * reads as a loading state, not a party.
  */
 const PARTY = [
-  "#f43f5e",
-  "#fbbf24",
-  "#34d399",
-  "#38bdf8",
-  "#a78bfa",
-  "#fb7185",
-  "#facc15",
-  "#4ade80",
+  ACCENT_BAND.coral,
+  ACCENT_BAND.gold,
+  ACCENT_BAND.sea,
+  ACCENT_BAND.azure,
+  ACCENT_BAND.violet,
+  ACCENT_BAND.magenta,
+  ACCENT_BAND.ember,
+  ACCENT_BAND.verdigris,
 ] as const;
 
 /** How the whole burst falls. Chosen per win, so wins don't all look alike. */

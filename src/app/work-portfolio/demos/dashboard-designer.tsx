@@ -23,7 +23,7 @@ import {
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
-const ACCENT = "var(--wp-accent, #60a5fa)";
+const ACCENT = "var(--wp-accent, #4a83c8)";
 const END_ZONE = "end";
 
 type WidgetKind = "kpi" | "line" | "bar";

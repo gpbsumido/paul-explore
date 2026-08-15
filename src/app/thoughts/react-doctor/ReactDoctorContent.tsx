@@ -17,10 +17,10 @@ function Snippet({
 }) {
   const color =
     tone === "before"
-      ? "text-rose-400"
+      ? "text-error-400"
       : tone === "attempt"
-        ? "text-amber-400"
-        : "text-emerald-400";
+        ? "text-warning-400"
+        : "text-success-400";
   return (
     <div className="mt-3">
       <p

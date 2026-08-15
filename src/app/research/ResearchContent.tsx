@@ -60,10 +60,10 @@ const STATUS_LABEL: Record<EvidenceStatus, string> = {
 // Text carries the meaning; color only reinforces it, so the badge still reads
 // for anyone who can't distinguish the hues.
 const STATUS_STYLE: Record<EvidenceStatus, string> = {
-  none: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  none: "border-success-500/40 bg-success-500/10 text-success-600 dark:text-success-300",
   sparse:
-    "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
-  emerging: "border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-300",
+    "border-warning-500/40 bg-warning-500/10 text-warning-600 dark:text-warning-300",
+  emerging: "border-primary-500/40 bg-primary-500/10 text-primary-600 dark:text-primary-300",
   active: "border-border bg-surface text-muted",
 };
 
@@ -1467,7 +1467,7 @@ function JournalClubPanel() {
                       {paper.innovation.signals.map((signal) => (
                         <span
                           key={signal}
-                          className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-0.5 text-xs text-sky-600 dark:text-sky-300"
+                          className="rounded-full border border-primary-500/40 bg-primary-500/10 px-2 py-0.5 text-xs text-primary-600 dark:text-primary-300"
                         >
                           {signal}
                         </span>

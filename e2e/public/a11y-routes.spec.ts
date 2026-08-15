@@ -8,6 +8,10 @@ import { checkA11y } from "../helpers/axe";
  * here is clean.
  */
 const ROUTES = [
+  // The landing itself. It was only ever covered by the smoke axe scan, in
+  // whichever theme happened to be default, and it is now the page carrying the
+  // most new colour on the site.
+  "/",
   "/learn",
   "/learn/binary-search",
   "/work-portfolio",

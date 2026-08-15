@@ -29,6 +29,15 @@ describe("AnimatedNumber", () => {
     expect(html).toContain("1234 tests");
   });
 
+  it("never renders a fractional figure, even for a fractional input", () => {
+    // The count-up interpolates, so mid-count values are floats. Formatting a
+    // float with toLocaleString sprays decimals across the proof strip. The
+    // component rounds before it formats, and this pins that at the seam.
+    const html = renderToStaticMarkup(<AnimatedNumber value={1234.56} />);
+    expect(html).toContain("1235");
+    expect(html).not.toContain("1234.56");
+  });
+
   it("shows the final value immediately under reduced motion", () => {
     mocks.reduced = true;
 

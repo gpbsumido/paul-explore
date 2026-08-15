@@ -21,11 +21,11 @@ export type MotionPrimitiveDoc = {
   tagline: string;
   /** What it does when the user has asked for reduced motion. */
   reducedMotion: string;
-  /** The page these are being built for. PR3 lands them. */
-  plannedFor: string;
+  /** The page these ship on. The v5 landing composes all eight. */
+  usedOn: string;
 };
 
-const PLANNED_FOR = "/";
+const USED_ON = "/";
 
 export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
   {
@@ -35,7 +35,7 @@ export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
     tagline:
       "A headline that rises into place a word at a time once it scrolls into view.",
     reducedMotion: "Renders the finished headline, nothing moves.",
-    plannedFor: PLANNED_FOR,
+    usedOn: USED_ON,
   },
   {
     id: "text-scramble",
@@ -43,7 +43,7 @@ export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
     importPath: "@/components/motion/TextScramble",
     tagline: "Text that decodes itself left to right through a glyph churn.",
     reducedMotion: "Shows the settled text from the first frame.",
-    plannedFor: PLANNED_FOR,
+    usedOn: USED_ON,
   },
   {
     id: "scroll-progress",
@@ -51,7 +51,7 @@ export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
     importPath: "@/components/motion/ScrollProgress",
     tagline: "A thin sprung bar across the top showing how far down the page you are.",
     reducedMotion: "Tracks scroll exactly, with no spring smoothing.",
-    plannedFor: PLANNED_FOR,
+    usedOn: USED_ON,
   },
   {
     id: "magnetic-button",
@@ -59,7 +59,7 @@ export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
     importPath: "@/components/motion/MagneticButton",
     tagline: "Leans whatever it wraps toward the pointer, then springs it back.",
     reducedMotion: "Sits still. Also disabled for touch pointers.",
-    plannedFor: PLANNED_FOR,
+    usedOn: USED_ON,
   },
   {
     id: "animated-number",
@@ -67,7 +67,7 @@ export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
     importPath: "@/components/motion/AnimatedNumber",
     tagline: "A figure that counts up to its value when it scrolls into view.",
     reducedMotion: "Shows the final figure immediately.",
-    plannedFor: PLANNED_FOR,
+    usedOn: USED_ON,
   },
   {
     id: "blob-background",
@@ -76,7 +76,7 @@ export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
     tagline:
       "Layered organic SVG shapes from a seeded generator, drifting on scroll.",
     reducedMotion: "Static layers, no parallax.",
-    plannedFor: PLANNED_FOR,
+    usedOn: USED_ON,
   },
   {
     id: "spotlight-card",
@@ -85,7 +85,7 @@ export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
     tagline:
       "A glass card with a glow that follows the cursor, over the design system's Spotlight.",
     reducedMotion: "Glow pins to the centre and stops tracking.",
-    plannedFor: PLANNED_FOR,
+    usedOn: USED_ON,
   },
   {
     id: "gradient-mesh",
@@ -93,6 +93,6 @@ export const MOTION_PRIMITIVES: MotionPrimitiveDoc[] = [
     importPath: "@/components/motion/GradientMesh",
     tagline: "A slow-drifting mesh of soft colour blooms, in pure CSS.",
     reducedMotion: "Paused by a media query, no JavaScript involved.",
-    plannedFor: PLANNED_FOR,
+    usedOn: USED_ON,
   },
 ];

@@ -280,6 +280,36 @@
   }
 }
 
+/* BlobBackground's ambient wander. Runs on the blob path's own transform so it
+   never fights the scroll parallax framer drives on the parent svg. Each layer
+   gets its own duration and a negative delay from the component, so the layers
+   breathe out of phase instead of pulsing in sync. */
+@keyframes blob-drift {
+  0% {
+    transform: translate(0%, 0%) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(3%, -2.5%) scale(1.07) rotate(2.5deg);
+  }
+  66% {
+    transform: translate(-2.5%, 2%) scale(0.95) rotate(-2deg);
+  }
+  100% {
+    transform: translate(0%, 0%) scale(1) rotate(0deg);
+  }
+}
+
+.blob-drift {
+  transform-origin: 50% 50%;
+  animation: blob-drift 24s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob-drift {
+    animation: none;
+  }
+}
+
 /* TextReveal — the same bargain .reveal-up makes, one word at a time. The text
    is in the server HTML at full opacity and this only switches on once the
    element reports itself in view, so nothing above the fold is ever shipped as

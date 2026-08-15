@@ -1,7 +1,11 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import { DesignSystemChat } from "./sections/DesignSystemChat";
 import { DesignSystemSummary1 } from "./sections/DesignSystemSummary1";
 import { DesignSystemSummary2 } from "./sections/DesignSystemSummary2";
@@ -20,8 +24,60 @@ export default function DesignSystemContent() {
       }
       chat={<DesignSystemChat />}
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-15-verdigris",
+            date: "Aug 15, 2026",
+            title: "The palette went upstream, and the gate redesigned it",
+          },
+        ]}
+      />
       <DesignSystemSummary1 />
       <DesignSystemSummary2 />
+      <Update
+        id="update-2026-08-15-verdigris"
+        date="August 15, 2026"
+        title="The palette went upstream, and the gate redesigned it"
+      >
+        <p>
+          The Verdigris &amp; Ember redesign started life in this app as local
+          overrides of the package variables &mdash; which works, and is
+          backwards. The whole point of a tokens package is to be the place
+          the palette is decided. So the packages adopted it: primary is
+          verdigris, secondary is ember, neutral is warm ink-on-paper, the
+          semantic surfaces moved off pure white and near-black, and a display
+          font token leads with Bricolage Grotesque. The values are taken
+          verbatim from what this app already ships, so the swap lands with no
+          visible change here, and the Angular app and Ketsup inherit it on
+          their next dependency bump.
+        </p>
+        <p>
+          <strong>
+            The interesting part is what the system&apos;s own gates did to the
+            design.
+          </strong>{" "}
+          The chart palette has a test that measures adjacent slots under
+          deuteranopia, written after a blue/purple collision. Dropping ember
+          in beside amber reproduced that exact failure &mdash; a colour
+          distance of 1.3, the same number the test was born from. An
+          exhaustive search over every slot order proved no arrangement of the
+          existing ramps could pass, so the finding became the design: amber
+          leaves the categorical set, a violet supporting ramp joins, and the
+          shipped set clears the colour-blind band by a factor of six. The
+          warmer surface also exposed that success-600 and warning-600 had
+          been under the 3:1 floor all along &mdash; the old palette only
+          looked compliant because nobody had moved the background underneath
+          it.
+        </p>
+        <p>
+          The &quot;no visual regression testing&quot; gap recorded below is
+          also closed: the Storybook build runs through Chromatic now, and its
+          review pass earned its keep immediately by flagging a real contrast
+          regression this recolour introduced &mdash; that catch has its own
+          entry in the accessibility write-up.
+        </p>
+      </Update>
       <WhatsNext
         nowShipped={[
           "A published package consumed as a package, rather than shared source imported across projects, so the version boundary is real.",
