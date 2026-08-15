@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-15 - version 4.5.11
+
+- **The palette now arrives from the package.** `@paul-portfolio/tokens` moves to 0.3.0 and `@paul-portfolio/css` to 0.7.0, which is where Verdigris & Ember lives at source. This app never carried the palette as its own values on this branch, so the whole change is the pin: `src/styles/tokens.css` was already a pure alias layer, and bumping what it aliases repaints the app. `--color-primary-500` goes from `#3b82f6` to `#219b84`, backgrounds warm off pure white and pure black (`#ffffff` to `#fbfaf7`, `#0a0a0a` to `#131110`), and `--paul-font-family-display` shows up for the first time, led by Bricolage Grotesque.
+- The seam that made this a one-line change is now tested. Every `var(--paul-*)` the app reads has to be a name the installed package actually declares -- all 139 of them resolve today, and a rename upstream would have failed silently rather than loudly, because an alias pointing at a missing custom property is invalid at computed-value time and falls back to inherited instead of erroring. The same test holds the owned ramps to aliases only, so a hex copied back in is caught rather than working on the day and drifting later.
+- Nothing else moved. `@paul-portfolio/react` stays on 0.5.1, and the app-specific tokens this repo genuinely owns -- feature pastels, the glass and modal systems, `--color-surface-raised`, the extended spacing and weight steps -- are untouched, because the package does not ship them.
+
 ## 2026-08-14 - version 4.5.9
 
 - **/thoughts/security-audit** picks up what happened when its own admitted gap got closed. That page said the audit was a one-off pass by hand with nothing to repeat it; the counts, changelog, exhibits and crawler-file checks are that repeat. The part worth reading is that two of the checks already there were holding mistakes in place — one asserted `/seven tabs/` against a sentence and kept the wrong number green when an eighth tab landed, and my own duplicate-heading check could never fail because `Set.add()` returns the Set rather than a boolean.

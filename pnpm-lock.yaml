@@ -17,14 +17,14 @@ dependencies:
     specifier: ^6.3.1
     version: 6.3.1(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/css':
-    specifier: ^0.6.0
-    version: 0.6.0(@paul-portfolio/tokens@0.2.0)
+    specifier: ^0.7.0
+    version: 0.7.0(@paul-portfolio/tokens@0.3.0)
   '@paul-portfolio/react':
     specifier: ^0.5.1
-    version: 0.5.1(@paul-portfolio/css@0.6.0)(@paul-portfolio/tokens@0.2.0)(react-dom@19.2.3)(react@19.2.3)
+    version: 0.5.1(@paul-portfolio/css@0.7.0)(@paul-portfolio/tokens@0.3.0)(react-dom@19.2.3)(react@19.2.3)
   '@paul-portfolio/tokens':
-    specifier: ^0.2.0
-    version: 0.2.0
+    specifier: ^0.3.0
+    version: 0.3.0
   '@rainbow-me/rainbowkit':
     specifier: ^2.2.11
     version: 2.2.11(@tanstack/react-query@5.90.21)(@types/react@19.0.0)(react-dom@19.2.3)(react@19.2.3)(typescript@5.9.3)(viem@2.55.4)(wagmi@2.16.0)
@@ -1962,15 +1962,15 @@ packages:
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
     dev: false
 
-  /@paul-portfolio/css@0.6.0(@paul-portfolio/tokens@0.2.0):
-    resolution: {integrity: sha512-+KNCrf8VbANbaR76Vf6Vtr+HtV4F/Ca9tNR4h3h3GEJsy4nN6ZJYB9Bhq0uem5Uh3vvbHUkQK+fgsTEPFFet6w==}
+  /@paul-portfolio/css@0.7.0(@paul-portfolio/tokens@0.3.0):
+    resolution: {integrity: sha512-20eL/wHzq999T14x0bXUGxbRcy/bCNMVGUx/+zr/zc4lseGwobgUVvULJdHufDYeahCd6TrxEG4XEzCzUyTOLg==}
     peerDependencies:
       '@paul-portfolio/tokens': '>=0.1.0'
     dependencies:
-      '@paul-portfolio/tokens': 0.2.0
+      '@paul-portfolio/tokens': 0.3.0
     dev: false
 
-  /@paul-portfolio/react@0.5.1(@paul-portfolio/css@0.6.0)(@paul-portfolio/tokens@0.2.0)(react-dom@19.2.3)(react@19.2.3):
+  /@paul-portfolio/react@0.5.1(@paul-portfolio/css@0.7.0)(@paul-portfolio/tokens@0.3.0)(react-dom@19.2.3)(react@19.2.3):
     resolution: {integrity: sha512-CtrkAIBo9g+CBBzAVahKkcGczMNmoAY0IR2rsRl92o+WXb2dKY5O3OodL9y8A5d8iXDycnKXNYKpeAlhxiMYng==}
     peerDependencies:
       '@paul-portfolio/css': '>=0.1.0'
@@ -1978,14 +1978,14 @@ packages:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
     dependencies:
-      '@paul-portfolio/css': 0.6.0(@paul-portfolio/tokens@0.2.0)
-      '@paul-portfolio/tokens': 0.2.0
+      '@paul-portfolio/css': 0.7.0(@paul-portfolio/tokens@0.3.0)
+      '@paul-portfolio/tokens': 0.3.0
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     dev: false
 
-  /@paul-portfolio/tokens@0.2.0:
-    resolution: {integrity: sha512-eNSLoSMKgBbjD4mMpCOnxy0R7axZY4/nigW+5rB6rpSysRDQH7IoOV+eT27tz7udGczxlcOgbXDCJN1US7oWEw==}
+  /@paul-portfolio/tokens@0.3.0:
+    resolution: {integrity: sha512-JJBcACkkFfhKtj4sGbcutLHXTPOy2JOEBlUSXGR2cdT7Ow3ahgR9k+t/jnI/yQbBmNVz4otWaTqChEDTucY/Dw==}
     dev: false
 
   /@paulmillr/qr@0.2.1:
