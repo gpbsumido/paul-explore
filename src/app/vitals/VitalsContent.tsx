@@ -158,7 +158,29 @@ type Props = VitalsResponse & {
   versions: string[];
   selectedVersion: string;
   byVersion: VersionMetrics[];
+  /** The backend didn't answer. Show that, rather than an empty dashboard. */
+  unreachable?: boolean;
 };
+
+/**
+ * Stands in for the whole data region when the API is down.
+ *
+ * Deliberately not the "No data yet" card: the point is that these two states
+ * looked identical, and one of them was a lie.
+ */
+function UnreachableNotice() {
+  return (
+    <div className="rounded-xl border border-error-500/30 bg-error-500/5 px-6 py-10 text-center">
+      <p className="text-[14px] font-medium text-foreground">
+        Couldn&apos;t reach the vitals API
+      </p>
+      <p className="mx-auto mt-1 max-w-md text-[13px] text-muted">
+        The API is down, not empty. Scores stay hidden rather than reporting
+        zeros that never existed.
+      </p>
+    </div>
+  );
+}
 
 /**
  * Public vitals dashboard. Shows five metric cards at the top (global P75
@@ -173,6 +195,7 @@ export default function VitalsContent({
   versions,
   selectedVersion,
   byVersion,
+  unreachable = false,
 }: Props) {
   const hasData = byPage.length > 0;
 
@@ -203,112 +226,122 @@ export default function VitalsContent({
           </p>
           {/* Screen-reader announcement when version filter changes via soft navigation */}
           <p className="sr-only" aria-live="polite" aria-atomic="true">
-            {selectedVersion
-              ? `Showing Web Vitals for version ${selectedVersion}`
-              : "Showing Web Vitals for all versions"}
+            {unreachable
+              ? "Web Vitals are unavailable right now"
+              : selectedVersion
+                ? `Showing Web Vitals for version ${selectedVersion}`
+                : "Showing Web Vitals for all versions"}
           </p>
         </div>
 
-        {/* Metric summary cards */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {METRIC_ORDER.map((name) => (
-            <MetricCard
-              key={name}
-              config={METRIC_CONFIGS[name]}
-              data={summary[name]}
-            />
-          ))}
-        </div>
+        {/* Every score below is unverifiable when the API is down, so none of
+            it renders -- that's the whole point of the state. */}
+        {unreachable ? (
+          <UnreachableNotice />
+        ) : (
+          <>
+            {/* Metric summary cards */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {METRIC_ORDER.map((name) => (
+                <MetricCard
+                  key={name}
+                  config={METRIC_CONFIGS[name]}
+                  data={summary[name]}
+                />
+              ))}
+            </div>
 
-        {/* Version trend charts */}
-        {byVersion.length >= 2 && (
-          <div className="mt-8">
-            <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Trend across versions
-            </h2>
-            <VitalsChart byVersion={byVersion} />
-          </div>
-        )}
+            {/* Version trend charts */}
+            {byVersion.length >= 2 && (
+              <div className="mt-8">
+                <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
+                  Trend across versions
+                </h2>
+                <VitalsChart byVersion={byVersion} />
+              </div>
+            )}
 
-        {/* By-page table */}
-        <div className="mt-8">
-          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-            By page
-          </h2>
+            {/* By-page table */}
+            <div className="mt-8">
+              <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
+                By page
+              </h2>
 
-          {hasData ? (
-            <div className="overflow-x-auto rounded-xl border border-border">
-              <table
-                className="w-full text-left"
-                aria-label="Web Vitals P75 scores by page"
-              >
-                <thead>
-                  <tr className="border-b border-border bg-surface">
-                    <th
-                      scope="col"
-                      className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted"
-                    >
-                      Page
-                    </th>
-                    {METRIC_ORDER.map((name) => (
-                      <th
-                        key={name}
-                        scope="col"
-                        className="px-3 py-2.5 text-center text-[11px] font-bold uppercase tracking-wider text-muted"
-                      >
-                        {name}
-                      </th>
-                    ))}
-                    <th
-                      scope="col"
-                      className="px-3 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-muted"
-                    >
-                      Samples
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {byPage.map((row, i) => (
-                    <tr
-                      key={row.page}
-                      className={`border-b border-border/50 last:border-b-0 ${
-                        i % 2 === 0 ? "bg-background" : "bg-surface"
-                      }`}
-                    >
-                      <th
-                        scope="row"
-                        className="px-3 py-3 text-[12px] font-medium text-foreground"
-                      >
-                        {row.page}
-                      </th>
-                      {METRIC_ORDER.map((name) => (
-                        <TableCell
-                          key={name}
-                          data={row.metrics[name]}
-                          config={METRIC_CONFIGS[name]}
-                        />
+              {hasData ? (
+                <div className="overflow-x-auto rounded-xl border border-border">
+                  <table
+                    className="w-full text-left"
+                    aria-label="Web Vitals P75 scores by page"
+                  >
+                    <thead>
+                      <tr className="border-b border-border bg-surface">
+                        <th
+                          scope="col"
+                          className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-muted"
+                        >
+                          Page
+                        </th>
+                        {METRIC_ORDER.map((name) => (
+                          <th
+                            key={name}
+                            scope="col"
+                            className="px-3 py-2.5 text-center text-[11px] font-bold uppercase tracking-wider text-muted"
+                          >
+                            {name}
+                          </th>
+                        ))}
+                        <th
+                          scope="col"
+                          className="px-3 py-2.5 text-right text-[11px] font-bold uppercase tracking-wider text-muted"
+                        >
+                          Samples
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {byPage.map((row, i) => (
+                        <tr
+                          key={row.page}
+                          className={`border-b border-border/50 last:border-b-0 ${
+                            i % 2 === 0 ? "bg-background" : "bg-surface"
+                          }`}
+                        >
+                          <th
+                            scope="row"
+                            className="px-3 py-3 text-[12px] font-medium text-foreground"
+                          >
+                            {row.page}
+                          </th>
+                          {METRIC_ORDER.map((name) => (
+                            <TableCell
+                              key={name}
+                              data={row.metrics[name]}
+                              config={METRIC_CONFIGS[name]}
+                            />
+                          ))}
+                          <td className="px-3 py-3 text-right tabular-nums text-[12px] text-muted">
+                            {row.total.toLocaleString()}
+                          </td>
+                        </tr>
                       ))}
-                      <td className="px-3 py-3 text-right tabular-nums text-[12px] text-muted">
-                        {row.total.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                // shown until enough real-user data comes in
+                <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
+                  <p className="text-[14px] font-medium text-foreground">
+                    No data yet
+                  </p>
+                  <p className="mt-1 text-[13px] text-muted">
+                    Visit a few pages and check back — pages need 5+ samples to show
+                    up here.
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            // shown until enough real-user data comes in
-            <div className="rounded-xl border border-border bg-surface px-6 py-10 text-center">
-              <p className="text-[14px] font-medium text-foreground">
-                No data yet
-              </p>
-              <p className="mt-1 text-[13px] text-muted">
-                Visit a few pages and check back — pages need 5+ samples to show
-                up here.
-              </p>
-            </div>
-          )}
-        </div>
+          </>
+        )}
 
         {/* Improvement notes — what's actively being done per metric */}
         <div className="mt-10">
