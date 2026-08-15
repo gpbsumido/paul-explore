@@ -158,11 +158,20 @@ export default async function VitalsPage({
   }
 
   const { versions } = result;
-  const defaultMajor = versions.length > 0 ? versions[0].split(".")[0] : "0";
-  const { filterMode, filterVersion, selectedVersion } = resolveVitalsFilter(
-    urlVersion,
-    defaultMajor,
-  );
+
+  // A reachable backend with no recorded versions is a fresh database, and a
+  // fresh database has no current major to scope to. Skip the version filter
+  // entirely so the queries ask for all-time data instead of inventing a
+  // major "0" that never shipped. The selector renders nothing without
+  // versions, so an empty selectedVersion never reaches a control.
+  const { filterMode, filterVersion, selectedVersion } =
+    versions.length > 0
+      ? resolveVitalsFilter(urlVersion, versions[0].split(".")[0])
+      : {
+          filterMode: undefined,
+          filterVersion: undefined,
+          selectedVersion: "",
+        };
 
   const [byVersion, { summary, byPage }] = await Promise.all([
     fetchByVersion(token, filterVersion, filterMode),
