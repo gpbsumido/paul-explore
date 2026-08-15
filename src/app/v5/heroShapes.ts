@@ -18,8 +18,10 @@ export type HeroShape = {
 /** Seconds a shape holds before morphing to the next. */
 export const MORPH_HOLD_S = 7;
 
-/** Seconds the crossfade between two shapes takes. */
-export const MORPH_FADE_S = 0.8;
+/** Seconds the sand takes to rearrange into the next shape. One constant,
+ * imported by the canvas, so the cycle's timing cannot drift across files
+ * the way the v4 resume colour did. */
+export const MORPH_FADE_S = 1.4;
 
 export const HERO_SHAPES: HeroShape[] = [
   { id: "knot", stands_for: "the codebase, honestly" },

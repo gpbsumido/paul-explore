@@ -6,7 +6,12 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Matrix4, Vector3 } from "three";
 import type { Group, BufferAttribute } from "three";
 import { PauseWhenOffscreen } from "@/app/landing/models/PauseWhenOffscreen";
-import { HERO_SHAPES, pickNextShape, MORPH_HOLD_S } from "./heroShapes";
+import {
+  HERO_SHAPES,
+  pickNextShape,
+  MORPH_HOLD_S,
+  MORPH_FADE_S,
+} from "./heroShapes";
 import {
   PARTICLE_COUNT,
   buildShapePoints,
@@ -22,8 +27,6 @@ export type HeroInteraction = {
   y: number;
 };
 
-/** Seconds the sand takes to rearrange into the next shape. */
-const MORPH_S = 1.4;
 /** How far a particle bows away from its straight line mid-flight. */
 const SWIRL = 0.55;
 /** Radius of the pointer's push, in scene units. */
@@ -124,7 +127,7 @@ function SandShapes({
     }
 
     if (morphT.current < 1) {
-      morphT.current = Math.min(morphT.current + delta / MORPH_S, 1);
+      morphT.current = Math.min(morphT.current + delta / MORPH_FADE_S, 1);
     }
 
     // The page idles far more than it morphs. When nothing is in flight and
