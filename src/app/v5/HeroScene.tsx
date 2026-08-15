@@ -59,7 +59,6 @@ export default function HeroScene() {
     hovering: false,
     x: 0,
     y: 0,
-    morphRequests: 0,
   });
 
   useEffect(() => {
@@ -86,7 +85,6 @@ export default function HeroScene() {
       className="relative mx-auto aspect-square w-full max-w-[260px] sm:max-w-md lg:mx-0 lg:max-w-none"
       onPointerEnter={() => {
         interaction.current.hovering = true;
-        interaction.current.morphRequests += 1;
       }}
       onPointerLeave={() => {
         interaction.current.hovering = false;
@@ -112,12 +110,12 @@ export default function HeroScene() {
             <radialGradient id="hero-fallback-grad">
               <stop
                 offset="0%"
-                stopColor="var(--color-primary-400)"
+                stopColor="light-dark(var(--color-primary-500), var(--color-primary-400))"
                 stopOpacity="0.85"
               />
               <stop
                 offset="70%"
-                stopColor="var(--color-primary-600)"
+                stopColor="light-dark(var(--color-primary-700), var(--color-primary-600))"
                 stopOpacity="0.35"
               />
               <stop

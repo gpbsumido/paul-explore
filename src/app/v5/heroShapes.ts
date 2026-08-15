@@ -15,7 +15,7 @@ export type HeroShape = {
   stands_for: string;
 };
 
-/** Seconds a shape holds before morphing to the next. Hover skips the wait. */
+/** Seconds a shape holds before morphing to the next. */
 export const MORPH_HOLD_S = 7;
 
 /** Seconds the crossfade between two shapes takes. */

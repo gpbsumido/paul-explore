@@ -25,7 +25,7 @@ export const PARTICLE_COUNT = 1500;
 const TRAVEL_SHARE = 0.6;
 
 /** Deterministic PRNG so a shape samples the same cloud on every visit. */
-function mulberry32(seed: number) {
+export function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
     a |= 0;

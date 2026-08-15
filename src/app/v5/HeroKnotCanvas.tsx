@@ -10,6 +10,7 @@ import { HERO_SHAPES, pickNextShape, MORPH_HOLD_S } from "./heroShapes";
 import {
   PARTICLE_COUNT,
   buildShapePoints,
+  mulberry32,
   particleProgress,
 } from "./heroParticles";
 
@@ -19,14 +20,8 @@ export type HeroInteraction = {
   /** Pointer position across the wrapper, both axes in [-1, 1]. */
   x: number;
   y: number;
-  /** Bumped on every pointer enter; the scene consumes them as morph triggers. */
-  morphRequests: number;
 };
 
-/** How far the cloud leans toward the pointer, in radians at the edge. */
-const LEAN = 0.28;
-/** Fraction of the remaining distance covered each frame. A cheap critically-damped feel. */
-const DAMPING = 0.06;
 /** Seconds the sand takes to rearrange into the next shape. */
 const MORPH_S = 1.4;
 /** How far a particle bows away from its straight line mid-flight. */
@@ -46,9 +41,9 @@ const POINTER_PLANE = Math.tan((45 / 2) * (Math.PI / 180)) * 5.4;
  * mount. During a morph, particle i flies from its slot on the old shape to
  * slot i on the new one along a bowed path, leaving in waves and landing
  * together, which is what reads as sand rather than a crossfade. Hover does
- * two things: entering asks for the next shape early, and the pointer itself
- * pushes nearby particles aside like a magnet over iron filings, each one
- * springing back as the cursor moves off. Positions live in the buffer
+ * exactly one thing: the pointer pushes nearby particles aside like a magnet
+ * over iron filings, each one springing back as the cursor moves off. The
+ * cycle itself never reacts to the pointer. Positions live in the buffer
  * attribute and all progress lives in refs; React state is never touched, and
  * the clock accumulates in useFrame so the show pauses offscreen.
  */
@@ -64,18 +59,22 @@ function SandShapes({
     () => HERO_SHAPES.map((shape) => buildShapePoints(shape.id)),
     [],
   );
-  const stagger = useMemo(
-    () => Float32Array.from({ length: PARTICLE_COUNT }, () => Math.random()),
-    [],
-  );
+  // Seeded, not Math.random: render must stay pure, and a deterministic
+  // stagger means the same particle leads the charge on every visit, which
+  // makes the motion tunable instead of a dice roll.
+  const stagger = useMemo(() => {
+    const rand = mulberry32(1013);
+    return Float32Array.from({ length: PARTICLE_COUNT }, rand);
+  }, []);
   const swirl = useMemo(() => {
+    const rand = mulberry32(2027);
     const out = new Float32Array(PARTICLE_COUNT * 3);
     for (let i = 0; i < out.length; i++) {
-      out[i] = (Math.random() * 2 - 1) * SWIRL;
+      out[i] = (rand() * 2 - 1) * SWIRL;
     }
     return out;
   }, []);
-  const repel = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []);
+  const repelRef = useRef<Float32Array | null>(null);
   const initial = useMemo(() => clouds[0].slice(), [clouds]);
   const pointerLocal = useMemo(() => new Vector3(), []);
   const groupInverse = useMemo(() => new Matrix4(), []);
@@ -84,28 +83,26 @@ function SandShapes({
   const to = useRef(0);
   const held = useRef(0);
   const morphT = useRef(1);
-  const consumed = useRef(0);
+  const repelActive = useRef(false);
 
   useFrame((_, delta) => {
     const pointer = interaction.current;
     const g = group.current;
     if (g) {
       g.rotation.y += delta * 0.22;
-      const leanX = pointer.hovering ? pointer.y * LEAN : 0;
-      const leanZ = pointer.hovering ? pointer.x * LEAN : 0;
-      g.rotation.x += (leanX - g.rotation.x) * DAMPING;
-      g.rotation.z += (leanZ - g.rotation.z) * DAMPING;
     }
 
     const attr = attribute.current;
     if (!attr || !g) return;
+    if (!repelRef.current) {
+      repelRef.current = new Float32Array(PARTICLE_COUNT * 3);
+    }
+    const repel = repelRef.current;
 
     const resting = morphT.current >= 1;
     if (resting) {
       held.current += delta;
-      const asked = pointer.morphRequests > consumed.current;
-      consumed.current = pointer.morphRequests;
-      if (held.current >= MORPH_HOLD_S || asked) {
+      if (held.current >= MORPH_HOLD_S) {
         held.current = 0;
         from.current = to.current;
         to.current = pickNextShape(from.current, Math.random);
@@ -115,6 +112,15 @@ function SandShapes({
 
     if (morphT.current < 1) {
       morphT.current = Math.min(morphT.current + delta / MORPH_S, 1);
+    }
+
+    // The page idles far more than it morphs. When nothing is in flight and
+    // the filings have settled, skip the particle pass and the buffer upload
+    // entirely; a busy per-frame loop here is exactly the main-thread load
+    // that showed up as input latency on the header menu.
+    if (pointer.hovering) repelActive.current = true;
+    if (morphT.current >= 1 && !pointer.hovering && !repelActive.current) {
+      return;
     }
 
     // The pointer lives on the z=0 world plane; the cloud lives in a rotating
@@ -129,6 +135,7 @@ function SandShapes({
     const b = clouds[to.current];
     const positions = attr.array as Float32Array;
     const settle = resting ? 0.1 : 0.16;
+    let maxOffset = 0;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const p = particleProgress(t, stagger[i]);
@@ -158,12 +165,22 @@ function SandShapes({
       repel[j] += (tx - repel[j]) * settle;
       repel[j + 1] += (ty - repel[j + 1]) * settle;
       repel[j + 2] += (tz - repel[j + 2]) * settle;
+      maxOffset = Math.max(
+        maxOffset,
+        Math.abs(repel[j]),
+        Math.abs(repel[j + 1]),
+        Math.abs(repel[j + 2]),
+      );
 
       positions[j] = bx + repel[j];
       positions[j + 1] = by + repel[j + 1];
       positions[j + 2] = bz + repel[j + 2];
     }
     attr.needsUpdate = true;
+
+    if (!pointer.hovering && maxOffset < 0.002) {
+      repelActive.current = false;
+    }
   });
 
   return (
