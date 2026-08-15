@@ -5,7 +5,7 @@ import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
-const ACCENT = "var(--wp-accent, #60a5fa)";
+const ACCENT = "var(--wp-accent, #4a83c8)";
 
 type Tab = "Overview" | "NFTs" | "Transactions";
 const TABS: Tab[] = ["Overview", "NFTs", "Transactions"];
@@ -43,10 +43,10 @@ function walletFor(addr: string) {
 }
 
 const RARITY_TINT: Record<string, string> = {
-  Common: "#94a3b8",
-  Rare: "#60a5fa",
-  Epic: "#c084fc",
-  Legendary: "#f59e0b",
+  Common: "#a49d90",
+  Rare: "#4a83c8",
+  Epic: "#8f52cb",
+  Legendary: "#bd8d3a",
 };
 
 /**

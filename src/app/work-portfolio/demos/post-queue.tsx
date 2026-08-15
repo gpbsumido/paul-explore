@@ -19,7 +19,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #e879f9)";
+const ACCENT = "var(--wp-accent, #b951c9)";
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const COLUMNS = ["Backlog", "Scheduled", "Published"] as const;
 type Column = (typeof COLUMNS)[number];

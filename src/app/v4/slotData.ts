@@ -49,7 +49,7 @@ export type SlotCategory = {
  * graph node rather than the 4.5:1 a piece of text would need.
  */
 const CATEGORY_COLORS: Record<string, string> = {
-  Features: "#7f6dd1",
+  Features: "#6451ba",
   "Design & UI": "#be5283",
   Performance: "#2d8f66",
   "Architecture & Backend": "#7b6aca",

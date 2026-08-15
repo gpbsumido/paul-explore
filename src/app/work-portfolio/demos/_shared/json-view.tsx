@@ -7,11 +7,11 @@ export type JsonToken = {
 };
 
 const COLORS: Record<JsonToken["kind"], string> = {
-  key: "#7dd3fc",
-  string: "#a3e635",
-  number: "#fbbf24",
-  literal: "#f472b6",
-  punct: "var(--color-muted, #94a3b8)",
+  key: "#51a4cb",
+  string: "#8fbf41",
+  number: "#c59f3c",
+  literal: "#c7508e",
+  punct: "var(--color-muted, #a49d90)",
 };
 
 // Matches a JSON string, number, or true/false/null literal in one pass so we

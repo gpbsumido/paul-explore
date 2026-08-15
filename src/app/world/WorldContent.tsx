@@ -182,7 +182,7 @@ function Minimap({
           y={LAKE_EDGE_Z}
           width={156}
           height={66 - LAKE_EDGE_Z}
-          fill="#12263f"
+          fill="#24211c"
         />
         {ROADS.map((road) => (
           <line
@@ -209,7 +209,7 @@ function Minimap({
                 points="0,-5 1.3,-1.3 5,0 1.3,1.3 0,5 -1.3,1.3 -5,0 -1.3,-1.3"
                 transform={`translate(${exhibit.position.x} ${exhibit.position.z})`}
                 fill={color}
-                stroke="#070a12"
+                stroke="#151310"
                 strokeWidth={0.6}
               >
                 <title>{title}</title>
@@ -240,7 +240,7 @@ function Minimap({
                 y={WORLD_BOUNDS.minZ + cz * CELL_SIZE}
                 width={CELL_SIZE}
                 height={CELL_SIZE}
-                fill="#070a12"
+                fill="#151310"
                 opacity={0.55}
               />
             );
@@ -249,7 +249,7 @@ function Minimap({
           <polygon
             points="0,-4.6 3.4,3.8 0,1.9 -3.4,3.8"
             fill="#ffffff"
-            stroke="#070a12"
+            stroke="#151310"
             strokeWidth={0.8}
           />
         </g>

@@ -4,6 +4,7 @@ import { useState, useEffect, useSyncExternalStore, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { m, AnimatePresence } from "framer-motion";
+import { ACCENT_BAND } from "@/lib/accentBand";
 
 // ---------------------------------------------------------------------------
 // 10 variants — each has a color, message, and animated visual
@@ -314,71 +315,71 @@ function ParticlesBurst({ color }: { color: string }) {
 
 const VARIANTS: Variant[] = [
   {
-    color: "#f472b6",
-    bg: "rgba(244,114,182,0.04)",
+    color: ACCENT_BAND.magenta,
+    bg: "rgba(190,82,131,0.04)",
     heading: "Drifted off course",
     message: "This page floated away. Or maybe it was never here.",
     visual: (c) => <ScatteredDigits color={c} />,
   },
   {
-    color: "#60a5fa",
-    bg: "rgba(96,165,250,0.04)",
+    color: ACCENT_BAND.blue,
+    bg: "rgba(74,129,188,0.04)",
     heading: "Signal lost",
     message: "We sent out a ping but nothing came back.",
     visual: (c) => <PulsingRings color={c} />,
   },
   {
-    color: "#34d399",
-    bg: "rgba(52,211,153,0.04)",
+    color: ACCENT_BAND.sea,
+    bg: "rgba(45,143,102,0.04)",
     heading: "Still loading... just kidding",
     message: "This page doesn't exist. The dots are just vibes.",
     visual: (c) => <BouncingDot color={c} />,
   },
   {
-    color: "#fb923c",
-    bg: "rgba(251,146,60,0.04)",
+    color: ACCENT_BAND.ember,
+    bg: "rgba(180,108,45,0.04)",
     heading: "Corrupted coordinates",
     message: "The address glitched. Try a different route.",
     visual: (c) => <GlitchText color={c} />,
   },
   {
-    color: "#a78bfa",
-    bg: "rgba(167,139,250,0.04)",
+    color: ACCENT_BAND.violet,
+    bg: "rgba(123,106,202,0.04)",
     heading: "Lost in orbit",
     message: "This page is somewhere in the void. You are not.",
     visual: (c) => <OrbitingDots color={c} />,
   },
   {
-    color: "#f87171",
-    bg: "rgba(248,113,113,0.04)",
+    color: ACCENT_BAND.coral,
+    bg: "rgba(190,93,104,0.04)",
     heading: "Deck's empty",
     message: "We shuffled through everything. This card wasn't in the pile.",
     visual: (c) => <StackedCards color={c} />,
   },
   {
-    color: "#4ade80",
-    bg: "rgba(74,222,128,0.04)",
+    color: ACCENT_BAND.verdigris,
+    bg: "rgba(43,138,126,0.04)",
     heading: "End of the line",
     message: "The cursor reached the end and found nothing to print.",
     visual: (c) => <TypewriterText color={c} />,
   },
   {
-    color: "#38bdf8",
-    bg: "rgba(56,189,248,0.04)",
+    color: ACCENT_BAND.azure,
+    bg: "rgba(51,136,180,0.04)",
     heading: "Riding the wave to nowhere",
     message: "This URL crested and broke. Paddle back to shore.",
     visual: (c) => <WavyDigits color={c} />,
   },
   {
-    color: "#facc15",
-    bg: "rgba(250,204,21,0.04)",
+    color: ACCENT_BAND.gold,
+    bg: "rgba(159,125,39,0.04)",
     heading: "Caught in a loop",
     message: "We looked everywhere. This page keeps not existing.",
     visual: (c) => <SpinningSquare color={c} />,
   },
   {
-    color: "#e879f9",
-    bg: "rgba(232,121,249,0.04)",
+    color: ACCENT_BAND.orchid,
+    bg: "rgba(166,94,174,0.04)",
     heading: "Gone supernova",
     message: "This page exploded into particles. Beautiful, but unhelpful.",
     visual: (c) => <ParticlesBurst color={c} />,

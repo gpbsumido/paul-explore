@@ -3,6 +3,7 @@
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
+import { ACCENT_BAND } from "@/lib/accentBand";
 import FantasyNav from "./FantasyNav";
 
 /** The fantasy NBA pages, surfaced as cards from the section hub. */
@@ -12,35 +13,35 @@ const PAGES = [
     title: "Playoffs Bracket",
     description:
       "Pick every series winner, length, and Finals MVP. Debounced auto-save and a public leaderboard.",
-    color: "#f43f5e",
+    color: ACCENT_BAND.coral,
   },
   {
     href: "/fantasy/nba/player/stats",
     title: "Player Stats",
     description:
       "Live player stats via an API proxy, with per-player error states and skeleton rows while data loads.",
-    color: "#007aff",
+    color: ACCENT_BAND.azure,
   },
   {
     href: "/fantasy/nba/matchups",
     title: "Matchups",
     description:
       "Head-to-head weekly matchups with category breakdowns, animated win bars, and a prediction panel.",
-    color: "#ff6b35",
+    color: ACCENT_BAND.ember,
   },
   {
     href: "/fantasy/nba/court-vision",
     title: "Court Vision",
     description:
       "An SVG half-court shot chart with color-coded shooting zones and per-zone FG%.",
-    color: "#00d4ff",
+    color: ACCENT_BAND.teal,
   },
   {
     href: "/fantasy/nba/league-history",
     title: "League History",
     description:
       "ESPN fantasy basketball standings by season, with expandable rosters and a season selector.",
-    color: "#ff9500",
+    color: ACCENT_BAND.gold,
   },
 ] as const;
 

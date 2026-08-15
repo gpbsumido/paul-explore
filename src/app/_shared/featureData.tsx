@@ -5,6 +5,7 @@ import { m, useReducedMotion } from "framer-motion";
 import { reveal } from "@/app/landing/Section";
 import { spring, cardFlipIn, instantTransition } from "@/lib/animations";
 import type { FeatureItem, ThoughtItem } from "@/types/hub";
+import { ACCENT_BAND } from "@/lib/accentBand";
 
 // The data moved to a plain module so it can be imported without dragging
 // framer-motion (and "use client") along. Re-exported here so the ~20 existing
@@ -40,7 +41,7 @@ export function PlayoffsPreview() {
             className={[
               "flex-1 text-[8px] font-semibold",
               m.pick === 1
-                ? "text-[#f43f5e]"
+                ? "text-[var(--color-feature-nba)]"
                 : "text-black/35 dark:text-white/35",
             ].join(" ")}
           >
@@ -53,7 +54,7 @@ export function PlayoffsPreview() {
             className={[
               "flex-1 text-right text-[8px] font-semibold",
               m.pick === 2
-                ? "text-[#f43f5e]"
+                ? "text-[var(--color-feature-nba)]"
                 : "text-black/35 dark:text-white/35",
             ].join(" ")}
           >
@@ -142,14 +143,14 @@ export const CAL_DAYS: CalDay[] = [
   { d: 26, faded: true },
   { d: 27, faded: true },
   { d: 28, faded: true },
-  { d: 1, chip: "#10b981" },
+  { d: 1, chip: ACCENT_BAND.sea },
   { d: 2 },
   { d: 3 },
   { d: 4 },
   { d: 5 },
-  { d: 6, chip: "#3b82f6" },
-  { d: 7, chip: "#8b5cf6" },
-  { d: 8, chip: "#3b82f6" },
+  { d: 6, chip: ACCENT_BAND.azure },
+  { d: 7, chip: ACCENT_BAND.violet },
+  { d: 8, chip: ACCENT_BAND.azure },
   { d: 9 },
   { d: 10 },
   { d: 11, today: true },
@@ -254,9 +255,9 @@ export const VITALS_MOCK = [
 ] as const;
 
 export const VITALS_DOT_COLORS = {
-  good: "#22c55e",
-  "needs-improvement": "#f59e0b",
-  poor: "#ef4444",
+  good: "var(--color-success-500)",
+  "needs-improvement": "var(--color-warning-500)",
+  poor: "var(--color-error-500)",
 } as const;
 
 export function VitalsPreview() {
@@ -298,13 +299,13 @@ export function VitalsPreview() {
 
 // Static particle network mockup — a handful of dots connected by faint lines.
 export const PARTICLE_DOTS = [
-  { x: 18, y: 28, r: 3, color: "#6366f1" },
-  { x: 52, y: 15, r: 2, color: "#3b82f6" },
-  { x: 80, y: 35, r: 3, color: "#8b5cf6" },
-  { x: 35, y: 65, r: 2, color: "#06b6d4" },
-  { x: 68, y: 72, r: 3, color: "#6366f1" },
-  { x: 90, y: 55, r: 2, color: "#8b5cf6" },
-  { x: 10, y: 60, r: 2, color: "#3b82f6" },
+  { x: 18, y: 28, r: 3, color: ACCENT_BAND.indigo },
+  { x: 52, y: 15, r: 2, color: ACCENT_BAND.azure },
+  { x: 80, y: 35, r: 3, color: ACCENT_BAND.violet },
+  { x: 35, y: 65, r: 2, color: ACCENT_BAND.teal },
+  { x: 68, y: 72, r: 3, color: ACCENT_BAND.indigo },
+  { x: 90, y: 55, r: 2, color: ACCENT_BAND.violet },
+  { x: 10, y: 60, r: 2, color: ACCENT_BAND.azure },
 ];
 export const PARTICLE_LINES = [
   [0, 1],
@@ -349,14 +350,14 @@ export function ParticlesPreview() {
 export const KETSUP_FEED = [
   {
     user: "paulsum",
-    avatar: "#f9a8d4",
+    avatar: "#c95594",
     hasImage: true,
     gradient: "from-secondary-400 to-secondary-500",
   },
-  { user: "janedoe", avatar: "#a5f3fc", hasImage: false, gradient: "" },
+  { user: "janedoe", avatar: "#53becb", hasImage: false, gradient: "" },
   {
     user: "markr",
-    avatar: "#d9f99d",
+    avatar: "#a1c954",
     hasImage: true,
     gradient: "from-primary-400 to-primary-500",
   },
@@ -398,9 +399,9 @@ export const OPERATOR_STORES = [
 ];
 
 export const STATUS_DOT: Record<string, string> = {
-  online: "#22c55e",
-  degraded: "#f59e0b",
-  offline: "#ef4444",
+  online: "#3fb169",
+  degraded: "#bd8d3a",
+  offline: "#c34444",
 };
 
 export function OperatorPreview() {
@@ -423,7 +424,7 @@ export function OperatorPreview() {
               className="h-full rounded-full"
               style={{
                 width: `${s.health}%`,
-                backgroundColor: s.health > 60 ? "#22c55e" : "#f59e0b",
+                backgroundColor: s.health > 60 ? "#3fb169" : "#bd8d3a",
               }}
             />
           </div>
@@ -439,9 +440,9 @@ export function OperatorPreview() {
 // Mini flag list for the hub card: a status dot, a flag name, and either a
 // rollout bar or an "on" pill, echoing the real console.
 export const FLAGS_PREVIEW = [
-  { name: "pocket-tcg", tone: "#fb923c", pct: 100 },
-  { name: "new-checkout", tone: "#22c55e", pct: 25 },
-  { name: "dark-mode", tone: "#22c55e", pct: 100 },
+  { name: "pocket-tcg", tone: "#c67d42", pct: 100 },
+  { name: "new-checkout", tone: "#3fb169", pct: 25 },
+  { name: "dark-mode", tone: "#3fb169", pct: 100 },
 ];
 
 export function FlagsPreview() {
@@ -555,7 +556,7 @@ function WpTickerRow({
             <span
               aria-hidden
               className="h-1 w-1 shrink-0 rounded-full"
-              style={{ backgroundColor: "#60a5fa" }}
+              style={{ backgroundColor: "#4a83c8" }}
             />
             <span className="whitespace-nowrap text-[7px] text-black/50 dark:text-white/50">
               {label}
@@ -580,11 +581,11 @@ export function WorkPortfolioPreview() {
 // Mini mockup for the design-system card: a swatch ramp over two pill "buttons",
 // reading like a tiny component gallery.
 export const DS_SWATCHES = [
-  "#a5f3fc",
-  "#5eead4",
-  "#818cf8",
-  "#f9a8d4",
-  "#fde68a",
+  "#53becb",
+  "#4bc2af",
+  "#535ec9",
+  "#c95594",
+  "#ccb352",
 ] as const;
 
 export function DesignSystemPreview() {
@@ -621,9 +622,9 @@ export function DesignSystemPreview() {
 // A mini skills-matrix: a few trait rows, each a coloured dot, a label bar, and
 // a short filled meter, so the card reads like a competency chart at a glance.
 export const CRAFT_ROWS = [
-  { label: "Performance", color: "#f59e0b", pct: 92 },
-  { label: "System Design", color: "#a78bfa", pct: 88 },
-  { label: "Libraries", color: "#38bdf8", pct: 84 },
+  { label: "Performance", color: "#bd8d3a", pct: 92 },
+  { label: "System Design", color: "#7153ca", pct: 88 },
+  { label: "Libraries", color: "#419cc5", pct: 84 },
   { label: "Accessibility", color: "#34d399", pct: 90 },
 ];
 
@@ -695,17 +696,17 @@ export const WORLD_SKYLINE = [
 ] as const;
 
 export const WORLD_DOTS = [
-  { x: 20, color: "#f59e0b" },
-  { x: 45, color: "#22c55e" },
-  { x: 68, color: "#e879f9" },
-  { x: 88, color: "#f43f5e" },
+  { x: 20, color: "#bd8d3a" },
+  { x: 45, color: "#3fb169" },
+  { x: 68, color: "#b951c9" },
+  { x: 88, color: "#c44359" },
 ] as const;
 
 export function WorldPreview() {
   return (
     <div className="flex h-full flex-col justify-between">
       <svg viewBox="0 0 100 44" className="w-full" aria-hidden>
-        <rect x="0" y="0" width="100" height="44" rx="4" fill="#0b1220" />
+        <rect x="0" y="0" width="100" height="44" rx="4" fill="#4160a0" />
         {WORLD_SKYLINE.map((b) => (
           <rect
             key={b.x}
@@ -713,18 +714,18 @@ export function WorldPreview() {
             y={42 - b.h}
             width={b.w}
             height={b.h}
-            fill="#2c3850"
+            fill="#4f4a40"
           />
         ))}
         {/* CN Tower */}
-        <rect x="31" y="10" width="2" height="32" fill="#4a5878" />
-        <ellipse cx="32" cy="14" rx="3.2" ry="2" fill="#5c6c90" />
-        <rect x="31.6" y="4" width="0.8" height="6" fill="#4a5878" />
-        <circle cx="32" cy="4" r="0.9" fill="#f43f5e" />
+        <rect x="31" y="10" width="2" height="32" fill="#635d50" />
+        <ellipse cx="32" cy="14" rx="3.2" ry="2" fill="#7f7869" />
+        <rect x="31.6" y="4" width="0.8" height="6" fill="#635d50" />
+        <circle cx="32" cy="4" r="0.9" fill="#c44359" />
         {WORLD_DOTS.map((d) => (
           <circle key={d.x} cx={d.x} cy={40} r={1.6} fill={d.color} />
         ))}
-        <rect x="0" y="42" width="100" height="2" fill="#12263f" />
+        <rect x="0" y="42" width="100" height="2" fill="#3f6ba1" />
       </svg>
       <div className="flex items-center justify-center gap-1 pt-1.5">
         {["W", "A", "S", "D"].map((key) => (

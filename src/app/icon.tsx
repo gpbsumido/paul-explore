@@ -5,7 +5,7 @@ export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
 /**
- * Browser tab favicon — a dark tile with a white "P".
+ * Browser tab favicon — a warm ink tile with a warm paper "P".
  * Next.js serves this at /icon and injects the <link rel="icon"> tag automatically.
  * The existing favicon.ico stays as a fallback for older browsers.
  */
@@ -13,7 +13,7 @@ export default function Icon() {
   return new ImageResponse(
     <div
       style={{
-        background: "#0a0a0a",
+        background: "#1d1a15",
         width: "100%",
         height: "100%",
         display: "flex",
@@ -24,7 +24,7 @@ export default function Icon() {
     >
       <span
         style={{
-          color: "#fafafa",
+          color: "#fbfaf7",
           fontSize: 20,
           fontFamily: "sans-serif",
           fontWeight: 700,

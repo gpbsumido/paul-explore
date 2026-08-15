@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
+import { BAND_VALUES } from "./accentBand";
 import { join, relative, sep } from "node:path";
 
 const SRC = join(process.cwd(), "src");
@@ -94,6 +95,50 @@ function liveSourceFiles(): string[] {
 }
 
 /**
+ * Every hex the design tokens themselves define — the three identity ramps, the
+ * semantic surfaces and the feature accents. Read from the stylesheet rather
+ * than copied, so adding a token never means updating this test.
+ */
+function tokenHexes(): Set<string> {
+  const css = readFileSync(join(SRC, "styles/tokens.css"), "utf8");
+  return new Set(
+    (css.match(/#[0-9a-fA-F]{6}\b/g) ?? []).map((hex) => hex.toLowerCase()),
+  );
+}
+
+/** The tone band, the same one `thoughtColors.test.ts` pins the registry into. */
+function inToneBand(hex: string): boolean {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  return s >= 0.24 && s <= 0.68 && l >= 0.33 && l <= 0.62;
+}
+
+/**
+ * A hex literal on a live surface has to be a colour the palette accounts for:
+ * a token value, one of the named band accents, or any other hue that sits in
+ * the tone band. Hue is free -- it is the identity of whatever is being
+ * coloured -- so the band, not the named list, is the real contract. The
+ * registry accents are the reason: there are far more of them than there are
+ * names, and they are all legitimately in band.
+ *
+ * Black and white pass because they are used as overlay and mask endpoints
+ * rather than as colour.
+ */
+function isOffPalette(hex: string, tokens: Set<string>): boolean {
+  const value = hex.toLowerCase();
+  if (value === "#000000" || value === "#ffffff") return false;
+  if (tokens.has(value)) return false;
+  if ((BAND_VALUES as readonly string[]).includes(value)) return false;
+  return !inToneBand(value);
+}
+
+/**
  * The retune only holds if nothing quietly reintroduces the stock palette. This
  * reads the real source rather than a registry, because the surfaces that were
  * off-palette were exactly the ones no registry covered.
@@ -107,6 +152,24 @@ describe("live surfaces carry the palette", () => {
         .filter(({ line }) => STOCK_UTILITY.test(line))
         .map(({ line, number }) => `${file}:${number} ${line.trim()}`),
     );
+
+    expect(offenders).toEqual([]);
+  });
+
+  it("writes no hex literal outside the palette", () => {
+    const tokens = tokenHexes();
+    const offenders = liveSourceFiles()
+      .filter((file) => file !== "src/styles/tokens.css")
+      .filter((file) => file !== "src/app/globals.css")
+      .flatMap((file) =>
+        readFileSync(join(process.cwd(), file), "utf8")
+          .split("\n")
+          .flatMap((line, index) =>
+            (line.match(/#[0-9a-fA-F]{6}\b/g) ?? [])
+              .filter((hex) => isOffPalette(hex, tokens))
+              .map((hex) => `${file}:${index + 1} ${hex}`),
+          ),
+      );
 
     expect(offenders).toEqual([]);
   });

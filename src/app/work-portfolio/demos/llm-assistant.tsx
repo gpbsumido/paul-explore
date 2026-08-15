@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #60a5fa)";
+const ACCENT = "var(--wp-accent, #4a83c8)";
 
 type ToolCall = { name: string; args: string; status: "running" | "done" };
 type Msg = {

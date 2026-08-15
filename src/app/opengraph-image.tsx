@@ -7,7 +7,7 @@ export const contentType = "image/png";
 
 /**
  * Default OG image shared across all pages. Shows the site name at the top
- * and a short descriptor at the bottom. Keeps the same dark palette as the app.
+ * and a short descriptor at the bottom. Keeps the same warm ink palette as the app.
  *
  * Pages that need something page-specific can drop their own opengraph-image.tsx
  * in the route folder — Next.js will pick the closest one.
@@ -16,7 +16,7 @@ export default function OGImage() {
   return new ImageResponse(
     <div
       style={{
-        background: "#0a0a0a",
+        background: "#1d1a15",
         width: "100%",
         height: "100%",
         display: "flex",
@@ -28,7 +28,7 @@ export default function OGImage() {
       {/* site label — top left */}
       <span
         style={{
-          color: "#404040",
+          color: "#7f7869",
           fontSize: 18,
           fontFamily: "sans-serif",
           letterSpacing: "0.12em",
@@ -42,7 +42,7 @@ export default function OGImage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <span
           style={{
-            color: "#fafafa",
+            color: "#fbfaf7",
             fontSize: 60,
             fontFamily: "sans-serif",
             fontWeight: 700,
@@ -53,7 +53,7 @@ export default function OGImage() {
         </span>
         <span
           style={{
-            color: "#6b7280",
+            color: "#a49d90",
             fontSize: 24,
             fontFamily: "sans-serif",
           }}

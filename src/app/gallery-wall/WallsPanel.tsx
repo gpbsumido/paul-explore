@@ -12,7 +12,7 @@ import {
 } from "./_lib/walls-api";
 import type { GalleryState } from "./_lib/state";
 
-const ACCENT = "#e879f9";
+const ACCENT = "var(--color-feature-gallery-wall)";
 
 type WallsPanelProps = {
   /** The arrangement that Save writes. */

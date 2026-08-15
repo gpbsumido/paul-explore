@@ -3,6 +3,7 @@
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
+import { ACCENT_BAND } from "@/lib/accentBand";
 import {
   TcgPreview,
   PocketPreview,
@@ -26,7 +27,7 @@ const APPS: PokemonApp[] = [
     description:
       "Card browser with infinite scroll, URL-synced filters, per-set grids, and deep card detail pages — built on the TCGdex SDK.",
     href: "/tcg/pokemon",
-    color: "#ef4444",
+    color: ACCENT_BAND.red,
     thoughtsHref: "/thoughts/tcg",
     Preview: TcgPreview,
   },
@@ -35,7 +36,7 @@ const APPS: PokemonApp[] = [
     description:
       "All Pokémon TCG Pocket expansions — sets, packs, and individual card pages with full metadata and ISR caching.",
     href: "/tcg/pocket",
-    color: "#6366f1",
+    color: ACCENT_BAND.indigo,
     Preview: PocketPreview,
   },
   {
@@ -43,7 +44,7 @@ const APPS: PokemonApp[] = [
     description:
       "Pokémon browser on the PokeAPI Hasura endpoint. Plain fetch over Apollo, typed queries, streaming SSR, and a live query inspector.",
     href: "/graphql",
-    color: "#14b8a6",
+    color: ACCENT_BAND.teal,
     thoughtsHref: "/thoughts/graphql",
     Preview: GraphQLPreview,
   },

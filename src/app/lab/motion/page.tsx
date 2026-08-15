@@ -10,6 +10,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { spring } from "@/lib/animations";
+import { ACCENT_BAND } from "@/lib/accentBand";
 
 // ---------------------------------------------------------------------------
 // Shared glass card style — dark bg, all demos on neutral-950
@@ -170,18 +171,18 @@ function SpringPlayground() {
 // ===========================================================================
 
 const TILE_COLORS = [
-  "#6366f1",
-  "#7c3aed",
-  "#a855f7",
-  "#d946ef",
-  "#ec4899",
-  "#f43f5e",
-  "#fb923c",
-  "#f59e0b",
-  "#eab308",
-  "#84cc16",
-  "#22c55e",
-  "#10b981",
+  ACCENT_BAND.indigo,
+  ACCENT_BAND.violet,
+  ACCENT_BAND.orchid,
+  ACCENT_BAND.magenta,
+  ACCENT_BAND.rose,
+  ACCENT_BAND.coral,
+  ACCENT_BAND.red,
+  ACCENT_BAND.ember,
+  ACCENT_BAND.gold,
+  ACCENT_BAND.olive,
+  ACCENT_BAND.sea,
+  ACCENT_BAND.verdigris,
 ];
 
 function StaggerGrid() {
@@ -247,11 +248,15 @@ function StaggerGrid() {
 type ListItem = { id: string; label: string; color: string };
 
 const INITIAL_ITEMS: ListItem[] = [
-  { id: "1", label: "Hold and drag to reorder", color: "#6366f1" },
-  { id: "2", label: "Items animate with layout prop", color: "#10b981" },
-  { id: "3", label: "Spring physics on drop", color: "#f43f5e" },
-  { id: "4", label: "Built on Framer Reorder.Group", color: "#f59e0b" },
-  { id: "5", label: "No external lib required", color: "#a855f7" },
+  { id: "1", label: "Hold and drag to reorder", color: ACCENT_BAND.indigo },
+  {
+    id: "2",
+    label: "Items animate with layout prop",
+    color: ACCENT_BAND.verdigris,
+  },
+  { id: "3", label: "Spring physics on drop", color: ACCENT_BAND.coral },
+  { id: "4", label: "Built on Framer Reorder.Group", color: ACCENT_BAND.gold },
+  { id: "5", label: "No external lib required", color: ACCENT_BAND.orchid },
 ];
 
 function ReorderList() {
@@ -362,13 +367,14 @@ function ScrollParallax() {
 
 type GestureState = "idle" | "hover" | "tap" | "drag";
 
-// Deepened one step from the indigo/violet palette so white label text clears
-// AA contrast on every state (the lighter originals failed for small text).
+// Four steps around the purple arc of the accent band. The band's lightness cap
+// puts most of its values at about 4.4:1 against the white label, a hair under
+// AA, so idle (the state that shows longest) takes indigo, the one that clears it.
 const GESTURE_COLORS: Record<GestureState, string> = {
-  idle: "#4f46e5",
-  hover: "#7c3aed",
-  tap: "#9333ea",
-  drag: "#6d28d9",
+  idle: ACCENT_BAND.indigo,
+  hover: ACCENT_BAND.violet,
+  tap: ACCENT_BAND.orchid,
+  drag: ACCENT_BAND.magenta,
 };
 
 const GESTURE_LABELS: Record<GestureState, string> = {
@@ -463,19 +469,19 @@ type LayoutItem = { id: string; color: string; label: string; desc: string };
 const LAYOUT_ITEMS: LayoutItem[] = [
   {
     id: "alpha",
-    color: "#6366f1",
+    color: ACCENT_BAND.indigo,
     label: "Alpha",
     desc: "Click any card — it morphs from its grid slot to a full overlay using layoutId. No positional math.",
   },
   {
     id: "beta",
-    color: "#10b981",
+    color: ACCENT_BAND.verdigris,
     label: "Beta",
     desc: "Siblings stay in place while the selected card expands. Click the overlay to collapse it back.",
   },
   {
     id: "gamma",
-    color: "#f43f5e",
+    color: ACCENT_BAND.coral,
     label: "Gamma",
     desc: "The title text has its own layoutId, so it moves independently from the card shape during transition.",
   },

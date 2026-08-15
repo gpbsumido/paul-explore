@@ -88,11 +88,11 @@ function WinBar({ leftPct, animate }: { leftPct: number; animate: boolean }) {
   return (
     <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-black/5 dark:bg-white/5">
       <m.div
-        className="rounded-l-full bg-[#FF6B35]"
+        className="rounded-l-full bg-[var(--color-feature-flags)]"
         style={{ width: leftWidth }}
       />
       <m.div
-        className="rounded-r-full bg-[#00D4FF]"
+        className="rounded-r-full bg-[var(--color-feature-particles)]"
         style={{ width: rightWidth }}
       />
     </div>
@@ -121,7 +121,7 @@ function CategoryRow({
       <td
         className={`px-3 py-2 text-right text-[13px] font-mono tabular-nums ${
           awayWins && !tied
-            ? "font-bold text-[#c2410c] dark:text-[#FF6B35]"
+            ? "font-bold text-[var(--color-feature-flags)]"
             : "text-muted"
         }`}
       >
@@ -133,7 +133,7 @@ function CategoryRow({
       <td
         className={`px-3 py-2 text-left text-[13px] font-mono tabular-nums ${
           homeWins && !tied
-            ? "font-bold text-[#0e7490] dark:text-[#00D4FF]"
+            ? "font-bold text-[var(--color-feature-particles)]"
             : "text-muted"
         }`}
       >
@@ -191,14 +191,14 @@ function MatchupCard({
           <div className="flex items-baseline gap-2">
             <CountUpScore
               value={awayPts}
-              className="text-lg font-bold font-mono tabular-nums text-[#c2410c] dark:text-[#FF6B35]"
+              className="text-lg font-bold font-mono tabular-nums text-[var(--color-feature-flags)]"
             />
             <span className="text-[10px] font-semibold uppercase tracking-widest text-muted">
               vs
             </span>
             <CountUpScore
               value={homePts}
-              className="text-lg font-bold font-mono tabular-nums text-[#0e7490] dark:text-[#00D4FF]"
+              className="text-lg font-bold font-mono tabular-nums text-[var(--color-feature-particles)]"
             />
           </div>
           <span className="text-[10px] font-medium text-muted tabular-nums">

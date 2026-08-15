@@ -418,7 +418,7 @@ function ChampionDisplay({
           <p
             className="text-[15px] font-bold tracking-tight"
             style={
-              teamInfo ? { color: teamInfo.primary } : { color: "#eab308" }
+              teamInfo ? { color: teamInfo.primary } : { color: "var(--color-feature-nba)" }
             }
           >
             {champion?.name ?? finalsPick.winner}

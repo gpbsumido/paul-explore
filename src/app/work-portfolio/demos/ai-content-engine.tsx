@@ -5,7 +5,7 @@ import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #f472b6)";
+const ACCENT = "var(--wp-accent, #c7508e)";
 
 const TEMPLATES = ["Patch notes", "Event teaser", "Store blurb"] as const;
 type Template = (typeof TEMPLATES)[number];

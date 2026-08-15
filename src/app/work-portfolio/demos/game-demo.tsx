@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #22d3ee)";
+const ACCENT = "var(--wp-accent, #3daebf)";
 const ROUND_SECONDS = 20;
 
 type Phase = "idle" | "loading" | "playing";
@@ -90,7 +90,7 @@ export default function GameDemoFrame({ feature }: { feature: WorkFeature }) {
         className="relative min-h-40 flex-1 overflow-hidden rounded-lg border border-border"
         style={{
           background:
-            "radial-gradient(120% 120% at 50% 20%, rgba(34,211,238,0.25), transparent 60%), #0b0f14",
+            "radial-gradient(120% 120% at 50% 20%, rgba(34,211,238,0.25), transparent 60%), #151310",
         }}
       >
         {phase === "idle" && (

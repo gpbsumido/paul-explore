@@ -6,6 +6,8 @@
  * from a bullet list of adjectives.
  */
 
+import { ACCENT_BAND } from "@/lib/accentBand";
+
 /** A single "here's where I did this" link on a trait. */
 export type CraftEvidence = {
   /** Short human label shown on the chip. */
@@ -37,7 +39,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Own the real-user number, not just the Lighthouse score.",
     detail:
       "A lead treats each Core Web Vital as a budget with a name on it. That means measuring real loads in the field, chasing the regression to its source, and knowing whether the win is in the bundle, the render, or the network.",
-    color: "#f59e0b",
+    color: ACCENT_BAND.gold,
     evidence: [
       { label: "Web Vitals", href: "/vitals" },
       { label: "Perf pass", href: "/thoughts/perf" },
@@ -52,7 +54,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Draw the boundaries before writing the components.",
     detail:
       "Deciding what renders on the server, what the client owns, and where state actually lives is the work. A lead restructures routes, layers a backend, and picks polling versus push based on the shape of the data, not the framework's defaults.",
-    color: "#a78bfa",
+    color: ACCENT_BAND.violet,
     evidence: [
       { label: "Route restructure", href: "/thoughts/routing" },
       { label: "API backend overhaul", href: "/thoughts/api-backend-overhaul" },
@@ -65,7 +67,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Add a dependency when it earns its weight, not before.",
     detail:
       "Knowing when Framer Motion is worth the bytes, when React Three Fiber pays for itself, and when a plain fetch beats reaching for Apollo. A lead reads the trade-off in both directions and can rip a heavy library back out when it stops earning its place.",
-    color: "#38bdf8",
+    color: ACCENT_BAND.azure,
     evidence: [
       { label: "Motion Lab", href: "/lab/motion" },
       { label: "Particle Lab", href: "/lab/particles" },
@@ -79,7 +81,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Ship WCAG AA by default, tested, not bolted on.",
     detail:
       "Semantic HTML first, ARIA only to fill the gaps, keyboard paths that actually work, and an automated axe scan in the suite so a regression fails the build. A lead knows where tooling helps and where it can't, and audits the primitives everything else is built from.",
-    color: "#34d399",
+    color: ACCENT_BAND.sea,
     evidence: [
       { label: "Accessibility", href: "/thoughts/accessibility" },
       { label: "V3 a11y audit", href: "/thoughts/v3-redesign" },
@@ -91,7 +93,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "TDD as the default, behavior as the contract.",
     detail:
       "Tests written first, aimed at behavior instead of implementation, backed by e2e coverage of the real flows and mutation testing to prove the tests would actually catch a break. A lead makes the CI signal trustworthy so green means green.",
-    color: "#818cf8",
+    color: ACCENT_BAND.indigo,
     evidence: [
       { label: "Testing", href: "/thoughts/testing" },
       { label: "E2E testing", href: "/thoughts/e2e" },
@@ -105,7 +107,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Strict types inside, schemas at the edges.",
     detail:
       "No any, no unearned assertions, and Zod validation at every trust boundary so bad input fails loud and early. A lead derives types from schemas rather than keeping the two in sync by hand.",
-    color: "#0ea5e9",
+    color: ACCENT_BAND.blue,
     evidence: [
       { label: "API hardening", href: "/thoughts/improvements" },
       { label: "API backend overhaul", href: "/thoughts/api-backend-overhaul" },
@@ -117,7 +119,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Tokens and primitives that scale past one app.",
     detail:
       "Design tokens as CSS custom properties, thin framework wrappers over them, and shared components published so React and Angular apps stay in visual lockstep. A lead builds the system once and aliases it everywhere instead of re-styling per screen.",
-    color: "#06b6d4",
+    color: ACCENT_BAND.teal,
     evidence: [
       { label: "Design system", href: "/thoughts/design-system" },
       { label: "Styling decisions", href: "/thoughts/styling" },
@@ -130,7 +132,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Threat-model the surface, then close it.",
     detail:
       "A real Content Security Policy, fixed-window rate limiting, body-size caps on every route, and thinking through the new attack surface that AI tooling opens up. A lead knows which mitigation actually stops the attack and which just looks like it does.",
-    color: "#ec4899",
+    color: ACCENT_BAND.magenta,
     evidence: [
       { label: "CSP & security", href: "/thoughts/security" },
       { label: "AI security", href: "/thoughts/ai-security" },
@@ -143,7 +145,7 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Let the deliverable pick the bundler, not taste.",
     detail:
       "Choosing a bundler, a package manager, and a deploy target from the app's runtime shape and its dominant constraint. A lead can justify the migration, or justify not doing it, and knows the trade-offs that bite six months later.",
-    color: "#a855f7",
+    color: ACCENT_BAND.orchid,
     evidence: [
       { label: "Bundlers", href: "/thoughts/bundlers" },
       { label: "npm to pnpm", href: "/thoughts/npm-to-pnpm" },
@@ -156,7 +158,8 @@ export const CRAFT_TRAITS: CraftTrait[] = [
     principle: "Turn a review into something the team learns from.",
     detail:
       "Reading a whole codebase for the story it tells, separating severity from priority, and writing the review so the next person gets better instead of just getting a patch. A lead leaves the codebase and the team stronger than they found them.",
-    color: "#64748b",
+    // Stays deliberately quiet, the way the slate it replaces did.
+    color: "#7f7869",
     evidence: [
       { label: "React Doctor", href: "/thoughts/react-doctor" },
       { label: "Project review", href: "/thoughts/project-review" },
