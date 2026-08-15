@@ -176,7 +176,9 @@ function MotionPrimitiveDemo({ id }: { id: string }) {
   }
   if (id === "blob-background") {
     return (
-      <div className="relative h-24 overflow-hidden rounded-xl">
+      // w-full matters: the preview frame is a flex row, and a flex item whose
+      // only content is absolutely positioned collapses to zero width.
+      <div className="relative h-24 w-full overflow-hidden rounded-xl">
         <BlobBackground seeds={[12, 34]} />
       </div>
     );
@@ -190,7 +192,7 @@ function MotionPrimitiveDemo({ id }: { id: string }) {
   }
   if (id === "gradient-mesh") {
     return (
-      <div className="relative h-24 overflow-hidden rounded-xl">
+      <div className="relative h-24 w-full overflow-hidden rounded-xl">
         <GradientMesh />
       </div>
     );
@@ -252,7 +254,7 @@ function ButtonPlayground() {
   ) => setState((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <div className="space-y-4">
         <FilterBar
           label="Button playground controls"
@@ -634,7 +636,7 @@ function TokenGallery() {
         </div>
       </div>
 
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
         <div>
           <h3 className="mb-3 text-sm font-semibold text-foreground">Radius</h3>
           <div className="flex flex-wrap gap-4">
@@ -796,7 +798,7 @@ export default function DesignSystemShowcaseContent() {
             Hover the ⓘ for how to use each one, hover the preview for a quick
             hint, and follow a chip to see it in production.
           </p>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {COMPONENTS.map((component) => (
               <ComponentCard key={component.id} component={component} />
             ))}
@@ -814,7 +816,7 @@ export default function DesignSystemShowcaseContent() {
             sit outside the catalog above. Each one respects reduced motion and
             renders its content visible in the server HTML.
           </p>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {MOTION_PRIMITIVES.map((primitive) => (
               <MotionPrimitiveCard key={primitive.id} primitive={primitive} />
             ))}

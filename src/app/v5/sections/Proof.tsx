@@ -39,7 +39,7 @@ export default function Proof() {
         The numbers behind the claim
       </h2>
       <div className={`${SHELL} py-12`}>
-        <dl className="grid gap-10 sm:grid-cols-3">
+        <dl className="grid grid-cols-1 gap-10 sm:grid-cols-3">
           {FIGURES.map((figure) => (
             <div key={figure.caption}>
               <dt className="sr-only">{figure.caption}</dt>

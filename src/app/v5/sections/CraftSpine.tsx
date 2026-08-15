@@ -25,7 +25,7 @@ function TraitRow({ trait, index }: { trait: CraftTrait; index: number }) {
         aria-hidden="true"
         className="absolute inset-y-3 left-0 w-0.5 origin-top scale-y-0 rounded-full bg-[var(--trait)] transition-transform duration-300 group-hover:scale-y-100"
       />
-      <div className="grid gap-x-6 gap-y-3 rounded-r-2xl px-5 py-6 sm:grid-cols-[3.5rem_1fr] sm:px-7">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-3 rounded-r-2xl px-5 py-6 sm:grid-cols-[3.5rem_1fr] sm:px-7">
         <span
           aria-hidden="true"
           className="font-display text-2xl font-semibold tabular-nums text-[color-mix(in_srgb,var(--trait)_55%,var(--color-muted))] sm:text-3xl"
@@ -82,7 +82,7 @@ export default function CraftSpine() {
 
   return (
     <section id="craft" className={BAND}>
-      <div className={`${SHELL} grid gap-10 lg:grid-cols-12 lg:gap-14`}>
+      <div className={`${SHELL} grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-14`}>
         <div className="lg:col-span-4 lg:sticky lg:top-24 lg:self-start">
           <TextReveal
             as="h2"

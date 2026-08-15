@@ -71,7 +71,7 @@ export default function FeaturedWork() {
           Six of them, picked for what they prove
         </TextReveal>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-6">
+        <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-6">
           {picks.map(({ feature, pitch, span }, index) => {
             const wide = span >= 4;
             return (
