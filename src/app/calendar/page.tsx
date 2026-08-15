@@ -69,7 +69,7 @@ async function CalendarWithData() {
 
 export default function CalendarPage() {
   return (
-    <PageShell colorA="#f59e0b" colorB="#8b5cf6" className="font-sans">
+    <PageShell colorA="var(--color-feature-calendar)" colorB="var(--color-secondary-500)" className="font-sans">
       <PageHeader
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Calendar" }]}
       />

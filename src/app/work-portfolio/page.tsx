@@ -32,7 +32,7 @@ export const revalidate = 86400;
 export default function WorkPortfolioPage() {
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-background">
-      <AmbientBackground colorA="#60a5fa" colorB="#8b5cf6" />
+      <AmbientBackground colorA="var(--color-feature-work-portfolio)" colorB="var(--color-secondary-500)" />
       <div className="relative z-10 flex min-h-0 flex-1 flex-col">
         <PageHeader
           breadcrumbs={[

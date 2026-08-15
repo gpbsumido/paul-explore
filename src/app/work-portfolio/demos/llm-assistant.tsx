@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Input from "@/components/ui/Input";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #60a5fa)";
+const ACCENT = "var(--wp-accent, #4a83c8)";
 
 type ToolCall = { name: string; args: string; status: "running" | "done" };
 type Msg = {
@@ -264,7 +264,7 @@ export default function LlmAssistantDemo({
                       <li key={step} className="flex items-center gap-1.5">
                         <span
                           aria-hidden
-                          className={done ? "text-emerald-500" : "text-muted"}
+                          className={done ? "text-success-500" : "text-muted"}
                         >
                           {done ? "✓" : "•"}
                         </span>
@@ -288,7 +288,7 @@ export default function LlmAssistantDemo({
                     className={
                       m.tool.status === "running"
                         ? "animate-pulse"
-                        : "text-emerald-500"
+                        : "text-success-500"
                     }
                   >
                     {m.tool.status === "running" ? "◷" : "✓"}

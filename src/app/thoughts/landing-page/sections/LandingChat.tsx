@@ -455,8 +455,8 @@ for (let y = 1; y < simH - 1; y++) {
       <Sent pos="last">
         one attribute handles it: <code>data-theme=&quot;dark&quot;</code> on
         the section element. the CSS token cascade does the rest —{" "}
-        <code>text-foreground</code> reads <code>#ededed</code>,{" "}
-        <code>text-muted</code> reads <code>#a3a3a3</code>. zero changes to any
+        <code>text-foreground</code> reads <code>#ece8e1</code>,{" "}
+        <code>text-muted</code> reads <code>#a49d90</code>. zero changes to any
         individual section file, all the existing color classes just work
       </Sent>
 

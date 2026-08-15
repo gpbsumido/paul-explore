@@ -97,7 +97,7 @@ function TeamButton({
             transition={{ type: "spring", stiffness: 500, damping: 22 }}
             className="ml-auto h-3.5 w-3.5 shrink-0"
             style={
-              teamInfo ? { color: teamInfo.primary } : { color: "#f97316" }
+              teamInfo ? { color: teamInfo.primary } : { color: "var(--color-secondary-500)" }
             }
             viewBox="0 0 24 24"
             fill="none"

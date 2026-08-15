@@ -11,6 +11,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import WallStage from "./WallStage";
+import { ACCENT_BAND } from "@/lib/accentBand";
 import WallsPanel from "./WallsPanel";
 import {
   viewportRect,
@@ -36,7 +37,7 @@ import {
   type UploadedImage,
 } from "./_lib/state";
 
-const ACCENT = "#e879f9";
+const ACCENT = ACCENT_BAND.magenta;
 const CM_PER_INCH = 2.54;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 4;
@@ -371,7 +372,7 @@ export default function GalleryWallContent({ initialState }: Props) {
   const tax = taxRateFor(place);
 
   return (
-    <PageShell colorA={ACCENT} colorB="#818cf8">
+    <PageShell colorA={ACCENT} colorB="var(--color-primary-500)">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Gallery Wall" }]}
         maxWidth="max-w-5xl"
@@ -595,7 +596,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                 {validation.overlaps.length > 0 ? (
                   <div
                     role="alert"
-                    className="pointer-events-none absolute inset-x-3 bottom-3 flex items-start gap-2 rounded-lg border border-red-500/50 bg-red-500/15 px-3 py-2 text-[13px] font-medium text-red-700 shadow-sm backdrop-blur dark:text-red-300"
+                    className="pointer-events-none absolute inset-x-3 bottom-3 flex items-start gap-2 rounded-lg border border-error-500/50 bg-error-500/15 px-3 py-2 text-[13px] font-medium text-error-700 shadow-sm backdrop-blur dark:text-error-300"
                   >
                     <span aria-hidden className="mt-0.5 font-bold">
                       ⚠
@@ -607,7 +608,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                 ) : validation.outOfBounds.length > 0 ? (
                   <div
                     role="alert"
-                    className="pointer-events-none absolute inset-x-3 bottom-3 flex items-start gap-2 rounded-lg border border-amber-500/50 bg-amber-500/15 px-3 py-2 text-[13px] font-medium text-amber-700 shadow-sm backdrop-blur dark:text-amber-300"
+                    className="pointer-events-none absolute inset-x-3 bottom-3 flex items-start gap-2 rounded-lg border border-warning-500/50 bg-warning-500/15 px-3 py-2 text-[13px] font-medium text-warning-700 shadow-sm backdrop-blur dark:text-warning-300"
                   >
                     <span aria-hidden className="mt-0.5 font-bold">
                       ⚠
@@ -970,7 +971,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                             onClick={() =>
                               dispatch({ type: "remove-image", id: image.id })
                             }
-                            className="shrink-0 self-start rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:border-red-500/40 hover:text-red-500"
+                            className="shrink-0 self-start rounded-md border border-border px-2 py-1 text-[12px] text-muted transition-colors hover:border-error-500/40 hover:text-error-500"
                           >
                             Remove
                             <span className="sr-only"> photo {index + 1}</span>
@@ -1048,7 +1049,7 @@ export default function GalleryWallContent({ initialState }: Props) {
                     Shipping and frames not included.
                   </p>
                   {cost.unpriced.length > 0 ? (
-                    <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
+                    <p className="mt-1 text-[11px] text-warning-600 dark:text-warning-400">
                       No price on file for {cost.unpriced.join(", ")}.
                     </p>
                   ) : null}

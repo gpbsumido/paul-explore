@@ -151,8 +151,8 @@ function SharingTab({
     if (role === "owner")
       return "px-2 py-0.5 text-xs rounded-full bg-neutral-100 dark:bg-neutral-800 text-muted";
     if (role === "editor")
-      return "px-2 py-0.5 text-xs rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-400";
-    return "px-2 py-0.5 text-xs rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400";
+      return "px-2 py-0.5 text-xs rounded-full bg-primary-500/10 text-primary-700 dark:text-primary-400";
+    return "px-2 py-0.5 text-xs rounded-full bg-warning-500/10 text-warning-700 dark:text-warning-400";
   };
 
   return (
@@ -206,7 +206,7 @@ function SharingTab({
                     type="button"
                     onClick={() => handleRemove(m.userSub)}
                     aria-label={`Remove ${m.email}`}
-                    className="shrink-0 text-red-500 hover:text-red-700 transition-colors"
+                    className="shrink-0 text-error-500 hover:text-error-700 transition-colors"
                   >
                     <svg
                       width="12"
@@ -234,7 +234,7 @@ function SharingTab({
       )}
 
       {removeWarning && (
-        <p className="text-xs text-amber-700 dark:text-amber-400 rounded-lg bg-amber-500/10 px-3 py-2">
+        <p className="text-xs text-warning-700 dark:text-warning-400 rounded-lg bg-warning-500/10 px-3 py-2">
           {removeWarning}
         </p>
       )}
@@ -301,7 +301,7 @@ function SharingTab({
             </Button>
           </div>
           {inviteError && (
-            <p className="text-xs text-red-600 dark:text-red-400">
+            <p className="text-xs text-error-600 dark:text-error-400">
               {inviteError}
             </p>
           )}
@@ -633,10 +633,10 @@ export default function CalendarModal({
           </div>
 
           {showConnectedBadge && (
-            <div className="flex items-center justify-between gap-3 rounded-lg bg-green-500/10 px-3 py-2">
+            <div className="flex items-center justify-between gap-3 rounded-lg bg-success-500/10 px-3 py-2">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-                <span className="text-xs text-green-700 dark:text-green-400 truncate">
+                <div className="h-1.5 w-1.5 rounded-full bg-success-500 shrink-0" />
+                <span className="text-xs text-success-700 dark:text-success-400 truncate">
                   Connected to{" "}
                   {calendar!.googleCalName ?? calendar!.googleCalId}
                 </span>
@@ -664,7 +664,7 @@ export default function CalendarModal({
           )}
 
           {saveError && (
-            <p className="text-xs text-red-600 dark:text-red-400">
+            <p className="text-xs text-error-600 dark:text-error-400">
               {saveError}
             </p>
           )}

@@ -13,7 +13,7 @@ import {
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
 
-const ACCENT = "var(--wp-accent, #38bdf8)";
+const ACCENT = "var(--wp-accent, #419cc5)";
 
 const TABS = ["Game", "Web", "On-chain", "Sandbox"] as const;
 type Tab = (typeof TABS)[number];

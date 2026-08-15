@@ -80,7 +80,7 @@ async function EventDetailWithData({ id }: { id: string }) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
         <BackLink />
-        <p className="mt-6 text-sm text-red-600 dark:text-red-400">
+        <p className="mt-6 text-sm text-error-600 dark:text-error-400">
           {error ?? "Event not found."}
         </p>
       </div>

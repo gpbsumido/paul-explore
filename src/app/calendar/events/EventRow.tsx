@@ -30,7 +30,7 @@ export default function EventRow({ event }: { event: CalendarEvent }) {
           style={{ backgroundColor: event.color }}
         />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground group-hover:text-red-400 transition-colors truncate">
+          <p className="text-sm font-medium text-foreground group-hover:text-primary-400 transition-colors truncate">
             {event.title}
           </p>
           <p className="text-xs text-muted mt-0.5">{dateLabel}</p>

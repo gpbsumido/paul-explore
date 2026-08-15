@@ -10,7 +10,7 @@ import {
 } from "@/hooks/useReferrals";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #fb7185)";
+const ACCENT = "var(--wp-accent, #ca4e60)";
 
 const TARGETS = [
   { path: "/work-portfolio", label: "Work portfolio" },
@@ -98,7 +98,7 @@ export default function ReferralLinksDemo({
       </Button>
 
       {create.isError && (
-        <p role="alert" className="text-[12px] text-red-500">
+        <p role="alert" className="text-[12px] text-error-500">
           {create.error.message}
         </p>
       )}

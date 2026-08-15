@@ -225,7 +225,7 @@ const CardTile = memo(function CardTile({ card }: { card: CardResume }) {
   return (
     <Link
       href={`/tcg/pokemon/card/${card.id}`}
-      className="group rounded-lg overflow-hidden border border-border bg-surface hover:border-red-400/50 hover:shadow-lg hover:shadow-red-500/10 transition-[border-color,box-shadow]"
+      className="group rounded-lg overflow-hidden border border-border bg-surface hover:border-secondary-400/50 hover:shadow-lg hover:shadow-secondary-500/10 transition-[border-color,box-shadow]"
       style={{ contentVisibility: "auto", containIntrinsicSize: "auto 280px" }}
     >
       {card.image ? (
@@ -271,7 +271,7 @@ function TypePill({
       onClick={onClick}
       className={`shrink-0 font-bold uppercase tracking-wide border ${
         active
-          ? `${typeColor ?? "bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-200"} border-transparent`
+          ? `${typeColor ?? "bg-secondary-100 text-secondary-900 dark:bg-secondary-950 dark:text-secondary-200"} border-transparent`
           : "text-muted border-border hover:border-foreground/40"
       }`}
     >

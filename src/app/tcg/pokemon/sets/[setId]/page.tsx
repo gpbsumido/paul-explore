@@ -124,7 +124,7 @@ function LegalBadge({ label, legal }: { label: string; legal: boolean }) {
     <span
       className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide border ${
         legal
-          ? "bg-green-500/15 text-green-400 border-green-500/20"
+          ? "bg-success-500/15 text-success-400 border-success-500/20"
           : "bg-surface text-muted border-border"
       }`}
     >

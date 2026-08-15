@@ -21,8 +21,11 @@ const PILL =
 export default function LandingActions({ loggedIn }: { loggedIn: boolean }) {
   return (
     <div className="flex items-center gap-2 sm:gap-3">
+      {/* Settings rides the session: /settings only bounces a guest to login,
+          so a guest's menu doesn't offer it. The landing knows the auth state
+          server-side, which spares the menu its own /api/me round trip. */}
       <HeaderMenu
-        showSettings
+        showSettings={loggedIn}
         showLogout={false}
         triggerClassName={`flex items-center gap-1.5 px-3 text-muted hover:text-foreground ${PILL}`}
       />

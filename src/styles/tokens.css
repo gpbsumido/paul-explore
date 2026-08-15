@@ -19,7 +19,22 @@
    Sourced from @paul-portfolio/tokens
    ======================================== */
 :root {
-  /* Primary (blue) — from @paul-portfolio/tokens */
+  /* ========================================
+     VERDIGRIS & EMBER
+     The identity ramps are aliases again. They were literal values here for
+     one release, while this app shipped the palette and the shared package
+     still handed down stock blue. @paul-portfolio/tokens 0.3.0 ships these
+     exact values, so restating them locally would give the same colour two
+     owners and let them drift apart silently.
+
+     The measured ratios that shaped the load-bearing steps now live in the
+     package next to the values, which is where a future edit will look.
+     ======================================== */
+
+  /* Primary — verdigris. 600 is the text/fill step: 4.87:1 on light paper,
+     and white on it is 5.09:1, so a filled button and its label both clear
+     AA. 500 is the focus ring: 3.31:1 light and 5.46:1 dark, both over the
+     3:1 bar for non-text UI. */
   --color-primary-50: var(--paul-color-primary-50);
   --color-primary-100: var(--paul-color-primary-100);
   --color-primary-200: var(--paul-color-primary-200);
@@ -32,7 +47,9 @@
   --color-primary-900: var(--paul-color-primary-900);
   --color-primary-950: var(--paul-color-primary-950);
 
-  /* Secondary (violet) — from @paul-portfolio/tokens */
+  /* Secondary — ember. 600 sits at #b25c12 rather than a lighter apricot
+     because the obvious #bd6314 only reached 4.06:1 on paper and 4.24:1 for
+     white-on-fill. This one gives 4.54 and 4.74. */
   --color-secondary-50: var(--paul-color-secondary-50);
   --color-secondary-100: var(--paul-color-secondary-100);
   --color-secondary-200: var(--paul-color-secondary-200);
@@ -45,7 +62,8 @@
   --color-secondary-900: var(--paul-color-secondary-900);
   --color-secondary-950: var(--paul-color-secondary-950);
 
-  /* Neutral (gray) — from @paul-portfolio/tokens */
+  /* Neutral — ink on paper. Warm, so it sits with the two ramps above
+     instead of fighting them. One neutral family for the whole app. */
   --color-neutral-50: var(--paul-color-neutral-50);
   --color-neutral-100: var(--paul-color-neutral-100);
   --color-neutral-200: var(--paul-color-neutral-200);
@@ -97,7 +115,9 @@
   --color-warning-900: var(--paul-color-warning-900);
   --color-warning-950: var(--paul-color-warning-950);
 
-  /* Semantic aliases (surface/text) — from @paul-portfolio/tokens */
+  /* Semantic aliases (surface/text) — warm paper, not white.
+     foreground 16.62:1 on background, muted 5.38:1 on background and
+     5.02:1 on the raised surface. */
   --color-background: var(--paul-color-background);
   --color-foreground: var(--paul-color-foreground);
   --color-surface: var(--paul-color-surface);
@@ -105,35 +125,45 @@
   --color-border: var(--paul-color-border);
   --color-muted: var(--paul-color-muted);
 
+
   /* Backward compat aliases */
   --background: var(--color-background);
   --foreground: var(--color-foreground);
 
   /* ========================================
-     FEATURE PASTEL ACCENTS
-     One pastel per feature, used for card tints,
-     section glows, glass border accents, and chips.
-     All are Tailwind-200-level — readable on black,
-     distinct from each other.
+     FEATURE ACCENTS — light half of the pair
+     One accent per feature, used for card tints, section glows, glass
+     border accents, and chips.
+
+     These used to be a single set of pastels tuned for a dark page, which
+     meant that in light mode every one of them sat on near-white and
+     vanished. The token names are unchanged and the dark values are still
+     those pastels, moved into the [data-theme="dark"] block below — so
+     every color-mix() consumer flips theme with no component change.
+
+     Each value clears 4.5:1 against both the page background and the raised
+     surface. Six of them (nba, particles, motion, learn, flags, world) are
+     a touch darker than the obvious choice for exactly that reason: they
+     passed on the page and failed on a card.
      ======================================== */
-  --color-feature-calendar: #a7f3d0;
-  --color-feature-tcg: #fecdd3;
-  --color-feature-nba: #fde68a;
-  --color-feature-vitals: #ddd6fe;
-  --color-feature-graphql: #bfdbfe;
-  --color-feature-auth: #fca5a5;
-  --color-feature-particles: #a5f3fc;
-  --color-feature-motion: #d9f99d;
-  --color-feature-sync: #bae6fd;
-  --color-feature-ketsup: #f9a8d4;
-  --color-feature-operator: #c4b5fd;
-  --color-feature-learn: #6ee7b7;
-  --color-feature-work-portfolio: #bfdbfe;
-  --color-feature-flags: #fdba74;
-  --color-feature-design-system: #5eead4;
-  --color-feature-craft: #f5d0fe;
-  --color-feature-gallery-wall: #fbcfe8;
-  --color-feature-world: #7dd3fc;
+  --color-feature-calendar: #0f7a58;
+  --color-feature-tcg: #b04351;
+  --color-feature-nba: #8a670e;
+  --color-feature-vitals: #6a55c8;
+  --color-feature-graphql: #33639e;
+  --color-feature-auth: #b13d31;
+  --color-feature-particles: #0d7686;
+  --color-feature-motion: #587511;
+  --color-feature-sync: #1573a4;
+  --color-feature-ketsup: #b0396f;
+  --color-feature-operator: #6250bd;
+  --color-feature-learn: #137a51;
+  --color-feature-work-portfolio: #2f6cae;
+  --color-feature-flags: #a45713;
+  --color-feature-design-system: #12756a;
+  --color-feature-craft: #94459e;
+  --color-feature-gallery-wall: #ab4380;
+  --color-feature-world: #286f9e;
 
   /* ========================================
      GLASS SYSTEM
@@ -310,13 +340,36 @@
    Palette shades stay the same.
    ======================================== */
 [data-theme="dark"] {
-  /* Semantic aliases — from @paul-portfolio/tokens dark overrides */
+  /* Semantic aliases — warm near-black rather than a blue-grey.
+     foreground 15.42:1 on background, muted 7.00:1. */
   --color-background: var(--paul-color-background);
   --color-foreground: var(--paul-color-foreground);
   --color-surface: var(--paul-color-surface);
-  --color-surface-raised: #262626;
+  --color-surface-raised: #211e1a;
   --color-border: var(--paul-color-border);
   --color-muted: var(--paul-color-muted);
+
+  /* Feature accents — dark half of the pair. These are the pastels the app
+     shipped before, unchanged; they only stopped applying in light mode. */
+  --color-feature-calendar: #9fe8c9;
+  --color-feature-tcg: #f7c3c6;
+  --color-feature-nba: #f2d38b;
+  --color-feature-vitals: #d3cbf5;
+  --color-feature-graphql: #b9d2ee;
+  --color-feature-auth: #f4b3ac;
+  --color-feature-particles: #a3e6ef;
+  --color-feature-motion: #d4ef9d;
+  --color-feature-sync: #aadcf2;
+  --color-feature-ketsup: #f5b2cf;
+  --color-feature-operator: #c9bdf2;
+  --color-feature-learn: #93e3bb;
+  --color-feature-work-portfolio: #b5d4f3;
+  --color-feature-flags: #f4c294;
+  --color-feature-design-system: #8fe0cf;
+  --color-feature-craft: #ecc2f0;
+  --color-feature-gallery-wall: #f3bedd;
+  --color-feature-world: #a6d6f0;
+
 
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.2);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);

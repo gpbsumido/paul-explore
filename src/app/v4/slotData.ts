@@ -40,22 +40,35 @@ export type SlotCategory = {
   options: SlotOption[];
 };
 
-/** Stable colour per write-up category, same palette the v3 graph uses. */
+/**
+ * Stable colour per write-up category, same palette the v3 graph uses.
+ *
+ * These are single values rendered on both themes, so unlike the feature
+ * accent tokens they cannot be a light/dark pair. Each one is checked to clear
+ * 3:1 against both backgrounds, which is the right bar for a reel dot or a
+ * graph node rather than the 4.5:1 a piece of text would need.
+ */
 const CATEGORY_COLORS: Record<string, string> = {
-  Features: "#818cf8",
-  "Design & UI": "#f472b6",
-  Performance: "#34d399",
-  "Architecture & Backend": "#a78bfa",
-  "Testing & Quality": "#fbbf24",
-  Security: "#fb7185",
-  "Build & Tooling": "#22d3ee",
-  More: "#94a3b8",
-  Deprecated: "#94a3b8",
+  Features: "#6451ba",
+  "Design & UI": "#be5283",
+  Performance: "#2d8f66",
+  "Architecture & Backend": "#7b6aca",
+  "Testing & Quality": "#9f7d27",
+  Security: "#be5d68",
+  "Build & Tooling": "#2b8c9b",
+  More: "#7f7869",
+  Deprecated: "#7f7869",
 };
 
-const APPS_COLOR = "#38bdf8";
+const APPS_COLOR = "#3388b4";
+/**
+ * The feature whose page these reels are. It stays a hub card, but landing on
+ * it mid-spin offers to open the page you are already looking at, so it is left
+ * out of the Apps reel.
+ */
+const SELF = "discover";
 /** Warm accent shared with the resume page entry points elsewhere on the site. */
-const RESUME_COLOR = "#fb923c";
+export const RESUME_COLOR = "#b46c2d";
 const RESUME_BLURB = "Experience, skills, and the projects behind this site.";
 
 const toSlotThought = (thought: ThoughtItem): SlotThought => ({
@@ -84,7 +97,7 @@ export function buildSlots(): SlotCategory[] {
     label: "Apps",
     color: APPS_COLOR,
     blurb: "Things you can actually use.",
-    options: FEATURES.map((feature) => {
+    options: FEATURES.filter((feature) => feature.id !== SELF).map((feature) => {
       const note = feature.thoughtsHref
         ? activeByHref.get(feature.thoughtsHref)
         : undefined;
@@ -123,7 +136,7 @@ export function buildSlots(): SlotCategory[] {
   // These categories have no app to open, so reel 2 is a single greyed-out
   // "Write-up only" marker and every write-up lives in reel 3.
   const writing: SlotCategory[] = groupThoughts(THOUGHTS).map((group) => {
-    const color = CATEGORY_COLORS[group.name] ?? "#94a3b8";
+    const color = CATEGORY_COLORS[group.name] ?? "#7f7869";
     return {
       id: `cat:${group.name}`,
       label: group.name,

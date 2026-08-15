@@ -149,12 +149,12 @@ export default function AgentPatternsContent() {
               </span>
             )}
             {state.status === "completed" && (
-              <span className="text-sm text-green-600 font-medium">
+              <span className="text-sm text-success-600 font-medium">
                 Completed
               </span>
             )}
             {state.status === "error" && (
-              <span className="text-sm text-red-500 font-medium">Error</span>
+              <span className="text-sm text-error-500 font-medium">Error</span>
             )}
             {state.status === "cancelled" && (
               <span className="text-sm text-foreground-secondary font-medium">

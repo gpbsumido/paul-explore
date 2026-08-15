@@ -131,7 +131,7 @@ export default async function CardDetailPage({
                 {card.abilities.map((ability, i) => (
                   <div key={i} className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-200">
+                      <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded bg-primary-100 text-primary-900 dark:bg-primary-950 dark:text-primary-200">
                         {ability.type}
                       </span>
                       <span className="text-sm font-bold text-foreground">
@@ -326,7 +326,7 @@ function LegalBadge({
     <span
       className={`px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide border ${
         legal
-          ? "bg-green-500/15 text-green-400 border-green-500/20"
+          ? "bg-success-500/15 text-success-400 border-success-500/20"
           : "bg-surface text-muted border-border"
       }`}
     >

@@ -124,7 +124,7 @@ export default function CourtVisionContent() {
       {/* Content */}
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8" aria-live="polite">
         <h1 className="sr-only">Court Vision</h1>
-        <div className="mb-6 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-[13px] text-warning-700 dark:text-warning-300">
+        <div className="mb-6 rounded-lg border border-warning-500/20 bg-warning-500/5 px-4 py-3 text-[13px] text-warning-700 dark:text-warning-300">
           This page is a work in progress. Shot data is currently mock data and
           doesn&apos;t reflect real shooting numbers yet.
         </div>
@@ -233,10 +233,10 @@ export default function CourtVisionContent() {
                         <td
                           className={`px-3 py-2 text-right font-mono tabular-nums font-semibold ${
                             zone.fgPct >= 0.48
-                              ? "text-red-400"
+                              ? "text-error-400"
                               : zone.fgPct >= 0.35
-                                ? "text-yellow-400"
-                                : "text-blue-400"
+                                ? "text-warning-400"
+                                : "text-primary-400"
                           }`}
                         >
                           {(zone.fgPct * 100).toFixed(1)}%

@@ -5,7 +5,7 @@ export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
 /**
- * Browser tab icon — a dark tile with a light "P".
+ * Browser tab icon — a warm ink tile with a warm paper "P".
  * Next.js serves this at /icon and injects the <link rel="icon"> tag itself.
  * favicon.ico next door carries the same mark at 16 and 32, because browsers
  * ask for /favicon.ico on their own whatever the link tag says. That file was
@@ -16,7 +16,7 @@ export default function Icon() {
   return new ImageResponse(
     <div
       style={{
-        background: "#0a0a0a",
+        background: "#1d1a15",
         width: "100%",
         height: "100%",
         display: "flex",
@@ -27,7 +27,7 @@ export default function Icon() {
     >
       <span
         style={{
-          color: "#fafafa",
+          color: "#fbfaf7",
           fontSize: 20,
           fontFamily: "sans-serif",
           fontWeight: 700,

@@ -12,7 +12,7 @@ export default function AppleIcon() {
   return new ImageResponse(
     <div
       style={{
-        background: "#0a0a0a",
+        background: "#1d1a15",
         width: "100%",
         height: "100%",
         display: "flex",
@@ -23,7 +23,7 @@ export default function AppleIcon() {
     >
       <span
         style={{
-          color: "#fafafa",
+          color: "#fbfaf7",
           fontSize: 110,
           fontFamily: "sans-serif",
           fontWeight: 700,

@@ -117,13 +117,13 @@ function WeekView({
                 key={day.toISOString()}
                 className={[
                   "flex-1 py-2 text-center text-xs border-r border-border last:border-r-0",
-                  today ? "bg-red-500/[0.04] dark:bg-red-500/[0.08]" : "",
+                  today ? "bg-primary-500/[0.04] dark:bg-primary-500/[0.08]" : "",
                 ].join(" ")}
               >
                 <div
                   className={[
                     "text-[10px] font-semibold uppercase tracking-wide",
-                    today ? "text-red-500" : "text-muted",
+                    today ? "text-primary-500" : "text-muted",
                   ].join(" ")}
                 >
                   {format(day, "EEE")}
@@ -133,7 +133,7 @@ function WeekView({
                     className={[
                       "inline-flex items-center justify-center h-7 w-7 text-sm rounded-full transition-colors",
                       today
-                        ? "bg-red-500 text-white font-semibold shadow-[0_0_0_4px_rgba(239,68,68,0.12)]"
+                        ? "bg-primary-500 text-white font-semibold shadow-[0_0_0_4px_rgba(33,155,132,0.12)]"
                         : "font-medium text-foreground",
                     ].join(" ")}
                   >
@@ -159,7 +159,7 @@ function WeekView({
                   key={day.toISOString()}
                   className={[
                     "flex-1 border-r border-border last:border-r-0 h-full",
-                    isToday(day) ? "bg-red-500/5" : "",
+                    isToday(day) ? "bg-primary-500/5" : "",
                   ].join(" ")}
                 />
               ))}
@@ -246,7 +246,7 @@ function WeekView({
                       className={[
                         "border-b border-border last:border-b-0 cursor-pointer transition-colors",
                         today
-                          ? "bg-red-500/[0.03] hover:bg-red-500/[0.07]"
+                          ? "bg-primary-500/[0.03] hover:bg-primary-500/[0.07]"
                           : "hover:bg-surface-raised/50",
                       ].join(" ")}
                     />
@@ -284,8 +284,8 @@ function WeekView({
               className="absolute z-20 pointer-events-none flex items-center"
               style={{ top: currentTimeTop, left: GUTTER_WIDTH, right: 0 }}
             >
-              <div className="h-2.5 w-2.5 rounded-full bg-red-500 -ml-1.5 shrink-0 animate-pulse" />
-              <div className="flex-1 h-px bg-red-500" />
+              <div className="h-2.5 w-2.5 rounded-full bg-primary-500 -ml-1.5 shrink-0 animate-pulse" />
+              <div className="flex-1 h-px bg-primary-500" />
             </div>
           )}
         </div>

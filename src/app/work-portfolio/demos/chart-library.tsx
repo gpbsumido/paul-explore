@@ -35,16 +35,10 @@ import {
 } from "recharts";
 import type { WorkFeature } from "../_data/types";
 import { makeRng, roundish } from "./_shared/mock";
+import { ACCENT_BAND, CHART_SERIES } from "@/lib/accentBand";
 
-const ACCENT = "var(--wp-accent, #38bdf8)";
-const PALETTE = [
-  "#38bdf8",
-  "#818cf8",
-  "#f472b6",
-  "#34d399",
-  "#f59e0b",
-  "#a3e635",
-];
+const ACCENT = `var(--wp-accent, ${ACCENT_BAND.azure})`;
+const PALETTE = CHART_SERIES;
 
 /** Every chart takes a seed so the whole gallery re-rolls together. */
 type ChartProps = { seed: number };

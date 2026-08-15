@@ -58,8 +58,8 @@ function Why({ children }: { children: ReactNode }) {
  */
 function Pivot({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-lg border-l-2 border-amber-400/70 bg-amber-400/[0.06] px-4 py-3 dark:border-amber-300/50 dark:bg-amber-300/[0.06]">
-      <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.15em] text-amber-700 dark:text-amber-300">
+    <div className="rounded-lg border-l-2 border-warning-400/70 bg-warning-400/[0.06] px-4 py-3 dark:border-warning-300/50 dark:bg-warning-300/[0.06]">
+      <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.15em] text-warning-700 dark:text-warning-300">
         The pivot
       </p>
       <p className="text-[14px] leading-relaxed text-muted">{children}</p>

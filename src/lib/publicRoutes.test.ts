@@ -48,6 +48,10 @@ describe("PUBLIC_ROUTES", () => {
     expect([...PUBLIC_ROUTES].sort()).toEqual(expected);
   });
 
+  it("lists /discover, since the landing history is public and worth crawling", () => {
+    expect(PUBLIC_ROUTES).toContain("/discover");
+  });
+
   it("lists nothing that is gated, dynamic, or dev-only", () => {
     for (const route of PUBLIC_ROUTES) {
       expect(route.includes("[")).toBe(false);
