@@ -98,6 +98,27 @@ describe("VitalsPage when the versions endpoint answers", () => {
     expect(screen.queryByText(/couldn't reach the vitals api/i)).toBeNull();
   });
 
+  it("asks for all-time data when no versions exist yet, not a version zero", async () => {
+    // A reachable backend with an empty versions list is a fresh database,
+    // and a fresh database has no major "0" to scope to. The queries should
+    // carry no version filter at all.
+    server.use(
+      http.get(`${API_URL}/api/vitals/versions`, () =>
+        HttpResponse.json({ versions: [] }),
+      ),
+    );
+    const requested = recordDataCalls();
+
+    await renderPage();
+
+    expect(requested).toHaveLength(3);
+    for (const url of requested) {
+      expect(url).not.toContain("v=");
+      expect(url).not.toContain("mode=");
+    }
+    expect(screen.queryByText(/couldn't reach the vitals api/i)).toBeNull();
+  });
+
   it("keeps working when the versions endpoint is not deployed", async () => {
     server.use(
       http.get(`${API_URL}/api/vitals/versions`, () =>
