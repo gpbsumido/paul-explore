@@ -21,62 +21,60 @@
 :root {
   /* ========================================
      VERDIGRIS & EMBER
-     The identity ramps are literal values, not aliases of
-     @paul-portfolio/tokens. The shared package still ships the stock
-     blue/violet/gray it always did and other apps still use it; this app
-     overrides the three identity ramps locally so the package stays
-     untouched. Error/success/warning below are still aliased, because a
-     semantic signal is not part of the brand.
+     The identity ramps are aliases again. They were literal values here for
+     one release, while this app shipped the palette and the shared package
+     still handed down stock blue. @paul-portfolio/tokens 0.3.0 ships these
+     exact values, so restating them locally would give the same colour two
+     owners and let them drift apart silently.
 
-     Every value here was checked against WCAG relative luminance before it
-     was written down. The notes on the load-bearing steps are the measured
-     ratios, so a future edit can see what it would be breaking.
+     The measured ratios that shaped the load-bearing steps now live in the
+     package next to the values, which is where a future edit will look.
      ======================================== */
 
   /* Primary — verdigris. 600 is the text/fill step: 4.87:1 on light paper,
      and white on it is 5.09:1, so a filled button and its label both clear
      AA. 500 is the focus ring: 3.31:1 light and 5.46:1 dark, both over the
      3:1 bar for non-text UI. */
-  --color-primary-50: #eefaf6;
-  --color-primary-100: #d6f3ea;
-  --color-primary-200: #aee6d7;
-  --color-primary-300: #79d2bd;
-  --color-primary-400: #43b69e;
-  --color-primary-500: #219b84;
-  --color-primary-600: #157c6b;
-  --color-primary-700: #136357;
-  --color-primary-800: #124f47;
-  --color-primary-900: #11413b;
-  --color-primary-950: #062520;
+  --color-primary-50: var(--paul-color-primary-50);
+  --color-primary-100: var(--paul-color-primary-100);
+  --color-primary-200: var(--paul-color-primary-200);
+  --color-primary-300: var(--paul-color-primary-300);
+  --color-primary-400: var(--paul-color-primary-400);
+  --color-primary-500: var(--paul-color-primary-500);
+  --color-primary-600: var(--paul-color-primary-600);
+  --color-primary-700: var(--paul-color-primary-700);
+  --color-primary-800: var(--paul-color-primary-800);
+  --color-primary-900: var(--paul-color-primary-900);
+  --color-primary-950: var(--paul-color-primary-950);
 
   /* Secondary — ember. 600 sits at #b25c12 rather than a lighter apricot
      because the obvious #bd6314 only reached 4.06:1 on paper and 4.24:1 for
      white-on-fill. This one gives 4.54 and 4.74. */
-  --color-secondary-50: #fdf7ef;
-  --color-secondary-100: #faecd7;
-  --color-secondary-200: #f5d6ab;
-  --color-secondary-300: #eeba74;
-  --color-secondary-400: #e69a42;
-  --color-secondary-500: #d97e1f;
-  --color-secondary-600: #b25c12;
-  --color-secondary-700: #9d4b13;
-  --color-secondary-800: #7f3b16;
-  --color-secondary-900: #683114;
-  --color-secondary-950: #391807;
+  --color-secondary-50: var(--paul-color-secondary-50);
+  --color-secondary-100: var(--paul-color-secondary-100);
+  --color-secondary-200: var(--paul-color-secondary-200);
+  --color-secondary-300: var(--paul-color-secondary-300);
+  --color-secondary-400: var(--paul-color-secondary-400);
+  --color-secondary-500: var(--paul-color-secondary-500);
+  --color-secondary-600: var(--paul-color-secondary-600);
+  --color-secondary-700: var(--paul-color-secondary-700);
+  --color-secondary-800: var(--paul-color-secondary-800);
+  --color-secondary-900: var(--paul-color-secondary-900);
+  --color-secondary-950: var(--paul-color-secondary-950);
 
   /* Neutral — ink on paper. Warm, so it sits with the two ramps above
      instead of fighting them. One neutral family for the whole app. */
-  --color-neutral-50: #faf9f7;
-  --color-neutral-100: #f1efeb;
-  --color-neutral-200: #e3e0d9;
-  --color-neutral-300: #cfcac0;
-  --color-neutral-400: #a49d90;
-  --color-neutral-500: #7f7869;
-  --color-neutral-600: #635d50;
-  --color-neutral-700: #4f4a40;
-  --color-neutral-800: #35312a;
-  --color-neutral-900: #24211c;
-  --color-neutral-950: #151310;
+  --color-neutral-50: var(--paul-color-neutral-50);
+  --color-neutral-100: var(--paul-color-neutral-100);
+  --color-neutral-200: var(--paul-color-neutral-200);
+  --color-neutral-300: var(--paul-color-neutral-300);
+  --color-neutral-400: var(--paul-color-neutral-400);
+  --color-neutral-500: var(--paul-color-neutral-500);
+  --color-neutral-600: var(--paul-color-neutral-600);
+  --color-neutral-700: var(--paul-color-neutral-700);
+  --color-neutral-800: var(--paul-color-neutral-800);
+  --color-neutral-900: var(--paul-color-neutral-900);
+  --color-neutral-950: var(--paul-color-neutral-950);
 
   /* Semantic: Error (red) — from @paul-portfolio/tokens */
   --color-error-50: var(--paul-color-error-50);
@@ -112,13 +110,7 @@
   --color-warning-400: var(--paul-color-warning-400);
   --color-warning-500: var(--paul-color-warning-500);
   --color-warning-600: var(--paul-color-warning-600);
-  /* One local override in an otherwise aliased ramp. The package ships #b45309,
-     which cleared AA on the old white surface at 5.02:1 and lands at 4.49:1 on
-     the warm paper this release introduces -- under the bar by a hundredth,
-     which the operator dashboard's "49%" stock figure fails on. Same amber, two
-     steps darker, 4.79:1 on a raised card. Caught by the light-theme axe run,
-     which is new here; the dark-only scan could never have seen it. */
-  --color-warning-700: #ae4f08;
+  --color-warning-700: var(--paul-color-warning-700);
   --color-warning-800: var(--paul-color-warning-800);
   --color-warning-900: var(--paul-color-warning-900);
   --color-warning-950: var(--paul-color-warning-950);
@@ -126,66 +118,13 @@
   /* Semantic aliases (surface/text) — warm paper, not white.
      foreground 16.62:1 on background, muted 5.38:1 on background and
      5.02:1 on the raised surface. */
-  --color-background: #fbfaf7;
-  --color-foreground: #1d1a15;
-  --color-surface: #f4f2ed;
+  --color-background: var(--paul-color-background);
+  --color-foreground: var(--paul-color-foreground);
+  --color-surface: var(--paul-color-surface);
   --color-surface-raised: #ffffff;
-  --color-border: #e3e0d9;
-  --color-muted: #6d675b;
+  --color-border: var(--paul-color-border);
+  --color-muted: var(--paul-color-muted);
 
-
-  /* ========================================
-     FEED THE PALETTE BACK TO THE PACKAGE
-     @paul-portfolio/css/components.css styles .btn, .badge and friends from
-     --paul-* directly, not from the --color-* aliases above. Without this the
-     shared primitives keep rendering the package's stock blue while the rest
-     of the app is verdigris, which is exactly what /design-system looked like
-     until it was opened rather than reasoned about.
-
-     This overrides custom properties from our own stylesheet. The package is
-     not modified, and it still ships its own palette to every other app that
-     consumes it -- these declarations simply come later in the cascade.
-     ======================================== */
-  --paul-color-primary-50: var(--color-primary-50);
-  --paul-color-primary-100: var(--color-primary-100);
-  --paul-color-primary-200: var(--color-primary-200);
-  --paul-color-primary-300: var(--color-primary-300);
-  --paul-color-primary-400: var(--color-primary-400);
-  --paul-color-primary-500: var(--color-primary-500);
-  --paul-color-primary-600: var(--color-primary-600);
-  --paul-color-primary-700: var(--color-primary-700);
-  --paul-color-primary-800: var(--color-primary-800);
-  --paul-color-primary-900: var(--color-primary-900);
-  --paul-color-primary-950: var(--color-primary-950);
-  --paul-color-secondary-50: var(--color-secondary-50);
-  --paul-color-secondary-100: var(--color-secondary-100);
-  --paul-color-secondary-200: var(--color-secondary-200);
-  --paul-color-secondary-300: var(--color-secondary-300);
-  --paul-color-secondary-400: var(--color-secondary-400);
-  --paul-color-secondary-500: var(--color-secondary-500);
-  --paul-color-secondary-600: var(--color-secondary-600);
-  --paul-color-secondary-700: var(--color-secondary-700);
-  --paul-color-secondary-800: var(--color-secondary-800);
-  --paul-color-secondary-900: var(--color-secondary-900);
-  --paul-color-secondary-950: var(--color-secondary-950);
-  --paul-color-neutral-50: var(--color-neutral-50);
-  --paul-color-neutral-100: var(--color-neutral-100);
-  --paul-color-neutral-200: var(--color-neutral-200);
-  --paul-color-neutral-300: var(--color-neutral-300);
-  --paul-color-neutral-400: var(--color-neutral-400);
-  --paul-color-neutral-500: var(--color-neutral-500);
-  --paul-color-neutral-600: var(--color-neutral-600);
-  --paul-color-neutral-700: var(--color-neutral-700);
-  --paul-color-neutral-800: var(--color-neutral-800);
-  --paul-color-neutral-900: var(--color-neutral-900);
-  --paul-color-neutral-950: var(--color-neutral-950);
-  --paul-color-warning-700: var(--color-warning-700);
-  --paul-color-background: var(--color-background);
-  --paul-color-foreground: var(--color-foreground);
-  --paul-color-surface: var(--color-surface);
-  --paul-color-border: var(--color-border);
-  --paul-color-muted: var(--color-muted);
-  --paul-color-muted-foreground: var(--color-muted);
 
   /* Backward compat aliases */
   --background: var(--color-background);
@@ -403,12 +342,12 @@
 [data-theme="dark"] {
   /* Semantic aliases — warm near-black rather than a blue-grey.
      foreground 15.42:1 on background, muted 7.00:1. */
-  --color-background: #131110;
-  --color-foreground: #ece8e1;
-  --color-surface: #1b1815;
+  --color-background: var(--paul-color-background);
+  --color-foreground: var(--paul-color-foreground);
+  --color-surface: var(--paul-color-surface);
   --color-surface-raised: #211e1a;
-  --color-border: #322e28;
-  --color-muted: #a49d90;
+  --color-border: var(--paul-color-border);
+  --color-muted: var(--paul-color-muted);
 
   /* Feature accents — dark half of the pair. These are the pastels the app
      shipped before, unchanged; they only stopped applying in light mode. */
@@ -431,16 +370,6 @@
   --color-feature-gallery-wall: #f3bedd;
   --color-feature-world: #a6d6f0;
 
-
-  /* The package's own variables again, for the dark half. Same reasoning as
-     the :root block: without these the shared primitives read the package's
-     dark palette while everything around them reads ours. */
-  --paul-color-background: var(--color-background);
-  --paul-color-foreground: var(--color-foreground);
-  --paul-color-surface: var(--color-surface);
-  --paul-color-border: var(--color-border);
-  --paul-color-muted: var(--color-muted);
-  --paul-color-muted-foreground: var(--color-muted);
 
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.2);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);

@@ -21,55 +21,57 @@
    ============================================= */
 @theme {
   /* Colors — semantic aliases.
-     These literals MUST match src/styles/tokens.css exactly. The two files
-     restate the same mappings because @theme cannot reference a variable it
-     defines itself, and when they drift the Tailwind utilities quietly
-     disagree with the CSS Modules until one specific page renders wrong. */
-  --color-background: #fbfaf7;
-  --color-foreground: #1d1a15;
-  --color-surface: #f4f2ed;
+     Both this block and src/styles/tokens.css read the same --paul-* values
+     down from @paul-portfolio/tokens, so there is nothing left to keep in
+     sync by hand. They restate the mapping, not the value: @theme cannot
+     reference a variable it defines itself, so each bridge has to name the
+     package variable directly. surface-raised stays a literal because the
+     package ships no equivalent. */
+  --color-background: var(--paul-color-background);
+  --color-foreground: var(--paul-color-foreground);
+  --color-surface: var(--paul-color-surface);
   --color-surface-raised: #ffffff;
-  --color-border: #e3e0d9;
-  --color-muted: #6d675b;
+  --color-border: var(--paul-color-border);
+  --color-muted: var(--paul-color-muted);
 
   /* Colors — primary palette (verdigris) */
-  --color-primary-50: #eefaf6;
-  --color-primary-100: #d6f3ea;
-  --color-primary-200: #aee6d7;
-  --color-primary-300: #79d2bd;
-  --color-primary-400: #43b69e;
-  --color-primary-500: #219b84;
-  --color-primary-600: #157c6b;
-  --color-primary-700: #136357;
-  --color-primary-800: #124f47;
-  --color-primary-900: #11413b;
-  --color-primary-950: #062520;
+  --color-primary-50: var(--paul-color-primary-50);
+  --color-primary-100: var(--paul-color-primary-100);
+  --color-primary-200: var(--paul-color-primary-200);
+  --color-primary-300: var(--paul-color-primary-300);
+  --color-primary-400: var(--paul-color-primary-400);
+  --color-primary-500: var(--paul-color-primary-500);
+  --color-primary-600: var(--paul-color-primary-600);
+  --color-primary-700: var(--paul-color-primary-700);
+  --color-primary-800: var(--paul-color-primary-800);
+  --color-primary-900: var(--paul-color-primary-900);
+  --color-primary-950: var(--paul-color-primary-950);
 
   /* Colors — secondary palette (ember) */
-  --color-secondary-50: #fdf7ef;
-  --color-secondary-100: #faecd7;
-  --color-secondary-200: #f5d6ab;
-  --color-secondary-300: #eeba74;
-  --color-secondary-400: #e69a42;
-  --color-secondary-500: #d97e1f;
-  --color-secondary-600: #b25c12;
-  --color-secondary-700: #9d4b13;
-  --color-secondary-800: #7f3b16;
-  --color-secondary-900: #683114;
-  --color-secondary-950: #391807;
+  --color-secondary-50: var(--paul-color-secondary-50);
+  --color-secondary-100: var(--paul-color-secondary-100);
+  --color-secondary-200: var(--paul-color-secondary-200);
+  --color-secondary-300: var(--paul-color-secondary-300);
+  --color-secondary-400: var(--paul-color-secondary-400);
+  --color-secondary-500: var(--paul-color-secondary-500);
+  --color-secondary-600: var(--paul-color-secondary-600);
+  --color-secondary-700: var(--paul-color-secondary-700);
+  --color-secondary-800: var(--paul-color-secondary-800);
+  --color-secondary-900: var(--paul-color-secondary-900);
+  --color-secondary-950: var(--paul-color-secondary-950);
 
   /* Colors — neutral palette (warm ink on paper) */
-  --color-neutral-50: #faf9f7;
-  --color-neutral-100: #f1efeb;
-  --color-neutral-200: #e3e0d9;
-  --color-neutral-300: #cfcac0;
-  --color-neutral-400: #a49d90;
-  --color-neutral-500: #7f7869;
-  --color-neutral-600: #635d50;
-  --color-neutral-700: #4f4a40;
-  --color-neutral-800: #35312a;
-  --color-neutral-900: #24211c;
-  --color-neutral-950: #151310;
+  --color-neutral-50: var(--paul-color-neutral-50);
+  --color-neutral-100: var(--paul-color-neutral-100);
+  --color-neutral-200: var(--paul-color-neutral-200);
+  --color-neutral-300: var(--paul-color-neutral-300);
+  --color-neutral-400: var(--paul-color-neutral-400);
+  --color-neutral-500: var(--paul-color-neutral-500);
+  --color-neutral-600: var(--paul-color-neutral-600);
+  --color-neutral-700: var(--paul-color-neutral-700);
+  --color-neutral-800: var(--paul-color-neutral-800);
+  --color-neutral-900: var(--paul-color-neutral-900);
+  --color-neutral-950: var(--paul-color-neutral-950);
 
   /* Colors — error palette */
   --color-error-50: var(--paul-color-error-50);
@@ -106,7 +108,7 @@
   --color-warning-500: var(--paul-color-warning-500);
   --color-warning-600: var(--paul-color-warning-600);
   /* Kept in step with tokens.css -- see the note there. */
-  --color-warning-700: #ae4f08;
+  --color-warning-700: var(--paul-color-warning-700);
   --color-warning-800: var(--paul-color-warning-800);
   --color-warning-900: var(--paul-color-warning-900);
   --color-warning-950: var(--paul-color-warning-950);
