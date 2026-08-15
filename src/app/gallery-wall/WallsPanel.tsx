@@ -12,7 +12,7 @@ import {
 } from "./_lib/walls-api";
 import type { GalleryState } from "./_lib/state";
 
-const ACCENT = "#e879f9";
+const ACCENT = "var(--color-feature-gallery-wall)";
 
 type WallsPanelProps = {
   /** The arrangement that Save writes. */
@@ -179,7 +179,7 @@ export default function WallsPanel({
       {error ? (
         <p
           role="alert"
-          className="mt-2 text-[12px] font-medium text-red-600 dark:text-red-400"
+          className="mt-2 text-[12px] font-medium text-error-600 dark:text-error-400"
         >
           {error}
         </p>
@@ -231,7 +231,7 @@ export default function WallsPanel({
                         type="button"
                         onClick={() => confirmDelete(wall)}
                         disabled={busy}
-                        className="rounded-md border border-red-500/40 px-2 py-1 text-[12px] text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-40 dark:text-red-400"
+                        className="rounded-md border border-error-500/40 px-2 py-1 text-[12px] text-error-600 transition-colors hover:bg-error-500/10 disabled:opacity-40 dark:text-error-400"
                       >
                         Confirm delete
                       </button>
@@ -308,7 +308,7 @@ export default function WallsPanel({
                               setConfirmingId(wall.id);
                             }}
                             aria-label={`Delete ${wall.name}`}
-                            className="px-3 py-1.5 text-left text-[12px] text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400"
+                            className="px-3 py-1.5 text-left text-[12px] text-error-600 transition-colors hover:bg-error-500/10 dark:text-error-400"
                           >
                             Delete
                           </button>

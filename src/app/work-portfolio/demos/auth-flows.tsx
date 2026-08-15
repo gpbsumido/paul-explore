@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #fb7185)";
+const ACCENT = "var(--wp-accent, #ca4e60)";
 
 type FieldKind = "email" | "password" | "confirm" | "code";
 type Field = { label: string; kind: FieldKind };
@@ -144,11 +144,11 @@ export default function AuthFlowsDemo({ feature }: { feature: WorkFeature }) {
                     aria-invalid={Boolean(error)}
                     className="w-full rounded-md border bg-background px-2.5 py-1.5 text-[12px] text-foreground"
                     style={{
-                      borderColor: error ? "#ef4444" : "var(--color-border)",
+                      borderColor: error ? "#c34444" : "var(--color-border)",
                     }}
                   />
                   {error && (
-                    <p className="mt-0.5 text-[10px] text-red-500">{error}</p>
+                    <p className="mt-0.5 text-[10px] text-error-500">{error}</p>
                   )}
                 </div>
               );

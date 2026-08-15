@@ -241,7 +241,7 @@ export default function CountdownModal({
       </div>
 
       {saveError && (
-        <p className="mt-3 text-xs text-red-600 dark:text-red-400">
+        <p className="mt-3 text-xs text-error-600 dark:text-error-400">
           {saveError}
         </p>
       )}

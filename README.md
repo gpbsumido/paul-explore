@@ -14,10 +14,11 @@ Every feature has a `/thoughts` write-up covering the architecture decisions beh
 
 Public (no login). Listed most-to-least prominent, matching the apps order across the site:
 
-- [Landing](https://paulsumido.com/) — a three-reel slot machine over every feature and write-up (the v3 node-graph is still at `/?version=v3`)
+- [Landing](https://paulsumido.com/) — the case for hiring me as a front-end lead: the craft matrix and its evidence, six featured apps, and the write-ups behind them
+- [Discover](https://paulsumido.com/discover) — a three-reel slot machine over every feature and write-up, plus every landing page this site has had: the v4 slot machine and the v3 node graph are still live at `/discover?version=v4` and `?version=v3`, with v2 and v1 alongside them
 - [Explore Toronto](https://paulsumido.com/world) — a walkable 3D low-poly downtown Toronto at night; WASD past the CN Tower and City Hall to exhibits that open the rest of the site
 - [Work Portfolio](https://paulsumido.com/work-portfolio) — anonymized reconstructions of features from past projects
-- [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground
+- [Design System](https://paulsumido.com/design-system) — live gallery of the shared `@paul-portfolio` primitives, tokens, and a props playground, plus this app's own motion primitives. The palette is Verdigris & Ember: a teal-green primary against an apricot secondary on warm neutrals, with theme-aware feature accents and Bricolage Grotesque on page titles
 - [Research Explorer](https://paulsumido.com/research) — a tool for picking a vascular surgery research project: curated topics scored live against PubMed and Europe PMC, recent papers with links, demographic filters that show which populations the literature actually enrolled, and topics auto-derived from what the field is publishing now
 - [Feature Flags](https://paulsumido.com/flags) — flag console where you describe a user and watch every flag decide what they see, live; targeting rules, sticky percentage rollouts, and an audit log over a deterministic engine
 - [Fleet Operator](https://paulsumido.com/operator) — unattended-retail operator dashboard over a real Postgres-backed API; slot-by-slot auditable restocking with expiry and shrinkage reasons, scheduled promotions that report back against the period before them, per-store sales and tax, an interactive planogram, and every time bucket resolved in the store's own timezone
@@ -194,6 +195,7 @@ src/
 │   ├── craft/           # Lead front-end traits, each linked to real work here
 │   ├── design-system/   # Live gallery of the shared primitives and tokens
 │   ├── dev/             # Skeleton previews, not linked from the site
+│   ├── discover/        # The landing history, every version behind ?version=
 │   ├── fantasy/         # NBA league history, player stats, playoffs bracket
 │   ├── flags/           # Feature-flag console
 │   ├── gallery-wall/    # Frame layout planner with hanging measurements

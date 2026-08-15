@@ -412,7 +412,7 @@ export default function CalendarContent({
       />
 
       {calendarEvents.error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
+        <div className="mb-4 rounded-md border border-error-200 bg-error-50 px-4 py-2 text-sm text-error-700 dark:border-error-800 dark:bg-error-950/30 dark:text-error-400">
           {calendarEvents.error}
         </div>
       )}

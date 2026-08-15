@@ -102,7 +102,7 @@ export function LandingSummaryTwo() {
           (12, 4, and 8 o&apos;clock). Six sphere nodes sit at each hex vertex,
           all in{" "}
           <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
-            #e535ab
+            #be4195
           </code>{" "}
           — the GraphQL brand pink. The canvas renders full-bleed at 30% CSS
           opacity so it acts as a depth layer behind the query inspector and

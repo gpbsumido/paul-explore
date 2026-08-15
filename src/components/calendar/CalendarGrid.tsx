@@ -129,11 +129,11 @@ function CalendarGrid({
               className={[
                 "h-[128px] sm:h-[132px] p-1.5 sm:p-2 overflow-hidden text-left border-b border-r border-border cursor-pointer transition-colors",
                 isLastCol ? "border-r-0" : "",
-                // red flag-tape stripe pinned to the top of today's cell
-                today ? "border-t-2 border-t-red-500" : "",
+                // flag-tape stripe pinned to the top of today's cell
+                today ? "border-t-2 border-t-primary-500" : "",
                 // background: today > weekend > plain hover
                 today
-                  ? "bg-red-500/5 dark:bg-red-950/20 hover:bg-red-500/[0.08] dark:hover:bg-red-950/30"
+                  ? "bg-primary-500/5 dark:bg-primary-950/20 hover:bg-primary-500/[0.08] dark:hover:bg-primary-950/30"
                   : weekend
                     ? "bg-surface-raised/30 hover:bg-surface-raised/60"
                     : "hover:bg-surface-raised/40",
@@ -146,7 +146,7 @@ function CalendarGrid({
                 className={[
                   "inline-flex items-center justify-center h-7 w-7 text-sm rounded-full transition-colors",
                   today
-                    ? "bg-red-600 text-white font-semibold shadow-[0_0_0_4px_rgba(220,38,38,0.12)]"
+                    ? "bg-primary-600 text-white font-semibold shadow-[0_0_0_4px_rgba(21,124,107,0.12)]"
                     : inMonth
                       ? "text-foreground"
                       : "text-muted",

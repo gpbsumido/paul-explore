@@ -44,7 +44,7 @@ function MetricTrendChart({ metric, byVersion }: MetricChartProps) {
   const color =
     latestP75 !== undefined
       ? getRatingColor(latestP75, config.good, config.poor)
-      : "#6b7280";
+      : "var(--color-muted)";
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4">

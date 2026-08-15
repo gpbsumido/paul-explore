@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { m, AnimatePresence } from "framer-motion";
 import { queryKeys } from "@/lib/queryKeys";
+import { ACCENT_BAND } from "@/lib/accentBand";
 import type {
   ESPNTeam,
   ESPNRosterEntry,
@@ -299,7 +300,12 @@ function buildInjuryWatch(entries: ESPNRosterEntry[]): InjuryEntry[] {
 
 /** Thin confidence bar with red-yellow-green gradient. */
 function ConfidenceBar({ value }: { value: number }) {
-  const color = value >= 70 ? "#22c55e" : value >= 45 ? "#eab308" : "#ef4444";
+  const color =
+    value >= 70
+      ? "var(--color-success-500)"
+      : value >= 45
+        ? "var(--color-warning-500)"
+        : "var(--color-error-500)";
 
   return (
     <div className="h-1 w-full max-w-[80px] rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
@@ -318,8 +324,8 @@ function Star({ filled }: { filled: boolean }) {
       width="16"
       height="16"
       viewBox="0 0 24 24"
-      fill={filled ? "#eab308" : "none"}
-      stroke={filled ? "#eab308" : "currentColor"}
+      fill={filled ? ACCENT_BAND.gold : "none"}
+      stroke={filled ? ACCENT_BAND.gold : "currentColor"}
       strokeWidth="1.5"
       className="text-muted"
       aria-hidden
@@ -332,7 +338,7 @@ function Star({ filled }: { filled: boolean }) {
 /** Section heading with left accent border. */
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="border-l-2 border-[#FF6B35] pl-3 text-[14px] font-semibold text-foreground">
+    <h3 className="border-l-2 border-[var(--color-feature-flags)] pl-3 text-[14px] font-semibold text-foreground">
       {children}
     </h3>
   );
@@ -341,10 +347,10 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 // ---- Status badge colors ----
 
 const STATUS_COLORS: Record<string, string> = {
-  OUT: "bg-red-500/20 text-red-400",
-  DAY_TO_DAY: "bg-yellow-500/20 text-yellow-400",
-  QUESTIONABLE: "bg-amber-500/20 text-amber-400",
-  DOUBTFUL: "bg-orange-500/20 text-orange-400",
+  OUT: "bg-error-500/20 text-error-400",
+  DAY_TO_DAY: "bg-warning-500/10 text-warning-300",
+  QUESTIONABLE: "bg-warning-500/20 text-warning-400",
+  DOUBTFUL: "bg-error-500/10 text-error-300",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -552,8 +558,8 @@ export default function PredictionPanel({
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                             p.start
-                              ? "bg-green-500/20 text-green-400"
-                              : "bg-amber-500/20 text-amber-400"
+                              ? "bg-success-500/20 text-success-400"
+                              : "bg-warning-500/20 text-warning-400"
                           }`}
                         >
                           {p.start ? "START" : "SIT"}
@@ -593,7 +599,7 @@ export default function PredictionPanel({
                           avg/g
                         </span>
                       </div>
-                      <span className="inline-flex items-center rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-semibold text-green-400 uppercase tracking-wide">
+                      <span className="inline-flex items-center rounded-full bg-success-500/15 px-2 py-0.5 text-[10px] font-semibold text-success-400 uppercase tracking-wide">
                         FA
                       </span>
                     </div>
@@ -615,11 +621,11 @@ export default function PredictionPanel({
                 </div>
                 {(outlook.userProj > 0 || outlook.oppProj > 0) && (
                   <div className="flex items-center gap-2 text-[12px] font-mono tabular-nums">
-                    <span className="text-[#c2410c] dark:text-[#FF6B35] font-semibold">
+                    <span className="text-[var(--color-feature-flags)] font-semibold">
                       {outlook.userProj}
                     </span>
                     <span className="text-muted">vs</span>
-                    <span className="text-[#0e7490] dark:text-[#00D4FF] font-semibold">
+                    <span className="text-[var(--color-feature-particles)] font-semibold">
                       {outlook.oppProj}
                     </span>
                     <span className="text-[10px] text-muted font-sans">

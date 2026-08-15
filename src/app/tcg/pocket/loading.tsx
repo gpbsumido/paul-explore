@@ -27,7 +27,7 @@ export default function PocketLoading() {
       </nav>
 
       {/* Hero skeleton */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-indigo-950/60 to-background">
+      <div className="relative overflow-hidden bg-gradient-to-b from-primary-950 via-primary-950/60 to-background">
         <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 py-14 flex flex-col items-start gap-6">
           <Bone className="h-12 w-52" />
           <div className="flex flex-col gap-2">
@@ -39,12 +39,12 @@ export default function PocketLoading() {
               <Bone className="h-8 w-8" />
               <Bone className="h-2.5 w-8" />
             </div>
-            <div className="w-px bg-indigo-500/20 h-8" />
+            <div className="w-px bg-primary-500/20 h-8" />
             <div className="flex flex-col gap-1">
               <Bone className="h-8 w-16" />
               <Bone className="h-2.5 w-10" />
             </div>
-            <div className="w-px bg-indigo-500/20 h-8" />
+            <div className="w-px bg-primary-500/20 h-8" />
             <div className="flex flex-col gap-1">
               <Bone className="h-8 w-8" />
               <Bone className="h-2.5 w-16" />

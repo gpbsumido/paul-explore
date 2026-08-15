@@ -2,9 +2,10 @@ import { type ReactNode } from "react";
 import AmbientBackground from "@/components/AmbientBackground";
 
 type Props = {
-  /** Primary aurora colour. Defaults to the landing's violet. */
+  /** Primary aurora colour. Defaults to verdigris. Takes a CSS var, so a page
+   * can pass its own `--color-feature-*` token and get both themes at once. */
   colorA?: string;
-  /** Secondary aurora colour. Defaults to the landing's sky blue. */
+  /** Secondary aurora colour. Defaults to ember. */
   colorB?: string;
   /** Extra classes for the root surface (e.g. "font-sans"). */
   className?: string;

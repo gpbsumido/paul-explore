@@ -27,7 +27,7 @@
 .backLink {
   position: absolute;
   left: 16px;
-  color: #007aff;
+  color: var(--color-primary-600);
   font-size: var(--text-sm);
   font-weight: 400;
   text-decoration: none;
@@ -98,10 +98,10 @@
   border-radius: 4px;
 }
 
-/* Sent (right, blue) */
+/* Sent (right, verdigris) */
 .sent {
   align-self: flex-end;
-  background: #007aff;
+  background: var(--color-primary-600);
   color: #fff;
   border-radius: 18px 18px 4px 18px;
   margin-left: auto;
@@ -210,7 +210,7 @@
   font-family: var(--font-geist-mono);
   font-size: 12px;
   line-height: 1.6;
-  color: #e5e5e5;
+  color: var(--color-neutral-100);
   overflow-x: auto;
   white-space: pre;
 }

@@ -23,21 +23,21 @@ const RATING_STYLES: Record<
   { bg: string; text: string; dot: string; label: string }
 > = {
   good: {
-    bg: "bg-green-500/10",
-    text: "text-green-800 dark:text-green-400",
-    dot: "bg-green-500",
+    bg: "bg-success-500/10",
+    text: "text-success-800 dark:text-success-400",
+    dot: "bg-success-500",
     label: "Good",
   },
   "needs-improvement": {
-    bg: "bg-yellow-500/10",
-    text: "text-yellow-800 dark:text-yellow-400",
-    dot: "bg-yellow-500",
+    bg: "bg-warning-500/10",
+    text: "text-warning-800 dark:text-warning-400",
+    dot: "bg-warning-500",
     label: "Needs work",
   },
   poor: {
-    bg: "bg-red-500/10",
-    text: "text-red-600 dark:text-red-400",
-    dot: "bg-red-500",
+    bg: "bg-error-500/10",
+    text: "text-error-600 dark:text-error-400",
+    dot: "bg-error-500",
     label: "Poor",
   },
 };
@@ -200,7 +200,7 @@ export default function VitalsContent({
   const hasData = byPage.length > 0;
 
   return (
-    <PageShell colorA="#22c55e" colorB="#14b8a6">
+    <PageShell colorA="var(--color-feature-vitals)" colorB="var(--color-secondary-500)">
       <PageHeader
         breadcrumbs={[
           { label: "Dashboard", href: "/" },

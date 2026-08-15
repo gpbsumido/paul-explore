@@ -42,8 +42,18 @@ import {
   type ButtonPlaygroundState,
   type ComponentDoc,
 } from "./catalog";
+import { MOTION_PRIMITIVES, type MotionPrimitiveDoc } from "./motionPrimitives";
+import TextReveal from "@/components/motion/TextReveal";
+import TextScramble from "@/components/motion/TextScramble";
+import ScrollProgress from "@/components/motion/ScrollProgress";
+import MagneticButton from "@/components/motion/MagneticButton";
+import AnimatedNumber from "@/components/motion/AnimatedNumber";
+import BlobBackground from "@/components/motion/BlobBackground";
+import SpotlightCard from "@/components/motion/SpotlightCard";
+import GradientMesh from "@/components/motion/GradientMesh";
+import { ACCENT_BAND } from "@/lib/accentBand";
 
-const ACCENT = "#06b6d4";
+const ACCENT = ACCENT_BAND.verdigris;
 
 /** The pitch — why a shared design system is worth adopting. */
 const BENEFITS: { title: string; body: string }[] = [
@@ -114,9 +124,115 @@ function Reveal({
 
 function SectionHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
       {children}
     </h2>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Motion primitives — the app's own, documented alongside the package's
+// ---------------------------------------------------------------------------
+
+/** A live demo per primitive, so the card shows the thing rather than describing it. */
+function MotionPrimitiveDemo({ id }: { id: string }) {
+  if (id === "text-reveal") {
+    return (
+      <TextReveal as="p" per="word" className="text-lg font-semibold">
+        Verdigris and ember
+      </TextReveal>
+    );
+  }
+  if (id === "text-scramble") {
+    return (
+      <TextScramble
+        text="design language"
+        trigger="inView"
+        className="font-mono text-lg font-semibold"
+      />
+    );
+  }
+  if (id === "scroll-progress") {
+    return (
+      <p className="text-sm text-muted">
+        Mounted at the top of this page. Scroll and it fills.
+      </p>
+    );
+  }
+  if (id === "magnetic-button") {
+    return (
+      <MagneticButton>
+        <Button>Hover me</Button>
+      </MagneticButton>
+    );
+  }
+  if (id === "animated-number") {
+    return (
+      <AnimatedNumber
+        value={2454}
+        format={(n) => n.toLocaleString()}
+        className="text-3xl font-bold tabular-nums text-foreground"
+      />
+    );
+  }
+  if (id === "blob-background") {
+    return (
+      // w-full matters: the preview frame is a flex row, and a flex item whose
+      // only content is absolutely positioned collapses to zero width.
+      <div className="relative h-24 w-full overflow-hidden rounded-xl">
+        <BlobBackground seeds={[12, 34]} />
+      </div>
+    );
+  }
+  if (id === "spotlight-card") {
+    return (
+      <SpotlightCard accent="var(--color-feature-craft)" className="p-4">
+        <p className="text-sm text-foreground">Move the cursor across me.</p>
+      </SpotlightCard>
+    );
+  }
+  if (id === "gradient-mesh") {
+    return (
+      <div className="relative h-24 w-full overflow-hidden rounded-xl">
+        <GradientMesh />
+      </div>
+    );
+  }
+  return null;
+}
+
+function MotionPrimitiveCard({
+  primitive,
+}: {
+  primitive: MotionPrimitiveDoc;
+}) {
+  return (
+    <div className="glass-card flex flex-col gap-3 rounded-2xl p-5">
+      <div>
+        <h3 className="text-lg font-semibold text-foreground">
+          {primitive.name}
+        </h3>
+        <p className="mt-1 text-sm text-muted">{primitive.tagline}</p>
+      </div>
+      <div className="flex min-h-[6rem] items-center justify-center rounded-xl border border-border bg-surface p-4">
+        <MotionPrimitiveDemo id={primitive.id} />
+      </div>
+      <dl className="space-y-1 text-xs text-muted">
+        <div className="flex gap-2">
+          <dt className="font-semibold text-foreground">Reduced motion</dt>
+          <dd>{primitive.reducedMotion}</dd>
+        </div>
+        <div className="flex gap-2">
+          <dt className="font-semibold text-foreground">Import</dt>
+          <dd className="font-mono">{primitive.importPath}</dd>
+        </div>
+      </dl>
+      <p className="text-xs text-muted">
+        Ships on{" "}
+        <span className="font-mono text-foreground">{primitive.usedOn}</span>,
+        the landing page these were built for.
+      </p>
+    </div>
   );
 }
 
@@ -139,7 +255,7 @@ function ButtonPlayground() {
   ) => setState((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <div className="space-y-4">
         <FilterBar
           label="Button playground controls"
@@ -521,7 +637,7 @@ function TokenGallery() {
         </div>
       </div>
 
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
         <div>
           <h3 className="mb-3 text-sm font-semibold text-foreground">Radius</h3>
           <div className="flex flex-wrap gap-4">
@@ -589,7 +705,7 @@ function TokenGallery() {
 
 export default function DesignSystemShowcaseContent() {
   return (
-    <PageShell colorA={ACCENT} colorB="#818cf8">
+    <PageShell colorA={ACCENT} colorB="var(--color-secondary-500)">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Design System" }]}
       />
@@ -683,9 +799,27 @@ export default function DesignSystemShowcaseContent() {
             Hover the ⓘ for how to use each one, hover the preview for a quick
             hint, and follow a chip to see it in production.
           </p>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {COMPONENTS.map((component) => (
               <ComponentCard key={component.id} component={component} />
+            ))}
+          </div>
+        </Reveal>
+
+        {/* Motion primitives — app-local, so they are not in the catalog */}
+        <Reveal id="motion-primitives" className="mb-16 scroll-mt-20">
+          {/* Rendered for real rather than mocked up, so the bar in the card
+              below is the actual component doing its job. */}
+          <ScrollProgress />
+          <SectionHeading>Motion primitives</SectionHeading>
+          <p className="mb-5 mt-2 max-w-2xl text-sm text-muted">
+            These eight live in this app rather than the shared package, so they
+            sit outside the catalog above. Each one respects reduced motion and
+            renders its content visible in the server HTML.
+          </p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {MOTION_PRIMITIVES.map((primitive) => (
+              <MotionPrimitiveCard key={primitive.id} primitive={primitive} />
             ))}
           </div>
         </Reveal>

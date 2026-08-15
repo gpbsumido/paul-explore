@@ -5,6 +5,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type KeyboardEvent,
 } from "react";
+import { ACCENT_BAND } from "@/lib/accentBand";
 import { clientDeltaToWall, type Placement } from "./_lib/arrange";
 import type { FramedImage, Position, Wall } from "./_lib/state";
 
@@ -192,7 +193,7 @@ export default function WallStage({
                 width={placement.width}
                 height={placement.height}
                 fill="#ffffff"
-                stroke={isInvalid ? "#ef4444" : "#1f2937"}
+                stroke={isInvalid ? ACCENT_BAND.red : "#35312a"}
                 strokeWidth={isInvalid ? FRAME_BORDER * 1.6 : FRAME_BORDER}
               />
               <clipPath id={clipId}>
@@ -215,7 +216,7 @@ export default function WallStage({
                   y={placement.y}
                   width={placement.width}
                   height={placement.height}
-                  fill="#ef4444"
+                  fill={ACCENT_BAND.red}
                   fillOpacity={0.28}
                   pointerEvents="none"
                 />

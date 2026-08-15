@@ -99,12 +99,12 @@ const PokemonCard = memo(function PokemonCard({ pokemon }: PokemonCardProps) {
 
       {/* stat bars */}
       <div className="space-y-1.5 pt-0.5">
-        <StatBar label="HP" value={hp} max={MAX_HP} color="bg-emerald-500" />
+        <StatBar label="HP" value={hp} max={MAX_HP} color="bg-success-500" />
         <StatBar
           label="ATK"
           value={attack}
           max={MAX_ATTACK}
-          color="bg-red-500"
+          color="bg-secondary-500"
         />
       </div>
     </div>

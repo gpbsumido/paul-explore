@@ -13,6 +13,7 @@ import {
   buildSlots,
   shortestDelta,
   wrapIndex,
+  RESUME_COLOR,
   type SlotThought,
 } from "./slotData";
 
@@ -52,12 +53,15 @@ const LENS_TOP = WINDOW_H / 2 - LENS_H / 2;
 const EDGE_FADE =
   "linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)";
 
-/** Warm accent shared with the résumé slot category so the two read as one thing. */
-const RESUME_ACCENT = "#fb923c";
-
-// Retired landing designs, newest first, for the footer picker. v4 is current
-// (see CURRENT_VERSION in page.tsx) so it stays out of the list.
-const OLDER_VERSIONS = ["v3", "v2", "v1"] as const;
+// The footer picker. v5 owns / now, so this generation is history too: the
+// current landing goes first with its own label, then the retired ones newest
+// first. v4 stays out of the list because it is the page you are looking at.
+const VERSION_LINKS = [
+  { label: "v5 (current)", href: "/" },
+  { label: "v3", href: "/discover?version=v3" },
+  { label: "v2", href: "/discover?version=v2" },
+  { label: "v1", href: "/discover?version=v1" },
+] as const;
 
 /** Standout résumé call-to-action, same treatment as the v3 header chrome. */
 function ResumeLink() {
@@ -66,9 +70,9 @@ function ResumeLink() {
       href="/resume"
       className="inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-medium backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60"
       style={{
-        borderColor: `color-mix(in srgb, ${RESUME_ACCENT} 50%, transparent)`,
-        backgroundColor: `color-mix(in srgb, ${RESUME_ACCENT} 15%, transparent)`,
-        color: RESUME_ACCENT,
+        borderColor: `color-mix(in srgb, ${RESUME_COLOR} 50%, transparent)`,
+        backgroundColor: `color-mix(in srgb, ${RESUME_COLOR} 15%, transparent)`,
+        color: RESUME_COLOR,
       }}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -125,10 +129,14 @@ function SearchHint() {
   );
 }
 
-/** Amber tag for write-ups whose feature no longer exists in the app. */
+/**
+ * Ember tag for write-ups whose feature no longer exists in the app. Same
+ * treatment as the deprecated banner on the write-up itself, so the pill on
+ * the reel and the note on the page read as one thing.
+ */
 function DeprecatedPill() {
   return (
-    <span className="rounded-full border border-amber-500/40 bg-amber-500/15 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+    <span className="rounded-full border border-secondary-500/40 bg-secondary-500/15 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wider text-secondary-700 dark:text-secondary-300">
       deprecated
     </span>
   );
@@ -533,7 +541,7 @@ function Reel({
                           height: isLanded ? 8 : 6,
                           width: isLanded ? 8 : 6,
                           backgroundColor: muted
-                            ? "var(--color-muted, #94a3b8)"
+                            ? "var(--color-muted, #7f7869)"
                             : item.color,
                           boxShadow:
                             isLanded && !muted
@@ -1372,13 +1380,13 @@ export default function SlotMachine({
             Versions ↗
           </summary>
           <div className="absolute bottom-full right-0 mb-2 flex min-w-[7rem] flex-col rounded-lg border border-border bg-surface/90 p-1 text-right backdrop-blur">
-            {OLDER_VERSIONS.map((v) => (
+            {VERSION_LINKS.map((v) => (
               <Link
-                key={v}
-                href={`/?version=${v}`}
+                key={v.href}
+                href={v.href}
                 className="inline-flex min-h-11 items-center justify-center rounded sm:min-h-0 px-2 py-1 whitespace-nowrap transition-colors hover:bg-foreground/5 hover:text-foreground"
               >
-                {v} ↗
+                {v.label} ↗
               </Link>
             ))}
           </div>
