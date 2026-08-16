@@ -1,5 +1,6 @@
 "use client";
 
+import type { RefObject } from "react";
 import { m, useScroll, useSpring } from "framer-motion";
 import { useHubReducedMotion } from "@/app/providers";
 
@@ -7,11 +8,16 @@ export type ScrollProgressProps = {
   /** Bar thickness in pixels. */
   height?: number;
   className?: string;
+  /**
+   * A scrollable element to track instead of the window. The bar then
+   * positions itself absolutely, for the caller to place against that box.
+   */
+  container?: RefObject<HTMLElement | null>;
 };
 
 /**
- * A thin bar across the top of the window showing how far down the page you
- * are.
+ * A thin bar showing how far through a scroll you are: the window by default,
+ * or a given scrollable element.
  *
  * aria-hidden because it says exactly what the scrollbar already says. Exposing
  * it as a progressbar would put a second, constantly-changing announcement in
@@ -20,9 +26,14 @@ export type ScrollProgressProps = {
 export default function ScrollProgress({
   height = 2,
   className,
+  container,
 }: ScrollProgressProps) {
   const reducedMotion = useHubReducedMotion();
-  const { scrollYProgress } = useScroll();
+  // Passing `container: undefined` is not the same as passing nothing to
+  // framer, so the argument object is only built when there is one to track.
+  const { scrollYProgress } = useScroll(
+    container ? { container } : undefined,
+  );
   // The spring is what makes it feel like a physical readout rather than a
   // number being redrawn. Under reduced motion it tracks scroll exactly.
   const smoothed = useSpring(scrollYProgress, {
@@ -35,7 +46,9 @@ export default function ScrollProgress({
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none fixed inset-x-0 top-0 z-[var(--z-fixed)] ${className ?? ""}`}
+      className={`pointer-events-none inset-x-0 top-0 ${
+        container ? "absolute" : "fixed z-[var(--z-fixed)]"
+      } ${className ?? ""}`}
       style={{ height }}
     >
       <m.div
