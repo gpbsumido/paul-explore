@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  missingBuildAction,
   BUDGETS,
   MEASURED,
   ROUTE_CEILING,
@@ -204,5 +205,26 @@ describe("the committed budgets", () => {
     );
 
     expect(unexplained).toEqual([]);
+  });
+
+  /**
+   * The CI step runs on `if: always()` so a flaky end-to-end failure cannot
+   * hide a size regression -- the build output is on disk either way. That
+   * exposes one more case: when the *build* is what failed, there is nothing
+   * to measure, and a second red step blaming the bundle would be noise
+   * pointing at the wrong thing.
+   */
+  describe("a run with no build output", () => {
+    it("fails locally, because that is someone forgetting to build", () => {
+      expect(missingBuildAction([])).toBe("fail");
+    });
+
+    it("stands down when told the build may legitimately be absent", () => {
+      expect(missingBuildAction(["--skip-if-unbuilt"])).toBe("skip");
+    });
+
+    it("ignores flags it does not know", () => {
+      expect(missingBuildAction(["--verbose"])).toBe("fail");
+    });
   });
 });

@@ -265,9 +265,32 @@ function findRouteManifests(dir, acc = []) {
 /** `/world/page` is the manifest's name for what a visitor calls `/world`. */
 const routeName = (key) => key.replace(/\/page$/, "") || "/";
 
+/**
+ * What to do when there is no build to measure.
+ *
+ * Locally that means someone ran the check without building, which is worth a
+ * loud failure. In CI the step runs on `if: always()` so a failed end-to-end
+ * assertion cannot bury a size regression -- and that same condition means the
+ * step also runs when the *build* failed, where there is genuinely nothing to
+ * measure and a second red step would point at the wrong thing.
+ *
+ * @param {string[]} argv Arguments after the script name.
+ * @returns {"fail" | "skip"}
+ */
+export function missingBuildAction(argv) {
+  return argv.includes("--skip-if-unbuilt") ? "skip" : "fail";
+}
+
 function main() {
   const buildManifestPath = join(NEXT_DIR, "build-manifest.json");
   if (!existsSync(buildManifestPath)) {
+    if (missingBuildAction(process.argv.slice(2)) === "skip") {
+      console.log(
+        "No build output to measure. The build above is what failed, so this " +
+          "check has nothing to say about the bundle.",
+      );
+      return;
+    }
     console.error(
       "No build found at .next/build-manifest.json.\n" +
         "Bundle sizes come from a real build, so run `pnpm build` first.",

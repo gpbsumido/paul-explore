@@ -134,11 +134,16 @@ jobs:
       # `pnpm build && pnpm start` through Playwright's webServer, so `.next` is
       # sitting right there and the check costs seconds.
       #
-      # The tradeoff, stated rather than hidden: a red smoke run means no size
-      # report on that push, because this step never gets reached. Worth it to
-      # avoid building the app twice.
+      # It runs on `always()` for the same reason the report upload does: a size
+      # regression and a failing end-to-end assertion are independent facts, and
+      # the build output is on disk either way. Gating one on the other means a
+      # third-party outage -- which has taken this suite red before -- would
+      # quietly hide a bundle regression. The flag covers the one case that
+      # condition opens up: when the build itself failed there is nothing to
+      # measure, and this step stands down rather than blaming the bundle for it.
       - name: Bundle-size budget
-        run: pnpm size
+        if: always()
+        run: pnpm size --skip-if-unbuilt
 
       - name: Upload Playwright report
         if: always()

@@ -1,9 +1,16 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  Update,
+  UpdateTimeline,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
+
+const code =
+  "rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground";
 
 export default function BundleContent() {
   return (
@@ -286,6 +293,16 @@ const { token } = await auth0.getAccessToken();
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-15-budget",
+            date: "Aug 15, 2026",
+            title: "A number that fails, and where a failing number belongs",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">How the analyzer works</h2>
         <ul className="mt-2 space-y-2 text-muted">
@@ -493,6 +510,70 @@ const { token } = await auth0.getAccessToken();
           </li>
         </ul>
       </section>
+      <Update
+        id="update-2026-08-15-budget"
+        date="August 15, 2026"
+        title="A number that fails, and where a failing number belongs"
+      >
+        <p>
+          Everything above is a bundle audit done by hand, and the honest
+          weakness of a hand audit is that it only holds until the next
+          dependency lands. There is a budget now: gzipped first-load JS per
+          route plus the shared baseline every route pays, checked by{" "}
+          <code className={code}>pnpm size</code> against numbers committed
+          next to the check.
+        </p>
+        <p>
+          The numbers came out of a real build rather than out of an
+          ambition. A budget set to where you wish the bundle were is red on
+          the day it lands, and a check that is red on arrival teaches
+          everyone to scroll past it. So each one is the measured figure plus
+          about seven percent of headroom, and a test fails if a budget is
+          ever edited below its own recorded baseline. The 3D pages are
+          budgeted generously instead of excluded, because an excluded route
+          can regress without limit and{" "}
+          <code className={code}>/world</code> doubling is exactly the thing
+          worth catching. A catch-all ceiling means a new route cannot land
+          unbudgeted.
+        </p>
+        <p>
+          Getting the numbers took more care than expected. This app builds
+          with Turbopack, so{" "}
+          <code className={code}>.next/app-build-manifest.json</code> does not
+          exist and the build no longer prints a first-load column, which is
+          what most write-ups on this tell you to read. The sizes are derived
+          instead from the build manifest and each route&rsquo;s RSC manifest
+          &mdash; and a derivation is a guess until it is checked, so it is
+          validated against ground truth: for a prerendered route the built
+          HTML lists the script tags a browser actually fetches, and for{" "}
+          <code className={code}>/design-system</code> the derived set and the
+          real HTML agree on all eighteen files with nothing extra on either
+          side.
+        </p>
+        <p>
+          <strong>Where the check runs turned out to be the harder call.</strong>{" "}
+          A budget needs a build, and the quality job deliberately does not
+          build, so putting it there would add minutes to every push. It runs
+          in the smoke job instead, which already builds. My first version
+          left it as an ordinary step after the browser tests, which quietly
+          coupled two unrelated facts: a bundle regression and a failing
+          assertion. This suite has gone red before because a third-party API
+          stopped answering, and under that arrangement an outage would have
+          hidden a real size regression behind an unrelated failure.
+        </p>
+        <p>
+          It runs on <code className={code}>always()</code> now, the same
+          condition the report upload already used, because the build output
+          is on disk whether the assertions passed or not. That opens exactly
+          one new case: when the <em>build</em> is what failed there is
+          nothing to measure, and a second red step blaming the bundle would
+          point at the wrong thing. So the check takes a flag in CI and stands
+          down with a plain message in that one case, while still failing
+          loudly when I run it locally without building &mdash; because there,
+          the missing build is the mistake.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "An analyzer wired into the build rather than run ad hoc, so the question of what is in the bundle has an answer at any time.",
