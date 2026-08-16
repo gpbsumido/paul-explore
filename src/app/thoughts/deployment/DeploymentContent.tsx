@@ -1,10 +1,17 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  Update,
+  UpdateTimeline,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import type { ReactNode } from "react";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
+
+const code =
+  "rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground";
 
 /** Inline code chip — same styling the other thoughts pages repeat inline. */
 function C({ children }: { children: ReactNode }) {
@@ -161,6 +168,16 @@ export default function DeploymentContent() {
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-15-deployed",
+            date: "Aug 15, 2026",
+            title: "What deploys, and what it costs to wake up",
+          },
+        ]}
+      />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">
           Deployment is five jobs, not one
@@ -415,6 +432,63 @@ export default function DeploymentContent() {
           only caught that one by building it and running the compiled output.
         </p>
       </section>
+
+      <Update
+        id="update-2026-08-15-deployed"
+        date="August 15, 2026"
+        title="What deploys, and what it costs to wake up"
+      >
+        <p>
+          <strong>Every deployed tab was showing Vercel&rsquo;s logo.</strong>{" "}
+          Locally it showed mine, which is exactly why it survived since the
+          first commit. There are two icons and I had only ever looked at one:{" "}
+          <code className={code}>icon.tsx</code> renders the mark and Next
+          injects a link tag for it, while{" "}
+          <code className={code}>favicon.ico</code> is served at{" "}
+          <code className={code}>/favicon.ico</code> and browsers request that
+          path on their own whatever the link tag says. That file was
+          create-next-app&rsquo;s black triangle, committed at initialization
+          and never opened again.
+        </p>
+        <p>
+          It is one mark at two sizes now, generated from what the icon route
+          actually renders rather than drawn a second time, so the two cannot
+          drift. The test hashes the framework default and fails if it ever
+          returns, because size alone would not have caught this &mdash; a
+          wrong icon can be any size, and the whole failure was that nobody
+          thought to open the file. I proved the fix the only way that counts
+          here: built the production bundle, served it, and fetched{" "}
+          <code className={code}>/favicon.ico</code> off the running server.
+          Source-level green would have proved nothing, since the bug lived
+          entirely in what the artifact serves.
+        </p>
+        <p>
+          <strong>The other half of deployment is waking up.</strong> The API
+          scales to zero, so a cold boot sits on a real user&rsquo;s critical
+          path, and nothing measured it. The frontend just got a gzipped
+          first-load budget, and the tempting move was to copy it across
+          &mdash; but that service ships no browser bundle, so a bundle budget
+          there would be a number that can go red without anything being
+          wrong, which is worse than no check at all.
+        </p>
+        <p>
+          What it got instead is a production dependency weight gate, stated
+          plainly in its own comments as a <em>proxy</em> for cold start
+          rather than cold start itself. Boot wall-clock was rejected as a
+          gate on measurement, not taste: 268 to 294 milliseconds across seven
+          runs on an idle laptop, which on a shared runner would flake, and a
+          guard that flakes gets deleted. The measurement immediately paid for
+          itself &mdash; production dependencies weigh 443MB across 331
+          packages, and a single package shipping every platform&rsquo;s
+          binaries is 335MB of that. Three quarters of the cold start is one
+          dependency carrying builds this service will never run.
+        </p>
+        <p>
+          Both of these are the same lesson wearing different clothes. What
+          runs locally is not what deploys, and the only honest check is the
+          one that asks the deployed artifact.
+        </p>
+      </Update>
 
       <WhatsNext
         nowShipped={[

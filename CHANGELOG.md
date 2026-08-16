@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-15 - version 5.1.5
+
+- **The week's work is written down, including the parts that happened in other repos.** Four dev notes pick up dated entries: `/thoughts/vitals` on the dashboard that rendered an outage as "No data yet" and the version casts in the API that were 500ing it, `/thoughts/accessibility` on the bracket contrast failure that turned out to be a dev-server race with one real opacity bug hiding inside it, `/thoughts/deployment` on the favicon every deployed tab had been wearing and the cold-start weight gate that replaced a bundle budget where a bundle budget means nothing, and `/thoughts/design-system` on what happened when three consumers upgraded to the published palette.
+- The cross-repo entries live here because the interesting part is the judgement rather than the diff: choosing to measure a null result in the Angular app instead of asserting it, rejecting a boot-time gate on its own measured variance, and declining to copy a frontend budget into a service where it could go red without anything being wrong.
+- `/thoughts/bundle` also records the sibling app's budget catching sixty kilobytes of essay prose in the eager chunk, imported by three services that only ever read its titles. The limit stayed where it was, which is the whole point of having one.
+
 ## 2026-08-15 - version 5.1.4
 
 - **I have a dashboard showing what real users download and nothing stopping that number from growing.** Two write-ups on tree-shaking, three design-system packages coming in from npm, a Web Vitals page fed by actual traffic — and no guard anywhere that fails when the bundle gets heavier. The sibling Angular app has had an initial-bundle budget for a while and it just caught a regression, which is the only reason I went looking for the equivalent here and found nothing. `pnpm size` is that guard: gzipped first-load JS per route, measured against budgets that are written down.

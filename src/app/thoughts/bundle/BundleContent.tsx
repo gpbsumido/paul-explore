@@ -551,6 +551,24 @@ const { token } = await auth0.getAccessToken();
           side.
         </p>
         <p>
+          <strong>
+            The same budget on the sibling Angular app found real fat within a
+            day.
+          </strong>{" "}
+          Its initial bundle was over its own limit, and the tempting fix is to
+          raise the limit &mdash; which turns a budget into a rubber stamp. So
+          I pulled the build&rsquo;s metafile and attributed every byte
+          instead: the bundle was framework plus one file, sixty kilobytes of
+          essay prose, third largest input in the whole app. It was eager
+          because three services import the thoughts data for slugs, titles
+          and tags, and not one of them ever reads the body. Every first-paint
+          visitor was downloading twenty essays to render a desktop that shows
+          none of them. Moving the prose behind the lazy route took it from
+          428KB to 373KB and put it back under the existing limit, which stayed
+          exactly where it was. A budget you raise to meet reality measures
+          nothing; a budget that makes you go and look is worth having.
+        </p>
+        <p>
           <strong>Where the check runs turned out to be the harder call.</strong>{" "}
           A budget needs a build, and the quality job deliberately does not
           build, so putting it there would add minutes to every push. It runs
