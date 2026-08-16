@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-16 - version 5.1.6
+
+- **Two follow-ups worth writing down, both of which corrected something I believed.** `/thoughts/deployment` closes the loop on the cold-start number: the API's production install came down 61.5 percent, from 443MB to 170.5MB, by installing one platform's ffprobe instead of six. The swap uncovered that pnpm 10 had silently blocked the postinstall that downloads ffmpeg, so every video upload had been failing at the thumbnail step in production, unnoticed because no test had ever executed either binary. I went looking for bytes and found a broken feature.
+- `/thoughts/accessibility` records the opposite kind of result. A consumer reported the shared secondary button failing contrast at 3.2:1; measuring first showed that button does not use the ember ramp at all, passes at 6.66:1, and passed in the old palette too. Retoning the brand to fix it would have changed every consuming app to repair something that was never broken. The measuring did find a real breach one component over, and the reason it had shipped green is the part worth keeping: the package's contrast helper had only ever been pointed at the chart palette, so no component pair had ever been checked.
+- Both entries keep the thread the earlier notes started: a check is worth what it is aimed at, and a number is worth what it made you go and look at.
+
 ## 2026-08-15 - version 5.1.5
 
 - **The week's work is written down, including the parts that happened in other repos.** Four dev notes pick up dated entries: `/thoughts/vitals` on the dashboard that rendered an outage as "No data yet" and the version casts in the API that were 500ing it, `/thoughts/accessibility` on the bracket contrast failure that turned out to be a dev-server race with one real opacity bug hiding inside it, `/thoughts/deployment` on the favicon every deployed tab had been wearing and the cold-start weight gate that replaced a bundle budget where a bundle budget means nothing, and `/thoughts/design-system` on what happened when three consumers upgraded to the published palette.
