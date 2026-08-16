@@ -1,6 +1,7 @@
 "use client";
 
 import { type CSSProperties, type MouseEvent } from "react";
+import { chipColors } from "./readableOn";
 
 interface ChipProps {
   label: string;
@@ -40,16 +41,21 @@ export default function Chip({
   const classes = [
     "text-xs truncate",
     size === "sm" ? "px-1.5 py-0.5 rounded" : "px-3 py-1 rounded-md",
-    color ? "text-white" : "",
+    // No hardcoded label: chipColors decides, because a caller's accent can be
+    // too light for white and too dark for ink at the same time.
+    "",
     fullWidth ? "w-full text-left block" : "inline-block",
     className,
   ]
     .filter(Boolean)
     .join(" ");
 
-  const style: CSSProperties | undefined = color
-    ? { backgroundColor: color }
-    : undefined;
+  const pair = color ? chipColors(color) : undefined;
+  const style: CSSProperties | undefined = pair
+    ? { backgroundColor: pair.background, color: pair.color }
+    : color
+      ? { backgroundColor: color, color: "#ffffff" }
+      : undefined;
 
   const removeButton = onRemove ? (
     <button
