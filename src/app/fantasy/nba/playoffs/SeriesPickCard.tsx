@@ -149,9 +149,14 @@ export default function SeriesPickCard({
 
   return (
     <div
+      // A matchup with no teams yet used to be dimmed with opacity-40, which
+      // crushes the contrast of every label inside it: the seeds and the score
+      // select land well under AA at four tenths, and that is a reading
+      // problem rather than a scanner complaint. The card stays at full
+      // opacity now and says "not yet" with a recessed surface instead.
       className={[
-        "overflow-hidden rounded-xl border bg-surface transition-[opacity,border-color] duration-200",
-        disabled ? "opacity-40" : "",
+        "overflow-hidden rounded-xl border transition-[background-color,border-color] duration-200",
+        disabled ? "bg-surface/40" : "bg-surface",
       ].join(" ")}
       style={
         pick?.winner && winnerInfo

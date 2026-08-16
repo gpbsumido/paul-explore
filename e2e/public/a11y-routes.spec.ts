@@ -76,10 +76,26 @@ test.describe("Public route accessibility", () => {
       await page.waitForFunction(() => {
         const root = document.documentElement;
         if (!root.dataset.theme) return false;
-        const fg = getComputedStyle(root)
-          .getPropertyValue("--color-foreground")
-          .trim();
-        return fg.length > 0;
+        const style = getComputedStyle(root);
+        // Every one of these, not just the foreground. They are aliases of
+        // @paul-portfolio/tokens now, and an alias whose source stylesheet has
+        // not arrived yet resolves to nothing rather than to an error, so a
+        // scan can catch the page with its text in the browser default over a
+        // surface that is already correct. One token proves one stylesheet
+        // landed; the palette needs all of them.
+        return ["--color-foreground", "--color-background", "--color-muted"]
+          .map((token) => style.getPropertyValue(token).trim())
+          .every((value) => value.length > 0);
+      });
+      // And the page's own text has to be painted in those colours. The wait
+      // above proves the tokens resolve at the root; this proves the cascade
+      // reached the content, which under a dev server compiling routes on
+      // demand is a separate event and the one the scan kept racing.
+      await page.waitForFunction(() => {
+        const main = document.querySelector("main");
+        if (!main) return false;
+        const color = getComputedStyle(main).color;
+        return color !== "" && color !== "rgb(0, 0, 0)";
       });
       // And once more for anything still fading in. A contrast rule reads the
       // colour as it is at that instant, so an element mid-transition measures
