@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-16 - version 5.1.7
+
+- **Fourteen of the thirty-three components on /design-system rendered nothing.** The gallery looks up `PREVIEWS[component.id]`, and a missing key is not an error — it is `undefined`, so the card laid out perfectly with an empty frame where the component should have been. The eleven charts plus TiltCard, Spotlight and GradientBackground sit first in the catalog, so the page opened on a column of blank boxes and only looked alive once you scrolled past them into the primitives. Every one of them now renders with small hand-written sample data.
+- **The existing test could not have caught it, which is the part worth keeping.** `catalog.test.ts` checks that every documented `importName` is a real export of the package, and that was true the entire time: the components existed, the page simply never rendered them. The new check reads the preview map the page actually uses and fails when a catalogued component has no entry, or when an entry outlives the component it documented.
+- Swept the other public routes for the same shape of bug — a framed box with nothing in it. The remaining matches are all deliberate: the spotlight glow layer, the gradient mesh, the radius and shadow swatches on this same page, and the stylised card gradients on the Pokémon hub. Only the design system was actually missing content.
+
 ## 2026-08-16 - version 5.1.6
 
 - **Two follow-ups worth writing down, both of which corrected something I believed.** `/thoughts/deployment` closes the loop on the cold-start number: the API's production install came down 61.5 percent, from 443MB to 170.5MB, by installing one platform's ffprobe instead of six. The swap uncovered that pnpm 10 had silently blocked the postinstall that downloads ffmpeg, so every video upload had been failing at the thumbnail step in production, unnoticed because no test had ever executed either binary. I went looking for bytes and found a broken feature.
