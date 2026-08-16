@@ -22,13 +22,27 @@ import {
 import {
   Avatar,
   Badge,
+  BarChart,
   Card,
   Divider,
+  DonutChart,
+  FunnelChart,
+  GaugeChart,
+  GradientBackground,
+  HeatmapChart,
+  ParetoChart,
+  RadarChart,
+  ScatterPlot,
   Skeleton,
+  Sparkline,
   Spinner,
+  Spotlight,
+  StackedLineChart,
   Switch,
   Ticker,
+  TiltCard,
   VisuallyHidden,
+  WordCloud,
 } from "@paul-portfolio/react";
 import {
   COMPONENTS,
@@ -407,6 +421,121 @@ function ChipDemo() {
 
 /** Keyed by component id so each gallery card can render itself live. */
 const PREVIEWS: Record<string, ReactNode> = {
+  // The charts and the three decorative components were catalogued and never
+  // rendered. The gallery looks up PREVIEWS[id], and a missing key is not an
+  // error -- it is undefined, so the card laid out perfectly with an empty
+  // frame where the component should be. They sit first in the catalog, so the
+  // page opened on a column of blank boxes and only looked alive further down.
+  // Sample data is small and hand-written so each shape reads at preview size.
+  sparkline: (
+    <Sparkline data={[4, 9, 6, 12, 10, 16, 14]} label="Weekly signups" />
+  ),
+  "bar-chart": (
+    <BarChart data={[12, 19, 8, 15, 11]} label="Posts per weekday" />
+  ),
+  "donut-chart": (
+    <DonutChart
+      label="Traffic by source"
+      data={[
+        { label: "Search", value: 48 },
+        { label: "Direct", value: 30 },
+        { label: "Referral", value: 22 },
+      ]}
+    />
+  ),
+  "funnel-chart": (
+    <FunnelChart
+      label="Signup funnel"
+      data={[
+        { label: "Visited", value: 1000 },
+        { label: "Started", value: 420 },
+        { label: "Finished", value: 180 },
+      ]}
+    />
+  ),
+  "radar-chart": (
+    <RadarChart
+      label="Skill coverage"
+      axes={["Perf", "A11y", "Tests", "Types", "Docs"]}
+      data={[{ label: "Now", values: [8, 9, 7, 9, 6] }]}
+      max={10}
+    />
+  ),
+  "scatter-plot": (
+    <ScatterPlot
+      label="Load time against payload"
+      series={[
+        {
+          label: "Routes",
+          points: [
+            { x: 1, y: 2 },
+            { x: 3, y: 4 },
+            { x: 4, y: 3 },
+            { x: 6, y: 7 },
+            { x: 8, y: 6 },
+          ],
+        },
+      ]}
+    />
+  ),
+  "heatmap-chart": (
+    <HeatmapChart
+      label="Commits by day and week"
+      colLabels={["M", "T", "W", "T", "F"]}
+      rows={[
+        { label: "W1", values: [1, 4, 2, 6, 3] },
+        { label: "W2", values: [5, 2, 7, 3, 8] },
+      ]}
+    />
+  ),
+  "pareto-chart": (
+    <ParetoChart
+      label="Errors by cause"
+      data={[
+        { label: "Timeout", value: 42 },
+        { label: "Parse", value: 20 },
+        { label: "Auth", value: 12 },
+        { label: "Other", value: 6 },
+      ]}
+    />
+  ),
+  "gauge-chart": <GaugeChart label="P75 LCP budget used" value={68} unit="%" />,
+  "word-cloud": (
+    <WordCloud
+      label="Write-up topics"
+      terms={[
+        { text: "performance", weight: 9 },
+        { text: "testing", weight: 7 },
+        { text: "tokens", weight: 6 },
+        { text: "contrast", weight: 5 },
+        { text: "bundle", weight: 4 },
+      ]}
+    />
+  ),
+  "stacked-line-chart": (
+    <StackedLineChart
+      label="Weekly page loads by device"
+      series={[
+        { label: "Desktop", values: [6, 8, 7, 10, 12] },
+        { label: "Mobile", values: [4, 5, 9, 8, 11] },
+      ]}
+    />
+  ),
+  "tilt-card": (
+    <TiltCard className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
+      Hover me
+    </TiltCard>
+  ),
+  spotlight: (
+    <Spotlight className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
+      Move the cursor across me
+    </Spotlight>
+  ),
+  "gradient-background": (
+    <GradientBackground className="w-full rounded-xl p-4 text-sm text-foreground">
+      Animated gradient
+    </GradientBackground>
+  ),
   button: (
     <div className="flex flex-wrap gap-2">
       <Button size="sm">Primary</Button>
