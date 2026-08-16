@@ -28,6 +28,11 @@ export default function AccessibilityContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-15-playoffs",
+            date: "Aug 15, 2026",
+            title: "The contrast failure that was not a contrast failure",
+          },
+          {
             id: "update-2026-08-15-recolour",
             date: "Aug 15, 2026",
             title: "The recolour tried to smuggle in three contrast bugs",
@@ -84,6 +89,53 @@ export default function AccessibilityContent() {
           state, make the state impossible instead.
         </p>
       </Update>
+      <Update
+        id="update-2026-08-15-playoffs"
+        date="August 15, 2026"
+        title="The contrast failure that was not a contrast failure"
+      >
+        <p>
+          The playoff bracket had been failing the local accessibility sweep
+          on colour contrast, and the obvious reading was that the warm
+          neutrals had pushed muted text under AA. That reading was wrong, and
+          acting on it would have meant retoning a token to fix nothing.
+          Muted measures 5.02 to 7.00 against every surface in both themes,
+          and the specific elements axe flagged measure 7.0:1 and 14.5:1 once
+          the page has settled. Running axe by hand against the same page,
+          with the same waits the spec uses, produced no violations at all.
+        </p>
+        <p>
+          <strong>There was a real defect, just not that one.</strong> A
+          matchup with no teams yet was dimmed with forty percent opacity,
+          which is a reasonable way to recede a border and a bad way to recede
+          text. Measured on the running page, twenty-one elements sat at an
+          effective opacity of 0.4, which puts the seeds and the score select
+          well under AA for anyone reading them. The card keeps full opacity
+          now and recedes with a lighter surface instead. The buttons and the
+          select were already disabled, which is what tells a screen reader
+          the state and what exempts a control from the contrast rule to begin
+          with; the blanket opacity was doing neither.
+        </p>
+        <p>
+          The rest was the scan racing the stylesheet. It only appeared under
+          the full thirty-test parallel run against a dev server; with one
+          worker, one theme passed and the other failed, and in isolation it
+          passed outright. The tokens are aliases of the shared package now,
+          and an alias whose source stylesheet has not arrived resolves to
+          nothing rather than to an error &mdash; so a scan can catch the page
+          with its text in the browser default over a surface that is already
+          correct. The spec waits for background and muted alongside
+          foreground now, and for the main landmark to be painted in a real
+          colour.
+        </p>
+        <p>
+          Worth recording that this never reached CI, because CI scans a
+          production build rather than a dev server compiling routes on
+          demand. A check that is red locally and green in CI is its own kind
+          of problem: it trains you to ignore the local one.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Accessibility treated as markup rather than attributes — semantic elements first, ARIA only where semantics genuinely run out.",
