@@ -7,6 +7,9 @@ import {
   WhatsNext,
 } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { AccessibilityChat } from "./sections/AccessibilityChat";
+
+const code =
+  "rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground";
 import { AccessibilitySummary1 } from "./sections/AccessibilitySummary1";
 import { AccessibilitySummary2 } from "./sections/AccessibilitySummary2";
 
@@ -27,6 +30,11 @@ export default function AccessibilityContent() {
     >
       <UpdateTimeline
         entries={[
+          {
+            id: "update-2026-08-16-wrong-target",
+            date: "Aug 16, 2026",
+            title: "A guard aimed at the wrong half of the system",
+          },
           {
             id: "update-2026-08-15-playoffs",
             date: "Aug 15, 2026",
@@ -133,6 +141,61 @@ export default function AccessibilityContent() {
           production build rather than a dev server compiling routes on
           demand. A check that is red locally and green in CI is its own kind
           of problem: it trains you to ignore the local one.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-16-wrong-target"
+        date="August 16, 2026"
+        title="A guard aimed at the wrong half of the system"
+      >
+        <p>
+          A consumer upgrade reported that the shared secondary button
+          rendered an ember label on an ember tint at 3.2:1, under AA. I set
+          out to fix it and asked for the measurement first, which is the
+          only reason the next part came out right:{" "}
+          <strong>that button does not use the ember ramp at all.</strong> It
+          tracks verdigris and measures 6.66:1 in light and 11.68:1 in dark,
+          and in the old blue palette it measured 6.16:1, so it never failed
+          and nothing regressed. Sweeping every foreground and background pair
+          in both ramps across both palettes turned up nothing at 3.2:1 to
+          fix.
+        </p>
+        <p>
+          Two of my own assumptions went with it: I had reasoned about the
+          tint as a <code className={code}>color-mix</code> over a surface,
+          and the package has no alpha or mixing anywhere &mdash; every fill
+          is a flat opaque ramp step. Retoning the identity ramp, which was
+          the obvious move, would have changed the brand in every consuming
+          app to fix a component that was already passing.
+        </p>
+        <p>
+          <strong>The measuring did find a real breach, one component over.</strong>{" "}
+          The error starburst badge fills with the ramp&rsquo;s 400 and labels
+          with its 900, which clears comfortably for primary, success and
+          warning &mdash; but the error ramp&rsquo;s 400 is darker than its
+          siblings, landing that label at 3.62:1 at ten pixels bold, under the
+          large-text exemption. The label moved to the ramp&rsquo;s darkest
+          step for 5.84:1, rather than lightening the fill, because the
+          saturated red is what makes the seal read as an error in the first
+          place.
+        </p>
+        <p>
+          The root cause is the part worth keeping. A contrast helper existed
+          in that package and had only ever been pointed at the chart palette,
+          so not one component pair had ever been measured &mdash; which is
+          exactly how a 3.62:1 label shipped green through a system that
+          advertises contrast checking. There are eighteen component pairs
+          under test now, read out of the real stylesheets and folded through
+          the cascade to the actual label and fill. A guard is only worth what
+          it is aimed at, and this one had been aimed at the half of the
+          system nobody was shipping.
+        </p>
+        <p>
+          The original 3.2:1 report is not disproven, only relocated: it was
+          measured inside the consuming app, which carries its own bridge over
+          these ramps. Two measurements taken in different contexts disagreeing
+          is a thing to re-measure, not to declare settled.
         </p>
       </Update>
 

@@ -171,6 +171,11 @@ export default function DeploymentContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-16-ffprobe",
+            date: "Aug 16, 2026",
+            title: "The weight came off, and took a broken feature with it",
+          },
+          {
             id: "update-2026-08-15-deployed",
             date: "Aug 15, 2026",
             title: "What deploys, and what it costs to wake up",
@@ -487,6 +492,57 @@ export default function DeploymentContent() {
           Both of these are the same lesson wearing different clothes. What
           runs locally is not what deploys, and the only honest check is the
           one that asks the deployed artifact.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-16-ffprobe"
+        date="August 16, 2026"
+        title="The weight came off, and took a broken feature with it"
+      >
+        <p>
+          The entry above ends on a number: 335MB of the API&rsquo;s
+          443MB production install was one package shipping every
+          platform&rsquo;s binaries. Acting on it cut the install to{" "}
+          <strong>170.5MB on CI, down 61.5 percent</strong>, by swapping{" "}
+          <code className={code}>ffprobe-static</code>&rsquo;s six-platform
+          tarball for an installer package that resolves a single platform
+          build through optional dependencies. The committed budget came down
+          with it, 500MB to 210MB, because a budget left at the old ceiling
+          after a win that size has quietly stopped measuring anything.
+        </p>
+        <p>
+          <strong>
+            The interesting part is what the swap uncovered, which had nothing
+            to do with size.
+          </strong>{" "}
+          The replacement chmods its binary in a postinstall, and pnpm 10
+          refuses build scripts unless the package is named in{" "}
+          <code className={code}>onlyBuiltDependencies</code>. Without that
+          the binary lands unexecutable and spawns as permission denied.
+          Chasing it revealed the same mechanism had already silently disabled{" "}
+          <code className={code}>ffmpeg-static</code>, whose postinstall
+          downloads the actual ffmpeg binary and had{" "}
+          <em>never run</em> &mdash; not locally, not in the Docker image,
+          which never installs ffmpeg either. Every video upload has been
+          failing at the thumbnail step, in production, for as long as that
+          pnpm version has been in use.
+        </p>
+        <p>
+          Nothing caught it because no test had ever executed either binary.
+          The new test drives the real video path against a committed
+          fixture, and it failed with{" "}
+          <code className={code}>spawn ffmpeg ENOENT</code> before the fix
+          &mdash; which is to say the first honest test of that path
+          reproduced the production bug on the first run. It is also verified
+          from the compiled output rather than from source, and inside a real
+          linux/amd64 container rather than on my Mac, because the whole
+          failure was about which binary exists where.
+        </p>
+        <p>
+          I went looking for bytes and found a broken feature. That is the
+          argument for measuring things you think you already understand:
+          the size metric was never the point, it was the excuse to look.
         </p>
       </Update>
 
