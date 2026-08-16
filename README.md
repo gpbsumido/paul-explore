@@ -66,6 +66,7 @@ Requires login **and** being on the admin allowlist:
 | Monitoring    | Vercel Speed Insights                               |
 | Linting       | ESLint (Next.js config)                             |
 | Bundle        | `@next/bundle-analyzer` (`pnpm analyze`)            |
+| Size budget   | `pnpm size` (gzipped first-load JS, fails over)     |
 
 ---
 

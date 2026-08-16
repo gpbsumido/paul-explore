@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "5.1.3",
+  "version": "5.1.4",
   "private": true,
   "packageManager": "pnpm@8.5.1",
   "engines": {
@@ -18,6 +18,7 @@
     "test:integration": "vitest run --project integration",
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true next build --webpack",
+    "size": "node scripts/check-bundle-size.mjs",
     "deadcode": "depcheck",
     "deadexports": "node scripts/check-dead-exports.mjs",
     "deadcheck": "pnpm deadcode && pnpm deadexports",

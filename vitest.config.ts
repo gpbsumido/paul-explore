@@ -36,7 +36,14 @@ export default defineConfig({
         test: {
           ...sharedTest,
           name: "unit",
-          include: ["src/**/*.{test,spec}.{ts,tsx}"],
+          // `scripts/` is in here because the bundle-size guard's parsing and
+          // comparison logic is worth testing and lives beside the script that
+          // uses it. Without this glob a test file there is silently never run,
+          // which is worse than not having written it.
+          include: [
+            "src/**/*.{test,spec}.{ts,tsx}",
+            "scripts/**/*.{test,spec}.ts",
+          ],
           exclude: ["**/node_modules/**", integrationGlob],
         },
       },
