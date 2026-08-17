@@ -37,7 +37,10 @@ const ROUTES = [
  */
 const THEMES = ["dark", "light"] as const;
 
-test.describe("Public route accessibility", () => {
+// Tagged so the per-PR smoke job can pick these up by grep. They ride that
+// job's existing build rather than starting a second server, which is the only
+// reason running them on every PR is affordable.
+test.describe("Public route accessibility @a11y", () => {
   for (const theme of THEMES) {
     test.describe(theme, () => {
       // Pin the theme before anything renders. Every colour on the site comes
