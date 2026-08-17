@@ -6,7 +6,11 @@ import {
   UNIT_TEST_COUNT,
   E2E_TEST_COUNT,
 } from "@/app/_shared/testCount.generated";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  UpdateTimeline,
+  Update,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -237,6 +241,15 @@ await waitFor(() =>
         </ChatThread>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-16-never-ran",
+            date: "Aug 16, 2026",
+            title: "A suite in another repo that nothing was running",
+          },
+        ]}
+      />
       <section>
         <h2 className="mb-3 text-lg font-bold">The gap</h2>
         <p className="text-muted">
@@ -448,6 +461,59 @@ await waitFor(() =>
           shared between tests.
         </p>
       </section>
+      <Update
+        id="update-2026-08-16-never-ran"
+        date="August 16, 2026"
+        title="A suite in another repo that nothing was running"
+      >
+        <p>
+          The section above ends on the line that tests only matter if they run
+          automatically, and I believed it enough to gate this app&rsquo;s
+          deploys on it. The design system repo, which publishes packages to npm
+          the moment anything reaches its main branch, had a suite spread across
+          four workspaces &mdash; the palette contrast gate, the component
+          contrast pairs, the token shape checks &mdash; and no workflow that
+          ran any of it. Its workflows directory held a Chromatic job, a publish
+          job and a tag job, and nothing else.
+        </p>
+        <p>
+          <strong>
+            And every one of them was green because I had remembered to run it.
+          </strong>{" "}
+          That is not a small distinction dressed up as a large one. A suite
+          nothing runs is documentation of an intent, and it degrades exactly
+          like documentation does: silently, at whatever rate the code moves,
+          with no signal at the moment it stops being true. This one happened to
+          still pass when I finally pointed a pipeline at it, which is luck
+          rather than evidence.
+        </p>
+        <p>
+          Adding the workflow was ten minutes. The part worth keeping is what I
+          did before merging it: a new gate that has only ever been green has
+          been shown to run, not shown to fail, and those look identical in a
+          checks list. So I reintroduced a regression the suite is meant to
+          catch &mdash; reverting one chart palette slot to a colour that
+          collides under deuteranopia &mdash; watched it exit non-zero with the
+          ratio it objected to, and reverted the revert. A gate I have never
+          seen fail is a gate I have no reason to trust.
+        </p>
+        <p>
+          The same repo also had a test count that{" "}
+          <strong>doubled after a build</strong>, because its tokens package
+          compiled its own tests into an output directory that the runner
+          did not exclude, and then published that directory. The pipeline gap
+          and the count are two of four findings of the same shape that week,
+          written up in{" "}
+          <a
+            href="/thoughts/green-checks"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            green checks
+          </a>
+          .
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Factory functions instead of shared fixtures, so a test says what matters to it and nothing else.",

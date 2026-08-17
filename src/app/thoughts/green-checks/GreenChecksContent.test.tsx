@@ -1,11 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";
+import { axe } from "@/test/a11y";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 
 import GreenChecksContent from "./GreenChecksContent";
 
 describe("the green checks write-up", () => {
+  it("reports no axe violations in the summary view", async () => {
+    const { container } = render(<GreenChecksContent />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
   it("records the suite that was published against but never run", () => {
     render(<GreenChecksContent />);
     const body = document.body.textContent ?? "";

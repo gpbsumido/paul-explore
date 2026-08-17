@@ -351,6 +351,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#535ec9",
   },
   {
+    title: "Green Checks",
+    href: "/thoughts/green-checks",
+    preview:
+      "Four green checks in the design system that were each measuring something other than what they claimed — the suite nothing ran, the visual gate with no quota, the contrast figure taken under the gloss, and the count that moved when you built",
+    color: "#6f9440",
+  },
+  {
     title: "Operator Dashboard",
     href: "/thoughts/operator-dashboard",
     preview:
