@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-16 - version 5.1.9
+
+- **Takes @paul-portfolio/tokens 0.4.0 and css 0.8.0**, the release that adds the `--paul-color-on-*` label tokens. Worth noting why a redeploy would not have done it: below 1.0 npm reads the caret as minor-locked, so `^0.3.0` resolves `>=0.3.0 <0.4.0` and could never have picked the new versions up, lockfile or not.
+- Nothing here moves. The label tokens default to exactly what was hardcoded before — `on-primary` resolves to `#fff` and the shared button still renders white on verdigris — so this is the app staying current with the packages it documents rather than a visual change. The badge contrast fix from the same release does land, and this app is the gallery for these packages, so shipping the version it demonstrates matters more here than elsewhere.
+- Checked what a version bump can break quietly: every `--paul-*` name the app's token seam reads still exists in 0.4.0. A dropped name does not error in CSS, it resolves to nothing and inherits, which is how a stylesheet loses a colour without anyone noticing.
+
 ## 2026-08-16 - version 5.1.8
 
 - **The motion primitives on /design-system were showing their finished state, not their motion.** TextReveal, TextScramble and AnimatedNumber all animate once when they scroll into view, which is right on a real page and useless in a gallery: by the time you reach the card the animation has run, so what you see is a settled result and no evidence of what the component does. They replay on a loop now, and every one has a Replay button so the demo is available on demand rather than only on a timer.
