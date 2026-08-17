@@ -60,6 +60,13 @@ describe("the accessibility write-up", () => {
     );
   });
 
+  it("corrects the gel button figure it had on the books", () => {
+    render(<AccessibilityContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/on\s+the\s+books\s+as\s+a\s+3\.45:1/);
+    expect(body).toMatch(/the\s+real\s+floor\s+was\s+1\.69:1/);
+  });
+
   it("is honest that a green suite is a claim, not proof", () => {
     render(<AccessibilityContent />);
     // Rendered through &ldquo;/&rdquo;, so match the curly quotes the page

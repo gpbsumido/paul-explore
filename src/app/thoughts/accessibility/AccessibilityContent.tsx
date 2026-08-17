@@ -31,6 +31,11 @@ export default function AccessibilityContent() {
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-16-gel-gloss",
+            date: "Aug 16, 2026",
+            title: "A failure I had recorded at half its size",
+          },
+          {
             id: "update-2026-08-16-wrong-target",
             date: "Aug 16, 2026",
             title: "A guard aimed at the wrong half of the system",
@@ -196,6 +201,60 @@ export default function AccessibilityContent() {
           measured inside the consuming app, which carries its own bridge over
           these ramps. Two measurements taken in different contexts disagreeing
           is a thing to re-measure, not to declare settled.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-16-gel-gloss"
+        date="August 16, 2026"
+        title="A failure I had recorded at half its size"
+      >
+        <p>
+          The design system had the gel button{" "}
+          <strong>on the books as a 3.45:1</strong> AA failure, recorded in{" "}
+          <code className={code}>0.2.36</code> and deferred as a decorative
+          variant that was close enough to fix later. It reproduces exactly,
+          which is most of why it survived a year of me looking at it. It is
+          also the wrong measurement:{" "}
+          <strong>the real floor was 1.69:1</strong> at rest and 1.52:1 on
+          hover.
+        </p>
+        <p>
+          The recorded figure reads white against the bare{" "}
+          <code className={code}>primary-500</code> gradient stop, and that stop
+          sits underneath a 55% white gloss. So it describes a surface nobody
+          renders. Understating a contrast defect by more than half is bad in a
+          specific direction &mdash; it turns a serious failure into a tolerable
+          one on the page where I decide what to fix next, which is exactly how
+          it stayed deferred.
+        </p>
+        <p>
+          The correction also produced the fix, which the original number could
+          not have. Darkening the ramp was the obvious move and was never going
+          to work: a 55% white gloss caps whatever is under it at 3.35:1 even
+          over pure black, so no ramp step reaches 4.5 while that gloss stands.
+          Both had to move. The button ships{" "}
+          <code className={code}>primary-900</code> under a 14% gloss now,
+          measuring 5.12:1 at rest and 4.73:1 on hover at the worst point along
+          the fill.
+        </p>
+        <p>
+          The audit&rsquo;s own sampler is the thing that failed here, and it
+          failed the way the rest of that week&rsquo;s findings did. It read the
+          discrete ramp steps a background names, so an interpolated gradient
+          midpoint and a translucent layer were both invisible to it, and both
+          of those blind spots err toward passing. It composites the fill
+          properly now, and it asserts against itself: the composited reading
+          must stay below the bare-stop one, because if compositing ever
+          silently drops out the ratios rise while the button gets worse. The
+          fuller account of that week is in{" "}
+          <a
+            href="/thoughts/green-checks"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            green checks
+          </a>
+          .
         </p>
       </Update>
 
