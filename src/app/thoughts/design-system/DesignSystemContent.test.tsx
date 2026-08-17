@@ -22,6 +22,13 @@ describe("the design system write-up", () => {
     expect(body).toMatch(/while appearing to track the package/);
   });
 
+  it("withdraws the claim that the visual gap was closed", () => {
+    render(<DesignSystemContent />);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/had\s+been\s+comparing\s+nothing\s+for\s+about\s+a\s+month/);
+    expect(body).toMatch(/I\s+recorded\s+that\s+gap\s+as\s+closed\s+and\s+it\s+was\s+not/);
+  });
+
   it("credits the gallery test with catching the undocumented components", () => {
     render(<DesignSystemContent />);
     const body = document.body.textContent ?? "";
