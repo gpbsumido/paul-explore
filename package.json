@@ -1,6 +1,6 @@
 {
   "name": "paul-explore",
-  "version": "4.5.9",
+  "version": "5.2.1",
   "private": true,
   "packageManager": "pnpm@8.5.1",
   "engines": {
@@ -18,6 +18,7 @@
     "test:integration": "vitest run --project integration",
     "test:coverage": "vitest run --coverage",
     "analyze": "ANALYZE=true next build --webpack",
+    "size": "node scripts/check-bundle-size.mjs",
     "deadcode": "depcheck",
     "deadexports": "node scripts/check-dead-exports.mjs",
     "deadcheck": "pnpm deadcode && pnpm deadexports",
@@ -30,9 +31,9 @@
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.26.0",
     "@dnd-kit/core": "^6.3.1",
-    "@paul-portfolio/css": "^0.6.0",
+    "@paul-portfolio/css": "^0.8.0",
     "@paul-portfolio/react": "^0.5.1",
-    "@paul-portfolio/tokens": "^0.2.0",
+    "@paul-portfolio/tokens": "^0.4.0",
     "@rainbow-me/rainbowkit": "^2.2.11",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",

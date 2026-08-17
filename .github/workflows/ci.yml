@@ -86,11 +86,12 @@ jobs:
         run: pnpm test:integration
 
   e2e-smoke:
-    name: E2E smoke (public, every push/PR)
+    name: E2E smoke + accessibility (public, every push/PR)
     runs-on: ubuntu-latest
     needs: quality
-    # Thin smoke subset on every push and PR. The full suite runs nightly, so
-    # skip this job on the scheduled/manual runs to avoid doing the smoke flows twice.
+    # Thin smoke subset plus the public accessibility scans, on every push and
+    # PR. The full suite runs nightly, so skip this job on the scheduled/manual
+    # runs to avoid doing the smoke flows twice.
     if: github.event_name == 'push' || github.event_name == 'pull_request'
 
     env:
@@ -119,14 +120,38 @@ jobs:
       - name: Install Playwright browsers (Chromium only)
         run: pnpm exec playwright install chromium --with-deps
 
-      - name: Run @smoke e2e tests
+      - name: Run @smoke and @a11y e2e tests
         env:
           # Public-only run — globalSetup skips the Auth0 login without credentials.
           E2E_TEST_EMAIL: ""
           E2E_TEST_PASSWORD: ""
-        # --grep @smoke keeps this to the thin subset; --grep-invert @flaky keeps
-        # quarantined tests off the blocking path.
-        run: pnpm exec playwright test --project=public --grep @smoke --grep-invert @flaky
+        # --grep keeps this to the thin subset plus the axe scans; --grep-invert
+        # @flaky keeps quarantined tests off the blocking path.
+        #
+        # The axe scans are in here because they were the only check that
+        # measures real composited contrast and they ran nightly, on main, after
+        # the code had already merged. A serious AA failure sat on develop for
+        # days with every PR green. One grep and one `playwright test` call, so
+        # they reuse this job's build instead of paying for another one:
+        # measured, that is about a minute on a job that runs in two.
+        run: pnpm exec playwright test --project=public --grep "@smoke|@a11y" --grep-invert @flaky
+
+      # Rides this job's build rather than paying for its own. A budget check
+      # needs a production build, and `quality` deliberately doesn't do one, so
+      # putting it there would add minutes to every PR. This job already ran
+      # `pnpm build && pnpm start` through Playwright's webServer, so `.next` is
+      # sitting right there and the check costs seconds.
+      #
+      # It runs on `always()` for the same reason the report upload does: a size
+      # regression and a failing end-to-end assertion are independent facts, and
+      # the build output is on disk either way. Gating one on the other means a
+      # third-party outage -- which has taken this suite red before -- would
+      # quietly hide a bundle regression. The flag covers the one case that
+      # condition opens up: when the build itself failed there is nothing to
+      # measure, and this step stands down rather than blaming the bundle for it.
+      - name: Bundle-size budget
+        if: always()
+        run: pnpm size --skip-if-unbuilt
 
       - name: Upload Playwright report
         if: always()

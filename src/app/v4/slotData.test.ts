@@ -9,11 +9,21 @@ describe("buildSlots", () => {
   const allOptions = categories.flatMap((c) => c.options);
 
   it("puts Apps first with every feature as an option, in order", () => {
+    const reeled = FEATURES.filter((f) => f.id !== "discover");
     expect(apps.label).toBe("Apps");
-    expect(apps.options).toHaveLength(FEATURES.length);
+    expect(apps.options).toHaveLength(reeled.length);
     expect(apps.options.map((o) => o.label)).toEqual(
-      FEATURES.map((f) => f.title),
+      reeled.map((f) => f.title),
     );
+  });
+
+  it("keeps the reels out of their own reel", () => {
+    // Discover is the page the slot machine lives on. Landing on it mid-spin
+    // offers to open where you already are, so it is a hub card but not a reel
+    // option. Asserted against the real feature so this cannot pass by the
+    // feature simply not existing.
+    expect(FEATURES.some((f) => f.id === "discover")).toBe(true);
+    expect(apps.options.some((o) => o.id === "feat:discover")).toBe(false);
   });
 
   it("bridges a feature with an active write-up to exactly that write-up", () => {

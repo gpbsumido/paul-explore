@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { API_URL } from "@/lib/apiUrl";
 import { auth0 } from "@/lib/auth0";
+import { fetchUpstream } from "@/lib/upstream";
 import { resolveVitalsFilter } from "@/lib/vitalsFilter";
 import type { VitalsResponse, VersionMetrics } from "@/types/vitals";
 import VitalsContent from "./VitalsContent";
@@ -51,22 +52,41 @@ async function fetchVitals(
   return { summary, byPage };
 }
 
+type VersionsResult =
+  | { reachable: true; versions: string[] }
+  | { reachable: false };
+
 /**
- * Returns the list of app versions that have vitals data, newest first.
- * Used to populate the version selector dropdown. Returns an empty array
- * if the backend doesn't have the endpoint yet so the selector just hides.
+ * Returns the list of app versions that have vitals data, newest first, and
+ * doubles as the page's health probe.
+ *
+ * This call runs before the other three, so whether it got an answer is the
+ * cheapest way to know if the backend is up. It used to swallow everything and
+ * return [], which sent the page off to query version "0" and render the empty
+ * state -- an outage shown as a report of zero traffic.
+ *
+ * A transport failure or a 5xx means down. Anything the backend actually said
+ * (a 404 from a deploy that doesn't have the endpoint yet, most of all) is
+ * reachable with no versions, so the selector just hides as before.
  */
-async function fetchVersions(token: string | undefined): Promise<string[]> {
+async function fetchVersions(
+  token: string | undefined,
+): Promise<VersionsResult> {
+  const result = await fetchUpstream(`${API_URL}/api/vitals/versions`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    cache: "no-store",
+  });
+  if (!result.ok) return { reachable: false };
+
+  const res = result.response;
+  if (res.status >= 500) return { reachable: false };
+  if (!res.ok) return { reachable: true, versions: [] };
+
   try {
-    const res = await fetch(`${API_URL}/api/vitals/versions`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      cache: "no-store",
-    });
-    if (!res.ok) return [];
     const { versions } = await res.json();
-    return versions ?? [];
+    return { reachable: true, versions: versions ?? [] };
   } catch {
-    return [];
+    return { reachable: true, versions: [] };
   }
 }
 
@@ -120,12 +140,38 @@ export default async function VitalsPage({
   // the current major. Fetching versions up front lets first load (no ?v) query
   // the same current-major scope the selector displays, so the numbers don't
   // change when you pick "Current Major" back after switching away.
-  const versions = await fetchVersions(token);
-  const defaultMajor = versions.length > 0 ? versions[0].split(".")[0] : "0";
-  const { filterMode, filterVersion, selectedVersion } = resolveVitalsFilter(
-    urlVersion,
-    defaultMajor,
-  );
+  const result = await fetchVersions(token);
+
+  // Backend down. Say so instead of scoping the next three calls to a version
+  // that doesn't exist and calling the nothing that comes back "no data yet".
+  if (!result.reachable) {
+    return (
+      <VitalsContent
+        unreachable
+        summary={{}}
+        byPage={[]}
+        versions={[]}
+        selectedVersion=""
+        byVersion={[]}
+      />
+    );
+  }
+
+  const { versions } = result;
+
+  // A reachable backend with no recorded versions is a fresh database, and a
+  // fresh database has no current major to scope to. Skip the version filter
+  // entirely so the queries ask for all-time data instead of inventing a
+  // major "0" that never shipped. The selector renders nothing without
+  // versions, so an empty selectedVersion never reaches a control.
+  const { filterMode, filterVersion, selectedVersion } =
+    versions.length > 0
+      ? resolveVitalsFilter(urlVersion, versions[0].split(".")[0])
+      : {
+          filterMode: undefined,
+          filterVersion: undefined,
+          selectedVersion: "",
+        };
 
   const [byVersion, { summary, byPage }] = await Promise.all([
     fetchByVersion(token, filterVersion, filterMode),

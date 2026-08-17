@@ -8,6 +8,10 @@ import { checkA11y } from "../helpers/axe";
  * here is clean.
  */
 const ROUTES = [
+  // The landing itself. It was only ever covered by the smoke axe scan, in
+  // whichever theme happened to be default, and it is now the page carrying the
+  // most new colour on the site.
+  "/",
   "/learn",
   "/learn/binary-search",
   "/work-portfolio",
@@ -24,22 +28,36 @@ const ROUTES = [
   "/fantasy/nba/playoffs",
 ];
 
-test.describe("Public route accessibility", () => {
-  // Pin the theme before anything renders. Every colour on the site comes from
-  // a custom property, and which set is live depends on a preference read at
-  // runtime -- so an unpinned scan races the theme system and intermittently
-  // measures muted text against the other theme's surface. That produced
-  // contrast failures on whichever route happened to lose the race, which is
-  // the worst kind of red: real-looking, unreproducible, and not a bug.
-  // Same mechanism the PR-screenshot workflow already uses.
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem("theme-preference", "dark");
-    });
-  });
+/**
+ * Both themes, because they are two different palettes rather than one palette
+ * with the lightness flipped. The feature accents in particular are a
+ * light/dark pair per token, so a dark-only scan measures exactly half of the
+ * colour in the app -- and the light half is the half that sits on near-white,
+ * where contrast is hardest to hold.
+ */
+const THEMES = ["dark", "light"] as const;
 
-  for (const route of ROUTES) {
-    test(`${route} has no axe violations`, async ({ page }) => {
+// Tagged so the per-PR smoke job can pick these up by grep. They ride that
+// job's existing build rather than starting a second server, which is the only
+// reason running them on every PR is affordable.
+test.describe("Public route accessibility @a11y", () => {
+  for (const theme of THEMES) {
+    test.describe(theme, () => {
+      // Pin the theme before anything renders. Every colour on the site comes
+      // from a custom property, and which set is live depends on a preference
+      // read at runtime -- so an unpinned scan races the theme system and
+      // intermittently measures muted text against the other theme's surface.
+      // That produced contrast failures on whichever route happened to lose the
+      // race, which is the worst kind of red: real-looking, unreproducible, and
+      // not a bug. Same mechanism the PR-screenshot workflow already uses.
+      test.beforeEach(async ({ page }) => {
+        await page.addInitScript((preference) => {
+          window.localStorage.setItem("theme-preference", preference);
+        }, theme);
+      });
+
+      for (const route of ROUTES) {
+        test(`${route} has no axe violations`, async ({ page }) => {
       await page.goto(route);
       // Deliberately not networkidle. These pages poll and fetch from a third
       // party, so "no requests for 500ms" is a promise about someone else's
@@ -61,10 +79,26 @@ test.describe("Public route accessibility", () => {
       await page.waitForFunction(() => {
         const root = document.documentElement;
         if (!root.dataset.theme) return false;
-        const fg = getComputedStyle(root)
-          .getPropertyValue("--color-foreground")
-          .trim();
-        return fg.length > 0;
+        const style = getComputedStyle(root);
+        // Every one of these, not just the foreground. They are aliases of
+        // @paul-portfolio/tokens now, and an alias whose source stylesheet has
+        // not arrived yet resolves to nothing rather than to an error, so a
+        // scan can catch the page with its text in the browser default over a
+        // surface that is already correct. One token proves one stylesheet
+        // landed; the palette needs all of them.
+        return ["--color-foreground", "--color-background", "--color-muted"]
+          .map((token) => style.getPropertyValue(token).trim())
+          .every((value) => value.length > 0);
+      });
+      // And the page's own text has to be painted in those colours. The wait
+      // above proves the tokens resolve at the root; this proves the cascade
+      // reached the content, which under a dev server compiling routes on
+      // demand is a separate event and the one the scan kept racing.
+      await page.waitForFunction(() => {
+        const main = document.querySelector("main");
+        if (!main) return false;
+        const color = getComputedStyle(main).color;
+        return color !== "" && color !== "rgb(0, 0, 0)";
       });
       // And once more for anything still fading in. A contrast rule reads the
       // colour as it is at that instant, so an element mid-transition measures
@@ -86,7 +120,9 @@ test.describe("Public route accessibility", () => {
           // decorative, so carry on rather than fail a scan on a loop that is
           // never going to stop.
         });
-      await checkA11y(page, route);
+          await checkA11y(page, `${route} (${theme})`);
+        });
+      }
     });
   }
 });

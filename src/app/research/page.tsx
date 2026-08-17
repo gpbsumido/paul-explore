@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function ResearchPage() {
   return (
-    <PageShell colorA="#14b8a6" colorB="#6366f1">
+    <PageShell>
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Research" }]}
       />

@@ -130,7 +130,7 @@ export default function EventsContent() {
       {loading ? (
         <EventListSkeleton />
       ) : eventsQuery.isError ? (
-        <p className="text-sm text-red-600 dark:text-red-400 py-8 text-center">
+        <p className="text-sm text-error-600 dark:text-error-400 py-8 text-center">
           {eventsQuery.error?.message ?? "Couldn't load events."}
         </p>
       ) : displayed.length === 0 ? (

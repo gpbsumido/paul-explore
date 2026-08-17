@@ -6,7 +6,7 @@ import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #e879f9)";
+const ACCENT = "var(--wp-accent, #b951c9)";
 
 type Reply = { id: number; author: string; body: string };
 type Post = {

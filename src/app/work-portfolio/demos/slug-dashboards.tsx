@@ -39,7 +39,7 @@ const CONFIGS: DashboardConfig[] = [
   {
     slug: "overview",
     title: "Fleet Overview",
-    accent: "#a3e635",
+    accent: "#8fbf41",
     chart: "line",
     tiles: [
       { label: "Players", format: "count" },
@@ -50,7 +50,7 @@ const CONFIGS: DashboardConfig[] = [
   {
     slug: "economy",
     title: "Economy Snapshot",
-    accent: "#38bdf8",
+    accent: "#419cc5",
     chart: "bar",
     tiles: [
       { label: "Supply", format: "count" },
@@ -62,7 +62,7 @@ const CONFIGS: DashboardConfig[] = [
   {
     slug: "live-ops",
     title: "Live Ops",
-    accent: "#f472b6",
+    accent: "#c7508e",
     chart: "area",
     tiles: [
       { label: "Events", format: "count" },
@@ -73,7 +73,7 @@ const CONFIGS: DashboardConfig[] = [
   {
     slug: "acquisition",
     title: "Acquisition",
-    accent: "#c084fc",
+    accent: "#8f52cb",
     chart: "radial",
     tiles: [
       { label: "Installs", format: "count" },

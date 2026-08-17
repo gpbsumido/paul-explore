@@ -210,7 +210,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
         exit={{ opacity: 0, y: 4 }}
         className={[
           "text-[12px] font-medium",
-          status === "saving" ? "text-muted animate-pulse" : "text-green-400",
+          status === "saving" ? "text-muted animate-pulse" : "text-success-400",
         ].join(" ")}
       >
         {status === "saving" ? "Saving…" : "Saved"}
@@ -241,10 +241,10 @@ function SubmitButton({
       className={[
         "rounded-lg px-4 py-1.5 text-[12px] font-semibold transition-colors",
         status === "submitted"
-          ? "bg-green-500/20 text-green-400 cursor-default"
+          ? "bg-success-500/20 text-success-400 cursor-default"
           : isDisabled
-            ? "bg-orange-500/10 text-orange-400/40 cursor-not-allowed"
-            : "bg-orange-500/20 text-orange-800 dark:text-orange-400 hover:bg-orange-500/30",
+            ? "bg-secondary-500/10 text-secondary-400/40 cursor-not-allowed"
+            : "bg-secondary-500/20 text-secondary-800 dark:text-secondary-400 hover:bg-secondary-500/30",
       ].join(" ")}
     >
       {status === "submitting"
@@ -328,7 +328,7 @@ function PickProgress({
       </span>
       <div className="h-1 w-16 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
         <m.div
-          className="h-full rounded-full bg-orange-400/70"
+          className="h-full rounded-full bg-secondary-400/70"
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ type: "spring", stiffness: 80, damping: 20 }}
@@ -385,7 +385,7 @@ function ChampionDisplay({
           transition={{ duration: 1.6, ease: "easeInOut", delay: 0.4 }}
         >
           <svg
-            className="h-8 w-8 text-yellow-400 drop-shadow"
+            className="h-8 w-8 text-secondary-400 drop-shadow"
             viewBox="0 0 24 24"
             fill="currentColor"
             aria-hidden
@@ -418,7 +418,7 @@ function ChampionDisplay({
           <p
             className="text-[15px] font-bold tracking-tight"
             style={
-              teamInfo ? { color: teamInfo.primary } : { color: "#eab308" }
+              teamInfo ? { color: teamInfo.primary } : { color: "var(--color-feature-nba)" }
             }
           >
             {champion?.name ?? finalsPick.winner}
@@ -459,10 +459,10 @@ function ViewModeBanner({
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 24 }}
       data-testid="view-mode-banner"
-      className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/8 px-4 py-3"
+      className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-primary-500/20 bg-primary-500/8 px-4 py-3"
     >
       <svg
-        className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400"
+        className="h-4 w-4 shrink-0 text-primary-600 dark:text-primary-400"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -474,8 +474,8 @@ function ViewModeBanner({
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
         <circle cx="12" cy="12" r="3" />
       </svg>
-      <span className="text-[13px] font-medium text-blue-300">
-        Viewing <span className="text-blue-200">{viewName}&rsquo;s</span>{" "}
+      <span className="text-[13px] font-medium text-primary-300">
+        Viewing <span className="text-primary-200">{viewName}&rsquo;s</span>{" "}
         Bracket
       </span>
 
@@ -483,7 +483,7 @@ function ViewModeBanner({
         <button
           type="button"
           onClick={handleCopyLink}
-          className="rounded-md px-2.5 py-1 text-[11px] font-medium text-blue-400/80 hover:text-blue-300 hover:bg-blue-500/15 transition-colors"
+          className="rounded-md px-2.5 py-1 text-[11px] font-medium text-primary-400/80 hover:text-primary-300 hover:bg-primary-500/15 transition-colors"
         >
           {copied ? "Copied!" : "Copy Link"}
         </button>
@@ -809,7 +809,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 type="checkbox"
                 checked={autoSave}
                 onChange={(e) => setAutoSave(e.target.checked)}
-                className="h-3.5 w-3.5 accent-orange-400"
+                className="h-3.5 w-3.5 accent-secondary-400"
               />
               <span className="text-[12px] text-muted">Auto-save</span>
             </label>
@@ -844,7 +844,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
             </p>
             <a
               href="/fantasy/nba/playoffs"
-              className="text-[12px] text-orange-700 dark:text-orange-400 hover:underline"
+              className="text-[12px] text-secondary-700 dark:text-secondary-400 hover:underline"
             >
               Go back to the bracket →
             </a>
@@ -971,7 +971,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                       className="border-b border-border/50 last:border-b-0"
                     >
                       <td className="px-4 py-2.5 text-foreground">{round}</td>
-                      <td className="px-4 py-2.5 text-right font-mono text-orange-700 dark:text-orange-400">
+                      <td className="px-4 py-2.5 text-right font-mono text-secondary-700 dark:text-secondary-400">
                         +{winner} pt{winner !== 1 ? "s" : ""}
                       </td>
                       <td className="px-4 py-2.5 text-right font-mono text-muted">
@@ -989,7 +989,7 @@ export default function PlayoffBracketContent({ viewUsername = null }: Props) {
                 <span className="text-foreground">
                   Finals MVP (correct name)
                 </span>
-                <span className="font-mono text-orange-700 dark:text-orange-400">
+                <span className="font-mono text-secondary-700 dark:text-secondary-400">
                   +5 pts
                 </span>
               </div>

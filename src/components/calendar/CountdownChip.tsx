@@ -13,7 +13,7 @@ interface CountdownChipProps {
 /**
  * Visually identical to EventChip's default (non-block) variant — same left
  * border stripe, translucent fill, text size, and padding — so events and
- * countdowns look consistent in the month/day/week grids. A small red dot on
+ * countdowns look consistent in the month/day/week grids. A small ember dot on
  * the far right is the only visual differentiator.
  */
 function CountdownChip({ countdown, onClick }: CountdownChipProps) {
@@ -32,7 +32,7 @@ function CountdownChip({ countdown, onClick }: CountdownChipProps) {
         }}
       >
         <span className="flex-1 truncate">{countdown.title}</span>
-        <span className="ml-1 h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+        <span className="ml-1 h-1.5 w-1.5 rounded-full bg-secondary-500 shrink-0" />
       </button>
     </Tooltip>
   );

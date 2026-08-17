@@ -7,15 +7,15 @@ import Button from "@/components/ui/Button";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #f472b6)";
+const ACCENT = "var(--wp-accent, #c7508e)";
 
 const ROLES = ["Owner", "Admin", "Analyst", "Viewer"] as const;
 type Role = (typeof ROLES)[number];
 const ROLE_TINT: Record<Role, string> = {
-  Owner: "#f472b6",
-  Admin: "#60a5fa",
+  Owner: "#c7508e",
+  Admin: "#4a83c8",
   Analyst: "#34d399",
-  Viewer: "#94a3b8",
+  Viewer: "#a49d90",
 };
 
 type Org = { id: string; name: string };

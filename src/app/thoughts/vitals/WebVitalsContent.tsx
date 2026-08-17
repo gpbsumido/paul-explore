@@ -2,12 +2,15 @@
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import {
-  UpdateTimeline,
   Update,
+  UpdateTimeline,
   WhatsNext,
 } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
+
+const code =
+  "rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground";
 
 export default function WebVitalsContent() {
   return (
@@ -566,6 +569,11 @@ const selectedVersion = urlVersion ?? versions[0];`}
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-15-outage",
+            date: "Aug 15, 2026",
+            title: "The dashboard was lying about being empty",
+          },
+          {
             id: "update-2026-08-10-public",
             date: "Aug 10, 2026",
             title:
@@ -879,6 +887,62 @@ const selectedVersion = urlVersion ?? versions[0];`}
           at&quot; was the real defect; making them one fixed it.
         </p>
       </Update>
+      <Update
+        id="update-2026-08-15-outage"
+        date="August 15, 2026"
+        title="The dashboard was lying about being empty"
+      >
+        <p>
+          I lost an afternoon to this one, chasing a data bug in an API that
+          was simply down. The versions call swallowed every failure and
+          returned an empty list, the default scope resolved to version
+          &quot;0&quot; &mdash; which has never existed &mdash; and the
+          summary, by-page and by-version calls all went out behind it.
+          Nothing answered those either, so the page drew five metric cards
+          reading &quot;No data yet&quot;. An outage rendered as good news.
+        </p>
+        <p>
+          The versions call is the health probe now, since it already ran
+          first and alone. A transport failure or a 5xx says so on the page
+          and skips the other three requests, so there is no invented scope
+          left to leak. Everything the backend actually said is unchanged: a
+          404 still means the endpoint is not deployed in that environment and
+          the selector just hides, and a genuinely empty dataset still gets
+          &quot;No data yet&quot;, because that one is true.
+        </p>
+        <p>
+          <strong>The premise I started with was wrong</strong>, and finding
+          that out was the useful part. A refused connection was never the
+          silent case &mdash; the fetch throws and the error boundary catches
+          it. The case that lied was a backend answering <em>with errors</em>,
+          where every fetch fell back to empty on a non-ok response. I only
+          learned that by pointing the app at a dead port and getting the
+          error boundary instead of the fake-empty dashboard I expected.
+        </p>
+        <p>
+          A second, quieter version of the same bug survived that fix: a
+          healthy backend with an empty history is a fresh database, and the
+          scope still resolved to major &quot;0&quot;. The local logs read
+          like an error while every response was a correct 200. An empty
+          history now means all-time queries with no version filter at all.
+        </p>
+        <p>
+          <strong>The API had its own half of it.</strong> Chasing the 500s
+          led into the service, where the major and minor filters cast{" "}
+          <code className={code}>
+            split_part(app_version, &apos;.&apos;, 1)
+          </code>{" "}
+          to an integer guarded only by a check for the literal string
+          &quot;unknown&quot;, and the version sorts cast the whole string to
+          an int array with no guard at all. One row with a non-numeric
+          version &mdash; a &quot;dev&quot; build is enough &mdash; turns
+          those endpoints into 500s for every caller. Both paths share a regex
+          gate now, and a junk version filter matches nothing and returns an
+          empty 200, which is what that module already did for a junk version
+          without a mode.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "Real user measurements rather than lab numbers, aggregated to P75 by metric and by page, which is the only version of this worth having.",

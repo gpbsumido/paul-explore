@@ -40,9 +40,11 @@ export default function CommandPaletteRoot() {
       window.removeEventListener(COMMAND_PALETTE_OPEN_EVENT, handleOpen);
   }, [handleOpen]);
 
-  // The landing page has its own search affordance, and /world carries the
-  // whole site menu in its own floating nav — the hotkey still works on both.
-  const showFloatingTrigger = pathname !== "/" && pathname !== "/world";
+  // The landing page and /discover both have their own search affordance, and
+  // /world carries the whole site menu in its own floating nav — the hotkey
+  // still works on all three.
+  const showFloatingTrigger =
+    pathname !== "/" && pathname !== "/discover" && pathname !== "/world";
 
   const handleSelect = useCallback(
     (command: Command) => {

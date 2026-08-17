@@ -33,17 +33,25 @@ describe("LandingActions", () => {
   });
 
   it("keeps the Settings link hidden until the menu is opened", () => {
-    renderActions(false);
+    renderActions(true);
     expect(
       screen.queryByRole("link", { name: /settings/i }),
     ).not.toBeInTheDocument();
   });
 
-  it("reveals a Settings link to /settings inside the opened menu", () => {
-    renderActions(false);
+  it("reveals a Settings link to /settings once a signed-in visitor opens the menu", () => {
+    renderActions(true);
     fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
     const settings = screen.getByRole("link", { name: /settings/i });
     expect(settings).toHaveAttribute("href", "/settings");
+  });
+
+  it("offers a guest no Settings link, since /settings would only bounce them to login", () => {
+    renderActions(false);
+    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
+    expect(
+      screen.queryByRole("link", { name: /settings/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the Log in CTA when logged out", () => {

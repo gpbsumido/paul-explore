@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #60a5fa)";
+const ACCENT = "var(--wp-accent, #4a83c8)";
 
 type Node = { id: string; label: string; x: number; y: number; code: string };
 type Edge = [string, string];

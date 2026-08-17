@@ -5,7 +5,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #fb7185)";
+const ACCENT = "var(--wp-accent, #ca4e60)";
 
 type Campaign = {
   name: string;

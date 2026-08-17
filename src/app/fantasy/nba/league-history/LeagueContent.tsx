@@ -38,9 +38,10 @@ function getOwnerName(team: ESPNTeam, members: ESPNMember[]): string {
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 0) return null;
   let colors = "bg-surface-raised text-muted";
-  if (rank === 1) colors = "bg-green-500/15 text-green-800 dark:text-green-400";
+  if (rank === 1)
+    colors = "bg-success-500/15 text-success-800 dark:text-success-400";
   else if (rank <= 3)
-    colors = "bg-blue-500/15 text-blue-800 dark:text-blue-400";
+    colors = "bg-primary-500/15 text-primary-800 dark:text-primary-400";
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${colors}`}

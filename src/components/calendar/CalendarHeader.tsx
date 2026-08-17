@@ -178,8 +178,8 @@ export default function CalendarHeader({
           className={[
             "flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs",
             banner.variant === "success"
-              ? "bg-green-500/10 text-green-700 dark:text-green-400"
-              : "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+              ? "bg-success-500/10 text-success-700 dark:text-success-400"
+              : "bg-warning-500/10 text-warning-700 dark:text-warning-400",
           ].join(" ")}
         >
           <span>{banner.message}</span>
@@ -267,7 +267,7 @@ export default function CalendarHeader({
                   disabled={leavingId === calendars[0].id}
                   aria-label="Leave calendar"
                   title="Leave calendar"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-muted hover:text-red-500"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-muted hover:text-error-500"
                 >
                   <LeaveIcon />
                 </button>
@@ -374,7 +374,7 @@ export default function CalendarHeader({
                           disabled={leavingId === c.id}
                           aria-label={`Leave ${c.name}`}
                           title="Leave calendar"
-                          className="px-2 py-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity text-muted hover:text-red-500 shrink-0"
+                          className="px-2 py-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity text-muted hover:text-error-500 shrink-0"
                         >
                           <LeaveIcon />
                         </button>
@@ -475,7 +475,7 @@ export default function CalendarHeader({
           {connected && (
             <span className="hidden sm:inline-flex items-center gap-1.5">
               <span
-                className="h-1.5 w-1.5 rounded-full bg-green-500 shrink-0"
+                className="h-1.5 w-1.5 rounded-full bg-success-500 shrink-0"
                 title="Synced with Google Calendar"
               />
               <button

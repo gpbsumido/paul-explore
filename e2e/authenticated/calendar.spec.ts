@@ -69,14 +69,14 @@ test.describe("Calendar", () => {
       await calendarBtn.click();
     }
 
-    // Click on today's cell. Today's cell has the red top border
-    // (border-t-2 border-t-red-500) which is applied via Tailwind. We can
-    // target it by its red-circle day number which sits inside a span with
-    // bg-red-600 text-white styles.
+    // Click on today's cell. Today's cell has the verdigris top border
+    // (border-t-2 border-t-primary-500) which is applied via Tailwind. We can
+    // target it by its filled day number, which sits inside a span with
+    // bg-primary-600 text-white styles.
     const todayCell = page
       .locator("span")
       .filter({ hasText: /^\d{1,2}$/ })
-      .filter({ has: page.locator(".bg-red-600") })
+      .filter({ has: page.locator(".bg-primary-600") })
       .first();
 
     // Fall back to just clicking the cell containing today's date number
@@ -84,8 +84,8 @@ test.describe("Calendar", () => {
     if (await todayCell.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await todayCell.click();
     } else {
-      // Find today's grid cell (the one with the red top stripe class).
-      const todayGridCell = page.locator('[class*="border-t-red-500"]').first();
+      // Find today's grid cell (the one with the verdigris top stripe class).
+      const todayGridCell = page.locator('[class*="border-t-primary-500"]').first();
       await todayGridCell.click();
     }
 

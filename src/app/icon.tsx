@@ -5,15 +5,18 @@ export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
 /**
- * Browser tab favicon — a dark tile with a white "P".
- * Next.js serves this at /icon and injects the <link rel="icon"> tag automatically.
- * The existing favicon.ico stays as a fallback for older browsers.
+ * Browser tab icon — a warm ink tile with a warm paper "P".
+ * Next.js serves this at /icon and injects the <link rel="icon"> tag itself.
+ * favicon.ico next door carries the same mark at 16 and 32, because browsers
+ * ask for /favicon.ico on their own whatever the link tag says. That file was
+ * create-next-app's Vercel triangle until this change, so deployed tabs wore
+ * someone else's logo while this route sat unused.
  */
 export default function Icon() {
   return new ImageResponse(
     <div
       style={{
-        background: "#0a0a0a",
+        background: "#1d1a15",
         width: "100%",
         height: "100%",
         display: "flex",
@@ -24,7 +27,7 @@ export default function Icon() {
     >
       <span
         style={{
-          color: "#fafafa",
+          color: "#fbfaf7",
           fontSize: 20,
           fontFamily: "sans-serif",
           fontWeight: 700,

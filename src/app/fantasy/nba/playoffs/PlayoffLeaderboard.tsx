@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { m } from "framer-motion";
 import { queryKeys } from "@/lib/queryKeys";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
+import { LEADERBOARD_ROW_STATES } from "./leaderboardRowStates";
 import type {
   LeaderboardEntry,
   LeaderboardRoundBreakdown,
@@ -73,9 +74,9 @@ function EntryRow({
         "border-b border-border/50 last:border-b-0 transition-colors",
         viewHref ? "cursor-pointer group" : "cursor-default opacity-60",
         isCurrentUser
-          ? "bg-orange-500/10 hover:bg-orange-500/15"
+          ? LEADERBOARD_ROW_STATES.currentUser.row
           : isViewedUser
-            ? "bg-blue-500/8 hover:bg-blue-500/12"
+            ? LEADERBOARD_ROW_STATES.viewedUser.row
             : viewHref
               ? "hover:bg-surface-raised/50"
               : "",
@@ -94,9 +95,9 @@ function EntryRow({
           className={[
             "text-[13px] font-medium",
             isCurrentUser
-              ? "text-orange-700 dark:text-orange-400"
+              ? LEADERBOARD_ROW_STATES.currentUser.label
               : isViewedUser
-                ? "text-blue-600 dark:text-blue-400"
+                ? LEADERBOARD_ROW_STATES.viewedUser.label
                 : "text-foreground",
           ].join(" ")}
         >
@@ -112,7 +113,7 @@ function EntryRow({
           </span>
           <div className="h-1 w-20 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
             <m.div
-              className="h-full rounded-full bg-orange-500/60"
+              className="h-full rounded-full bg-secondary-500/60"
               initial={{ width: 0 }}
               animate={{ width: `${scorePct}%` }}
               transition={{

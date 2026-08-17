@@ -29,9 +29,9 @@ function Finding({
 
 function Tag({ kind }: { kind: "pro" | "con" | "gain" }) {
   const map = {
-    pro: "text-emerald-700 dark:text-emerald-400",
-    con: "text-rose-700 dark:text-rose-400",
-    gain: "text-sky-700 dark:text-sky-400",
+    pro: "text-success-700 dark:text-success-400",
+    con: "text-error-700 dark:text-error-400",
+    gain: "text-primary-700 dark:text-primary-400",
   };
   const label = { pro: "Pro", con: "Con", gain: "Gain" };
   return <span className={`font-semibold ${map[kind]}`}>{label[kind]}:</span>;
@@ -500,13 +500,13 @@ export default function ProjectReviewContent() {
             >
               <p className="font-semibold text-foreground">{name}</p>
               <p className="mt-1 text-[13px] text-muted">
-                <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                <span className="font-medium text-success-700 dark:text-success-400">
                   Strength:
                 </span>{" "}
                 {good}
               </p>
               <p className="mt-1 text-[13px] text-muted">
-                <span className="font-medium text-sky-700 dark:text-sky-400">
+                <span className="font-medium text-success-700 dark:text-success-400">
                   Biggest gain:
                 </span>{" "}
                 {gap}

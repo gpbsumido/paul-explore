@@ -53,16 +53,16 @@ const MiniMonth = memo(function MiniMonth({
       data-scroll-target={containsToday || undefined}
       className={[
         "rounded-xl border bg-surface p-3 text-left w-full transition-[border-color,box-shadow] hover:border-foreground/20 hover:shadow-md",
-        // flag tape on the current month — same red stripe as the month grid today cell
+        // flag tape on the current month — same stripe as the month grid today cell
         isCurrent
-          ? "border-t-2 border-t-red-500 border-x-border border-b-border"
+          ? "border-t-2 border-t-primary-500 border-x-border border-b-border"
           : "border-border",
       ].join(" ")}
     >
       <div
         className={[
           "text-xs font-semibold mb-2",
-          isCurrent ? "text-red-500" : "text-foreground",
+          isCurrent ? "text-primary-500" : "text-foreground",
         ].join(" ")}
       >
         {format(month, "MMMM")}
@@ -102,7 +102,7 @@ const MiniMonth = memo(function MiniMonth({
                 className={[
                   "inline-flex items-center justify-center h-[14px] w-[14px] text-[9px] leading-none rounded-full",
                   today
-                    ? "bg-red-500 text-white font-semibold"
+                    ? "bg-primary-500 text-white font-semibold"
                     : inMonth
                       ? "text-foreground"
                       : "text-muted opacity-20",

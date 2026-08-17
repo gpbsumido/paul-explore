@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #e879f9)";
+const ACCENT = "var(--wp-accent, #b951c9)";
 
 type Status = "Draft" | "Live";
 type Campaign = {
@@ -375,7 +375,7 @@ export default function CampaignManagerDemo({
                 onClick={() => dispatch({ type: "toggled", id: c.id })}
                 className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
                 style={{
-                  backgroundColor: c.status === "Live" ? "#34d399" : "#94a3b8",
+                  backgroundColor: c.status === "Live" ? "#34d399" : "#a49d90",
                 }}
               >
                 {c.status}

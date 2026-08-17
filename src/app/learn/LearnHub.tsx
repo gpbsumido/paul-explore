@@ -723,7 +723,7 @@ export default function LearnHub() {
   const t = prefersReduced ? instantTransition : spring.smooth;
 
   return (
-    <PageShell colorA="#34d399" colorB="#22d3ee">
+    <PageShell colorA="var(--color-feature-learn)" colorB="var(--color-secondary-500)">
       <PageHeader
         breadcrumbs={[{ label: "Dashboard", href: "/" }, { label: "Learn" }]}
       />

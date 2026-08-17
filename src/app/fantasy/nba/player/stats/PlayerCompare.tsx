@@ -142,8 +142,8 @@ export default function PlayerCompare({ rows, open }: Props) {
                       <Radar
                         name={playerA.name}
                         dataKey="a"
-                        stroke="#FF6B35"
-                        fill="#FF6B35"
+                        stroke="var(--color-feature-flags)"
+                        fill="var(--color-feature-flags)"
                         fillOpacity={0.3}
                       />
                     )}
@@ -151,8 +151,8 @@ export default function PlayerCompare({ rows, open }: Props) {
                       <Radar
                         name={playerB.name}
                         dataKey="b"
-                        stroke="#00D4FF"
-                        fill="#00D4FF"
+                        stroke="#3388b4"
+                        fill="#3388b4"
                         fillOpacity={0.2}
                       />
                     )}
@@ -170,13 +170,13 @@ export default function PlayerCompare({ rows, open }: Props) {
               <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-[12px]">
                 {playerA && (
                   <div className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#FF6B35]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-feature-flags)]" />
                     <span className="text-muted">{playerA.name}</span>
                   </div>
                 )}
                 {playerB && (
                   <div className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#00D4FF]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#3388b4]" />
                     <span className="text-muted">{playerB.name}</span>
                   </div>
                 )}
@@ -192,10 +192,10 @@ export default function PlayerCompare({ rows, open }: Props) {
                       <th className="px-2.5 py-1.5 text-left font-semibold text-muted uppercase tracking-wider">
                         Stat
                       </th>
-                      <th className="px-2.5 py-1.5 text-right font-semibold text-[#FF6B35]/80 uppercase tracking-wider">
+                      <th className="px-2.5 py-1.5 text-right font-semibold text-[var(--color-feature-flags)]/80 uppercase tracking-wider">
                         {playerA.name.split(" ").pop()}
                       </th>
-                      <th className="px-2.5 py-1.5 text-right font-semibold text-[#00D4FF]/80 uppercase tracking-wider">
+                      <th className="px-2.5 py-1.5 text-right font-semibold text-[#3388b4]/80 uppercase tracking-wider">
                         {playerB.name.split(" ").pop()}
                       </th>
                     </tr>
@@ -221,12 +221,12 @@ export default function PlayerCompare({ rows, open }: Props) {
                         >
                           <td className="px-2.5 py-1.5 text-muted">{label}</td>
                           <td
-                            className={`px-2.5 py-1.5 text-right font-mono tabular-nums ${aWins ? "font-bold text-[#FF6B35]" : "text-muted"}`}
+                            className={`px-2.5 py-1.5 text-right font-mono tabular-nums ${aWins ? "font-bold text-[var(--color-feature-flags)]" : "text-muted"}`}
                           >
                             {fmt(valA)}
                           </td>
                           <td
-                            className={`px-2.5 py-1.5 text-right font-mono tabular-nums ${bWins ? "font-bold text-[#00D4FF]" : "text-muted"}`}
+                            className={`px-2.5 py-1.5 text-right font-mono tabular-nums ${bWins ? "font-bold text-[#3388b4]" : "text-muted"}`}
                           >
                             {fmt(valB)}
                           </td>

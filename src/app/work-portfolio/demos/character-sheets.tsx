@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import IconButton from "@/components/ui/IconButton";
 import type { WorkFeature } from "../_data/types";
 
-const ACCENT = "var(--wp-accent, #e879f9)";
+const ACCENT = "var(--wp-accent, #b951c9)";
 const STATS = ["STR", "AGI", "INT", "LCK"] as const;
 type Stat = (typeof STATS)[number];
 type Stats = Record<Stat, number>;

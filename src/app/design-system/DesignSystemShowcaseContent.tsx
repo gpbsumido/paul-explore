@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
@@ -22,13 +22,27 @@ import {
 import {
   Avatar,
   Badge,
+  BarChart,
   Card,
   Divider,
+  DonutChart,
+  FunnelChart,
+  GaugeChart,
+  GradientBackground,
+  HeatmapChart,
+  ParetoChart,
+  RadarChart,
+  ScatterPlot,
   Skeleton,
+  Sparkline,
   Spinner,
+  Spotlight,
+  StackedLineChart,
   Switch,
   Ticker,
+  TiltCard,
   VisuallyHidden,
+  WordCloud,
 } from "@paul-portfolio/react";
 import {
   COMPONENTS,
@@ -42,8 +56,19 @@ import {
   type ButtonPlaygroundState,
   type ComponentDoc,
 } from "./catalog";
+import { MOTION_PRIMITIVES, type MotionPrimitiveDoc } from "./motionPrimitives";
+import TextReveal from "@/components/motion/TextReveal";
+import TextScramble from "@/components/motion/TextScramble";
+import ScrollProgress from "@/components/motion/ScrollProgress";
+import MagneticButton from "@/components/motion/MagneticButton";
+import AnimatedNumber from "@/components/motion/AnimatedNumber";
+import BlobBackground from "@/components/motion/BlobBackground";
+import SpotlightCard from "@/components/motion/SpotlightCard";
+import GradientMesh from "@/components/motion/GradientMesh";
+import LoopingDemo from "./LoopingDemo";
+import { ACCENT_BAND } from "@/lib/accentBand";
 
-const ACCENT = "#06b6d4";
+const ACCENT = ACCENT_BAND.verdigris;
 
 /** The pitch — why a shared design system is worth adopting. */
 const BENEFITS: { title: string; body: string }[] = [
@@ -114,9 +139,156 @@ function Reveal({
 
 function SectionHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+    <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
       {children}
     </h2>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Motion primitives — the app's own, documented alongside the package's
+// ---------------------------------------------------------------------------
+
+/** A live demo per primitive, so the card shows the thing rather than describing it. */
+/**
+ * A scroll bar needs something to scroll. The page's own instance is pinned to
+ * the top of the viewport, which is the right place for it and the wrong place
+ * to demonstrate it from: by the time you reach this card the bar is off
+ * screen, so the card could only ever describe it. This is the real component
+ * tracking a real scrollable box, small enough to fit in the frame.
+ */
+function ScrollProgressDemo() {
+  const box = useRef<HTMLDivElement>(null);
+  return (
+    <div className="w-full">
+      <div className="relative overflow-hidden rounded-lg border border-border">
+        <ScrollProgress container={box} height={3} />
+        {/* A scrollable area has to be reachable by keyboard, so it is a named
+            region with a tab stop rather than a bare div: someone who cannot
+            drag a scrollbar still needs to be able to scroll this. */}
+        <div
+          ref={box}
+          role="region"
+          aria-label="Scrollable example"
+          tabIndex={0}
+          className="h-20 overflow-y-auto px-3 pt-3 pb-2 text-sm text-muted focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
+        >
+          <p>Scroll this box. The bar along its top edge is the component.</p>
+          <p className="mt-2">
+            It reads the scroll position of whatever element it is given, so a
+            panel can show its own progress rather than the page&rsquo;s.
+          </p>
+          <p className="mt-2">
+            The page&rsquo;s own instance is still up at the very top of this
+            window, tracking the article you are reading now.
+          </p>
+          <p className="mt-2">That is the end of the example.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MotionPrimitiveDemo({ id }: { id: string }) {
+  if (id === "text-reveal") {
+    return (
+      <LoopingDemo label="text reveal">
+        <TextReveal as="p" per="word" className="text-lg font-semibold">
+          Verdigris and ember
+        </TextReveal>
+      </LoopingDemo>
+    );
+  }
+  if (id === "text-scramble") {
+    return (
+      <LoopingDemo label="text scramble">
+        <TextScramble
+          text="design language"
+          trigger="inView"
+          className="font-mono text-lg font-semibold"
+        />
+      </LoopingDemo>
+    );
+  }
+  if (id === "scroll-progress") {
+    return <ScrollProgressDemo />;
+  }
+  if (id === "magnetic-button") {
+    return (
+      <MagneticButton>
+        <Button>Hover me</Button>
+      </MagneticButton>
+    );
+  }
+  if (id === "animated-number") {
+    return (
+      <LoopingDemo label="animated number">
+        <AnimatedNumber
+          value={2454}
+          format={(n) => n.toLocaleString()}
+          className="text-3xl font-bold tabular-nums text-foreground"
+        />
+      </LoopingDemo>
+    );
+  }
+  if (id === "blob-background") {
+    return (
+      // w-full matters: the preview frame is a flex row, and a flex item whose
+      // only content is absolutely positioned collapses to zero width.
+      <div className="relative h-24 w-full overflow-hidden rounded-xl">
+        <BlobBackground seeds={[12, 34]} />
+      </div>
+    );
+  }
+  if (id === "spotlight-card") {
+    return (
+      <SpotlightCard accent="var(--color-feature-craft)" className="p-4">
+        <p className="text-sm text-foreground">Move the cursor across me.</p>
+      </SpotlightCard>
+    );
+  }
+  if (id === "gradient-mesh") {
+    return (
+      <div className="relative h-24 w-full overflow-hidden rounded-xl">
+        <GradientMesh />
+      </div>
+    );
+  }
+  return null;
+}
+
+function MotionPrimitiveCard({
+  primitive,
+}: {
+  primitive: MotionPrimitiveDoc;
+}) {
+  return (
+    <div className="glass-card flex flex-col gap-3 rounded-2xl p-5">
+      <div>
+        <h3 className="text-lg font-semibold text-foreground">
+          {primitive.name}
+        </h3>
+        <p className="mt-1 text-sm text-muted">{primitive.tagline}</p>
+      </div>
+      <div className="flex min-h-[6rem] items-center justify-center rounded-xl border border-border bg-surface p-4">
+        <MotionPrimitiveDemo id={primitive.id} />
+      </div>
+      <dl className="space-y-1 text-xs text-muted">
+        <div className="flex gap-2">
+          <dt className="font-semibold text-foreground">Reduced motion</dt>
+          <dd>{primitive.reducedMotion}</dd>
+        </div>
+        <div className="flex gap-2">
+          <dt className="font-semibold text-foreground">Import</dt>
+          <dd className="font-mono">{primitive.importPath}</dd>
+        </div>
+      </dl>
+      <p className="text-xs text-muted">
+        Ships on{" "}
+        <span className="font-mono text-foreground">{primitive.usedOn}</span>,
+        the landing page these were built for.
+      </p>
+    </div>
   );
 }
 
@@ -139,7 +311,7 @@ function ButtonPlayground() {
   ) => setState((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <div className="space-y-4">
         <FilterBar
           label="Button playground controls"
@@ -291,6 +463,121 @@ function ChipDemo() {
 
 /** Keyed by component id so each gallery card can render itself live. */
 const PREVIEWS: Record<string, ReactNode> = {
+  // The charts and the three decorative components were catalogued and never
+  // rendered. The gallery looks up PREVIEWS[id], and a missing key is not an
+  // error -- it is undefined, so the card laid out perfectly with an empty
+  // frame where the component should be. They sit first in the catalog, so the
+  // page opened on a column of blank boxes and only looked alive further down.
+  // Sample data is small and hand-written so each shape reads at preview size.
+  sparkline: (
+    <Sparkline data={[4, 9, 6, 12, 10, 16, 14]} label="Weekly signups" />
+  ),
+  "bar-chart": (
+    <BarChart data={[12, 19, 8, 15, 11]} label="Posts per weekday" />
+  ),
+  "donut-chart": (
+    <DonutChart
+      label="Traffic by source"
+      data={[
+        { label: "Search", value: 48 },
+        { label: "Direct", value: 30 },
+        { label: "Referral", value: 22 },
+      ]}
+    />
+  ),
+  "funnel-chart": (
+    <FunnelChart
+      label="Signup funnel"
+      data={[
+        { label: "Visited", value: 1000 },
+        { label: "Started", value: 420 },
+        { label: "Finished", value: 180 },
+      ]}
+    />
+  ),
+  "radar-chart": (
+    <RadarChart
+      label="Skill coverage"
+      axes={["Perf", "A11y", "Tests", "Types", "Docs"]}
+      data={[{ label: "Now", values: [8, 9, 7, 9, 6] }]}
+      max={10}
+    />
+  ),
+  "scatter-plot": (
+    <ScatterPlot
+      label="Load time against payload"
+      series={[
+        {
+          label: "Routes",
+          points: [
+            { x: 1, y: 2 },
+            { x: 3, y: 4 },
+            { x: 4, y: 3 },
+            { x: 6, y: 7 },
+            { x: 8, y: 6 },
+          ],
+        },
+      ]}
+    />
+  ),
+  "heatmap-chart": (
+    <HeatmapChart
+      label="Commits by day and week"
+      colLabels={["M", "T", "W", "T", "F"]}
+      rows={[
+        { label: "W1", values: [1, 4, 2, 6, 3] },
+        { label: "W2", values: [5, 2, 7, 3, 8] },
+      ]}
+    />
+  ),
+  "pareto-chart": (
+    <ParetoChart
+      label="Errors by cause"
+      data={[
+        { label: "Timeout", value: 42 },
+        { label: "Parse", value: 20 },
+        { label: "Auth", value: 12 },
+        { label: "Other", value: 6 },
+      ]}
+    />
+  ),
+  "gauge-chart": <GaugeChart label="P75 LCP budget used" value={68} unit="%" />,
+  "word-cloud": (
+    <WordCloud
+      label="Write-up topics"
+      terms={[
+        { text: "performance", weight: 9 },
+        { text: "testing", weight: 7 },
+        { text: "tokens", weight: 6 },
+        { text: "contrast", weight: 5 },
+        { text: "bundle", weight: 4 },
+      ]}
+    />
+  ),
+  "stacked-line-chart": (
+    <StackedLineChart
+      label="Weekly page loads by device"
+      series={[
+        { label: "Desktop", values: [6, 8, 7, 10, 12] },
+        { label: "Mobile", values: [4, 5, 9, 8, 11] },
+      ]}
+    />
+  ),
+  "tilt-card": (
+    <TiltCard className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
+      Hover me
+    </TiltCard>
+  ),
+  spotlight: (
+    <Spotlight className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
+      Move the cursor across me
+    </Spotlight>
+  ),
+  "gradient-background": (
+    <GradientBackground className="w-full rounded-xl p-4 text-sm text-foreground">
+      Animated gradient
+    </GradientBackground>
+  ),
   button: (
     <div className="flex flex-wrap gap-2">
       <Button size="sm">Primary</Button>
@@ -521,7 +808,7 @@ function TokenGallery() {
         </div>
       </div>
 
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
         <div>
           <h3 className="mb-3 text-sm font-semibold text-foreground">Radius</h3>
           <div className="flex flex-wrap gap-4">
@@ -589,7 +876,7 @@ function TokenGallery() {
 
 export default function DesignSystemShowcaseContent() {
   return (
-    <PageShell colorA={ACCENT} colorB="#818cf8">
+    <PageShell colorA={ACCENT} colorB="var(--color-secondary-500)">
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: "Design System" }]}
       />
@@ -683,9 +970,27 @@ export default function DesignSystemShowcaseContent() {
             Hover the ⓘ for how to use each one, hover the preview for a quick
             hint, and follow a chip to see it in production.
           </p>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {COMPONENTS.map((component) => (
               <ComponentCard key={component.id} component={component} />
+            ))}
+          </div>
+        </Reveal>
+
+        {/* Motion primitives — app-local, so they are not in the catalog */}
+        <Reveal id="motion-primitives" className="mb-16 scroll-mt-20">
+          {/* Rendered for real rather than mocked up, so the bar in the card
+              below is the actual component doing its job. */}
+          <ScrollProgress />
+          <SectionHeading>Motion primitives</SectionHeading>
+          <p className="mb-5 mt-2 max-w-2xl text-sm text-muted">
+            These eight live in this app rather than the shared package, so they
+            sit outside the catalog above. Each one respects reduced motion and
+            renders its content visible in the server HTML.
+          </p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {MOTION_PRIMITIVES.map((primitive) => (
+              <MotionPrimitiveCard key={primitive.id} primitive={primitive} />
             ))}
           </div>
         </Reveal>
