@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { m } from "framer-motion";
 import { queryKeys } from "@/lib/queryKeys";
 import { staggerContainer, fadeInUp } from "@/lib/animations";
+import { LEADERBOARD_ROW_STATES } from "./leaderboardRowStates";
 import type {
   LeaderboardEntry,
   LeaderboardRoundBreakdown,
@@ -73,9 +74,9 @@ function EntryRow({
         "border-b border-border/50 last:border-b-0 transition-colors",
         viewHref ? "cursor-pointer group" : "cursor-default opacity-60",
         isCurrentUser
-          ? "bg-secondary-500/10 hover:bg-secondary-500/15"
+          ? LEADERBOARD_ROW_STATES.currentUser.row
           : isViewedUser
-            ? "bg-primary-500/8 hover:bg-primary-500/12"
+            ? LEADERBOARD_ROW_STATES.viewedUser.row
             : viewHref
               ? "hover:bg-surface-raised/50"
               : "",
@@ -94,9 +95,9 @@ function EntryRow({
           className={[
             "text-[13px] font-medium",
             isCurrentUser
-              ? "text-secondary-700 dark:text-secondary-400"
+              ? LEADERBOARD_ROW_STATES.currentUser.label
               : isViewedUser
-                ? "text-primary-600 dark:text-primary-400"
+                ? LEADERBOARD_ROW_STATES.viewedUser.label
                 : "text-foreground",
           ].join(" ")}
         >
