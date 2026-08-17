@@ -10,6 +10,10 @@ import { DesignSystemChat } from "./sections/DesignSystemChat";
 import { DesignSystemSummary1 } from "./sections/DesignSystemSummary1";
 import { DesignSystemSummary2 } from "./sections/DesignSystemSummary2";
 
+const code =
+  "rounded bg-surface px-1 py-0.5 font-mono text-[13px] text-foreground";
+const linkClass = "text-primary-600 hover:underline dark:text-primary-400";
+
 export default function DesignSystemContent() {
   return (
     <ThoughtLayout
@@ -26,6 +30,11 @@ export default function DesignSystemContent() {
     >
       <UpdateTimeline
         entries={[
+          {
+            id: "update-2026-08-16-nothing-to-compare",
+            date: "Aug 16, 2026",
+            title: "The gate I said closed the gap had stopped looking",
+          },
           {
             id: "update-2026-08-15-consumers",
             date: "Aug 15, 2026",
@@ -129,6 +138,60 @@ export default function DesignSystemContent() {
           inherits. That is the same failure mode as the circular reference
           here and the alias rot in the accessibility notes: CSS variables fail
           quietly, three different ways, in one week.
+        </p>
+      </Update>
+
+      <Update
+        id="update-2026-08-16-nothing-to-compare"
+        date="August 16, 2026"
+        title="The gate I said closed the gap had stopped looking"
+      >
+        <p>
+          The update above ends by saying the &ldquo;no visual regression
+          testing&rdquo; gap recorded below it is closed, because the Storybook
+          build runs through Chromatic now.{" "}
+          <strong>I recorded that gap as closed and it was not.</strong> The
+          check <em>had been comparing nothing for about a month</em> by the
+          time I wrote that sentence, and I did not find out by it failing.
+        </p>
+        <p>
+          The snapshot quota is exhausted. The{" "}
+          <code className={code}>UI Tests</code> check says so plainly &mdash;{" "}
+          <em>update your plan to resume testing</em> &mdash; while the job
+          beside it reports pass, because{" "}
+          <code className={code}>exitZeroOnChanges</code> is set and a build that never took a
+          snapshot has no changes to report. Green on a flag rather than on a
+          comparison, and nothing in the checks list distinguishes those.
+        </p>
+        <p>
+          <strong>
+            The setting underneath it is the part that should not have been
+            left running.
+          </strong>{" "}
+          <code className={code}>autoAcceptChanges</code> is pointed at the release branch, so a
+          build there takes what it sees and makes it the reference for
+          everything afterwards. Whatever drift landed during that month &mdash;
+          and this was the month of the recolour, so the odds are not
+          hypothetical &mdash; was queued to be adopted as the baseline on the
+          next release merge and vouched for from then on. A gate that misses a
+          regression leaves a gap; one positioned to ratify one and then
+          certify it is worse than not having the gate at all.
+        </p>
+        <p>
+          So the honest state of this system is the one recorded before that
+          update: it has no visual regression testing, and now it has a check
+          claiming otherwise, which is a worse position than the plain gap was.
+          I found this while deciding whether to move that workflow to Node 24,
+          and the decision became to leave it exactly where it is until there is
+          quota &mdash; an unverifiable visual change riding inside a
+          CI-configuration change is the wrong trade. It sits with three other
+          findings of the same shape in{" "}
+          <a href="/thoughts/green-checks" className={linkClass}>
+            green checks
+          </a>
+          , including one that mattered here directly: the tokens package was
+          compiling its own tests into the directory it publishes from, so every
+          tarball shipped ten test files until this week.
         </p>
       </Update>
 

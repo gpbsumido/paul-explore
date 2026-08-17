@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-16 - version 5.2.0
+
+- **New write-up at `/thoughts/green-checks`**, covering a week in the design system repo that produced four green checks, none of which was measuring what it claimed. A suite of 864 tests across four workspaces that no CI workflow ran while the repo published to npm off `main`; a Chromatic gate reporting pass on an exhausted snapshot quota; a contrast figure recorded at 3.45:1 that was really 1.69:1 once the gloss on top of the gradient was composited in; and a tokens package whose test count went from 42 to 84 depending on whether a build had happened, because `tsc` compiled its tests into a directory the runner did not exclude and the package then published that directory.
+- The four are one finding four times, which is why they are one page rather than four. In each case a real signal and a cheaper adjacent one were both available, the adjacent one is what got wired up, and once it is green the two are indistinguishable. Worth recording that none of them was caught by a test failing — every one turned up while opening a file for an unrelated reason.
+- **Three existing write-ups corrected rather than appended to.** The accessibility page had the gel button on the books as a deferred 3.45:1 failure, which understated it by more than half and is most of why it stayed deferred; it now carries the real number and the reason darkening the ramp could never have fixed it alone. The design system page claimed the visual regression gap was closed by Chromatic — it was not, the gate had been comparing nothing for about a month, and with `autoAcceptChanges` pointed at the release branch it was positioned to adopt any drift as the baseline rather than merely miss it. The testing page ends on the line that tests only matter if they run automatically, so the suite nothing ran belongs there.
+- Left Chromatic on its current Node deliberately. Moving a visual gate while it has no way to show what changed is the wrong trade, so the upgrade waits for quota rather than riding along unverified inside a CI-configuration change.
+
 ## 2026-08-16 - version 5.1.9
 
 - **Takes @paul-portfolio/tokens 0.4.0 and css 0.8.0**, the release that adds the `--paul-color-on-*` label tokens. Worth noting why a redeploy would not have done it: below 1.0 npm reads the caret as minor-locked, so `^0.3.0` resolves `>=0.3.0 <0.4.0` and could never have picked the new versions up, lockfile or not.
