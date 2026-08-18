@@ -942,20 +942,69 @@ const selectedVersion = urlVersion ?? versions[0];`}
           without a mode.
         </p>
       </Update>
+      <Update
+        id="update-2026-08-18-alerts"
+        date="August 18, 2026"
+        title="It alerts now"
+      >
+        <p>
+          The list of things this could do better opened, for months, with a
+          line I kept leaving in: it reports and does not alert, so a regression
+          is visible only if someone opens the page. That is the wrong way round
+          for a number whose whole job is to catch things getting worse. This
+          closes it.
+        </p>
+        <p>
+          A Vercel Cron runs once a day and hits a new endpoint,{" "}
+          <code className={code}>GET /api/vitals/alert</code>. It reads the same
+          site-wide P75 summary the dashboard reads, and checks each metric
+          against Google&apos;s Poor threshold &mdash; the same thresholds the
+          cards already colour by, so there was nothing new to define. The line
+          for &quot;bad&quot; was already on the page; it just needed something
+          watching it.
+        </p>
+        <p>
+          <strong>The channel is a single GitHub issue.</strong> When a metric
+          is in the Poor band the cron opens one, labelled{" "}
+          <code className={code}>vitals-alert</code>. While it stays bad the
+          same issue is updated rather than a fresh one filed every noon, and
+          when every metric comes back under threshold the issue is closed with
+          a comment. So an open <code className={code}>vitals-alert</code> issue
+          means a vital is bad <em>right now</em>, not that one was bad once in
+          April.
+        </p>
+        <p>
+          The decision of what counts as bad is a pure function with no network
+          in it &mdash; the only part worth testing hard &mdash; and the route
+          and the GitHub client are the thin shell around it. It also fails
+          quiet on purpose: a missing token or a GitHub hiccup reports the
+          breach but skips filing rather than failing the cron, and a backend
+          that will not answer dispatches nothing, so a flaky API can never open
+          a phantom alert.
+        </p>
+        <p>
+          Deliberately narrow for a first cut: absolute Poor-band breaches on
+          the site-wide number only. Per-route budgets, and catching a
+          regression against the last release rather than an absolute floor, are
+          the obvious next steps &mdash; each wants its own change, because each
+          needs a second source of data.
+        </p>
+      </Update>
 
       <WhatsNext
         nowShipped={[
           "Real user measurements rather than lab numbers, aggregated to P75 by metric and by page, which is the only version of this worth having.",
           "Public, with no login — the data is not sensitive and gating it meant nobody looked.",
           "One source of truth for the selected version, so the first paint shows what the control says it shows.",
+          "It alerts. A daily cron opens a GitHub issue when a site-wide metric crosses Google's Poor threshold, updates it while it stays bad, and closes it on recovery — so a regression reaches me instead of waiting to be found.",
         ]}
         couldImprove={[
-          "It reports and does not alert. A regression is visible only if someone opens the page, which is the wrong way round for a metric that matters.",
-          "There is no per-route budget, so a page getting slower is a number to interpret rather than a threshold that has been crossed.",
+          "There is no per-route budget, so a page getting slower is a number to interpret rather than a threshold that has been crossed. The alert watches the site-wide number, so a bad page that does not move the aggregate stays quiet.",
           "Nothing correlates a regression with a release, so finding the cause means reasoning back from the date by hand.",
         ]}
         upcoming={[
-          "Per-route budgets, so a regression is a breach rather than a chart someone has to read.",
+          "Per-route budgets, so a regression is a breach rather than a chart someone has to read — and so the alert can fire on a single slow page.",
+          "Alert on a regression against the last release, not just an absolute Poor floor, using the by-version data the dashboard already has.",
           "Annotate the timeline with releases, which the changelog already has the dates for.",
         ]}
       />
