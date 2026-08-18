@@ -87,4 +87,19 @@ describe("alertIssueBody", () => {
 
     expect(body).toContain(VITALS_ALERT_LABEL);
   });
+
+  it("reads as singular when exactly one metric breached", () => {
+    const one = evaluateBreaches({ LCP: stat(4200) });
+
+    const body = alertIssueBody(one, { checkedAt: "2026-08-17" });
+
+    expect(body).toContain("1 metric is");
+    expect(body).not.toContain("1 metrics");
+  });
+
+  it("links to the dashboard so the issue is one click from the data", () => {
+    const body = alertIssueBody(breaches, { checkedAt: "2026-08-17" });
+
+    expect(body).toContain("/vitals");
+  });
 });

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-17 - version 5.3.0
+
+- **We measured Web Vitals and then did nothing with the number.** Five vitals get collected, beaconed, stored as P75 aggregates, and drawn on `/vitals`, but a Poor LCP only ever surfaced if I happened to open the dashboard. This adds the watcher that was missing: a daily Vercel Cron hits a new `GET /api/vitals/alert`, reads the same site-wide summary the dashboard reads, and files a GitHub issue when a metric crosses Google's Poor threshold.
+- **One issue, kept in sync with reality.** First breach opens an issue labelled `vitals-alert`; while it stays bad the same issue is updated rather than duplicated; when every metric recovers the issue is closed with a comment. So an open `vitals-alert` issue always means "a vital is currently bad", not "was bad once in April".
+- **The judgement is a pure function.** `evaluateBreaches` in `src/lib/vitalsAlert.ts` flags a metric only when its P75 is strictly above the Poor threshold already in `METRIC_CONFIGS`, skips a metric with no samples rather than reading it as zero, and returns them in dashboard order. It has no network in it, so the whole decision is tested without touching a backend or GitHub. The route and `src/lib/githubIssues.ts` are the thin I/O around it.
+- **It fails quiet, on purpose.** A missing `VITALS_ALERT_GITHUB_TOKEN`, or a GitHub call that throws, returns `dispatched:false` rather than 500-ing the cron every day at noon. A failed summary fetch returns 502 and dispatches nothing, so a flaky backend can never open a phantom alert. The route is guarded by `CRON_SECRET`, so anything without the bearer is a 401 that touches neither the backend nor GitHub.
+- Absolute Poor-band breaches on the site-wide summary only for this cut. Version-regression alerting (a P75 worse than the last release) and per-page breaches are their own follow-up, since both need a second data source and a "how much worse counts" call I did not want to guess at here.
+
 ## 2026-08-16 - version 5.2.1
 
 - **The leaderboard row for the bracket being viewed had its name under AA, and had since before the palette work.** `text-primary-600` on a `bg-primary-500/8` row measures 4.19:1 once the tint is composited over the card the table sits on, and 4.03:1 on hover. Check the label against the bare card and it passes at 4.55:1, which is exactly why it lasted — the pairing clears AA right up until the tint that makes the row mean something is composited in, and then it does not. The number that matters is the one the browser paints, not the one the palette documents. The label goes to `primary-700` — same hue, one step down, 5.86:1 and 5.64:1.
