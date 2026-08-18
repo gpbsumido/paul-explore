@@ -78,7 +78,7 @@ export const FEATURES: FeatureItem[] = [
     id: "vitals",
     title: "Web Vitals",
     description:
-      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load and aggregated into P75 scores by metric and by page.",
+      "Real-user Core Web Vitals (LCP, CLS, FCP, INP, TTFB) collected from every page load, aggregated into P75 scores by metric and by page, and watched by a daily cron that files a GitHub issue when one crosses into the Poor band.",
     href: "/vitals",
     color: "#2d8f66",
     thoughtsHref: "/thoughts/vitals",
@@ -326,7 +326,8 @@ export const THOUGHTS: ThoughtItem[] = [
   {
     title: "Web Vitals",
     href: "/thoughts/vitals",
-    preview: "Real-user metrics, sendBeacon, P75, and the collection pipeline",
+    preview:
+      "Real-user metrics, sendBeacon, P75, the collection pipeline, and alerting when a vital goes bad",
     color: "#3fb169",
   },
   {

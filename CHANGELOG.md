@@ -7,6 +7,7 @@
 - **The judgement is a pure function.** `evaluateBreaches` in `src/lib/vitalsAlert.ts` flags a metric only when its P75 is strictly above the Poor threshold already in `METRIC_CONFIGS`, skips a metric with no samples rather than reading it as zero, and returns them in dashboard order. It has no network in it, so the whole decision is tested without touching a backend or GitHub. The route and `src/lib/githubIssues.ts` are the thin I/O around it.
 - **It fails quiet, on purpose.** A missing `VITALS_ALERT_GITHUB_TOKEN`, or a GitHub call that throws, returns `dispatched:false` rather than 500-ing the cron every day at noon. A failed summary fetch returns 502 and dispatches nothing, so a flaky backend can never open a phantom alert. The route is guarded by `CRON_SECRET`, so anything without the bearer is a 401 that touches neither the backend nor GitHub.
 - Absolute Poor-band breaches on the site-wide summary only for this cut. Version-regression alerting (a P75 worse than the last release) and per-page breaches are their own follow-up, since both need a second data source and a "how much worse counts" call I did not want to guess at here.
+- Updated the `/thoughts/vitals` write-up: a dated "It alerts now" section, and the "what could improve" list loses the line about this reporting but not alerting, because that is the exact thing this closes.
 
 ## 2026-08-16 - version 5.2.1
 
