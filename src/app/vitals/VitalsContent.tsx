@@ -36,7 +36,12 @@ const RATING_STYLES: Record<
   },
   poor: {
     bg: "bg-error-500/10",
-    text: "text-error-600 dark:text-error-400",
+    // error-700/300, not 600/400: on the bare by-page table cell (no tint behind
+    // it) error-400 is too dim on the dark row to clear WCAG AA -- red is less
+    // luminous than the amber "needs work" uses at the same step, so it needs a
+    // lighter shade in dark and a darker one in light to match. An axe scan of
+    // /vitals caught it once real Poor values were being rendered.
+    text: "text-error-700 dark:text-error-300",
     dot: "bg-error-500",
     label: "Poor",
   },
