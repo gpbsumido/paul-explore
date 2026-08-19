@@ -21,6 +21,7 @@ import {
   VISITOR_COOKIE_MAX_AGE,
   newVisitorId,
 } from "@/lib/visitor";
+import { CONSENT_COOKIE, hasAcceptedConsent } from "@/lib/consent";
 
 /**
  * Single proxy entry point for auth, session enforcement, and CSP headers.
@@ -288,6 +289,17 @@ export async function proxy(request: NextRequest) {
   // render already sees it instead of waiting for the next navigation.
   const visitorId = request.cookies.get(VISITOR_COOKIE)?.value;
   if (visitorId) {
+    const response = NextResponse.next();
+    response.headers.set("Content-Security-Policy", CSP);
+    return response;
+  }
+
+  // visitor_id is a non-essential (feature-flag bucketing) cookie, so it is only
+  // minted once the visitor has accepted cookie consent. Until then the site
+  // runs without it: rollouts fall back to a keyless default bucket and the
+  // backend rate-limits on IP. Recording the consent choice itself is strictly
+  // necessary, so the consent cookie needs no consent of its own.
+  if (!hasAcceptedConsent(request.cookies.get(CONSENT_COOKIE)?.value)) {
     const response = NextResponse.next();
     response.headers.set("Content-Security-Policy", CSP);
     return response;
