@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
+import { buildHeaders, API_URL, withAdminBackend } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
 import { parseBody } from "@/lib/parseBody";
 import { todoCommentBodySchema } from "@/lib/schemas";
@@ -8,7 +8,7 @@ import { todoCommentBodySchema } from "@/lib/schemas";
 type RouteCtx = { params: Promise<{ id: string }> };
 
 /** GET /api/todos/:id/comments — notes on one item, oldest first. */
-export const GET = withBackend<RouteCtx>(
+export const GET = withAdminBackend<RouteCtx>(
   "todo comments GET",
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
@@ -32,7 +32,7 @@ export const GET = withBackend<RouteCtx>(
 );
 
 /** POST /api/todos/:id/comments */
-export const POST = withBackend<RouteCtx>(
+export const POST = withAdminBackend<RouteCtx>(
   "todo comments POST",
   async ({ token, email }, request, { params }) => {
     const { id } = await params;

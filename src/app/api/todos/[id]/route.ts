@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
+import { buildHeaders, API_URL, withAdminBackend } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
 import { parseBody } from "@/lib/parseBody";
 import { updateTodoBodySchema } from "@/lib/schemas";
@@ -8,7 +8,7 @@ import { updateTodoBodySchema } from "@/lib/schemas";
 type RouteCtx = { params: Promise<{ id: string }> };
 
 /** PATCH /api/todos/:id — tick or un-tick one item. */
-export const PATCH = withBackend<RouteCtx>(
+export const PATCH = withAdminBackend<RouteCtx>(
   "todos PATCH",
   async ({ token, email }, request, { params }) => {
     const { id } = await params;
@@ -45,7 +45,7 @@ export const PATCH = withBackend<RouteCtx>(
  * Soft delete upstream, so this hides an item rather than destroying it. A
  * second delete answers 404 rather than quietly succeeding.
  */
-export const DELETE = withBackend<RouteCtx>(
+export const DELETE = withAdminBackend<RouteCtx>(
   "todos DELETE",
   async ({ token, email }, _request, { params }) => {
     const { id } = await params;
