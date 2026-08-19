@@ -1,14 +1,14 @@
 # Changelog
 
-## 2026-08-19 - version 5.3.2
+## 2026-08-19 - version 5.4.2
 
-- **The defects the simplification scan turned up, fixed with tests.** These are behaviour changes rather than dedup, so they were kept out of the behaviour-preserving 5.3.1 sweep and land here instead.
+- **The defects the simplification scan turned up, fixed with tests.** These are behaviour changes rather than dedup, so they were kept out of the behaviour-preserving 5.4.1 sweep and land here instead.
 - **`GET /api/vitals` had no timeout.** It fetched summary and by-page with a bare `fetch()`, so a slow backend hung the route for as long as the API took to fail — the exact 71s stall `fetchUpstream`'s deadline exists to prevent. Both calls carry the 8s timeout now, so a timeout is a fast 502 rather than a hang. Adds the route's first test.
 - **`useAutoScroll` re-attached its scroll listener on every render.** The effect had no dependency array. `containerRef` is a callback ref now that stores the element in state, so the effect depends on the element and threshold and runs once when the container mounts. A test pins the attach-once behaviour.
 - **`useShortcutKey` resolves through `useSyncExternalStore`** instead of a state-in-effect (with its eslint suppression), matching the three sibling hooks that already do. `getServerSnapshot` returns null so the first paint still matches the server.
 - **Ten calendar/nba routes adopt `withBackend`.** Each hand-rolled the auth-to-401 plus try/catch-to-502 wrapper it already owns. The one behaviour change is the improvement `withBackend` was built for: a malformed path segment returns 400 "Invalid identifier" instead of a 502 that would page on someone else's bad request. Adds 400-path tests for two routes that had none.
 
-## 2026-08-18 - version 5.3.1
+## 2026-08-19 - version 5.4.1
 
 - **A scanner-driven simplification pass, behaviour-preserving throughout.** Fanned four read-only audits across `lib`, `api`, `hooks` and `components`; the repo's own `deadcode`/`deadexports` gates were already green, so every change is duplication or complexity removed from live code, not dead code. Each cluster landed as its own commit with the suite staying green (the a11y suites included, which is the proof the rendered markup and ARIA did not move).
 - **lib** — eight identical `toCents` definitions, a `clampPercent` in three places, a fill-ratio ternary in five, an average-percent rounding in five, a seeded-hash loop, a shelf-chunk loop and two copies of the weekday array collapse to single shared helpers; the ten uniform operator-BFF read fallbacks collapse to one `readWithFallback`; `salesByPeriod`/`alertsByDay` reuse the existing `bucketOf`; and one unreachable `=== undefined` branch the types already rule out is gone.
@@ -16,6 +16,14 @@
 - **hooks** — `useOperatorAlerts` joins its five siblings behind `useOperatorResource`; an `isError`-to-message block copied across six hooks becomes one `queryErrorMessage`; a query key recomputed ten times in `useCalendarEvents` is hoisted.
 - **components** — a Recharts tooltip style shared across three charts; a `ColorSwatchPicker` behind three calendar modals; a `SegmentedControl` behind two operator toggles; a `useHoverPopover` behind both `Tooltip` and `InfoTip`; and an `InfoTip` style ternary collapsed.
 - **Left alone on purpose** — `discountedPrice` (a deliberate cross-repo parity mirror with a guard test, not accidental duplication), a fifteen-route "forward JSON or labelled error" helper (a few of those routes forward the upstream body, so one helper would have changed their responses), and a wrapper a test imports directly. The write-up is at `/thoughts/refactor-pass`.
+
+## 2026-08-18 - version 5.4.0
+
+- **The vitals alert now watches two things the site-wide average hides.** 5.3.0 alerted when a site-wide P75 crossed into the Poor band; that misses a single slow page the average smooths over, and a release that made a metric worse without pushing it all the way to Poor. Same daily cron, same `vitals-alert` issue, two more lenses.
+- **Per-page Poor breaches.** `/projects` can be at LCP 4.3s while the site-wide LCP reads a healthy 2.1s. The alert runs the same Poor-threshold check per page over the `by-page` aggregates now, so a page that only some visitors feel still surfaces.
+- **Release regressions, by rating band.** Using the `by-version` data (oldest to newest, so current is the last entry and previous the one before), a metric that dropped a band across the last release is flagged, e.g. INP going Good to Needs-improvement between 5.3.0 and 5.4.0 even though it is nowhere near Poor. Band-crossing rather than a percentage on purpose: a big swing inside one band is noise, a band drop is a real change in what visitors experience. A 30-sample floor on the current version keeps a just-shipped release with a handful of data points from firing on a fluke P75.
+- **All three ride one issue.** `evaluateBreaches`, `evaluatePageBreaches` and `evaluateRegressions` in `src/lib/vitalsAlert.ts` are pure and tested with no network; `alertIssueBody` renders an `AlertReport` as up-to-three sections, omitting any that is empty. The route fetches summary, by-page and by-version in parallel. Summary failing is still a 502 (it is the core signal); a by-page or by-version failure just leaves that section empty and logs, so the alert never goes dark over a secondary endpoint.
+- Updated the `/thoughts/vitals` write-up and the architecture map to say what the alert now covers.
 
 ## 2026-08-17 - version 5.3.0
 
