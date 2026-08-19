@@ -167,7 +167,7 @@ function dayBoundaries(now: Date, timeZone: string): number[] {
 }
 
 /** The index of the bucket an instant falls in, or -1 when it is outside. */
-function bucketOf(ms: number, bounds: readonly number[]): number {
+export function bucketOf(ms: number, bounds: readonly number[]): number {
   if (ms < bounds[0] || ms >= bounds[bounds.length - 1]) return -1;
 
   let index = 0;
@@ -302,19 +302,15 @@ export function salesByPeriod(
     units: 0,
   }));
 
-  const rangeStart = periods[0].startMs;
-  const rangeEnd = periods[periods.length - 1].endMs;
+  // The periods tile the window with no gaps, so their starts plus the final
+  // end are the same contiguous boundaries bucketOf expects.
+  const bounds = [...periods.map((p) => p.startMs), periods[periods.length - 1].endMs];
 
   for (const sale of sales) {
-    const t = new Date(sale.timestamp).getTime();
-    if (t < rangeStart || t >= rangeEnd) continue;
-    for (let i = 0; i < periods.length; i++) {
-      if (t >= periods[i].startMs && t < periods[i].endMs) {
-        buckets[i].revenue += sale.total;
-        buckets[i].units += sale.quantity;
-        break;
-      }
-    }
+    const i = bucketOf(new Date(sale.timestamp).getTime(), bounds);
+    if (i < 0) continue;
+    buckets[i].revenue += sale.total;
+    buckets[i].units += sale.quantity;
   }
 
   return buckets.map((b) => ({ ...b, revenue: toCents(b.revenue) }));

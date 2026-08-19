@@ -10,6 +10,7 @@ import {
   zonedParts,
 } from "@/lib/operator-timezone";
 import { averagePercent, fillRatio } from "@/lib/operator-utils";
+import { bucketOf } from "@/lib/operator-sales";
 import type {
   InventoryItem,
   Alert,
@@ -573,11 +574,8 @@ export function alertsByDay(
   const counts = new Array<number>(days).fill(0);
 
   for (const alert of alerts) {
-    const at = Date.parse(alert.timestamp);
-    if (at < bounds[0] || at >= bounds[days]) continue;
-
-    let offset = 0;
-    while (offset < days - 1 && at >= bounds[offset + 1]) offset += 1;
+    const offset = bucketOf(Date.parse(alert.timestamp), bounds);
+    if (offset < 0) continue;
     counts[offset] += 1;
   }
 
