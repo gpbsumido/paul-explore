@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-19 - version 5.3.2
+
+- **The defects the simplification scan turned up, fixed with tests.** These are behaviour changes rather than dedup, so they were kept out of the behaviour-preserving 5.3.1 sweep and land here instead.
+- **`GET /api/vitals` had no timeout.** It fetched summary and by-page with a bare `fetch()`, so a slow backend hung the route for as long as the API took to fail — the exact 71s stall `fetchUpstream`'s deadline exists to prevent. Both calls carry the 8s timeout now, so a timeout is a fast 502 rather than a hang. Adds the route's first test.
+- **`useAutoScroll` re-attached its scroll listener on every render.** The effect had no dependency array. `containerRef` is a callback ref now that stores the element in state, so the effect depends on the element and threshold and runs once when the container mounts. A test pins the attach-once behaviour.
+- **`useShortcutKey` resolves through `useSyncExternalStore`** instead of a state-in-effect (with its eslint suppression), matching the three sibling hooks that already do. `getServerSnapshot` returns null so the first paint still matches the server.
+- **Ten calendar/nba routes adopt `withBackend`.** Each hand-rolled the auth-to-401 plus try/catch-to-502 wrapper it already owns. The one behaviour change is the improvement `withBackend` was built for: a malformed path segment returns 400 "Invalid identifier" instead of a 502 that would page on someone else's bad request. Adds 400-path tests for two routes that had none.
+
 ## 2026-08-18 - version 5.3.1
 
 - **A scanner-driven simplification pass, behaviour-preserving throughout.** Fanned four read-only audits across `lib`, `api`, `hooks` and `components`; the repo's own `deadcode`/`deadexports` gates were already green, so every change is duplication or complexity removed from live code, not dead code. Each cluster landed as its own commit with the suite staying green (the a11y suites included, which is the proof the rendered markup and ARIA did not move).
