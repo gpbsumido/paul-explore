@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-20 - version 5.5.2
+
+- **Stopped the Playwright browser install from hanging a CI job.** `playwright install chromium --with-deps` shells out to apt for the browser's OS libraries, which occasionally stalls on a slow runner mirror — it once sat there for 22 minutes with nothing bounding it. Each of the three jobs that runs it now caps the step at `timeout-minutes: 10`, so a stalled fetch fails fast and retries instead of hanging the whole job.
+- **Cache the browsers too.** An `actions/cache` step keyed on the lockfile hash restores `~/.cache/ms-playwright`, so a cache hit skips the browser download entirely — faster runs and less exposure to the CDN path that stalled.
+
 ## 2026-08-19 - version 5.5.0
 
 - **Cookie consent for the one non-essential cookie, plus a privacy notice.** A cookie audit found the site is almost entirely clean already: the auth/session cookies are strictly necessary, Vercel Speed Insights and the web-vitals beacon are cookieless and carry no identifier, and everything in localStorage is functional. The only thing that needs consent under ePrivacy is `visitor_id`, the persistent key used for feature-flag bucketing.
