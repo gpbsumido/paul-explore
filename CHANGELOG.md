@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-20 - version 5.5.1
+
+- **Right-sized the public operator demo, after reading the backend to confirm what it is.** The security audit flagged that operator writes take no per-user auth. Reading `portfolio_api` settled it: the operator tables are synthetic, no-PII demo data, wiped and reseeded daily by a cron, and writes are guarded by a constant-time service-token check. So it genuinely holds no real data, and locking it behind a login would be the wrong trade — it would break a public demo to protect data that isn't there.
+- **The proportionate control for a public *write* surface is a rate limit, not auth.** Operator writes only fell under the generic 300/min `/api/` backstop; they get a dedicated 40/min per-IP bucket now, tight enough that the shared demo can't be spam-mutated but generous for a human clicking through the dashboard. Reads stay on the backstop.
+- **The rate-limit rule table moved to its own module (`src/lib/rateLimitRules.ts`).** The proxy test used to re-declare a copy of the rules, which could drift from the real ones without failing; it imports and exercises the actual table now.
+- Also confirmed while in the backend: calendar/event/countdown/member ownership is enforced there with per-resource `user_sub` predicates (no IDOR), and the to-do list is admin-gated by a verified-email allowlist — so the BFF's assumptions hold and the 5.4.3 `withAdminBackend` gate is genuine defense in depth.
+
 ## 2026-08-19 - version 5.5.0
 
 - **Cookie consent for the one non-essential cookie, plus a privacy notice.** A cookie audit found the site is almost entirely clean already: the auth/session cookies are strictly necessary, Vercel Speed Insights and the web-vitals beacon are cookieless and carry no identifier, and everything in localStorage is functional. The only thing that needs consent under ePrivacy is `visitor_id`, the persistent key used for feature-flag bucketing.
