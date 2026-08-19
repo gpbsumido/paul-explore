@@ -45,7 +45,13 @@ export default defineConfig({
   projects: [
     {
       name: "public",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Start already consented: no cookie banner obscuring lower-page
+        // controls, and visitor_id gets minted so operator writes aren't
+        // rate-limited onto one shared CI IP. Written by global-setup.
+        storageState: "e2e/.auth/public-state.json",
+      },
       testMatch: /public\/.+\.spec\.ts/,
     },
     {
