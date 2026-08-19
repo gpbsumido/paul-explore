@@ -24,7 +24,12 @@ export const metadata: Metadata = {
   },
 };
 
-// Static showcase driven by the local catalog -- cache at the CDN for 24h.
+// Fully static: the showcase is driven by a local catalog with no request-time
+// data, so it's baked at build and served as a pure CDN document. This matters
+// for a low-traffic page -- under plain ISR it gets evicted and the next visitor
+// pays a cold regeneration of the whole tree in TTFB (which lands inside FCP);
+// force-static removes that cold-render path entirely.
+export const dynamic = "force-static";
 export const revalidate = 86400;
 
 export default function DesignSystemPage() {

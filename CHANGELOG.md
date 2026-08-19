@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-20 - version 5.5.3
+
+- **Core Web Vitals fixes from the /vitals field data, aimed at universal gains rather than one page.** The dashboard showed a few pages in yellow/red; diagnosing them (four parallel audits) found the causes were mostly shared chrome, so the fixes help every page that renders it.
+- **`AmbientBackground` drifts on the compositor now, not the main thread.** Its two aurora blobs were animated with framer-motion's JS `animate` (`repeat: Infinity`), which sampled every frame on the main thread and showed up as interaction latency (INP) on every page it backs — it was the named culprit behind `/operator/finance` (446ms) and `/thoughts/design-system-showcase` (1.2s). It's a CSS transform keyframe animation now (GPU compositor, zero main-thread cost, disabled under reduced-motion), which also let it become a plain server component with no client JS and removed a late-framer-load dependency that could gate LCP.
+- **Stopped preloading the code font.** `Geist_Mono` never appears above the fold on any route, but next/font preloaded its `<link>` on every page, competing with the LCP font for the connection. `preload: false` (loads on demand where code renders); `display: "swap"` made explicit on all three faces.
+- **React Query devtools can't reach the production bundle.** It was a static import behind a dev-only render; it's a dev-gated dynamic import now, so it's a literal `null` component in prod.
+- **`/design-system` is fully static.** It was ISR, so on a low-traffic page an eviction made the next visitor pay a cold regeneration of the whole tree in TTFB (which lands inside FCP — the field FCP was 8.2s against a 0.6s LCP). `force-static` bakes it at build and serves a pure CDN document.
+
 ## 2026-08-20 - version 5.5.2
 
 - **Stopped the Playwright browser install from hanging a CI job.** `playwright install chromium --with-deps` shells out to apt for the browser's OS libraries, which occasionally stalls on a slow runner mirror — it once sat there for 22 minutes with nothing bounding it. Each of the three jobs that runs it now caps the step at `timeout-minutes: 10`, so a stalled fetch fails fast and retries instead of hanging the whole job.

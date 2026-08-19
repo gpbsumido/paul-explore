@@ -1,7 +1,3 @@
-"use client";
-
-import { m, useReducedMotion } from "framer-motion";
-
 type Props = {
   /**
    * Primary aurora colour. Defaults to verdigris. This lands inside a
@@ -15,11 +11,17 @@ type Props = {
 };
 
 /**
- * The ambient backdrop that gives the v3 landing its "alive" feel — a faint
- * dotted grid that fades toward the edges, plus two slow drifting aurora blobs.
- * Purely decorative and non-interactive; drift is disabled for reduced-motion
- * visitors. Drop it as the first child of a `relative` container and render the
- * page content above it.
+ * The ambient backdrop that gives the landing its "alive" feel — a faint dotted
+ * grid that fades toward the edges, plus two slow drifting aurora blobs. Purely
+ * decorative and non-interactive.
+ *
+ * The drift is a CSS transform animation (see `.ambient-blob-*` in globals.css),
+ * so it runs on the compositor rather than the main thread — an earlier version
+ * animated it with framer-motion's JS `animate`, which sampled every frame on
+ * the main thread and showed up as interaction latency (INP) on every page that
+ * renders this. CSS keyframes cost nothing on the main thread, disable
+ * themselves under `prefers-reduced-motion`, and let this be a plain server
+ * component with no client JS at all.
  *
  * The two blob colours are parameterised so a page can tint its aurora to its
  * own accent (e.g. its feature token) while keeping the same treatment.
@@ -30,11 +32,6 @@ export default function AmbientBackground({
   colorA = "#219b84",
   colorB = "#d97e1f",
 }: Props) {
-  const reduced = useReducedMotion() ?? false;
-
-  const drift = (dx: number, dy: number) =>
-    reduced ? undefined : { x: [0, dx, 0], y: [0, dy, 0] };
-
   return (
     <div
       aria-hidden
@@ -54,21 +51,17 @@ export default function AmbientBackground({
         }}
       />
 
-      <m.div
-        className="absolute left-[12%] top-[15%] h-[42vmax] w-[42vmax] rounded-full blur-3xl"
+      <div
+        className="ambient-blob ambient-blob-a absolute left-[12%] top-[15%] h-[42vmax] w-[42vmax] rounded-full blur-3xl"
         style={{
           background: `radial-gradient(circle, color-mix(in srgb, ${colorA} 30%, transparent), transparent 65%)`,
         }}
-        animate={drift(80, 60)}
-        transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
       />
-      <m.div
-        className="absolute bottom-[12%] right-[10%] h-[38vmax] w-[38vmax] rounded-full blur-3xl"
+      <div
+        className="ambient-blob ambient-blob-b absolute bottom-[12%] right-[10%] h-[38vmax] w-[38vmax] rounded-full blur-3xl"
         style={{
           background: `radial-gradient(circle, color-mix(in srgb, ${colorB} 26%, transparent), transparent 65%)`,
         }}
-        animate={drift(-70, -50)}
-        transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
       />
     </div>
   );

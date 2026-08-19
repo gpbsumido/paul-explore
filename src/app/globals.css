@@ -310,6 +310,50 @@
   }
 }
 
+/* AmbientBackground's two aurora blobs. Compositor-driven transform drift (this
+   used to be framer-motion's JS animate, which sampled every frame on the main
+   thread and showed up as interaction latency on every page that renders it).
+   translate3d promotes each blurred blob to its own layer, so the 64px blur is
+   rasterised once and the layer is just moved. Values match the old JS drift. */
+@keyframes ambient-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(80px, 60px, 0);
+  }
+}
+
+@keyframes ambient-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-70px, -50px, 0);
+  }
+}
+
+.ambient-blob {
+  will-change: transform;
+}
+
+.ambient-blob-a {
+  animation: ambient-drift-a 26s ease-in-out infinite;
+}
+
+.ambient-blob-b {
+  animation: ambient-drift-b 32s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-blob-a,
+  .ambient-blob-b {
+    animation: none;
+  }
+}
+
 /* TextReveal — the same bargain .reveal-up makes, one word at a time. The text
    is in the server HTML at full opacity and this only switches on once the
    element reports itself in view, so nothing above the fold is ever shipped as
