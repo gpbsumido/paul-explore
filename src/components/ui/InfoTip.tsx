@@ -1,15 +1,7 @@
 "use client";
 
-import {
-  useState,
-  useRef,
-  useCallback,
-  useId,
-  type ReactNode,
-  type CSSProperties,
-  type FocusEvent,
-  type KeyboardEvent,
-} from "react";
+import { useId, type ReactNode, type CSSProperties } from "react";
+import { useHoverPopover } from "@/hooks/useHoverPopover";
 
 interface InfoTipProps {
   children: ReactNode;
@@ -33,82 +25,30 @@ export default function InfoTip({
   delay = 200,
 }: InfoTipProps) {
   const tooltipId = useId();
-  const [visible, setVisible] = useState(false);
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { visible, pos, triggerHandlers } = useHoverPopover({
+    delay,
+    anchor: (rect) => ({
+      x: rect.left + rect.width / 2,
+      y: side === "top" ? rect.top : rect.bottom,
+    }),
+  });
 
-  const show = useCallback(
-    (rect: DOMRect) => {
-      setPos({
-        x: rect.left + rect.width / 2,
-        y: side === "top" ? rect.top : rect.bottom,
-      });
-      timer.current = setTimeout(() => setVisible(true), delay);
-    },
-    [side, delay],
-  );
-
-  const hide = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current);
-    setVisible(false);
-  }, []);
-
-  const handleEnter = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      show(e.currentTarget.getBoundingClientRect());
-    },
-    [show],
-  );
-
-  const handleFocus = useCallback(
-    (e: FocusEvent<HTMLButtonElement>) => {
-      show(e.currentTarget.getBoundingClientRect());
-    },
-    [show],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLButtonElement>) => {
-      if (e.key === "Escape" && visible) {
-        e.preventDefault();
-        hide();
-      }
-    },
-    [hide, visible],
-  );
-
-  const style: CSSProperties =
-    side === "top"
-      ? {
-          position: "fixed",
-          left: pos?.x ?? 0,
-          top: (pos?.y ?? 0) - 8,
-          transform: "translate(-50%, -100%)",
-          zIndex: 9999,
-          pointerEvents: "none",
-          maxWidth,
-          width: "max-content",
-        }
-      : {
-          position: "fixed",
-          left: pos?.x ?? 0,
-          top: (pos?.y ?? 0) + 8,
-          transform: "translate(-50%, 0)",
-          zIndex: 9999,
-          pointerEvents: "none",
-          maxWidth,
-          width: "max-content",
-        };
+  const style: CSSProperties = {
+    position: "fixed",
+    left: pos?.x ?? 0,
+    top: side === "top" ? (pos?.y ?? 0) - 8 : (pos?.y ?? 0) + 8,
+    transform: side === "top" ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+    zIndex: 9999,
+    pointerEvents: "none",
+    maxWidth,
+    width: "max-content",
+  };
 
   return (
     <button
       type="button"
       className="paul-touch-target inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-border text-muted text-[9px] font-semibold cursor-help select-none shrink-0 hover:border-foreground hover:text-foreground transition-colors bg-transparent p-0"
-      onMouseEnter={handleEnter}
-      onMouseLeave={hide}
-      onFocus={handleFocus}
-      onBlur={hide}
-      onKeyDown={handleKeyDown}
+      {...triggerHandlers}
       aria-label="More information"
       aria-describedby={visible ? tooltipId : undefined}
     >

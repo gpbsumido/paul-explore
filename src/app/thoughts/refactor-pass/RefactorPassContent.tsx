@@ -418,6 +418,63 @@ export default function RefactorPassContent() {
       </section>
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">
+          A second pass, run by scanners (August 2026)
+        </h2>
+        <p className="text-muted">
+          This page ended by saying the pass was a one-off and duplication would
+          accrue again, and that the trigger I trust is copying something a third
+          time. <C>toCents</C> had been copied <em>eight</em> times. So I ran the
+          sweep again, but started it differently: four read-only scanners over{" "}
+          <C>lib</C>, <C>api</C>, <C>hooks</C> and <C>components</C> in parallel,
+          each returning ranked, concrete findings with a risk level and whether
+          a test already covered the code. The repo&rsquo;s own <C>deadcode</C>{" "}
+          and <C>deadexports</C> gates were already green, so there was no dead
+          code to delete &mdash; every finding was duplication or complexity in{" "}
+          <em>live</em> code.
+        </p>
+        <p className="mt-3 text-muted">
+          <Tag kind="gain" /> What shipped, each as its own verified commit with
+          the suite staying green: eight <C>toCents</C> copies, a fill-ratio
+          ternary in five files, a seeded-hash loop and a couple of others
+          collapsed to shared pure helpers; three <C>google/auth</C> routes
+          adopted the <C>withBackend</C> wrapper and two NBA routes adopted{" "}
+          <C>proxyUpstream</C>; a query-error block copied across six hooks and a
+          query key recomputed ten times in one hook were hoisted;{" "}
+          <C>useOperatorAlerts</C> joined its five siblings behind{" "}
+          <C>useOperatorResource</C>; a swatch picker, a segmented control and a
+          hover-popover state machine were pulled out of the components that had
+          each grown their own copy; and the ten uniform operator-BFF read
+          fallbacks collapsed to one <C>readWithFallback</C>.
+        </p>
+        <p className="mt-3 text-muted">
+          <Tag kind="keep" /> What I left alone matters as much.{" "}
+          <C>discountedPrice</C> is arithmetically identical to{" "}
+          <C>promoPrice</C>, but it&rsquo;s a deliberate cross-repo parity mirror
+          with a guard test &mdash; collapsing it would delete the check, not the
+          duplication. A &ldquo;forward the JSON or a labelled error&rdquo; helper
+          would have touched fifteen routes, but a few of them forward the
+          upstream error body instead of a fixed label, so one helper would have
+          quietly changed their responses; not worth it. And a wrapper that
+          looked like single-caller indirection turned out to be imported
+          directly by a test, so deleting it would have gone red. The scanners
+          flag; the judgement about whether a thing is duplication or a mirror
+          stays mine.
+        </p>
+        <p className="mt-3 text-muted">
+          <Tag kind="cut" /> The scan also turned up two real defects, which are
+          behaviour changes rather than simplifications and so ride their own PR
+          with their own tests: <C>GET /api/vitals</C> was calling bare{" "}
+          <C>fetch()</C> with no timeout, bypassing the eight-second deadline{" "}
+          <C>fetchUpstream</C> exists to enforce &mdash; the exact hang that
+          helper was written for &mdash; and a scroll listener was re-attaching on
+          every render for want of a dependency array. A &ldquo;no behaviour
+          change&rdquo; PR is the wrong place to hide a behaviour change, however
+          small.
+        </p>
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">Related write-ups</h2>
         <p className="text-muted">
           Where a single feature was touched, its own dev-notes page carries the
@@ -470,13 +527,14 @@ export default function RefactorPassContent() {
           "A verdict stated first, then the guardrails, then the plan — so a reader can disagree with the conclusion without reading the whole thing.",
           "Characterisation tests before behaviour-preserving swaps, which is what made a large change safe to believe.",
           "Stacked pull requests so each step was reviewable on its own rather than one large diff.",
+          "A scanner-driven second pass: fan four read-only audits across lib/api/hooks/components in parallel, triage to the low-risk wins, and land each as its own commit with the suite — including the a11y suites, which prove the markup didn't move — staying green.",
         ]}
         couldImprove={[
-          "The pass was a deliberate effort rather than a standing practice, and duplication has accrued since — the ticker and the thoughts timeline both needed extracting after it.",
-          "Nothing measures maintainability, so the next pass will again start from reading rather than from a signal.",
+          "Nothing measures maintainability, so each pass still starts from reading (or from a scan) rather than from a standing signal.",
+          "The scan is manual — I kicked it off because I noticed eight copies of one helper, not because anything told me. A recurring duplication report would catch the third copy instead of the eighth.",
         ]}
         upcoming={[
-          "Nothing scheduled. The trigger I actually trust is copying something a third time, which is what prompted the shared timeline component in this sweep.",
+          "The two defects the scan surfaced — the timeout-less vitals fetch and the depless scroll effect — ship as their own tested PR, kept out of the behaviour-preserving sweep on purpose.",
         ]}
       />
     </ThoughtLayout>

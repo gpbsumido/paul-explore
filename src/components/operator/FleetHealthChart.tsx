@@ -2,7 +2,10 @@
 
 import { useMemo } from "react";
 import { PieChart, Pie, ResponsiveContainer, Tooltip } from "recharts";
-import { toFleetHealthData } from "@/lib/operator-chart-transforms";
+import {
+  toFleetHealthData,
+  chartTooltipStyle,
+} from "@/lib/operator-chart-transforms";
 import type { Store } from "@/types/operator";
 
 interface FleetHealthChartProps {
@@ -50,14 +53,7 @@ export default function FleetHealthChart({ stores }: FleetHealthChartProps) {
               stroke="none"
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "var(--color-surface-raised)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                fontSize: 12,
-              }}
-              labelStyle={{ color: "var(--color-foreground)" }}
-              itemStyle={{ color: "var(--color-foreground)" }}
+              {...chartTooltipStyle}
               formatter={(value, name) => [
                 `${value} store${value !== 1 ? "s" : ""}`,
                 String(name),

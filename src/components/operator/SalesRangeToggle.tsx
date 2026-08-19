@@ -1,6 +1,7 @@
 "use client";
 
 import type { SalesGranularity } from "@/lib/operator-sales";
+import SegmentedControl from "./SegmentedControl";
 
 interface SalesRangeToggleProps {
   value: SalesGranularity;
@@ -25,29 +26,11 @@ export default function SalesRangeToggle({
   label = "Sales range",
 }: SalesRangeToggleProps) {
   return (
-    <div
-      role="group"
-      aria-label={label}
-      className="inline-flex rounded-lg border border-border bg-surface p-0.5"
-    >
-      {OPTIONS.map((option) => {
-        const isActive = option.id === value;
-        return (
-          <button
-            key={option.id}
-            type="button"
-            aria-pressed={isActive}
-            onClick={() => onChange(option.id)}
-            className={`paul-touch-min rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary-500 ${
-              isActive
-                ? "bg-primary-600 text-white"
-                : "text-muted hover:text-foreground"
-            }`}
-          >
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedControl
+      options={OPTIONS}
+      value={value}
+      onChange={onChange}
+      ariaLabel={label}
+    />
   );
 }

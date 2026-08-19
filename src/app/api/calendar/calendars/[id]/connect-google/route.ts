@@ -1,28 +1,16 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { NextResponse, type NextRequest } from "next/server";
-import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { NextResponse } from "next/server";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
 
+type RouteCtx = { params: Promise<{ id: string }> };
+
 // POST /api/calendar/calendars/:id/connect-google
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params;
+export const POST = withBackend<RouteCtx>(
+  "calendars connect-google POST",
+  async ({ token, email }, _request, { params }) => {
+    const { id } = await params;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error(
-      "[calendars BFF] POST connect-google — getAccessToken failed:",
-      err,
-    );
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/calendars/${safeSegment(id)}/connect-google`,
       {
@@ -44,8 +32,5 @@ export async function POST(
     }
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (err) {
-    console.error("[calendars BFF] POST connect-google — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);

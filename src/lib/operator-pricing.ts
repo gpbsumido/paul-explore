@@ -7,6 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import type { InventoryItem, Sale } from "@/types/operator";
+import { clampPercent, toCents } from "@/lib/operator-utils";
 
 /**
  * The discount options an operator can pick, per product or store-wide. Goes up
@@ -23,16 +24,6 @@ export const DISCOUNT_STEPS = [0, 10, 20, 30, 40, 50] as const;
 export const MARGIN_STEPS = [30, 40, 50, 60] as const;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-/** Rounds a currency value to the nearest cent. */
-function toCents(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
-/** Clamps a discount percentage into the sensible 0-100 range. */
-function clampPercent(percent: number): number {
-  return Math.max(0, Math.min(100, percent));
-}
 
 /**
  * The price after applying a discount, rounded to the cent. A 0% discount

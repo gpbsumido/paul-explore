@@ -1,7 +1,6 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { API_URL } from "@/lib/apiUrl";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { NextResponse } from "next/server";
-import { auth0 } from "@/lib/auth0";
 
 /**
  * GET /api/google/auth/url
@@ -12,39 +11,32 @@ import { auth0 } from "@/lib/auth0";
  * Forwards the ?origin param so the backend can embed it in the signed state
  * and redirect back to the right environment after OAuth completes.
  */
-export async function GET(request: Request) {
-  let token: string | undefined;
-  try {
-    ({ token } = await auth0.getAccessToken());
-  } catch (err) {
-    console.error("[google BFF] GET /auth/url — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+export const GET = withBackend(
+  "google auth url",
+  async ({ token, email }, request) => {
+    const { searchParams } = new URL(request.url);
+    const origin = searchParams.get("origin");
 
-  const { searchParams } = new URL(request.url);
-  const origin = searchParams.get("origin");
-
-  if (origin !== null) {
-    let parsedOrigin: URL;
-    try {
-      parsedOrigin = new URL(origin);
-    } catch {
-      return NextResponse.json({ error: "Invalid origin" }, { status: 400 });
+    if (origin !== null) {
+      let parsedOrigin: URL;
+      try {
+        parsedOrigin = new URL(origin);
+      } catch {
+        return NextResponse.json({ error: "Invalid origin" }, { status: 400 });
+      }
+      if (
+        parsedOrigin.protocol !== "http:" &&
+        parsedOrigin.protocol !== "https:"
+      ) {
+        return NextResponse.json({ error: "Invalid origin" }, { status: 400 });
+      }
     }
-    if (
-      parsedOrigin.protocol !== "http:" &&
-      parsedOrigin.protocol !== "https:"
-    ) {
-      return NextResponse.json({ error: "Invalid origin" }, { status: 400 });
-    }
-  }
 
-  try {
     const backendUrl = new URL(`${API_URL}/api/google/auth/url`);
     if (origin) backendUrl.searchParams.set("origin", origin);
 
     const upstreamResult = await fetchUpstream(backendUrl.toString(), {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: buildHeaders(token, email),
     });
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
     const res = upstreamResult.response;
@@ -58,10 +50,6 @@ export async function GET(request: Request) {
         { status: res.status },
       );
     }
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("[google BFF] GET /auth/url — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+    return NextResponse.json(await res.json());
+  },
+);

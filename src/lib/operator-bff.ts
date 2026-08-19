@@ -11,7 +11,11 @@ import {
   OperatorUnavailableError,
 } from "@/lib/operator-route-errors";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
-import { LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
+import {
+  averagePercent,
+  fillRatio,
+  LOW_STOCK_THRESHOLD,
+} from "@/lib/operator-utils";
 import {
   aggregateFleetSales,
   type SalesGranularity,
@@ -80,86 +84,97 @@ function noteFallback(what: string, err: unknown): void {
   );
 }
 
+/**
+ * A read that prefers the live API and falls back to the seed on any failure,
+ * announcing the fallback under `label`. This is the shape every read below
+ * shares: try the API, and on failure note it and return the seed's answer.
+ * Reads are idempotent, so falling back is always safe.
+ */
+async function readWithFallback<T>(
+  label: string,
+  read: () => Promise<T>,
+  fallback: () => T,
+): Promise<T> {
+  try {
+    return await read();
+  } catch (err) {
+    noteFallback(label, err);
+    return fallback();
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Reads — fall back to the seed on any failure (idempotent, so it is safe).
 // ---------------------------------------------------------------------------
 
-export async function loadStores(): Promise<readonly Store[]> {
-  try {
-    return await api.fetchStores();
-  } catch (err) {
-    noteFallback("loadStores", err);
-    return seed.getStores();
-  }
+export function loadStores(): Promise<readonly Store[]> {
+  return readWithFallback(
+    "loadStores",
+    () => api.fetchStores(),
+    () => seed.getStores(),
+  );
 }
 
-export async function loadStore(storeId: string): Promise<Store | undefined> {
-  try {
-    return await api.fetchStore(storeId);
-  } catch (err) {
-    noteFallback("loadStore", err);
-    return seed.getStore(storeId);
-  }
+export function loadStore(storeId: string): Promise<Store | undefined> {
+  return readWithFallback(
+    "loadStore",
+    () => api.fetchStore(storeId),
+    () => seed.getStore(storeId),
+  );
 }
 
-export async function loadInventory(
-  storeId: string,
-): Promise<InventoryItem[]> {
-  try {
-    return await api.fetchInventory(storeId);
-  } catch (err) {
-    noteFallback("loadInventory", err);
-    return seedForStore(storeId, () => seed.getInventory(storeId), "inventory");
-  }
+export function loadInventory(storeId: string): Promise<InventoryItem[]> {
+  return readWithFallback(
+    "loadInventory",
+    () => api.fetchInventory(storeId),
+    () => seedForStore(storeId, () => seed.getInventory(storeId), "inventory"),
+  );
 }
 
-export async function loadAlerts(storeId: string): Promise<Alert[]> {
-  try {
-    return await api.fetchAlerts(storeId);
-  } catch (err) {
-    noteFallback("loadAlerts", err);
-    return seedForStore(storeId, () => seed.getAlerts(storeId), "alerts");
-  }
+export function loadAlerts(storeId: string): Promise<Alert[]> {
+  return readWithFallback(
+    "loadAlerts",
+    () => api.fetchAlerts(storeId),
+    () => seedForStore(storeId, () => seed.getAlerts(storeId), "alerts"),
+  );
 }
 
-export async function loadActivity(
-  storeId: string,
-): Promise<ActivityEvent[]> {
-  try {
-    return await api.fetchActivity(storeId);
-  } catch (err) {
-    noteFallback("loadActivity", err);
-    return seedForStore(storeId, () => seed.getActivity(storeId), "the activity feed");
-  }
+export function loadActivity(storeId: string): Promise<ActivityEvent[]> {
+  return readWithFallback(
+    "loadActivity",
+    () => api.fetchActivity(storeId),
+    () =>
+      seedForStore(
+        storeId,
+        () => seed.getActivity(storeId),
+        "the activity feed",
+      ),
+  );
 }
 
-export async function loadSales(storeId: string): Promise<Sale[]> {
-  try {
-    return await api.fetchSales(storeId);
-  } catch (err) {
-    noteFallback("loadSales", err);
-    return seedForStore(storeId, () => seed.getSales(storeId), "sales");
-  }
+export function loadSales(storeId: string): Promise<Sale[]> {
+  return readWithFallback(
+    "loadSales",
+    () => api.fetchSales(storeId),
+    () => seedForStore(storeId, () => seed.getSales(storeId), "sales"),
+  );
 }
 
-export async function loadPlanogram(
-  storeId: string,
-): Promise<PlanogramSlot[]> {
-  try {
-    return await api.fetchPlanogram(storeId);
-  } catch (err) {
-    noteFallback("loadPlanogram", err);
-    return seedForStore(storeId, () => seed.getPlanogram(storeId), "the planogram");
-  }
+export function loadPlanogram(storeId: string): Promise<PlanogramSlot[]> {
+  return readWithFallback(
+    "loadPlanogram",
+    () => api.fetchPlanogram(storeId),
+    () =>
+      seedForStore(storeId, () => seed.getPlanogram(storeId), "the planogram"),
+  );
 }
 
-export async function loadFleetSummary(): Promise<FleetSummaryResponse> {
-  try {
-    return await api.fetchFleetSummary();
-  } catch (err) {
-    noteFallback("loadFleetSummary", err);
-    return computeFleetSummarySeed();
-  }
+export function loadFleetSummary(): Promise<FleetSummaryResponse> {
+  return readWithFallback(
+    "loadFleetSummary",
+    () => api.fetchFleetSummary(),
+    () => computeFleetSummarySeed(),
+  );
 }
 
 export async function loadSalesAnalytics(
@@ -408,7 +423,7 @@ function computeFleetSummarySeed(): FleetSummaryResponse {
     let storeHealth = 0;
     for (const item of inventory) {
       totalItems++;
-      const ratio = item.capacity > 0 ? item.currentStock / item.capacity : 0;
+      const ratio = fillRatio(item);
       totalHealth += ratio;
       storeHealth += ratio;
       if (ratio < LOW_STOCK_THRESHOLD) lowStockItems++;
@@ -417,10 +432,7 @@ function computeFleetSummarySeed(): FleetSummaryResponse {
     return {
       storeId: store.id,
       alertCount: unacknowledged.length,
-      inventoryHealth:
-        inventory.length > 0
-          ? Math.round((storeHealth / inventory.length) * 100)
-          : 0,
+      inventoryHealth: averagePercent(storeHealth, inventory.length),
       hasCritical: unacknowledged.some((a) => a.severity === "critical"),
       hasWarning: unacknowledged.some((a) => a.severity === "warning"),
     };
@@ -432,8 +444,7 @@ function computeFleetSummarySeed(): FleetSummaryResponse {
       criticalAlerts,
       warningAlerts,
       lowStockItems,
-      avgInventoryHealth:
-        totalItems > 0 ? Math.round((totalHealth / totalItems) * 100) : 0,
+      avgInventoryHealth: averagePercent(totalHealth, totalItems),
     },
     alertTrend: [...toAlertTrendData(allAlerts)],
   };
@@ -457,15 +468,14 @@ export async function openRestockSession(
   }
 }
 
-export async function loadRestockSessions(
+export function loadRestockSessions(
   storeId: string,
 ): Promise<RestockSession[]> {
-  try {
-    return await api.fetchRestockSessions(storeId);
-  } catch (err) {
-    noteFallback("loadRestockSessions", err);
-    return seed.listRestockSessions(storeId);
-  }
+  return readWithFallback(
+    "loadRestockSessions",
+    () => api.fetchRestockSessions(storeId),
+    () => seed.listRestockSessions(storeId),
+  );
 }
 
 export async function loadRestockSession(
@@ -517,13 +527,12 @@ export async function applyRestockSession(
 // Promotions
 // ---------------------------------------------------------------------------
 
-export async function loadPromotions(storeId: string): Promise<Promotion[]> {
-  try {
-    return await api.fetchPromotions(storeId);
-  } catch (err) {
-    noteFallback("loadPromotions", err);
-    return seed.listPromotions(storeId);
-  }
+export function loadPromotions(storeId: string): Promise<Promotion[]> {
+  return readWithFallback(
+    "loadPromotions",
+    () => api.fetchPromotions(storeId),
+    () => seed.listPromotions(storeId),
+  );
 }
 
 export async function createPromotion(

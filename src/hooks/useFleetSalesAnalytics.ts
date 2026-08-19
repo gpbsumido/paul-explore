@@ -5,6 +5,7 @@ import type { z } from "zod";
 import { queryKeys } from "@/lib/queryKeys";
 import { fleetSalesAnalyticsSchema } from "@/lib/operator-schemas";
 import type { SalesGranularity } from "@/lib/operator-sales";
+import { queryErrorMessage } from "./queryErrorMessage";
 
 export type FleetSalesAnalyticsData = z.infer<
   typeof fleetSalesAnalyticsSchema
@@ -48,10 +49,10 @@ export function useFleetSalesAnalytics(
   return {
     analytics: data,
     loading: isLoading,
-    error: isError
-      ? queryError instanceof Error
-        ? queryError.message
-        : "Failed to load sales analytics."
-      : null,
+    error: queryErrorMessage(
+      isError,
+      queryError,
+      "Failed to load sales analytics.",
+    ),
   };
 }

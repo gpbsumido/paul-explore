@@ -1,31 +1,22 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { NextResponse, type NextRequest } from "next/server";
-import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { NextResponse } from "next/server";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { updateCardBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
 import { safeSegment } from "@/lib/safeSegment";
 
+type RouteCtx = { params: Promise<{ id: string; entryId: string }> };
+
 // PUT /api/calendar/events/:id/cards/:entryId
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; entryId: string }> },
-) {
-  const { id, entryId } = await params;
+export const PUT = withBackend<RouteCtx>(
+  "calendar card PUT",
+  async ({ token, email }, request, { params }) => {
+    const { id, entryId } = await params;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[calendar BFF] PUT card — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+    const bodyResult = await parseBody(request, updateCardBodySchema);
+    if (!bodyResult.ok) return bodyResult.response;
+    const body = bodyResult.data;
 
-  const bodyResult = await parseBody(request, updateCardBodySchema);
-  if (!bodyResult.ok) return bodyResult.response;
-  const body = bodyResult.data;
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/events/${safeSegment(id)}/cards/${safeSegment(entryId)}`,
       {
@@ -47,29 +38,15 @@ export async function PUT(
     }
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (err) {
-    console.error("[calendar BFF] PUT card — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);
 
 // DELETE /api/calendar/events/:id/cards/:entryId
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string; entryId: string }> },
-) {
-  const { id, entryId } = await params;
+export const DELETE = withBackend<RouteCtx>(
+  "calendar card DELETE",
+  async ({ token, email }, _request, { params }) => {
+    const { id, entryId } = await params;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[calendar BFF] DELETE card — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/events/${safeSegment(id)}/cards/${safeSegment(entryId)}`,
       {
@@ -87,8 +64,5 @@ export async function DELETE(
       return NextResponse.json(err, { status: res.status });
     }
     return new NextResponse(null, { status: 204 });
-  } catch (err) {
-    console.error("[calendar BFF] DELETE card — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);

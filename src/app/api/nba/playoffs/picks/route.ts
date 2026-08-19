@@ -1,6 +1,6 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { NextResponse, type NextRequest } from "next/server";
-import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { NextResponse } from "next/server";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
 import { parseBody } from "@/lib/parseBody";
 import { playoffPicksBodySchema } from "@/lib/schemas";
@@ -12,66 +12,46 @@ function currentSeasonYear(): number {
 
 // GET /api/nba/playoffs/picks
 // Returns the authenticated user's bracket picks for the current season.
-export async function GET() {
-  let token: string;
-  try {
-    ({ token } = await getBackendAuth());
-  } catch (err) {
-    console.error("[playoffs BFF] GET picks — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
+export const GET = withBackend("playoffs picks GET", async ({ token }) => {
   const season = currentSeasonYear();
 
-  try {
-    const upstreamResult = await fetchUpstream(
-      `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}`,
-      {
-        headers: buildHeaders(token, null),
-      },
-    );
-    if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
-    const res = upstreamResult.response;
+  const upstreamResult = await fetchUpstream(
+    `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}`,
+    {
+      headers: buildHeaders(token, null),
+    },
+  );
+  if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
+  const res = upstreamResult.response;
 
-    if (res.status === 404) {
-      return NextResponse.json({ picks: {} });
-    }
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => null);
-      console.error("[playoffs BFF] GET picks — backend error:", body);
-      return NextResponse.json(
-        { error: "Failed to fetch picks" },
-        { status: res.status },
-      );
-    }
-
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error("[playoffs BFF] GET picks — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
+  if (res.status === 404) {
+    return NextResponse.json({ picks: {} });
   }
-}
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    console.error("[playoffs BFF] GET picks — backend error:", body);
+    return NextResponse.json(
+      { error: "Failed to fetch picks" },
+      { status: res.status },
+    );
+  }
+
+  const data = await res.json();
+  return NextResponse.json(data);
+});
 
 // PUT /api/nba/playoffs/picks
 // Saves the authenticated user's bracket picks for the current season.
-export async function PUT(request: NextRequest) {
-  let token: string;
-  try {
-    ({ token } = await getBackendAuth());
-  } catch (err) {
-    console.error("[playoffs BFF] PUT picks — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+export const PUT = withBackend(
+  "playoffs picks PUT",
+  async ({ token }, request) => {
+    const parsed = await parseBody(request, playoffPicksBodySchema);
+    if (!parsed.ok) return parsed.response;
+    const { picks } = parsed.data;
 
-  const parsed = await parseBody(request, playoffPicksBodySchema);
-  if (!parsed.ok) return parsed.response;
-  const { picks } = parsed.data;
+    const season = currentSeasonYear();
 
-  const season = currentSeasonYear();
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/nba/playoffs/picks/${safeSegment(season)}`,
       {
@@ -95,8 +75,5 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("[playoffs BFF] PUT picks — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Store } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 import { storeSchema } from "@/lib/operator-schemas";
+import { queryErrorMessage } from "./queryErrorMessage";
 
 export interface UseOperatorStoreReturn {
   store: Store | undefined;
@@ -39,10 +40,6 @@ export function useOperatorStore(storeId: string): UseOperatorStoreReturn {
   return {
     store: data,
     loading: isLoading,
-    error: isError
-      ? queryError instanceof Error
-        ? queryError.message
-        : "Failed to load store."
-      : null,
+    error: queryErrorMessage(isError, queryError, "Failed to load store."),
   };
 }

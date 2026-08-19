@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { chartTooltipStyle } from "@/lib/operator-chart-transforms";
 
 interface InventoryComparisonDatum {
   readonly name: string;
@@ -116,14 +117,7 @@ export default function InventoryComparisonChart({
               tickFormatter={axisLabel}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "var(--color-surface-raised)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                fontSize: 12,
-              }}
-              labelStyle={{ color: "var(--color-foreground)" }}
-              itemStyle={{ color: "var(--color-foreground)" }}
+              {...chartTooltipStyle}
               formatter={(value) => [`${value}%`, "Health"]}
             />
             <Bar

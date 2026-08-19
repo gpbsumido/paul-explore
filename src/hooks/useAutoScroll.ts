@@ -1,7 +1,7 @@
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 type AutoScrollResult = {
-  readonly containerRef: React.RefObject<HTMLElement | null>;
+  readonly containerRef: (el: HTMLElement | null) => void;
   readonly isAtBottom: boolean;
   readonly scrollToBottom: () => void;
 };
@@ -9,34 +9,43 @@ type AutoScrollResult = {
 const DEFAULT_THRESHOLD = 100;
 
 /**
- * Tracks whether a scrollable container is near the bottom
- * and provides a function to smoothly scroll to the bottom.
- * Attaches a passive scroll listener to avoid blocking the main thread.
+ * Tracks whether a scrollable container is near the bottom and provides a
+ * function to smoothly scroll to the bottom. Attaches a passive scroll listener
+ * to avoid blocking the main thread.
+ *
+ * `containerRef` is a callback ref: it stores the element in state when React
+ * attaches it, so the listener effect depends on the actual element and runs
+ * once when it mounts (and once more only if it unmounts/remounts). An earlier
+ * version used a ref object with a dependency-less effect, which re-attached the
+ * listener on every render.
  */
 export function useAutoScroll(threshold = DEFAULT_THRESHOLD): AutoScrollResult {
-  const containerRef = useRef<HTMLElement | null>(null);
+  const [container, setContainer] = useState<HTMLElement | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
-  const scrollToBottom = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  const containerRef = useCallback((el: HTMLElement | null) => {
+    setContainer(el);
   }, []);
 
+  const scrollToBottom = useCallback(() => {
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+  }, [container]);
+
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    if (!container) return;
 
     const handleScroll = () => {
-      const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+      const distance =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
       setIsAtBottom(distance <= threshold);
     };
 
-    el.addEventListener("scroll", handleScroll, { passive: true });
+    container.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
-      el.removeEventListener("scroll", handleScroll);
+      container.removeEventListener("scroll", handleScroll);
     };
-  });
+  }, [container, threshold]);
 
   return { containerRef, isAtBottom, scrollToBottom };
 }

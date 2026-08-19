@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { AuditEntry, Flag } from "@/types/flags";
 import { queryKeys } from "@/lib/queryKeys";
 import { flagSchema, auditEntrySchema } from "@/lib/flags-schemas";
+import { queryErrorMessage } from "./queryErrorMessage";
 
 const EMPTY_FLAGS: Flag[] = [];
 const EMPTY_AUDIT: AuditEntry[] = [];
@@ -35,11 +36,7 @@ export function useFlags(): UseFlagsReturn {
   return {
     flags: data ?? EMPTY_FLAGS,
     loading: isLoading,
-    error: isError
-      ? error instanceof Error
-        ? error.message
-        : "Failed to load flags."
-      : null,
+    error: queryErrorMessage(isError, error, "Failed to load flags."),
   };
 }
 

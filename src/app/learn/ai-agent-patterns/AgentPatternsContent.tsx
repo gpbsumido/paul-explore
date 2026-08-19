@@ -165,7 +165,7 @@ export default function AgentPatternsContent() {
 
           {/* Timeline */}
           <div
-            ref={containerRef as React.RefObject<HTMLDivElement>}
+            ref={containerRef}
             className="p-4 min-h-[200px] max-h-[500px] overflow-y-auto"
           >
             {state.status === "idle" ? (
