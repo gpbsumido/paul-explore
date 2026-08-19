@@ -205,7 +205,11 @@ export async function proxy(request: NextRequest) {
       console.error("[proxy] auth0.middleware() failed on", pathname, err);
       // Auth0 is misconfigured (e.g. missing env vars in CI). Fall through so
       // public routes continue to work — auth-gated routes will 500 naturally.
-      return NextResponse.next();
+      // Still stamp the CSP header, matching every other pass-through: an Auth0
+      // outage must not silently drop the policy on the pages that keep working.
+      const res = NextResponse.next();
+      res.headers.set("Content-Security-Policy", CSP);
+      return res;
     }
   }
 

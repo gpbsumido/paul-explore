@@ -466,6 +466,24 @@ describe("PATCH /api/flags/:flagKey", () => {
     expect(body.error).not.toMatch(/sign in/i);
   });
 
+  it("rejects a flag key that can't be a single path segment with 400, before any write", async () => {
+    // An encoded slash decodes to `a/../b`, which would move the PATCH -- token
+    // and all -- to a different upstream path. The guard runs before the
+    // session read, so it never reaches patchFlagOnApi.
+    vi.mocked(auth0.getSession).mockResolvedValue(signedIn);
+    const { PATCH } = await import("@/app/api/flags/[flagKey]/route");
+
+    const res = await PATCH(
+      patchRequest({ environment: "production", enabled: false }),
+      params("a%2F..%2Fb"),
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.error).toMatch(/invalid flag key/i);
+    expect(patchFlagOnApi).not.toHaveBeenCalled();
+  });
+
   it("reads the session before the body, so auth0 never sees a consumed request", async () => {
     // Reversing these throws "Response body object should not be disturbed or
     // locked" and the write 500s, which from the console is indistinguishable

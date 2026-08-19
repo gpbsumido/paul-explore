@@ -28,6 +28,7 @@ import type {
   FleetSummaryResponse,
 } from "@/types/operator";
 import { API_URL } from "@/lib/backendFetch";
+import { safeSegment } from "@/lib/safeSegment";
 import { VISITOR_HEADER, readVisitorId } from "@/lib/operator-visitor";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
 import {
@@ -138,33 +139,37 @@ export async function fetchStores(): Promise<Store[]> {
 }
 
 export async function fetchStore(storeId: string): Promise<Store> {
-  return (await getJson(`/stores/${storeId}`, storePayload)).store;
+  return (await getJson(`/stores/${safeSegment(storeId)}`, storePayload)).store;
 }
 
 export async function fetchInventory(
   storeId: string,
 ): Promise<InventoryItem[]> {
-  return (await getJson(`/stores/${storeId}/inventory`, inventoryPayload)).items;
+  return (await getJson(`/stores/${safeSegment(storeId)}/inventory`, inventoryPayload))
+    .items;
 }
 
 export async function fetchAlerts(storeId: string): Promise<Alert[]> {
-  return (await getJson(`/stores/${storeId}/alerts`, alertsPayload)).alerts;
+  return (await getJson(`/stores/${safeSegment(storeId)}/alerts`, alertsPayload))
+    .alerts;
 }
 
 export async function fetchActivity(
   storeId: string,
 ): Promise<ActivityEvent[]> {
-  return (await getJson(`/stores/${storeId}/activity`, activityPayload)).events;
+  return (await getJson(`/stores/${safeSegment(storeId)}/activity`, activityPayload))
+    .events;
 }
 
 export async function fetchSales(storeId: string): Promise<Sale[]> {
-  return (await getJson(`/stores/${storeId}/sales`, salesPayload)).sales;
+  return (await getJson(`/stores/${safeSegment(storeId)}/sales`, salesPayload)).sales;
 }
 
 export async function fetchPlanogram(
   storeId: string,
 ): Promise<PlanogramSlot[]> {
-  return (await getJson(`/stores/${storeId}/planogram`, planogramPayload)).slots;
+  return (await getJson(`/stores/${safeSegment(storeId)}/planogram`, planogramPayload))
+    .slots;
 }
 
 export async function fetchFleetSummary(): Promise<FleetSummaryResponse> {
@@ -227,7 +232,7 @@ export async function postRestock(
   itemIds: string[],
 ): Promise<z.infer<typeof restockPayload>> {
   return sendJson(
-    `/stores/${storeId}/restock`,
+    `/stores/${safeSegment(storeId)}/restock`,
     "POST",
     { itemIds },
     restockPayload,
@@ -236,7 +241,7 @@ export async function postRestock(
 
 export async function patchDismiss(alertId: string): Promise<Alert> {
   return (
-    await sendJson(`/alerts/${alertId}/dismiss`, "PATCH", {}, dismissPayload)
+    await sendJson(`/alerts/${safeSegment(alertId)}/dismiss`, "PATCH", {}, dismissPayload)
   ).alert;
 }
 
@@ -246,7 +251,7 @@ export async function patchPlanogram(
 ): Promise<PlanogramSlot[]> {
   return (
     await sendJson(
-      `/stores/${storeId}/planogram`,
+      `/stores/${safeSegment(storeId)}/planogram`,
       "PATCH",
       body,
       planogramPayload,
@@ -277,7 +282,7 @@ export async function postRestockSession(
 ): Promise<z.infer<typeof restockSessionSchema>> {
   return (
     await sendJson(
-      `/stores/${storeId}/restock-sessions`,
+      `/stores/${safeSegment(storeId)}/restock-sessions`,
       "POST",
       {},
       sessionPayload,
@@ -289,14 +294,14 @@ export async function fetchRestockSessions(
   storeId: string,
 ): Promise<z.infer<typeof restockSessionSchema>[]> {
   return (
-    await getJson(`/stores/${storeId}/restock-sessions`, sessionsPayload)
+    await getJson(`/stores/${safeSegment(storeId)}/restock-sessions`, sessionsPayload)
   ).sessions;
 }
 
 export async function fetchRestockSession(
   sessionId: string,
 ): Promise<z.infer<typeof sessionDetailPayload>> {
-  return getJson(`/restock-sessions/${sessionId}`, sessionDetailPayload);
+  return getJson(`/restock-sessions/${safeSegment(sessionId)}`, sessionDetailPayload);
 }
 
 export async function putRestockLine(
@@ -306,7 +311,7 @@ export async function putRestockLine(
 ): Promise<z.infer<typeof restockLineSchema>> {
   return (
     await sendJson(
-      `/restock-sessions/${sessionId}/lines/${itemId}`,
+      `/restock-sessions/${safeSegment(sessionId)}/lines/${safeSegment(itemId)}`,
       "PUT",
       body,
       linePayload,
@@ -319,7 +324,7 @@ export async function postCompleteRestock(
   notes: string | null,
 ): Promise<z.infer<typeof completePayload>> {
   return sendJson(
-    `/restock-sessions/${sessionId}/complete`,
+    `/restock-sessions/${safeSegment(sessionId)}/complete`,
     "POST",
     { notes },
     completePayload,
@@ -343,7 +348,7 @@ export type PromotionBody = {
 export async function fetchPromotions(
   storeId: string,
 ): Promise<z.infer<typeof promotionSchema>[]> {
-  return (await getJson(`/stores/${storeId}/promotions`, promotionsPayload))
+  return (await getJson(`/stores/${safeSegment(storeId)}/promotions`, promotionsPayload))
     .promotions;
 }
 
@@ -352,7 +357,12 @@ export async function postPromotion(
   body: PromotionBody,
 ): Promise<z.infer<typeof promotionSchema>> {
   return (
-    await sendJson(`/stores/${storeId}/promotions`, "POST", body, promotionPayload)
+    await sendJson(
+      `/stores/${safeSegment(storeId)}/promotions`,
+      "POST",
+      body,
+      promotionPayload,
+    )
   ).promotion;
 }
 
@@ -360,7 +370,12 @@ export async function patchEndPromotion(
   promotionId: string,
 ): Promise<z.infer<typeof promotionSchema>> {
   return (
-    await sendJson(`/promotions/${promotionId}/end`, "PATCH", {}, promotionPayload)
+    await sendJson(
+      `/promotions/${safeSegment(promotionId)}/end`,
+      "PATCH",
+      {},
+      promotionPayload,
+    )
   ).promotion;
 }
 
@@ -368,7 +383,7 @@ export async function fetchPromotionPerformance(
   promotionId: string,
 ): Promise<z.infer<typeof promotionPerformanceSchema>> {
   return getJson(
-    `/promotions/${promotionId}/performance`,
+    `/promotions/${safeSegment(promotionId)}/performance`,
     promotionPerformanceSchema,
   );
 }

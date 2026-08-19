@@ -39,7 +39,8 @@ export const auth0 = new Auth0Client({
         });
         return res;
       }
-      return new NextResponse(error.message, { status: 500 });
+      console.error("[auth0] callback error:", error);
+      return new NextResponse("Authentication error", { status: 500 });
     }
     return NextResponse.redirect(new URL(ctx.returnTo ?? "/", baseUrl));
   },

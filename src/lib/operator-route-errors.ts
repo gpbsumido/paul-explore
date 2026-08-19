@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { InvalidSegmentError } from "@/lib/safeSegment";
 
 /**
  * The operator API rejected us rather than being unavailable.
@@ -59,6 +60,14 @@ export function withOperatorErrors<T extends unknown[]>(
       if (err instanceof OperatorUnavailableError) {
         // 503, not an empty 200. An empty list is a claim about the store.
         return NextResponse.json({ error: err.message }, { status: 503 });
+      }
+      if (err instanceof InvalidSegmentError) {
+        // A rejected path segment is a malformed caller id, not the API being
+        // down. 400 rather than a 503 that would page as an outage.
+        return NextResponse.json(
+          { error: "Invalid identifier" },
+          { status: 400 },
+        );
       }
       throw err;
     }
