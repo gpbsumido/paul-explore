@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-18 - version 5.4.0
+
+- **The vitals alert now watches two things the site-wide average hides.** 5.3.0 alerted when a site-wide P75 crossed into the Poor band; that misses a single slow page the average smooths over, and a release that made a metric worse without pushing it all the way to Poor. Same daily cron, same `vitals-alert` issue, two more lenses.
+- **Per-page Poor breaches.** `/projects` can be at LCP 4.3s while the site-wide LCP reads a healthy 2.1s. The alert runs the same Poor-threshold check per page over the `by-page` aggregates now, so a page that only some visitors feel still surfaces.
+- **Release regressions, by rating band.** Using the `by-version` data (oldest to newest, so current is the last entry and previous the one before), a metric that dropped a band across the last release is flagged, e.g. INP going Good to Needs-improvement between 5.3.0 and 5.4.0 even though it is nowhere near Poor. Band-crossing rather than a percentage on purpose: a big swing inside one band is noise, a band drop is a real change in what visitors experience. A 30-sample floor on the current version keeps a just-shipped release with a handful of data points from firing on a fluke P75.
+- **All three ride one issue.** `evaluateBreaches`, `evaluatePageBreaches` and `evaluateRegressions` in `src/lib/vitalsAlert.ts` are pure and tested with no network; `alertIssueBody` renders an `AlertReport` as up-to-three sections, omitting any that is empty. The route fetches summary, by-page and by-version in parallel. Summary failing is still a 502 (it is the core signal); a by-page or by-version failure just leaves that section empty and logs, so the alert never goes dark over a secondary endpoint.
+- Updated the `/thoughts/vitals` write-up and the architecture map to say what the alert now covers.
+
 ## 2026-08-17 - version 5.3.0
 
 - **We measured Web Vitals and then did nothing with the number.** Five vitals get collected, beaconed, stored as P75 aggregates, and drawn on `/vitals`, but a Poor LCP only ever surfaced if I happened to open the dashboard. This adds the watcher that was missing: a daily Vercel Cron hits a new `GET /api/vitals/alert`, reads the same site-wide summary the dashboard reads, and files a GitHub issue when a metric crosses Google's Poor threshold.

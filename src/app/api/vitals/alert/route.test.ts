@@ -104,6 +104,19 @@ describe("GET /api/vitals/alert", () => {
     expect(createIssue).toHaveBeenCalledTimes(1);
   });
 
+  it("updates the existing issue instead of opening a duplicate", async () => {
+    upstream({ summary: poorLcp });
+    vi.mocked(findOpenIssue).mockResolvedValue({ number: 7 });
+    const { GET } = await import("./route");
+
+    const res = await GET(alertRequest(`Bearer ${SECRET}`));
+
+    expect(res.status).toBe(200);
+    expect(updateIssue).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(updateIssue).mock.calls[0][0]).toMatchObject({ number: 7 });
+    expect(createIssue).not.toHaveBeenCalled();
+  });
+
   it("opens an issue when only a single page is Poor and the site-wide average is fine", async () => {
     upstream({
       summary: { LCP: { p75: 1500 } },

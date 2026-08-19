@@ -135,6 +135,15 @@ describe("evaluateRegressions", () => {
     expect(regressions).toEqual([]);
   });
 
+  it("counts a band drop at exactly the min-sample floor", () => {
+    const regressions = evaluateRegressions([
+      version("5.2.1", METRIC_CONFIGS.LCP.good - 100, 100),
+      version("5.3.0", METRIC_CONFIGS.LCP.good + 200, MIN_REGRESSION_SAMPLES),
+    ]);
+
+    expect(regressions).toHaveLength(1);
+  });
+
   it("returns nothing with fewer than two versions", () => {
     expect(evaluateRegressions([version("5.3.0", 9999, 100)])).toEqual([]);
     expect(evaluateRegressions([])).toEqual([]);
