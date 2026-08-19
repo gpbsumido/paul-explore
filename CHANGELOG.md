@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-19 - version 5.5.0
+
+- **Cookie consent for the one non-essential cookie, plus a privacy notice.** A cookie audit found the site is almost entirely clean already: the auth/session cookies are strictly necessary, Vercel Speed Insights and the web-vitals beacon are cookieless and carry no identifier, and everything in localStorage is functional. The only thing that needs consent under ePrivacy is `visitor_id`, the persistent key used for feature-flag bucketing.
+- **`visitor_id` is now gated on consent.** `src/proxy.ts` only mints it once the visitor accepts, recorded in a strictly-necessary `cookie_consent` cookie. Decline or ignore the banner and the site runs fine without it: flag rollouts fall back to a keyless default bucket (the gate already handles an empty key) and the backend rate-limits on IP (`readVisitorId()` already returns null). The gate decision is a pure `hasAcceptedConsent` in `src/lib/consent.ts`, tested there rather than through the middleware glue.
+- **The banner (`src/components/CookieConsent.tsx`)** reads the stored choice through `useSyncExternalStore`, so a visitor who already chose never sees a flash of it and there is no hydration mismatch. Accept writes the cookie and refreshes so the middleware mints `visitor_id`; decline just records the choice. It sets nothing before a choice is made.
+- **New `/privacy` page** disclosing the cookies, the cookieless analytics, and the functional localStorage keys — transparency (GDPR Arts. 13–14) applies even where consent does not, and the site had no such page.
+
 ## 2026-08-18 - version 5.4.0
 
 - **The vitals alert now watches two things the site-wide average hides.** 5.3.0 alerted when a site-wide P75 crossed into the Poor band; that misses a single slow page the average smooths over, and a release that made a metric worse without pushing it all the way to Poor. Same daily cron, same `vitals-alert` issue, two more lenses.
