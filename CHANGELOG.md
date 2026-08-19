@@ -4,6 +4,12 @@
 
 - **Stopped the Playwright browser install from hanging a CI job.** `playwright install chromium --with-deps` shells out to apt for the browser's OS libraries, which occasionally stalls on a slow runner mirror — it once sat there for 22 minutes with nothing bounding it. Each of the three jobs that runs it now caps the step at `timeout-minutes: 10`, so a stalled fetch fails fast and retries instead of hanging the whole job.
 - **Cache the browsers too.** An `actions/cache` step keyed on the lockfile hash restores `~/.cache/ms-playwright`, so a cache hit skips the browser download entirely — faster runs and less exposure to the CDN path that stalled.
+## 2026-08-20 - version 5.5.1
+
+- **Right-sized the public operator demo, after reading the backend to confirm what it is.** The security audit flagged that operator writes take no per-user auth. Reading `portfolio_api` settled it: the operator tables are synthetic, no-PII demo data, wiped and reseeded daily by a cron, and writes are guarded by a constant-time service-token check. So it genuinely holds no real data, and locking it behind a login would be the wrong trade — it would break a public demo to protect data that isn't there.
+- **The proportionate control for a public *write* surface is a rate limit, not auth.** Operator writes only fell under the generic 300/min `/api/` backstop; they get a dedicated 40/min per-IP bucket now, tight enough that the shared demo can't be spam-mutated but generous for a human clicking through the dashboard. Reads stay on the backstop.
+- **The rate-limit rule table moved to its own module (`src/lib/rateLimitRules.ts`).** The proxy test used to re-declare a copy of the rules, which could drift from the real ones without failing; it imports and exercises the actual table now.
+- Also confirmed while in the backend: calendar/event/countdown/member ownership is enforced there with per-resource `user_sub` predicates (no IDOR), and the to-do list is admin-gated by a verified-email allowlist — so the BFF's assumptions hold and the 5.4.3 `withAdminBackend` gate is genuine defense in depth.
 
 ## 2026-08-19 - version 5.5.0
 

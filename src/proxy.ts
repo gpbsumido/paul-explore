@@ -16,6 +16,7 @@ import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
 import { API_URL } from "@/lib/apiUrl";
 import { isSessionProtectedPath } from "@/lib/protectedPaths";
+import { RATE_LIMITS } from "@/lib/rateLimitRules";
 import {
   VISITOR_COOKIE,
   VISITOR_COOKIE_MAX_AGE,
@@ -63,39 +64,6 @@ const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
   dev: process.env.NODE_ENV === "development",
   apiUrl: API_URL,
 });
-
-/**
- * Rate limit config for API routes.
- * All windows are 60 seconds. Tighter limits on unauthenticated open routes;
- * a generous fallback for auth-gated routes where the auth check itself acts
- * as the primary protection.
- */
-const RATE_LIMITS: Array<{
-  match: (pathname: string, method: string) => boolean;
-  bucket: string;
-  limit: number;
-}> = [
-  // Open ingestion — no auth, strict cap to block fake-metric spam
-  {
-    match: (p, m) => p === "/api/vitals" && m === "POST",
-    bucket: "vitals",
-    limit: 20,
-  },
-  // Geo proxy — no auth, low cap (cached 60 s server-side anyway)
-  {
-    match: (p, m) => p === "/api/geo" && m === "GET",
-    bucket: "geo",
-    limit: 30,
-  },
-  // Public PokeAPI proxy — no auth, moderate cap
-  {
-    match: (p, m) => p === "/api/graphql" && m === "POST",
-    bucket: "graphql",
-    limit: 60,
-  },
-  // Backstop for all other API routes (auth-gated, so mostly a sanity check)
-  { match: (p) => p.startsWith("/api/"), bucket: "api", limit: 300 },
-];
 
 const RATE_WINDOW_MS = 60_000;
 
