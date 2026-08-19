@@ -990,21 +990,59 @@ const selectedVersion = urlVersion ?? versions[0];`}
           needs a second source of data.
         </p>
       </Update>
+      <Update
+        id="update-2026-08-18-coverage"
+        date="August 18, 2026"
+        title="The alert widens to pages and releases"
+      >
+        <p>
+          The first cut watched one number, the site-wide P75. Two paragraphs up
+          I listed what that misses; this closes both, on the same cron and the
+          same issue.
+        </p>
+        <p>
+          <strong>Per page.</strong> The same Poor-threshold check runs over
+          every page&apos;s P75 now, not just the roll-up. A page at LCP 4.3s
+          while the average sits at a healthy 2.1s used to stay silent, because
+          the mean smoothed it out. It opens the issue now &mdash; the check is
+          the same function, handed one page&apos;s metrics instead of the
+          site&apos;s.
+        </p>
+        <p>
+          <strong>Per release.</strong> The <code className={code}>by-version</code>{" "}
+          data already drives the trend chart, oldest to newest. The alert reads
+          the last two and flags any metric that dropped a rating band &mdash;
+          Good to Needs-improvement, or worse &mdash; between them. Band-crossing
+          rather than a percentage, on purpose: a twenty-percent swing that
+          stays inside one band is mostly noise, while a band drop is the thing a
+          visitor would actually feel. A thirty-sample floor on the newest
+          version keeps a release that shipped an hour ago from firing on three
+          data points.
+        </p>
+        <p>
+          All three share the one issue. The body grew three sections, each
+          omitted when it has nothing, and the route reads summary, by-page and
+          by-version together. The summary is still the only one that can 502 the
+          run; the other two degrade to an empty section rather than taking the
+          alert down, because a missing trend is no reason to stop reporting a
+          Poor page.
+        </p>
+      </Update>
 
       <WhatsNext
         nowShipped={[
           "Real user measurements rather than lab numbers, aggregated to P75 by metric and by page, which is the only version of this worth having.",
           "Public, with no login — the data is not sensitive and gating it meant nobody looked.",
           "One source of truth for the selected version, so the first paint shows what the control says it shows.",
-          "It alerts. A daily cron opens a GitHub issue when a site-wide metric crosses Google's Poor threshold, updates it while it stays bad, and closes it on recovery — so a regression reaches me instead of waiting to be found.",
+          "It alerts. A daily cron opens a GitHub issue when a vital goes bad, updates it while it stays bad, and closes it on recovery — so a regression reaches me instead of waiting to be found.",
+          "The alert watches three lenses, not just the average: a site-wide metric in the Poor band, a single page in the Poor band, and a metric that dropped a rating band across the last release.",
         ]}
         couldImprove={[
-          "There is no per-route budget, so a page getting slower is a number to interpret rather than a threshold that has been crossed. The alert watches the site-wide number, so a bad page that does not move the aggregate stays quiet.",
-          "Nothing correlates a regression with a release, so finding the cause means reasoning back from the date by hand.",
+          "The regression check is band-crossing, so a metric that got a lot worse but stayed inside its band still does not alert. Deliberate for noise, but a real slide within 'needs improvement' passes quietly.",
+          "Per-page is absolute-threshold only. There is still no per-route budget, so a page that got slower without crossing into Poor is a number to read rather than a breach.",
         ]}
         upcoming={[
-          "Per-route budgets, so a regression is a breach rather than a chart someone has to read — and so the alert can fire on a single slow page.",
-          "Alert on a regression against the last release, not just an absolute Poor floor, using the by-version data the dashboard already has.",
+          "Per-route budgets, so a within-band slide or a page getting slower becomes a breach rather than a chart someone has to read.",
           "Annotate the timeline with releases, which the changelog already has the dates for.",
         ]}
       />
