@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-08-18 - version 5.3.1
+
+- **A scanner-driven simplification pass, behaviour-preserving throughout.** Fanned four read-only audits across `lib`, `api`, `hooks` and `components`; the repo's own `deadcode`/`deadexports` gates were already green, so every change is duplication or complexity removed from live code, not dead code. Each cluster landed as its own commit with the suite staying green (the a11y suites included, which is the proof the rendered markup and ARIA did not move).
+- **lib** — eight identical `toCents` definitions, a `clampPercent` in three places, a fill-ratio ternary in five, an average-percent rounding in five, a seeded-hash loop, a shelf-chunk loop and two copies of the weekday array collapse to single shared helpers; the ten uniform operator-BFF read fallbacks collapse to one `readWithFallback`; `salesByPeriod`/`alertsByDay` reuse the existing `bucketOf`; and one unreachable `=== undefined` branch the types already rule out is gone.
+- **api** — three `google/auth` routes adopt the existing `withBackend` and two NBA routes adopt `proxyUpstream` (only a rare malformed-body 502 message changes); the twin `vitals/versions` and `vitals/by-version` routes collapse to one `proxyPublicList`.
+- **hooks** — `useOperatorAlerts` joins its five siblings behind `useOperatorResource`; an `isError`-to-message block copied across six hooks becomes one `queryErrorMessage`; a query key recomputed ten times in `useCalendarEvents` is hoisted.
+- **components** — a Recharts tooltip style shared across three charts; a `ColorSwatchPicker` behind three calendar modals; a `SegmentedControl` behind two operator toggles; a `useHoverPopover` behind both `Tooltip` and `InfoTip`; and an `InfoTip` style ternary collapsed.
+- **Left alone on purpose** — `discountedPrice` (a deliberate cross-repo parity mirror with a guard test, not accidental duplication), a fifteen-route "forward JSON or labelled error" helper (a few of those routes forward the upstream body, so one helper would have changed their responses), and a wrapper a test imports directly. The write-up is at `/thoughts/refactor-pass`.
+
 ## 2026-08-17 - version 5.3.0
 
 - **We measured Web Vitals and then did nothing with the number.** Five vitals get collected, beaconed, stored as P75 aggregates, and drawn on `/vitals`, but a Poor LCP only ever surfaced if I happened to open the dashboard. This adds the watcher that was missing: a daily Vercel Cron hits a new `GET /api/vitals/alert`, reads the same site-wide summary the dashboard reads, and files a GitHub issue when a metric crosses Google's Poor threshold.
