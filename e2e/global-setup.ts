@@ -4,8 +4,40 @@ import path from "path";
 
 export const AUTH_FILE = "e2e/.auth/user.json";
 export const STATE_FILE = "e2e/.auth/test-state.json";
+export const PUBLIC_STATE_FILE = "e2e/.auth/public-state.json";
 
 const BASE_URL = "http://localhost:3000";
+
+/**
+ * A pre-accepted cookie-consent cookie, seeded into every test context.
+ *
+ * The consent banner is first-visit chrome fixed to the bottom of every page,
+ * and with no choice recorded it obscured clicks on lower-page controls (the
+ * work-portfolio ticker) and — more subtly — kept the middleware from minting
+ * the `visitor_id` the operator flow relies on. Without visitor_id the backend
+ * rate-limits operator writes per-IP, so a whole CI run behind one address gets
+ * throttled and the page never settles. Seeding an accepted choice makes tests
+ * behave like a returning visitor: no banner, and visitor_id present.
+ */
+function consentCookie() {
+  return {
+    name: "cookie_consent",
+    value: "accepted",
+    domain: "localhost",
+    path: "/",
+    // A fixed far-future stamp (year 2033) so it isn't dropped as a session
+    // cookie when the state is reloaded.
+    expires: 2000000000,
+    httpOnly: false,
+    secure: false,
+    sameSite: "Lax" as const,
+  };
+}
+
+/** A storageState carrying only the consent cookie. */
+function consentState(): string {
+  return JSON.stringify({ cookies: [consentCookie()], origins: [] });
+}
 
 /**
  * Runs once before all E2E tests.
@@ -22,11 +54,14 @@ const BASE_URL = "http://localhost:3000";
 export default async function globalSetup(_config: FullConfig) {
   fs.mkdirSync(path.dirname(AUTH_FILE), { recursive: true });
 
+  // The public project loads this — every public test starts already consented.
+  fs.writeFileSync(PUBLIC_STATE_FILE, consentState());
+
   if (!process.env.E2E_TEST_EMAIL || !process.env.E2E_TEST_PASSWORD) {
     console.log(
-      "[E2E] Auth credentials not set — writing empty storageState. Calendar tests will be skipped.",
+      "[E2E] Auth credentials not set — writing consent-only storageState. Calendar tests will be skipped.",
     );
-    fs.writeFileSync(AUTH_FILE, JSON.stringify({ cookies: [], origins: [] }));
+    fs.writeFileSync(AUTH_FILE, consentState());
     return;
   }
 
@@ -57,6 +92,8 @@ export default async function globalSetup(_config: FullConfig) {
 async function loginAndSetup(page: Page, context: BrowserContext) {
   await performLogin(page);
 
+  // Seed consent so authenticated tests don't fight the banner either.
+  await context.addCookies([consentCookie()]);
   await context.storageState({ path: AUTH_FILE });
 
   // Create a dedicated test calendar so E2E events are isolated and cleaned
