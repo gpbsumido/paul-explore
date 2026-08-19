@@ -15,6 +15,7 @@ import {
 } from "@/lib/calendar";
 import type { Countdown, CountdownPage } from "@/types/calendar";
 import { queryKeys } from "@/lib/queryKeys";
+import { queryErrorMessage } from "./queryErrorMessage";
 
 // Single cache key — countdowns aren't scoped by date range, so there's
 // only ever one infinite query to snapshot, update, and invalidate.
@@ -104,11 +105,11 @@ export function useCountdowns({
 
   const loading = isLoading;
 
-  const error = isError
-    ? queryError instanceof Error
-      ? queryError.message
-      : "Couldn't load countdowns. Check your connection and try again."
-    : null;
+  const error = queryErrorMessage(
+    isError,
+    queryError,
+    "Couldn't load countdowns. Check your connection and try again.",
+  );
 
   // ---- Mutations -----------------------------------------------------------
 

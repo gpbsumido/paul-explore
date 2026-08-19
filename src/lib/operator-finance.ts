@@ -14,6 +14,7 @@ import {
   TXN_FEE_FLAT,
   TXN_FEE_RATE,
 } from "@/lib/operator-planner";
+import { toCents } from "@/lib/operator-utils";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DAYS_PER_WEEK = 7;
@@ -39,11 +40,6 @@ export type FinanceSummary = {
     netPayout: number;
   };
 };
-
-/** Rounds a currency value to the nearest cent. */
-function toCents(value: number): number {
-  return Math.round(value * 100) / 100;
-}
 
 /**
  * Units per store. The platform fee is charged per unit, but a store's hardware

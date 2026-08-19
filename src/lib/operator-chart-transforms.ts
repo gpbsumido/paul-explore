@@ -4,6 +4,27 @@ import type {
   InventoryItem,
   StoreStatus,
 } from "@/types/operator";
+import { averagePercent, fillRatio } from "@/lib/operator-utils";
+
+// ---------------------------------------------------------------------------
+// Shared Recharts tooltip styling
+// ---------------------------------------------------------------------------
+
+/**
+ * Shared style props for the Recharts <Tooltip> across the operator charts.
+ * Spread onto each <Tooltip> so the surface, border, radius and text colors
+ * stay in sync; only the per-chart `formatter` differs.
+ */
+export const chartTooltipStyle = {
+  contentStyle: {
+    backgroundColor: "var(--color-surface-raised)",
+    border: "1px solid var(--color-border)",
+    borderRadius: 8,
+    fontSize: 12,
+  },
+  labelStyle: { color: "var(--color-foreground)" },
+  itemStyle: { color: "var(--color-foreground)" },
+} as const;
 
 // ---------------------------------------------------------------------------
 // Fleet health donut chart
@@ -134,14 +155,11 @@ export function toInventoryComparisonData(
       return { name, health: 0 };
     }
 
-    const totalRatio = items.reduce((sum, item) => {
-      const ratio = item.capacity > 0 ? item.currentStock / item.capacity : 0;
-      return sum + ratio;
-    }, 0);
+    const totalRatio = items.reduce((sum, item) => sum + fillRatio(item), 0);
 
     return {
       name,
-      health: Math.round((totalRatio / items.length) * 100),
+      health: averagePercent(totalRatio, items.length),
     };
   });
 }

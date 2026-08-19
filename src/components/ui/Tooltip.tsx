@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  useState,
-  useRef,
-  useCallback,
-  useId,
-  type ReactNode,
-  type CSSProperties,
-  type MouseEvent as ReactMouseEvent,
-  type FocusEvent,
-  type KeyboardEvent,
-} from "react";
+import { useId, type ReactNode, type CSSProperties } from "react";
+import { useHoverPopover } from "@/hooks/useHoverPopover";
 
 interface TooltipProps {
   /** Text shown in the floating label. */
@@ -43,47 +34,7 @@ export default function Tooltip({
   multiline = false,
 }: TooltipProps) {
   const tooltipId = useId();
-  const [visible, setVisible] = useState(false);
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wrapperRef = useRef<HTMLSpanElement>(null);
-
-  const show = useCallback(
-    (rect: DOMRect) => {
-      setPos({ x: rect.left + rect.width / 2, y: rect.top });
-      timer.current = setTimeout(() => setVisible(true), delay);
-    },
-    [delay],
-  );
-
-  const hide = useCallback(() => {
-    if (timer.current) clearTimeout(timer.current);
-    setVisible(false);
-  }, []);
-
-  const handleEnter = useCallback(
-    (e: ReactMouseEvent<HTMLSpanElement>) => {
-      show(e.currentTarget.getBoundingClientRect());
-    },
-    [show],
-  );
-
-  const handleFocus = useCallback(
-    (e: FocusEvent<HTMLSpanElement>) => {
-      show(e.currentTarget.getBoundingClientRect());
-    },
-    [show],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLSpanElement>) => {
-      if (e.key === "Escape" && visible) {
-        e.preventDefault();
-        hide();
-      }
-    },
-    [hide, visible],
-  );
+  const { visible, pos, triggerHandlers } = useHoverPopover({ delay });
 
   const style: CSSProperties = {
     position: "fixed",
@@ -95,15 +46,9 @@ export default function Tooltip({
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <span
-      ref={wrapperRef}
       className="inline-flex w-full h-full"
-      onMouseEnter={handleEnter}
-      onMouseLeave={hide}
-      onFocus={handleFocus}
-      onBlur={hide}
-      onKeyDown={handleKeyDown}
+      {...triggerHandlers}
       aria-describedby={visible ? tooltipId : undefined}
     >
       {children}

@@ -6,6 +6,35 @@ import type {
 } from "@/types/operator";
 
 // ---------------------------------------------------------------------------
+// Shared numeric helpers
+// ---------------------------------------------------------------------------
+
+/** Rounds a currency value to whole cents. */
+export function toCents(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/** Clamps a percentage into the 0-100 range. */
+export function clampPercent(percent: number): number {
+  return Math.max(0, Math.min(100, percent));
+}
+
+/** The fill ratio of an inventory item, or 0 when it has no capacity. */
+export function fillRatio(
+  item: Pick<InventoryItem, "capacity" | "currentStock">,
+): number {
+  return item.capacity > 0 ? item.currentStock / item.capacity : 0;
+}
+
+/**
+ * Averages a summed fill ratio into a whole-number percentage across `count`
+ * items, returning 0 when there are no items.
+ */
+export function averagePercent(totalRatio: number, count: number): number {
+  return count > 0 ? Math.round((totalRatio / count) * 100) : 0;
+}
+
+// ---------------------------------------------------------------------------
 // Sorting
 // ---------------------------------------------------------------------------
 
@@ -124,7 +153,7 @@ export function computeFleetStats(
   for (const items of inventoryByStore.values()) {
     for (const item of items) {
       totalItems++;
-      const ratio = item.capacity > 0 ? item.currentStock / item.capacity : 0;
+      const ratio = fillRatio(item);
       totalHealth += ratio;
       if (ratio < LOW_STOCK_THRESHOLD) lowStockItems++;
     }
@@ -136,8 +165,7 @@ export function computeFleetStats(
       (s) => s.status === "degraded" || s.status === "offline",
     ).length,
     lowStockItems,
-    avgInventoryHealth:
-      totalItems > 0 ? Math.round((totalHealth / totalItems) * 100) : 0,
+    avgInventoryHealth: averagePercent(totalHealth, totalItems),
     criticalAlerts,
     warningAlerts,
   };

@@ -10,6 +10,7 @@
 // ---------------------------------------------------------------------------
 
 import type { Promotion } from "@/types/operator";
+import { clampPercent, toCents } from "@/lib/operator-utils";
 
 export type PromotionStatus = "scheduled" | "active" | "ended";
 
@@ -61,10 +62,6 @@ export function measurementWindow(start: Date, end: Date): MeasurementWindow {
   return { start: new Date(end.getTime() - maxMs), end, clamped: true };
 }
 
-function roundCents(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
 function totalsFor(
   promo: Pick<Promotion, "productName">,
   sales: readonly SaleLike[],
@@ -83,7 +80,7 @@ function totalsFor(
     revenue += sale.total;
   }
 
-  return { units, revenue: roundCents(revenue) };
+  return { units, revenue: toCents(revenue) };
 }
 
 function changePercent(current: number, before: number): number | null {
@@ -142,8 +139,8 @@ export function appliesTo(
 
 /** The promo price for a list price, clamped so a bad percent cannot invent one. */
 export function discountedPrice(listPrice: number, percent: number): number {
-  const safe = Math.min(Math.max(percent, 0), 100);
-  return roundCents(listPrice * (1 - safe / 100));
+  const safe = clampPercent(percent);
+  return toCents(listPrice * (1 - safe / 100));
 }
 
 /**

@@ -20,6 +20,17 @@ import type { ProvinceCode } from "@/types/operator";
 
 export const DEFAULT_ZONE = "UTC";
 
+/** Weekday labels indexed Sun-first, matching `weekdayOf` (0 = Sunday). */
+export const WEEKDAY_LABELS = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+] as const;
+
 /**
  * The zone each province mostly observes. Only a fallback for an API that has
  * not started sending `timezone` yet -- BC, QC and NU all span more than one
