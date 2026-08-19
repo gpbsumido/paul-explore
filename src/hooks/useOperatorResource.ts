@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, type QueryKey } from "@tanstack/react-query";
+import { queryErrorMessage } from "./queryErrorMessage";
 
 export interface UseOperatorResourceOptions<T> {
   /** React Query cache key for this resource. */
@@ -53,6 +54,6 @@ export function useOperatorResource<T>({
   return {
     data,
     loading: isLoading,
-    error: isError ? (error instanceof Error ? error.message : loadError) : null,
+    error: queryErrorMessage(isError, error, loadError),
   };
 }
