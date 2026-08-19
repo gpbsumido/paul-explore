@@ -1,27 +1,18 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { NextResponse, type NextRequest } from "next/server";
-import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { NextResponse } from "next/server";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { updateCountdownBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
 import { safeSegment } from "@/lib/safeSegment";
 
+type RouteCtx = { params: Promise<{ id: string }> };
+
 // GET /api/calendar/countdowns/:id
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params;
+export const GET = withBackend<RouteCtx>(
+  "countdown GET",
+  async ({ token, email }, _request, { params }) => {
+    const { id } = await params;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[countdowns BFF] GET by id — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/countdowns/${safeSegment(id)}`,
       {
@@ -40,34 +31,20 @@ export async function GET(
     }
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (err) {
-    console.error("[countdowns BFF] GET by id — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);
 
 // PUT /api/calendar/countdowns/:id
 // partial update, only the fields you pass get changed
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params;
+export const PUT = withBackend<RouteCtx>(
+  "countdown PUT",
+  async ({ token, email }, request, { params }) => {
+    const { id } = await params;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[countdowns BFF] PUT — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+    const bodyResult = await parseBody(request, updateCountdownBodySchema);
+    if (!bodyResult.ok) return bodyResult.response;
+    const body = bodyResult.data;
 
-  const bodyResult = await parseBody(request, updateCountdownBodySchema);
-  if (!bodyResult.ok) return bodyResult.response;
-  const body = bodyResult.data;
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/countdowns/${safeSegment(id)}`,
       {
@@ -89,29 +66,15 @@ export async function PUT(
     }
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (err) {
-    console.error("[countdowns BFF] PUT — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);
 
 // DELETE /api/calendar/countdowns/:id
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { id } = await params;
+export const DELETE = withBackend<RouteCtx>(
+  "countdown DELETE",
+  async ({ token, email }, _request, { params }) => {
+    const { id } = await params;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[countdowns BFF] DELETE — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/countdowns/${safeSegment(id)}`,
       {
@@ -129,8 +92,5 @@ export async function DELETE(
       return NextResponse.json(err, { status: res.status });
     }
     return new NextResponse(null, { status: 204 });
-  } catch (err) {
-    console.error("[countdowns BFF] DELETE — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);

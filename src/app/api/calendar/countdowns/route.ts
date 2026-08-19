@@ -1,34 +1,26 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { NextResponse, type NextRequest } from "next/server";
-import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { NextResponse } from "next/server";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { createCountdownBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
 
 // GET /api/calendar/countdowns?cursor=<cursor>
 // returns one page of countdowns sorted by target date ascending.
 // forwards the cursor query param to the backend unchanged.
-export async function GET(request: NextRequest) {
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[countdowns BFF] GET — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+export const GET = withBackend(
+  "countdowns GET",
+  async ({ token, email }, request) => {
+    const { searchParams } = new URL(request.url);
+    const cursor = searchParams.get("cursor");
 
-  const { searchParams } = new URL(request.url);
-  const cursor = searchParams.get("cursor");
+    if (cursor !== null && !/^[\w+/=\-]{1,512}$/.test(cursor)) {
+      return NextResponse.json({ error: "Invalid cursor" }, { status: 400 });
+    }
 
-  if (cursor !== null && !/^[\w+/=\-]{1,512}$/.test(cursor)) {
-    return NextResponse.json({ error: "Invalid cursor" }, { status: 400 });
-  }
+    const backendUrl = cursor
+      ? `${API_URL}/api/calendar/countdowns?cursor=${encodeURIComponent(cursor)}`
+      : `${API_URL}/api/calendar/countdowns`;
 
-  const backendUrl = cursor
-    ? `${API_URL}/api/calendar/countdowns?cursor=${encodeURIComponent(cursor)}`
-    : `${API_URL}/api/calendar/countdowns`;
-
-  try {
     const upstreamResult = await fetchUpstream(backendUrl, {
       headers: buildHeaders(token, email),
     });
@@ -44,29 +36,18 @@ export async function GET(request: NextRequest) {
     }
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (err) {
-    console.error("[countdowns BFF] GET — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);
 
 // POST /api/calendar/countdowns
 // body: { title, description?, targetDate, color }
-export async function POST(request: NextRequest) {
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[countdowns BFF] POST — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+export const POST = withBackend(
+  "countdowns POST",
+  async ({ token, email }, request) => {
+    const bodyResult = await parseBody(request, createCountdownBodySchema);
+    if (!bodyResult.ok) return bodyResult.response;
+    const body = bodyResult.data;
 
-  const bodyResult = await parseBody(request, createCountdownBodySchema);
-  if (!bodyResult.ok) return bodyResult.response;
-  const body = bodyResult.data;
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/countdowns`,
       {
@@ -88,8 +69,5 @@ export async function POST(request: NextRequest) {
     }
     const data = await res.json();
     return NextResponse.json(data, { status: 201 });
-  } catch (err) {
-    console.error("[countdowns BFF] POST — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);
