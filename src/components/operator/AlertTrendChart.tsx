@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { chartTooltipStyle } from "@/lib/operator-chart-transforms";
 import type { AlertTrendBucket } from "@/types/operator";
 
 interface AlertTrendChartProps {
@@ -72,14 +73,7 @@ export default function AlertTrendChart({ data }: AlertTrendChartProps) {
               width={24}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "var(--color-surface-raised)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                fontSize: 12,
-              }}
-              labelStyle={{ color: "var(--color-foreground)" }}
-              itemStyle={{ color: "var(--color-foreground)" }}
+              {...chartTooltipStyle}
               formatter={(value) => [
                 `${value} alert${value !== 1 ? "s" : ""}`,
                 "Count",
