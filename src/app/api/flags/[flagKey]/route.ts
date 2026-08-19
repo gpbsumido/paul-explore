@@ -6,6 +6,7 @@ import { getFlag } from "@/lib/flags-data";
 import { auth0 } from "@/lib/auth0";
 import { isAllowedEmail } from "@/lib/emailAllowlist";
 import { accessOf, canChangeFlag } from "@/lib/flags-access";
+import { safeSegment, InvalidSegmentError } from "@/lib/safeSegment";
 
 const ERRORS: Record<number, string> = {
   401: "Sign in to change this flag",
@@ -33,6 +34,20 @@ export async function PATCH(
   { params }: { params: Promise<{ flagKey: string }> },
 ) {
   const { flagKey } = await params;
+
+  // Reject a key that can't be a single upstream path segment before it reaches
+  // the write. patchFlagOnApi interpolates it into the API URL, so a `../` would
+  // move the PATCH -- carrying the user bearer or service token -- to a
+  // different path. The in-memory getFlag/accessOf lookups below stay on the raw
+  // key: a traversal string just misses there, which is safe.
+  try {
+    safeSegment(flagKey);
+  } catch (e) {
+    if (e instanceof InvalidSegmentError) {
+      return NextResponse.json({ error: "Invalid flag key" }, { status: 400 });
+    }
+    throw e;
+  }
 
   // Read the session before the body. parseBody consumes the request, and
   // auth0.getSession() reads it too -- doing it the other way round throws

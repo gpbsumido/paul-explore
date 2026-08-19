@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { API_URL } from "@/lib/apiUrl";
 import { InvalidSegmentError } from "@/lib/safeSegment";
+import { isAllowedEmail } from "@/lib/emailAllowlist";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
 
 /** The auth context handed to a wrapped BFF handler. */
@@ -46,6 +47,38 @@ export function withBackend<Ctx = unknown>(
       console.error(`[${label}] backend unavailable:`, err);
       return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
     }
+  };
+}
+
+/**
+ * Like {@link withBackend}, but gated on the admin allowlist at the edge before
+ * any backend work happens.
+ *
+ * The /to-do page notFound()s a non-admin, but its API routes were reachable by
+ * any signed-in session -- the upstream re-checks ownership, but a signed-in
+ * non-admin should not even reach it. This closes that gap in depth. A refused
+ * caller gets a 404 rather than a 403 so the endpoint reads as absent, matching
+ * the page's notFound() rather than confirming there is something here to gate.
+ *
+ * When allowed it delegates to withBackend, so the caller's own token still goes
+ * upstream -- deliberately not a service token, which would let the BFF vouch
+ * for a write the API means to attribute to a person.
+ */
+export function withAdminBackend<Ctx = unknown>(
+  label: string,
+  handler: BackendHandler<Ctx>,
+) {
+  return async (request: NextRequest, routeCtx: Ctx): Promise<NextResponse> => {
+    const session = await auth0.getSession();
+    const allowed = isAllowedEmail({
+      email: session?.user?.email,
+      emailVerified: session?.user?.email_verified === true,
+      allowlist: process.env.FLAG_ADMIN_ALLOWED_EMAILS,
+    });
+    if (!allowed) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    return withBackend<Ctx>(label, handler)(request, routeCtx);
   };
 }
 

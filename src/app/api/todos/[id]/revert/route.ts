@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
+import { buildHeaders, API_URL, withAdminBackend } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
 import { parseBody } from "@/lib/parseBody";
 import { revertTodoBodySchema } from "@/lib/schemas";
@@ -13,7 +13,7 @@ type RouteCtx = { params: Promise<{ id: string }> };
  * Restores an earlier revision as a NEW one. Nothing is discarded upstream, so
  * this is additive rather than destructive despite how it reads.
  */
-export const POST = withBackend<RouteCtx>(
+export const POST = withAdminBackend<RouteCtx>(
   "todo revert POST",
   async ({ token, email }, request, { params }) => {
     const { id } = await params;
