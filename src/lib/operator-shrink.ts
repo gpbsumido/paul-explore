@@ -15,6 +15,7 @@
 // ---------------------------------------------------------------------------
 
 import { z } from "zod";
+import { toCents } from "@/lib/operator-utils";
 
 /** One reconciled restock line: what was expected, counted, and pulled. */
 export type ShrinkLineInput = {
@@ -37,11 +38,6 @@ export type ShrinkSummary = {
   /** Slots skipped, which say nothing either way. */
   notCountedLines: number;
 };
-
-/** Rounds a currency value to the nearest cent. */
-function toCents(value: number): number {
-  return Math.round(value * 100) / 100;
-}
 
 const EMPTY: ShrinkSummary = {
   unexplainedUnits: 0,

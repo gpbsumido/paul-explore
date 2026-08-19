@@ -6,10 +6,12 @@
 import type { Sale } from "@/types/operator";
 import {
   DEFAULT_ZONE,
+  WEEKDAY_LABELS,
   weekdayOf,
   zonedInstant,
   zonedParts,
 } from "@/lib/operator-timezone";
+import { toCents } from "@/lib/operator-utils";
 
 export type SalesSummary = {
   totalRevenue: number;
@@ -58,7 +60,6 @@ export type FleetSalesAnalytics = {
   totalRevenue: number;
 };
 
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const MONTH_LABELS = [
   "Jan",
   "Feb",
@@ -89,11 +90,6 @@ const CAD = new Intl.NumberFormat("en-CA", {
 /** Formats a number as a Canadian-dollar amount, e.g. 1234.5 -> "$1,234.50". */
 export function formatCAD(value: number): string {
   return CAD.format(value);
-}
-
-/** Rounds a currency value to the nearest cent. */
-function toCents(value: number): number {
-  return Math.round(value * 100) / 100;
 }
 
 /**
@@ -201,7 +197,9 @@ export function salesByDay(
   }
 
   return revenueByOffset.map((revenue, offset) => ({
-    day: DAY_LABELS[weekdayOf(zonedParts(new Date(bounds[offset]), timeZone))],
+    day: WEEKDAY_LABELS[
+      weekdayOf(zonedParts(new Date(bounds[offset]), timeZone))
+    ],
     revenue: toCents(revenue),
   }));
 }
@@ -232,7 +230,7 @@ function buildPeriods(
       periods.push({
         startMs: start,
         endMs: at(y, m, d - i + 1),
-        label: DAY_LABELS[weekdayOf(zonedParts(new Date(start), timeZone))],
+        label: WEEKDAY_LABELS[weekdayOf(zonedParts(new Date(start), timeZone))],
       });
     } else if (granularity === "week") {
       // A rolling 7-day window ending at tomorrow's local midnight, which is

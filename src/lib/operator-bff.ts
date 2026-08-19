@@ -11,7 +11,11 @@ import {
   OperatorUnavailableError,
 } from "@/lib/operator-route-errors";
 import { toAlertTrendData } from "@/lib/operator-chart-transforms";
-import { LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
+import {
+  averagePercent,
+  fillRatio,
+  LOW_STOCK_THRESHOLD,
+} from "@/lib/operator-utils";
 import {
   aggregateFleetSales,
   type SalesGranularity,
@@ -408,7 +412,7 @@ function computeFleetSummarySeed(): FleetSummaryResponse {
     let storeHealth = 0;
     for (const item of inventory) {
       totalItems++;
-      const ratio = item.capacity > 0 ? item.currentStock / item.capacity : 0;
+      const ratio = fillRatio(item);
       totalHealth += ratio;
       storeHealth += ratio;
       if (ratio < LOW_STOCK_THRESHOLD) lowStockItems++;
@@ -417,10 +421,7 @@ function computeFleetSummarySeed(): FleetSummaryResponse {
     return {
       storeId: store.id,
       alertCount: unacknowledged.length,
-      inventoryHealth:
-        inventory.length > 0
-          ? Math.round((storeHealth / inventory.length) * 100)
-          : 0,
+      inventoryHealth: averagePercent(storeHealth, inventory.length),
       hasCritical: unacknowledged.some((a) => a.severity === "critical"),
       hasWarning: unacknowledged.some((a) => a.severity === "warning"),
     };
@@ -432,8 +433,7 @@ function computeFleetSummarySeed(): FleetSummaryResponse {
       criticalAlerts,
       warningAlerts,
       lowStockItems,
-      avgInventoryHealth:
-        totalItems > 0 ? Math.round((totalHealth / totalItems) * 100) : 0,
+      avgInventoryHealth: averagePercent(totalHealth, totalItems),
     },
     alertTrend: [...toAlertTrendData(allAlerts)],
   };

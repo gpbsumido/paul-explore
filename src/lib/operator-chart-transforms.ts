@@ -4,6 +4,7 @@ import type {
   InventoryItem,
   StoreStatus,
 } from "@/types/operator";
+import { averagePercent, fillRatio } from "@/lib/operator-utils";
 
 // ---------------------------------------------------------------------------
 // Fleet health donut chart
@@ -134,14 +135,11 @@ export function toInventoryComparisonData(
       return { name, health: 0 };
     }
 
-    const totalRatio = items.reduce((sum, item) => {
-      const ratio = item.capacity > 0 ? item.currentStock / item.capacity : 0;
-      return sum + ratio;
-    }, 0);
+    const totalRatio = items.reduce((sum, item) => sum + fillRatio(item), 0);
 
     return {
       name,
-      health: Math.round((totalRatio / items.length) * 100),
+      health: averagePercent(totalRatio, items.length),
     };
   });
 }

@@ -4,10 +4,12 @@
 
 import {
   DEFAULT_ZONE,
+  WEEKDAY_LABELS,
   weekdayOf,
   zonedInstant,
   zonedParts,
 } from "@/lib/operator-timezone";
+import { averagePercent, fillRatio } from "@/lib/operator-utils";
 import type {
   InventoryItem,
   Alert,
@@ -149,14 +151,26 @@ export function computeInventorySummary(
     if (status === "critical" || status === "out-of-stock") {
       needsRestock += 1;
     }
-    totalRatio += item.capacity > 0 ? item.currentStock / item.capacity : 0;
+    totalRatio += fillRatio(item);
   }
 
   return {
     totalItems: items.length,
     needsRestock,
-    fillPercentage: Math.round((totalRatio / items.length) * 100),
+    fillPercentage: averagePercent(totalRatio, items.length),
   };
+}
+
+/**
+ * A deterministic 32-bit hash of a string, so the same seed always produces the
+ * same simulated value. Not cryptographic, just a stable seed for demo visuals.
+ */
+function hashSeed(s: string): number {
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+    hash = (hash * 31 + s.charCodeAt(i)) | 0;
+  }
+  return hash;
 }
 
 /**
@@ -169,10 +183,7 @@ export function generateSparklineData(
   capacity: number,
   seed: string,
 ): readonly SparklinePoint[] {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
-  }
+  let hash = hashSeed(seed);
 
   const points: SparklinePoint[] = [];
   for (let i = 0; i < 7; i++) {
@@ -306,6 +317,15 @@ export type AssembledSlot = {
 /** An empty box: no item, sensor reads clean. */
 const EMPTY_BOX: PlanogramSlotRecord = { itemId: null, sensorMatch: true };
 
+/** Splits an array into fixed-width rows, the last row short if it doesn't fill. */
+function chunk<T>(arr: readonly T[], size: number): T[][] {
+  const rows: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    rows.push(arr.slice(i, i + size));
+  }
+  return rows;
+}
+
 /**
  * Builds a slot address from a flat item index and shelf width: the shelf
  * letter (A, B, C...) followed by the 1-based position on that shelf. Item 5
@@ -323,11 +343,7 @@ export function slotLabelFor(index: number, shelfWidth: number): string {
  * a mismatch until an operator re-syncs it.
  */
 export function deriveSensorMatch(itemId: string): boolean {
-  let hash = 0;
-  for (let i = 0; i < itemId.length; i++) {
-    hash = (hash * 31 + itemId.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash) % 5 !== 0;
+  return Math.abs(hashSeed(itemId)) % 5 !== 0;
 }
 
 /**
@@ -352,12 +368,7 @@ export function generatePlanogramGrid(
     slotLabel: slotLabelFor(index, shelfWidth),
   }));
 
-  const shelves: PlanogramSlot[][] = [];
-  for (let i = 0; i < slots.length; i += shelfWidth) {
-    shelves.push(slots.slice(i, i + shelfWidth));
-  }
-
-  return shelves;
+  return chunk(slots, shelfWidth);
 }
 
 /**
@@ -450,11 +461,7 @@ export function assemblePlanogram(
     };
   });
 
-  const shelves: AssembledSlot[][] = [];
-  for (let i = 0; i < assembled.length; i += shelfWidth) {
-    shelves.push(assembled.slice(i, i + shelfWidth));
-  }
-  return shelves;
+  return chunk(assembled, shelfWidth);
 }
 
 // ---------------------------------------------------------------------------
@@ -542,16 +549,6 @@ export function summarizeAlerts(alerts: readonly Alert[]): AlertSummary {
 }
 
 export type AlertDayBucket = { day: string; count: number };
-
-const WEEKDAY_LABELS = [
-  "Sun",
-  "Mon",
-  "Tue",
-  "Wed",
-  "Thu",
-  "Fri",
-  "Sat",
-] as const;
 
 /**
  * Counts alerts raised per day over the last `days` calendar days (UTC),

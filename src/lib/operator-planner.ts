@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 import type { Sale } from "@/types/operator";
+import { clampPercent, toCents } from "@/lib/operator-utils";
 
 /** Flat platform fee charged per unit per month. */
 export const PLATFORM_FEE_PER_UNIT_MONTHLY = 60;
@@ -97,19 +98,9 @@ export type LocationProjection = {
   paybackMonths: number | null;
 };
 
-/** Rounds a currency value to the nearest cent. */
-function toCents(value: number): number {
-  return Math.round(value * 100) / 100;
-}
-
 /** Rounds to a single decimal place, for whole-ish figures like months. */
 function toTenth(value: number): number {
   return Math.round(value * 10) / 10;
-}
-
-/** Clamps a percentage into 0-100. */
-function clampPercent(percent: number): number {
-  return Math.max(0, Math.min(100, percent));
 }
 
 /** Clamps a value to be non-negative. */
