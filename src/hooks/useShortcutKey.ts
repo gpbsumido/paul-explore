@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 /** The Command symbol on Apple devices, "Ctrl" everywhere else. */
 function detectShortcutKey(): string {
@@ -11,20 +11,23 @@ function detectShortcutKey(): string {
   return /mac|iphone|ipad|ipod/i.test(platform) ? "⌘" : "Ctrl";
 }
 
+// Platform never changes for the life of the page, so there is nothing to
+// subscribe to. Returning a no-op unsubscribe is enough for useSyncExternalStore.
+const subscribe = (): (() => void) => () => {};
+
+const getSnapshot = (): string | null => detectShortcutKey();
+
+// null on the server (and during hydration), so the first paint matches the
+// server render; useSyncExternalStore swaps in the real key once hydrated.
+const getServerSnapshot = (): string | null => null;
+
 /**
  * The primary shortcut modifier label for the current platform, for hints like
- * "⌘K" / "Ctrl K". Resolved after mount, so it never mismatches the server
- * render; it returns null until then and callers hold off drawing the hint
- * (the shortcut itself works on every platform regardless — see
- * useCommandPaletteHotkey, which handles both Cmd and Ctrl).
+ * "⌘K" / "Ctrl K". null until hydrated, so it never mismatches the server
+ * render; callers hold off drawing the hint until then (the shortcut itself
+ * works on every platform regardless — see useCommandPaletteHotkey, which
+ * handles both Cmd and Ctrl).
  */
 export function useShortcutKey(): string | null {
-  const [key, setKey] = useState<string | null>(null);
-  useEffect(() => {
-    // Platform can only be read on the client, so resolve after mount rather
-    // than in a lazy initializer that would mismatch the server render.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setKey(detectShortcutKey());
-  }, []);
-  return key;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

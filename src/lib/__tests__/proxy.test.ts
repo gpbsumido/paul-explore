@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { matchRateLimit } from "@/lib/rateLimitRules";
 
 /**
  * Tests for the rate-limit rule table in proxy.ts.
@@ -9,31 +10,9 @@ import { describe, it, expect } from "vitest";
  * testing in isolation — the rest of proxy.ts is pure routing glue.
  */
 
-type RuleMatch = (pathname: string, method: string) => boolean;
-
-const RULES: Array<{ match: RuleMatch; bucket: string; limit: number }> = [
-  {
-    match: (p, m) => p === "/api/vitals" && m === "POST",
-    bucket: "vitals",
-    limit: 20,
-  },
-  {
-    match: (p, m) => p === "/api/geo" && m === "GET",
-    bucket: "geo",
-    limit: 30,
-  },
-  {
-    match: (p, m) => p === "/api/graphql" && m === "POST",
-    bucket: "graphql",
-    limit: 60,
-  },
-  { match: (p) => p.startsWith("/api/"), bucket: "api", limit: 300 },
-];
-
-/** Returns the first matching rule, mirroring proxy.ts first-match-wins logic. */
-function matchRule(pathname: string, method: string) {
-  return RULES.find((r) => r.match(pathname, method)) ?? null;
-}
+// Exercises the REAL rule table imported from proxy's source, not a copy, so a
+// change to the rules can't silently pass a stale mirror here.
+const matchRule = matchRateLimit;
 
 describe("proxy rate-limit rule matching", () => {
   describe("vitals bucket", () => {
@@ -71,6 +50,26 @@ describe("proxy rate-limit rule matching", () => {
 
     it("applies a limit of 60", () => {
       expect(matchRule("/api/graphql", "POST")?.limit).toBe(60);
+    });
+  });
+
+  describe("operator-write bucket", () => {
+    it("caps a POST operator write at 40", () => {
+      const rule = matchRule("/api/operator/stores/abc/restock", "POST");
+      expect(rule?.bucket).toBe("operator-write");
+      expect(rule?.limit).toBe(40);
+    });
+
+    it("caps a PATCH operator write too", () => {
+      expect(
+        matchRule("/api/operator/alerts/a1/dismiss", "PATCH")?.bucket,
+      ).toBe("operator-write");
+    });
+
+    it("lets operator reads fall through to the api backstop", () => {
+      expect(
+        matchRule("/api/operator/stores/abc/inventory", "GET")?.bucket,
+      ).toBe("api");
     });
   });
 

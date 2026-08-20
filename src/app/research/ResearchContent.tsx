@@ -127,7 +127,7 @@ export default function ResearchContent() {
                 className="underline hover:text-foreground"
                 href="https://pubmed.ncbi.nlm.nih.gov/"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
               >
                 PubMed
               </a>{" "}
@@ -136,7 +136,7 @@ export default function ResearchContent() {
                 className="underline hover:text-foreground"
                 href="https://europepmc.org/"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
               >
                 Europe PMC
               </a>{" "}
@@ -591,7 +591,7 @@ function PublicationList({
             <a
               href={pub.url}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="paul-touch-min inline-flex items-center font-medium text-foreground underline-offset-2 hover:underline"
             >
               {pub.title}
@@ -955,7 +955,7 @@ function SourcesPanel({ prefs }: { prefs: ReturnType<typeof useSourcePrefs> }) {
                     <a
                       href={source.href}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="paul-touch-min inline-flex items-center font-medium text-foreground underline-offset-2 hover:underline"
                     >
                       {source.name}
@@ -1520,7 +1520,7 @@ function JournalClubPanel() {
                       <a
                         href={paper.url}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex min-h-11 items-center text-sm text-foreground underline-offset-2 hover:underline sm:min-h-0"
                       >
                         Read the paper ↗

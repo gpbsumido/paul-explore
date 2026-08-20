@@ -1,32 +1,23 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { NextResponse, type NextRequest } from "next/server";
-import { getBackendAuth, buildHeaders, API_URL } from "@/lib/backendFetch";
+import { NextResponse } from "next/server";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { updateMemberRoleBodySchema } from "@/lib/schemas";
 import { parseBody } from "@/lib/parseBody";
 import { safeSegment } from "@/lib/safeSegment";
 
+type RouteCtx = { params: Promise<{ id: string; memberSub: string }> };
+
 /** PUT /api/calendar/calendars/:id/members/:memberSub — body: { role } → { member } */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string; memberSub: string }> },
-) {
-  // Next.js decodes dynamic segments automatically — use as-is when forwarding
-  const { id, memberSub } = await params;
+export const PUT = withBackend<RouteCtx>(
+  "members PUT",
+  async ({ token, email }, request, { params }) => {
+    // Next.js decodes dynamic segments automatically — use as-is when forwarding
+    const { id, memberSub } = await params;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[members BFF] PUT — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
+    const bodyResult = await parseBody(request, updateMemberRoleBodySchema);
+    if (!bodyResult.ok) return bodyResult.response;
+    const body = bodyResult.data;
 
-  const bodyResult = await parseBody(request, updateMemberRoleBodySchema);
-  if (!bodyResult.ok) return bodyResult.response;
-  const body = bodyResult.data;
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members/${encodeURIComponent(memberSub)}`,
       {
@@ -46,33 +37,19 @@ export async function PUT(
       return NextResponse.json(err, { status: res.status });
     }
     return NextResponse.json(await res.json());
-  } catch (err) {
-    console.error("[members BFF] PUT — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);
 
 /**
  * DELETE /api/calendar/calendars/:id/members/:memberSub
  * Backend returns 200 { googleAclRemoved: boolean } — forward it so the
  * frontend can warn when Google access was not successfully revoked.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string; memberSub: string }> },
-) {
-  const { id, memberSub } = await params;
+export const DELETE = withBackend<RouteCtx>(
+  "members DELETE",
+  async ({ token, email }, _request, { params }) => {
+    const { id, memberSub } = await params;
 
-  let token: string;
-  let email: string | null;
-  try {
-    ({ token, email } = await getBackendAuth());
-  } catch (err) {
-    console.error("[members BFF] DELETE — getAccessToken failed:", err);
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/calendar/calendars/${safeSegment(id)}/members/${encodeURIComponent(memberSub)}`,
       {
@@ -89,8 +66,5 @@ export async function DELETE(
       return NextResponse.json(err, { status: res.status });
     }
     return NextResponse.json(await res.json());
-  } catch (err) {
-    console.error("[members BFF] DELETE — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);

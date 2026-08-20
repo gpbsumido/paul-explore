@@ -11,7 +11,7 @@ import type {
   AlertCategory,
 } from "@/types/operator";
 import { deriveSensorMatch } from "@/lib/operator-detail";
-import { LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
+import { fillRatio, LOW_STOCK_THRESHOLD } from "@/lib/operator-utils";
 import type { RestockLineBody } from "@/lib/operator-restock-types";
 import {
   countStatusOf,
@@ -100,7 +100,7 @@ function deriveAlerts(store: Store, inventory: InventoryItem[]): Alert[] {
   };
 
   for (const item of inventory) {
-    const ratio = item.capacity > 0 ? item.currentStock / item.capacity : 0;
+    const ratio = fillRatio(item);
     if (item.currentStock === 0) {
       push("critical", "low-stock", `${item.productName} out of stock`);
     } else if (ratio < LOW_STOCK_THRESHOLD) {

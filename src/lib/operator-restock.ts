@@ -77,7 +77,7 @@ export function resultingStock(
 export function countStatusOf(
   draft: Pick<RestockDraft, "expectedQty" | "countedQty">,
 ): CountStatus {
-  if (draft.countedQty === null || draft.countedQty === undefined) {
+  if (draft.countedQty === null) {
     return "not-counted";
   }
   return draft.countedQty === draft.expectedQty

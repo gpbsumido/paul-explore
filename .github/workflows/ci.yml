@@ -117,7 +117,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers (Chromium only)
+        # Bounded so a stalled apt/CDN fetch fails fast and retries instead of
+        # hanging the whole job (it once sat here for 22 minutes). The cache
+        # above skips the browser download on a hit; --with-deps still runs the
+        # apt step, which is the part that stalls, so the timeout is the guard.
+        timeout-minutes: 10
         run: pnpm exec playwright install chromium --with-deps
 
       - name: Run @smoke and @a11y e2e tests
@@ -206,7 +216,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers (Chromium only)
+        # Bounded so a stalled apt/CDN fetch fails fast and retries instead of
+        # hanging the whole job (it once sat here for 22 minutes). The cache
+        # above skips the browser download on a hit; --with-deps still runs the
+        # apt step, which is the part that stalls, so the timeout is the guard.
+        timeout-minutes: 10
         run: pnpm exec playwright install chromium --with-deps
 
       - name: Run public e2e tests (includes axe accessibility scans)
@@ -394,7 +414,17 @@ jobs:
             exit 1
           }
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers (Chromium only)
+        # Bounded so a stalled apt/CDN fetch fails fast and retries instead of
+        # hanging the whole job (it once sat here for 22 minutes). The cache
+        # above skips the browser download on a hit; --with-deps still runs the
+        # apt step, which is the part that stalls, so the timeout is the guard.
+        timeout-minutes: 10
         run: pnpm exec playwright install chromium --with-deps
 
       - name: Drive the operator flow against the live API

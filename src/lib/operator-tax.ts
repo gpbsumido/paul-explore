@@ -10,6 +10,7 @@
 // ---------------------------------------------------------------------------
 
 import type { Sale, ProvinceCode } from "@/types/operator";
+import { toCents } from "@/lib/operator-utils";
 
 export type ProvinceTaxRate = {
   name: string;
@@ -59,11 +60,6 @@ export type RemittanceOwed = {
  */
 export function getProvinceTax(code: ProvinceCode): ProvinceTax {
   return { code, ...PROVINCE_TAX[code] };
-}
-
-/** Rounds a currency value to the nearest cent. */
-function toCents(value: number): number {
-  return Math.round(value * 100) / 100;
 }
 
 /**

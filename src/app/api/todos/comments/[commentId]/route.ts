@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
+import { buildHeaders, API_URL, withAdminBackend } from "@/lib/backendFetch";
 import { safeSegment } from "@/lib/safeSegment";
 import { parseBody } from "@/lib/parseBody";
 import { todoCommentBodySchema } from "@/lib/schemas";
@@ -8,7 +8,7 @@ import { todoCommentBodySchema } from "@/lib/schemas";
 type RouteCtx = { params: Promise<{ commentId: string }> };
 
 /** PATCH /api/todos/comments/:commentId */
-export const PATCH = withBackend<RouteCtx>(
+export const PATCH = withAdminBackend<RouteCtx>(
   "todo comment PATCH",
   async ({ token, email }, request, { params }) => {
     const { commentId } = await params;
@@ -40,7 +40,7 @@ export const PATCH = withBackend<RouteCtx>(
 );
 
 /** DELETE /api/todos/comments/:commentId — soft delete upstream. */
-export const DELETE = withBackend<RouteCtx>(
+export const DELETE = withAdminBackend<RouteCtx>(
   "todo comment DELETE",
   async ({ token, email }, _request, { params }) => {
     const { commentId } = await params;

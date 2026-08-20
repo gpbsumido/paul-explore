@@ -16,11 +16,13 @@ import { checkRateLimit } from "@/lib/rateLimit";
 import { buildCsp } from "@/lib/csp";
 import { API_URL } from "@/lib/apiUrl";
 import { isSessionProtectedPath } from "@/lib/protectedPaths";
+import { RATE_LIMITS } from "@/lib/rateLimitRules";
 import {
   VISITOR_COOKIE,
   VISITOR_COOKIE_MAX_AGE,
   newVisitorId,
 } from "@/lib/visitor";
+import { CONSENT_COOKIE, hasAcceptedConsent } from "@/lib/consent";
 
 /**
  * Single proxy entry point for auth, session enforcement, and CSP headers.
@@ -62,39 +64,6 @@ const CSP = buildCsp(process.env.NEXT_PUBLIC_MEDIA_ORIGIN, {
   dev: process.env.NODE_ENV === "development",
   apiUrl: API_URL,
 });
-
-/**
- * Rate limit config for API routes.
- * All windows are 60 seconds. Tighter limits on unauthenticated open routes;
- * a generous fallback for auth-gated routes where the auth check itself acts
- * as the primary protection.
- */
-const RATE_LIMITS: Array<{
-  match: (pathname: string, method: string) => boolean;
-  bucket: string;
-  limit: number;
-}> = [
-  // Open ingestion — no auth, strict cap to block fake-metric spam
-  {
-    match: (p, m) => p === "/api/vitals" && m === "POST",
-    bucket: "vitals",
-    limit: 20,
-  },
-  // Geo proxy — no auth, low cap (cached 60 s server-side anyway)
-  {
-    match: (p, m) => p === "/api/geo" && m === "GET",
-    bucket: "geo",
-    limit: 30,
-  },
-  // Public PokeAPI proxy — no auth, moderate cap
-  {
-    match: (p, m) => p === "/api/graphql" && m === "POST",
-    bucket: "graphql",
-    limit: 60,
-  },
-  // Backstop for all other API routes (auth-gated, so mostly a sanity check)
-  { match: (p) => p.startsWith("/api/"), bucket: "api", limit: 300 },
-];
 
 const RATE_WINDOW_MS = 60_000;
 
@@ -205,7 +174,11 @@ export async function proxy(request: NextRequest) {
       console.error("[proxy] auth0.middleware() failed on", pathname, err);
       // Auth0 is misconfigured (e.g. missing env vars in CI). Fall through so
       // public routes continue to work — auth-gated routes will 500 naturally.
-      return NextResponse.next();
+      // Still stamp the CSP header, matching every other pass-through: an Auth0
+      // outage must not silently drop the policy on the pages that keep working.
+      const res = NextResponse.next();
+      res.headers.set("Content-Security-Policy", CSP);
+      return res;
     }
   }
 
@@ -284,6 +257,17 @@ export async function proxy(request: NextRequest) {
   // render already sees it instead of waiting for the next navigation.
   const visitorId = request.cookies.get(VISITOR_COOKIE)?.value;
   if (visitorId) {
+    const response = NextResponse.next();
+    response.headers.set("Content-Security-Policy", CSP);
+    return response;
+  }
+
+  // visitor_id is a non-essential (feature-flag bucketing) cookie, so it is only
+  // minted once the visitor has accepted cookie consent. Until then the site
+  // runs without it: rollouts fall back to a keyless default bucket and the
+  // backend rate-limits on IP. Recording the consent choice itself is strictly
+  // necessary, so the consent cookie needs no consent of its own.
+  if (!hasAcceptedConsent(request.cookies.get(CONSENT_COOKIE)?.value)) {
     const response = NextResponse.next();
     response.headers.set("Content-Security-Policy", CSP);
     return response;

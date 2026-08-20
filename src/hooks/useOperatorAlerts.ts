@@ -1,10 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { Alert } from "@/types/operator";
 import { queryKeys } from "@/lib/queryKeys";
 import { alertSchema } from "@/lib/operator-schemas";
 import { z } from "zod";
+import { useOperatorResource } from "./useOperatorResource";
 
 const EMPTY: Alert[] = [];
 
@@ -22,34 +22,15 @@ export interface UseOperatorAlertsReturn {
  * surface within seconds, not minutes.
  */
 export function useOperatorAlerts(storeId: string): UseOperatorAlertsReturn {
-  const {
-    data,
-    isLoading,
-    isError,
-    error: queryError,
-  } = useQuery({
+  const { data, loading, error } = useOperatorResource<Alert>({
     queryKey: queryKeys.operator.alerts(storeId),
-    queryFn: async ({ signal }): Promise<Alert[]> => {
-      const res = await fetch(`/api/operator/stores/${storeId}/alerts`, {
-        signal,
-      });
-      if (!res.ok) throw new Error("Failed to fetch alerts");
-      const json = await res.json();
-      return z.array(alertSchema).parse(json.alerts);
-    },
-    staleTime: 0,
+    url: `/api/operator/stores/${storeId}/alerts`,
+    select: (json) =>
+      z.object({ alerts: z.array(alertSchema) }).parse(json).alerts,
+    fetchError: "Failed to fetch alerts",
+    loadError: "Failed to load alerts.",
     refetchInterval: 15_000,
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: true,
   });
 
-  return {
-    alerts: data ?? EMPTY,
-    loading: isLoading,
-    error: isError
-      ? queryError instanceof Error
-        ? queryError.message
-        : "Failed to load alerts."
-      : null,
-  };
+  return { alerts: data ?? EMPTY, loading, error };
 }

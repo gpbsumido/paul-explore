@@ -5,6 +5,7 @@
 
 import { z } from "zod";
 import { API_URL } from "@/lib/apiUrl";
+import { safeSegment } from "@/lib/safeSegment";
 import {
   auditEntrySchema,
   environmentSchema,
@@ -116,7 +117,7 @@ export async function patchFlagOnApi(
   body: UpdateFlagBody,
   auth?: FlagWriteAuth,
 ): Promise<{ flag: Flag }> {
-  const res = await fetch(`${BASE}/${flagKey}`, {
+  const res = await fetch(`${BASE}/${safeSegment(flagKey)}`, {
     method: "PATCH",
     headers: {
       "content-type": "application/json",

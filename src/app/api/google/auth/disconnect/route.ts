@@ -1,7 +1,6 @@
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { API_URL } from "@/lib/apiUrl";
+import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
 import { NextResponse } from "next/server";
-import { auth0 } from "@/lib/auth0";
 
 /**
  * DELETE /api/google/auth/disconnect
@@ -10,24 +9,14 @@ import { auth0 } from "@/lib/auth0";
  * tokens. After this their events will no longer sync with Google Calendar.
  * Returns 204 on success.
  */
-export async function DELETE() {
-  let token: string | undefined;
-  try {
-    ({ token } = await auth0.getAccessToken());
-  } catch (err) {
-    console.error(
-      "[google BFF] DELETE /auth/disconnect — getAccessToken failed:",
-      err,
-    );
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  try {
+export const DELETE = withBackend(
+  "google auth disconnect",
+  async ({ token, email }) => {
     const upstreamResult = await fetchUpstream(
       `${API_URL}/api/google/auth/disconnect`,
       {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: buildHeaders(token, email),
       },
     );
     if (!upstreamResult.ok) return upstreamErrorResponse(upstreamResult);
@@ -43,8 +32,5 @@ export async function DELETE() {
       );
     }
     return new NextResponse(null, { status: 204 });
-  } catch (err) {
-    console.error("[google BFF] DELETE /auth/disconnect — fetch threw:", err);
-    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
-  }
-}
+  },
+);

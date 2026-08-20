@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchUpstream, upstreamErrorResponse } from "@/lib/upstream";
-import { buildHeaders, API_URL, withBackend } from "@/lib/backendFetch";
+import { buildHeaders, API_URL, withAdminBackend } from "@/lib/backendFetch";
 import { parseBody } from "@/lib/parseBody";
 import { createTodoBodySchema } from "@/lib/schemas";
 
@@ -11,7 +11,7 @@ import { createTodoBodySchema } from "@/lib/schemas";
  * than a service secret: the API re-checks that this person is the owner, so
  * the BFF vouching for them would just be a confused deputy.
  */
-export const GET = withBackend("todos GET", async ({ token, email }) => {
+export const GET = withAdminBackend("todos GET", async ({ token, email }) => {
   const upstreamResult = await fetchUpstream(`${API_URL}/api/todos`, {
     headers: buildHeaders(token, email),
   });
@@ -34,7 +34,7 @@ export const GET = withBackend("todos GET", async ({ token, email }) => {
  * Quick add. Same reasoning as the GET: the caller's own token goes upstream,
  * because the API re-checks that this person is the owner.
  */
-export const POST = withBackend("todos POST", async ({ token, email }, request) => {
+export const POST = withAdminBackend("todos POST", async ({ token, email }, request) => {
   const parsed = await parseBody(request, createTodoBodySchema);
   if (!parsed.ok) return parsed.response;
 

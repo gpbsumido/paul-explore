@@ -9,6 +9,7 @@ import { LABEL_CLASS } from "@/components/ui/styles";
 import { useGoogleCalendarStatus } from "@/hooks/useGoogleCalendarStatus";
 import { useCalendars, useCalendarMembers } from "@/hooks/useCalendars";
 import { queryKeys } from "@/lib/queryKeys";
+import ColorSwatchPicker from "./ColorSwatchPicker";
 
 // ---- Types -----------------------------------------------------------------
 
@@ -541,38 +542,11 @@ export default function CalendarModal({
 
           <div>
             <p className={LABEL_CLASS}>Color</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              {EVENT_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  disabled={!isOwner}
-                  onClick={() => isOwner && setColor(c)}
-                  className="h-6 w-6 rounded-full inline-flex items-center justify-center shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
-                  style={{ backgroundColor: c }}
-                  aria-label={`Color ${c}`}
-                  aria-pressed={color === c}
-                >
-                  {color === c && (
-                    <svg
-                      width="10"
-                      height="8"
-                      viewBox="0 0 10 8"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M1 4l2.5 2.5L9 1"
-                        stroke="white"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
+            <ColorSwatchPicker
+              value={color}
+              onChange={setColor}
+              disabled={!isOwner}
+            />
           </div>
 
           <div>

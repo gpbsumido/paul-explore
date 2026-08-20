@@ -51,10 +51,11 @@ function setupHook(geometry?: Parameters<typeof createMockElement>[0]) {
   const mock = createMockElement(geometry);
   const { result, rerender } = renderHook(() => useAutoScroll());
 
-  // assign the mock element to the ref and re-render so the effect fires
-  (result.current.containerRef as { current: HTMLDivElement | null }).current =
-    mock.el;
-  rerender();
+  // Hand the element to the callback ref, the way React does on commit, so the
+  // effect attaches the scroll listener.
+  act(() => {
+    result.current.containerRef(mock.el);
+  });
 
   return { result, mock, rerender };
 }
@@ -123,5 +124,15 @@ describe("useAutoScroll", () => {
       expect.any(Function),
       expect.objectContaining({ passive: true }),
     );
+  });
+
+  it("attaches the listener once, not again on every re-render", () => {
+    const { mock, rerender } = setupHook();
+
+    rerender();
+    rerender();
+    rerender();
+
+    expect(mock.el.addEventListener).toHaveBeenCalledTimes(1);
   });
 });

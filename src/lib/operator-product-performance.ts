@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 import type { InventoryItem, Sale } from "@/types/operator";
+import { toCents } from "@/lib/operator-utils";
 
 /** The day windows the performance view can be scoped to. */
 export const PERFORMANCE_RANGES = [
@@ -32,11 +33,6 @@ export type ProductPerformanceRow = {
 };
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-/** Rounds a currency value to the nearest cent. */
-function toCents(value: number): number {
-  return Math.round(value * 100) / 100;
-}
 
 /** Rounds to a single decimal place. */
 function toTenth(value: number): number {

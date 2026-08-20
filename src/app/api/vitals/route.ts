@@ -44,14 +44,23 @@ export async function GET(request: NextRequest) {
   const query = v ? `?v=${encodeURIComponent(v)}` : "";
 
   try {
-    const [summaryRes, byPageRes] = await Promise.all([
-      fetch(`${API_URL}/api/vitals/summary${query}`, { headers }),
-      fetch(`${API_URL}/api/vitals/by-page${query}`, { headers }),
+    // fetchUpstream, not a raw fetch: a slow backend used to hang this route for
+    // as long as the API took to fail (the 71s stall documented in upstream.ts),
+    // because a bare fetch has no deadline. Both calls now carry the 8s timeout.
+    const [summaryResult, byPageResult] = await Promise.all([
+      fetchUpstream(`${API_URL}/api/vitals/summary${query}`, { headers }),
+      fetchUpstream(`${API_URL}/api/vitals/by-page${query}`, { headers }),
     ]);
 
-    if (!summaryRes.ok || !byPageRes.ok) {
-      const failedUrl = !summaryRes.ok ? "summary" : "by-page";
-      console.error(`[vitals BFF] GET — backend error on ${failedUrl}`);
+    if (
+      !summaryResult.ok ||
+      !byPageResult.ok ||
+      !summaryResult.response.ok ||
+      !byPageResult.response.ok
+    ) {
+      const failed =
+        !summaryResult.ok || !summaryResult.response.ok ? "summary" : "by-page";
+      console.error(`[vitals BFF] GET — backend error on ${failed}`);
       return NextResponse.json(
         { error: "Failed to fetch vitals" },
         { status: 502 },
@@ -59,8 +68,8 @@ export async function GET(request: NextRequest) {
     }
 
     const [{ summary }, { byPage }] = await Promise.all([
-      summaryRes.json(),
-      byPageRes.json(),
+      summaryResult.response.json(),
+      byPageResult.response.json(),
     ]);
 
     return NextResponse.json({ summary, byPage });
