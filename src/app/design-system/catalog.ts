@@ -1,5 +1,3 @@
-import type { ButtonVariant, ButtonSize } from "@/components/ui/Button";
-
 /**
  * The catalog behind the /design-system showcase. It's plain data so the page
  * stays declarative and a test can prove every entry lines up with a real
@@ -615,38 +613,7 @@ export const TYPOGRAPHY_TOKENS: TokenSwatch[] = [
   { var: "--text-5xl", label: "5xl" },
 ];
 
-/** The live state driven by the Button playground controls. */
-export type ButtonPlaygroundState = {
-  variant: ButtonVariant;
-  size: ButtonSize;
-  loading: boolean;
-  disabled: boolean;
-  label: string;
-};
-
-export const BUTTON_VARIANTS: ButtonVariant[] = [
-  "primary",
-  "secondary",
-  "outline",
-  "ghost",
-  "danger",
-];
-
-export const BUTTON_SIZES: ButtonSize[] = ["xs", "sm", "md", "lg"];
-
-/**
- * Turns the playground state into the exact JSX a developer would write. Props
- * left at their component defaults (primary/md, no loading/disabled) are
- * omitted so the snippet reads like real, minimal code rather than an
- * exhaustive prop dump.
- */
-export function buildButtonSnippet(state: ButtonPlaygroundState): string {
-  const parts: string[] = [];
-  if (state.variant !== "primary") parts.push(`variant="${state.variant}"`);
-  if (state.size !== "md") parts.push(`size="${state.size}"`);
-  if (state.loading) parts.push("loading");
-  if (state.disabled) parts.push("disabled");
-
-  const attrs = parts.length > 0 ? ` ${parts.join(" ")}` : "";
-  return `<Button${attrs}>${state.label}</Button>`;
-}
+// The button playground's vocabulary lives in ./buttonSnippet, its own leaf
+// module, so the client-side playground island can import it without dragging
+// this whole manifest into the bundle. Import it from there; a compatibility
+// re-export here would be dead code the deadexports gate rightly flags.
