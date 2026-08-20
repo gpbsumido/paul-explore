@@ -3,7 +3,20 @@
 import { createContext, useContext, useState } from "react";
 import { LazyMotion, useReducedMotion } from "framer-motion";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import dynamic from "next/dynamic";
+
+// Dev-only, and loaded through a dynamic import guarded by NODE_ENV so the
+// devtools module can never reach the production bundle (a static import leaves
+// it in the graph for the bundler to maybe keep; this makes it a literal `null`
+// component in prod).
+const ReactQueryDevtools =
+  process.env.NODE_ENV === "development"
+    ? dynamic(() =>
+        import("@tanstack/react-query-devtools").then(
+          (m) => m.ReactQueryDevtools,
+        ),
+      )
+    : () => null;
 
 // ---------------------------------------------------------------------------
 // ReducedMotionProvider — reads prefers-reduced-motion once at the app root

@@ -1,9 +1,7 @@
-"use client";
-
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
-import ViewToggle from "@/app/thoughts/ViewToggle";
+import ThoughtChatShell from "@/app/thoughts/ThoughtChatShell";
 
 type Props = {
   /** Breadcrumb label (the page title in the header trail). */
@@ -29,6 +27,11 @@ type Props = {
  * shell, the breadcrumb header (with the optional summary/chat toggle), and the
  * "Dev notes" eyebrow + heading + intro of the summary view. Pages supply only
  * their content — the layout, and cross-cutting fixes to it, live here once.
+ *
+ * This is a server component on purpose. Most write-ups are pure prose with no
+ * chat view, and the only interactive bit of the layout is the summary/chat
+ * toggle — so that state lives in ThoughtChatShell, a client child that only
+ * mounts when a chat is actually passed. Prose-only pages ship no layout JS.
  */
 export default function ThoughtLayout({
   breadcrumb,
@@ -38,50 +41,57 @@ export default function ThoughtLayout({
   children,
   deprecated = false,
 }: Props) {
-  const [view, setView] = useState<"summary" | "chat">("summary");
-  const hasChat = Boolean(chat);
+  const banner = deprecated ? (
+    <div className="mx-auto max-w-3xl px-4 pt-6">
+      <p className="rounded-lg border border-secondary-500/30 bg-secondary-500/10 px-4 py-2.5 text-[13px] text-secondary-700 dark:text-secondary-300">
+        <span className="font-semibold">Deprecated.</span> This write-up
+        documents a feature that&apos;s no longer part of the app. It&apos;s
+        kept here for the history and the reasoning.
+      </p>
+    </div>
+  ) : null;
+
+  const summary = (
+    <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
+      <header className="mb-10">
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
+          Dev notes
+        </p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          {title}
+        </h1>
+        <p className="mt-3 text-[15px] leading-relaxed text-muted">{intro}</p>
+      </header>
+
+      <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
+        {children}
+      </div>
+    </main>
+  );
+
+  if (chat) {
+    return (
+      <PageShell>
+        <ThoughtChatShell
+          breadcrumb={breadcrumb}
+          banner={banner}
+          summary={summary}
+          chat={chat}
+        />
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell>
       <PageHeader
         breadcrumbs={[{ label: "Hub", href: "/" }, { label: breadcrumb }]}
-        right={
-          hasChat ? <ViewToggle view={view} setView={setView} /> : undefined
-        }
         maxWidth="max-w-3xl"
       />
 
-      {deprecated ? (
-        <div className="mx-auto max-w-3xl px-4 pt-6">
-          <p className="rounded-lg border border-secondary-500/30 bg-secondary-500/10 px-4 py-2.5 text-[13px] text-secondary-700 dark:text-secondary-300">
-            <span className="font-semibold">Deprecated.</span> This write-up
-            documents a feature that&apos;s no longer part of the app. It&apos;s
-            kept here for the history and the reasoning.
-          </p>
-        </div>
-      ) : null}
+      {banner}
 
-      {!hasChat || view === "summary" ? (
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
-          <header className="mb-10">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              Dev notes
-            </p>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              {title}
-            </h1>
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              {intro}
-            </p>
-          </header>
-
-          <div className="space-y-10 text-[15px] leading-relaxed text-foreground">
-            {children}
-          </div>
-        </main>
-      ) : (
-        chat
-      )}
+      {summary}
     </PageShell>
   );
 }

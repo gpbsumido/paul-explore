@@ -1,5 +1,3 @@
-"use client";
-
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import { LandingChat } from "./sections/LandingChat";

@@ -6,9 +6,11 @@ import {
   RADIUS_TOKENS,
   SHADOW_TOKENS,
   TYPOGRAPHY_TOKENS,
+} from "./catalog";
+import {
   buildButtonSnippet,
   type ButtonPlaygroundState,
-} from "./catalog";
+} from "./buttonSnippet";
 
 /** Package exports that aren't renderable primitives, so the gallery skips them. */
 const NON_COMPONENT_EXPORTS = [

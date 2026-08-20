@@ -2,9 +2,10 @@
 
 import V5Content, { type V5ContentProps } from "./V5Content";
 
-/** Guest v5 landing: the pitch, with a log in call to action in the header. */
-export default function LandingContentV5(
-  props: Omit<V5ContentProps, "me"> = {},
-) {
+/**
+ * The v5 landing, served identically to everyone. The header CTA resolves the
+ * session client-side, so this needs no auth props and / stays static.
+ */
+export default function LandingContentV5(props: V5ContentProps = {}) {
   return <V5Content {...props} />;
 }

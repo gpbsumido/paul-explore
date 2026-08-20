@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";

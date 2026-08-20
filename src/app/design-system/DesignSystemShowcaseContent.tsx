@@ -1,6 +1,11 @@
-"use client";
+// A server component on purpose. The showcase is almost entirely static —
+// prose, token tables, and the 27KB catalog behind the gallery — so all of
+// that renders here, at build time, and never ships as hydration JS. Only the
+// genuinely stateful demos hydrate, as small "use client" islands imported
+// below: ButtonPlayground, the gallery demos, and the motion-primitive demos.
+// catalog.ts is server-only; nothing under "use client" may import it.
 
-import { useRef, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import PageHeader from "@/components/PageHeader";
@@ -11,14 +16,14 @@ import {
   Textarea,
   Select,
   FilterBar,
-  Chip,
-  Modal,
   Tooltip,
   InfoTip,
 } from "@/components/ui";
 // These primitives ship in the package but this app doesn't wrap them yet, so
 // the gallery renders them straight from @paul-portfolio/react — the source of
-// truth the showcase exists to reflect.
+// truth the showcase exists to reflect. Only the hook-free ones render here;
+// the package has no "use client" banners, so Spotlight, TiltCard, and Ticker
+// live in the GalleryDemos island instead.
 import {
   Avatar,
   Badge,
@@ -36,11 +41,7 @@ import {
   Skeleton,
   Sparkline,
   Spinner,
-  Spotlight,
   StackedLineChart,
-  Switch,
-  Ticker,
-  TiltCard,
   VisuallyHidden,
   WordCloud,
 } from "@paul-portfolio/react";
@@ -50,22 +51,20 @@ import {
   RADIUS_TOKENS,
   SHADOW_TOKENS,
   TYPOGRAPHY_TOKENS,
-  BUTTON_VARIANTS,
-  BUTTON_SIZES,
-  buildButtonSnippet,
-  type ButtonPlaygroundState,
   type ComponentDoc,
 } from "./catalog";
 import { MOTION_PRIMITIVES, type MotionPrimitiveDoc } from "./motionPrimitives";
-import TextReveal from "@/components/motion/TextReveal";
-import TextScramble from "@/components/motion/TextScramble";
 import ScrollProgress from "@/components/motion/ScrollProgress";
-import MagneticButton from "@/components/motion/MagneticButton";
-import AnimatedNumber from "@/components/motion/AnimatedNumber";
-import BlobBackground from "@/components/motion/BlobBackground";
-import SpotlightCard from "@/components/motion/SpotlightCard";
-import GradientMesh from "@/components/motion/GradientMesh";
-import LoopingDemo from "./LoopingDemo";
+import ButtonPlayground from "./ButtonPlayground";
+import MotionPrimitiveDemo from "./MotionPrimitiveDemo";
+import {
+  ChipDemo,
+  ModalDemo,
+  SpotlightPreview,
+  SwitchDemo,
+  TickerPreview,
+  TiltCardPreview,
+} from "./GalleryDemos";
 import { ACCENT_BAND } from "@/lib/accentBand";
 
 const ACCENT = ACCENT_BAND.verdigris;
@@ -149,113 +148,9 @@ function SectionHeading({ children }: { children: ReactNode }) {
 // Motion primitives — the app's own, documented alongside the package's
 // ---------------------------------------------------------------------------
 
-/** A live demo per primitive, so the card shows the thing rather than describing it. */
-/**
- * A scroll bar needs something to scroll. The page's own instance is pinned to
- * the top of the viewport, which is the right place for it and the wrong place
- * to demonstrate it from: by the time you reach this card the bar is off
- * screen, so the card could only ever describe it. This is the real component
- * tracking a real scrollable box, small enough to fit in the frame.
- */
-function ScrollProgressDemo() {
-  const box = useRef<HTMLDivElement>(null);
-  return (
-    <div className="w-full">
-      <div className="relative overflow-hidden rounded-lg border border-border">
-        <ScrollProgress container={box} height={3} />
-        {/* A scrollable area has to be reachable by keyboard, so it is a named
-            region with a tab stop rather than a bare div: someone who cannot
-            drag a scrollbar still needs to be able to scroll this. */}
-        <div
-          ref={box}
-          role="region"
-          aria-label="Scrollable example"
-          tabIndex={0}
-          className="h-20 overflow-y-auto px-3 pt-3 pb-2 text-sm text-muted focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:outline-none"
-        >
-          <p>Scroll this box. The bar along its top edge is the component.</p>
-          <p className="mt-2">
-            It reads the scroll position of whatever element it is given, so a
-            panel can show its own progress rather than the page&rsquo;s.
-          </p>
-          <p className="mt-2">
-            The page&rsquo;s own instance is still up at the very top of this
-            window, tracking the article you are reading now.
-          </p>
-          <p className="mt-2">That is the end of the example.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MotionPrimitiveDemo({ id }: { id: string }) {
-  if (id === "text-reveal") {
-    return (
-      <LoopingDemo label="text reveal">
-        <TextReveal as="p" per="word" className="text-lg font-semibold">
-          Verdigris and ember
-        </TextReveal>
-      </LoopingDemo>
-    );
-  }
-  if (id === "text-scramble") {
-    return (
-      <LoopingDemo label="text scramble">
-        <TextScramble
-          text="design language"
-          trigger="inView"
-          className="font-mono text-lg font-semibold"
-        />
-      </LoopingDemo>
-    );
-  }
-  if (id === "scroll-progress") {
-    return <ScrollProgressDemo />;
-  }
-  if (id === "magnetic-button") {
-    return (
-      <MagneticButton>
-        <Button>Hover me</Button>
-      </MagneticButton>
-    );
-  }
-  if (id === "animated-number") {
-    return (
-      <LoopingDemo label="animated number">
-        <AnimatedNumber
-          value={2454}
-          format={(n) => n.toLocaleString()}
-          className="text-3xl font-bold tabular-nums text-foreground"
-        />
-      </LoopingDemo>
-    );
-  }
-  if (id === "blob-background") {
-    return (
-      // w-full matters: the preview frame is a flex row, and a flex item whose
-      // only content is absolutely positioned collapses to zero width.
-      <div className="relative h-24 w-full overflow-hidden rounded-xl">
-        <BlobBackground seeds={[12, 34]} />
-      </div>
-    );
-  }
-  if (id === "spotlight-card") {
-    return (
-      <SpotlightCard accent="var(--color-feature-craft)" className="p-4">
-        <p className="text-sm text-foreground">Move the cursor across me.</p>
-      </SpotlightCard>
-    );
-  }
-  if (id === "gradient-mesh") {
-    return (
-      <div className="relative h-24 w-full overflow-hidden rounded-xl">
-        <GradientMesh />
-      </div>
-    );
-  }
-  return null;
-}
+// The live demo per primitive (MotionPrimitiveDemo) is a client island in its
+// own module: every demo is animation or state, so it is exactly the part of
+// this section that has to hydrate. The card chrome below stays server markup.
 
 function MotionPrimitiveCard({
   primitive,
@@ -293,173 +188,8 @@ function MotionPrimitiveCard({
 }
 
 // ---------------------------------------------------------------------------
-// Button playground — the interactive "controls" surface
-// ---------------------------------------------------------------------------
-
-function ButtonPlayground() {
-  const [state, setState] = useState<ButtonPlaygroundState>({
-    variant: "primary",
-    size: "md",
-    loading: false,
-    disabled: false,
-    label: "Click me",
-  });
-
-  const set = <K extends keyof ButtonPlaygroundState>(
-    key: K,
-    value: ButtonPlaygroundState[K],
-  ) => setState((prev) => ({ ...prev, [key]: value }));
-
-  return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <div className="space-y-4">
-        <FilterBar
-          label="Button playground controls"
-          className="flex-wrap gap-4"
-        >
-          <Select
-            label="Variant"
-            value={state.variant}
-            onChange={(e) =>
-              set("variant", e.target.value as ButtonPlaygroundState["variant"])
-            }
-          >
-            {BUTTON_VARIANTS.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </Select>
-          <Select
-            label="Size"
-            value={state.size}
-            onChange={(e) =>
-              set("size", e.target.value as ButtonPlaygroundState["size"])
-            }
-          >
-            {BUTTON_SIZES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Select>
-        </FilterBar>
-
-        <div className="flex flex-wrap items-center gap-5">
-          <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
-            <input
-              type="checkbox"
-              checked={state.loading}
-              onChange={(e) => set("loading", e.target.checked)}
-              className="paul-touch-target h-4 w-4 accent-primary-500"
-            />
-            Loading
-          </label>
-          <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
-            <input
-              type="checkbox"
-              checked={state.disabled}
-              onChange={(e) => set("disabled", e.target.checked)}
-              className="paul-touch-target h-4 w-4 accent-primary-500"
-            />
-            Disabled
-          </label>
-        </div>
-
-        <Input
-          label="Label"
-          value={state.label}
-          onChange={(e) => set("label", e.target.value)}
-        />
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex min-h-24 items-center justify-center rounded-xl border border-border bg-surface p-6">
-          <Button
-            variant={state.variant}
-            size={state.size}
-            loading={state.loading}
-            disabled={state.disabled}
-          >
-            {state.label || "Button"}
-          </Button>
-        </div>
-        <pre className="overflow-x-auto rounded-xl border border-border bg-neutral-900 p-4 text-[13px] leading-relaxed text-neutral-100 dark:bg-black/60">
-          <code>{buildButtonSnippet(state)}</code>
-        </pre>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Live examples for each gallery card
 // ---------------------------------------------------------------------------
-
-function ModalDemo() {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
-        Open the dialog
-      </Button>
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        aria-labelledby="ds-modal-title"
-      >
-        <h4 id="ds-modal-title" className="text-lg font-bold text-foreground">
-          Example dialog
-        </h4>
-        <p className="mt-2 text-sm text-muted">
-          Focus is trapped here. Tab stays inside, Escape closes, and focus
-          returns to the trigger when you leave.
-        </p>
-        <div className="mt-4 flex justify-end">
-          <Button size="sm" onClick={() => setOpen(false)}>
-            Close
-          </Button>
-        </div>
-      </Modal>
-    </>
-  );
-}
-
-function SwitchDemo() {
-  const [on, setOn] = useState(true);
-  return (
-    <label className="paul-touch-min flex min-h-11 items-center gap-2 text-sm text-foreground sm:min-h-0">
-      <Switch
-        checked={on}
-        onCheckedChange={setOn}
-        aria-label="Enable notifications"
-      />
-      Notifications {on ? "on" : "off"}
-    </label>
-  );
-}
-
-function ChipDemo() {
-  const [tags, setTags] = useState(["Electric", "Flying", "Psychic"]);
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {tags.map((tag) => (
-        <Chip
-          key={tag}
-          label={tag}
-          color={ACCENT}
-          size="md"
-          onRemove={() => setTags((prev) => prev.filter((t) => t !== tag))}
-        />
-      ))}
-      {tags.length === 0 && (
-        <span className="text-sm text-muted">
-          All removed — refresh to reset.
-        </span>
-      )}
-    </div>
-  );
-}
 
 /** Keyed by component id so each gallery card can render itself live. */
 const PREVIEWS: Record<string, ReactNode> = {
@@ -563,16 +293,8 @@ const PREVIEWS: Record<string, ReactNode> = {
       ]}
     />
   ),
-  "tilt-card": (
-    <TiltCard className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
-      Hover me
-    </TiltCard>
-  ),
-  spotlight: (
-    <Spotlight className="rounded-xl border border-border bg-surface-raised p-4 text-sm">
-      Move the cursor across me
-    </Spotlight>
-  ),
+  "tilt-card": <TiltCardPreview />,
+  spotlight: <SpotlightPreview />,
   "gradient-background": (
     <GradientBackground className="w-full rounded-xl p-4 text-sm text-foreground">
       Animated gradient
@@ -639,14 +361,7 @@ const PREVIEWS: Record<string, ReactNode> = {
       </InfoTip>
     </span>
   ),
-  ticker: (
-    <Ticker label="Recent work" mode="marquee" className="w-full">
-      <span className="px-3 text-sm text-foreground">Dashboards</span>
-      <span className="px-3 text-sm text-foreground">Onboarding</span>
-      <span className="px-3 text-sm text-foreground">Campaigns</span>
-      <span className="px-3 text-sm text-foreground">Design system</span>
-    </Ticker>
-  ),
+  ticker: <TickerPreview />,
   card: (
     <Card variant="elevated" className="w-full">
       <Card.Header>

@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-08-20 - version 5.5.6
+
+- **The design-system showcase stopped shipping its catalog to the browser.** The whole page was one 1034-line client component, so the static shell, the token tables, and the 27KB component catalog all rode the hydration bundle. The shell is a server component now; only the genuinely stateful demos hydrate, as colocated client islands (the button playground; the modal/switch/chip demos; the motion-primitive demos; and three package components -- Spotlight, TiltCard, Ticker -- that use hooks internally, since `@paul-portfolio/react` ships no `"use client"` banners of its own).
+- **`catalog.ts` is server-only now.** The playground's few constants and `buildButtonSnippet` moved to a small leaf module the island imports; the catalog re-exports them so its public surface (and its integrity test) is unchanged. Distinctive catalog prose appears in zero client chunks after the split (one before), and the route's script payload drops 66 KB (-7.5%).
+- One disclosed trade: the prerendered HTML grows (the RSC payload now carries the server-rendered gallery instead of a client-module reference) -- inert markup that gzips well, in exchange for less parsed, executed, and hydrated JS. Rendered sections, order, and demos are unchanged; the full suite and the page's own tests pass unmodified.
+
+## 2026-08-20 - version 5.5.5
+
+- **The prose write-ups stopped hydrating.** `ThoughtLayout` was a client component for one `useState` — the summary/chat toggle — which dragged all ~80 pure-prose `/thoughts` pages into the client bundle whether or not they had a chat. It's a server component now; the toggle lives in a small `ThoughtChatShell` client island that only the chat-carrying pages mount, receiving both views pre-rendered as nodes.
+- **61 write-up files dropped a gratuitous `"use client"`.** Classified with the TypeScript AST rather than grep, because these pages quote hooks and `window` in code-sample strings that a textual match would have flagged; the three files with real hooks (`Paywall`, `SearchDemo`, `StylingContent`) keep their directive untouched.
+- The rendered DOM is byte-identical across all 62 thoughts routes (verified by a normalized prerender diff against a baseline build). Route-specific content JS on prose pages goes to zero — most now converge exactly on the shared app baseline. Honest caveat: that shared baseline (~232 KB gz) dominates First Load JS, so per-route totals only drop ~2-7% (the operator write-up, the biggest, drops 295 to 237 KB); shrinking the shared baseline is its own future piece of work.
+
+## 2026-08-20 - version 5.5.4
+
+- **The landing is a static page now, for everyone.** `/` sat at LCP 3.1s / FCP 2.8s in the field, and the floor under both was TTFB: the page was `force-dynamic` (the Messenger-bug fix), so every visit paid a serverless render. Going back in to fix that surfaced how little of the page ever depended on the session — in v5 the "hub" and the landing are the same `V5Content`, and `me` only flipped the header's log in/log out button and a Settings row in the menu.
+- **So the session read is gone from `/` entirely.** The page is static with hourly ISR, and the one auth-dependent control (`LandingActions`) resolves its own state client-side from `/api/me` — the same query key the header menu already uses everywhere, so the two share one request and one cache entry. A signed-in visitor sees the guest CTA for one round trip before it flips; it only ever shows less than the truth, never more.
+- **This supersedes the Messenger-bug fix with a stronger one.** `force-dynamic` prevented the edge cache from serving a signed-in hub to guests by never caching; now there is no session-derived markup in the HTML for a cache to leak at all. A test pins `/` to no session read and no static opt-out, and the existing guard keeps enforcing `force-dynamic` on every page that still reads a session. `FeatureHubV5` is deleted — the sole thing it did was pass `me` through.
+- Verified on the built artifact: the route table shows `/` as static with 1h revalidate, `x-nextjs-cache: HIT` with `s-maxage=3600`, the served HTML carries "Log in" and no session markup, and the public e2e (landing smoke, landmarks, a11y routes) passes against the production server. The tagline and writing shortlist now rotate hourly instead of per visit — the price of being a document.
+- Updated `/thoughts/messenger-auth` with the superseding fix.
+
+## 2026-08-20 - version 5.5.3
+
+- **Core Web Vitals fixes from the /vitals field data, aimed at universal gains rather than one page.** The dashboard showed a few pages in yellow/red; diagnosing them (four parallel audits) found the causes were mostly shared chrome, so the fixes help every page that renders it.
+- **`AmbientBackground` drifts on the compositor now, not the main thread.** Its two aurora blobs were animated with framer-motion's JS `animate` (`repeat: Infinity`), which sampled every frame on the main thread and showed up as interaction latency (INP) on every page it backs — it was the named culprit behind `/operator/finance` (446ms) and `/thoughts/design-system-showcase` (1.2s). It's a CSS transform keyframe animation now (GPU compositor, zero main-thread cost, disabled under reduced-motion), which also let it become a plain server component with no client JS and removed a late-framer-load dependency that could gate LCP.
+- **Stopped preloading the code font.** `Geist_Mono` never appears above the fold on any route, but next/font preloaded its `<link>` on every page, competing with the LCP font for the connection. `preload: false` (loads on demand where code renders); `display: "swap"` made explicit on all three faces.
+- **React Query devtools can't reach the production bundle.** It was a static import behind a dev-only render; it's a dev-gated dynamic import now, so it's a literal `null` component in prod.
+- **`/design-system` is fully static.** It was ISR, so on a low-traffic page an eviction made the next visitor pay a cold regeneration of the whole tree in TTFB (which lands inside FCP — the field FCP was 8.2s against a 0.6s LCP). `force-static` bakes it at build and serves a pure CDN document.
+
 ## 2026-08-20 - version 5.5.2
 
 - **Stopped the Playwright browser install from hanging a CI job.** `playwright install chromium --with-deps` shells out to apt for the browser's OS libraries, which occasionally stalls on a slow runner mirror — it once sat there for 22 minutes with nothing bounding it. Each of the three jobs that runs it now caps the step at `timeout-minutes: 10`, so a stalled fetch fails fast and retries instead of hanging the whole job.
