@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-20 - version 5.5.5
+
+- **The prose write-ups stopped hydrating.** `ThoughtLayout` was a client component for one `useState` — the summary/chat toggle — which dragged all ~80 pure-prose `/thoughts` pages into the client bundle whether or not they had a chat. It's a server component now; the toggle lives in a small `ThoughtChatShell` client island that only the chat-carrying pages mount, receiving both views pre-rendered as nodes.
+- **61 write-up files dropped a gratuitous `"use client"`.** Classified with the TypeScript AST rather than grep, because these pages quote hooks and `window` in code-sample strings that a textual match would have flagged; the three files with real hooks (`Paywall`, `SearchDemo`, `StylingContent`) keep their directive untouched.
+- The rendered DOM is byte-identical across all 62 thoughts routes (verified by a normalized prerender diff against a baseline build). Route-specific content JS on prose pages goes to zero — most now converge exactly on the shared app baseline. Honest caveat: that shared baseline (~232 KB gz) dominates First Load JS, so per-route totals only drop ~2-7% (the operator write-up, the biggest, drops 295 to 237 KB); shrinking the shared baseline is its own future piece of work.
+
 ## 2026-08-20 - version 5.5.4
 
 - **The landing is a static page now, for everyone.** `/` sat at LCP 3.1s / FCP 2.8s in the field, and the floor under both was TTFB: the page was `force-dynamic` (the Messenger-bug fix), so every visit paid a serverless render. Going back in to fix that surfaced how little of the page ever depended on the session — in v5 the "hub" and the landing are the same `V5Content`, and `me` only flipped the header's log in/log out button and a Settings row in the menu.

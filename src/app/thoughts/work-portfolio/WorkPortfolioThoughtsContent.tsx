@@ -1,5 +1,3 @@
-"use client";
-
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
 import {
   UpdateTimeline,
