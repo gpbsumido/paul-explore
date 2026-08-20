@@ -14,11 +14,18 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
+// The code/mono face. preload:false because it never appears above the fold on
+// any route (it's for code blocks), so preloading it just made its <link> compete
+// with the LCP font for the connection during the critical window. It still
+// loads on demand where code renders.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
 });
 
 // The display face, for page-level headings only. Geist is a good interface
