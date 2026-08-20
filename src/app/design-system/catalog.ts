@@ -613,13 +613,7 @@ export const TYPOGRAPHY_TOKENS: TokenSwatch[] = [
   { var: "--text-5xl", label: "5xl" },
 ];
 
-// The button playground's vocabulary lives in its own leaf module so the
-// client-side playground island can import it without dragging this whole
-// manifest into the bundle. Re-exported here so the catalog's public surface
-// (and every test against it) is unchanged.
-export {
-  BUTTON_VARIANTS,
-  BUTTON_SIZES,
-  buildButtonSnippet,
-  type ButtonPlaygroundState,
-} from "./buttonSnippet";
+// The button playground's vocabulary lives in ./buttonSnippet, its own leaf
+// module, so the client-side playground island can import it without dragging
+// this whole manifest into the bundle. Import it from there; a compatibility
+// re-export here would be dead code the deadexports gate rightly flags.
