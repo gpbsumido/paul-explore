@@ -12,14 +12,10 @@ import Archive from "./sections/Archive";
 import Contact from "./sections/Contact";
 import { SHELL } from "./shell";
 
-/** The signed-in session, as much of it as this page needs. */
-export type MeData = { name: string | null; email: string | null };
-
 export type V5ContentProps = {
-  me?: MeData;
-  /** Index into HERO_TAGLINES, drawn on the server once per request. */
+  /** Index into HERO_TAGLINES, baked once per ISR regeneration of /. */
   taglineIndex?: number;
-  /** Write-up hrefs for the shortlist, drawn on the server once per request. */
+  /** Write-up hrefs for the shortlist, baked with the tagline. */
   writingPicks?: string[];
 };
 
@@ -30,10 +26,11 @@ export type V5ContentProps = {
  * is aimed at someone deciding whether to interview me and that does not change
  * when I happen to be logged in on my own laptop. The session only changes the
  * header: the auth call to action flips, and the menu already carries the
- * signed-in routes. No second bar under the hero.
+ * signed-in routes. That one control resolves its own state client-side (see
+ * LandingActions), which is what lets / render statically with no session
+ * read at all. No second bar under the hero.
  */
 export default function V5Content({
-  me,
   taglineIndex,
   writingPicks,
 }: V5ContentProps) {
@@ -52,7 +49,7 @@ export default function V5Content({
           >
             paul-explore
           </Link>
-          <LandingActions loggedIn={Boolean(me)} />
+          <LandingActions />
         </div>
       </header>
 

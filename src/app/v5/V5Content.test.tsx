@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
+import { server } from "@/test/server";
 import { renderToStaticMarkup } from "react-dom/server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -212,17 +214,21 @@ describe("V5Content", () => {
     ).toBe(false);
   });
 
-  it("keeps the signed-in state to the header instead of a second bar", () => {
+  it("keeps the signed-in state to the header instead of a second bar", async () => {
     // The account strip under the hero duplicated the header menu and pushed
     // the pitch down. Signed-in now only changes the header CTA; the personal
-    // routes live in the menu where they already were.
-    renderPage({ me: { name: "Paul Sumido", email: "psumido@gmail.com" } });
+    // routes live in the menu where they already were. The page learns the
+    // session from /api/me (it renders statically with no auth props), so the
+    // signed-in state is driven through the network here.
+    server.use(
+      http.get("/api/me", () => HttpResponse.json({ sub: "auth0|paul" })),
+    );
+    renderPage();
+    expect(
+      await screen.findByRole("link", { name: /log out/i }),
+    ).toHaveAttribute("href", "/auth/logout");
     expect(screen.queryByText(/Back again/)).not.toBeInTheDocument();
     expect(hrefs()).not.toContain("/to-do");
-    expect(screen.getByRole("link", { name: /log out/i })).toHaveAttribute(
-      "href",
-      "/auth/logout",
-    );
   });
 
   it("has no axe violations as a guest", async () => {
@@ -232,9 +238,13 @@ describe("V5Content", () => {
   });
 
   it("has no axe violations signed in", async () => {
-    const { container } = renderPage({
-      me: { name: "Paul Sumido", email: "psumido@gmail.com" },
-    });
+    server.use(
+      http.get("/api/me", () => HttpResponse.json({ sub: "auth0|paul" })),
+    );
+    const { container } = renderPage();
+    // Wait for the header CTA to settle in the signed-in state before scanning,
+    // so axe sees the page a signed-in visitor actually gets.
+    await screen.findByRole("link", { name: /log out/i });
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });

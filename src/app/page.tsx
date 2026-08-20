@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { SITE_URL, OG_IMAGE } from "@/lib/site";
-import { auth0 } from "@/lib/auth0";
 import LandingContentV5 from "./v5/LandingContentV5";
-import FeatureHubV5 from "./v5/FeatureHubV5";
 import { pickTaglineIndex } from "./v5/taglines";
 import { pickWriting } from "./v5/featured";
 
-// Force dynamic rendering so Next.js never caches this page at the edge.
-// Without this, a logged-in user's FeatureHub HTML could be served to
-// unauthenticated visitors (e.g. links opened in Facebook Messenger's webview).
-export const dynamic = "force-dynamic";
+// Static, regenerated hourly. This page reads no session and renders no
+// session-derived markup -- the header's log in/log out control resolves its
+// own state client-side (see LandingActions). That is the durable fix for the
+// Messenger auth bug: the old fix opted the whole route out of static
+// rendering, which stopped the edge cache from serving a signed-in hub to
+// guests by never caching at all, and paid a serverless render (and its TTFB)
+// on every visit. Now there is nothing session-shaped in the HTML for a cache
+// to leak, so it can be a CDN document. homePage.test.tsx pins this contract.
+export const revalidate = 3600;
 
 const TITLE = "Paul Sumido, Lead Frontend Developer";
 const DESCRIPTION =
@@ -36,33 +39,16 @@ export const metadata: Metadata = {
 /**
  * The landing page. Renders the current generation only. Every retired one, and
  * the ?version= switch between them, lives at /discover.
+ *
+ * The tagline and writing shortlist are baked at each ISR regeneration rather
+ * than drawn per request -- they rotate hourly instead of per visit, which is
+ * the price of the page being a static document.
  */
-export default async function Home() {
-  const session = await auth0.getSession();
-
-  // Drawn here, once per request, because this is the last server point that
-  // renders for every visitor. The page is already force-dynamic, so each
-  // visit gets its own tagline and shortlist and hydration sees one choice.
+export default function Home() {
   const taglineIndex = pickTaglineIndex(Math.random);
   const writingPicks = pickWriting(Math.random);
 
-  if (!session) {
-    return (
-      <LandingContentV5
-        taglineIndex={taglineIndex}
-        writingPicks={writingPicks}
-      />
-    );
-  }
-
   return (
-    <FeatureHubV5
-      initialMe={{
-        name: session.user.name ?? null,
-        email: session.user.email ?? null,
-      }}
-      taglineIndex={taglineIndex}
-      writingPicks={writingPicks}
-    />
+    <LandingContentV5 taglineIndex={taglineIndex} writingPicks={writingPicks} />
   );
 }

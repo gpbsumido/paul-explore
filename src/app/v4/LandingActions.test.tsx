@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { server } from "@/test/server";
 import LandingActions from "./LandingActions";
 
 // HeaderMenu re-checks auth on route change via usePathname; the landing never
@@ -11,7 +13,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-const renderActions = (loggedIn: boolean) => {
+const renderActions = (loggedIn?: boolean) => {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -80,5 +82,56 @@ describe("LandingActions", () => {
       // uniform height has to be explicit, not derived from padding.
       expect(el.className).toContain("h-9");
     }
+  });
+});
+
+// The static landing renders with no server knowledge of the session, so with
+// no loggedIn prop the component resolves it client-side from /api/me — the
+// same query key HeaderMenu uses, so the two share one request and one cache.
+describe("LandingActions without a loggedIn prop", () => {
+  it("defaults to the guest CTA before and after /api/me says signed out", async () => {
+    server.use(
+      http.get("/api/me", () => HttpResponse.json({ sub: null })),
+    );
+    renderActions(undefined);
+
+    // Guest-optimistic: Log in shows immediately, never a wrong "Log out".
+    const cta = await screen.findByRole("link", { name: /log in/i });
+    expect(cta).toHaveAttribute("href", "/auth/login");
+    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
+    expect(
+      screen.queryByRole("link", { name: /settings/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("resolves to Log out and offers Settings when /api/me has a session", async () => {
+    server.use(
+      http.get("/api/me", () => HttpResponse.json({ sub: "auth0|paul" })),
+    );
+    renderActions(undefined);
+
+    const cta = await screen.findByRole("link", { name: /log out/i });
+    expect(cta).toHaveAttribute("href", "/auth/logout");
+    fireEvent.click(screen.getByRole("button", { name: /open menu/i }));
+    expect(screen.getByRole("link", { name: /settings/i })).toHaveAttribute(
+      "href",
+      "/settings",
+    );
+  });
+
+  it("stays prop-driven when loggedIn is explicit, without fetching /api/me", async () => {
+    let called = false;
+    server.use(
+      http.get("/api/me", () => {
+        called = true;
+        return HttpResponse.json({ sub: null });
+      }),
+    );
+    renderActions(true);
+
+    expect(
+      await screen.findByRole("link", { name: /log out/i }),
+    ).toBeInTheDocument();
+    expect(called).toBe(false);
   });
 });
