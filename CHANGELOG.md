@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-20 - version 5.5.6
+
+- **The design-system showcase stopped shipping its catalog to the browser.** The whole page was one 1034-line client component, so the static shell, the token tables, and the 27KB component catalog all rode the hydration bundle. The shell is a server component now; only the genuinely stateful demos hydrate, as colocated client islands (the button playground; the modal/switch/chip demos; the motion-primitive demos; and three package components -- Spotlight, TiltCard, Ticker -- that use hooks internally, since `@paul-portfolio/react` ships no `"use client"` banners of its own).
+- **`catalog.ts` is server-only now.** The playground's few constants and `buildButtonSnippet` moved to a small leaf module the island imports; the catalog re-exports them so its public surface (and its integrity test) is unchanged. Distinctive catalog prose appears in zero client chunks after the split (one before), and the route's script payload drops 66 KB (-7.5%).
+- One disclosed trade: the prerendered HTML grows (the RSC payload now carries the server-rendered gallery instead of a client-module reference) -- inert markup that gzips well, in exchange for less parsed, executed, and hydrated JS. Rendered sections, order, and demos are unchanged; the full suite and the page's own tests pass unmodified.
+
 ## 2026-08-20 - version 5.5.5
 
 - **The prose write-ups stopped hydrating.** `ThoughtLayout` was a client component for one `useState` — the summary/chat toggle — which dragged all ~80 pure-prose `/thoughts` pages into the client bundle whether or not they had a chat. It's a server component now; the toggle lives in a small `ThoughtChatShell` client island that only the chat-carrying pages mount, receiving both views pre-rendered as nodes.
