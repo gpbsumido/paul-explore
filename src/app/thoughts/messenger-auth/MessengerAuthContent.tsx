@@ -1,7 +1,7 @@
 "use client";
 
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import { Update, WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 import { ChatThread, Timestamp, Sent, Received } from "@/lib/threads";
 
@@ -337,17 +337,50 @@ export default function MessengerAuthContent() {
         </p>
       </section>
 
+      <Update
+        id="update-2026-08-20-static-landing"
+        date="August 20, 2026"
+        title="The fix got superseded by a stronger one"
+      >
+        <p>
+          The <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">force-dynamic</code>{" "}
+          on the root page held for as long as it was there, but it worked by
+          never caching: every visit to the landing paid a serverless render,
+          and the field vitals showed it as the TTFB floor under the
+          page&apos;s LCP and FCP. The interesting discovery, going back in to
+          fix that, was how little of the page ever depended on the session —
+          in v5 the &quot;hub&quot; and the landing are the same component, and
+          the only thing <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">me</code>{" "}
+          controlled was the header&apos;s log in/log out button and a Settings
+          row in the menu.
+        </p>
+        <p>
+          So the root page renders no session-derived markup at all now. It is
+          static (regenerated hourly), and the one auth-dependent control
+          resolves its own state client-side from{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">/api/me</code>{" "}
+          — the same query the header menu already ran on every other page. A
+          signed-in visitor sees the guest button for one round trip, which
+          shows less than the truth rather than more. This bug cannot recur on
+          that page because the thing that leaked no longer exists in the HTML;
+          a test now pins the page to no session read at all, and the
+          force-dynamic guard keeps protecting every page that still does read
+          one.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "The user-visible symptom traced back to an auth boundary rather than treated as a UI glitch, which is where it actually lived.",
           "The UX side fixed alongside the cause, because a correct auth flow that still confuses people is only half done.",
           "A regression test for the class, not the instance: every page that reads the session must declare force-dynamic rather than trust the framework to notice for it.",
+          "The root page no longer reads the session at all — static HTML with a client-resolved header CTA — so the original leak has nothing left to leak.",
         ]}
         couldImprove={[
           "The write-up documents one bug rather than the auth model around it, which is the thing a reader would need to avoid the next one.",
           "The test reads source rather than build output. It catches a missing declaration, not a future framework change that makes the declaration insufficient.",
         ]}
-        upcoming={["Nothing scheduled. It documents a fix that has held."]}
+        upcoming={["Nothing scheduled. It documents a fix that held, and what replaced it."]}
       />
     </ThoughtLayout>
   );

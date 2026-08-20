@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-20 - version 5.5.4
+
+- **The landing is a static page now, for everyone.** `/` sat at LCP 3.1s / FCP 2.8s in the field, and the floor under both was TTFB: the page was `force-dynamic` (the Messenger-bug fix), so every visit paid a serverless render. Going back in to fix that surfaced how little of the page ever depended on the session — in v5 the "hub" and the landing are the same `V5Content`, and `me` only flipped the header's log in/log out button and a Settings row in the menu.
+- **So the session read is gone from `/` entirely.** The page is static with hourly ISR, and the one auth-dependent control (`LandingActions`) resolves its own state client-side from `/api/me` — the same query key the header menu already uses everywhere, so the two share one request and one cache entry. A signed-in visitor sees the guest CTA for one round trip before it flips; it only ever shows less than the truth, never more.
+- **This supersedes the Messenger-bug fix with a stronger one.** `force-dynamic` prevented the edge cache from serving a signed-in hub to guests by never caching; now there is no session-derived markup in the HTML for a cache to leak at all. A test pins `/` to no session read and no static opt-out, and the existing guard keeps enforcing `force-dynamic` on every page that still reads a session. `FeatureHubV5` is deleted — the sole thing it did was pass `me` through.
+- Verified on the built artifact: the route table shows `/` as static with 1h revalidate, `x-nextjs-cache: HIT` with `s-maxage=3600`, the served HTML carries "Log in" and no session markup, and the public e2e (landing smoke, landmarks, a11y routes) passes against the production server. The tagline and writing shortlist now rotate hourly instead of per visit — the price of being a document.
+- Updated `/thoughts/messenger-auth` with the superseding fix.
+
 ## 2026-08-20 - version 5.5.3
 
 - **Core Web Vitals fixes from the /vitals field data, aimed at universal gains rather than one page.** The dashboard showed a few pages in yellow/red; diagnosing them (four parallel audits) found the causes were mostly shared chrome, so the fixes help every page that renders it.
