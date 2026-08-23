@@ -9,6 +9,7 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-economy", date: "Aug 23, 2026", title: "An economy: wallets, packs, and a collection" },
   { id: "update-boosts", date: "Aug 22, 2026", title: "Rarity boosts for the moments that mattered" },
   { id: "update-sports", date: "Aug 22, 2026", title: "Nightly cards, three leagues, and history" },
 ];
@@ -201,20 +202,45 @@ export default function FantasyTcgContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-economy"
+        date="Aug 23, 2026"
+        title="An economy: wallets, packs, and a collection"
+      >
+        <p>
+          Generating cards was always the means; the point was collecting them.
+          So there&rsquo;s an economy now: a coin wallet with a daily claim, a
+          &ldquo;rip a pack&rdquo; button that draws five rarity-weighted cards
+          from whatever slate I&rsquo;m looking at, and a collection page that
+          keeps what I&rsquo;ve pulled with duplicates grouped. The weighted draw
+          lives in the same engine as everything else (<C>drawPack</C> over{" "}
+          <C>RARITY_META.pullWeight</C>), so an SIR really is the rare pull.
+        </p>
+        <p>
+          The bit I was careful about: the rip is drawn on the server, not the
+          client. The browser only says which view it&rsquo;s looking at; the BFF
+          regenerates that slate, runs the draw, and hands the result to the API
+          to debit coins and record — so nobody can hand-pick their own pulls.
+          Persistence lives in the separate API (a wallet table and a pulls
+          table, scoped per user), which is its own change; the front end ships
+          behind it and lights up once that&rsquo;s deployed.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
-          "A pure, relative-rarity engine with a boost layer (win, playoff, fantasy playoff/finals), fully tested against synthetic pools.",
-          "Real cards across three leagues: NBA and WNBA nightly from box scores, NFL weekly from fantasy scoring, with previous-season history.",
-          "A sport toggle, an NFL week picker, a rarity filter, roster-team and boost badges, and empty/error/loading states.",
+          "A pure, relative-rarity engine with a boost layer and a weighted pack draw, fully tested against synthetic pools.",
+          "Real cards across three leagues: NBA and WNBA nightly from box scores, NFL weekly from fantasy scoring, with previous-season history and a season view.",
+          "An economy — coin wallet, daily claim, server-drawn pack ripping, and a collection — front end and API both built.",
         ]}
         couldImprove={[
-          "The fantasy win/playoff/finals boost is wired but not yet fed from the league's matchup view, so it's dormant until that lands.",
-          "There's no economy: no currency, no packs, no ripping, because there's nowhere yet to persist what people own.",
+          "The NFL fantasy win/playoff/finals boost ships; the basketball side needs a reliable date-to-matchup mapping, which this league's data doesn't cleanly give.",
           "Card art is a generic headshot; the photo from that exact game the concept really wants isn't sourced yet.",
+          "A packed slate fans out into many box-score fetches; fine with caching, but a single feed would be cheaper.",
         ]}
         upcoming={[
-          "Feed the fantasy-matchup boost from the league so a finals-week performance is automatically rarer.",
-          "Wire per-user persistence so packs can be bought, ripped with the weighted odds already defined, and kept.",
+          "Deploy the economy API and verify the earn-buy-rip-collect loop end to end.",
+          "Feed the basketball fantasy-matchup boost once there's a dependable date-to-scoring-period source.",
         ]}
       />
     </ThoughtLayout>
