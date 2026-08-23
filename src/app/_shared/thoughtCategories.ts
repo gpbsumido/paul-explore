@@ -19,6 +19,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "tcg",
       "calendar",
       "playoffs",
+      "fantasy-tcg",
       "operator-dashboard",
       "work-portfolio",
       "ketsup",

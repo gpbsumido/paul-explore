@@ -241,6 +241,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#c44359",
   },
   {
+    title: "Fantasy TCG",
+    href: "/thoughts/fantasy-tcg",
+    preview:
+      "Minting rarity-tiered trading cards from real ESPN fantasy performances, rarity set relative to the pool",
+    color: "#7b6aca",
+  },
+  {
     title: "GraphQL",
     href: "/thoughts/graphql",
     preview: "Why GraphQL, why plain fetch over Apollo",
