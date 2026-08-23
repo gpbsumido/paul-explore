@@ -44,16 +44,17 @@ export default function FantasyTcgContent() {
         <>
           I already had a Pokémon TCG browser and a whole Fantasy NBA section
           wired to an ESPN league. This is the write-up on stitching the two
-          together: take a week of real roster performances and mint each one as
+          together: take a night of real box scores and mint each performance as
           a trading card, where the rarity is decided by how a player did
-          relative to everyone else in the pool. The{" "}
+          relative to everyone else who played that night. The{" "}
           <Link
             href="/fantasy/nba/cards"
             className="underline underline-offset-2"
           >
             Card Lab
           </Link>{" "}
-          is the first slice of a bigger idea, and this is where I drew the line.
+          does it for NBA (my fantasy roster) and WNBA (the whole slate), and
+          this is where I drew the line.
         </>
       }
     >
@@ -107,39 +108,52 @@ export default function FantasyTcgContent() {
         </p>
       </Section>
 
-      <Section title="A pure engine with a thin ESPN adapter">
+      <Section title="A pure engine, two thin adapters">
         <p>
           The generator (<C>generateCards</C>) knows nothing about ESPN. It takes
           a list of <C>PlayerPerformance</C> objects and returns cards, which
           makes it trivial to test against synthetic pools and keeps the sport a
-          pluggable dimension — NBA now, WNBA and NFL later, same engine. The
-          ESPN-specific part is a separate adapter that validates the league
-          payload with a Zod schema and flattens every rostered player into a
-          performance. Anything that doesn&rsquo;t match the shape gets dropped
-          rather than throwing, so a malformed or half-empty response degrades to
+          pluggable dimension. Everything ESPN-specific lives in adapters that
+          each validate the raw payload with a Zod schema and drop anything
+          malformed rather than throwing, so a half-empty response degrades to
           fewer cards instead of a broken page.
+        </p>
+        <p className="mt-3">
+          There are two: one flattens the fantasy league roster into season
+          totals, and one parses a night&rsquo;s box scores into per-game lines.
+          The box-score parser is the important one — it&rsquo;s what makes the
+          cards <em>nightly</em>.
         </p>
       </Section>
 
-      <Section title="Card art, and an honest limit">
+      <Section title="Nightly cards, and where WNBA comes from">
         <p>
-          The dream card is game-specific: &ldquo;Wemby, 50 points, this exact
-          date,&rdquo; with a photo from that night. Sourcing a photo of a
-          specific game programmatically is its own project, so for now every
-          card uses the player&rsquo;s ESPN headshot — which is already
-          allowlisted in the site&rsquo;s content-security policy, so it renders
-          without loosening anything. The performance and period ride as the
-          card&rsquo;s metadata. Game-specific art is a later piece, and the card
-          layout already has a slot for it.
+          Season totals were the wrong unit. A card should be a single night:
+          &ldquo;36 points, this date, versus that team.&rdquo; So the default
+          view is a slate — the most recent night rostered players actually
+          suited up — pulled from ESPN&rsquo;s public scoreboard and box-score
+          endpoints. Points sit at a different column per sport (NBA has them
+          last, WNBA second), so the code finds the column by name and never
+          hardcodes an index. Rarity is judged against that night&rsquo;s slate,
+          not the season, which is what makes a 40-point night on a quiet evening
+          feel rare.
         </p>
         <p className="mt-3">
-          One thing I checked rather than assumed: recent seasons of the league
-          read fine over the public endpoint, but an older or private season
-          answers with <C>AUTH_LEAGUE_NOT_VISIBLE</C>. So the page has to treat a
-          missing season as normal — it degrades to an empty or error state
-          rather than breaking — and I deliberately made the engine&rsquo;s
-          correctness independent of live data, unit-testing it against pools I
-          construct instead of a network call that might not answer.
+          WNBA was the interesting problem: ESPN runs no WNBA fantasy game, so
+          there&rsquo;s no roster to key off. But the public box scores are right
+          there, so WNBA cards come from the whole night&rsquo;s slate instead of
+          a roster. NBA keeps the roster filter (fantasy player ids are just ESPN
+          athlete ids, so the intersection is free). Same engine, same page, one
+          sport toggle. NBA&rsquo;s off-season has no slate to show, so between
+          June and October the NBA view quietly falls back to season cards rather
+          than a bare empty page.
+        </p>
+        <p className="mt-3">
+          Card art is still the player&rsquo;s ESPN headshot — allowlisted in the
+          site&rsquo;s CSP, so it renders without loosening anything — with the
+          points, date, and opponent as the card&rsquo;s metadata. A photo from
+          that exact game is a harder sourcing problem, and its own later piece;
+          the card layout already has the slot.
         </p>
       </Section>
 
@@ -159,18 +173,18 @@ export default function FantasyTcgContent() {
 
       <WhatsNext
         nowShipped={[
-          "A pure, relative-rarity card generator, fully tested against synthetic pools rather than a live league.",
-          "A Zod-validated ESPN adapter that drops malformed roster entries instead of throwing.",
-          "A Card Lab page that filters cards by rarity, with proper empty, error, and loading states.",
+          "A pure, relative-rarity card generator, fully tested against synthetic pools rather than a live feed.",
+          "Nightly cards from real box scores — points, date, and opponent — for NBA (my fantasy roster) and WNBA (the whole slate).",
+          "A sport toggle, a rarity filter, and empty/error/loading states, with an off-season fallback to season cards for NBA.",
         ]}
         couldImprove={[
-          "Rarity uses each player's season total right now, not a specific week's game log — the honest signal I could get without live weekly data.",
-          "Card art is a generic headshot; the game-specific photo the concept really wants isn't sourced yet.",
+          "Card art is a generic headshot; the photo from that exact game the concept really wants isn't sourced yet.",
           "There's no economy: no currency, no packs, no ripping, because there's nowhere yet to persist what people own.",
+          "A night with lots of games fans out into many box-score fetches; fine with caching, but a single feed would be cheaper.",
         ]}
         upcoming={[
           "Wire per-user persistence so packs can be bought, ripped with the weighted odds already defined, and kept.",
-          "Pull real weekly game logs so a card can say '50 points, this date' instead of a season total.",
+          "Source game-specific art so a card can show the shot, not just the headshot.",
         ]}
       />
     </ThoughtLayout>

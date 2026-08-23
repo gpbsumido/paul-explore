@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-22 - version 5.7.0
+
+- **Card Lab cards are nightly now, not season totals.** Season totals were the wrong unit — a card should be a single night. The Card Lab defaults to a slate: the most recent night rostered players actually played, pulled from ESPN's public scoreboard and box-score endpoints, so each card shows real per-game points with the date and opponent ("Jalen Green · 36 PTS · Apr 17 vs GS"). Rarity is judged against that night's slate, which is what makes a big night on a quiet evening feel rare. Season totals stay available as a secondary NBA view.
+- **WNBA cards.** ESPN runs no WNBA fantasy game, so there's no roster to key off — WNBA cards come from the whole night's public box scores instead. NBA keeps the fantasy-roster filter (fantasy player ids are just ESPN athlete ids). One sport toggle switches between them; the engine and page are shared. NBA's off-season quietly falls back to season cards between June and October rather than showing a bare empty page.
+- **Under the hood:** the card engine gained per-game context (opponent, home/away, a `prettyGameDate` label) but its relative-rarity logic is unchanged. Two new Zod-validated parsers (`espn-boxscore.ts`) turn scoreboards and box scores into performances — points are resolved by column name, since NBA and WNBA order their stats differently — and `espn-nightly.ts` orchestrates the slate. All the parsing and engine logic is unit-tested against fixtures; verified live against both sports' real box scores.
+
 ## 2026-08-22 - version 5.6.0
 
 - **Fantasy TCG: a Card Lab that mints trading cards from real ESPN fantasy performances.** New page at `/fantasy/nba/cards` (linked from the Fantasy NBA hub and tab bar) that takes every rostered player's season and turns it into a rarity-tiered card. Rarity is relative, not an absolute points cutoff: the engine scores each player by percentile within the week's pool, so top of the pack earns an SIR, the next slice a rare, the middle an uncommon, and the rest a common. A zero or negative outing can never beat common, and a shallow pool caps at rare so a two-player week can't mint an SIR.
