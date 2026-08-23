@@ -37,6 +37,14 @@ const leagueSchema = z.object({
     .optional(),
 });
 
+/** The ESPN fantasy basketball league this site reads. */
+const LEAGUE_ID = 449389534;
+
+/** The ESPN read endpoint for the league's teams, rosters, and settings. */
+export function nbaFantasyLeagueUrl(season: string): string {
+  return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/${LEAGUE_ID}?view=mTeam&view=mRoster&view=mSettings`;
+}
+
 type Stat = z.infer<typeof statSchema>;
 
 /**
