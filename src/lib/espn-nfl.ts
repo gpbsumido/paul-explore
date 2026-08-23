@@ -96,11 +96,14 @@ export interface WeeklySlate {
   cards: GeneratedCard[];
   /** The week the cards came from, or null if none was found. */
   week: number | null;
+  /** The latest week the league has, so the UI can offer every week. */
+  latestWeek: number | null;
   error: boolean;
 }
 
 /**
- * Cards for an NFL week. With no `week`, starts at the league's latest scoring
+ * Cards for an NFL week. A specific `week` is shown as asked (so the picker can
+ * reach every week); with no `week`, starts at the league's latest scoring
  * period and steps back to the most recent week that actually has results.
  */
 export async function loadNflWeek({
@@ -110,22 +113,21 @@ export async function loadNflWeek({
   season: string;
   week?: number;
 }): Promise<WeeklySlate> {
-  if (week !== undefined) {
-    const payload = await fetchJson(weekUrl(season, week));
-    if (!payload) return { cards: [], week, error: true };
-    return { cards: generateCards(performancesFromWeek(payload, { season, week })), week, error: false };
-  }
+  // One fetch tells us the latest week (status rides on any week's response).
+  const probe = await fetchJson(weekUrl(season, week ?? 1));
+  const latest = latestScoringPeriod(probe) ?? week ?? 1;
 
-  // Learn the latest week, then step back until one has results.
-  const first = await fetchJson(weekUrl(season, 1));
-  if (!first) return { cards: [], week: null, error: true };
-  const latest = latestScoringPeriod(first) ?? 1;
+  if (week !== undefined) {
+    if (!probe) return { cards: [], week, latestWeek: latest, error: true };
+    const cards = generateCards(performancesFromWeek(probe, { season, week }));
+    return { cards, week, latestWeek: latest, error: false };
+  }
 
   for (let w = latest, steps = 0; w >= 1 && steps < MAX_WEEK_STEPS; w--, steps++) {
     const payload = await fetchJson(weekUrl(season, w));
     if (!payload) continue;
     const cards = generateCards(performancesFromWeek(payload, { season, week: w }));
-    if (cards.length > 0) return { cards, week: w, error: false };
+    if (cards.length > 0) return { cards, week: w, latestWeek: latest, error: false };
   }
-  return { cards: [], week: null, error: false };
+  return { cards: [], week: null, latestWeek: latest, error: false };
 }

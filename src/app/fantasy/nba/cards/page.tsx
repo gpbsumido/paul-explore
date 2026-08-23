@@ -70,7 +70,13 @@ async function loadCards(
 export default async function CardLabPage({
   searchParams,
 }: {
-  searchParams: Promise<{ season?: string; sport?: string; mode?: string; date?: string }>;
+  searchParams: Promise<{
+    season?: string;
+    sport?: string;
+    mode?: string;
+    date?: string;
+    week?: string;
+  }>;
 }) {
   const params = await searchParams;
   const season = resolveSeason(params.season);
@@ -79,7 +85,8 @@ export default async function CardLabPage({
   const date = params.date && DATE_RE.test(params.date) ? params.date : undefined;
 
   if (sport === "nfl") {
-    const slate = await loadNflWeek({ season });
+    const week = params.week && /^\d{1,2}$/.test(params.week) ? Number(params.week) : undefined;
+    const slate = await loadNflWeek({ season, week });
     return (
       <CardLabContent
         cards={slate.cards}
@@ -87,6 +94,7 @@ export default async function CardLabPage({
         mode="nightly"
         season={season}
         error={slate.error}
+        weeks={{ current: slate.week, latest: slate.latestWeek }}
       />
     );
   }

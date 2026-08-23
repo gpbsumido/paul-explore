@@ -35,6 +35,8 @@ type Props = {
   season: string;
   /** The slate date for a nightly view, e.g. "2026-04-17". */
   date?: string | null;
+  /** NFL week context: which week is shown and how many exist, for the picker. */
+  weeks?: { current: number | null; latest: number | null };
   /** The source couldn't be reached, so distinguish "empty" from "broken". */
   error?: boolean;
 };
@@ -110,7 +112,7 @@ function Card({ card }: { card: GeneratedCard }) {
 }
 
 /** The Card Lab: real performances turned into rarity-tiered cards, filterable by rarity. */
-export default function CardLabContent({ cards, sport, mode, season, date, error }: Props) {
+export default function CardLabContent({ cards, sport, mode, season, date, weeks, error }: Props) {
   const [filter, setFilter] = useState<Filter>("all");
 
   const nightly = mode === "nightly";
@@ -205,6 +207,31 @@ export default function CardLabContent({ cards, sport, mode, season, date, error
               </div>
             )}
           </div>
+
+          {sport === "nfl" && weeks?.latest ? (
+            <div
+              role="group"
+              aria-label="Week"
+              className="mt-3 flex flex-wrap gap-1"
+            >
+              <span className="mr-1 self-center text-[13px] text-muted">Week</span>
+              {Array.from({ length: weeks.latest }, (_, i) => i + 1).map((w) => (
+                <Link
+                  key={w}
+                  href={`/fantasy/nba/cards?sport=nfl&week=${w}`}
+                  aria-current={weeks.current === w ? "page" : undefined}
+                  className={[
+                    "rounded-full border px-2.5 py-1 text-[13px] font-medium tabular-nums transition-colors",
+                    weeks.current === w
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border text-muted hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {w}
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </header>
 
         {error ? (
