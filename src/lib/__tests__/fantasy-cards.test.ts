@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   generateCards,
+  drawPack,
   prettyGameDate,
   RARITY_META,
   headshotUrl,
+  type GeneratedCard,
   type PlayerPerformance,
   type Rarity,
 } from "../fantasy-cards";
@@ -156,6 +158,44 @@ describe("generateCards game context", () => {
       { playerId: 3, playerName: "RB One", points: 28.4, periodId: "2025-wk5", sport: "nfl" },
     ]);
     expect(card.subtitle).toBe("Week 5, 2025");
+  });
+});
+
+describe("drawPack", () => {
+  const c = (rarity: Rarity, id: string): GeneratedCard => ({
+    id,
+    playerId: 1,
+    playerName: id,
+    points: 20,
+    periodId: "2026-04-17",
+    sport: "nba",
+    rarity,
+    title: `${id} · 20 PTS`,
+    subtitle: "Apr 17",
+    imageUrl: "x",
+    boosts: [],
+  });
+
+  it("draws the requested number of distinct cards", () => {
+    const pool = [c("common", "a"), c("common", "b"), c("rare", "d"), c("sir", "e")];
+    const pack = drawPack(pool, { size: 3, random: () => 0.5 });
+    expect(pack).toHaveLength(3);
+    expect(new Set(pack.map((x) => x.id)).size).toBe(3);
+  });
+
+  it("returns the whole pool when it's smaller than the pack", () => {
+    const pool = [c("common", "a"), c("sir", "b")];
+    expect(drawPack(pool, { size: 5, random: () => 0.5 })).toHaveLength(2);
+  });
+
+  it("weights by pull weight — a low roll hits the rare, a high roll the common", () => {
+    const pool = [c("sir", "sir"), c("common", "common")];
+    expect(drawPack(pool, { size: 1, random: () => 0 })[0].id).toBe("sir");
+    expect(drawPack(pool, { size: 1, random: () => 0.99 })[0].id).toBe("common");
+  });
+
+  it("returns nothing for an empty pool", () => {
+    expect(drawPack([], { size: 5 })).toEqual([]);
   });
 });
 

@@ -192,6 +192,34 @@ function boostsFor(performance: PlayerPerformance): { tiers: number; labels: str
   return { tiers, labels };
 }
 
+/**
+ * Draw a pack of `size` distinct cards from a pool, weighted by each rarity's
+ * `pullWeight` so rares come up less often. Sampling is without replacement, so
+ * a pack has no duplicates; a pool smaller than the pack comes back whole. The
+ * `random` source is injectable so the draw is testable.
+ */
+export function drawPack(
+  pool: readonly GeneratedCard[],
+  { size = 5, random = Math.random }: { size?: number; random?: () => number } = {},
+): GeneratedCard[] {
+  const remaining = [...pool];
+  const picked: GeneratedCard[] = [];
+  const count = Math.min(size, remaining.length);
+
+  for (let k = 0; k < count; k++) {
+    const weights = remaining.map((card) => RARITY_META[card.rarity].pullWeight);
+    const total = weights.reduce((sum, w) => sum + w, 0);
+    let roll = random() * total;
+    let index = 0;
+    for (; index < remaining.length - 1; index++) {
+      roll -= weights[index];
+      if (roll < 0) break;
+    }
+    picked.push(remaining.splice(index, 1)[0]);
+  }
+  return picked;
+}
+
 /** Upgrade a rarity by whole tiers, capped at SIR. */
 function boostRarity(base: Rarity, tiers: number): Rarity {
   const i = Math.min(RARITY_TIERS.length - 1, RARITY_TIERS.indexOf(base) + tiers);
