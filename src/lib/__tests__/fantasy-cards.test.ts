@@ -150,4 +150,11 @@ describe("generateCards game context", () => {
     ]);
     expect(card.subtitle).toBe("2025 season");
   });
+
+  it("labels an NFL weekly card by its week", () => {
+    const [card] = generateCards([
+      { playerId: 3, playerName: "RB One", points: 28.4, periodId: "2025-wk5", sport: "nfl" },
+    ]);
+    expect(card.subtitle).toBe("Week 5, 2025");
+  });
 });

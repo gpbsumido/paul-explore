@@ -22,6 +22,7 @@ type Mode = "nightly" | "season";
 const SPORTS: { value: Sport; label: string }[] = [
   { value: "nba", label: "NBA" },
   { value: "wnba", label: "WNBA" },
+  { value: "nfl", label: "NFL" },
 ];
 
 type Props = {
@@ -114,9 +115,12 @@ export default function CardLabContent({ cards, sport, mode, season, date, error
 
   const nightly = mode === "nightly";
   const slateLabel = date ? prettyGameDate(date) : null;
-  const intro = nightly
-    ? `Every ${sport === "wnba" ? "" : "rostered "}player who suited up${slateLabel ? ` on ${slateLabel}` : ""}, minted as a trading card from that night's box score. Rarity is relative: the harder a player went against the rest of the slate, the rarer the card.`
-    : `Every rostered player's ${season} season, minted as a trading card. Rarity is relative to the rest of the pool.`;
+  const intro =
+    sport === "nfl"
+      ? "Every rostered player's week, minted as a trading card from real fantasy scoring. Rarity is relative: the bigger the week against the rest of the league, the rarer the card."
+      : nightly
+        ? `Every ${sport === "wnba" ? "" : "rostered "}player who suited up${slateLabel ? ` on ${slateLabel}` : ""}, minted as a trading card from that night's box score. Rarity is relative: the harder a player went against the rest of the slate, the rarer the card.`
+        : `Every rostered player's ${season} season, minted as a trading card. Rarity is relative to the rest of the pool.`;
 
   const present = RARITY_ORDER.filter((r) => cards.some((c) => c.rarity === r));
   const filtered = filter === "all" ? cards : cards.filter((c) => c.rarity === filter);
@@ -167,7 +171,7 @@ export default function CardLabContent({ cards, sport, mode, season, date, error
               {SPORTS.map((s) => (
                 <Link
                   key={s.value}
-                  href={cardsHref(s.value, s.value === "wnba" ? "nightly" : mode)}
+                  href={cardsHref(s.value, s.value === "nba" ? mode : "nightly")}
                   aria-current={sport === s.value ? "page" : undefined}
                   className={[
                     "rounded-full border px-3 py-1 text-[13px] font-medium transition-colors",

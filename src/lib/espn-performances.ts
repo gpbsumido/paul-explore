@@ -53,6 +53,7 @@ export interface LeagueConfig {
 export const FANTASY_LEAGUES: Record<Sport, LeagueConfig> = {
   nba: { game: "fba", leagueId: 449389534 },
   wnba: { game: "wfba", leagueId: 886603882 },
+  nfl: { game: "ffl", leagueId: 836777691 },
 };
 
 /** The ESPN read endpoint for a league's teams, rosters, and settings. */
