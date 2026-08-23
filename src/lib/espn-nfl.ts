@@ -27,17 +27,63 @@ const entrySchema = z.object({
   }),
 });
 
+const matchupSideSchema = z.object({ teamId: z.number() });
+const scheduleSchema = z.object({
+  matchupPeriodId: z.number().optional(),
+  winner: z.string().optional(),
+  playoffTierType: z.string().nullable().optional(),
+  home: matchupSideSchema.optional(),
+  away: matchupSideSchema.optional(),
+});
+
 const leagueSchema = z.object({
   status: z.object({ latestScoringPeriod: z.number().optional() }).optional(),
   teams: z
     .array(
       z.object({
+        id: z.number().optional(),
         name: z.string().optional(),
         roster: z.object({ entries: z.array(z.unknown()) }).optional(),
       }),
     )
     .optional(),
+  schedule: z.array(scheduleSchema).optional(),
 });
+
+type FantasyResult = NonNullable<PlayerPerformance["fantasyResult"]>;
+
+/** The roster owner's fantasy outcome for a matchup: finals beats playoff beats win. */
+function matchupResult(
+  entry: z.infer<typeof scheduleSchema>,
+  side: "home" | "away",
+): FantasyResult | undefined {
+  const tier = entry.playoffTierType;
+  if (tier && tier !== "NONE") return /CHAMP/i.test(tier) ? "finals" : "playoff";
+  const won =
+    (side === "home" && entry.winner === "HOME") ||
+    (side === "away" && entry.winner === "AWAY");
+  return won ? "win" : undefined;
+}
+
+/** Map of fantasy teamId → their result for the given matchup (week) period. */
+function fantasyResultsByTeam(
+  schedule: z.infer<typeof scheduleSchema>[],
+  week: number,
+): Map<number, FantasyResult> {
+  const map = new Map<number, FantasyResult>();
+  for (const entry of schedule) {
+    if (entry.matchupPeriodId !== week) continue;
+    if (entry.home) {
+      const r = matchupResult(entry, "home");
+      if (r) map.set(entry.home.teamId, r);
+    }
+    if (entry.away) {
+      const r = matchupResult(entry, "away");
+      if (r) map.set(entry.away.teamId, r);
+    }
+  }
+  return map;
+}
 
 /** The latest scoring period (week) the league reports, or null. */
 export function latestScoringPeriod(payload: unknown): number | null {
@@ -56,8 +102,11 @@ export function performancesFromWeek(
   const league = leagueSchema.safeParse(payload);
   if (!league.success) return [];
 
+  const results = fantasyResultsByTeam(league.data.schedule ?? [], week);
+
   const performances: PlayerPerformance[] = [];
   for (const team of league.data.teams ?? []) {
+    const fantasyResult = team.id !== undefined ? results.get(team.id) : undefined;
     for (const raw of team.roster?.entries ?? []) {
       const parsed = entrySchema.safeParse(raw);
       if (!parsed.success) continue;
@@ -74,6 +123,7 @@ export function performancesFromWeek(
         sport: "nfl",
         proTeamId: player.proTeamId,
         rosteredBy: team.name || undefined,
+        fantasyResult,
       });
     }
   }
@@ -85,7 +135,8 @@ const MAX_WEEK_STEPS = 6;
 
 function weekUrl(season: string, week: number): string {
   const { game, leagueId } = FANTASY_LEAGUES.nfl;
-  return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}?view=mRoster&view=mSettings&scoringPeriodId=${week}`;
+  const views = ["mRoster", "mSettings", "mTeam", "mMatchup"].map((v) => `view=${v}`).join("&");
+  return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}?${views}&scoringPeriodId=${week}`;
 }
 
 async function fetchJson(url: string): Promise<unknown | null> {

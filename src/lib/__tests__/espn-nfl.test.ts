@@ -58,6 +58,43 @@ describe("performancesFromWeek", () => {
   });
 });
 
+describe("performancesFromWeek fantasy results", () => {
+  // Two fantasy teams (1, 2) each rostering one player; team 1 wins the matchup.
+  const payload = (playoffTierType: string | null) => ({
+    status: { latestScoringPeriod: 15 },
+    teams: [
+      { id: 1, name: "Team One", roster: { entries: [entry(10, "Winner Guy", 5, 20)] } },
+      { id: 2, name: "Team Two", roster: { entries: [entry(20, "Loser Guy", 5, 18)] } },
+    ],
+    schedule: [
+      {
+        matchupPeriodId: 5,
+        winner: "HOME",
+        playoffTierType,
+        home: { teamId: 1, totalPoints: 120 },
+        away: { teamId: 2, totalPoints: 100 },
+      },
+    ],
+  });
+
+  it("marks the winning fantasy team's players with a fantasy win", () => {
+    const perfs = performancesFromWeek(payload(null), { season: "2025", week: 5 });
+    expect(perfs.find((p) => p.playerId === 10)?.fantasyResult).toBe("win");
+    expect(perfs.find((p) => p.playerId === 20)?.fantasyResult).toBeUndefined();
+  });
+
+  it("marks a playoff matchup as a fantasy playoff for both sides", () => {
+    const perfs = performancesFromWeek(payload("WINNERS_BRACKET"), { season: "2025", week: 5 });
+    expect(perfs.find((p) => p.playerId === 10)?.fantasyResult).toBe("playoff");
+    expect(perfs.find((p) => p.playerId === 20)?.fantasyResult).toBe("playoff");
+  });
+
+  it("marks the championship matchup as fantasy finals", () => {
+    const perfs = performancesFromWeek(payload("WINNERS_CHAMPIONSHIP_TIER"), { season: "2025", week: 5 });
+    expect(perfs.find((p) => p.playerId === 10)?.fantasyResult).toBe("finals");
+  });
+});
+
 describe("latestScoringPeriod", () => {
   it("reads the latest week from league status", () => {
     expect(latestScoringPeriod(league(7, []))).toBe(7);
