@@ -188,3 +188,29 @@ export async function loadNflWeek({
   }
   return { cards: [], week: null, latestWeek: latest, error: false };
 }
+
+const RARITY_RANK: Record<string, number> = { sir: 3, rare: 2, uncommon: 1, common: 0 };
+
+/**
+ * Every week's cards for the season, combined and sorted rarest first, so the
+ * rarity filter can show (say) every SIR of the whole season at once. Rarity is
+ * still judged per week, so a card is an SIR because it topped that week.
+ */
+export async function loadNflSeason({
+  season,
+}: {
+  season: string;
+}): Promise<WeeklySlate> {
+  const probe = await fetchJson(weekUrl(season, 1));
+  const latest = latestScoringPeriod(probe) ?? 1;
+  const weeks = Array.from({ length: latest }, (_, i) => i + 1);
+
+  const payloads = await Promise.all(
+    weeks.map((w) => (w === 1 ? probe : fetchJson(weekUrl(season, w)))),
+  );
+  const cards = payloads
+    .flatMap((p, i) => (p ? generateCards(performancesFromWeek(p, { season, week: weeks[i] })) : []))
+    .sort((a, b) => RARITY_RANK[b.rarity] - RARITY_RANK[a.rarity] || b.points - a.points);
+
+  return { cards, week: null, latestWeek: latest, error: cards.length === 0 };
+}

@@ -6,7 +6,7 @@ import {
   nbaFantasyLeagueUrl,
 } from "@/lib/espn-performances";
 import { loadNightlySlate } from "@/lib/espn-nightly";
-import { loadNflWeek } from "@/lib/espn-nfl";
+import { loadNflWeek, loadNflSeason } from "@/lib/espn-nfl";
 import type { GeneratedCard, Sport } from "@/lib/fantasy-cards";
 import CardLabContent from "./CardLabContent";
 
@@ -47,9 +47,9 @@ function resolveSport(raw: string | undefined): Sport {
   return raw === "wnba" || raw === "nfl" ? raw : "nba";
 }
 
-/** WNBA is nightly-only (no ESPN fantasy season); NBA defaults to nightly. */
+/** WNBA is nightly-only; NBA and NFL also offer a season view. */
 function resolveMode(raw: string | undefined, sport: Sport): "nightly" | "season" {
-  return sport === "nba" && raw === "season" ? "season" : "nightly";
+  return sport !== "wnba" && raw === "season" ? "season" : "nightly";
 }
 
 async function loadCards(
@@ -85,6 +85,19 @@ export default async function CardLabPage({
   const date = params.date && DATE_RE.test(params.date) ? params.date : undefined;
 
   if (sport === "nfl") {
+    if (mode === "season") {
+      const slate = await loadNflSeason({ season });
+      return (
+        <CardLabContent
+          cards={slate.cards}
+          sport="nfl"
+          mode="season"
+          season={season}
+          error={slate.error}
+          weeks={{ current: slate.week, latest: slate.latestWeek }}
+        />
+      );
+    }
     const week = params.week && /^\d{1,2}$/.test(params.week) ? Number(params.week) : undefined;
     const slate = await loadNflWeek({ season, week });
     return (

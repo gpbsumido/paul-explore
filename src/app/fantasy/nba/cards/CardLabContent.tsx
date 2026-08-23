@@ -131,7 +131,9 @@ export default function CardLabContent({ cards, sport, mode, season, date, weeks
   const slateLabel = date ? prettyGameDate(date) : null;
   const intro =
     sport === "nfl"
-      ? "Every rostered player's week, minted as a trading card from real fantasy scoring. Rarity is relative: the bigger the week against the rest of the league, the rarer the card."
+      ? nightly
+        ? "Every rostered player's week, minted as a trading card from real fantasy scoring. Rarity is relative: the bigger the week against the rest of the league, the rarer the card."
+        : "Every rostered player's weeks across the whole season, rarest first. Filter by rarity to pull, say, every SIR of the year."
       : nightly
         ? `Every ${sport === "wnba" ? "" : "rostered "}player who suited up${slateLabel ? ` on ${slateLabel}` : ""}, minted as a trading card from that night's box score. Rarity is relative: the harder a player went against the rest of the slate, the rarer the card.`
         : `Every rostered player's ${season} season, minted as a trading card. Rarity is relative to the rest of the pool.`;
@@ -199,12 +201,12 @@ export default function CardLabContent({ cards, sport, mode, season, date, weeks
               ))}
             </div>
 
-            {sport === "nba" && (
+            {sport !== "wnba" && (
               <div role="group" aria-label="View" className="flex gap-1">
                 {(["nightly", "season"] as Mode[]).map((m) => (
                   <Link
                     key={m}
-                    href={cardsHref("nba", m)}
+                    href={cardsHref(sport, m)}
                     aria-current={mode === m ? "page" : undefined}
                     className={[
                       "rounded-full border px-3 py-1 text-[13px] font-medium capitalize transition-colors",
@@ -213,14 +215,14 @@ export default function CardLabContent({ cards, sport, mode, season, date, weeks
                         : "border-border text-muted hover:text-foreground",
                     ].join(" ")}
                   >
-                    {m}
+                    {sport === "nfl" && m === "nightly" ? "By week" : m}
                   </Link>
                 ))}
               </div>
             )}
           </div>
 
-          {sport === "nfl" && weeks?.latest ? (
+          {sport === "nfl" && mode === "nightly" && weeks?.latest ? (
             <div
               role="group"
               aria-label="Week"
