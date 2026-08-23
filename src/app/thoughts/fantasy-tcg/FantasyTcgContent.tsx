@@ -136,7 +136,9 @@ export default function FantasyTcgContent() {
           last, WNBA second), so the code finds the column by name and never
           hardcodes an index. Rarity is judged against that night&rsquo;s slate,
           not the season, which is what makes a 40-point night on a quiet evening
-          feel rare.
+          feel rare. And because discovery scans date-range windows back from
+          today, the off-season isn&rsquo;t a dead end — in August the NBA view
+          lands on last June&rsquo;s Finals rather than an empty page.
         </p>
         <p className="mt-3">
           WNBA was the interesting problem. It turns out ESPN does run women&rsquo;s
