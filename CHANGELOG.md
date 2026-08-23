@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-08-22 - version 5.6.0
+
+- **Fantasy TCG: a Card Lab that mints trading cards from real ESPN fantasy performances.** New page at `/fantasy/nba/cards` (linked from the Fantasy NBA hub and tab bar) that takes every rostered player's season and turns it into a rarity-tiered card. Rarity is relative, not an absolute points cutoff: the engine scores each player by percentile within the week's pool, so top of the pack earns an SIR, the next slice a rare, the middle an uncommon, and the rest a common. A zero or negative outing can never beat common, and a shallow pool caps at rare so a two-player week can't mint an SIR.
+- **The generator is a pure, sport-pluggable engine.** `generateCards` knows nothing about ESPN — it takes performances and returns cards, so it's fully unit-tested against synthetic pools rather than a live league, and WNBA/NFL can slot in behind the same engine later. A separate Zod-validated adapter flattens the ESPN league payload into performances and drops malformed roster entries instead of throwing, so an unauthorized or half-empty response degrades to fewer cards or an empty state rather than a broken page.
+- **Card art uses ESPN headshots for now** (already allowlisted in the CSP), with the performance and period as the card's metadata; game-specific photos are a later piece. The page has proper empty, error, and loading states, and a rarity filter.
+- **What's deferred, on purpose:** the economy (currency from an opponent's points, buying packs, weighted ripping, owned-card inventory) needs per-user persistence that lives in the API service, so it's its own follow-up. The pull-weighting contract is defined and tested now (`RARITY_META.pullWeight` strictly decreases as cards get rarer) so the rip has stable odds to build on. Wrote it up in `/thoughts/fantasy-tcg`.
+
 ## 2026-08-20 - version 5.5.6
 
 - **The design-system showcase stopped shipping its catalog to the browser.** The whole page was one 1034-line client component, so the static shell, the token tables, and the 27KB component catalog all rode the hydration bundle. The shell is a server component now; only the genuinely stateful demos hydrate, as colocated client islands (the button playground; the modal/switch/chip demos; the motion-primitive demos; and three package components -- Spotlight, TiltCard, Ticker -- that use hooks internally, since `@paul-portfolio/react` ships no `"use client"` banners of its own).
