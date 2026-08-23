@@ -133,13 +133,13 @@ export default function FantasyTcgContent() {
           layout already has a slot for it.
         </p>
         <p className="mt-3">
-          One thing I confirmed the hard way: the live ESPN league now answers an
-          unauthenticated request with{" "}
-          <C>AUTH_LEAGUE_NOT_VISIBLE</C>. So the page degrades to an empty or
-          error state when the league isn&rsquo;t reachable, and I deliberately
-          made the engine&rsquo;s correctness independent of live data — it&rsquo;s
-          all unit-tested against pools I construct, not against a network call
-          that might not answer.
+          One thing I checked rather than assumed: recent seasons of the league
+          read fine over the public endpoint, but an older or private season
+          answers with <C>AUTH_LEAGUE_NOT_VISIBLE</C>. So the page has to treat a
+          missing season as normal — it degrades to an empty or error state
+          rather than breaking — and I deliberately made the engine&rsquo;s
+          correctness independent of live data, unit-testing it against pools I
+          construct instead of a network call that might not answer.
         </p>
       </Section>
 
