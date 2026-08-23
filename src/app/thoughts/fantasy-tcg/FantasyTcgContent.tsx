@@ -1,6 +1,17 @@
 import Link from "next/link";
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  Update,
+  UpdateTimeline,
+  WhatsNext,
+  type UpdateEntry,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
+
+/** Dated continuations, newest first — the feature grew a lot after the first cut. */
+const UPDATES: UpdateEntry[] = [
+  { id: "update-boosts", date: "Aug 22, 2026", title: "Rarity boosts for the moments that mattered" },
+  { id: "update-sports", date: "Aug 22, 2026", title: "Nightly cards, three leagues, and history" },
+];
 
 /** Inline monospace token, matches the code styling used across thoughts pages. */
 function C({ children }: { children: React.ReactNode }) {
@@ -58,6 +69,8 @@ export default function FantasyTcgContent() {
         </>
       }
     >
+      <UpdateTimeline entries={UPDATES} />
+
       <Section title="The idea, and the part I actually built">
         <p>
           The full pitch is a small economy: check your ESPN roster and your
@@ -126,44 +139,6 @@ export default function FantasyTcgContent() {
         </p>
       </Section>
 
-      <Section title="Nightly cards, and where WNBA comes from">
-        <p>
-          Season totals were the wrong unit. A card should be a single night:
-          &ldquo;36 points, this date, versus that team.&rdquo; So the default
-          view is a slate — the most recent night rostered players actually
-          suited up — pulled from ESPN&rsquo;s public scoreboard and box-score
-          endpoints. Points sit at a different column per sport (NBA has them
-          last, WNBA second), so the code finds the column by name and never
-          hardcodes an index. Rarity is judged against that night&rsquo;s slate,
-          not the season, which is what makes a 40-point night on a quiet evening
-          feel rare. And because discovery scans date-range windows back from
-          today, the off-season isn&rsquo;t a dead end — in August the NBA view
-          lands on last June&rsquo;s Finals rather than an empty page.
-        </p>
-        <p className="mt-3">
-          WNBA was the interesting problem. It turns out ESPN does run women&rsquo;s
-          fantasy basketball — game code <C>wfba</C> — so there is a real league to
-          key off. The catch is mine is private, and I didn&rsquo;t want to babysit
-          a login: the clean fix is to ask the commissioner to make the league
-          public, after which it reads with no auth at all, exactly like the NBA
-          one. Failing that, the app will read it with my own ESPN cookies from
-          env vars. And if it can&rsquo;t read the league either way, it falls back
-          to the whole night&rsquo;s public box scores, so the view always shows
-          something. NBA keeps its roster filter (fantasy player ids are just ESPN
-          athlete ids, so the intersection is free). Same engine, same page, one
-          sport toggle. NBA&rsquo;s off-season has no slate to show, so between
-          June and October the NBA view quietly falls back to season cards rather
-          than a bare empty page.
-        </p>
-        <p className="mt-3">
-          Card art is still the player&rsquo;s ESPN headshot — allowlisted in the
-          site&rsquo;s CSP, so it renders without loosening anything — with the
-          points, date, and opponent as the card&rsquo;s metadata. A photo from
-          that exact game is a harder sourcing problem, and its own later piece;
-          the card layout already has the slot.
-        </p>
-      </Section>
-
       <Section title="Why the economy isn&rsquo;t here yet">
         <p>
           Currency, pack inventory, owned cards, and pull history are all
@@ -178,20 +153,68 @@ export default function FantasyTcgContent() {
         </p>
       </Section>
 
+      <Update
+        id="update-sports"
+        date="Aug 22, 2026"
+        title="Nightly cards, three leagues, and history"
+      >
+        <p>
+          Season totals were the wrong unit. A card should be a single night:
+          &ldquo;36 points, this date, versus that team.&rdquo; So the default is
+          a slate — the most recent night rostered players played — from
+          ESPN&rsquo;s public scoreboard and box scores. Points sit at a
+          different column per sport (NBA last, WNBA second), so the code finds
+          the column by name and never hardcodes it. Discovery scans date-range
+          windows back from today, so the off-season isn&rsquo;t a dead end: in
+          August the NBA view lands on last June&rsquo;s Finals.
+        </p>
+        <p>
+          WNBA turned out to have a real ESPN fantasy game (<C>wfba</C>), so it
+          scopes to my roster when the league is public (or my cookies are set),
+          and otherwise falls back to the whole night&rsquo;s slate. NFL is
+          weekly and its metric is fantasy points, which the public box score
+          doesn&rsquo;t carry — so NFL reads the league itself per week, with a
+          picker across all 18. One engine, one page, a sport toggle.
+        </p>
+      </Update>
+
+      <Update
+        id="update-boosts"
+        date="Aug 22, 2026"
+        title="Rarity boosts for the moments that mattered"
+      >
+        <p>
+          Relative rarity is the base, but not every 20-point night is equal. A
+          card now bumps up a tier when the player&rsquo;s real team{" "}
+          <em>won</em>, another when it was a <em>playoff</em> game, and hardest
+          of all for a fantasy <em>playoff or finals</em> run — so a quiet Finals
+          night that ended in a win can still mint an SIR. Each shows as a badge,
+          alongside the fantasy team that rosters the player. Boosts never lift a
+          zero or negative outing, and they stack, capped at SIR.
+        </p>
+        <p>
+          The win and playoff signals come straight from the box score I already
+          fetch; the fantasy playoff/finals signal is wired through the engine
+          and tested, with sourcing it from the league&rsquo;s matchup view the
+          next step. Card art is still the ESPN headshot; the photo from that
+          exact game is a harder problem for later.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
-          "A pure, relative-rarity card generator, fully tested against synthetic pools rather than a live feed.",
-          "Nightly cards from real box scores — points, date, and opponent — for NBA (my fantasy roster) and WNBA (the whole slate).",
-          "A sport toggle, a rarity filter, and empty/error/loading states, with an off-season fallback to season cards for NBA.",
+          "A pure, relative-rarity engine with a boost layer (win, playoff, fantasy playoff/finals), fully tested against synthetic pools.",
+          "Real cards across three leagues: NBA and WNBA nightly from box scores, NFL weekly from fantasy scoring, with previous-season history.",
+          "A sport toggle, an NFL week picker, a rarity filter, roster-team and boost badges, and empty/error/loading states.",
         ]}
         couldImprove={[
-          "Card art is a generic headshot; the photo from that exact game the concept really wants isn't sourced yet.",
+          "The fantasy win/playoff/finals boost is wired but not yet fed from the league's matchup view, so it's dormant until that lands.",
           "There's no economy: no currency, no packs, no ripping, because there's nowhere yet to persist what people own.",
-          "A night with lots of games fans out into many box-score fetches; fine with caching, but a single feed would be cheaper.",
+          "Card art is a generic headshot; the photo from that exact game the concept really wants isn't sourced yet.",
         ]}
         upcoming={[
+          "Feed the fantasy-matchup boost from the league so a finals-week performance is automatically rarer.",
           "Wire per-user persistence so packs can be bought, ripped with the weighted odds already defined, and kept.",
-          "Source game-specific art so a card can show the shot, not just the headshot.",
         ]}
       />
     </ThoughtLayout>
