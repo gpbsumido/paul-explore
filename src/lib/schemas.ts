@@ -303,3 +303,18 @@ export const revertTodoBodySchema = z.object({
 export const todoCommentBodySchema = z.object({
   body: z.string().trim().min(1).max(4000),
 });
+
+/**
+ * POST /api/card-lab/packs/open — which slate to rip from. The BFF regenerates
+ * that slate server-side and draws the pack, so the client can't hand-pick its
+ * cards; it only names the view it's looking at.
+ */
+export const ripPackBodySchema = z.object({
+  sport: z.enum(["nba", "wnba", "nfl"]),
+  mode: z.enum(["nightly", "season"]).optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  week: z.number().int().min(1).max(25).optional(),
+});

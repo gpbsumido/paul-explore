@@ -43,6 +43,13 @@ const PAGES = [
       "ESPN fantasy basketball standings by season, with expandable rosters and a season selector.",
     color: ACCENT_BAND.gold,
   },
+  {
+    href: "/fantasy/nba/cards",
+    title: "Card Lab",
+    description:
+      "Every rostered player's season minted as a trading card, with rarity set by how they did relative to the pool.",
+    color: ACCENT_BAND.violet,
+  },
 ] as const;
 
 /** Landing hub for the fantasy NBA section: one entry point to all its pages. */

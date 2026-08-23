@@ -252,4 +252,12 @@ export const queryKeys = {
     /** The flag-change audit log, newest first. */
     audit: () => ["flags", "audit"] as const,
   },
+
+  cardLab: {
+    /** The signed-in user's coin wallet. */
+    wallet: () => ["card-lab", "wallet"] as const,
+
+    /** The signed-in user's pulled-card collection. */
+    collection: () => ["card-lab", "collection"] as const,
+  },
 } as const;
