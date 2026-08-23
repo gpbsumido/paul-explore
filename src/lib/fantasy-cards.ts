@@ -11,19 +11,23 @@ import { ACCENT_BAND } from "./accentBand";
 /** Card tiers, ordered least to most rare. */
 export type Rarity = "common" | "uncommon" | "rare" | "sir";
 
-/** Sports the generator knows how to source art for. NBA ships first. */
-export type Sport = "nba";
+/** Sports the generator knows how to source art for. */
+export type Sport = "nba" | "wnba";
 
 /** One player's scoring line for a single period, the engine's only input. */
 export interface PlayerPerformance {
   playerId: number;
   playerName: string;
-  /** Fantasy points for the period. Can be zero or negative. */
+  /** Points for the period. Can be zero or negative. */
   points: number;
-  /** Scoring period or week label, e.g. "2024-season" or "2024-wk12". */
+  /** Period id, e.g. "2024-season" (season) or "2026-04-17" (a single night). */
   periodId: string;
   sport: Sport;
   proTeamId?: number;
+  /** Opponent abbreviation for a nightly card, e.g. "PHX". Absent for season cards. */
+  opponent?: string;
+  /** Whether the game was at home. Only meaningful alongside `opponent`. */
+  home?: boolean;
 }
 
 /** A generated card, ready to render. */
@@ -38,10 +42,12 @@ export interface GeneratedCard {
   rarity: Rarity;
   /** Display heading, e.g. "Victor Wembanyama · 50 PTS". */
   title: string;
-  /** The period the card came from. */
+  /** Where the card came from: "Apr 17 vs PHX" nightly, or "2025 season". */
   subtitle: string;
   imageUrl: string;
   proTeamId?: number;
+  opponent?: string;
+  home?: boolean;
 }
 
 /** Display and pull metadata for each rarity. */
@@ -82,6 +88,33 @@ export function headshotUrl(sport: Sport, playerId: number): string {
   return `https://a.espncdn.com/i/headshots/${sport}/players/full/${playerId}.png`;
 }
 
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/**
+ * Turn an ISO date ("2026-04-17") into a short label ("Apr 17"). Anything that
+ * isn't a plain YYYY-MM-DD is returned unchanged, so a season id passes through.
+ * Pure, so it stays deterministic and testable without a Date.
+ */
+export function prettyGameDate(iso: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return iso;
+  const month = MONTHS[Number(match[2]) - 1];
+  if (!month) return iso;
+  return `${month} ${Number(match[3])}`;
+}
+
+/** "Apr 17 vs PHX" / "Apr 17 @ PHX" for a nightly card, else "2025 season". */
+function subtitleFor(performance: PlayerPerformance): string {
+  if (performance.opponent) {
+    const at = performance.home ? "vs" : "@";
+    return `${prettyGameDate(performance.periodId)} ${at} ${performance.opponent}`;
+  }
+  return performance.periodId.replace(/-season$/, " season");
+}
+
 /**
  * Rarity for one performance given its percentile within the pool. A zero or
  * negative outing never beats common, and a shallow pool can't mint an SIR.
@@ -109,9 +142,11 @@ function toCard(performance: PlayerPerformance, rarity: Rarity): GeneratedCard {
     sport: performance.sport,
     rarity,
     title: `${performance.playerName} · ${Math.round(performance.points)} PTS`,
-    subtitle: performance.periodId,
+    subtitle: subtitleFor(performance),
     imageUrl: headshotUrl(performance.sport, performance.playerId),
     proTeamId: performance.proTeamId,
+    opponent: performance.opponent,
+    home: performance.home,
   };
 }
 
