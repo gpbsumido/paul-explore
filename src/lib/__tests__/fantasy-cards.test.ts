@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   generateCards,
+  prettyGameDate,
   RARITY_META,
   headshotUrl,
   type PlayerPerformance,
@@ -107,5 +108,46 @@ describe("headshotUrl", () => {
     expect(headshotUrl("nba", 977)).toBe(
       "https://a.espncdn.com/i/headshots/nba/players/full/977.png",
     );
+  });
+});
+
+describe("prettyGameDate", () => {
+  it("turns an ISO date into a short label deterministically", () => {
+    expect(prettyGameDate("2026-04-17")).toBe("Apr 17");
+    expect(prettyGameDate("2025-12-01")).toBe("Dec 1");
+  });
+  it("passes through anything that isn't a plain date", () => {
+    expect(prettyGameDate("2025-season")).toBe("2025-season");
+  });
+});
+
+describe("generateCards game context", () => {
+  const nightly = (overrides: Partial<PlayerPerformance> = {}): PlayerPerformance => ({
+    playerId: 1,
+    playerName: "Home Star",
+    points: 41,
+    periodId: "2026-04-17",
+    sport: "nba",
+    opponent: "PHX",
+    home: true,
+    ...overrides,
+  });
+
+  it("gives a nightly card a 'date vs OPP' subtitle when home", () => {
+    const [card] = generateCards([nightly({ home: true })]);
+    expect(card.subtitle).toBe("Apr 17 vs PHX");
+    expect(card.opponent).toBe("PHX");
+  });
+
+  it("uses '@ OPP' when the game was away", () => {
+    const [card] = generateCards([nightly({ home: false })]);
+    expect(card.subtitle).toBe("Apr 17 @ PHX");
+  });
+
+  it("keeps a readable season subtitle when there is no opponent", () => {
+    const [card] = generateCards([
+      { playerId: 2, playerName: "Season Guy", points: 500, periodId: "2025-season", sport: "nba" },
+    ]);
+    expect(card.subtitle).toBe("2025 season");
   });
 });

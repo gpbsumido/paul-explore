@@ -1,0 +1,118 @@
+import { describe, it, expect } from "vitest";
+import {
+  pointsIndex,
+  completedEventIds,
+  performancesFromBoxscore,
+} from "../espn-boxscore";
+
+const NBA_KEYS = [
+  "minutes", "points", "fieldGoalsMade-fieldGoalsAttempted",
+  "threePointFieldGoalsMade-threePointFieldGoalsAttempted",
+];
+const WNBA_TAIL_KEYS = ["minutes", "rebounds", "assists", "points"];
+
+/** A minimal ESPN summary payload with two teams and given athlete lines. */
+const summary = () => ({
+  header: {
+    competitions: [
+      {
+        competitors: [
+          { id: "19", homeAway: "home", team: { abbreviation: "ORL" } },
+          { id: "30", homeAway: "away", team: { abbreviation: "CHA" } },
+        ],
+      },
+    ],
+  },
+  boxscore: {
+    players: [
+      {
+        team: { id: "19", abbreviation: "ORL" },
+        statistics: [
+          {
+            keys: NBA_KEYS,
+            athletes: [
+              { athlete: { id: "111", displayName: "Home Star" }, didNotPlay: false, stats: ["36", "41", "14-20", "5-9"] },
+              { athlete: { id: "112", displayName: "Bench DNP" }, didNotPlay: true, stats: [] },
+            ],
+          },
+        ],
+      },
+      {
+        team: { id: "30", abbreviation: "CHA" },
+        statistics: [
+          {
+            keys: NBA_KEYS,
+            athletes: [
+              { athlete: { id: "113", displayName: "Away Guy" }, didNotPlay: false, stats: ["30", "12", "5-12", "1-4"] },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+});
+
+describe("pointsIndex", () => {
+  it("finds points regardless of column order", () => {
+    expect(pointsIndex(NBA_KEYS)).toBe(1);
+    expect(pointsIndex(WNBA_TAIL_KEYS)).toBe(3);
+  });
+  it("returns -1 when there is no points column", () => {
+    expect(pointsIndex(["minutes", "rebounds"])).toBe(-1);
+  });
+});
+
+describe("completedEventIds", () => {
+  it("returns only games that have finished", () => {
+    const scoreboard = {
+      events: [
+        { id: "1", status: { type: { state: "post" } } },
+        { id: "2", status: { type: { state: "in" } } },
+        { id: "3", status: { type: { state: "pre" } } },
+        { id: "4", status: { type: { state: "post" } } },
+      ],
+    };
+    expect(completedEventIds(scoreboard)).toEqual(["1", "4"]);
+  });
+  it("returns [] for a payload that isn't a scoreboard", () => {
+    expect(completedEventIds({ nope: true })).toEqual([]);
+  });
+});
+
+describe("performancesFromBoxscore", () => {
+  it("maps points, opponent, and home/away from the summary", () => {
+    const perfs = performancesFromBoxscore(summary(), { sport: "nba", date: "2026-04-17" });
+    const star = perfs.find((p) => p.playerId === 111);
+    expect(star?.points).toBe(41);
+    expect(star?.opponent).toBe("CHA");
+    expect(star?.home).toBe(true);
+    expect(star?.periodId).toBe("2026-04-17");
+    expect(star?.sport).toBe("nba");
+    const away = perfs.find((p) => p.playerId === 113);
+    expect(away?.opponent).toBe("ORL");
+    expect(away?.home).toBe(false);
+  });
+
+  it("skips athletes who did not play", () => {
+    const perfs = performancesFromBoxscore(summary(), { sport: "nba", date: "2026-04-17" });
+    expect(perfs.some((p) => p.playerId === 112)).toBe(false);
+  });
+
+  it("filters to the roster when ids are given (NBA)", () => {
+    const perfs = performancesFromBoxscore(summary(), {
+      sport: "nba",
+      date: "2026-04-17",
+      rosterIds: new Set([111]),
+    });
+    expect(perfs.map((p) => p.playerId)).toEqual([111]);
+  });
+
+  it("keeps every player when no roster is given (WNBA)", () => {
+    const perfs = performancesFromBoxscore(summary(), { sport: "wnba", date: "2026-08-19" });
+    expect(perfs.map((p) => p.playerId).sort()).toEqual([111, 113]);
+  });
+
+  it("returns [] for a payload that isn't a summary", () => {
+    expect(performancesFromBoxscore({ bad: 1 }, { sport: "nba", date: "2026-04-17" })).toEqual([]);
+  });
+});
