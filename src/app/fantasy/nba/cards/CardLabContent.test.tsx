@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CardLabContent from "./CardLabContent";
 import type { GeneratedCard } from "@/lib/fantasy-cards";
@@ -20,6 +20,7 @@ const card = (o: Partial<GeneratedCard> = {}): GeneratedCard => ({
   imageUrl: "https://a.espncdn.com/i/headshots/nba/players/full/1.png",
   opponent: "PHX",
   home: true,
+  boosts: [],
   ...o,
 });
 
@@ -43,6 +44,19 @@ describe("CardLabContent", () => {
   it("shows the opponent and date on a nightly card", () => {
     render(<CardLabContent {...base} cards={[card({ subtitle: "Apr 17 vs PHX" })]} />);
     expect(screen.getByText("Apr 17 vs PHX")).toBeInTheDocument();
+  });
+
+  it("shows boost badges on a card that earned them", () => {
+    render(
+      <CardLabContent
+        {...base}
+        cards={[card({ boosts: ["Won", "Playoffs", "Team Paul"] })]}
+      />,
+    );
+    const article = screen.getByRole("article");
+    expect(within(article).getByText("Won")).toBeInTheDocument();
+    expect(within(article).getByText("Playoffs")).toBeInTheDocument();
+    expect(within(article).getByText("Team Paul")).toBeInTheDocument();
   });
 
   it("offers a sport toggle linking to NBA and WNBA", () => {

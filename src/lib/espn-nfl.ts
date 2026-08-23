@@ -30,7 +30,12 @@ const entrySchema = z.object({
 const leagueSchema = z.object({
   status: z.object({ latestScoringPeriod: z.number().optional() }).optional(),
   teams: z
-    .array(z.object({ roster: z.object({ entries: z.array(z.unknown()) }).optional() }))
+    .array(
+      z.object({
+        name: z.string().optional(),
+        roster: z.object({ entries: z.array(z.unknown()) }).optional(),
+      }),
+    )
     .optional(),
 });
 
@@ -68,6 +73,7 @@ export function performancesFromWeek(
         periodId: `${season}-wk${week}`,
         sport: "nfl",
         proTeamId: player.proTeamId,
+        rosteredBy: team.name || undefined,
       });
     }
   }

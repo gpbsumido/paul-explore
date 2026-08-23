@@ -12,7 +12,7 @@ import { ACCENT_BAND } from "./accentBand";
 export type Rarity = "common" | "uncommon" | "rare" | "sir";
 
 /** Sports the generator knows how to source art for. */
-export type Sport = "nba" | "wnba";
+export type Sport = "nba" | "wnba" | "nfl";
 
 /** One player's scoring line for a single period, the engine's only input. */
 export interface PlayerPerformance {
@@ -28,6 +28,15 @@ export interface PlayerPerformance {
   opponent?: string;
   /** Whether the game was at home. Only meaningful alongside `opponent`. */
   home?: boolean;
+  /** Rarity-boost signals — a card is rarer when the moment mattered more. */
+  /** The player's real team won that game. */
+  wonGame?: boolean;
+  /** A real playoff/postseason game. */
+  playoff?: boolean;
+  /** The fantasy team that rostered the player (shown as a badge). */
+  rosteredBy?: string;
+  /** The roster owner's fantasy matchup context that period. */
+  fantasyResult?: "win" | "playoff" | "finals";
 }
 
 /** A generated card, ready to render. */
@@ -48,6 +57,8 @@ export interface GeneratedCard {
   proTeamId?: number;
   opponent?: string;
   home?: boolean;
+  /** Badge labels for the boosts that made this card rarer (or the roster team). */
+  boosts: string[];
 }
 
 /** Display and pull metadata for each rarity. */
@@ -106,12 +117,17 @@ export function prettyGameDate(iso: string): string {
   return `${month} ${Number(match[3])}`;
 }
 
-/** "Apr 17 vs PHX" / "Apr 17 @ PHX" for a nightly card, else "2025 season". */
+/**
+ * Card subtitle: "Apr 17 vs PHX" nightly, "Week 5, 2025" for an NFL week, or
+ * "2025 season" for a season card.
+ */
 function subtitleFor(performance: PlayerPerformance): string {
   if (performance.opponent) {
     const at = performance.home ? "vs" : "@";
     return `${prettyGameDate(performance.periodId)} ${at} ${performance.opponent}`;
   }
+  const week = /^(\d{4})-wk(\d+)$/.exec(performance.periodId);
+  if (week) return `Week ${Number(week[2])}, ${week[1]}`;
   return performance.periodId.replace(/-season$/, " season");
 }
 
@@ -132,7 +148,58 @@ function rarityFor(points: number, percentile: number, poolSize: number): Rarity
   return tier === "sir" && poolSize < MIN_POOL_FOR_SIR ? "rare" : tier;
 }
 
-function toCard(performance: PlayerPerformance, rarity: Rarity): GeneratedCard {
+/** Rarity tiers in order, for boosting a card up by whole tiers. */
+const RARITY_TIERS: Rarity[] = ["common", "uncommon", "rare", "sir"];
+
+/** How many tiers each fantasy-matchup context is worth. */
+const FANTASY_BOOST: Record<NonNullable<PlayerPerformance["fantasyResult"]>, number> = {
+  win: 1,
+  playoff: 2,
+  finals: 3,
+};
+
+/**
+ * A card is rarer when the moment mattered more: the team won, it was a playoff
+ * game, or the roster owner was winning/deep in their fantasy season. Returns
+ * the tier bump and the badge labels. The rostering team shows as a badge but
+ * doesn't move rarity — every roster card has one, so it can't differentiate.
+ * A zero or negative outing earns no boost.
+ */
+function boostsFor(performance: PlayerPerformance): { tiers: number; labels: string[] } {
+  const labels: string[] = [];
+  if (performance.rosteredBy) labels.push(performance.rosteredBy);
+  if (performance.points <= 0) return { tiers: 0, labels };
+
+  let tiers = 0;
+  if (performance.wonGame) {
+    tiers += 1;
+    labels.push("Won");
+  }
+  if (performance.playoff) {
+    tiers += 1;
+    labels.push("Playoffs");
+  }
+  if (performance.fantasyResult) {
+    tiers += FANTASY_BOOST[performance.fantasyResult];
+    labels.push(
+      performance.fantasyResult === "finals"
+        ? "Fantasy Finals"
+        : performance.fantasyResult === "playoff"
+          ? "Fantasy Playoffs"
+          : "Fantasy W",
+    );
+  }
+  return { tiers, labels };
+}
+
+/** Upgrade a rarity by whole tiers, capped at SIR. */
+function boostRarity(base: Rarity, tiers: number): Rarity {
+  const i = Math.min(RARITY_TIERS.length - 1, RARITY_TIERS.indexOf(base) + tiers);
+  return RARITY_TIERS[i];
+}
+
+function toCard(performance: PlayerPerformance, baseRarity: Rarity): GeneratedCard {
+  const { tiers, labels } = boostsFor(performance);
   return {
     id: `${performance.sport}-${performance.playerId}-${performance.periodId}`,
     playerId: performance.playerId,
@@ -140,13 +207,14 @@ function toCard(performance: PlayerPerformance, rarity: Rarity): GeneratedCard {
     points: performance.points,
     periodId: performance.periodId,
     sport: performance.sport,
-    rarity,
+    rarity: boostRarity(baseRarity, tiers),
     title: `${performance.playerName} · ${Math.round(performance.points)} PTS`,
     subtitle: subtitleFor(performance),
     imageUrl: headshotUrl(performance.sport, performance.playerId),
     proTeamId: performance.proTeamId,
     opponent: performance.opponent,
     home: performance.home,
+    boosts: labels,
   };
 }
 

@@ -110,6 +110,39 @@ export function performancesFromLeague(
   return performances;
 }
 
+const rosterEntryIdSchema = z.object({
+  playerPoolEntry: z.object({ player: z.object({ id: z.number() }) }),
+});
+
+const rosterMapSchema = z.object({
+  teams: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        roster: z.object({ entries: z.array(z.unknown()) }).optional(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * Map of ESPN player id → the fantasy team name that rosters them. Used to
+ * scope a slate to rostered players and to stamp each card with its owner.
+ */
+export function rostersByPlayer(payload: unknown): Map<number, string> {
+  const map = new Map<number, string>();
+  const parsed = rosterMapSchema.safeParse(payload);
+  if (!parsed.success) return map;
+  for (const team of parsed.data.teams ?? []) {
+    const name = team.name ?? "";
+    for (const raw of team.roster?.entries ?? []) {
+      const entry = rosterEntryIdSchema.safeParse(raw);
+      if (entry.success) map.set(entry.data.playerPoolEntry.player.id, name);
+    }
+  }
+  return map;
+}
+
 /** Convenience: league payload straight to generated cards. */
 export function cardsFromLeaguePayload(
   payload: unknown,

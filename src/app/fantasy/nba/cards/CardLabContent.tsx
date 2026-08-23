@@ -106,6 +106,18 @@ function Card({ card }: { card: GeneratedCard }) {
           {card.playerName}
         </h3>
         <p className="text-[11px] text-muted">{card.subtitle}</p>
+        {card.boosts.length > 0 && (
+          <ul className="mt-1.5 flex flex-wrap gap-1">
+            {card.boosts.map((b) => (
+              <li
+                key={b}
+                className="rounded border border-border bg-surface px-1.5 py-0.5 text-[9px] font-medium text-muted"
+              >
+                {b}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </article>
   );

@@ -13,13 +13,14 @@ const NBA_KEYS = [
 const WNBA_TAIL_KEYS = ["minutes", "rebounds", "assists", "points"];
 
 /** A minimal ESPN summary payload with two teams and given athlete lines. */
-const summary = () => ({
+const summary = (seasonType = 2) => ({
   header: {
+    season: { type: seasonType },
     competitions: [
       {
         competitors: [
-          { id: "19", homeAway: "home", team: { abbreviation: "ORL" } },
-          { id: "30", homeAway: "away", team: { abbreviation: "CHA" } },
+          { id: "19", homeAway: "home", winner: true, team: { abbreviation: "ORL" } },
+          { id: "30", homeAway: "away", winner: false, team: { abbreviation: "CHA" } },
         ],
       },
     ],
@@ -114,17 +115,26 @@ describe("latestCompletedSlate", () => {
 });
 
 describe("performancesFromBoxscore", () => {
-  it("maps points, opponent, and home/away from the summary", () => {
+  it("maps points, opponent, home/away, and who won from the summary", () => {
     const perfs = performancesFromBoxscore(summary(), { sport: "nba", date: "2026-04-17" });
     const star = perfs.find((p) => p.playerId === 111);
     expect(star?.points).toBe(41);
     expect(star?.opponent).toBe("CHA");
     expect(star?.home).toBe(true);
+    expect(star?.wonGame).toBe(true);
     expect(star?.periodId).toBe("2026-04-17");
     expect(star?.sport).toBe("nba");
     const away = perfs.find((p) => p.playerId === 113);
     expect(away?.opponent).toBe("ORL");
     expect(away?.home).toBe(false);
+    expect(away?.wonGame).toBe(false);
+  });
+
+  it("marks a postseason game as a playoff", () => {
+    const reg = performancesFromBoxscore(summary(2), { sport: "nba", date: "2026-04-17" });
+    const post = performancesFromBoxscore(summary(3), { sport: "nba", date: "2026-06-14" });
+    expect(reg[0].playoff).toBe(false);
+    expect(post[0].playoff).toBe(true);
   });
 
   it("skips athletes who did not play", () => {
@@ -132,18 +142,20 @@ describe("performancesFromBoxscore", () => {
     expect(perfs.some((p) => p.playerId === 112)).toBe(false);
   });
 
-  it("filters to the roster when ids are given (NBA)", () => {
+  it("filters to the roster and stamps the owning team (NBA)", () => {
     const perfs = performancesFromBoxscore(summary(), {
       sport: "nba",
       date: "2026-04-17",
-      rosterIds: new Set([111]),
+      roster: new Map([[111, "Team Paul"]]),
     });
     expect(perfs.map((p) => p.playerId)).toEqual([111]);
+    expect(perfs[0].rosteredBy).toBe("Team Paul");
   });
 
-  it("keeps every player when no roster is given (WNBA)", () => {
+  it("keeps every player and stamps no team when no roster is given (WNBA)", () => {
     const perfs = performancesFromBoxscore(summary(), { sport: "wnba", date: "2026-08-19" });
     expect(perfs.map((p) => p.playerId).sort()).toEqual([111, 113]);
+    expect(perfs[0].rosteredBy).toBeUndefined();
   });
 
   it("returns [] for a payload that isn't a summary", () => {

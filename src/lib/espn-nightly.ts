@@ -4,7 +4,7 @@
  * parsers in espn-boxscore.ts and the engine in fantasy-cards.ts.
  */
 import { fetchUpstream } from "./upstream";
-import { performancesFromLeague, fantasyLeagueUrl } from "./espn-performances";
+import { rostersByPlayer, fantasyLeagueUrl } from "./espn-performances";
 import { latestCompletedSlate, performancesFromBoxscore } from "./espn-boxscore";
 import { generateCards, type GeneratedCard, type Sport } from "./fantasy-cards";
 
@@ -77,13 +77,13 @@ async function slateToCards(
   sport: Sport,
   date: string,
   eventIds: string[],
-  roster: Set<number> | undefined,
+  roster: Map<number, string> | undefined,
 ): Promise<GeneratedCard[]> {
   const summaries = await Promise.all(
     eventIds.map((id) => fetchJson(summaryUrl(sport, id))),
   );
   const performances = summaries.flatMap((s) =>
-    s ? performancesFromBoxscore(s, { sport, date, rosterIds: roster }) : [],
+    s ? performancesFromBoxscore(s, { sport, date, roster }) : [],
   );
   return generateCards(performances);
 }
@@ -96,18 +96,18 @@ function rosterSeason(sport: Sport, fallback: string): string {
 }
 
 /**
- * The fantasy roster's ESPN player ids for a sport, or undefined if the league
- * can't be read (public NBA league down, or private WNBA league without cookies)
- * — in which case the caller shows the whole slate instead.
+ * Map of the fantasy roster's ESPN player ids → owning team name, or undefined
+ * if the league can't be read (public NBA league down, or private WNBA league
+ * without cookies) — in which case the caller shows the whole slate instead.
  */
-async function rosterIds(sport: Sport, season: string): Promise<Set<number> | undefined> {
+async function rosterMap(sport: Sport, season: string): Promise<Map<number, string> | undefined> {
   const league = await fetchJson(
     fantasyLeagueUrl(sport, rosterSeason(sport, season)),
     espnAuthHeaders(),
   );
   if (!league) return undefined;
-  const ids = performancesFromLeague(league, { season }).map((p) => p.playerId);
-  return ids.length > 0 ? new Set(ids) : undefined;
+  const map = rostersByPlayer(league);
+  return map.size > 0 ? map : undefined;
 }
 
 export interface NightlySlate {
@@ -131,7 +131,7 @@ export async function loadNightlySlate({
   season: string;
   date?: string;
 }): Promise<NightlySlate> {
-  const roster = await rosterIds(sport, season);
+  const roster = await rosterMap(sport, season);
 
   // An explicit date: read just that day.
   if (date) {

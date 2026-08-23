@@ -158,3 +158,63 @@ describe("generateCards game context", () => {
     expect(card.subtitle).toBe("Week 5, 2025");
   });
 });
+
+describe("rarity boosts", () => {
+  // A five-player pool where playerId 1 (1 pt) is a plain common at the floor.
+  const boosted = (extra: Partial<PlayerPerformance>): PlayerPerformance[] => [
+    { playerId: 1, playerName: "Low", points: 1, periodId: "2026-04-17", sport: "nba", ...extra },
+    ...[2, 3, 4, 5].map((id) => ({
+      playerId: id,
+      playerName: `P${id}`,
+      points: id * 5,
+      periodId: "2026-04-17",
+      sport: "nba" as const,
+    })),
+  ];
+  const low = (cards: ReturnType<typeof generateCards>) => cards.find((c) => c.playerId === 1)!;
+
+  it("has no boosts and unchanged rarity by default", () => {
+    const card = low(generateCards(boosted({})));
+    expect(card.rarity).toBe("common");
+    expect(card.boosts).toEqual([]);
+  });
+
+  it("bumps a tier when the real team won the game", () => {
+    const card = low(generateCards(boosted({ wonGame: true })));
+    expect(card.rarity).toBe("uncommon");
+    expect(card.boosts).toContain("Won");
+  });
+
+  it("bumps a tier for a real playoff game", () => {
+    const card = low(generateCards(boosted({ playoff: true })));
+    expect(card.rarity).toBe("uncommon");
+    expect(card.boosts).toContain("Playoffs");
+  });
+
+  it("boosts a fantasy finals performance hardest, up to three tiers", () => {
+    const card = low(generateCards(boosted({ fantasyResult: "finals" })));
+    expect(card.rarity).toBe("sir");
+    expect(card.boosts).toContain("Fantasy Finals");
+  });
+
+  it("shows the rostering fantasy team as a badge without changing rarity", () => {
+    const card = low(generateCards(boosted({ rosteredBy: "Team Paul" })));
+    expect(card.rarity).toBe("common");
+    expect(card.boosts).toContain("Team Paul");
+  });
+
+  it("caps stacked boosts at SIR", () => {
+    const card = low(
+      generateCards(boosted({ wonGame: true, playoff: true, fantasyResult: "finals" })),
+    );
+    expect(card.rarity).toBe("sir");
+  });
+
+  it("does not boost a zero or negative outing", () => {
+    const cards = generateCards([
+      { playerId: 1, playerName: "DNP", points: 0, periodId: "2026-04-17", sport: "nba", wonGame: true, fantasyResult: "finals" },
+      { playerId: 2, playerName: "P2", points: 20, periodId: "2026-04-17", sport: "nba" },
+    ]);
+    expect(cards.find((c) => c.playerId === 1)!.rarity).toBe("common");
+  });
+});

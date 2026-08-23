@@ -58,6 +58,7 @@ export function latestCompletedSlate(
 const competitorSchema = z.object({
   id: z.string(),
   homeAway: z.string(),
+  winner: z.boolean().optional(),
   team: z.object({ abbreviation: z.string() }),
 });
 
@@ -76,26 +77,37 @@ const teamPlayersSchema = z.object({
 
 const summarySchema = z.object({
   header: z.object({
+    season: z.object({ type: z.number().optional() }).optional(),
     competitions: z.array(z.object({ competitors: z.array(competitorSchema) })),
   }),
   boxscore: z.object({ players: z.array(teamPlayersSchema) }),
 });
 
+/** ESPN season types that count as postseason (3 = playoffs, 5 = play-in). */
+const PLAYOFF_SEASON_TYPES = new Set([3, 5]);
+
 /**
- * Every player's line from one game's box score, as performances for `date`.
- * Pass `rosterIds` to keep only those players (NBA, scoped to a fantasy roster);
- * omit it to keep everyone (WNBA, the whole slate).
+ * Every player's line from one game's box score, as performances for `date`,
+ * with the boost signals the card engine reads: whether the team won, whether
+ * it was a playoff game, and (from `roster`) which fantasy team owns the player.
+ * Pass `roster` (playerId → fantasy team name) to keep only rostered players
+ * (NBA); omit it to keep everyone (WNBA, the whole slate).
  */
 export function performancesFromBoxscore(
   summary: unknown,
-  { sport, date, rosterIds }: { sport: Sport; date: string; rosterIds?: ReadonlySet<number> },
+  { sport, date, roster }: { sport: Sport; date: string; roster?: ReadonlyMap<number, string> },
 ): PlayerPerformance[] {
   const parsed = summarySchema.safeParse(summary);
   if (!parsed.success) return [];
 
-  const competitors = parsed.data.header.competitions[0]?.competitors ?? [];
+  const competition = parsed.data.header.competitions[0];
+  const competitors = competition?.competitors ?? [];
+  const playoff = PLAYOFF_SEASON_TYPES.has(parsed.data.header.season?.type ?? 0);
   const byTeamId = new Map(
-    competitors.map((c) => [c.id, { home: c.homeAway === "home", abbrev: c.team.abbreviation }]),
+    competitors.map((c) => [
+      c.id,
+      { home: c.homeAway === "home", abbrev: c.team.abbreviation, won: c.winner === true },
+    ]),
   );
 
   const performances: PlayerPerformance[] = [];
@@ -112,7 +124,7 @@ export function performancesFromBoxscore(
     for (const line of block.athletes) {
       if (line.didNotPlay) continue;
       const playerId = Number(line.athlete.id);
-      if (rosterIds && !rosterIds.has(playerId)) continue;
+      if (roster && !roster.has(playerId)) continue;
       const points = Number(line.stats[idx]);
       if (!Number.isFinite(points)) continue;
       performances.push({
@@ -123,6 +135,9 @@ export function performancesFromBoxscore(
         sport,
         opponent,
         home: mine.home,
+        wonGame: mine.won,
+        playoff,
+        rosteredBy: roster?.get(playerId) || undefined,
       });
     }
   }
