@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   performancesFromLeague,
   cardsFromLeaguePayload,
+  fantasyLeagueUrl,
+  FANTASY_LEAGUES,
 } from "../espn-performances";
 
 /** One roster entry in ESPN's mRoster shape, with a projection to ignore and an actual to read. */
@@ -55,6 +57,20 @@ describe("performancesFromLeague", () => {
     expect(
       performancesFromLeague({ error: "not authorized" }, { season: "2024" }),
     ).toEqual([]);
+  });
+});
+
+describe("fantasyLeagueUrl", () => {
+  it("builds the NBA (fba) league url", () => {
+    const url = fantasyLeagueUrl("nba", "2026");
+    expect(url).toContain("/games/fba/seasons/2026/");
+    expect(url).toContain(`/leagues/${FANTASY_LEAGUES.nba.leagueId}`);
+  });
+
+  it("builds the WNBA (wfba) league url", () => {
+    const url = fantasyLeagueUrl("wnba", "2026");
+    expect(url).toContain("/games/wfba/seasons/2026/");
+    expect(url).toContain("/leagues/886603882");
   });
 });
 

@@ -4,7 +4,7 @@
  * parsers in espn-boxscore.ts and the engine in fantasy-cards.ts.
  */
 import { fetchUpstream } from "./upstream";
-import { performancesFromLeague, nbaFantasyLeagueUrl } from "./espn-performances";
+import { performancesFromLeague, fantasyLeagueUrl } from "./espn-performances";
 import { completedEventIds, performancesFromBoxscore } from "./espn-boxscore";
 import { generateCards, type GeneratedCard, type Sport } from "./fantasy-cards";
 
@@ -21,14 +21,30 @@ export function summaryUrl(sport: Sport, eventId: string): string {
   return `${BASE}/${sport}/summary?event=${eventId}`;
 }
 
-async function fetchJson(url: string): Promise<unknown | null> {
-  const result = await fetchUpstream(url, { next: { revalidate: 3600 } });
+async function fetchJson(
+  url: string,
+  headers?: Record<string, string>,
+): Promise<unknown | null> {
+  const result = await fetchUpstream(url, { next: { revalidate: 3600 }, headers });
   if (!result.ok || !result.response.ok) return null;
   try {
     return await result.response.json();
   } catch {
     return null;
   }
+}
+
+/**
+ * The ESPN auth cookie for reading a private fantasy league, from env. Both
+ * `ESPN_S2` and `ESPN_SWID` must be set; the values never leave the server.
+ * Returns undefined when unset, so a private league simply degrades to the
+ * public slate rather than erroring.
+ */
+function espnAuthHeaders(): Record<string, string> | undefined {
+  const s2 = process.env.ESPN_S2;
+  const swid = process.env.ESPN_SWID;
+  if (!s2 || !swid) return undefined;
+  return { Cookie: `espn_s2=${s2}; SWID=${swid}` };
 }
 
 /** Today and the previous days, as ISO dates, most recent first. */
@@ -42,9 +58,23 @@ function recentDates(count: number): string[] {
   });
 }
 
-/** The fantasy roster's ESPN player ids, or undefined if the league can't be read. */
-async function nbaRosterIds(season: string): Promise<Set<number> | undefined> {
-  const league = await fetchJson(nbaFantasyLeagueUrl(season));
+/** The season id to read a sport's league roster from. */
+function rosterSeason(sport: Sport, fallback: string): string {
+  // The WNBA season runs inside one calendar year; the NBA route already passes
+  // a season, so keep using it.
+  return sport === "wnba" ? String(new Date().getUTCFullYear()) : fallback;
+}
+
+/**
+ * The fantasy roster's ESPN player ids for a sport, or undefined if the league
+ * can't be read (public NBA league down, or private WNBA league without cookies)
+ * — in which case the caller shows the whole slate instead.
+ */
+async function rosterIds(sport: Sport, season: string): Promise<Set<number> | undefined> {
+  const league = await fetchJson(
+    fantasyLeagueUrl(sport, rosterSeason(sport, season)),
+    espnAuthHeaders(),
+  );
   if (!league) return undefined;
   const ids = performancesFromLeague(league, { season }).map((p) => p.playerId);
   return ids.length > 0 ? new Set(ids) : undefined;
@@ -71,7 +101,7 @@ export async function loadNightlySlate({
   season: string;
   date?: string;
 }): Promise<NightlySlate> {
-  const rosterIds = sport === "nba" ? await nbaRosterIds(season) : undefined;
+  const roster = await rosterIds(sport, season);
   const candidates = date ? [date] : recentDates(LOOKBACK_DAYS);
 
   for (const day of candidates) {
@@ -83,7 +113,7 @@ export async function loadNightlySlate({
       eventIds.map((id) => fetchJson(summaryUrl(sport, id))),
     );
     const performances = summaries.flatMap((s) =>
-      s ? performancesFromBoxscore(s, { sport, date: day, rosterIds }) : [],
+      s ? performancesFromBoxscore(s, { sport, date: day, rosterIds: roster }) : [],
     );
     if (performances.length === 0) continue;
 

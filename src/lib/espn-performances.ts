@@ -8,6 +8,7 @@ import {
   generateCards,
   type GeneratedCard,
   type PlayerPerformance,
+  type Sport,
 } from "./fantasy-cards";
 
 const statSchema = z.object({
@@ -37,12 +38,32 @@ const leagueSchema = z.object({
     .optional(),
 });
 
-/** The ESPN fantasy basketball league this site reads. */
-const LEAGUE_ID = 449389534;
+/** An ESPN fantasy league: the game code and the league id to read. */
+export interface LeagueConfig {
+  /** ESPN game code: fba = men's basketball, wfba = women's basketball. */
+  game: string;
+  leagueId: number;
+}
 
-/** The ESPN read endpoint for the league's teams, rosters, and settings. */
+/**
+ * The fantasy leagues this site reads, per sport. The NBA league is public; the
+ * WNBA league is private, so reading its roster needs ESPN auth cookies (see
+ * espn-nightly.ts) and otherwise degrades to the whole night's public slate.
+ */
+export const FANTASY_LEAGUES: Record<Sport, LeagueConfig> = {
+  nba: { game: "fba", leagueId: 449389534 },
+  wnba: { game: "wfba", leagueId: 886603882 },
+};
+
+/** The ESPN read endpoint for a league's teams, rosters, and settings. */
+export function fantasyLeagueUrl(sport: Sport, season: string): string {
+  const { game, leagueId } = FANTASY_LEAGUES[sport];
+  return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${game}/seasons/${season}/segments/0/leagues/${leagueId}?view=mTeam&view=mRoster&view=mSettings`;
+}
+
+/** The NBA league url, kept for the season Card Lab route. */
 export function nbaFantasyLeagueUrl(season: string): string {
-  return `https://lm-api-reads.fantasy.espn.com/apis/v3/games/fba/seasons/${season}/segments/0/leagues/${LEAGUE_ID}?view=mTeam&view=mRoster&view=mSettings`;
+  return fantasyLeagueUrl("nba", season);
 }
 
 type Stat = z.infer<typeof statSchema>;
