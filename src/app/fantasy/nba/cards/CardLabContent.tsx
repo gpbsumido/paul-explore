@@ -55,7 +55,8 @@ function Card({ card }: { card: GeneratedCard }) {
   const meta = RARITY_META[card.rarity];
   return (
     <article
-      className={`glass-card flex h-full flex-col overflow-hidden rounded-xl border-2 ${meta.className}`}
+      className="glass-card flex h-full flex-col overflow-hidden rounded-xl border-2"
+      style={{ borderColor: meta.color }}
       aria-label={`${card.title}, ${meta.label}`}
     >
       <div className="aspect-[2.5/3.5] w-full overflow-hidden bg-surface">
@@ -64,7 +65,8 @@ function Card({ card }: { card: GeneratedCard }) {
       <div className="flex flex-1 flex-col gap-1 p-3">
         <div className="flex items-center justify-between gap-2">
           <span
-            className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${meta.className}`}
+            className="rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+            style={{ color: meta.color, borderColor: meta.color }}
           >
             {meta.label}
           </span>

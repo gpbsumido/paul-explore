@@ -6,6 +6,7 @@
  * quiet week earns a plain card. The engine is pure and sport-agnostic; the
  * ESPN wiring lives in espn-performances.ts.
  */
+import { ACCENT_BAND } from "./accentBand";
 
 /** Card tiers, ordered least to most rare. */
 export type Rarity = "common" | "uncommon" | "rare" | "sir";
@@ -46,8 +47,11 @@ export interface GeneratedCard {
 /** Display and pull metadata for each rarity. */
 export interface RarityMeta {
   label: string;
-  /** Tailwind border/text classes, dark-mode aware. */
-  className: string;
+  /**
+   * Accent colour for the card border and rarity badge, applied inline. A theme-
+   * neutral CSS colour (an in-band accent, or a token var), rarer tiers warmer.
+   */
+  color: string;
   /**
    * Relative pull weight for the future pack-ripping economy. Strictly
    * decreasing by rarity, so an SIR is the hardest card to pull.
@@ -56,30 +60,10 @@ export interface RarityMeta {
 }
 
 export const RARITY_META: Record<Rarity, RarityMeta> = {
-  common: {
-    label: "Common",
-    className:
-      "border-neutral-300 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300",
-    pullWeight: 60,
-  },
-  uncommon: {
-    label: "Uncommon",
-    className:
-      "border-emerald-400 text-emerald-700 dark:border-emerald-500 dark:text-emerald-300",
-    pullWeight: 25,
-  },
-  rare: {
-    label: "Rare",
-    className:
-      "border-sky-400 text-sky-700 dark:border-sky-500 dark:text-sky-300",
-    pullWeight: 12,
-  },
-  sir: {
-    label: "SIR",
-    className:
-      "border-amber-400 text-amber-700 dark:border-amber-500 dark:text-amber-300",
-    pullWeight: 3,
-  },
+  common: { label: "Common", color: "var(--color-muted)", pullWeight: 60 },
+  uncommon: { label: "Uncommon", color: ACCENT_BAND.sea, pullWeight: 25 },
+  rare: { label: "Rare", color: ACCENT_BAND.azure, pullWeight: 12 },
+  sir: { label: "SIR", color: ACCENT_BAND.gold, pullWeight: 3 },
 };
 
 /** Percentile above which a performance earns each tier. */

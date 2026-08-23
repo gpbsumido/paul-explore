@@ -94,10 +94,10 @@ describe("RARITY_META", () => {
     }
   });
 
-  it("gives every rarity a label and a style class", () => {
+  it("gives every rarity a label and an accent colour", () => {
     for (const r of Object.keys(RANK) as Rarity[]) {
       expect(RARITY_META[r].label.length).toBeGreaterThan(0);
-      expect(RARITY_META[r].className.length).toBeGreaterThan(0);
+      expect(RARITY_META[r].color.length).toBeGreaterThan(0);
     }
   });
 });
