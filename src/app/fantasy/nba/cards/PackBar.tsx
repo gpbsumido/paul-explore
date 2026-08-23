@@ -50,8 +50,14 @@ export default function PackBar({ slate }: { slate: RipSlate }) {
           week: slate.week ?? undefined,
         }),
       });
-      if (res.status === 402) throw new Error("Not enough coins — claim your daily first.");
-      if (!res.ok) throw new Error("Couldn't open a pack right now.");
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (res.status === 402) throw new Error("Not enough coins — claim your daily first.");
+        if (res.status === 409) throw new Error(body?.error ?? "No cards on this slate to rip.");
+        throw new Error(
+          body?.error ? `${body.error} (${res.status})` : `Couldn't open a pack (${res.status}).`,
+        );
+      }
       return res.json();
     },
     onSuccess: (data) => {

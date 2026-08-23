@@ -32,9 +32,20 @@ export const POST = withBackend("card-lab open", async ({ token }, request) => {
   if (!parsed.ok) return parsed.response;
   const { sport, mode, date, week } = parsed.data;
 
-  const pool = await loadPool(sport, mode, date, week);
+  let pool: GeneratedCard[];
+  try {
+    pool = await loadPool(sport, mode, date, week);
+  } catch (err) {
+    console.error("[card-lab open] pool regeneration failed", { sport, mode, date, week }, err);
+    return NextResponse.json(
+      { error: "Couldn't rebuild this slate to draw from" },
+      { status: 503 },
+    );
+  }
+
   const drawn = drawPack(pool, { size: PACK_SIZE });
   if (drawn.length === 0) {
+    console.error("[card-lab open] empty pool", { sport, mode, date, week });
     return NextResponse.json({ error: "No cards to rip from this slate" }, { status: 409 });
   }
 
@@ -43,11 +54,15 @@ export const POST = withBackend("card-lab open", async ({ token }, request) => {
     headers: buildHeaders(token, null, { "Content-Type": "application/json" }),
     body: JSON.stringify({ cards: drawn }),
   });
-  if (!result.ok) return upstreamErrorResponse(result);
+  if (!result.ok) {
+    console.error("[card-lab open] card API unreachable", result);
+    return upstreamErrorResponse(result);
+  }
 
   const body = await result.response.json().catch(() => null);
   if (!result.response.ok) {
     // Pass the backend's status through — notably 402 for an empty wallet.
+    console.error("[card-lab open] card API error", result.response.status, body);
     return NextResponse.json(body ?? { error: "Failed to open pack" }, {
       status: result.response.status,
     });

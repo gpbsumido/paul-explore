@@ -43,6 +43,18 @@ describe("PackBar", () => {
     expect(screen.getByRole("button", { name: /Rip a pack/i })).toBeDisabled();
   });
 
+  it("surfaces the real reason a rip fails, with the status", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.endsWith("/wallet")) return res(200, { balance: 300, lastClaimDate: null });
+      if (url.endsWith("/packs/open")) return res(503, { error: "Couldn't rebuild this slate to draw from" });
+      return res(200, {});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithClient(<PackBar slate={slate} />);
+    await userEvent.click(await screen.findByRole("button", { name: /Rip a pack/i }));
+    expect(await screen.findByText(/rebuild this slate.*503/i)).toBeInTheDocument();
+  });
+
   it("rips a pack and reveals the pulled cards", async () => {
     const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
       if (url.endsWith("/wallet")) return res(200, { balance: 300, lastClaimDate: null });

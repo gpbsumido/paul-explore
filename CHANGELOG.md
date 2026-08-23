@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-23 - version 5.8.1
+
+- **The Card Lab rip now says why it failed instead of a blanket "couldn't open a pack."** The pack-open route was collapsing every non-payment failure into one message, which hid whether the pool was empty, the slate couldn't be rebuilt, or the card API was down. It now surfaces the real cause with its status (e.g. "No cards to rip from this slate", "Couldn't rebuild this slate", or the API's own error + code), and logs each failure server-side. Slate regeneration is wrapped so an upstream hiccup returns a clear 503 rather than a generic 502.
+
 ## 2026-08-22 - version 5.8.0
 
 - **The Card Lab economy front end.** A pack bar on the Card Lab shows my coin balance, a daily-claim button, and a "Rip a pack" button that draws five rarity-weighted cards from whatever slate I'm looking at and reveals them. A new `/fantasy/nba/cards/collection` page shows everything I've pulled, duplicates grouped with a count. Signed-out visitors get a "sign in to collect" prompt instead.
