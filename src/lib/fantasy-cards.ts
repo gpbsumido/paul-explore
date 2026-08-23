@@ -83,6 +83,9 @@ export const RARITY_META: Record<Rarity, RarityMeta> = {
   sir: { label: "SIR", color: ACCENT_BAND.gold, pullWeight: 3 },
 };
 
+/** What a pack costs, for the UI. The backend enforces this authoritatively. */
+export const PACK_COST = 100;
+
 /** Percentile above which a performance earns each tier. */
 const SIR_AT = 0.95;
 const RARE_AT = 0.8;

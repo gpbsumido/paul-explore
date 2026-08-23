@@ -6,6 +6,7 @@ import type { GeneratedCard } from "@/lib/fantasy-cards";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/fantasy/nba/cards" }));
+vi.mock("./PackBar", () => ({ default: () => null }));
 
 const card = (o: Partial<GeneratedCard> = {}): GeneratedCard => ({
   id: "nba-1-2026-04-17",

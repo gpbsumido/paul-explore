@@ -36,6 +36,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/discover",
   "/fantasy/nba",
   "/fantasy/nba/cards",
+  "/fantasy/nba/cards/collection",
   "/fantasy/nba/court-vision",
   "/fantasy/nba/league-history",
   "/fantasy/nba/matchups",

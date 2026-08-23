@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-22 - version 5.8.0
+
+- **The Card Lab economy front end.** A pack bar on the Card Lab shows my coin balance, a daily-claim button, and a "Rip a pack" button that draws five rarity-weighted cards from whatever slate I'm looking at and reveals them. A new `/fantasy/nba/cards/collection` page shows everything I've pulled, duplicates grouped with a count. Signed-out visitors get a "sign in to collect" prompt instead.
+- **The rip is drawn server-side.** The BFF (`/api/card-lab/*`) regenerates the slate and runs the weighted draw itself, then hands the drawn cards to the API to debit and record — the client only names the view it's looking at, so it can't hand-pick its own pulls. A short wallet (402 from the backend) surfaces as a friendly "claim your daily first".
+- Depends on the card-economy API (portfolio_api#173) being deployed; until then the pack bar shows the signed-in/empty states. The weighted odds live in the card engine (`drawPack` + `RARITY_META.pullWeight`).
+
 ## 2026-08-22 - version 5.7.0
 
 - **Card Lab cards are nightly now, not season totals.** Season totals were the wrong unit — a card should be a single night. The Card Lab defaults to a slate: the most recent night rostered players actually played, pulled from ESPN's public scoreboard and box-score endpoints, so each card shows real per-game points with the date and opponent ("Jalen Green · 36 PTS · Apr 17 vs GS"). Rarity is judged against that night's slate, which is what makes a big night on a quiet evening feel rare. Season totals stay available as a secondary NBA view.

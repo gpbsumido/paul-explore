@@ -12,6 +12,7 @@ import {
   type Sport,
 } from "@/lib/fantasy-cards";
 import FantasyNav from "../FantasyNav";
+import PackBar from "./PackBar";
 
 /** Rarity buckets, rarest first, for the filter bar and grouping. */
 const RARITY_ORDER: Rarity[] = ["sir", "rare", "uncommon", "common"];
@@ -247,6 +248,8 @@ export default function CardLabContent({ cards, sport, mode, season, date, weeks
             </div>
           ) : null}
         </header>
+
+        <PackBar slate={{ sport, mode, date, week: weeks?.current }} />
 
         {error ? (
           <p className="rounded-xl border border-border bg-surface px-4 py-6 text-[15px] text-muted">
