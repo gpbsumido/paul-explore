@@ -29,6 +29,13 @@ describe("PackBar", () => {
     expect(link).toHaveAttribute("href", "/auth/login");
   });
 
+  it("does not tell a signed-in user to sign in when the wallet API is down", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => res(502, { error: "Backend unavailable" })));
+    renderWithClient(<PackBar slate={slate} />);
+    expect(await screen.findByText(/unavailable/i)).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
   it("shows the balance and disables ripping when short on coins", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => res(200, { balance: 50, lastClaimDate: null })));
     renderWithClient(<PackBar slate={slate} />);

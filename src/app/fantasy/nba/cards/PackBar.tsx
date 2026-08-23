@@ -63,7 +63,9 @@ export default function PackBar({ slate }: { slate: RipSlate }) {
 
   if (wallet.isLoading) return null;
 
-  if (!wallet.data) {
+  // Only a real 401 (queryFn returns null) means "guest". A thrown error means
+  // the wallet API is unreachable — don't tell a signed-in user to sign in.
+  if (wallet.data === null) {
     return (
       <section
         aria-label="Packs"
@@ -75,6 +77,17 @@ export default function PackBar({ slate }: { slate: RipSlate }) {
         to earn coins and rip packs of these cards.
       </section>
     );
+  }
+
+  if (!wallet.data) {
+    return wallet.isError ? (
+      <section
+        aria-label="Packs"
+        className="mb-6 rounded-xl border border-border bg-surface px-4 py-3 text-[14px] text-muted"
+      >
+        Packs are unavailable right now.
+      </section>
+    ) : null;
   }
 
   const { balance } = wallet.data;
