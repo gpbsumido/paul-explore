@@ -1,23 +1,47 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
-import { RARITY_META, type GeneratedCard, type Rarity } from "@/lib/fantasy-cards";
+import {
+  RARITY_META,
+  prettyGameDate,
+  type GeneratedCard,
+  type Rarity,
+  type Sport,
+} from "@/lib/fantasy-cards";
 import FantasyNav from "../FantasyNav";
 
 /** Rarity buckets, rarest first, for the filter bar and grouping. */
 const RARITY_ORDER: Rarity[] = ["sir", "rare", "uncommon", "common"];
 
 type Filter = Rarity | "all";
+type Mode = "nightly" | "season";
+
+const SPORTS: { value: Sport; label: string }[] = [
+  { value: "nba", label: "NBA" },
+  { value: "wnba", label: "WNBA" },
+];
 
 type Props = {
   cards: GeneratedCard[];
-  /** The season the cards were generated from, shown in the intro. */
+  /** Which sport's cards these are. */
+  sport: Sport;
+  /** Nightly (per-game) or season totals. WNBA is nightly only. */
+  mode: Mode;
+  /** The fantasy season, carried in the toggle links. */
   season: string;
-  /** The league couldn't be reached, so distinguish "empty" from "broken". */
+  /** The slate date for a nightly view, e.g. "2026-04-17". */
+  date?: string | null;
+  /** The source couldn't be reached, so distinguish "empty" from "broken". */
   error?: boolean;
 };
+
+/** A Card Lab URL for a given sport/mode. */
+function cardsHref(sport: Sport, mode: Mode): string {
+  return `/fantasy/nba/cards?sport=${sport}&mode=${mode}`;
+}
 
 /** Player headshot with an initials fallback, so a missing photo still reads as a card. */
 function CardImage({ card }: { card: GeneratedCard }) {
@@ -84,9 +108,15 @@ function Card({ card }: { card: GeneratedCard }) {
   );
 }
 
-/** The Card Lab: rostered players turned into rarity-tiered cards, filterable by rarity. */
-export default function CardLabContent({ cards, season, error }: Props) {
+/** The Card Lab: real performances turned into rarity-tiered cards, filterable by rarity. */
+export default function CardLabContent({ cards, sport, mode, season, date, error }: Props) {
   const [filter, setFilter] = useState<Filter>("all");
+
+  const nightly = mode === "nightly";
+  const slateLabel = date ? prettyGameDate(date) : null;
+  const intro = nightly
+    ? `Every ${sport === "wnba" ? "" : "rostered "}player who suited up${slateLabel ? ` on ${slateLabel}` : ""}, minted as a trading card from that night's box score. Rarity is relative: the harder a player went against the rest of the slate, the rarer the card.`
+    : `Every rostered player's ${season} season, minted as a trading card. Rarity is relative to the rest of the pool.`;
 
   const present = RARITY_ORDER.filter((r) => cards.some((c) => c.rarity === r));
   const filtered = filter === "all" ? cards : cards.filter((c) => c.rarity === filter);
@@ -130,22 +160,59 @@ export default function CardLabContent({ cards, season, error }: Props) {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Card Lab
           </h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-muted">
-            Every rostered player&rsquo;s {season} performance, minted as a
-            trading card. Rarity is relative: the harder a player went against
-            the rest of the pool, the rarer the card.
-          </p>
+          <p className="mt-2 text-[15px] leading-relaxed text-muted">{intro}</p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div role="group" aria-label="Sport" className="flex gap-1">
+              {SPORTS.map((s) => (
+                <Link
+                  key={s.value}
+                  href={cardsHref(s.value, s.value === "wnba" ? "nightly" : mode)}
+                  aria-current={sport === s.value ? "page" : undefined}
+                  className={[
+                    "rounded-full border px-3 py-1 text-[13px] font-medium transition-colors",
+                    sport === s.value
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border text-muted hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {s.label}
+                </Link>
+              ))}
+            </div>
+
+            {sport === "nba" && (
+              <div role="group" aria-label="View" className="flex gap-1">
+                {(["nightly", "season"] as Mode[]).map((m) => (
+                  <Link
+                    key={m}
+                    href={cardsHref("nba", m)}
+                    aria-current={mode === m ? "page" : undefined}
+                    className={[
+                      "rounded-full border px-3 py-1 text-[13px] font-medium capitalize transition-colors",
+                      mode === m
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border text-muted hover:text-foreground",
+                    ].join(" ")}
+                  >
+                    {m}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
 
         {error ? (
           <p className="rounded-xl border border-border bg-surface px-4 py-6 text-[15px] text-muted">
-            Couldn&rsquo;t reach the fantasy league right now. The cards come
-            from live ESPN data, so this settles once the league responds again.
+            Couldn&rsquo;t reach the live ESPN data right now. The cards come
+            straight from it, so this settles once it responds again.
           </p>
         ) : cards.length === 0 ? (
           <p className="rounded-xl border border-border bg-surface px-4 py-6 text-[15px] text-muted">
-            No performances to mint yet. Cards appear once the week&rsquo;s
-            scores settle.
+            {nightly
+              ? "No games with box scores on this slate yet. Cards appear once the night's scores settle."
+              : "No performances to mint yet. Cards appear once the season's scores settle."}
           </p>
         ) : (
           <>
@@ -166,8 +233,8 @@ export default function CardLabContent({ cards, season, error }: Props) {
 
             {filtered.length === 0 ? (
               <p className="text-[15px] text-muted">
-                No {filter === "all" ? "" : RARITY_META[filter].label} cards this
-                week.
+                No {filter === "all" ? "" : RARITY_META[filter].label} cards in
+                this set.
               </p>
             ) : (
               <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

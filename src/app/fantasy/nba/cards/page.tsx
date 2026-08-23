@@ -5,7 +5,8 @@ import {
   cardsFromLeaguePayload,
   nbaFantasyLeagueUrl,
 } from "@/lib/espn-performances";
-import type { GeneratedCard } from "@/lib/fantasy-cards";
+import { loadNightlySlate } from "@/lib/espn-nightly";
+import type { GeneratedCard, Sport } from "@/lib/fantasy-cards";
 import CardLabContent from "./CardLabContent";
 
 const TITLE = "Card Lab";
@@ -35,9 +36,19 @@ export const revalidate = 3600;
 
 const DEFAULT_SEASON = "2025";
 const SEASON_RE = /^\d{4}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function resolveSeason(raw: string | undefined): string {
   return raw && SEASON_RE.test(raw) ? raw : DEFAULT_SEASON;
+}
+
+function resolveSport(raw: string | undefined): Sport {
+  return raw === "wnba" ? "wnba" : "nba";
+}
+
+/** WNBA is nightly-only (no ESPN fantasy season); NBA defaults to nightly. */
+function resolveMode(raw: string | undefined, sport: Sport): "nightly" | "season" {
+  return sport === "nba" && raw === "season" ? "season" : "nightly";
 }
 
 async function loadCards(
@@ -58,11 +69,36 @@ async function loadCards(
 export default async function CardLabPage({
   searchParams,
 }: {
-  searchParams: Promise<{ season?: string }>;
+  searchParams: Promise<{ season?: string; sport?: string; mode?: string; date?: string }>;
 }) {
-  const { season: seasonParam } = await searchParams;
-  const season = resolveSeason(seasonParam);
-  const { cards, error } = await loadCards(season);
+  const params = await searchParams;
+  const season = resolveSeason(params.season);
+  const sport = resolveSport(params.sport);
+  const mode = resolveMode(params.mode, sport);
+  const date = params.date && DATE_RE.test(params.date) ? params.date : undefined;
 
-  return <CardLabContent cards={cards} season={season} error={error} />;
+  if (mode === "season") {
+    const { cards, error } = await loadCards(season);
+    return (
+      <CardLabContent
+        cards={cards}
+        sport="nba"
+        mode="season"
+        season={season}
+        error={error}
+      />
+    );
+  }
+
+  const slate = await loadNightlySlate({ sport, season, date });
+  return (
+    <CardLabContent
+      cards={slate.cards}
+      sport={sport}
+      mode="nightly"
+      season={season}
+      date={slate.date}
+      error={slate.error}
+    />
+  );
 }
