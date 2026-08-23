@@ -139,10 +139,15 @@ export default function FantasyTcgContent() {
           feel rare.
         </p>
         <p className="mt-3">
-          WNBA was the interesting problem: ESPN runs no WNBA fantasy game, so
-          there&rsquo;s no roster to key off. But the public box scores are right
-          there, so WNBA cards come from the whole night&rsquo;s slate instead of
-          a roster. NBA keeps the roster filter (fantasy player ids are just ESPN
+          WNBA was the interesting problem. It turns out ESPN does run women&rsquo;s
+          fantasy basketball — game code <C>wfba</C> — so there is a real league to
+          key off. The catch is mine is private, and I didn&rsquo;t want to babysit
+          a login: the clean fix is to ask the commissioner to make the league
+          public, after which it reads with no auth at all, exactly like the NBA
+          one. Failing that, the app will read it with my own ESPN cookies from
+          env vars. And if it can&rsquo;t read the league either way, it falls back
+          to the whole night&rsquo;s public box scores, so the view always shows
+          something. NBA keeps its roster filter (fantasy player ids are just ESPN
           athlete ids, so the intersection is free). Same engine, same page, one
           sport toggle. NBA&rsquo;s off-season has no slate to show, so between
           June and October the NBA view quietly falls back to season cards rather
