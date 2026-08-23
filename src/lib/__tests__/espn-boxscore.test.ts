@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   pointsIndex,
   completedEventIds,
+  latestCompletedSlate,
   performancesFromBoxscore,
 } from "../espn-boxscore";
 
@@ -76,6 +77,39 @@ describe("completedEventIds", () => {
   });
   it("returns [] for a payload that isn't a scoreboard", () => {
     expect(completedEventIds({ nope: true })).toEqual([]);
+  });
+});
+
+describe("latestCompletedSlate", () => {
+  const sb = (events: { id: string; date: string; state: string }[]) => ({
+    events: events.map((e) => ({
+      id: e.id,
+      date: e.date,
+      status: { type: { state: e.state } },
+    })),
+  });
+
+  it("picks the most recent date with completed games and its event ids", () => {
+    const slate = latestCompletedSlate(
+      sb([
+        { id: "a", date: "2026-04-16T23:00Z", state: "post" },
+        { id: "b", date: "2026-04-17T23:00Z", state: "post" },
+        { id: "c", date: "2026-04-17T01:30Z", state: "post" },
+        { id: "d", date: "2026-04-18T23:00Z", state: "pre" },
+      ]),
+    );
+    expect(slate?.date).toBe("2026-04-17");
+    expect(slate?.eventIds.sort()).toEqual(["b", "c"]);
+  });
+
+  it("returns null when no game has finished", () => {
+    expect(
+      latestCompletedSlate(sb([{ id: "a", date: "2026-10-03T23:00Z", state: "pre" }])),
+    ).toBeNull();
+  });
+
+  it("returns null for a payload that isn't a scoreboard", () => {
+    expect(latestCompletedSlate({ nope: true })).toBeNull();
   });
 });
 

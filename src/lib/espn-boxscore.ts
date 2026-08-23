@@ -16,6 +16,7 @@ const scoreboardSchema = z.object({
   events: z.array(
     z.object({
       id: z.string(),
+      date: z.string().optional(),
       status: z.object({ type: z.object({ state: z.string() }) }),
     }),
   ),
@@ -28,6 +29,30 @@ export function completedEventIds(scoreboard: unknown): string[] {
   return parsed.data.events
     .filter((e) => e.status.type.state === "post")
     .map((e) => e.id);
+}
+
+/**
+ * The most recent date on a scoreboard (which may span a range) that has any
+ * completed games, plus that date's event ids. This is how the nightly view
+ * reaches back into previous seasons: query a wide date range, take the latest
+ * finished slate. Returns null when nothing has finished.
+ */
+export function latestCompletedSlate(
+  scoreboard: unknown,
+): { date: string; eventIds: string[] } | null {
+  const parsed = scoreboardSchema.safeParse(scoreboard);
+  if (!parsed.success) return null;
+
+  const byDate = new Map<string, string[]>();
+  for (const e of parsed.data.events) {
+    if (e.status.type.state !== "post" || !e.date) continue;
+    const day = e.date.slice(0, 10);
+    byDate.set(day, [...(byDate.get(day) ?? []), e.id]);
+  }
+  if (byDate.size === 0) return null;
+
+  const date = [...byDate.keys()].sort().at(-1) as string;
+  return { date, eventIds: byDate.get(date) ?? [] };
 }
 
 const competitorSchema = z.object({

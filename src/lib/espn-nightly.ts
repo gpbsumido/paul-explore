@@ -5,13 +5,18 @@
  */
 import { fetchUpstream } from "./upstream";
 import { performancesFromLeague, fantasyLeagueUrl } from "./espn-performances";
-import { completedEventIds, performancesFromBoxscore } from "./espn-boxscore";
+import { latestCompletedSlate, performancesFromBoxscore } from "./espn-boxscore";
 import { generateCards, type GeneratedCard, type Sport } from "./fantasy-cards";
 
 const BASE = "https://site.web.api.espn.com/apis/site/v2/sports/basketball";
 
-/** How many days to walk back looking for the most recent completed slate. */
-const LOOKBACK_DAYS = 8;
+/**
+ * Nightly discovery scans date-range windows back from today until it finds a
+ * completed slate — so it reaches into previous seasons when the current one is
+ * out of season, which is the whole point of "use prev history".
+ */
+const WINDOW_DAYS = 12;
+const MAX_WINDOWS = 45;
 
 export function scoreboardUrl(sport: Sport, yyyymmdd: string): string {
   return `${BASE}/${sport}/scoreboard?dates=${yyyymmdd}`;
@@ -47,15 +52,40 @@ function espnAuthHeaders(): Record<string, string> | undefined {
   return { Cookie: `espn_s2=${s2}; SWID=${swid}` };
 }
 
-/** Today and the previous days, as ISO dates, most recent first. */
-function recentDates(count: number): string[] {
+/** A UTC date `n` days before today. */
+function daysAgo(n: number): Date {
   const now = new Date();
-  return Array.from({ length: count }, (_, i) => {
-    const d = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i),
-    );
-    return d.toISOString().slice(0, 10);
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - n));
+}
+
+/** "YYYYMMDD" for an ESPN scoreboard date param. */
+function ymd(d: Date): string {
+  return d.toISOString().slice(0, 10).replace(/-/g, "");
+}
+
+/** Date-range windows back from today, most recent first, for scoreboard scans. */
+function rangeWindows(): string[] {
+  return Array.from({ length: MAX_WINDOWS }, (_, i) => {
+    const end = daysAgo(i * WINDOW_DAYS);
+    const start = daysAgo((i + 1) * WINDOW_DAYS - 1);
+    return `${ymd(start)}-${ymd(end)}`;
   });
+}
+
+/** Fetch a slate's box scores and turn them into cards. */
+async function slateToCards(
+  sport: Sport,
+  date: string,
+  eventIds: string[],
+  roster: Set<number> | undefined,
+): Promise<GeneratedCard[]> {
+  const summaries = await Promise.all(
+    eventIds.map((id) => fetchJson(summaryUrl(sport, id))),
+  );
+  const performances = summaries.flatMap((s) =>
+    s ? performancesFromBoxscore(s, { sport, date, rosterIds: roster }) : [],
+  );
+  return generateCards(performances);
 }
 
 /** The season id to read a sport's league roster from. */
@@ -102,23 +132,23 @@ export async function loadNightlySlate({
   date?: string;
 }): Promise<NightlySlate> {
   const roster = await rosterIds(sport, season);
-  const candidates = date ? [date] : recentDates(LOOKBACK_DAYS);
 
-  for (const day of candidates) {
-    const yyyymmdd = day.replace(/-/g, "");
-    const eventIds = completedEventIds(await fetchJson(scoreboardUrl(sport, yyyymmdd)));
-    if (eventIds.length === 0) continue;
-
-    const summaries = await Promise.all(
-      eventIds.map((id) => fetchJson(summaryUrl(sport, id))),
-    );
-    const performances = summaries.flatMap((s) =>
-      s ? performancesFromBoxscore(s, { sport, date: day, rosterIds: roster }) : [],
-    );
-    if (performances.length === 0) continue;
-
-    return { cards: generateCards(performances), date: day, error: false };
+  // An explicit date: read just that day.
+  if (date) {
+    const slate = latestCompletedSlate(await fetchJson(scoreboardUrl(sport, date.replace(/-/g, ""))));
+    if (!slate) return { cards: [], date, error: false };
+    return { cards: await slateToCards(sport, slate.date, slate.eventIds, roster), date: slate.date, error: false };
   }
 
-  return { cards: [], date: date ?? null, error: false };
+  // Otherwise scan windows back through history for the most recent slate that
+  // yields cards (in season that's last night; out of season, last season).
+  for (const window of rangeWindows()) {
+    const slate = latestCompletedSlate(await fetchJson(scoreboardUrl(sport, window)));
+    if (!slate) continue;
+    const cards = await slateToCards(sport, slate.date, slate.eventIds, roster);
+    if (cards.length === 0) continue;
+    return { cards, date: slate.date, error: false };
+  }
+
+  return { cards: [], date: null, error: false };
 }
