@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-24 - version 5.10.0
+
+- **Cards read at a glance, and every card page filters and sorts.** Rarity used to be a small pill — now each card wears a bold colour-coded band with the tier spelled out (so it never rests on colour alone), with a border and glow that scale up for the rare pulls, and the points sit up front. One shared `FantasyCard` renders the Card Lab grid, the collection, and the pack reveal identically. The collection now shows each card's points too, and both the Card Lab and the collection get the same controls: rarity filter chips plus a Points / Rarity / Name sort.
+
 ## 2026-08-24 - version 5.9.0
 
 - **Ripping a pack is a moment now, Pokémon-Pocket style.** Instead of a small inline list, a rip fills the screen: a darkened overlay where you spin a wheel of packs, pick one, drag the tab down to tear it open, and the cards flip out one by one with their art and rarity frames. It's a real modal dialog (labelled, Escape to close, focus moved in), every step has a click/keyboard path so the drag isn't the only way through, and reduced-motion skips straight to the reveal — the cards are already yours regardless of the theatre. Pack art uses the in-band accent palette, so no stock colours slipped in.

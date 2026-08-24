@@ -9,6 +9,7 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-cards", date: "Aug 24, 2026", title: "Cards you can read at a glance" },
   { id: "update-opener", date: "Aug 24, 2026", title: "Ripping packs, Pokémon-Pocket style" },
   { id: "update-economy", date: "Aug 23, 2026", title: "An economy: wallets, packs, and a collection" },
   { id: "update-boosts", date: "Aug 22, 2026", title: "Rarity boosts for the moments that mattered" },
@@ -249,6 +250,29 @@ export default function FantasyTcgContent() {
           are already yours by then, so nothing is lost by fast-forwarding. Pack
           art draws from the in-band accent palette, so the design guard stays
           happy.
+        </p>
+      </Update>
+
+      <Update
+        id="update-cards"
+        date="Aug 24, 2026"
+        title="Cards you can read at a glance"
+      >
+        <p>
+          Three small asks that added up to a real cleanup. Rarity was a little
+          pill in the corner — easy to miss, and it leaned on colour. Now every
+          card wears a bold band with the tier spelled out (<C>SIR</C>,{" "}
+          <C>Rare</C>…), coloured to match, with a border and glow that grow for
+          the rarer pulls, so a good card announces itself. The points moved up
+          front, and the collection shows them too.
+        </p>
+        <p>
+          The bigger win was collapsing three near-identical card renders — the
+          Card Lab grid, the collection, the pack reveal — into one{" "}
+          <C>FantasyCard</C>, so rarity reads the same everywhere and there&rsquo;s
+          one place to change it. And every page that shows cards now shares the
+          same controls: rarity filter chips and a points/rarity/name sort, the
+          sort itself a tiny pure function that&rsquo;s trivial to test.
         </p>
       </Update>
 
