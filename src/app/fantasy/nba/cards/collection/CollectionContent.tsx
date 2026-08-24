@@ -1,16 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PageHeader from "@/components/PageHeader";
 import PageShell from "@/components/PageShell";
 import { queryKeys } from "@/lib/queryKeys";
-import { RARITY_META } from "@/lib/fantasy-cards";
+import type { Rarity } from "@/lib/fantasy-cards";
+import { sortCards, type CardSort, type RarityFilter } from "@/lib/card-view";
 import FantasyNav from "../../FantasyNav";
+import FantasyCard from "../FantasyCard";
+import CardControls from "../CardControls";
 
 type CollectionCard = {
   id: string;
   cardId: string;
-  rarity: keyof typeof RARITY_META;
+  rarity: Rarity;
   playerName: string;
   title: string;
   subtitle: string;
@@ -40,12 +44,17 @@ function groupByCard(cards: CollectionCard[]): OwnedCard[] {
 }
 
 export default function CollectionContent() {
+  const [filter, setFilter] = useState<RarityFilter>("all");
+  const [sort, setSort] = useState<CardSort>("rarity");
+
   const collection = useQuery({
     queryKey: queryKeys.cardLab.collection(),
     queryFn: getCollection,
   });
 
   const owned = collection.data ? groupByCard(collection.data) : [];
+  const filtered = filter === "all" ? owned : owned.filter((c) => c.rarity === filter);
+  const shown = sortCards(filtered, sort);
 
   return (
     <PageShell
@@ -85,49 +94,22 @@ export default function CollectionContent() {
             and rip a pack.
           </p>
         ) : (
-          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {owned.map((card) => (
-              <li key={card.cardId}>
-                <article
-                  className="glass-card flex h-full flex-col overflow-hidden rounded-xl border-2"
-                  style={{ borderColor: RARITY_META[card.rarity].color }}
-                  aria-label={`${card.title}, ${RARITY_META[card.rarity].label}${card.count > 1 ? `, ${card.count} copies` : ""}`}
-                >
-                  <div className="aspect-[2.5/3.5] w-full overflow-hidden bg-surface">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- ESPN CDN base URL */}
-                    <img
-                      src={card.imageUrl}
-                      alt={`${card.playerName} headshot`}
-                      loading="lazy"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col gap-1 p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className="rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-                        style={{
-                          color: RARITY_META[card.rarity].color,
-                          borderColor: RARITY_META[card.rarity].color,
-                        }}
-                      >
-                        {RARITY_META[card.rarity].label}
-                      </span>
-                      {card.count > 1 ? (
-                        <span className="tabular-nums text-[11px] font-semibold text-muted">
-                          ×{card.count}
-                        </span>
-                      ) : null}
-                    </div>
-                    <h2 className="mt-0.5 text-[13px] font-semibold leading-snug text-foreground">
-                      {card.playerName}
-                    </h2>
-                    <p className="text-[11px] text-muted">{card.subtitle}</p>
-                  </div>
-                </article>
-              </li>
-            ))}
-          </ul>
+          <>
+            <CardControls
+              cards={owned}
+              filter={filter}
+              onFilter={setFilter}
+              sort={sort}
+              onSort={setSort}
+            />
+            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {shown.map((card) => (
+                <li key={card.cardId}>
+                  <FantasyCard card={card} />
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </main>
     </PageShell>
