@@ -912,11 +912,27 @@ const selectedVersion = urlVersion ?? versions[0];`}
           the three pages that were <em>actually</em> guilty: the GraphQL
           Pokédex skeleton reserved the search bar and grid but not the filter
           row between them, so the grid jumped when it streamed in &mdash; the
-          skeleton renders the real filter row now. And an operator store detail
-          was painting its header only after a client round-trip, so I seeded it
-          with the store the page already loaded on the server. The lesson I keep
-          relearning: before optimising the thing the metric points at, check
-          that the metric is pointing at a real thing.
+          skeleton renders the real filter row now; the Pocket loading cards were
+          a uniform height that didn&rsquo;t match the real ones; and an operator
+          store detail was painting its header only after a client round-trip, so
+          I seeded it with the store the page already loaded on the server. The
+          lesson I keep relearning: before optimising the thing the metric points
+          at, check that the metric is pointing at a real thing.
+        </p>
+        <p>
+          One more, and it came from the CI for this very change. The Pocket
+          page is <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">force-dynamic</code>{" "}
+          and reads its sets live from tcgdex; when that upstream didn&rsquo;t
+          answer from the runner, the SDK <em>threw</em>, the page rendered
+          nothing, and the accessibility scan timed out waiting for a{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            main
+          </code>{" "}
+          landmark that never arrived. A null-check was there but the failure was
+          a throw, not a null, so it sailed past. It catches now and degrades to a
+          readable, accessible &ldquo;unavailable&rdquo; state with its real page
+          shell &mdash; a third party being down should cost a page its data, not
+          its structure.
         </p>
       </Update>
       <Update

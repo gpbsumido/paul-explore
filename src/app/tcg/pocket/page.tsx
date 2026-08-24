@@ -67,13 +67,17 @@ export default async function PocketPage() {
     return <PocketNotRolledOut />;
   }
 
-  const serie = await tcgdex.serie.get("tcgp");
+  // force-dynamic means this fetch runs on every request, so a tcgdex outage
+  // would otherwise throw and render nothing — no main landmark, a broken page.
+  // Degrade to an accessible unavailable state instead.
+  let serie: Awaited<ReturnType<typeof tcgdex.serie.get>> | null = null;
+  try {
+    serie = await tcgdex.serie.get("tcgp");
+  } catch {
+    serie = null;
+  }
   if (!serie) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center text-muted text-sm">
-        Failed to load Pocket data.
-      </div>
-    );
+    return <PocketUnavailable />;
   }
 
   const sets = serie.sets as unknown as SetResume[];
@@ -275,6 +279,33 @@ function PocketNotRolledOut() {
             feature flags console
           </Link>
           .
+        </p>
+      </main>
+    </div>
+  );
+}
+
+/**
+ * Shown when the tcgdex set database can't be reached. Renders the full page
+ * shell — header and a main landmark — so the page degrades to a readable,
+ * accessible state rather than a broken one when a third party is down.
+ */
+function PocketUnavailable() {
+  return (
+    <div className="min-h-dvh bg-background font-sans">
+      <PageHeader
+        breadcrumbs={[
+          { label: "Dashboard", href: "/" },
+          { label: "TCG Pocket" },
+        ]}
+      />
+      <main className="mx-auto flex min-h-[60dvh] max-w-xl flex-col items-center justify-center gap-3 px-4 text-center">
+        <h1 className="text-2xl font-bold text-foreground">
+          Pocket sets are unavailable right now
+        </h1>
+        <p className="text-sm leading-relaxed text-muted">
+          The card database didn&apos;t respond. This page reads live from a
+          third-party set index; refresh in a moment to try again.
         </p>
       </main>
     </div>
