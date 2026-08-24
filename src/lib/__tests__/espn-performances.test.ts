@@ -3,6 +3,7 @@ import {
   performancesFromLeague,
   cardsFromLeaguePayload,
   fantasyLeagueUrl,
+  playoffTeamPlayerIds,
   FANTASY_LEAGUES,
 } from "../espn-performances";
 
@@ -71,6 +72,27 @@ describe("fantasyLeagueUrl", () => {
     const url = fantasyLeagueUrl("wnba", "2026");
     expect(url).toContain("/games/wfba/seasons/2026/");
     expect(url).toContain("/leagues/886603882");
+  });
+});
+
+describe("playoffTeamPlayerIds", () => {
+  /** Two teams: seed 2 makes the top-2 playoffs, seed 4 misses. */
+  const payload = {
+    settings: { scheduleSettings: { playoffTeamCount: 2 } },
+    teams: [
+      { id: 1, playoffSeed: 2, roster: { entries: [entry(1, "In", 30)] } },
+      { id: 2, playoffSeed: 4, roster: { entries: [entry(2, "Out", 30)] } },
+    ],
+  };
+
+  it("collects players on teams seeded into the playoffs", () => {
+    const ids = playoffTeamPlayerIds(payload);
+    expect(ids.has(1)).toBe(true);
+    expect(ids.has(2)).toBe(false);
+  });
+
+  it("is empty when the league has no playoff cutoff", () => {
+    expect(playoffTeamPlayerIds({ teams: payload.teams }).size).toBe(0);
   });
 });
 

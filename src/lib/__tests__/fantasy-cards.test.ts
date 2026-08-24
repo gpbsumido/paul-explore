@@ -243,6 +243,12 @@ describe("rarity boosts", () => {
     expect(card.boosts).toContain("Team Paul");
   });
 
+  it("bumps a tier for a card rostered by a fantasy playoff team", () => {
+    const card = low(generateCards(boosted({ fantasyPlayoffTeam: true })));
+    expect(card.rarity).toBe("uncommon");
+    expect(card.boosts).toContain("Fantasy Playoffs");
+  });
+
   it("caps stacked boosts at SIR", () => {
     const card = low(
       generateCards(boosted({ wonGame: true, playoff: true, fantasyResult: "finals" })),
