@@ -9,6 +9,7 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-fantasy-playoffs", date: "Aug 24, 2026", title: "Playoff teams, the reliable half" },
   { id: "update-cards", date: "Aug 24, 2026", title: "Cards you can read at a glance" },
   { id: "update-opener", date: "Aug 24, 2026", title: "Ripping packs, Pokémon-Pocket style" },
   { id: "update-economy", date: "Aug 23, 2026", title: "An economy: wallets, packs, and a collection" },
@@ -276,6 +277,33 @@ export default function FantasyTcgContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-fantasy-playoffs"
+        date="Aug 24, 2026"
+        title="Playoff teams, the reliable half"
+      >
+        <p>
+          I&rsquo;d wired the fantasy playoff/finals boost through the engine but
+          left the basketball side unsourced, because the obvious source
+          doesn&rsquo;t hold up. I wanted &ldquo;this night was a fantasy playoff
+          game&rdquo; per week, but the league&rsquo;s schedule view doesn&rsquo;t
+          map a matchup period to real game dates, and <C>rankFinal</C> comes back{" "}
+          <C>0</C> — so there&rsquo;s no dependable champion or per-week playoff
+          signal to read.
+        </p>
+        <p>
+          What <em>is</em> dependable is the final seeding: each team&rsquo;s{" "}
+          <C>playoffSeed</C> against the league&rsquo;s <C>playoffTeamCount</C>.
+          So the boost keys off the honest thing the data actually knows — did
+          your fantasy team make the playoffs — derived once from the roster
+          fetch I already make, and applied to every card that team rosters. I
+          kept it to a single tier, distinct from the NFL per-week result, so a
+          season-long attribute nudges rarity without flooding the pool with
+          SIRs. It&rsquo;s the reliable half of the idea, shipped, instead of the
+          whole idea faked.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A pure, relative-rarity engine with a boost layer and a weighted pack draw, fully tested against synthetic pools.",
@@ -283,13 +311,13 @@ export default function FantasyTcgContent() {
           "An economy — coin wallet, daily claim, server-drawn pack ripping, and a collection — front end and API both built.",
         ]}
         couldImprove={[
-          "The NFL fantasy win/playoff/finals boost ships; the basketball side needs a reliable date-to-matchup mapping, which this league's data doesn't cleanly give.",
+          "Basketball gets a season-level playoff-team boost from the final seeding; the finer per-week win/finals signal still needs a date-to-matchup mapping this league's data doesn't cleanly give.",
           "Card art is a generic headshot; the photo from that exact game the concept really wants isn't sourced yet.",
           "A packed slate fans out into many box-score fetches; fine with caching, but a single feed would be cheaper.",
         ]}
         upcoming={[
           "Deploy the economy API and verify the earn-buy-rip-collect loop end to end.",
-          "Feed the basketball fantasy-matchup boost once there's a dependable date-to-scoring-period source.",
+          "Sharpen the basketball fantasy boost to per-week playoff/finals once there's a dependable date-to-scoring-period source.",
         ]}
       />
     </ThoughtLayout>

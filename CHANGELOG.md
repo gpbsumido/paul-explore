@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-24 - version 5.11.0
+
+- **Cards rostered by a fantasy playoff team pull rarer.** A basketball card now gets a one-tier bump, badged "Fantasy Playoffs", when the fantasy team that rosters the player made this season's playoffs — read from the league's final seeding, derived from the roster fetch I already make, and flowing into both the Card Lab and server-drawn rips. Season-level rather than per-week: this league's data doesn't map matchup periods to game dates or populate a champion, so I keyed off the one reliable signal (playoff seed vs the league's playoff-team count) and kept the boost modest so it doesn't over-inflate the pool.
+
 ## 2026-08-24 - version 5.10.0
 
 - **Cards read at a glance, and every card page filters and sorts.** Rarity used to be a small pill — now each card wears a bold colour-coded band with the tier spelled out (so it never rests on colour alone), with a border and glow that scale up for the rare pulls, and the points sit up front. One shared `FantasyCard` renders the Card Lab grid, the collection, and the pack reveal identically. The collection now shows each card's points too, and both the Card Lab and the collection get the same controls: rarity filter chips plus a Points / Rarity / Name sort.
