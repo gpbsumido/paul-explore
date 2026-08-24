@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-24 - version 5.11.1
+
+- **The Web Vitals dashboard was crying wolf, so I fixed the measurement and the few pages that were actually slow.** Most of the Poor-band alert was noise — nine of the flagged rows were static pages whose LCP element is server-rendered text, which can't take ten-plus seconds for a real visitor. The `WebVitalsReporter` now drops LCP/FCP/TTFB from pages that loaded hidden (a background tab renders whenever the browser gets to it, reporting load timings nobody waited through — the source of the inflated numbers); CLS and INP still send. On the genuinely-guilty pages: the GraphQL Pokédex Suspense skeleton now reserves the type-filter row it was missing, so the grid no longer jumps when content streams in; the Pocket loading cards match the real card heights; and the operator store detail is seeded from the store the page already loaded on the server, so its header paints on first render instead of after a client round-trip. (The all-time, unbounded aggregation that let old garbage sit in the percentile forever is fixed on the API side.)
+
 ## 2026-08-24 - version 5.11.0
 
 - **Cards rostered by a fantasy playoff team pull rarer.** A basketball card now gets a one-tier bump, badged "Fantasy Playoffs", when the fantasy team that rosters the player made this season's playoffs — read from the league's final seeding, derived from the roster fetch I already make, and flowing into both the Card Lab and server-drawn rips. Season-level rather than per-week: this league's data doesn't map matchup periods to game dates or populate a champion, so I keyed off the one reliable signal (playoff seed vs the league's playoff-team count) and kept the boost modest so it doesn't over-inflate the pool.
