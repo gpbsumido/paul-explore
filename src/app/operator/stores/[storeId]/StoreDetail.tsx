@@ -8,18 +8,24 @@ import StoreHeader from "@/components/operator/StoreHeader";
 import QuickActions from "@/components/operator/QuickActions";
 import StoreTabs from "@/components/operator/StoreTabs";
 import ToastNotification from "@/components/operator/ToastNotification";
+import type { Store } from "@/types/operator";
 
 interface StoreDetailProps {
   storeId: string;
+  /** The store the page loaded on the server, to seed the first paint. */
+  initialStore?: Store;
 }
 
 /**
  * Client-side store detail view. Fetches the store via useOperatorStore,
  * renders the header with live status, and a tabbed content area synced
- * to URL search params.
+ * to URL search params. When the page seeds `initialStore`, the header paints
+ * on first render rather than after a client fetch.
  */
-export default function StoreDetail({ storeId }: StoreDetailProps) {
-  const { store, loading, error } = useOperatorStore(storeId);
+export default function StoreDetail({ storeId, initialStore }: StoreDetailProps) {
+  const { store, loading, error } = useOperatorStore(storeId, {
+    initialData: initialStore,
+  });
 
   if (error) {
     return (
