@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-24 - version 5.11.2
+
+- **Operator reads no longer hang on a slow backend.** The operator dashboard reads through a cross-service fetch that had no timeout, so a hung or unreachable upstream stalled the request for as long as it took to fail — one likely cause of a nine-second store-detail load. Reads now carry a 5s abort deadline; on timeout the fetch throws, which the BFF already treats as "service down" and answers from the in-memory seed, so the page degrades to seed data instead of hanging. Writes keep no timeout on purpose: a write that timed out might have applied upstream, and falling back would make it look like it worked while persisting nothing.
+
 ## 2026-08-24 - version 5.11.1
 
 - **The Pokémon Pocket page degrades gracefully when its card database is down.** The page reads its sets live from tcgdex, and the SDK throws (rather than returning null) when that upstream is unreachable — so a null-check sailed past it and the whole page rendered nothing, no `main` landmark. It catches now and shows a readable, accessible "unavailable" state with the real page shell, so a third-party outage costs the page its data, not its structure.
