@@ -72,8 +72,7 @@ describe("PackBar", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: /Rip a pack/i }));
 
-    expect(await screen.findByText("You pulled")).toBeInTheDocument();
-    expect(screen.getByText("Star")).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: /opening a pack/i })).toBeInTheDocument();
     const openCall = fetchMock.mock.calls.find(([u]) => String(u).endsWith("/packs/open"));
     expect(JSON.parse((openCall?.[1] as RequestInit).body as string)).toMatchObject({
       sport: "nba",

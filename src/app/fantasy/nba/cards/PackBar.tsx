@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { PACK_COST, RARITY_META, type GeneratedCard, type Sport } from "@/lib/fantasy-cards";
+import { PACK_COST, type GeneratedCard, type Sport } from "@/lib/fantasy-cards";
+import PackOpener from "./PackOpener";
 
 /** The slate the user is looking at, so a rip draws from the same pool. */
 export type RipSlate = {
@@ -139,30 +140,7 @@ export default function PackBar({ slate }: { slate: RipSlate }) {
       ) : null}
 
       {revealed ? (
-        <div className="mt-4">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-[13px] font-semibold text-foreground">You pulled</p>
-            <button
-              type="button"
-              onClick={() => setRevealed(null)}
-              className="text-[13px] text-muted underline hover:text-foreground"
-            >
-              Dismiss
-            </button>
-          </div>
-          <ul className="flex flex-wrap gap-2">
-            {revealed.map((card) => (
-              <li
-                key={card.id}
-                className="rounded-lg border-2 px-2 py-1 text-[12px]"
-                style={{ borderColor: RARITY_META[card.rarity].color }}
-              >
-                <span className="font-semibold text-foreground">{card.playerName}</span>{" "}
-                <span className="text-muted">· {RARITY_META[card.rarity].label}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <PackOpener cards={revealed} onClose={() => setRevealed(null)} />
       ) : null}
     </section>
   );

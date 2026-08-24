@@ -9,6 +9,7 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-opener", date: "Aug 24, 2026", title: "Ripping packs, Pokémon-Pocket style" },
   { id: "update-economy", date: "Aug 23, 2026", title: "An economy: wallets, packs, and a collection" },
   { id: "update-boosts", date: "Aug 22, 2026", title: "Rarity boosts for the moments that mattered" },
   { id: "update-sports", date: "Aug 22, 2026", title: "Nightly cards, three leagues, and history" },
@@ -224,6 +225,30 @@ export default function FantasyTcgContent() {
           Persistence lives in the separate API (a wallet table and a pulls
           table, scoped per user), which is its own change; the front end ships
           behind it and lights up once that&rsquo;s deployed.
+        </p>
+      </Update>
+
+      <Update
+        id="update-opener"
+        date="Aug 24, 2026"
+        title="Ripping packs, Pokémon-Pocket style"
+      >
+        <p>
+          The first rip UI was a small inline list of what you pulled — correct,
+          but flat. Opening a pack should be a moment. So a rip now fills the
+          screen: a darkened overlay where you spin a wheel of packs, pick one,
+          drag the tab down to tear it open, and the cards flip out one at a time
+          with their art and rarity frames — the Pokémon Pocket feel.
+        </p>
+        <p>
+          The part that took the care was making the theatre optional. It&rsquo;s
+          a real modal dialog — labelled, Escape to close, focus moved into it —
+          and every step has a click or keyboard path, because a drag-only
+          interaction locks out anyone not using a mouse. Reduced-motion skips
+          the spin and tear entirely and goes straight to the reveal; the cards
+          are already yours by then, so nothing is lost by fast-forwarding. Pack
+          art draws from the in-band accent palette, so the design guard stays
+          happy.
         </p>
       </Update>
 
