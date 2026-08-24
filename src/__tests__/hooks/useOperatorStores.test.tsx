@@ -101,6 +101,21 @@ describe("useOperatorStore", () => {
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
   });
+
+  it("shows a server-seeded store immediately, with no loading pass", () => {
+    // The page loads the store server-side; seeding it means the detail view
+    // renders its header on first paint instead of after a client round-trip,
+    // which is what the LCP was waiting on.
+    const seeded = buildStore({ id: "seeded" });
+
+    const { result } = renderHook(
+      () => useOperatorStore("seeded", { initialData: seeded }),
+      { wrapper: makeWrapper() },
+    );
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.store?.id).toBe("seeded");
+  });
 });
 
 // ---------------------------------------------------------------------------
