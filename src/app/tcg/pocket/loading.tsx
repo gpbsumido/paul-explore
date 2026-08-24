@@ -57,11 +57,12 @@ export default function PocketLoading() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-10 flex flex-col gap-10">
         {[3, 2, 4].map((count, i) => (
           <section key={i}>
-            <BoneLight className="h-5 w-32 mb-4" />
+            {/* header height matches the real h2 (text-xs), not a taller bar */}
+            <BoneLight className="h-4 w-32 mb-4" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {/* Primary set card */}
-              <BoneLight className="col-span-1 h-24 rounded-xl" />
-              {/* Mini-sets */}
+              {/* Primary set card — px-5 py-6 around an h-14 logo, so ~104px */}
+              <BoneLight className="col-span-1 h-[104px] rounded-xl" />
+              {/* Mini-sets — p-4 around an h-8 logo plus a count row, ~96px */}
               {Array.from({ length: count - 1 }).map((_, j) => (
                 <BoneLight key={j} className="h-24 rounded-xl" />
               ))}
