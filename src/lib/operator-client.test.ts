@@ -55,3 +55,19 @@ describe("operator-client path-segment guard", () => {
     expect(String(fetchMock.mock.calls[0][0])).toContain("/stores/store-1");
   });
 });
+
+describe("operator-client read timeout", () => {
+  it("bounds a read with an abort signal, so a hung upstream can't stall the page", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ store: {} }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchStore("store-1").catch(() => {
+      // schema shape isn't the point; only that the read carries a deadline
+    });
+
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+});
