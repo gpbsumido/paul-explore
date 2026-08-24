@@ -143,6 +143,45 @@ export function rostersByPlayer(payload: unknown): Map<number, string> {
   return map;
 }
 
+const playoffSeedingSchema = z.object({
+  settings: z
+    .object({
+      scheduleSettings: z.object({ playoffTeamCount: z.number() }).optional(),
+    })
+    .optional(),
+  teams: z
+    .array(
+      z.object({
+        playoffSeed: z.number().optional(),
+        roster: z.object({ entries: z.array(z.unknown()) }).optional(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * Player ids on fantasy teams that made the playoffs — a team whose final
+ * `playoffSeed` falls within the league's `playoffTeamCount`. Season-level, so a
+ * card rostered by one of these teams earns a modest playoff boost. Empty when
+ * the league carries no playoff cutoff (nothing to decide from).
+ */
+export function playoffTeamPlayerIds(payload: unknown): Set<number> {
+  const ids = new Set<number>();
+  const parsed = playoffSeedingSchema.safeParse(payload);
+  if (!parsed.success) return ids;
+  const cutoff = parsed.data.settings?.scheduleSettings?.playoffTeamCount ?? 0;
+  if (cutoff <= 0) return ids;
+  for (const team of parsed.data.teams ?? []) {
+    const seed = team.playoffSeed ?? 0;
+    if (seed < 1 || seed > cutoff) continue;
+    for (const raw of team.roster?.entries ?? []) {
+      const entry = rosterEntryIdSchema.safeParse(raw);
+      if (entry.success) ids.add(entry.data.playerPoolEntry.player.id);
+    }
+  }
+  return ids;
+}
+
 /** Convenience: league payload straight to generated cards. */
 export function cardsFromLeaguePayload(
   payload: unknown,

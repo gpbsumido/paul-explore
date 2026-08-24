@@ -91,11 +91,22 @@ const PLAYOFF_SEASON_TYPES = new Set([3, 5]);
  * with the boost signals the card engine reads: whether the team won, whether
  * it was a playoff game, and (from `roster`) which fantasy team owns the player.
  * Pass `roster` (playerId → fantasy team name) to keep only rostered players
- * (NBA); omit it to keep everyone (WNBA, the whole slate).
+ * (NBA); omit it to keep everyone (WNBA, the whole slate). `playoffTeamIds`
+ * marks players whose fantasy team made the playoffs, for a season-level boost.
  */
 export function performancesFromBoxscore(
   summary: unknown,
-  { sport, date, roster }: { sport: Sport; date: string; roster?: ReadonlyMap<number, string> },
+  {
+    sport,
+    date,
+    roster,
+    playoffTeamIds,
+  }: {
+    sport: Sport;
+    date: string;
+    roster?: ReadonlyMap<number, string>;
+    playoffTeamIds?: ReadonlySet<number>;
+  },
 ): PlayerPerformance[] {
   const parsed = summarySchema.safeParse(summary);
   if (!parsed.success) return [];
@@ -138,6 +149,7 @@ export function performancesFromBoxscore(
         wonGame: mine.won,
         playoff,
         rosteredBy: roster?.get(playerId) || undefined,
+        fantasyPlayoffTeam: playoffTeamIds?.has(playerId) || undefined,
       });
     }
   }

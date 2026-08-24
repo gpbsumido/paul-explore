@@ -37,6 +37,8 @@ export interface PlayerPerformance {
   rosteredBy?: string;
   /** The roster owner's fantasy matchup context that period. */
   fantasyResult?: "win" | "playoff" | "finals";
+  /** The rostering fantasy team made this season's playoffs (season-level, one tier). */
+  fantasyPlayoffTeam?: boolean;
 }
 
 /** A generated card, ready to render. */
@@ -181,6 +183,10 @@ function boostsFor(performance: PlayerPerformance): { tiers: number; labels: str
   if (performance.playoff) {
     tiers += 1;
     labels.push("Playoffs");
+  }
+  if (performance.fantasyPlayoffTeam) {
+    tiers += 1;
+    labels.push("Fantasy Playoffs");
   }
   if (performance.fantasyResult) {
     tiers += FANTASY_BOOST[performance.fantasyResult];

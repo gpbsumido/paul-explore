@@ -4,7 +4,7 @@
  * parsers in espn-boxscore.ts and the engine in fantasy-cards.ts.
  */
 import { fetchUpstream } from "./upstream";
-import { rostersByPlayer, fantasyLeagueUrl } from "./espn-performances";
+import { rostersByPlayer, playoffTeamPlayerIds, fantasyLeagueUrl } from "./espn-performances";
 import { latestCompletedSlate, performancesFromBoxscore } from "./espn-boxscore";
 import { generateCards, type GeneratedCard, type Sport } from "./fantasy-cards";
 
@@ -77,13 +77,13 @@ async function slateToCards(
   sport: Sport,
   date: string,
   eventIds: string[],
-  roster: Map<number, string> | undefined,
+  { roster, playoffTeamIds }: RosterContext,
 ): Promise<GeneratedCard[]> {
   const summaries = await Promise.all(
     eventIds.map((id) => fetchJson(summaryUrl(sport, id))),
   );
   const performances = summaries.flatMap((s) =>
-    s ? performancesFromBoxscore(s, { sport, date, roster }) : [],
+    s ? performancesFromBoxscore(s, { sport, date, roster, playoffTeamIds }) : [],
   );
   return generateCards(performances);
 }
@@ -95,19 +95,30 @@ function rosterSeason(sport: Sport, fallback: string): string {
   return sport === "wnba" ? String(new Date().getUTCFullYear()) : fallback;
 }
 
+interface RosterContext {
+  /** Roster player ids → owning team name, or undefined if the league can't be read. */
+  roster?: Map<number, string>;
+  /** Player ids on fantasy teams that made the playoffs, for a season-level boost. */
+  playoffTeamIds?: Set<number>;
+}
+
 /**
- * Map of the fantasy roster's ESPN player ids → owning team name, or undefined
- * if the league can't be read (public NBA league down, or private WNBA league
- * without cookies) — in which case the caller shows the whole slate instead.
+ * Read the fantasy league once and derive both the roster ownership map and the
+ * playoff-team player ids from the same payload. When the league can't be read
+ * (public NBA league down, or private WNBA league without cookies) both are
+ * absent and the caller shows the whole slate with no fantasy boost.
  */
-async function rosterMap(sport: Sport, season: string): Promise<Map<number, string> | undefined> {
+async function rosterContext(sport: Sport, season: string): Promise<RosterContext> {
   const league = await fetchJson(
     fantasyLeagueUrl(sport, rosterSeason(sport, season)),
     espnAuthHeaders(),
   );
-  if (!league) return undefined;
+  if (!league) return {};
   const map = rostersByPlayer(league);
-  return map.size > 0 ? map : undefined;
+  return {
+    roster: map.size > 0 ? map : undefined,
+    playoffTeamIds: playoffTeamPlayerIds(league),
+  };
 }
 
 export interface NightlySlate {
@@ -131,13 +142,13 @@ export async function loadNightlySlate({
   season: string;
   date?: string;
 }): Promise<NightlySlate> {
-  const roster = await rosterMap(sport, season);
+  const context = await rosterContext(sport, season);
 
   // An explicit date: read just that day.
   if (date) {
     const slate = latestCompletedSlate(await fetchJson(scoreboardUrl(sport, date.replace(/-/g, ""))));
     if (!slate) return { cards: [], date, error: false };
-    return { cards: await slateToCards(sport, slate.date, slate.eventIds, roster), date: slate.date, error: false };
+    return { cards: await slateToCards(sport, slate.date, slate.eventIds, context), date: slate.date, error: false };
   }
 
   // Otherwise scan windows back through history for the most recent slate that
@@ -145,7 +156,7 @@ export async function loadNightlySlate({
   for (const window of rangeWindows()) {
     const slate = latestCompletedSlate(await fetchJson(scoreboardUrl(sport, window)));
     if (!slate) continue;
-    const cards = await slateToCards(sport, slate.date, slate.eventIds, roster);
+    const cards = await slateToCards(sport, slate.date, slate.eventIds, context);
     if (cards.length === 0) continue;
     return { cards, date: slate.date, error: false };
   }
