@@ -567,6 +567,11 @@ const selectedVersion = urlVersion ?? versions[0];`}
       <UpdateTimeline
         entries={[
           {
+            id: "update-2026-08-24-noise",
+            date: "Aug 24, 2026",
+            title: "The dashboard was crying wolf",
+          },
+          {
             id: "update-2026-08-15-outage",
             date: "Aug 15, 2026",
             title: "The dashboard was lying about being empty",
@@ -861,6 +866,59 @@ const selectedVersion = urlVersion ?? versions[0];`}
           halves.
         </p>
       </section>
+      <Update
+        id="update-2026-08-24-noise"
+        date="August 24, 2026"
+        title="The dashboard was crying wolf"
+      >
+        <p>
+          The nightly alert kept opening an issue: a dozen pages in the Poor
+          band, LCP of ten, fifteen, twenty-one seconds. I nearly went and
+          &ldquo;optimised&rdquo; them &mdash; and that would have been the
+          mistake. Nine of the twelve were static pages whose largest element is
+          a line of server-rendered heading text. There is no world where that
+          paints in twenty-one seconds for a real visitor on a CDN. The numbers
+          were wrong, not the pages.
+        </p>
+        <p>
+          <strong>The aggregation had no memory and no floor.</strong> The P75
+          was computed over the entire{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            web_vitals
+          </code>{" "}
+          table, all of history, with no bound on the value. So one impossible
+          sample &mdash; a tab opened in the background, which renders whenever
+          the browser gets around to it and reports a load timing of minutes
+          &mdash; became a permanent member of the percentile and never aged
+          out. A{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            PERCENTILE_CONT
+          </code>{" "}
+          pulled toward that tail stays elevated forever. The fix was two
+          honest constraints: the current-health views read a rolling 28-day
+          window instead of all time, and every value is bounded to a
+          physically-plausible range (a timing past a minute, a layout-shift
+          score past ten, is not a real user) at both ingest and read.
+        </p>
+        <p>
+          <strong>And I stopped recording the garbage at the source.</strong> A
+          page that loaded hidden produces load timings nobody waited through, so
+          the reporter now checks{" "}
+          <code className="rounded bg-surface px-1 py-0.5 text-[13px] font-mono text-foreground">
+            document.visibilityState
+          </code>{" "}
+          at load and simply doesn&rsquo;t send LCP/FCP/TTFB from a background
+          load; CLS and INP, which are scoped to the interaction, still go. Then
+          the three pages that were <em>actually</em> guilty: the GraphQL
+          Pokédex skeleton reserved the search bar and grid but not the filter
+          row between them, so the grid jumped when it streamed in &mdash; the
+          skeleton renders the real filter row now. And an operator store detail
+          was painting its header only after a client round-trip, so I seeded it
+          with the store the page already loaded on the server. The lesson I keep
+          relearning: before optimising the thing the metric points at, check
+          that the metric is pointing at a real thing.
+        </p>
+      </Update>
       <Update
         id="update-2026-08-10-public"
         date="August 10, 2026"
