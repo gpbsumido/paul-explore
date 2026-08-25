@@ -448,6 +448,14 @@
     );
 }
 
+/* Spotlight wraps its children in a .spotlight__content div with no height of
+   its own, which breaks a fantasy card's h-full chain so cards with fewer chips
+   come out shorter than their grid row. Let the content fill, so every card in
+   a row is the same height and the flex-1 footer takes up the slack. */
+.fantasy-card-spotlight > .spotlight__content {
+  height: 100%;
+}
+
 @layer base {
   html,
   body {

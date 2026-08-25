@@ -9,6 +9,7 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-scarcity", date: "Aug 24, 2026", title: "Making a night feel scarce" },
   { id: "update-living-cards", date: "Aug 24, 2026", title: "Cards that come alive" },
   { id: "update-fantasy-playoffs", date: "Aug 24, 2026", title: "Playoff teams, the reliable half" },
   { id: "update-cards", date: "Aug 24, 2026", title: "Cards you can read at a glance" },
@@ -252,6 +253,37 @@ export default function FantasyTcgContent() {
           are already yours by then, so nothing is lost by fast-forwarding. Pack
           art draws from the in-band accent palette, so the design guard stays
           happy.
+        </p>
+      </Update>
+
+      <Update
+        id="update-scarcity"
+        date="Aug 24, 2026"
+        title="Making a night feel scarce"
+      >
+        <p>
+          Once the cards looked good I noticed a night could mint four SIRs, which
+          makes gold mean nothing. The cause was the boosts: on a playoff night
+          every rostered player picks up a <em>Playoffs</em> boost, the winners a{" "}
+          <em>Won</em> on top, and a whole roster stacked its way into gold. So a
+          nightly slate is scarce on purpose now — SIR is capped at two (usually
+          one, sometimes none), rares are held to a slice of the slate, and a
+          boost can lift a card as far as rare but no further. SIR is something a
+          top-of-the-night line earns on its own, not something the boosts hand
+          out. The banding is untouched everywhere else; the caps and that boost
+          ceiling are opt-in, and only the nightly path asks for them.
+        </p>
+        <p>
+          Two smaller things from the same look. A game that tips in the evening
+          reads as the <em>next</em> day in UTC, so an Aug 24 slate was labelled
+          Aug 25. ESPN hands over no venue timezone, only a UTC stamp — but every
+          US game&rsquo;s local day is its Pacific day (the westmost US zone, and
+          nothing tips early enough to fall behind it), so the slate dates by
+          Pacific and a game in any US zone lands on the right day. And the
+          cursor-glow shell wrapped each card in a div
+          with no height, so a card with fewer chips came out shorter than its
+          neighbours; it fills its grid cell now and the footer takes the slack,
+          so a row lines up.
         </p>
       </Update>
 
