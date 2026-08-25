@@ -3,7 +3,7 @@
 ## 2026-08-24 - version 5.12.1
 
 - **Nightly slates stay scarce.** A whole roster winning a playoff game was minting a wall of SIRs — the boosts stacked every top-ish line into gold. Now a nightly slate caps SIR at 2 (usually one, sometimes none) and holds rares to a slice of the slate, and a boost can lift a card up to rare but no further: SIR is reserved for a genuine top-of-the-night line, not something boosts hand out. The banding is unchanged everywhere else (season, packs); the caps and the boost ceiling are opt-in and only the nightly path passes them.
-- **Nightly cards show the night they were played, not the UTC day after.** A game that tipped in the evening reads as the next day in UTC, so an Aug 24 slate was labelled Aug 25. The slate now groups and dates by US Eastern time, the boundary ESPN uses for its own game days.
+- **Nightly cards show the night they were played, not the UTC day after.** A game that tipped in the evening reads as the next day in UTC, so an Aug 24 slate was labelled Aug 25. ESPN gives no venue timezone, but every US game's local calendar day equals its US/Pacific day, so the slate now groups and dates by Pacific — the westmost US zone — and a game in any US timezone lands on the right day.
 - **Cards in a row match height.** The new `Spotlight` shell wrapped the card in a div with no height of its own, so a card with fewer chips came out shorter than its neighbours; it fills its grid cell now, and the footer takes up the slack.
 
 ## 2026-08-24 - version 5.12.0

@@ -276,8 +276,11 @@ export default function FantasyTcgContent() {
         <p>
           Two smaller things from the same look. A game that tips in the evening
           reads as the <em>next</em> day in UTC, so an Aug 24 slate was labelled
-          Aug 25 — the slate dates by US Eastern now, the boundary ESPN uses for
-          its own game days. And the cursor-glow shell wrapped each card in a div
+          Aug 25. ESPN hands over no venue timezone, only a UTC stamp — but every
+          US game&rsquo;s local day is its Pacific day (the westmost US zone, and
+          nothing tips early enough to fall behind it), so the slate dates by
+          Pacific and a game in any US zone lands on the right day. And the
+          cursor-glow shell wrapped each card in a div
           with no height, so a card with fewer chips came out shorter than its
           neighbours; it fills its grid cell now and the footer takes the slack,
           so a row lines up.

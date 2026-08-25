@@ -13,17 +13,21 @@ export function pointsIndex(keys: readonly string[]): number {
 }
 
 /**
- * The US Eastern calendar date (YYYY-MM-DD) for an ISO timestamp. ESPN stamps
- * events in UTC, so a game tipping at 8pm ET reads as the next day (00:00Z),
- * and a slate would show tomorrow's date. ESPN groups its own game days by
- * Eastern time, so the date a fan calls "tonight" is the Eastern date — convert
- * to that. Falls back to the raw date slice if the timestamp won't parse.
+ * The calendar date (YYYY-MM-DD) a US game was played on, from its UTC
+ * timestamp. ESPN stamps events in UTC, so an evening game reads as the next
+ * day (a 7pm-11pm tip is 23:00-06:00Z), and a slate would show tomorrow's date.
+ * The date a fan means is the venue's local one, and ESPN gives no venue
+ * timezone — but every US venue is Eastern through Pacific, and any US game's
+ * local calendar day equals its US/Pacific day (Pacific is the westmost zone,
+ * and no game tips early enough for Pacific to fall a day behind local). So
+ * reading the date in Pacific yields the right day for a game in any US zone.
+ * Falls back to the raw date slice if the timestamp won't parse.
  */
-export function easternDate(iso: string): string {
+export function usGameDate(iso: string): string {
   const parsed = new Date(iso);
   if (Number.isNaN(parsed.getTime())) return iso.slice(0, 10);
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/New_York",
+    timeZone: "America/Los_Angeles",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -64,7 +68,7 @@ export function latestCompletedSlate(
   const byDate = new Map<string, string[]>();
   for (const e of parsed.data.events) {
     if (e.status.type.state !== "post" || !e.date) continue;
-    const day = easternDate(e.date);
+    const day = usGameDate(e.date);
     byDate.set(day, [...(byDate.get(day) ?? []), e.id]);
   }
   if (byDate.size === 0) return null;
