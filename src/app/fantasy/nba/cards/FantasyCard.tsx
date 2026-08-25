@@ -103,7 +103,7 @@ export default function FantasyCard({ card }: { card: FantasyCardData }) {
       <SpotlightCard
         accent={meta.color}
         size={260}
-        className="block h-full !rounded-xl border-0"
+        className="fantasy-card-spotlight block h-full !rounded-xl border-0"
       >
         <article
           className="relative flex h-full flex-col overflow-hidden rounded-xl border-2"
