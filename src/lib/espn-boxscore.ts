@@ -12,6 +12,24 @@ export function pointsIndex(keys: readonly string[]): number {
   return keys.indexOf("points");
 }
 
+/**
+ * The US Eastern calendar date (YYYY-MM-DD) for an ISO timestamp. ESPN stamps
+ * events in UTC, so a game tipping at 8pm ET reads as the next day (00:00Z),
+ * and a slate would show tomorrow's date. ESPN groups its own game days by
+ * Eastern time, so the date a fan calls "tonight" is the Eastern date — convert
+ * to that. Falls back to the raw date slice if the timestamp won't parse.
+ */
+export function easternDate(iso: string): string {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso.slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(parsed);
+}
+
 const scoreboardSchema = z.object({
   events: z.array(
     z.object({
@@ -46,7 +64,7 @@ export function latestCompletedSlate(
   const byDate = new Map<string, string[]>();
   for (const e of parsed.data.events) {
     if (e.status.type.state !== "post" || !e.date) continue;
-    const day = e.date.slice(0, 10);
+    const day = easternDate(e.date);
     byDate.set(day, [...(byDate.get(day) ?? []), e.id]);
   }
   if (byDate.size === 0) return null;
