@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-24 - version 5.12.0
+
+- **The fantasy cards come alive.** Every card now carries its own living backdrop instead of a flat surface: a rarity-tinted glass with a cursor-following glow (`SpotlightCard`), and a per-card layer of drifting `GradientMesh` and/or seeded `BlobBackground` — the treatment and its palette are picked from a hash of the card, so each looks distinct but a given card looks the same every render. The points count up as a big jersey-style overlay (`AnimatedNumber`), the boosts render as `Chip`s and the owned-count as a `Badge`, and on hover the card tilts in 3D to face the pointer (a new `TiltCard`, the rotating cousin of `MagneticButton`). Every effect is decorative and reduced-motion aware — the tilt, glow, mesh drift and count-up all stop under `prefers-reduced-motion` — and the text sits above a scrim so it keeps its contrast. One shared `FantasyCard`, so the Card Lab, the collection, and the pack reveal all get it at once.
+
 ## 2026-08-24 - version 5.11.2
 
 - **Operator reads no longer hang on a slow backend.** The operator dashboard reads through a cross-service fetch that had no timeout, so a hung or unreachable upstream stalled the request for as long as it took to fail — one likely cause of a nine-second store-detail load. Reads now carry a 5s abort deadline; on timeout the fetch throws, which the BFF already treats as "service down" and answers from the in-memory seed, so the page degrades to seed data instead of hanging. Writes keep no timeout on purpose: a write that timed out might have applied upstream, and falling back would make it look like it worked while persisting nothing.

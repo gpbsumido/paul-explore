@@ -9,6 +9,7 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-living-cards", date: "Aug 24, 2026", title: "Cards that come alive" },
   { id: "update-fantasy-playoffs", date: "Aug 24, 2026", title: "Playoff teams, the reliable half" },
   { id: "update-cards", date: "Aug 24, 2026", title: "Cards you can read at a glance" },
   { id: "update-opener", date: "Aug 24, 2026", title: "Ripping packs, Pokémon-Pocket style" },
@@ -251,6 +252,37 @@ export default function FantasyTcgContent() {
           are already yours by then, so nothing is lost by fast-forwarding. Pack
           art draws from the in-band accent palette, so the design guard stays
           happy.
+        </p>
+      </Update>
+
+      <Update
+        id="update-living-cards"
+        date="Aug 24, 2026"
+        title="Cards that come alive"
+      >
+        <p>
+          The cards read well but sat flat, so I gave each one a life of its own.
+          Every card now has a backdrop nobody else has: a rarity-tinted glass
+          surface with a glow that follows the cursor, and behind it a drifting{" "}
+          <C>GradientMesh</C> and/or a seeded <C>BlobBackground</C> — the ESPN
+          headshots are transparent cutouts, so the colour shows around the
+          player. Which treatment and which palette a card gets is hashed from
+          the card itself, so it&rsquo;s unique but stable: the same card draws
+          the same backdrop every render, server and client alike, which also
+          keeps hydration quiet.
+        </p>
+        <p>
+          The points count up as a big jersey-style number over the photo
+          (<C>AnimatedNumber</C>), the boosts became <C>Chip</C>s and the
+          owned-count a <C>Badge</C>, and on hover the whole card tilts in 3D to
+          face the pointer. That last one is a new <C>TiltCard</C> — the rotating
+          cousin of the <C>MagneticButton</C> I already had, motion values and a
+          spring so a pointer move never re-renders the card. The thing I was
+          careful about is that none of it is load-bearing: the tilt, the glow,
+          the mesh drift and the count-up all stop under reduced motion, the
+          backdrops are <C>aria-hidden</C>, and the copy sits over a scrim so it
+          keeps its contrast. It&rsquo;s one shared <C>FantasyCard</C>, so the
+          Card Lab, the collection and the pack reveal all came alive at once.
         </p>
       </Update>
 
