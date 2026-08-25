@@ -18,8 +18,16 @@ export interface UseOperatorStoreReturn {
  * No polling — the detail view relies on the fleet list's 30s poll for
  * freshness and a manual refetch button if the operator wants an immediate
  * update.
+ *
+ * Pass `initialData` (the store the page already loaded on the server) to seed
+ * the cache, so the detail view paints its header on first render instead of
+ * waiting on a client round-trip — the round-trip that was the LCP. The query
+ * still refetches in the background to pick up anything fresher.
  */
-export function useOperatorStore(storeId: string): UseOperatorStoreReturn {
+export function useOperatorStore(
+  storeId: string,
+  { initialData }: { initialData?: Store } = {},
+): UseOperatorStoreReturn {
   const {
     data,
     isLoading,
@@ -33,6 +41,7 @@ export function useOperatorStore(storeId: string): UseOperatorStoreReturn {
       const json = await res.json();
       return storeSchema.parse(json.store);
     },
+    initialData,
     staleTime: 0,
     refetchOnWindowFocus: true,
   });

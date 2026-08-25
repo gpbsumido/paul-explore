@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-08-24 - version 5.11.2
+
+- **Operator reads no longer hang on a slow backend.** The operator dashboard reads through a cross-service fetch that had no timeout, so a hung or unreachable upstream stalled the request for as long as it took to fail — one likely cause of a nine-second store-detail load. Reads now carry a 5s abort deadline; on timeout the fetch throws, which the BFF already treats as "service down" and answers from the in-memory seed, so the page degrades to seed data instead of hanging. Writes keep no timeout on purpose: a write that timed out might have applied upstream, and falling back would make it look like it worked while persisting nothing.
+
+## 2026-08-24 - version 5.11.1
+
+- **The Pokémon Pocket page degrades gracefully when its card database is down.** The page reads its sets live from tcgdex, and the SDK throws (rather than returning null) when that upstream is unreachable — so a null-check sailed past it and the whole page rendered nothing, no `main` landmark. It catches now and shows a readable, accessible "unavailable" state with the real page shell, so a third-party outage costs the page its data, not its structure.
+- **The Web Vitals dashboard was crying wolf, so I fixed the measurement and the few pages that were actually slow.** Most of the Poor-band alert was noise — nine of the flagged rows were static pages whose LCP element is server-rendered text, which can't take ten-plus seconds for a real visitor. The `WebVitalsReporter` now drops LCP/FCP/TTFB from pages that loaded hidden (a background tab renders whenever the browser gets to it, reporting load timings nobody waited through — the source of the inflated numbers); CLS and INP still send. On the genuinely-guilty pages: the GraphQL Pokédex Suspense skeleton now reserves the type-filter row it was missing, so the grid no longer jumps when content streams in; the Pocket loading cards match the real card heights; and the operator store detail is seeded from the store the page already loaded on the server, so its header paints on first render instead of after a client round-trip. (The all-time, unbounded aggregation that let old garbage sit in the percentile forever is fixed on the API side.)
+
+## 2026-08-24 - version 5.11.0
+
+- **Cards rostered by a fantasy playoff team pull rarer.** A basketball card now gets a one-tier bump, badged "Fantasy Playoffs", when the fantasy team that rosters the player made this season's playoffs — read from the league's final seeding, derived from the roster fetch I already make, and flowing into both the Card Lab and server-drawn rips. Season-level rather than per-week: this league's data doesn't map matchup periods to game dates or populate a champion, so I keyed off the one reliable signal (playoff seed vs the league's playoff-team count) and kept the boost modest so it doesn't over-inflate the pool.
+
+## 2026-08-24 - version 5.10.0
+
+- **Cards read at a glance, and every card page filters and sorts.** Rarity used to be a small pill — now each card wears a bold colour-coded band with the tier spelled out (so it never rests on colour alone), with a border and glow that scale up for the rare pulls, and the points sit up front. One shared `FantasyCard` renders the Card Lab grid, the collection, and the pack reveal identically. The collection now shows each card's points too, and both the Card Lab and the collection get the same controls: rarity filter chips plus a Points / Rarity / Name sort.
+
 ## 2026-08-24 - version 5.9.0
 
 - **Ripping a pack is a moment now, Pokémon-Pocket style.** Instead of a small inline list, a rip fills the screen: a darkened overlay where you spin a wheel of packs, pick one, drag the tab down to tear it open, and the cards flip out one by one with their art and rarity frames. It's a real modal dialog (labelled, Escape to close, focus moved in), every step has a click/keyboard path so the drag isn't the only way through, and reduced-motion skips straight to the reveal — the cards are already yours regardless of the theatre. Pack art uses the in-band accent palette, so no stock colours slipped in.

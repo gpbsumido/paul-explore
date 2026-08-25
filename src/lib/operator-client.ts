@@ -94,6 +94,16 @@ export class OperatorApiError extends Error {
   }
 }
 
+/**
+ * How long a read waits on the upstream before giving up. A cross-service fetch
+ * with no deadline can hang for as long as the other end takes to fail, and
+ * these reads sit on a page's render path — a hung upstream became a nine-second
+ * store detail. On timeout the fetch aborts and throws, which the BFF treats as
+ * "service down" and answers from the seed. Reads only: a write that times out
+ * might have applied upstream, so it must not silently fall back.
+ */
+const READ_TIMEOUT_MS = 5000;
+
 async function getJson<T>(
   path: string,
   schema: z.ZodType<T>,
@@ -101,6 +111,7 @@ async function getJson<T>(
   const res = await fetch(`${BASE}${path}`, {
     cache: "no-store",
     headers: await callerHeaders(),
+    signal: AbortSignal.timeout(READ_TIMEOUT_MS),
   });
   if (!res.ok) throw new OperatorApiError(res.status);
   return schema.parse(await res.json());

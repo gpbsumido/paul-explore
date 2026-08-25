@@ -9,6 +9,8 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-fantasy-playoffs", date: "Aug 24, 2026", title: "Playoff teams, the reliable half" },
+  { id: "update-cards", date: "Aug 24, 2026", title: "Cards you can read at a glance" },
   { id: "update-opener", date: "Aug 24, 2026", title: "Ripping packs, Pokémon-Pocket style" },
   { id: "update-economy", date: "Aug 23, 2026", title: "An economy: wallets, packs, and a collection" },
   { id: "update-boosts", date: "Aug 22, 2026", title: "Rarity boosts for the moments that mattered" },
@@ -252,6 +254,56 @@ export default function FantasyTcgContent() {
         </p>
       </Update>
 
+      <Update
+        id="update-cards"
+        date="Aug 24, 2026"
+        title="Cards you can read at a glance"
+      >
+        <p>
+          Three small asks that added up to a real cleanup. Rarity was a little
+          pill in the corner — easy to miss, and it leaned on colour. Now every
+          card wears a bold band with the tier spelled out (<C>SIR</C>,{" "}
+          <C>Rare</C>…), coloured to match, with a border and glow that grow for
+          the rarer pulls, so a good card announces itself. The points moved up
+          front, and the collection shows them too.
+        </p>
+        <p>
+          The bigger win was collapsing three near-identical card renders — the
+          Card Lab grid, the collection, the pack reveal — into one{" "}
+          <C>FantasyCard</C>, so rarity reads the same everywhere and there&rsquo;s
+          one place to change it. And every page that shows cards now shares the
+          same controls: rarity filter chips and a points/rarity/name sort, the
+          sort itself a tiny pure function that&rsquo;s trivial to test.
+        </p>
+      </Update>
+
+      <Update
+        id="update-fantasy-playoffs"
+        date="Aug 24, 2026"
+        title="Playoff teams, the reliable half"
+      >
+        <p>
+          I&rsquo;d wired the fantasy playoff/finals boost through the engine but
+          left the basketball side unsourced, because the obvious source
+          doesn&rsquo;t hold up. I wanted &ldquo;this night was a fantasy playoff
+          game&rdquo; per week, but the league&rsquo;s schedule view doesn&rsquo;t
+          map a matchup period to real game dates, and <C>rankFinal</C> comes back{" "}
+          <C>0</C> — so there&rsquo;s no dependable champion or per-week playoff
+          signal to read.
+        </p>
+        <p>
+          What <em>is</em> dependable is the final seeding: each team&rsquo;s{" "}
+          <C>playoffSeed</C> against the league&rsquo;s <C>playoffTeamCount</C>.
+          So the boost keys off the honest thing the data actually knows — did
+          your fantasy team make the playoffs — derived once from the roster
+          fetch I already make, and applied to every card that team rosters. I
+          kept it to a single tier, distinct from the NFL per-week result, so a
+          season-long attribute nudges rarity without flooding the pool with
+          SIRs. It&rsquo;s the reliable half of the idea, shipped, instead of the
+          whole idea faked.
+        </p>
+      </Update>
+
       <WhatsNext
         nowShipped={[
           "A pure, relative-rarity engine with a boost layer and a weighted pack draw, fully tested against synthetic pools.",
@@ -259,13 +311,13 @@ export default function FantasyTcgContent() {
           "An economy — coin wallet, daily claim, server-drawn pack ripping, and a collection — front end and API both built.",
         ]}
         couldImprove={[
-          "The NFL fantasy win/playoff/finals boost ships; the basketball side needs a reliable date-to-matchup mapping, which this league's data doesn't cleanly give.",
+          "Basketball gets a season-level playoff-team boost from the final seeding; the finer per-week win/finals signal still needs a date-to-matchup mapping this league's data doesn't cleanly give.",
           "Card art is a generic headshot; the photo from that exact game the concept really wants isn't sourced yet.",
           "A packed slate fans out into many box-score fetches; fine with caching, but a single feed would be cheaper.",
         ]}
         upcoming={[
           "Deploy the economy API and verify the earn-buy-rip-collect loop end to end.",
-          "Feed the basketball fantasy-matchup boost once there's a dependable date-to-scoring-period source.",
+          "Sharpen the basketball fantasy boost to per-week playoff/finals once there's a dependable date-to-scoring-period source.",
         ]}
       />
     </ThoughtLayout>

@@ -70,6 +70,14 @@ function sendVital(metric: MetricType, page: string) {
  *
  * INP and CLS are genuinely scoped to the view the user is on now, so those
  * keep reading the ref and follow client-side navigations.
+ *
+ * There is one more trap in the load group. A page that loaded in the
+ * background — a tab opened behind others, a prerender — renders when the
+ * browser gets around to it, not when the user asked, so its LCP/FCP/TTFB can
+ * be minutes, timings nobody actually waited through. Those are what dragged
+ * the dashboard's P75 into the Poor band. So load metrics are only sent when
+ * the page was visible at load; CLS and INP are interaction-scoped and sent
+ * regardless.
  */
 export default function WebVitalsReporter() {
   const pathname = usePathname();
@@ -84,10 +92,14 @@ export default function WebVitalsReporter() {
     const host = window.location.hostname;
     if (host === "localhost" || host === "127.0.0.1") return;
 
-    // captured once, at registration — the page this document load is for
+    // captured once, at registration — the page this document load is for, and
+    // whether that load was in the foreground
     const loadPage = pathnameRef.current;
+    const loadedVisible = document.visibilityState === "visible";
 
-    const reportLoad = (metric: MetricType) => sendVital(metric, loadPage);
+    const reportLoad = (metric: MetricType) => {
+      if (loadedVisible) sendVital(metric, loadPage);
+    };
     const reportInteraction = (metric: MetricType) =>
       sendVital(metric, pathnameRef.current);
 

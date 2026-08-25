@@ -152,6 +152,17 @@ describe("performancesFromBoxscore", () => {
     expect(perfs[0].rosteredBy).toBe("Team Paul");
   });
 
+  it("marks players on a fantasy playoff team", () => {
+    const perfs = performancesFromBoxscore(summary(), {
+      sport: "nba",
+      date: "2026-04-17",
+      roster: new Map([[111, "Team Paul"], [113, "Team Rival"]]),
+      playoffTeamIds: new Set([111]),
+    });
+    expect(perfs.find((p) => p.playerId === 111)?.fantasyPlayoffTeam).toBe(true);
+    expect(perfs.find((p) => p.playerId === 113)?.fantasyPlayoffTeam).toBeUndefined();
+  });
+
   it("keeps every player and stamps no team when no roster is given (WNBA)", () => {
     const perfs = performancesFromBoxscore(summary(), { sport: "wnba", date: "2026-08-19" });
     expect(perfs.map((p) => p.playerId).sort()).toEqual([111, 113]);

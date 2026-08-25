@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { ACCENT_BAND } from "@/lib/accentBand";
-import { RARITY_META, type GeneratedCard } from "@/lib/fantasy-cards";
+import { type GeneratedCard } from "@/lib/fantasy-cards";
+import FantasyCard from "./FantasyCard";
 
 /** Cosmetic pack designs to spin through — the pull is the same either way. */
 const PACKS = [
@@ -21,48 +22,6 @@ const TEAR_THRESHOLD = 90;
 
 function packStyle(pack: (typeof PACKS)[number]): React.CSSProperties {
   return { background: `linear-gradient(150deg, ${pack.a}, ${pack.b})` };
-}
-
-/** One revealed card: headshot with an initials fallback, rarity-framed. */
-function RevealCard({ card }: { card: GeneratedCard }) {
-  const [broken, setBroken] = useState(false);
-  const initials = card.playerName
-    .split(" ")
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("");
-  const meta = RARITY_META[card.rarity];
-  return (
-    <div
-      className="w-full overflow-hidden rounded-xl border-2 bg-surface"
-      style={{ borderColor: meta.color }}
-    >
-      <div className="aspect-[2.5/3.5] w-full overflow-hidden bg-background">
-        {broken ? (
-          <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-muted" aria-hidden>
-            {initials}
-          </div>
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element -- ESPN CDN base URL
-          <img
-            src={card.imageUrl}
-            alt={`${card.playerName} headshot`}
-            className="h-full w-full object-cover"
-            onError={() => setBroken(true)}
-          />
-        )}
-      </div>
-      <div className="flex items-center justify-between gap-2 p-2">
-        <span
-          className="rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase"
-          style={{ color: meta.color, borderColor: meta.color }}
-        >
-          {meta.label}
-        </span>
-        <span className="truncate text-[11px] font-semibold text-foreground">{card.playerName}</span>
-      </div>
-    </div>
-  );
 }
 
 /**
@@ -186,7 +145,7 @@ export default function PackOpener({
                   animate={{ opacity: 1, rotateY: 0, y: 0 }}
                   transition={{ delay: reduced ? 0 : i * 0.18, type: "spring", stiffness: 220, damping: 20 }}
                 >
-                  <RevealCard card={card} />
+                  <FantasyCard card={card} />
                 </m.li>
               ))}
             </AnimatePresence>
