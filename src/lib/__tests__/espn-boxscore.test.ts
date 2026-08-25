@@ -90,17 +90,28 @@ describe("latestCompletedSlate", () => {
     })),
   });
 
-  it("picks the most recent date with completed games and its event ids", () => {
+  it("picks the most recent US game date with completed games and its event ids", () => {
+    // All times UTC. An evening tip the same day and one just past midnight UTC
+    // are the same game night in US local time, which is the day a fan means.
     const slate = latestCompletedSlate(
       sb([
-        { id: "a", date: "2026-04-16T23:00Z", state: "post" },
-        { id: "b", date: "2026-04-17T23:00Z", state: "post" },
-        { id: "c", date: "2026-04-17T01:30Z", state: "post" },
-        { id: "d", date: "2026-04-18T23:00Z", state: "pre" },
+        { id: "a", date: "2026-04-16T23:00Z", state: "post" }, // Apr 16 US
+        { id: "b", date: "2026-04-17T23:00Z", state: "post" }, // Apr 17 US
+        { id: "c", date: "2026-04-18T00:30Z", state: "post" }, // Apr 17 US evening
+        { id: "d", date: "2026-04-19T23:00Z", state: "pre" },
       ]),
     );
     expect(slate?.date).toBe("2026-04-17");
     expect(slate?.eventIds.sort()).toEqual(["b", "c"]);
+  });
+
+  it("dates a late game by its US evening, not the UTC next day", () => {
+    // An 8:30pm Central tip in Minnesota is 01:30Z the next calendar day, but
+    // it's tonight's game — the US local date, not tomorrow's.
+    const slate = latestCompletedSlate(
+      sb([{ id: "min", date: "2026-08-25T01:30Z", state: "post" }]),
+    );
+    expect(slate?.date).toBe("2026-08-24");
   });
 
   it("returns null when no game has finished", () => {

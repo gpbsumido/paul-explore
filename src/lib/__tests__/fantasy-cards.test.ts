@@ -256,6 +256,36 @@ describe("rarity boosts", () => {
     expect(card.rarity).toBe("sir");
   });
 
+  it("with a rare boost ceiling, boosts can't mint an SIR from a low line", () => {
+    // A quiet game stacked with boosts tops out at rare when a ceiling is set —
+    // SIR is reserved for a genuine top line, so a nightly slate stays scarce.
+    const card = low(
+      generateCards(boosted({ fantasyResult: "finals" }), { boostCeiling: "rare" }),
+    );
+    expect(card.rarity).toBe("rare");
+  });
+
+  it("a boost ceiling never pulls down a base-tier SIR", () => {
+    // playerId 5 tops the pool, so its base tier is SIR; the ceiling only caps
+    // what boosts add, it doesn't demote a line that earned SIR on its own.
+    const top = generateCards(boosted({}), { boostCeiling: "rare" }).find(
+      (c) => c.playerId === 5,
+    );
+    expect(top?.rarity).toBe("sir");
+  });
+
+  it("caps how many cards may hold a tier, dropping the lowest scorers", () => {
+    // Five finals lines all boost to SIR; a cap of two keeps the top two by
+    // points and demotes the rest to rare.
+    const finalsPool = [10, 20, 30, 40, 50].map((p, i) =>
+      perf({ playerId: i + 1, playerName: `P${i + 1}`, points: p, fantasyResult: "finals" }),
+    );
+    const cards = generateCards(finalsPool, { caps: { sir: 2 } });
+    const sirs = cards.filter((c) => c.rarity === "sir");
+    expect(sirs.map((c) => c.points)).toEqual([50, 40]);
+    expect(cards.filter((c) => c.rarity === "rare")).toHaveLength(3);
+  });
+
   it("does not boost a zero or negative outing", () => {
     const cards = generateCards([
       { playerId: 1, playerName: "DNP", points: 0, periodId: "2026-04-17", sport: "nba", wonGame: true, fantasyResult: "finals" },

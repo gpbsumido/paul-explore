@@ -5,6 +5,8 @@ import CollectionContent from "./CollectionContent";
 
 vi.mock("@/components/PageHeader", () => ({ default: () => null }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/fantasy/nba/cards/collection" }));
+// Reduced motion: the card's count-up points render their final value at once.
+vi.mock("@/app/providers", () => ({ useHubReducedMotion: () => true }));
 
 const res = (status: number, body: unknown) => ({ status, ok: status < 400, json: async () => body });
 

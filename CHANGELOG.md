@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-24 - version 5.12.1
+
+- **Nightly slates stay scarce.** A whole roster winning a playoff game was minting a wall of SIRs — the boosts stacked every top-ish line into gold. Now a nightly slate caps SIR at 2 (usually one, sometimes none) and holds rares to a slice of the slate, and a boost can lift a card up to rare but no further: SIR is reserved for a genuine top-of-the-night line, not something boosts hand out. The banding is unchanged everywhere else (season, packs); the caps and the boost ceiling are opt-in and only the nightly path passes them.
+- **Nightly cards show the night they were played, not the UTC day after.** A game that tipped in the evening reads as the next day in UTC, so an Aug 24 slate was labelled Aug 25. ESPN gives no venue timezone, but every US game's local calendar day equals its US/Pacific day, so the slate now groups and dates by Pacific — the westmost US zone — and a game in any US timezone lands on the right day.
+- **Cards in a row match height.** The new `Spotlight` shell wrapped the card in a div with no height of its own, so a card with fewer chips came out shorter than its neighbours; it fills its grid cell now, and the footer takes up the slack.
+
+## 2026-08-24 - version 5.12.0
+
+- **The fantasy cards come alive.** Every card now carries its own living backdrop instead of a flat surface: a rarity-tinted glass with a cursor-following glow (`SpotlightCard`), and a per-card layer of drifting `GradientMesh` and/or seeded `BlobBackground` — the treatment and its palette are picked from a hash of the card, so each looks distinct but a given card looks the same every render. The points count up as a big jersey-style overlay (`AnimatedNumber`), the boosts render as `Chip`s and the owned-count as a `Badge`, and on hover the card tilts in 3D to face the pointer (a new `TiltCard`, the rotating cousin of `MagneticButton`). Every effect is decorative and reduced-motion aware — the tilt, glow, mesh drift and count-up all stop under `prefers-reduced-motion` — and the text sits above a scrim so it keeps its contrast. One shared `FantasyCard`, so the Card Lab, the collection, and the pack reveal all get it at once.
+
 ## 2026-08-24 - version 5.11.2
 
 - **Operator reads no longer hang on a slow backend.** The operator dashboard reads through a cross-service fetch that had no timeout, so a hung or unreachable upstream stalled the request for as long as it took to fail — one likely cause of a nine-second store-detail load. Reads now carry a 5s abort deadline; on timeout the fetch throws, which the BFF already treats as "service down" and answers from the in-memory seed, so the page degrades to seed data instead of hanging. Writes keep no timeout on purpose: a write that timed out might have applied upstream, and falling back would make it look like it worked while persisting nothing.

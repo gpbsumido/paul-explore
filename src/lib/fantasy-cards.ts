@@ -235,7 +235,24 @@ function boostRarity(base: Rarity, tiers: number): Rarity {
   return RARITY_TIERS[i];
 }
 
-function toCard(performance: PlayerPerformance, baseRarity: Rarity): GeneratedCard {
+/**
+ * The boosted rarity, but never lifted past `ceiling` unless the base tier was
+ * already higher. Keeps SIR as something a top line earns on its own: with a
+ * "rare" ceiling a stack of boosts tops out at rare, while a base-SIR line
+ * stays SIR. No ceiling means boosts run all the way up, the original behaviour.
+ */
+function boostedRarity(base: Rarity, tiers: number, ceiling?: Rarity): Rarity {
+  const boosted = boostRarity(base, tiers);
+  if (!ceiling) return boosted;
+  const limit = Math.max(RARITY_TIERS.indexOf(ceiling), RARITY_TIERS.indexOf(base));
+  return RARITY_TIERS[Math.min(RARITY_TIERS.indexOf(boosted), limit)];
+}
+
+function toCard(
+  performance: PlayerPerformance,
+  baseRarity: Rarity,
+  boostCeiling?: Rarity,
+): GeneratedCard {
   const { tiers, labels } = boostsFor(performance);
   return {
     id: `${performance.sport}-${performance.playerId}-${performance.periodId}`,
@@ -244,7 +261,7 @@ function toCard(performance: PlayerPerformance, baseRarity: Rarity): GeneratedCa
     points: performance.points,
     periodId: performance.periodId,
     sport: performance.sport,
-    rarity: boostRarity(baseRarity, tiers),
+    rarity: boostedRarity(baseRarity, tiers, boostCeiling),
     title: `${performance.playerName} · ${Math.round(performance.points)} PTS`,
     subtitle: subtitleFor(performance),
     imageUrl: headshotUrl(performance.sport, performance.playerId),
@@ -255,24 +272,73 @@ function toCard(performance: PlayerPerformance, baseRarity: Rarity): GeneratedCa
   };
 }
 
+const DEMOTE: Record<Rarity, Rarity> = {
+  sir: "rare",
+  rare: "uncommon",
+  uncommon: "common",
+  common: "common",
+};
+
+/**
+ * Hold each rarity to a per-slate maximum, demoting the lowest-scoring extras a
+ * tier at a time. Cards arrive highest-scoring first, so the ones that keep a
+ * tier are its top performers. This is how a nightly slate stays scarce — a
+ * whole roster winning a playoff game shouldn't mint a wall of SIRs.
+ */
+function applyCaps(
+  cards: readonly GeneratedCard[],
+  caps: Partial<Record<Rarity, number>>,
+): GeneratedCard[] {
+  const counts: Partial<Record<Rarity, number>> = {};
+  return cards.map((card) => {
+    let rarity = card.rarity;
+    while (
+      rarity !== "common" &&
+      caps[rarity] !== undefined &&
+      (counts[rarity] ?? 0) >= (caps[rarity] as number)
+    ) {
+      rarity = DEMOTE[rarity];
+    }
+    counts[rarity] = (counts[rarity] ?? 0) + 1;
+    return rarity === card.rarity ? card : { ...card, rarity };
+  });
+}
+
+/** How to shape a generated pool: cap top tiers, and how high boosts may reach. */
+export type GenerateOptions = {
+  /** Maximum cards allowed at each rarity; lowest-scoring extras drop a tier. */
+  caps?: Partial<Record<Rarity, number>>;
+  /** The highest tier a boost may reach; a base-tier SIR is never pulled down. */
+  boostCeiling?: Rarity;
+};
+
 /**
  * Turn a pool of performances into cards, rarity assigned by how each player
  * did relative to the rest of the pool. Cards come back rarest performance
  * first. Tied performances get the same rarity, and an empty pool yields none.
+ * With no options the banding is untouched; a nightly slate passes caps and a
+ * boost ceiling to keep the top tiers scarce.
  */
 export function generateCards(
   performances: readonly PlayerPerformance[],
+  { caps, boostCeiling }: GenerateOptions = {},
 ): GeneratedCard[] {
   const poolSize = performances.length;
   if (poolSize === 0) return [];
 
   const allPoints = performances.map((p) => p.points);
 
-  return performances
+  const cards = performances
     .map((performance) => {
       const below = allPoints.filter((x) => x < performance.points).length;
       const percentile = poolSize > 1 ? below / (poolSize - 1) : 1;
-      return toCard(performance, rarityFor(performance.points, percentile, poolSize));
+      return toCard(
+        performance,
+        rarityFor(performance.points, percentile, poolSize),
+        boostCeiling,
+      );
     })
     .sort((a, b) => b.points - a.points || a.playerId - b.playerId);
+
+  return caps ? applyCaps(cards, caps) : cards;
 }

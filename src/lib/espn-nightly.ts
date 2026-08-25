@@ -85,7 +85,13 @@ async function slateToCards(
   const performances = summaries.flatMap((s) =>
     s ? performancesFromBoxscore(s, { sport, date, roster, playoffTeamIds }) : [],
   );
-  return generateCards(performances);
+  // A single night is scarce: at most a couple of SIRs (a base-tier top line,
+  // not a whole roster boosted into gold), and rares held to a slice of the
+  // slate. Boosts still lift a card, but only a genuine top performance is SIR.
+  return generateCards(performances, {
+    boostCeiling: "rare",
+    caps: { sir: 2, rare: Math.max(3, Math.ceil(performances.length * 0.15)) },
+  });
 }
 
 /** The season id to read a sport's league roster from. */

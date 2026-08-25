@@ -9,6 +9,8 @@ import {
 
 /** Dated continuations, newest first — the feature grew a lot after the first cut. */
 const UPDATES: UpdateEntry[] = [
+  { id: "update-scarcity", date: "Aug 24, 2026", title: "Making a night feel scarce" },
+  { id: "update-living-cards", date: "Aug 24, 2026", title: "Cards that come alive" },
   { id: "update-fantasy-playoffs", date: "Aug 24, 2026", title: "Playoff teams, the reliable half" },
   { id: "update-cards", date: "Aug 24, 2026", title: "Cards you can read at a glance" },
   { id: "update-opener", date: "Aug 24, 2026", title: "Ripping packs, Pokémon-Pocket style" },
@@ -251,6 +253,68 @@ export default function FantasyTcgContent() {
           are already yours by then, so nothing is lost by fast-forwarding. Pack
           art draws from the in-band accent palette, so the design guard stays
           happy.
+        </p>
+      </Update>
+
+      <Update
+        id="update-scarcity"
+        date="Aug 24, 2026"
+        title="Making a night feel scarce"
+      >
+        <p>
+          Once the cards looked good I noticed a night could mint four SIRs, which
+          makes gold mean nothing. The cause was the boosts: on a playoff night
+          every rostered player picks up a <em>Playoffs</em> boost, the winners a{" "}
+          <em>Won</em> on top, and a whole roster stacked its way into gold. So a
+          nightly slate is scarce on purpose now — SIR is capped at two (usually
+          one, sometimes none), rares are held to a slice of the slate, and a
+          boost can lift a card as far as rare but no further. SIR is something a
+          top-of-the-night line earns on its own, not something the boosts hand
+          out. The banding is untouched everywhere else; the caps and that boost
+          ceiling are opt-in, and only the nightly path asks for them.
+        </p>
+        <p>
+          Two smaller things from the same look. A game that tips in the evening
+          reads as the <em>next</em> day in UTC, so an Aug 24 slate was labelled
+          Aug 25. ESPN hands over no venue timezone, only a UTC stamp — but every
+          US game&rsquo;s local day is its Pacific day (the westmost US zone, and
+          nothing tips early enough to fall behind it), so the slate dates by
+          Pacific and a game in any US zone lands on the right day. And the
+          cursor-glow shell wrapped each card in a div
+          with no height, so a card with fewer chips came out shorter than its
+          neighbours; it fills its grid cell now and the footer takes the slack,
+          so a row lines up.
+        </p>
+      </Update>
+
+      <Update
+        id="update-living-cards"
+        date="Aug 24, 2026"
+        title="Cards that come alive"
+      >
+        <p>
+          The cards read well but sat flat, so I gave each one a life of its own.
+          Every card now has a backdrop nobody else has: a rarity-tinted glass
+          surface with a glow that follows the cursor, and behind it a drifting{" "}
+          <C>GradientMesh</C> and/or a seeded <C>BlobBackground</C> — the ESPN
+          headshots are transparent cutouts, so the colour shows around the
+          player. Which treatment and which palette a card gets is hashed from
+          the card itself, so it&rsquo;s unique but stable: the same card draws
+          the same backdrop every render, server and client alike, which also
+          keeps hydration quiet.
+        </p>
+        <p>
+          The points count up as a big jersey-style number over the photo
+          (<C>AnimatedNumber</C>), the boosts became <C>Chip</C>s and the
+          owned-count a <C>Badge</C>, and on hover the whole card tilts in 3D to
+          face the pointer. That last one is a new <C>TiltCard</C> — the rotating
+          cousin of the <C>MagneticButton</C> I already had, motion values and a
+          spring so a pointer move never re-renders the card. The thing I was
+          careful about is that none of it is load-bearing: the tilt, the glow,
+          the mesh drift and the count-up all stop under reduced motion, the
+          backdrops are <C>aria-hidden</C>, and the copy sits over a scrim so it
+          keeps its contrast. It&rsquo;s one shared <C>FantasyCard</C>, so the
+          Card Lab, the collection and the pack reveal all came alive at once.
         </p>
       </Update>
 
