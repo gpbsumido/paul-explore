@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Badge } from "@paul-portfolio/react";
 import { RARITY_META, type Rarity } from "@/lib/fantasy-cards";
 import TiltCard from "@/components/motion/TiltCard";
-import SpotlightCard from "@/components/motion/SpotlightCard";
 import GradientMesh from "@/components/motion/GradientMesh";
 import BlobBackground from "@/components/motion/BlobBackground";
 import AnimatedNumber from "@/components/motion/AnimatedNumber";
@@ -100,16 +99,19 @@ export default function FantasyCard({ card }: { card: FantasyCardData }) {
 
   return (
     <TiltCard className="h-full">
-      <SpotlightCard
-        accent={meta.color}
-        size={260}
-        className="fantasy-card-spotlight block h-full !rounded-xl border-0"
+      {/* The article is the grid cell's filler (h-full straight through), so a
+          row's cards always match height. It carries the glass surface itself,
+          tinted toward the rarity via --glass-accent, rather than nesting inside
+          a Spotlight wrapper whose inner content div broke the height chain. */}
+      <article
+        className="glass-card relative flex h-full flex-col overflow-hidden rounded-xl border-2"
+        style={{
+          borderColor: meta.color,
+          boxShadow: glow(card.rarity, meta.color),
+          ["--glass-accent" as string]: meta.color,
+        }}
+        aria-label={`${card.playerName}, ${points} points, ${meta.label}${owned ? `, ${owned} copies` : ""}`}
       >
-        <article
-          className="relative flex h-full flex-col overflow-hidden rounded-xl border-2"
-          style={{ borderColor: meta.color, boxShadow: glow(card.rarity, meta.color) }}
-          aria-label={`${card.playerName}, ${points} points, ${meta.label}${owned ? `, ${owned} copies` : ""}`}
-        >
           <Backdrop backdrop={backdrop} />
 
           {/* Content sits above the backdrop; the scrim keeps text readable. */}
@@ -163,8 +165,7 @@ export default function FantasyCard({ card }: { card: FantasyCardData }) {
               ) : null}
             </div>
           </div>
-        </article>
-      </SpotlightCard>
+      </article>
     </TiltCard>
   );
 }
