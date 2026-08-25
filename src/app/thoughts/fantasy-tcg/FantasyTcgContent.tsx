@@ -280,10 +280,16 @@ export default function FantasyTcgContent() {
           US game&rsquo;s local day is its Pacific day (the westmost US zone, and
           nothing tips early enough to fall behind it), so the slate dates by
           Pacific and a game in any US zone lands on the right day. And the
-          cursor-glow shell wrapped each card in a div
-          with no height, so a card with fewer chips came out shorter than its
-          neighbours; it fills its grid cell now and the footer takes the slack,
-          so a row lines up.
+          cards in a row didn&rsquo;t line up: the cursor-glow shell wrapped each
+          one in an inner div with no height, which broke the fill so a card with
+          fewer chips came out shorter. I patched it with CSS and thought it was
+          done &mdash; it worked in dev and silently failed in the production
+          build, which is its own lesson about verifying the artifact and not the
+          dev server. The honest fix was to stop nesting inside that wrapper: the
+          card&rsquo;s own element is the grid cell&rsquo;s filler now and carries
+          the frosted glass itself, so a row always matches. The trade is the
+          cursor glow, which lived in that wrapper; the backdrops, tilt and
+          animated points stay.
         </p>
       </Update>
 
