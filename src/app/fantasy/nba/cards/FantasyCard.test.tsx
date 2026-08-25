@@ -1,6 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import FantasyCard from "./FantasyCard";
+
+// Reduced motion makes the count-up points render their final value at once,
+// the same way AnimatedNumber's own test pins it, so the figure is assertable.
+vi.mock("@/app/providers", () => ({ useHubReducedMotion: () => true }));
 
 describe("FantasyCard", () => {
   it("spells out the rarity, shows the points, and the player image", () => {
