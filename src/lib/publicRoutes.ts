@@ -103,6 +103,7 @@ export const PUBLIC_ROUTES: readonly string[] = [
   "/thoughts/hybrid-rendering",
   "/thoughts/improvements",
   "/thoughts/ketsup",
+  "/thoughts/draft-lab",
   "/thoughts/landing-page",
   "/thoughts/learn",
   "/thoughts/login-redirect",

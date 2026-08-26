@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-26 - version 5.13.0
+
+- **A write-up for Draft Lab, the ESPN draft-room extension.** New thoughts page covering how it's built (vanilla ES modules, MV3, a shadow-DOM overlay, a pure tested draft engine), the bugs the full-draft simulation caught (keepers draftable by other teams, AI rosters finishing without a kicker), and the scraping lessons — innerText vs textContent on ESPN's whitespace-free markup, virtualized lists, and making every failure self-diagnosing in the overlay. The project lives in its own repo; this is the story.
+
 ## 2026-08-25 - version 5.12.2
 
 - **Cards in a row are the same height again — for real this time.** The living-cards `SpotlightCard` shell wrapped each card in an internal `spotlight__content` div with no height, which broke the `h-full` chain: a card with fewer chips came out shorter than its neighbours. An earlier CSS patch fixed it in dev but silently failed in the production build. The reliable fix is to stop nesting inside that wrapper — the card's `<article>` is now the grid cell's filler directly and carries the frosted-glass surface itself (tinted toward the rarity via `--glass-accent`), so a row's cards always match. Verified on a production build: every card in a mixed-rarity row measures identically. The trade is the cursor-following glow, which came from that wrapper and is gone; the mesh/blob backdrops, 3D tilt, animated points, rarity border and glow all stay.

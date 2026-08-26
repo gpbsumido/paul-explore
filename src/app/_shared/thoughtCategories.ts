@@ -23,6 +23,7 @@ const CATEGORIES: { name: string; slugs: string[] }[] = [
       "operator-dashboard",
       "work-portfolio",
       "ketsup",
+      "draft-lab",
       "ai-agent-patterns",
       "mac-menu-bar",
       "craft",
