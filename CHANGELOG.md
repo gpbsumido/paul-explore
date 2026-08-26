@@ -2,7 +2,7 @@
 
 ## 2026-08-26 - version 5.13.1
 
-- **The Draft Lab write-up gets its first dated update.** A day of live-fire practice drafts added tiers (auto plus persistent per-player overrides), My-Rankings blending, a tier-supply grid, and an auto-keeper LM mode — and surfaced two id-shaped bugs worth recording: ESPN's Players rows masquerading as pick history (QUEUE ingested as a team name), and keeper assignments breaking across projection-source switches because every source uses a different player-id scheme. Plus the honest limit: an extension cannot stop ESPN's autopick from sniping a keeper; only the native Keepers tab locks players.
+- **The Draft Lab write-up gets its first dated update.** A day of live-fire practice drafts added tiers (auto plus persistent per-player overrides), My-Rankings blending, a tier-supply grid, and an auto-keeper LM mode — and surfaced two id-shaped bugs worth recording: ESPN's Players rows masquerading as pick history (QUEUE ingested as a team name), and keeper assignments breaking across projection-source switches because every source uses a different player-id scheme. Plus the honest limit: an extension cannot stop ESPN's autopick from sniping a keeper; only the native Keepers tab locks players. Later the same day: the grades feature exposed the AI drafting bench depth over starters, so the whole engine moved to marginal-lineup scoring, with personal position caps and tier-cliff urgency feeding recommendations.
 
 ## 2026-08-26 - version 5.13.0
 

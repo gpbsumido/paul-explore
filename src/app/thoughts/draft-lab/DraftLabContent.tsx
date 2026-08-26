@@ -242,6 +242,21 @@ export default function DraftLabContent() {
           overlay now says so, loudly, when a keeper gets taken before their
           slot.
         </p>
+        <p>
+          The grades feature then indicted the AI itself. A full simulation
+          gave my team the league&apos;s highest TOTAL points and its
+          tenth-best STARTING lineup — the fingerprint of drafting by raw
+          value: bench depth at stacked positions instead of starters. The
+          engine now scores every candidate by marginal lineup value (what
+          they add to the lineup I can actually field), &quot;my&quot; picks
+          in simulations come from the recommendation engine rather than the
+          generic AI, personal caps let me refuse a third QB or second TE
+          outright, and my tier board — overrides included — feeds an urgency
+          bump when a pick is the last of its tier likely to survive to my
+          next turn. Across a twelve-draft benchmark the recommendation-driven
+          team now averages second or third in starter points instead of
+          bottom-third.
+        </p>
       </Update>
       <WhatsNext
         nowShipped={[
