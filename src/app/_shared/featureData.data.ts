@@ -289,6 +289,13 @@ export const THOUGHTS: ThoughtItem[] = [
     color: "#c95594",
   },
   {
+    title: "Draft Lab",
+    href: "/thoughts/draft-lab",
+    preview:
+      "A Firefox extension living inside the ESPN draft room: pick sync, tier supply, keepers, and live recommendations",
+    color: "#4a8f5c",
+  },
+  {
     title: "API Hardening",
     href: "/thoughts/improvements",
     preview:
