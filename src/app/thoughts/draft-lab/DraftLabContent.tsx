@@ -1,5 +1,9 @@
 import ThoughtLayout from "@/app/thoughts/ThoughtLayout";
-import { WhatsNext } from "@/app/thoughts/_shared/ThoughtUpdates";
+import {
+  Update,
+  UpdateTimeline,
+  WhatsNext,
+} from "@/app/thoughts/_shared/ThoughtUpdates";
 import { Sent, Received, Timestamp } from "@/lib/threads";
 import styles from "@/app/thoughts/_shared/chat.module.css";
 
@@ -139,6 +143,15 @@ export default function DraftLabContent() {
         </main>
       }
     >
+      <UpdateTimeline
+        entries={[
+          {
+            id: "update-2026-08-26-live-fire",
+            date: "Aug 26, 2026",
+            title: "A day of live-fire mocks: tiers, rankings, and two id bugs",
+          },
+        ]}
+      />
       <section>
         <h2 className="mb-3 text-lg font-bold">The stack, on purpose</h2>
         <p className="text-muted">
@@ -190,12 +203,53 @@ export default function DraftLabContent() {
         </p>
       </section>
 
+      <Update
+        id="update-2026-08-26-live-fire"
+        date="August 26, 2026"
+        title="A day of live-fire mocks: tiers, rankings, and two id bugs"
+      >
+        <p>
+          Running the extension against back-to-back practice drafts grew it
+          fast. The overlay now carries a tier system — players auto-tiered
+          from projection gaps over the full pool so tier identity survives
+          the draft, editable per player from a Tiers tab (overrides persist
+          across drafts), rendered as a ruled grid of left/total per position
+          with my own fill against the roster caps. Recommendations blend my
+          ESPN &quot;My Rankings&quot;, harvested straight off the page when
+          that sort is active, and a tier outlook replaced the useless
+          &quot;most teams still need an RB&quot; trend with expected
+          survivors per tier by my next pick.
+        </p>
+        <p>
+          The bugs were better than the features. ESPN&apos;s Players list and
+          Pick History rows collapse to nearly identical text, so the pick
+          parser ingested ranking rows as picks — rank numbers became pick
+          numbers and the QUEUE button text overwrote real team names. The
+          guard is embarrassingly simple: a &quot;team&quot; called QUEUE is a
+          button, not a franchise. Separately, keepers stopped being respected
+          after switching projection sources, because keeper assignments
+          stored player ids and every source uses a different id scheme — the
+          reservation pointed at nobody, so the AI happily drafted a keeper
+          three rounds early. Keepers now carry names and re-resolve against
+          whatever pool is loaded.
+        </p>
+        <p>
+          One honest limit surfaced too: an auto-keeper mode that makes League
+          Manager picks in ESPN&apos;s own UI works when it gets the clock,
+          but it cannot stop ESPN&apos;s autopick from sniping a
+          keeper-designated player early — the reservation only exists in the
+          extension. The reliable lock is ESPN&apos;s native Keepers tab; the
+          overlay now says so, loudly, when a keeper gets taken before their
+          slot.
+        </p>
+      </Update>
       <WhatsNext
         nowShipped={[
           "A Firefox MV3 extension in its own repo: practice drafts against configurable AI opponents, a live companion overlay in the ESPN draft room, keeper reservation, editable tiers with a supply grid, personal-rankings blending, and recommendations with survival odds — all under my league's exact scoring.",
         ]}
         couldImprove={[
           "The scrapers are still pattern-matching an unversioned page; ESPN can break them silently on any deploy. The diagnostics make breakage visible, not impossible.",
+          "Auto-keeper cannot beat ESPN\u2019s autopick to a sniped player; the native Keepers tab is the real lock and the extension can only warn.",
           "The AI opponents draft by need and ADP but never trade up their tendencies mid-draft the way a human reacting to a run would.",
           "Temporary add-on installs unload on every Firefox restart; it should get signed for a permanent install before next season.",
         ]}
